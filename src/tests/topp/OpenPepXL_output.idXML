@@ -19,7 +19,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-05-31T11:37:22" search_engine="OpenXQuest" search_engine_version="2.1.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-05-31T15:46:26" search_engine="OpenXQuest" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -55,11 +55,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.51358783729074"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="13.0872685590974"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="22.4387984745239"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="41.8708171728029"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="5.38073125240161"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="6.48912734149116"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="24.8957279168372"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="20.6880230120828"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -82,11 +82,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.51358783729074"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="13.0872685590974"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="22.4387984745239"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="41.8708171728029"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="5.38073125240161"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="6.48912734149116"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="24.8957279168372"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="20.6880230120828"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -115,11 +115,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.51358783729074"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.808939451714"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="23.5591339262547"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="41.8708171728029"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="5.38073125240161"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="6.48912734149116"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="24.8957279168372"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="20.6880230120828"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -142,11 +142,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.51358783729074"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.808939451714"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="23.5591339262547"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="41.8708171728029"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="5.38073125240161"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="6.48912734149116"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="24.8957279168372"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="20.6880230120828"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -175,11 +175,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.81047549051542"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="8.74900626483028"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.9479209003274"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="33.6972846209485"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="2.89853246630369"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="3.90219280234676"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="18.9044896418716"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="12.6613998774389"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -202,11 +202,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.81047549051542"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="8.74900626483028"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.9479209003274"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="33.6972846209485"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="2.89853246630369"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="3.90219280234676"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="18.9044896418716"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="12.6613998774389"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -235,11 +235,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.24307376521432"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="10.7267964846518"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.6754060335916"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="41.8708171728029"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="2.89853246630369"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="6.48912734149116"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="18.9044896418716"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="16.7529506838498"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -262,11 +262,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.24307376521432"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="10.7267964846518"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.6754060335916"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="41.8708171728029"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="2.89853246630369"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="6.48912734149116"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="18.9044896418716"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="16.7529506838498"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -296,10 +296,10 @@
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0.23977528047815"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0.548184382600935"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0.0333370818811343"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -323,10 +323,10 @@
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0.23977528047815"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0.548184382600935"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0.0333370818811343"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -354,10 +354,10 @@
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.99091414238751"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="1.15484966639739"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0.243475988399463"/>
 				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0.243475988399463"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -386,11 +386,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="6.43794591908544"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.65323541899987"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="12.6295877869546"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="26.1463159195024"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="4.75928805717545"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="20.1991642360576"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="6.66389290185094"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="21.1797022338959"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -413,11 +413,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="6.43794591908544"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.65323541899987"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="12.6295877869546"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="26.1463159195024"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="4.75928805717545"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="20.1991642360576"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="6.66389290185094"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="21.1797022338959"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -446,11 +446,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="8.64960496953687"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="6.25740310956051"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.7031399984613"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="26.1463159195024"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="10.6059067982798"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="26.4769376739423"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="10.3248361974197"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="26.1897468614336"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -473,11 +473,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="8.64960496953687"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="6.25740310956051"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="19.7031399984613"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="26.1463159195024"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="10.6059067982798"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="26.4769376739423"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="10.3248361974197"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="26.1897468614336"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -506,11 +506,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="12.866017170325"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="6.22243131450051"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="26.1913060026206"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="41.8708171728029"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="23.4404681425268"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="48.6557075953"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="16.5061671675601"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="56.8642635840998"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -533,11 +533,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="12.866017170325"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="6.22243131450051"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="26.1913060026206"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="41.8708171728029"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="23.4404681425268"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="48.6557075953"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="16.5061671675601"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="56.8642635840998"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -566,11 +566,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="12.866017170325"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.7168321462213"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="33.4241767521521"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="41.8708171728029"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="24.3505264328364"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="48.6557075953"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="25.5442428875509"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="56.8642635840998"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -593,11 +593,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="12.866017170325"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.7168321462213"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="33.4241767521521"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="41.8708171728029"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="24.3505264328364"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="48.6557075953"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="25.5442428875509"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="56.8642635840998"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -624,11 +624,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="12.7101139810948"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="12.7101139810948"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="36.2842690091617"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="12.3826102532538"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="27.0350337222969"/>
 				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="27.0350337222969"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
@@ -655,11 +655,11 @@
 				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="17.1160865924937"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
 				<UserParam type="float" name="OpenPepXL:HyperBoth" value="17.1160865924937"/>
-				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="27.7665361333293"/>
+				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="22.802657934872"/>
+				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="33.5480738768484"/>
 				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="33.5480738768484"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>

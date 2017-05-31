@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_17876486934271562208"
-	creationDate="2017-05-31T11:37:22">
+	creationDate="2017-05-31T15:46:26">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,12 +12,12 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.1.0" name="OpenXQuest" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="2.2.0" name="OpenXQuest" id="SOF_5233264595117471314">
 		<SoftwareName>
 			<cvParam accession="MS:1002673" cvRef="PSI-MS" name="OpenXQuest"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v2.1.0" name="TOPP software" id="SOF_9949257177078866781">
+	<AnalysisSoftware version="OpenMS TOPP v2.2.0" name="TOPP software" id="SOF_9949257177078866781">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -191,7 +191,7 @@
 	<PeptideEvidence id="PEV_8195437834883133454" peptide_ref="PEP_7061025990090747374" dBSequence_ref="PROT_13440783915218733453" post="Y" pre="R" start="67" end="76" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-05-31T11:37:22">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-05-31T15:46:26">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -322,11 +322,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.7101139810948"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="12.7101139810948"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="36.2842690091617"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="12.3826102532538"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="27.0350337222969"/>
 					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="27.0350337222969"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2129.23608398438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -376,11 +376,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.7101139810948"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="12.7101139810948"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="36.2842690091617"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="12.3826102532538"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="27.0350337222969"/>
 					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="27.0350337222969"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2110.98901367188" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -425,11 +425,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.7168321462213"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="33.4241767521521"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="24.3505264328364"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="48.6557075953"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="25.5442428875509"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="56.8642635840998"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.47583007812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -472,11 +472,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.7168321462213"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="33.4241767521521"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="24.3505264328364"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="48.6557075953"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="25.5442428875509"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="56.8642635840998"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2125.5966796875" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -496,11 +496,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.7168321462213"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="33.4241767521521"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="24.3505264328364"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="48.6557075953"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="25.5442428875509"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="56.8642635840998"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.47583007812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -520,11 +520,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.7168321462213"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="33.4241767521521"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="24.3505264328364"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="48.6557075953"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="25.5442428875509"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="56.8642635840998"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2125.5966796875" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -583,11 +583,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.22243131450051"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="26.1913060026206"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="23.4404681425268"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="48.6557075953"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="16.5061671675601"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="56.8642635840998"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.47583007812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -644,11 +644,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.22243131450051"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="26.1913060026206"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="23.4404681425268"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="48.6557075953"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="16.5061671675601"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="56.8642635840998"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2089.55322265625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -668,11 +668,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.22243131450051"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="26.1913060026206"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="23.4404681425268"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="48.6557075953"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="16.5061671675601"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="56.8642635840998"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.47583007812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -692,11 +692,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.22243131450051"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="26.1913060026206"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="23.4404681425268"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="48.6557075953"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="16.5061671675601"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="56.8642635840998"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2089.55322265625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -741,11 +741,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.24307376521432"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="10.7267964846518"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.6754060335916"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="2.89853246630369"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="18.9044896418716"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="16.7529506838498"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.78686523438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -788,11 +788,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.24307376521432"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="10.7267964846518"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.6754060335916"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="2.89853246630369"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="18.9044896418716"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="16.7529506838498"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2128.08715820312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -812,11 +812,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.24307376521432"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="10.7267964846518"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.6754060335916"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="2.89853246630369"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="18.9044896418716"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="16.7529506838498"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.78686523438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -836,11 +836,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.24307376521432"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="10.7267964846518"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.6754060335916"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="2.89853246630369"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="18.9044896418716"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="16.7529506838498"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2128.08715820312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -885,11 +885,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.81047549051542"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="8.74900626483028"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.9479209003274"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="33.6972846209485"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="2.89853246630369"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="3.90219280234676"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="18.9044896418716"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="12.6613998774389"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.78686523438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -932,11 +932,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.81047549051542"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="8.74900626483028"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.9479209003274"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="33.6972846209485"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="2.89853246630369"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="3.90219280234676"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="18.9044896418716"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="12.6613998774389"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2096.1025390625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -956,11 +956,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.81047549051542"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="8.74900626483028"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.9479209003274"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="33.6972846209485"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="2.89853246630369"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="3.90219280234676"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="18.9044896418716"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="12.6613998774389"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.78686523438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -980,11 +980,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.81047549051542"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="8.74900626483028"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.9479209003274"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="33.6972846209485"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="2.89853246630369"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="3.90219280234676"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="18.9044896418716"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="12.6613998774389"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2096.1025390625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1036,11 +1036,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="17.1160865924937"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="17.1160865924937"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="27.7665361333293"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="22.802657934872"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="33.5480738768484"/>
 					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="33.5480738768484"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2228.50292963107" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1090,11 +1090,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="17.1160865924937"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="17.1160865924937"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="27.7665361333293"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="22.802657934872"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="33.5480738768484"/>
 					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="33.5480738768484"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2221.23388666232" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1146,11 +1146,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="8.64960496953687"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.25740310956051"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.7031399984613"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="26.1463159195024"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="10.6059067982798"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="26.4769376739423"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="10.3248361974197"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="26.1897468614336"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.65356445312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1200,11 +1200,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="8.64960496953687"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.25740310956051"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.7031399984613"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="26.1463159195024"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="10.6059067982798"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="26.4769376739423"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="10.3248361974197"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="26.1897468614336"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2125.5966796875" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1224,11 +1224,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="8.64960496953687"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.25740310956051"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.7031399984613"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="26.1463159195024"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="10.6059067982798"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="26.4769376739423"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="10.3248361974197"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="26.1897468614336"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.65356445312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1248,11 +1248,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="8.64960496953687"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="6.25740310956051"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.7031399984613"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="26.1463159195024"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="10.6059067982798"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="26.4769376739423"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="10.3248361974197"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="26.1897468614336"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2125.5966796875" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1304,11 +1304,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.43794591908544"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.65323541899987"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="12.6295877869546"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="26.1463159195024"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="4.75928805717545"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="20.1991642360576"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="6.66389290185094"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="21.1797022338959"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.65356445312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1358,11 +1358,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.43794591908544"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.65323541899987"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="12.6295877869546"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="26.1463159195024"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="4.75928805717545"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="20.1991642360576"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="6.66389290185094"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="21.1797022338959"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2089.55322265625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1382,11 +1382,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.43794591908544"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.65323541899987"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="12.6295877869546"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="26.1463159195024"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="4.75928805717545"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="20.1991642360576"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="6.66389290185094"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="21.1797022338959"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.65356445312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1406,11 +1406,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.43794591908544"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.65323541899987"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="12.6295877869546"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="26.1463159195024"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="4.75928805717545"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="20.1991642360576"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="6.66389290185094"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="21.1797022338959"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2089.55322265625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1455,11 +1455,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.808939451714"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="23.5591339262547"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="5.38073125240161"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="24.8957279168372"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="20.6880230120828"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2101.32348632812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1502,11 +1502,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.808939451714"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="23.5591339262547"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="5.38073125240161"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="24.8957279168372"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="20.6880230120828"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2128.08715820312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1526,11 +1526,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.808939451714"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="23.5591339262547"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="5.38073125240161"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="24.8957279168372"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="20.6880230120828"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2101.32348632812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1550,11 +1550,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.808939451714"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="23.5591339262547"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="5.38073125240161"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="24.8957279168372"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="20.6880230120828"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2128.08715820312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1599,11 +1599,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="13.0872685590974"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="22.4387984745239"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="5.38073125240161"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="24.8957279168372"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="20.6880230120828"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2101.32348632812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1646,11 +1646,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="13.0872685590974"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="22.4387984745239"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="5.38073125240161"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="24.8957279168372"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="20.6880230120828"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2096.1025390625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1670,11 +1670,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="13.0872685590974"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="22.4387984745239"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="5.38073125240161"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="24.8957279168372"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="20.6880230120828"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2101.32348632812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1694,11 +1694,11 @@
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="13.0872685590974"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="22.4387984745239"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="41.8708171728029"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="5.38073125240161"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="6.48912734149116"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="24.8957279168372"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="20.6880230120828"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2096.1025390625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1730,10 +1730,10 @@
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0.23977528047815"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0.548184382600935"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0.0333370818811343"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2120.05249023438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1763,10 +1763,10 @@
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0.23977528047815"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0.548184382600935"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0.0333370818811343"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2099.09545898438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1787,10 +1787,10 @@
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0.23977528047815"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0.548184382600935"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0.0333370818811343"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2120.05249023438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1811,10 +1811,10 @@
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0.23977528047815"/>
 					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0.548184382600935"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0.0333370818811343"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2099.09545898438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1844,10 +1844,10 @@
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="2.99091414238751"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="1.15484966639739"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0.243475988399463"/>
 					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0.243475988399463"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2120.05249023438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1877,10 +1877,10 @@
 					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="2.99091414238751"/>
 					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="1.15484966639739"/>
+					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0.243475988399463"/>
 					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0.243475988399463"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2099.09545898438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
