@@ -375,6 +375,7 @@ set(chemistry_executables_list
   ResidueDB_test
   ResidueModification_test
   Residue_test
+  SpectrumAnnotator_test
   SvmTheoreticalSpectrumGenerator_test
   SvmTheoreticalSpectrumGeneratorTrainer_test
   SvmTheoreticalSpectrumGeneratorSet_test
