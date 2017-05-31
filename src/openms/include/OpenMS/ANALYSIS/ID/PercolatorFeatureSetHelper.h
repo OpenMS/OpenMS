@@ -47,6 +47,9 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/lexical_cast.hpp>
 

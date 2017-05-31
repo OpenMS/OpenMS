@@ -113,7 +113,7 @@ protected:
   {
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
-    registerOutputFile_("out", "<file>", StringList(), "Output file in mzid or idXML format", true);
+    registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
     setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));
     registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
     // setValidStrings_("extra", ?);
@@ -282,7 +282,7 @@ protected:
     }
     
     // Storing the PeptideHits with calculated q-value, pep and svm score
-    FileTypes::Type out_type = fh.getType(out);
+    FileTypes::Type out_type = FileHandler::getType(out);
     LOG_INFO << "writing output file: " << out << endl;
     if (out_type == FileTypes::IDXML)
     {
