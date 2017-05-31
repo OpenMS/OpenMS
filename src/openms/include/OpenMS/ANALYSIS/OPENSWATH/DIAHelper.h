@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Witold Wolski, Hannes Roest $
+// $Maintainer: Hannes Roest $
 // $Authors: Witold Wolski, Hannes Roest $
 // --------------------------------------------------------------------------
 
