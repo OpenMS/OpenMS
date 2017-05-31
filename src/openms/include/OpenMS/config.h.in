@@ -86,7 +86,6 @@
 
 #ifdef WIN32   //should be true on: MinGW (32bit + 64bit) & MSVS compiler
 #define OPENMS_WINDOWSPLATFORM 1
-#define NOMINMAX
 #endif
 
 // are we building a shared lib?
