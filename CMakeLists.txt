@@ -230,7 +230,7 @@ include (${PROJECT_SOURCE_DIR}/cmake/build_system_macros.cmake)
 include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
 # .. and some to ease preparing the documentation builds
 include (${PROJECT_SOURCE_DIR}/cmake/doc_macros.cmake)
-# .. and some to ease the installation proces
+# .. and some to ease the installation process
 include (${PROJECT_SOURCE_DIR}/cmake/add_library_macros.cmake)
 # .. and some to ease the export process
 include (${PROJECT_SOURCE_DIR}/cmake/export_macros.cmake)
