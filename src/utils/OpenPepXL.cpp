@@ -562,9 +562,9 @@ protected:
     progresslogger.endProgress();
 
     // for PScore, precompute ranks
-//    vector<vector<Size> > rankMap_common = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_common_peaks);
-//    vector<vector<Size> > rankMap_xlink = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_xlink_peaks);
-//    vector<vector<Size> > rankMap_all = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_all_peaks);
+    vector<vector<Size> > rankMap_common = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_common_peaks);
+    vector<vector<Size> > rankMap_xlink = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_xlink_peaks);
+    vector<vector<Size> > rankMap_all = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_all_peaks);
 
     // one identification run
     vector<ProteinIdentification> protein_ids(1);
@@ -967,13 +967,13 @@ protected:
           if (common_peaks.size() > 0)
           {
             csm.HyperCommon = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, common_peaks, theoretical_spec_common);
-//            map<Size, PeakSpectrum> peak_level_spectra_common = PScore::calculatePeakLevelSpectra(common_peaks, rankMap_common[pair_index]);
-//            csm.PScoreCommon = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_common, theoretical_spec_common);
+            map<Size, PeakSpectrum> peak_level_spectra_common = PScore::calculatePeakLevelSpectra(common_peaks, rankMap_common[pair_index]);
+            csm.PScoreCommon = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_common, theoretical_spec_common);
           }
           else
           {
             csm.HyperCommon = 0;
-//            csm.PScoreCommon = 0;
+            csm.PScoreCommon = 0;
           }
 
           csm.HyperAlpha = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_peaks, theoretical_spec_alpha);
@@ -990,25 +990,25 @@ protected:
           if (xlink_peaks.size() > 0)
           {
             csm.HyperXlink = HyperScore::compute(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, xlink_peaks, theoretical_spec_xlinks);
-//            map<Size, PeakSpectrum> peak_level_spectra_xlinks = PScore::calculatePeakLevelSpectra(xlink_peaks, rankMap_xlink[pair_index]);
-//            csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_xlinks, theoretical_spec_xlinks);
+            map<Size, PeakSpectrum> peak_level_spectra_xlinks = PScore::calculatePeakLevelSpectra(xlink_peaks, rankMap_xlink[pair_index]);
+            csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_xlinks, theoretical_spec_xlinks);
           } else
           {
             csm.HyperXlink = 0;
-//            csm.PScoreXlink = 0;
+            csm.PScoreXlink = 0;
           }
           csm.HyperBoth = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_peaks, theoretical_spec);
-//          map<Size, PeakSpectrum> peak_level_spectra_all = PScore::calculatePeakLevelSpectra(all_peaks, rankMap_all[pair_index]);
-//          csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec);
-//          csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_alpha);
-//          csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_beta);
+          map<Size, PeakSpectrum> peak_level_spectra_all = PScore::calculatePeakLevelSpectra(all_peaks, rankMap_all[pair_index]);
+          csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec);
+          csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_alpha);
+          csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_beta);
 
           // These fields are not written yet, so at lest avoid random values by initializing to 0
-          csm.PScoreCommon = 0;
-          csm.PScoreXlink = 0;
-          csm.PScoreBoth = 0;
-          csm.PScoreAlpha = 0;
-          csm.PScoreBeta = 0;
+//          csm.PScoreCommon = 0;
+//          csm.PScoreXlink = 0;
+//          csm.PScoreBoth = 0;
+//          csm.PScoreAlpha = 0;
+//          csm.PScoreBeta = 0;
 
 //          csm.HyperCommon = 0;
 //          csm.HyperAlpha = 0;
