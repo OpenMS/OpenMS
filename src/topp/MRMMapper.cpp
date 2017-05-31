@@ -169,6 +169,13 @@ protected:
               " -> " + String(chromatogram.getProduct().getMZ()) +  \
                 "! Maybe try to decrease your mapping tolerance.");
           }
+          else if (mapped_already )
+          {
+            std::cerr <<  "Already mapped chromatogram " + String(i) + \
+                " with " + String(chromatogram.getPrecursor().getMZ()) + \
+                " -> " + String(chromatogram.getProduct().getMZ()) +  \
+                "! Maybe try to decrease your mapping tolerance.";
+          }
           mapped_already = true;
 
           // Create precursor and set the peptide sequence
