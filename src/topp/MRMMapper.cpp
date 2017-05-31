@@ -155,7 +155,7 @@ protected:
 
       if (chromatogram.getPrecursor().getMZ() == 0.0 && chromatogram.getProduct().getMZ() == 0.0)
       {
-        std::cout << "Skip mapping for chromatogram " + String(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
+        LOG_WARN << "Skip mapping for chromatogram " + String(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
         continue;
       }
 
@@ -203,7 +203,7 @@ protected:
       // ensure: map every chromatogram to at least one transition
       if (!mapped_already)
       {
-        std::cerr << "Did not find a mapping for chromatogram " + String(i) + " with transition " + String(chromatogram.getPrecursor().getMZ()) + \
+        LOG_ERROR << "Did not find a mapping for chromatogram " + String(i) + " with transition " + String(chromatogram.getPrecursor().getMZ()) + \
           " -> " + String(chromatogram.getProduct().getMZ()) +  "! Maybe try to increase your mapping tolerance." << std::endl;
         notmapped++;
         if (!nostrict)
