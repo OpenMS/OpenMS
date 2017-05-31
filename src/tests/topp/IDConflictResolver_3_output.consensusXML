@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////Users/pfeuffer/git/OpenMS-fixes-src/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.7" id="cm_6888843767287282833" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2017-04-21T15:32:16">
 		<software name="FeatureLinkerUnlabeledQT" version="2.1.0" />
@@ -35,8 +35,8 @@
 	<IdentificationRun id="PI_0" date="2017-04-21T12:59:33" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 		</ProteinIdentification>
@@ -44,8 +44,8 @@
 	<IdentificationRun id="PI_1" date="2017-04-21T12:59:35" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="VIMSS14219" score="0.963503658771515" sequence="">
@@ -81,8 +81,8 @@
 	<IdentificationRun id="PI_2" date="2017-04-21T12:59:36" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_7" accession="VIMSS15616" score="0.911347508430481" sequence="">
@@ -94,8 +94,8 @@
 	<IdentificationRun id="PI_3" date="2017-04-21T14:12:05" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 		</ProteinIdentification>
@@ -103,8 +103,8 @@
 	<IdentificationRun id="PI_4" date="2017-04-21T14:12:06" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_8" accession="VIMSS15616" score="0.911347508430481" sequence="">
@@ -116,8 +116,8 @@
 	<IdentificationRun id="PI_5" date="2017-04-21T14:12:07" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_9" accession="VIMSS14219" score="0.963503658771515" sequence="">
@@ -153,8 +153,8 @@
 	<IdentificationRun id="PI_6" date="2017-04-21T12:59:33" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 		</ProteinIdentification>
@@ -162,8 +162,8 @@
 	<IdentificationRun id="PI_7" date="2017-04-21T12:59:35" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_16" accession="VIMSS14219" score="0.963503658771515" sequence="">
@@ -199,8 +199,8 @@
 	<IdentificationRun id="PI_8" date="2017-04-21T12:59:36" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_23" accession="VIMSS15616" score="0.911347508430481" sequence="">
@@ -212,8 +212,8 @@
 	<IdentificationRun id="PI_9" date="2017-04-21T14:12:05" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 		</ProteinIdentification>
@@ -221,8 +221,8 @@
 	<IdentificationRun id="PI_10" date="2017-04-21T14:12:06" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_24" accession="VIMSS15616" score="0.911347508430481" sequence="">
@@ -234,8 +234,8 @@
 	<IdentificationRun id="PI_11" date="2017-04-21T14:12:07" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_25" accession="VIMSS14219" score="0.963503658771515" sequence="">
@@ -271,8 +271,8 @@
 	<IdentificationRun id="PI_12" date="2017-04-21T12:59:33" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 		</ProteinIdentification>
@@ -280,8 +280,8 @@
 	<IdentificationRun id="PI_13" date="2017-04-21T12:59:35" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_32" accession="VIMSS14219" score="0.963503658771515" sequence="">
@@ -317,8 +317,8 @@
 	<IdentificationRun id="PI_14" date="2017-04-21T12:59:36" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_39" accession="VIMSS15616" score="0.911347508430481" sequence="">
@@ -330,8 +330,8 @@
 	<IdentificationRun id="PI_15" date="2017-04-21T14:12:05" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 		</ProteinIdentification>
@@ -339,8 +339,8 @@
 	<IdentificationRun id="PI_16" date="2017-04-21T14:12:06" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_40" accession="VIMSS15616" score="0.911347508430481" sequence="">
@@ -352,8 +352,8 @@
 	<IdentificationRun id="PI_17" date="2017-04-21T14:12:07" search_engine="XTandem" search_engine_version="">
 		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 			<VariableModification name="Acetyl (N-term)" />
-			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
-			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
 			<ProteinHit id="PH_41" accession="VIMSS14219" score="0.963503658771515" sequence="">
