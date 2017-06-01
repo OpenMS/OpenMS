@@ -572,7 +572,7 @@ namespace OpenMS
           msd_group.number_of_target = 0;
           msd_group.number_of_decoy = 0;
           msd_group.number_of_target_plus_decoy = 0;
-          traversProtein_(&*prot_node, msd_group);
+          traversProtein_(prot_node, msd_group);
           if (msd_group.peptides.size() > 0)
           {
             msd_groups.push_back(msd_group);
