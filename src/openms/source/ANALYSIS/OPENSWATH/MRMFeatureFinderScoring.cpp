@@ -401,6 +401,17 @@ namespace OpenMS
                                                 FeatureMap& output, 
                                                 bool ms1only)
   {
+    if (PeptideRefMap_.empty())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Error: Peptide reference map is empty, please call prepareProteinPeptideMaps_ first.");
+    }
+    if (transition_group.getTransitionGroupID().empty())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Error: Transition group id is empty, please set it.");
+    }
+
     MRMTransitionGroupType transition_group_detection, transition_group_identification, transition_group_identification_decoy;
     splitTransitionGroupsDetection_(transition_group, transition_group_detection);
     if (su_.use_uis_scores)
