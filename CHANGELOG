@@ -15,19 +15,19 @@ OpenMS 2.2 introduces a considerable number of new features and bug fixes.
 Notable changes since version 2.1 are:
 
 New tools:
-  - RNPxlSearch -- Annotate RNA to peptide crosslinks in MS/MS spectra. (UTIL)
-  - SpectraSTAdapter -- Spectra library search using SpectraST (experimental, only search supported)
-  - FeatureLinkerUnlabeledKD -- Feature linking using a KD tree
-  - DatabaseFilter
-  - SpectraSTSearchAdapter -- Spectral library search with SpectraST
+  - RNPxlSearch -- Annotate RNA to peptide crosslinks in MS/MS spectra (UTIL)
+  - SpectraSTSearchAdapter -- Interface to the SEARCH Mode of the SpectraST executable (UTIL)
+  - FeatureLinkerUnlabeledKD -- Feature linking using a KD tree (TOPP)
+  - DatabaseFilter -- Filters a protein database (FASTA format) based on identified proteins (UTIL)
   - TargetedFileConverter -- Conversion of multiple targeted file formats (CSV, TraML etc)
   
 Deprecated and removed tools:
-  - ITRAQAnalyzer
-  - TMTAnalyzer
+  - ITRAQAnalyzer -- Calculates iTRAQ quantitative values for peptides (TOPP)
+  - MapAlignmentEvaluation -- Evaluates alignment results against a ground truth (UTIL)
+  - TMTAnalyzer -- Calculates TMT quantitative values for peptides (TOPP)
   - ConvertTSVToTraML - see TargetedFileConverter now
   - ConvertTraMLToTSV - see TargetedFileConverter now
-  
+   
 Major changes in functionality:
   - OpenSwath Analysis
     - support for metabolomics workflows
