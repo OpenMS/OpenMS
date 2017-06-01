@@ -37,6 +37,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+
 using namespace OpenMS;
 using namespace std;
 
@@ -45,9 +46,9 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_DecoyDatabase DecoyDatabase
+  @page UTILS_DecoyDatabase DecoyDatabase
 
-    @brief Create a decoy peptide database from standard FASTA databases.
+  @brief Create a decoy peptide database from standard FASTA databases.
 
   Decoy databases are useful to control false discovery rates and thus estimate score cutoffs for identified spectra.
 
@@ -59,6 +60,11 @@ using namespace std;
   This allows you to specify your target database plus a contaminant file and obtain a concatenated
   target-decoy database using a single call, e.g., DecoyDatabase -in human.fasta crap.fasta -out human_TD.fasta
 
+  If a combined database is requested (default), i.e. @em only_decoy is not used), then Target and Decoy sequences
+  are written interleaved. You need all Targets before the Decoy for some reason, use @em only_decoy and concatenate the files
+  externally.
+
+  The tool will keep track of all identifiers and report duplicates.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_DecoyDatabase.cli
@@ -109,101 +115,72 @@ protected:
     String out(getStringOption_("out"));
     bool append = (!getFlag_("only_decoy"));
     bool shuffle = (getStringOption_("method") == "shuffle");
+    String decoy_string(getStringOption_("decoy_string"));
+    bool decoy_string_position_prefix = (String(getStringOption_("decoy_string_position")) == "prefix" ? true : false);
 
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-
-    vector<FASTAFile::FASTAEntry> proteins;
-    for (Size i=0; i<in.size(); ++i)
-    {
-      vector<FASTAFile::FASTAEntry> single_proteins;
-      // this is a little inefficient since it requires copying; appending during load() would be better...
-      FASTAFile().load(in[i], single_proteins);  
-      // append
-      proteins.insert(proteins.end(), single_proteins.begin(), single_proteins.end());
-    }
 
     if (in.size() == 1)
     {
       LOG_WARN << "Warning: Only one FASTA input file was provided, which might not contain contaminants. You probably want to have them! Just add the contaminant file to the input file list 'in'." << endl;
     }
 
-    //-------------------------------------------------------------
-    // calculations
-    //-------------------------------------------------------------
+    set<String> identifiers; // spot duplicate identifiers  // std::unordered_set<string> has slightly more RAM, but slightly less CPU
 
-    String decoy_string(getStringOption_("decoy_string"));
-    bool decoy_string_position_prefix =   (String(getStringOption_("decoy_string_position")) == "prefix" ? true : false);
-    Size num_proteins = proteins.size();
-    set<String> identifiers;
-    if (shuffle)
+    FASTAFile f;
+    f.writeStart(out);
+    FASTAFile::FASTAEntry protein;
+      
+    for (Size i = 0; i < in.size(); ++i)
     {
-      for (Size i = 0; i < num_proteins; ++i)
+      f.readStart(in[i]);  
+
+      //-------------------------------------------------------------
+      // calculations
+      //-------------------------------------------------------------
+      while (f.readNext(protein))
       {
-        if (identifiers.find(proteins[i].identifier) != identifiers.end())
+        if (identifiers.find(protein.identifier) != identifiers.end())
         {
-          LOG_WARN << "DecoyDatabase: Warning, identifier is not unique to sequence file: '" << proteins[i].identifier << "'!" << endl;
+          LOG_WARN << "DecoyDatabase: Warning, identifier '" << protein.identifier << "' occurs more than once!" << endl;
         }
-        identifiers.insert(proteins[i].identifier);
-
-        FASTAFile::FASTAEntry entry = proteins[i];
-
-        String pro_seq, temp;
-        pro_seq = entry.sequence;
-        Size x = pro_seq.size();
-        srand(time(0));
-        while (x != 0)
-        {
-          Size y = rand() % x;
-          temp += pro_seq[y];
-          pro_seq[y] = pro_seq[x - 1];
-          --x;
-        }
-        entry.sequence = temp;
+        identifiers.insert(protein.identifier);
 
         if (append)
         {
-          entry.identifier = getIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
-          proteins.push_back(entry);
+          f.writeNext(protein);
         }
-        else
+      
+        // identifier
+        protein.identifier = getIdentifier_(protein.identifier, decoy_string, decoy_string_position_prefix);
+      
+        // sequence
+        if (shuffle)
         {
-          proteins[i].sequence = entry.sequence;
-          proteins[i].identifier = getIdentifier_(proteins[i].identifier, decoy_string, decoy_string_position_prefix);
+          String temp;
+          Size x = protein.sequence.size();
+          srand(time(0));
+          while (x != 0)
+          {
+            Size y = rand() % x;
+            temp += protein.sequence[y];
+            --x;
+            protein.sequence[y] = protein.sequence[x]; // overwrite consumed position with last position (about to go out of scope for next dice roll)
+          }
         }
-      }
-    }
-    else         // !shuffle
-    {
-      for (Size i = 0; i < num_proteins; ++i)
-      {
-        if (identifiers.find(proteins[i].identifier) != identifiers.end())
+        else // reverse
         {
-          LOG_WARN << "DecoyDatabase: Warning, identifier is not unique to sequence file: '" << proteins[i].identifier << "'!" << endl;
+          protein.sequence.reverse();
         }
-        identifiers.insert(proteins[i].identifier);
-
-        if (append)
-        {
-          FASTAFile::FASTAEntry entry = proteins[i];
-          entry.sequence.reverse();
-          entry.identifier = getIdentifier_(entry.identifier, decoy_string, decoy_string_position_prefix);
-          proteins.push_back(entry);
-        }
-        else
-        {
-          proteins[i].sequence.reverse();
-          proteins[i].identifier = getIdentifier_(proteins[i].identifier, decoy_string, decoy_string_position_prefix);
-        }
-      }
-    }
-
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-
-    FASTAFile().store(out, proteins);
+        //-------------------------------------------------------------
+        // writing output
+        //-------------------------------------------------------------
+        f.writeNext(protein);
+      
+      } // next protein
+    } // input files
 
     return EXECUTION_OK;
   }
