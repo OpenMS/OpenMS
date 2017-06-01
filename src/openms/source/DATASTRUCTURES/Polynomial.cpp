@@ -34,10 +34,12 @@
 
 #include <OpenMS/DATASTRUCTURES/Polynomial.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <boost/utility.hpp>
 #include <iostream>
 #include <algorithm>
 #include <numeric>
 #include <functional>
+#include <iterator>
 
 using namespace std;
 
@@ -48,15 +50,43 @@ namespace OpenMS
     min_(min), max_(max), value(val)
   {
     value = min_;
+    
+  }
+
+  CounterSet::RangeCounter::RangeCounter(const CounterSet::RangeCounter& obj):
+    min_(obj.min()), max_(obj.max()), value(obj.getValue())
+  {
+    
+  }
+
+  UInt CounterSet::RangeCounter::operator+=(const UInt& num)
+  {
+    UInt diff = max_ - value;
+    if(num > diff)
+    {
+      value = max_;
+      return num - diff;
+    }
+    else
+    {
+      value = min_ + ((this->value - min_ + num) % (max_ + 1 - min_));
+      return 0;
+    }
   }
 
   CounterSet::RangeCounter& CounterSet::RangeCounter::operator++()
   {
-    value = min_ + (this->value + 1) % (max_ - min_);
+    value = min_ + ((this->value - min_ + 1) % (max_ + 1 - min_));
+    return *this;
+  }
+
+  CounterSet::RangeCounter& CounterSet::RangeCounter::operator--()
+  {
+    value = min_ + ((this->value - min_ - 1) % (max_ + 1 - min_));
     return *this;
   }
   
-  Size& CounterSet::RangeCounter::getValue()
+  Size& CounterSet::RangeCounter::getValue() const
   {
     return value;
   }
@@ -99,21 +129,47 @@ namespace OpenMS
   CounterSet::CounterSet(UInt n, vector<Range> ranges):N(n), initializer(this->counters)
   {
     transform(ranges.begin(), ranges.end(), back_inserter(range_counters), initializer);
+    count_it = range_counters.rend();
+    hasNext = true;
+    reset();
   }
 
   CounterSet::CounterSet(UInt n): N(n), initializer(this->counters)
   {
+    hasNext = true;
   }
+
 
   void CounterSet::reset()
   {
     for_each(range_counters.begin(), range_counters.end(), initializer);
     hasNext = true;
+    min_sum = accumulate(counters.begin(), counters.end(), 0);
+
+    for(Ranges::reverse_iterator it = range_counters.rbegin(); it != range_counters.rend(); ++it)
+    {
+      
+      RangeCounter& range = *it;
+      UInt remain = (range += (N - sum()));
+
+      if(remain == 0)
+      {
+        count_it = it;
+        break;
+      }
+    }
+
+
   }
   
   Size& CounterSet::operator[](const Size& index)
   {
       return counters[index];
+  }
+
+  UInt CounterSet::sum() const
+  {
+    return accumulate(counters.begin(), counters.end(), 0);
   }
 
   CounterSet& CounterSet::operator++()
@@ -124,34 +180,37 @@ namespace OpenMS
       return *this;
     }
 
-    for(Ranges::reverse_iterator it = range_counters.rbegin(); it != range_counters.rend(); ++it)
+    
+    for(Ranges::reverse_iterator it = range_counters.rbegin(); it != count_it; ++it)
     {
-      UInt sum = 0;
-      accumulate(counters.begin(), counters.end(), sum, plus<UInt>());
-      if(sum > this->N)
+      
+      RangeCounter& range = *it;
+      UInt remain = (range += (N - sum()));
+      
+
+      if(remain == 0)
       {
-        it->reset();
-        continue;
-      }
-      else if(sum < this->N)
-      {
-        ++(*it);
-        it = it == range_counters.rbegin() ? it : --it;
-      }
-      else
-      {
+        
+        count_it = it;
+        if(&range_counters.back() == &range || count_it->getValue() == maxAllowedValue(*it))
+        {
+          for(Ranges::reverse_iterator it2 = count_it; it2 != range_counters.rend(); ++it2)
+          {
+            if(count_it->getValue() < maxAllowedValue(*it2))
+            {
+              count_it = it2;
+              break;
+            }
+          }
+        }
         return *this;
       }
-      //if(!it->wasReset())
-      //{
-      //  return *this;
-      //}
+ 
     }
-    //hasNext=false;
     return *this;
   }
   
-  const CounterSet::ContainerType& CounterSet::getCounters()
+  const CounterSet::ContainerType& CounterSet::getCounters() const
   {
     return counters;
   }
@@ -168,14 +227,82 @@ namespace OpenMS
   
   void CounterSet::addCounter(Size min, Size max)
   {
+    //Add a dummy value, this will be changed to min at the constructor
     counters.push_back(0);
     range_counters.push_back(RangeCounter(min, max, counters.back()));
+    reset();
   }
   
 
-  const bool& CounterSet::notLast() const
+  const bool& CounterSet::notLast()
   {
+    finished();
     return hasNext;
+  }
+
+  void CounterSet::finished()
+  {
+
+    for(Ranges::reverse_iterator it = count_it; it != range_counters.rend(); ++it)
+    {
+      // TODO(Nikos) Optimize here maxAllowedValue as max
+      if(it->getValue() < maxAllowedValue(*it) && &range_counters.back() != &(*it))
+      {
+        ++(*it);
+        count_it = it;
+        for(Ranges::reverse_iterator it2 = range_counters.rbegin(); it2 != count_it; ++it2)
+        {
+          it2->reset();
+        }
+        
+        if(sum() > N)
+        {
+          if(boost::next(it) != range_counters.rend())
+          {
+            it->reset();
+            ++it;
+            ++(*it);
+            count_it = it;
+            if(sum() > N)
+            {
+              hasNext = false;
+            }
+          }
+          else
+          {
+            hasNext = false;
+          }
+          return;
+        }
+        else
+        {
+          return;
+        }
+      }
+    }
+   
+    hasNext = false;
+   
+  }
+
+  UInt CounterSet::maxAllowedValue(RangeCounter& counter) const
+  {
+    if(N < counter.max() + min_sum - counter.min())
+    {
+      return N - min_sum + counter.min();
+    }
+    else
+    {
+      return counter.max();
+    }
+  }
+  
+  void CounterSet::print(char* fn)
+  {
+    cout<<"@@---"<<fn<<endl;
+    copy(counters.begin(), counters.end(), ostream_iterator<UInt>(cout, " "));
+    cout << endl;
+    cout<<"@@--END"<<endl;
   }
 
 }

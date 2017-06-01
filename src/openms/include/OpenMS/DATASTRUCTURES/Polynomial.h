@@ -34,7 +34,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <vector>
-
+#include <deque>
 
 namespace OpenMS
 {
@@ -42,11 +42,11 @@ namespace OpenMS
 
   // TODO(Nikos) add openMP support
   // TODO(Nikos) add documentation
-  class CounterSet
+  class OPENMS_DLLAPI CounterSet
   {
   public:
     class RangeCounter;
-    typedef std::vector<Size> ContainerType;
+    typedef std::deque<Size> ContainerType;
     typedef std::vector<RangeCounter> Ranges;
     typedef ContainerType::reverse_iterator ReverseIterator;
     typedef ContainerType::iterator Iterator;
@@ -61,8 +61,11 @@ namespace OpenMS
 
    public:
       RangeCounter(Size min, Size max, Size& value);
+      RangeCounter(const RangeCounter& other);
       RangeCounter& operator++();
-      Size& getValue();
+      RangeCounter& operator--();
+      UInt operator+=(const UInt&);
+      Size& getValue() const;
       bool wasReset() const;
       void reset();
       const Size& min() const;
@@ -79,17 +82,24 @@ namespace OpenMS
     
     CounterSet(UInt, std::vector<Range>);
     CounterSet(UInt);
-    const ContainerType& getCounters();
+    const ContainerType& getCounters() const;
     Size& operator[](const Size& index);
     CounterSet& operator++();
     void addCounter(Size min, Size max);
     void reset();
     ConstIterator begin() const;
     ConstIterator end() const;
-    const bool& notLast() const;
+    const bool& notLast();
+    UInt sum() const;
   private:
     UInt N;
+    UInt min_sum;
     struct initCounter initializer;
+    Ranges::reverse_iterator count_it;
+    void finished();
+    UInt maxAllowedValue(RangeCounter&) const;
+    void print(char*);
+    //struct counterIterator generator;
     std::vector<RangeCounter> range_counters;
     ContainerType counters;
     bool hasNext;
