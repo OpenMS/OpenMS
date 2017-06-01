@@ -548,38 +548,34 @@ namespace OpenMS
     const IsotopeDistribution::ContainerType& isotope = p.getIsotopeDistribution().getContainer();
     CounterSet c(size);
     Polynomial pol;
-    // for(IsotopeDistribution::ConstIterator iso_it = isotope.begin(); iso_it != isotope.end(); ++iso_it)
-    // {
-    //   double prob = iso_it->second;
-    //   double expectation = size*prob;
-    //   double var = size*prob*(1-prob);
-    //   UInt U = expectation + (N*sqrt(1+var));
-    //   UInt B = expectation > (N*sqrt(1+var)) ? expectation -(N*sqrt(1+var)) : 0;
-    //   c.addCounter(B,U);
-    // }
+    for(IsotopeDistribution::ConstIterator iso_it = isotope.begin(); iso_it != isotope.end(); ++iso_it)
+    {
+      double prob = iso_it->second;
+      double expectation = size*prob;
+      double var = size*prob*(1-prob);
+      UInt U = expectation + (N*sqrt(1+var));
+      UInt B = expectation > (N*sqrt(1+var)) ? expectation -(N*sqrt(1+var)) : 0;
+      c.addCounter(B,U);
+    }
     
-    // pair<UInt,UInt> min_max = c.popLast();
-
-    // for(;c();++c)
-    // {
-    //   struct PMember member;
-    //   UInt s = 0;
-    //   //accumulate(c.begin(), c.end(), s, rc_sum()
+    for(CounterSet::ContainerType counters = c.getCounters(); c.hasNext(); ++c)
+    {
+      MIDAsPolynomialID::PMember member;
+      UInt s = 0;
      
-    //   double power = 0, prob = fact_ln(size);
-    //   UInt index = 0;
-    //   for(CounterSet::ConstIterator counter = c.begin(); counter != c.end(); ++c, ++index)
-    //   {
-    //     UInt isotope_count = counter->getValue();
-    //     s += isotope_count;
-    //     prob -= fact_ln(isotope_count);
-    //     prob += isotope_count*log(isotope[index].second);
-    //     power += isotope_count*isotope[index].first;
-    //     member.power = power;
-    //     member.probability = prob;
-    //   }
-    //   pol.push_back(member);
-    // }
+      double power = 0, prob = fact_ln(size);
+      UInt index = 0;
+      for(auto& isotope_count : counters)
+      {
+        s += isotope_count;
+        prob -= fact_ln(isotope_count);
+        prob += isotope_count*log(isotope[index].second);
+        power += isotope_count*isotope[index].first;
+        member.power = power;
+        member.probability = prob;
+      }
+      pol.push_back(member);
+    }
 
   }
 

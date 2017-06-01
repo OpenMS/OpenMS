@@ -33,78 +33,61 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <numeric>
 #include <vector>
 #include <deque>
 
 namespace OpenMS
 {
-  typedef std::pair<Size, Size> Range;
-
   // TODO(Nikos) add openMP support
   // TODO(Nikos) add documentation
   class OPENMS_DLLAPI CounterSet
   {
   public:
     class RangeCounter;
-    typedef std::deque<Size> ContainerType;
+    typedef std::deque<UInt> ContainerType;
     typedef std::vector<RangeCounter> Ranges;
-    typedef ContainerType::reverse_iterator ReverseIterator;
-    typedef ContainerType::iterator Iterator;
-    typedef ContainerType::const_iterator ConstIterator;
-    
+
     class RangeCounter
     {
    private:
-      Size min_;
-      Size max_;
-      Size& value;
+      UInt min_;
+      UInt max_;
+      UInt max_allowed_;
+      UInt& value;
 
    public:
-      RangeCounter(Size min, Size max, Size& value);
-      RangeCounter(const RangeCounter& other);
+      RangeCounter(UInt min, UInt max, UInt& value);
       RangeCounter& operator++();
-      RangeCounter& operator--();
       UInt operator+=(const UInt&);
-      Size& getValue() const;
-      bool wasReset() const;
-      void reset();
-      const Size& min() const;
-      const Size& max() const;
-    };
-
-    struct initCounter
-    {
-      ContainerType& container_;
-      initCounter(ContainerType&);
-      RangeCounter operator()(Range&);
-      void operator()(RangeCounter& c);
+      void setMaxAllowedValue(UInt);
+      inline UInt& getValue() const { return value; }
+      inline void reset() { value = min_; }
+      inline const UInt& min() const { return min_; }
+      inline const UInt& max() const { return max_; }
+      inline const UInt& maxAllowed() const { return max_allowed_; }
     };
     
-    CounterSet(UInt, std::vector<Range>);
     CounterSet(UInt);
-    const ContainerType& getCounters() const;
-    Size& operator[](const Size& index);
+    const ContainerType& getCounters() const {return counters;}
     CounterSet& operator++();
-    void addCounter(Size min, Size max);
+    void addCounter(UInt, UInt);
     void reset();
-    ConstIterator begin() const;
-    ConstIterator end() const;
-    const bool& notLast();
-    UInt sum() const;
+    inline UInt sum() const { return accumulate(counters.begin(), counters.end(), 0); }
+    const bool& hasNext() const { return has_next; }
+    void print(char*);
+  
   private:
     UInt N;
     UInt min_sum;
-    struct initCounter initializer;
-    Ranges::reverse_iterator count_it;
-    void finished();
-    UInt maxAllowedValue(RangeCounter&) const;
-    void print(char*);
-    //struct counterIterator generator;
     std::vector<RangeCounter> range_counters;
     ContainerType counters;
-    bool hasNext;
-    
-  };
+    bool has_next;
+    Ranges::reverse_iterator count_it;
 
+    void prepare();
+
+
+  };
 
 }

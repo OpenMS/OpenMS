@@ -56,7 +56,7 @@ START_TEST(Polynomial, "$Id$")
 
 using namespace OpenMS;
 using namespace std;
-const UInt N = 9;
+const UInt N = 11;
 CounterSet *ptr = 0;
 CounterSet *nullPointer = 0; 
 
@@ -73,18 +73,16 @@ END_SECTION
 START_SECTION((CounterSet& CounterSet::operator++()))
 {
   
-  ptr->addCounter(1,N);
-  ptr->addCounter(2,N);
-  ptr->addCounter(3,N);
+  ptr->addCounter(1,3);
+  ptr->addCounter(1,4);
+  ptr->addCounter(3,4);
+  ptr->addCounter(3, 5);
   
-  while(ptr->notLast())
+  for(const CounterSet::ContainerType& results = ptr->getCounters(); ptr->hasNext(); ++(*ptr))
   {
-    ++(*ptr);
-    const CounterSet::ContainerType& results = ptr->getCounters();
-    UInt sum = accumulate(results.begin(), results.end(), 0, plus<UInt>());
-    TEST_EQUAL(sum, N);
+    TEST_EQUAL(ptr->sum(), N);
     copy(results.begin(), results.end(), ostream_iterator<UInt>(cout, " "));
-    cout << endl;
+    cout << endl; 
   }
 
 }
