@@ -195,7 +195,20 @@ namespace OpenMS
     // score = sum_{k=n..N}(\choose{N}{k}p^k(1-p)^{N-k})
     for (Size k = n; k <= N; ++k)
     {
-      double coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
+      double coeff = 0;
+
+      try
+      {
+        coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
+      }
+      catch (std::overflow_error const& e)
+      {
+        // not sure if a warning is appropriate here, since if it happens, it will happen very often for the same spectrum and flood the stdout
+//        std::cout << "Warning: Binomial coefficient for AScore has overflowed! Setting value to the maximal double value." << std::endl;
+//        std::cout << "binomial_coefficient was called with N = " << N << " and k = " << k << std::endl;
+        coeff = std::numeric_limits<double>::max();
+      }
+
       double pow1 = pow((double)p, (int)k);
       double pow2 = pow(double(1 - p), double(N - k));
       
