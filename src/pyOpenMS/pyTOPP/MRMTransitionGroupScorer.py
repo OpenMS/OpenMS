@@ -3,7 +3,8 @@ import copy, sys
 import pyopenms
 
 def getTransitionGroup(exp, targeted, key, trgr_ids, chrom_map):
-    r = pyopenms.MRMTransitionGroupCP()
+    r = pyopenms.LightMRMTransitionGroupCP()
+    r.setTransitionGroupID(key)
     for tr in trgr_ids:
         transition = targeted.getTransitions()[tr]
         chrom_idx = chrom_map[ transition.getNativeID() ]
@@ -15,35 +16,32 @@ def getTransitionGroup(exp, targeted, key, trgr_ids, chrom_map):
     return r
 
 
-def algorithm(exp, targeted, picker):
+def algorithm(exp, targeted, picker, scorer):
 
     output = pyopenms.FeatureMap()
+    output2 = pyopenms.FeatureMap()
+
+    trafo = pyopenms.TransformationDescription()
+
+    scorer.prepareProteinPeptideMaps_(targeted)
 
     chrom_map = {}
     pepmap = {}
     trmap = {}
     for i, chrom in enumerate(exp.getChromatograms()):
         chrom_map[ chrom.getNativeID() ] = i
-    for i, pep in enumerate(targeted.getPeptides() ):
+    for i, pep in enumerate(targeted.getCompounds() ):
         pepmap[ pep.id ] = i
     for i, tr in enumerate(targeted.getTransitions() ):
         tmp = trmap.get( tr.getPeptideRef() , [])
         tmp.append( i )
         trmap[ tr.getPeptideRef() ] = tmp
 
+    swath_maps_dummy = []
     for key, value in trmap.iteritems():
-        print key, value
         transition_group = getTransitionGroup(exp, targeted, key, value, chrom_map)
         picker.pickTransitionGroup(transition_group);
-        for mrmfeature in transition_group.getFeatures():
-            features = mrmfeature.getFeatures()
-            for f in features:
-                # TODO
-                # f.getConvexHulls().clear()
-                f.ensureUniqueId()
-
-            mrmfeature.setSubordinates(features) # add all the subfeatures as subordinates
-            output.push_back(mrmfeature)
+        scorer.scorePeakgroups(transition_group, trafo, swath_maps_dummy, output, False);
 
     return output
 
@@ -61,14 +59,18 @@ def main(options):
     pp_params.setValue("PeakPickerMRM:method", options.method, '')
     pp.setParameters(pp_params);
 
+    scorer = pyopenms.MRMFeatureFinderScoring()
+
     chromatograms = pyopenms.MSExperiment()
     fh = pyopenms.FileHandler()
     fh.loadExperiment(chromat_in, chromatograms)
     targeted = pyopenms.TargetedExperiment();
     tramlfile = pyopenms.TraMLFile();
     tramlfile.load(traml_in, targeted);
-     
-    output = algorithm(chromatograms, targeted, pp)
+        
+    light_targeted = pyopenms.LightTargetedExperiment();
+    pyopenms.OpenSwathDataAccessHelper().convertTargetedExp(targeted, light_targeted)
+    output = algorithm(chromatograms, light_targeted, pp, scorer)
 
     pyopenms.FeatureXMLFile().store(out, output);
 
@@ -76,7 +78,7 @@ def handle_args():
     import argparse
 
     usage = "" 
-    usage += "\nMRMTransitionGroupPicker picks transition groups in measured chromatograms (mzML)"
+    usage += "\nMRMTransitionGroupScorer picks transition groups in measured chromatograms (mzML) and scores them"
 
     parser = argparse.ArgumentParser(description = usage )
     parser.add_argument('--in', dest="infile", help = 'An input file containing chromatograms')
