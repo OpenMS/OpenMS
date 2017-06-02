@@ -195,20 +195,18 @@ protected:
       // Go through all transitions
       for (Size i = 0; i < assay_map[id].size(); i++)
       {
-        const TransitionType* transition = assay_map[id][i];
-        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-        MSChromatogram<ChromatogramPeak> chromatogram_old;
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram_old);
-        MSChromatogram<> chromatogram;
 
-        // copy old to new chromatogram
-        for (MSChromatogram<ChromatogramPeak>::const_iterator it = chromatogram_old.begin(); it != chromatogram_old.end(); ++it)
+        // Check first whether we have a mapping (e.g. see -force option)
+        const TransitionType* transition = assay_map[id][i];
+        if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          ChromatogramPeak peak;
-          peak.setMZ(it->getRT());
-          peak.setIntensity(it->getIntensity());
-          chromatogram.push_back(peak);
+          LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
+          continue;
         }
+
+        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
+        MSChromatogram<ChromatogramPeak> chromatogram;
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram);
 
         chromatogram.setMetaValue("product_mz", transition->getProductMZ());
         chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
@@ -223,7 +221,7 @@ protected:
   };
 
   void run_(OpenSwath::SpectrumAccessPtr input,
-    FeatureMap & output, TargetedExpType& transition_exp)
+    FeatureMap & output, TargetedExpType& transition_exp, bool force)
   {
     MRMTransitionGroupPicker trgroup_picker;
     Param picker_param = getParam_().copy("algorithm:", true);
@@ -231,7 +229,7 @@ protected:
 
     MRMGroupMapper m;
     m.doMap(input, transition_exp);
-    if (!m.allAssaysHaveChromatograms() )
+    if (!m.allAssaysHaveChromatograms() && !force)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Not all assays could be mapped to chromatograms");
@@ -252,7 +250,17 @@ protected:
       // Add to output
       for (Size i = 0; i < transition_group.getFeatures().size(); i++)
       {
-        output.push_back(transition_group.getFeatures()[i]);
+        MRMFeature mrmfeature = transition_group.getFeatures()[i];
+        // Prepare the subordinates for the mrmfeature (process all current
+        // features and then append all precursor subordinate features)
+        std::vector<Feature> allFeatures = mrmfeature.getFeatures();
+        for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
+        {
+          f_it->getConvexHulls().clear();
+          f_it->ensureUniqueId();
+        }
+        mrmfeature.setSubordinates(allFeatures); // add all the subfeatures as subordinates
+        output.push_back(mrmfeature);
       }
     }
   }
@@ -263,6 +271,7 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String tr_file = getStringOption_("tr");
+    bool force = getFlag_("force");
 
     boost::shared_ptr<PeakMap > exp ( new PeakMap );
     MzMLFile mzmlfile;
@@ -274,7 +283,7 @@ protected:
 
     FeatureMap output;
     OpenSwath::SpectrumAccessPtr input = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-    run_(input, output, transition_exp);
+    run_(input, output, transition_exp, force);
 
     output.ensureUniqueId();
     output.setPrimaryMSRunPath(exp->getPrimaryMSRunPath());
