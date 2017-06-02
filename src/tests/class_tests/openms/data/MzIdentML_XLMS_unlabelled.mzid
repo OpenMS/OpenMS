@@ -57,7 +57,7 @@
 		</Modification> 
 	</Peptide> 
  	<Peptide id="PEP_16117466574459042045"> 
-		<PeptideSequence>LMVEMEKKLEK</PeptideSequence> 
+		<PeptideSequence>KMVEMEKKLEK</PeptideSequence> 
 		<Modification location="2" residues="M"> 
 			<cvParam accession="UNIMOD:35" name="Oxidation" cvRef="UNIMOD"/>
 		</Modification> 
