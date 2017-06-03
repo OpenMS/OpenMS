@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,16 +43,14 @@
 
 #include <boost/random/mersenne_twister.hpp>
 
-#include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
+#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-
-
 
 namespace OpenMS
 {
@@ -103,7 +101,7 @@ namespace OpenMS
     typedef std::vector<FeatureMapSim> FeatureMapSimVector;
 
     /// Sim MSExperiment type
-    typedef MSExperiment<SimPointType> MSSimExperiment;
+    typedef PeakMap MSSimExperiment;
 
     /**
       @brief Wrapper class for random number generators used by the simulation classes

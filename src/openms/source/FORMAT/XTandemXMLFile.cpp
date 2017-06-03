@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,15 +58,11 @@ namespace OpenMS
   {
   }
 
-  void XTandemXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet& rhs)
-  {
-    mod_def_set_ = rhs;
-  }
-
-  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids)
+  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids, ModificationDefinitionsSet& mod_def_set)
   {
     // File name for error message in XMLHandler
     file_ = filename;
+    mod_def_set_ = mod_def_set;
 
     // reset everything, in case "load" is called multiple times:
     is_protein_note_ = is_spectrum_note_ = false;
@@ -114,6 +110,9 @@ namespace OpenMS
     protein_identification.setIdentifier(identifier);
 
     // TODO search parameters are also available
+
+    // mods may be changed, copy them back:
+    mod_def_set = mod_def_set_;
   }
 
   void XTandemXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
@@ -192,7 +191,6 @@ namespace OpenMS
       }
 
       peptide_hits_[id].back().addPeptideEvidence(pe);
-
       return;
     }
 
@@ -229,6 +227,13 @@ namespace OpenMS
       {
         default_nterm_mods_.findMatches(matches, mass_shift, aa,
                                         ResidueModification::N_TERM);
+        if (!matches.empty())
+        {
+          // add the match to the mod. set for output (search parameters):
+          ModificationDefinition mod_def(matches.begin()->second.getModificationName());
+          mod_def.setFixedModification(false);
+          mod_def_set_.addModification(mod_def);
+        }
       }
       // matches are sorted by mass error - first one is best match:
       if (!matches.empty())
@@ -243,7 +248,7 @@ namespace OpenMS
         {
           res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::N_TERM);
         }
-        else if (mod_pos >= (aa_seq.size() - 1))
+        else if (mod_pos >= static_cast<int>(aa_seq.size() - 1))
         {
           res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::C_TERM);
         }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,26 +156,48 @@ public:
     void decodeNP(const String & in, std::vector<double> & out,
         bool zlib_compression, const NumpressConfig & config);
 
-private:
-
     /**
-     * @brief Encode the vector in to the result string using numpress
+     * @brief Encode the vector in to the result string using numpress (unsafe)
      *
      * @note In case of error, result is given back unmodified
      *
+     * This performs the raw numpress encoding on a set of data and does no
+     * Base64 encoding on the result. Therefore the result string is likely
+     * *unsafe* to handle and is basically a byte container.
+     *
+     * Please use the safe versions above unless you need access to the raw
+     * byte arrays.
+     *
+     * @param in The vector of floating point numbers to be encoded
+     * @param result The resulting string
+     * @param config The numpress configuration defining the compression strategy
+     *
     */
-    void encodeNP_(const std::vector<double> & in, String & result, const NumpressConfig & config);
+    void encodeNPRaw(const std::vector<double> & in, String & result, const NumpressConfig & config);
 
     /**
-     * @brief Decode the (not necessary null terminated) string in to the result vector out
+     * @brief Decode the (not necessary null terminated) string in to the result vector out (unsafe)
      *
      * @note that the string in should *only* contain the data and _no_ extra
      * null terminating byte (unless of course the last data byte is null)
      *
+     * This performs the raw numpress decoding on a raw byte array (not Base64
+     * encoded). Therefore the input string is likely *unsafe* to handle and is
+     * basically a byte container.
+     *
+     * Please use the safe versions above unless you only have the raw byte
+     * arrays.
+     *
+     * @param in The base64 encoded string
+     * @param out The resulting vector of doubles
+     * @param config The numpress configuration defining the compression strategy
+     *
      * @throw throws Exception::ConversionError if the string cannot be converted
      *
     */
-    void decodeNP_(const std::string & in, std::vector<double> & out, const NumpressConfig & config);
+    void decodeNPRaw(const std::string & in, std::vector<double> & out, const NumpressConfig & config);
+
+private:
 
     void decodeNPInternal_(const unsigned char* in, size_t in_size, std::vector<double>& out, const NumpressConfig & config);
 

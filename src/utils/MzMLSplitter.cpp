@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,7 +127,7 @@ protected:
     }
     writeLog_("Splitting file into " + String(parts) + " parts...");
 
-    MSExperiment<> experiment;
+    PeakMap experiment;
     MzMLFile().load(in, experiment);
 
     vector<MSSpectrum<Peak1D> > spectra;
@@ -161,7 +161,7 @@ protected:
       ostringstream out_name;
       out_name << out << "_part" << setw(width) << setfill('0') << counter
                << "of" << parts << ".mzML";
-      MSExperiment<> part = experiment;
+      PeakMap part = experiment;
       addDataProcessing_(part, getProcessingInfo_(DataProcessing::FILTERING));
 
       Size remaining = parts - counter + 1;

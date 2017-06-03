@@ -21,14 +21,14 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>" nam
         OfflinePrecursorIonSelection(OfflinePrecursorIonSelection) nogil except + #wrap-ignore
 
         void makePrecursorSelectionForKnownLCMSMap(FeatureMap & features,
-                                                   MSExperiment[ Peak1D, ChromatogramPeak ] & experiment,
-                                                   MSExperiment[ Peak1D, ChromatogramPeak ] & ms2,
+                                                   MSExperiment & experiment,
+                                                   MSExperiment & ms2,
                                                    libcpp_set[ int ] & charges_set, bool
                                                    feature_based) nogil except +
 
         # TODO nested STL
         void getMassRanges(FeatureMap & features, 
-                           MSExperiment[ Peak1D, ChromatogramPeak ] & experiment,
+                           MSExperiment & experiment,
                            libcpp_vector[ libcpp_vector[ libcpp_pair[ Size, Size ] ] ] & indices) nogil except + # wrap-ignore
 
         void createProteinSequenceBasedLPInclusionList(String include_, String rt_model_file, String pt_model_file, FeatureMap & precursors) nogil except +

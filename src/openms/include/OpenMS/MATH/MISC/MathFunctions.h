@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -220,8 +220,8 @@ namespace OpenMS
       return u3;
     }
 
-    /*
-      @brief Compute parts-per-million of two (m/z) values.
+    /**
+      @brief Compute parts-per-million of two @em m/z values.
 
       The returned ppm value can be either positive (mz_obs > mz_ref) or negative (mz_obs < mz_ref)!
 
@@ -235,8 +235,8 @@ namespace OpenMS
       return (mz_obs - mz_ref) / mz_ref * 1e6;
     }
     
-    /*
-      @brief Compute absolute parts-per-million of two (m/z) values.
+    /**
+      @brief Compute absolute parts-per-million of two @em m/z values.
       
       The returned ppm value is always >= 0.
 
@@ -250,7 +250,7 @@ namespace OpenMS
       return std::fabs(getPPM(mz_obs, mz_ref));
     }
 
-    /*
+    /**
       @brief Compute the mass diff in [Th], given a ppm value and a reference point.
 
       The returned mass diff can be either positive (ppm > 0) or negative (ppm < 0)!
@@ -280,7 +280,7 @@ namespace OpenMS
       return std::fabs(ppmToMass(ppm, mz_ref));
     }
 
-    /*
+    /**
       @brief Return tolerance window around @p val given tolerance @p tol
 
       Note that when ppm is used, the window is not symmetric. In this case,

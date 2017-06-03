@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,12 +53,15 @@ using namespace OpenMS;
       <table>
           <tr>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MRMMapper \f$ \longrightarrow \f$</td>
+              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MRMMapper \f$ \longrightarrow \f$</td>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_FileFilter </td>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_MRMTransitionGroupPicker </td>
           </tr>
       </table>
   </CENTER>
@@ -116,6 +119,7 @@ protected:
     registerDoubleOption_("product_tolerance", "<double>", 0.1, "Product tolerance when mapping (in Th)", false);
 
     registerFlag_("no-strict", "run in non-strict mode and allow some chromatograms to not be mapped.");
+    registerFlag_("allow_multiple_mappings", "Allow multiple mappings (will take the last matching from the TraML)");
   }
 
   ExitCodes main_(int, const char **)
@@ -127,10 +131,11 @@ protected:
     double map_precursor_tol_ = getDoubleOption_("precursor_tolerance");
     double map_product_tol_ = getDoubleOption_("product_tolerance");
     bool nostrict = getFlag_("no-strict");
+    bool allow_multiple = getFlag_("allow_multiple_mappings");
 
     OpenMS::TargetedExperiment targeted_exp;
-    OpenMS::MSExperiment<ChromatogramPeak> chromatogram_map;
-    OpenMS::MSExperiment<ChromatogramPeak> output;
+    OpenMS::PeakMap chromatogram_map;
+    OpenMS::PeakMap output;
 
     TraMLFile().load(tr_file, targeted_exp);
     MzMLFile().load(in, chromatogram_map);
@@ -147,6 +152,13 @@ protected:
       // try to find the best matching transition for this chromatogram
       bool mapped_already = false;
       MSChromatogram<ChromatogramPeak> chromatogram = chromatogram_map.getChromatograms()[i];
+
+      if (chromatogram.getPrecursor().getMZ() == 0.0 && chromatogram.getProduct().getMZ() == 0.0)
+      {
+        LOG_WARN << "Skip mapping for chromatogram " + String(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
+        continue;
+      }
+
       for (Size j = 0; j < targeted_exp.getTransitions().size(); j++)
       {
 
@@ -154,12 +166,12 @@ protected:
             fabs(chromatogram.getProduct().getMZ()   - targeted_exp.getTransitions()[j].getProductMZ())   < map_product_tol_)
         {
 
-          // std::cout << "Mapping chromatogram " << i << " to transition " << j << " (" << targeted_exp.getTransitions()[j].getNativeID() << ")"
-          //    " with precursor mz " << chromatogram.getPrecursor().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getPrecursorMZ() <<
-          //    " and product mz " << chromatogram.getProduct().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getProductMZ() << std::endl;
+          LOG_DEBUG << "Mapping chromatogram " << i << " to transition " << j << " (" << targeted_exp.getTransitions()[j].getNativeID() << ")"
+             " with precursor mz " << chromatogram.getPrecursor().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getPrecursorMZ() <<
+             " and product mz " << chromatogram.getProduct().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getProductMZ() << std::endl;
 
           // ensure: map every chromatogram to only one transition
-          if (mapped_already)
+          if (mapped_already && !allow_multiple)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Already mapped chromatogram " + String(i) + \
              " with " + String(chromatogram.getPrecursor().getMZ()) + \
@@ -180,7 +192,7 @@ protected:
               break;
             }
           }
-          // add precursor to spectrum
+          // add precursor to chromatogram
           chromatogram.setPrecursor(precursor);
 
           // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
@@ -191,7 +203,7 @@ protected:
       // ensure: map every chromatogram to at least one transition
       if (!mapped_already)
       {
-        std::cerr << "Did not find a mapping for chromatogram " + String(i) + " with " + String(chromatogram.getPrecursor().getMZ()) + \
+        LOG_ERROR << "Did not find a mapping for chromatogram " + String(i) + " with transition " + String(chromatogram.getPrecursor().getMZ()) + \
           " -> " + String(chromatogram.getProduct().getMZ()) +  "! Maybe try to increase your mapping tolerance." << std::endl;
         notmapped++;
         if (!nostrict)

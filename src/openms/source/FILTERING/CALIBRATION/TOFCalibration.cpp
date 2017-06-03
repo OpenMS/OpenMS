@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  void TOFCalibration::calculateCalibCoeffs_(MSExperiment<> & calib_spectra)
+  void TOFCalibration::calculateCalibCoeffs_(PeakMap & calib_spectra)
   {
     // flight times are needed later
     calib_peaks_ft_ = calib_spectra;
@@ -160,7 +160,7 @@ namespace OpenMS
     }
   }
 
-  void TOFCalibration::matchMasses_(MSExperiment<> & calib_peaks,
+  void TOFCalibration::matchMasses_(PeakMap & calib_peaks,
                                     std::vector<std::vector<unsigned int> > & monoiso_peaks,
                                     std::vector<unsigned int> & obs_masses,
                                     std::vector<double> & exp_masses, unsigned int idx)
@@ -192,11 +192,12 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::getMonoisotopicPeaks_(MSExperiment<> & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks)
+  void TOFCalibration::getMonoisotopicPeaks_(PeakMap & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks)
   {
 
-    MSExperiment<>::iterator spec_iter = calib_peaks.begin();
-    MSExperiment<>::SpectrumType::iterator peak_iter, help_iter;
+    PeakMap::iterator spec_iter;
+    PeakMap::SpectrumType::iterator peak_iter, help_iter;
+
 #ifdef DEBUG_CALIBRATION
     spec_iter = calib_peaks.begin();
     std::cout << "\n\nbefore---------\n\n";
@@ -210,8 +211,8 @@ namespace OpenMS
         std::cout << peak_iter->getMZ() << std::endl;
       }
     }
-
 #endif
+
     spec_iter = calib_peaks.begin();
     // iterate through all spectra
     for (; spec_iter != calib_peaks.end(); ++spec_iter)
@@ -255,10 +256,10 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::applyTOFConversion_(MSExperiment<> & calib_spectra)
+  void TOFCalibration::applyTOFConversion_(PeakMap & calib_spectra)
   {
-    MSExperiment<>::iterator spec_iter = calib_spectra.begin();
-    MSExperiment<>::SpectrumType::iterator peak_iter;
+    PeakMap::iterator spec_iter = calib_spectra.begin();
+    PeakMap::SpectrumType::iterator peak_iter;
     unsigned int idx = 0;
 
     //two point conversion
@@ -320,4 +321,74 @@ namespace OpenMS
 
   }
 
-} //namespace openms
+  void TOFCalibration::pickAndCalibrate(PeakMap & calib_spectra, PeakMap & exp, std::vector<double> & exp_masses)
+  {
+    PeakMap p_calib_spectra;
+
+    // pick peaks
+    PeakPickerCWT pp;
+    pp.setParameters(param_.copy("PeakPicker:", true));
+    pp.pickExperiment(calib_spectra, p_calib_spectra);
+
+    //calibrate
+    calibrate(p_calib_spectra, exp, exp_masses);
+  }
+
+  void TOFCalibration::calibrate(PeakMap & calib_spectra, PeakMap & exp, std::vector<double> & exp_masses)
+  {
+    exp_masses_ = exp_masses;
+    calculateCalibCoeffs_(calib_spectra);
+
+    Spline2d<double> spline (3, calib_masses_, error_medians_);
+
+#ifdef DEBUG_CALIBRATION
+    std::cout << "fehler nach spline fitting" << std::endl;
+
+    for (unsigned int spec = 0; spec <  calib_peaks_ft_.size(); ++spec)
+    {
+
+      std::vector<double> exp_masses;
+      std::vector<unsigned int> monoiso;
+      matchMasses_(calib_spectra, monoiso_peaks, monoiso, exp_masses, spec);
+      for (unsigned int p = 0; p < monoiso.size(); ++p)
+      {
+        double xi = mQ_(calib_peaks_ft_[spec][monoiso[p]].getMZ(), spec);
+        if (xi > calib_masses[error_medians_.size() - 1])
+          continue;
+        if (xi < calib_masses[0])
+          continue;
+        std::cout << exp_masses[p] << "\t"
+                  << Math::getPPM(xi - spline(xi), exp_masses[p])
+                  << std::endl;
+
+      }
+
+    }
+
+
+    double xi;
+    std::cout << "interpolation \n\n";
+    for (xi = calib_masses[0]; xi < calib_masses[error_medians_.size() - 1]; xi += 0.01)
+    {
+      double yi = spline(xi);
+      std::cout << xi << "\t" << yi << std::endl;
+    }
+    std::cout << "--------------\nend interpolation \n\n";
+#endif
+
+//    delete[] calib_masses;
+//    delete[] error_medians;
+
+    double m;
+    for (unsigned int spec = 0; spec <  exp.size(); ++spec)
+    {
+      for (unsigned int peak = 0; peak <  exp[spec].size(); ++peak)
+      {
+        m = mQAv_(exp[spec][peak].getMZ());
+        exp[spec][peak].setPos(m - spline.eval(m));
+      }
+    }
+  }
+
+} //namespace OpenMS
+

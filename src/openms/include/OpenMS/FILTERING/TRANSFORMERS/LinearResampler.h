@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #ifndef OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLER_H
 #define OPENMS_FILTERING_TRANSFORMERS_LINEARRESAMPLER_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -144,8 +145,7 @@ public:
     /**
         @brief Resamples the data in an MSExperiment.
     */
-    template <typename PeakType>
-    void rasterExperiment(MSExperiment<PeakType>& exp)
+    void rasterExperiment(PeakMap& exp)
     {
       startProgress(0, exp.size(), "resampling of data");
       for (Size i = 0; i < exp.size(); ++i)

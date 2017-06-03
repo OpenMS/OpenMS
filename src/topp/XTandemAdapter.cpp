@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -243,7 +243,7 @@ protected:
     {
       if (!getFlag_("force"))
       {
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
+        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the 'force' flag.");
       }
     }
 
@@ -308,7 +308,8 @@ protected:
       infile.setDefaultParametersFilename(default_XML_config);
     }
 
-    infile.write(input_filename, getFlag_("ignore_adapter_param"));
+    infile.write(input_filename, getFlag_("ignore_adapter_param"),
+                 getFlag_("force"));
 
     //-------------------------------------------------------------
     // calculations
@@ -331,8 +332,8 @@ protected:
 
     // read the output of X! Tandem and write it to idXML
     XTandemXMLFile tandem_output;
-    tandem_output.setModificationDefinitionsSet(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
-    tandem_output.load(tandem_output_filename, protein_id, peptide_ids);
+    ModificationDefinitionsSet mod_def_set(getStringList_("fixed_modifications"), getStringList_("variable_modifications"));
+    tandem_output.load(tandem_output_filename, protein_id, peptide_ids, mod_def_set);
 
     // add RT and precursor m/z to the peptide IDs (look them up in the spectra):
     SpectrumLookup lookup;
@@ -385,8 +386,15 @@ protected:
 
       ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
       search_parameters.mass_type = mass_type;
-      search_parameters.fixed_modifications = getStringList_("fixed_modifications");
-      search_parameters.variable_modifications = getStringList_("variable_modifications");
+      set<String> mods = mod_def_set.getFixedModificationNames();
+      search_parameters.fixed_modifications.reserve(mods.size());
+      search_parameters.fixed_modifications.insert(
+        search_parameters.fixed_modifications.end(), mods.begin(), mods.end());
+      mods = mod_def_set.getVariableModificationNames();
+      search_parameters.variable_modifications.reserve(mods.size());
+      search_parameters.variable_modifications.insert(
+        search_parameters.variable_modifications.end(), mods.begin(),
+        mods.end());
       search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
       search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
       search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");

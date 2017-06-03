@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -333,8 +333,8 @@ protected:
   String makeModString_(const String& mod_name, bool fixed=true)
   {
     ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
-    String residue = mod.getOrigin();
-    if (residue.size() != 1) residue = "*"; // specificity groups, e.g. "Deamidated (NQ)", are not supported by OpenMS
+    char residue = mod.getOrigin();
+    if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
     String position = mod.getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
     if (position == "none") position = "any";
     return String(mod.getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod.getId() + "    # " + mod_name;
@@ -731,7 +731,9 @@ protected:
         {
           switchScores_(*pep_it);
         }
+
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
+
         IdXMLFile().store(out, protein_ids, peptide_ids);
       }
     }

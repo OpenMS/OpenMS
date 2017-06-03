@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #ifndef OPENMS_KERNEL_MSCHROMATOGRAM_H
 #define OPENMS_KERNEL_MSCHROMATOGRAM_H
 
+#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -44,11 +45,13 @@
 
 namespace OpenMS
 {
+  class ChromatogramPeak;
+
   /**
     @brief The representation of a chromatogram.
     @ingroup Kernel
   */
-  template <typename PeakT = ChromatogramPeak>
+  template <typename PeakT>
   class MSChromatogram :
     private std::vector<PeakT>,
     public RangeManager<1>,
@@ -568,6 +571,8 @@ public:
       p.setPosition(rt);
       return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
     }
+
+    ConstIterator MZEnd(CoordinateType rt) const {return RTEnd(rt);}
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)

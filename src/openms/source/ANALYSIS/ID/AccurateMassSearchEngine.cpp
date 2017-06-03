@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,7 +55,7 @@
 namespace OpenMS
 {
 
-  AdductInfo::AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, uint mol_multiplier)
+  AdductInfo::AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, UInt mol_multiplier)
     : 
     name_(name),
     ef_(adduct),
@@ -717,25 +717,18 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "AccurateMassSearchEngine::init() was not called!");
     }
+    results.clear();
+    // get hits
+    queryByMZ(cfeat.getMZ(), cfeat.getCharge(), ion_mode, results);
 
-    std::vector<AccurateMassSearchResult> results_part;
-
-    queryByMZ(cfeat.getMZ(), cfeat.getCharge(), ion_mode, results_part);
-
-    ConsensusFeature::HandleSetType ind_feats(cfeat.getFeatures());
-
-
-    //    for ( ; f_it != ind_feats.end(); ++f_it)
-    //    {
-    //        std::cout << f_it->getRT() << "\t" << f_it->getMZ() << "\t" << f_it->getIntensity() << std::endl;
-    //    }
-
+    // collect meta data:
+    // intensities for all maps as given in handles; 0 if no handle is present for a map
+    ConsensusFeature::HandleSetType ind_feats(cfeat.getFeatures()); // sorted by MapIndices
     ConsensusFeature::const_iterator f_it = ind_feats.begin();
     std::vector<double> tmp_f_ints;
     for (Size map_idx = 0; map_idx < number_of_maps; ++map_idx)
     {
-      // std::cout << "map idx: " << f_it->getMapIndex() << std::endl;
-      if (map_idx == f_it->getMapIndex())
+      if (f_it != ind_feats.end() && map_idx == f_it->getMapIndex())
       {
         tmp_f_ints.push_back(f_it->getIntensity());
         ++f_it;
@@ -746,16 +739,14 @@ namespace OpenMS
       }
     }
 
-
-    for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
+    // augment all hits with meta data
+    for (Size hit_idx = 0; hit_idx < results.size(); ++hit_idx)
     {
-      results_part[hit_idx].setObservedRT(cfeat.getRT());
-      results_part[hit_idx].setSourceFeatureIndex(cf_index);
+      results[hit_idx].setObservedRT(cfeat.getRT());
+      results[hit_idx].setSourceFeatureIndex(cf_index);
       // results_part[hit_idx].setObservedIntensity(cfeat.getIntensity());
-      results_part[hit_idx].setIndividualIntensities(tmp_f_ints);
+      results[hit_idx].setIndividualIntensities(tmp_f_ints);
     }
-
-    std::copy(results_part.begin(), results_part.end(), std::back_inserter(results));
   }
 
   void AccurateMassSearchEngine::init()
@@ -842,7 +833,7 @@ namespace OpenMS
       LOG_INFO << "\nFound " << (overall_results.size() - dummy_count) << " matched masses (with at least one hit each)\nfrom " << fmap.size() << " features\n  --> " << (overall_results.size()-dummy_count)*100/fmap.size() << "% explained" << std::endl;
     }
   
-    exportMzTab_(overall_results, mztab_out);
+    exportMzTab_(overall_results, 1, mztab_out);
 
     return;
   }
@@ -914,11 +905,11 @@ namespace OpenMS
     cmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
     cmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
-    exportMzTab_(overall_results, mztab_out);
+    exportMzTab_(overall_results, num_of_maps, mztab_out);
     return;
   }
 
-  void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, MzTab& mztab_out) const
+  void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, const Size number_of_maps, MzTab& mztab_out) const
   {
     if (overall_results.empty())
     {
@@ -945,14 +936,9 @@ namespace OpenMS
     MzTabString null_location;
     run_md.location = null_location;
     md.ms_run[1] = run_md;
-
-    // try to deduce the number of study variables from first entry.
-    // As we don't have experimental design information in OpenMS (yet) we assume one study_variable for each intensity.
-    Size n_individual_intensities = overall_results.begin()->at(0).getIndividualIntensities().size();
-
-    // if we have 0 individual_intensities it is a feature otherwise it is a consensus feature.
-    // TODO: check if the design can be improved. Distinction of intensities done here doesn't seem very natural.
-    Size n_study_variables = n_individual_intensities == 0 ? 1 : n_individual_intensities;
+        
+    // do not use overall_results.begin()->at(0).getIndividualIntensities().size(); since the first entry might be empty (no hit)
+    Size n_study_variables = number_of_maps;
 
     for (Size i = 0; i != n_study_variables; ++i)
     {

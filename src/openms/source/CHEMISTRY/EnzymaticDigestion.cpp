@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -134,16 +134,19 @@ namespace OpenMS
     return pep_positions;
   }
 
-  bool EnzymaticDigestion::isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length, bool methionine_cleavage)
+  bool EnzymaticDigestion::isValidProduct(const AASequence& protein,
+                                          Size pep_pos, Size pep_length,
+                                          bool methionine_cleavage,
+                                          bool ignore_missed_cleavages) const
   {
     if (pep_pos >= protein.size())
     {
-      LOG_WARN << "Error: start of peptide is beyond end of protein!" << endl;
+      LOG_WARN << "Error: start of peptide (" << pep_pos << ") is beyond end of protein '" << protein.toString() << "'!" << endl;
       return false;
     }
     else if (pep_pos + pep_length > protein.size())
     {
-      LOG_WARN << "Error: end of peptide is beyond end of protein!" << endl;
+      LOG_WARN << "Error: end of peptide (" << (pep_pos + pep_length) << ") is beyond end of protein '" << protein.toString() << "'!" << endl;
       return false;
     }
     else if (pep_length == 0 || protein.size() == 0)
@@ -161,26 +164,53 @@ namespace OpenMS
       bool spec_c = false, spec_n = false;
 
       std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
+      // initialize start and end
+      std::vector<Size>::const_iterator begin_pos, end_pos;
+      begin_pos = end_pos = pep_positions.end();
       // test each end
       if (pep_pos == 0 ||
-          std::find(pep_positions.begin(), pep_positions.end(), pep_pos) != pep_positions.end())
+          (begin_pos = std::find(pep_positions.begin(), pep_positions.end(), pep_pos)) != pep_positions.end())
       {
         spec_n = true;
       }
       // if allow methionine cleavage at the protein start position
       if (pep_pos == 1 && methionine_cleavage && protein.getResidue((Size)0).getOneLetterCode() == "M")
       {
+        // methionine_cleavage:consider the first product for begin_pos
+        begin_pos = pep_positions.begin();
         spec_n = true;
       }
       if (pep_pos + pep_length == protein.size() ||
-          std::find(pep_positions.begin(), pep_positions.end(), pep_pos  + pep_length) != pep_positions.end())
+          (end_pos = std::find(pep_positions.begin(), pep_positions.end(), pep_pos  + pep_length)) != pep_positions.end())
       {
         spec_c = true;
       }
 
       if (spec_n && spec_c)
       {
-        return true; // if both are fine, its definitely valid
+        if (ignore_missed_cleavages)
+        {
+          return true;
+        }
+        Size offset = std::distance(begin_pos, end_pos);
+        if (pep_pos + pep_length == protein.size())
+        {
+          return (pep_positions.size() <= getMissedCleavages() + 1);
+        }
+        else if (offset > getMissedCleavages() + 1)
+        {
+          return false;
+        }
+        else if (offset == 0)
+        {
+          // This corner case needs to be checked when peptide is at the start and the end of the protein.
+          // We check with the total number of cleavages.
+          return (pep_positions.size() >= getMissedCleavages() + 1);
+        }
+        else
+        {
+          return true;
+        }
       }
       else if ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))
       {
@@ -223,10 +253,10 @@ namespace OpenMS
     }
     output.push_back(protein.getSubsequence(begin, protein.size() - begin));
 
-    //missed cleavages
-    if (pep_positions.size() > 0 && missed_cleavages_ != 0) //there is at least one cleavage site!
+    // missed cleavages
+    if (pep_positions.size() > 0 && missed_cleavages_ != 0) // there is at least one cleavage site!
     {
-      //generate fragments with missed cleavages
+      // generate fragments with missed cleavages
       for (Size i = 1; ((i <= missed_cleavages) && (count > i)); ++i)
       {
         begin = pep_positions[0];

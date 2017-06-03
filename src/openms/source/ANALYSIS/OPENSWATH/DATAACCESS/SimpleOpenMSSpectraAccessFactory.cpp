@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 namespace OpenMS
 {
 
-  bool SimpleOpenMSSpectraFactory::isExperimentCached(boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > exp)
+  bool SimpleOpenMSSpectraFactory::isExperimentCached(boost::shared_ptr<PeakMap> exp)
   {
     bool is_cached = false;
     for (std::size_t i = 0; i < exp->getSpectra().size(); ++i)
@@ -65,7 +65,7 @@ namespace OpenMS
     return is_cached;
   }
 
-  OpenSwath::SpectrumAccessPtr SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > exp)
+  OpenSwath::SpectrumAccessPtr SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::shared_ptr<PeakMap> exp)
   {
     bool is_cached = SimpleOpenMSSpectraFactory::isExperimentCached(exp);
     if (is_cached)

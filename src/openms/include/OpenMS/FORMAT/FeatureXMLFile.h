@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -21,8 +21,8 @@
 // ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
 // INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
 // OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -35,29 +35,37 @@
 #ifndef OPENMS_FORMAT_FEATUREXMLFILE_H
 #define OPENMS_FORMAT_FEATUREXMLFILE_H
 
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <iosfwd>
 
 namespace OpenMS
 {
+  class Feature;
+  class FeatureMap;
+
   /**
-  @brief This class provides Input/Output functionality for feature maps
+    @brief This class provides Input/Output functionality for feature maps
 
-      A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+    A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 
-  @todo Take care that unique ids are assigned properly by TOPP tools before calling FeatureXMLFile::store().  There will be a message on LOG_INFO but we will make no attempt to fix the problem in this class.  (all developers)
+    @todo Take care that unique ids are assigned properly by TOPP tools before
+    calling FeatureXMLFile::store().  There will be a message on LOG_INFO but
+    we will make no attempt to fix the problem in this class.  (all developers)
 
-  @note This format will eventually be replaced by the HUPO-PSI AnalysisXML (mzIdentML and mzQuantML) formats!
+    @note This format will eventually be replaced by the HUPO-PSI AnalysisXML
+    (mzIdentML and mzQuantML) formats!
 
-  @ingroup FileIO
-*/
+    @ingroup FileIO
+  */
   class OPENMS_DLLAPI FeatureXMLFile :
     protected Internal::XMLHandler,
     public Internal::XMLFile,

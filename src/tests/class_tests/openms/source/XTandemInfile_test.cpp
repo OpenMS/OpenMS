@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -218,7 +218,7 @@ START_SECTION(ErrorUnit getFragmentMassErrorUnit() const)
   NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void write(const String& filename, bool ignore_member_parameters = false))
+  START_SECTION(void write(const String& filename, bool ignore_member_parameters = false, bool force_default_mods = false))
 	String filename("XTandemInfile_test.tmp");
 	NEW_TMP_FILE(filename);
   ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M),Dimethyl (N-term),Carboxymethyl (C)"), ListUtils::create<String>("Ammonium (C-term),ICDID (C)"));
