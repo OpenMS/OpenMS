@@ -101,4 +101,30 @@ namespace OpenMS
     version_ = version;
   }
 
+  OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, Software& software)
+  {
+    QString temp;
+
+    in >> temp;
+    software.name_ = String(temp);
+
+    in >> temp;
+    software.version_ = String(temp);
+
+    MetaInfoInterface metaInfo;
+    in >> metaInfo;
+    dynamic_cast<MetaInfoInterface&>(software) = metaInfo;
+
+    return in;
+  }
+
+  OPENMS_DLLAPI QDataStream& operator<<(QDataStream& out, const Software& software)
+  {
+    out << software.name_.toQString();
+    out << software.version_.toQString();
+    out << static_cast<MetaInfoInterface>(software);
+
+    return out;
+  }
+
 }

@@ -35,6 +35,8 @@
 #ifndef OPENMS_METADATA_SOFTWARE_H
 #define OPENMS_METADATA_SOFTWARE_H
 
+#include <QtCore/QMetaType>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/CVTermList.h>
@@ -75,10 +77,18 @@ public:
     /// sets the software version
     void setVersion(const String & version);
 
+    /// In-stream operator to serialize Software instance
+    friend OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, Software& software);
+    /// Out-stream operator to serialize Software instance
+    friend OPENMS_DLLAPI QDataStream& operator<<(QDataStream& out, const Software& software);
+
 protected:
     String name_;
     String version_;
   };
+
 } // namespace OpenMS
+
+Q_DECLARE_METATYPE(OpenMS::Software)
 
 #endif // OPENMS_METADATA_SOFTWARE_H
