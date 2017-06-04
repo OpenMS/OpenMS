@@ -397,39 +397,29 @@ protected:
   class MIDAsPolynomialID : public IsotopeDistribution
   {
  public:
-    MIDAsPolynomialID();
-    void multiplyPolynomial(Element&, SignedSize);
- private:
-    double fact_ln(UInt);
-    static const UInt N = 10;
-    double mw_resolution;
-    double resolution;
-    double min_resolution;
     struct PMember
     {
       double power;
       double probability;
-      struct prob
-      {
-        inline bool operator()(const struct PMember& p0, const struct PMember& p) const 
-        { 
-          return p0.probability < p.probability; 
-        }
-      };
-      struct power
-      {
-        inline bool operator()(const struct PMember& p0, const struct PMember& p) const 
-        {
-          return p0.power < p.power; 
-        }
-      };
+      PMember():power(0), probability(0) {}
     };
     typedef std::vector<struct PMember> Polynomial;
 
-    std::vector<Polynomial> polynomial;
+    MIDAsPolynomialID(double);
+    void generatePolynomial(Element&, SignedSize);
+    void multiplyPolynomials(Polynomial&, Polynomial&);
     
+ private:
+    double fact_ln(UInt);
+    Polynomial fgid;
+    UInt N;
+    double fine_resolution;
+    double min_prob;
     
-
+    double mw_resolution;
+    double resolution;
+    double min_resolution;
+    
   };
 
 

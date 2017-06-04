@@ -532,19 +532,26 @@ namespace OpenMS
     }
   }
 
-  MIDAsPolynomialID::MIDAsPolynomialID(): IsotopeDistribution()
+  MIDAsPolynomialID::MIDAsPolynomialID(double fine_resolution): IsotopeDistribution(), N(10)
   {
+    
+    unsigned int size = fine_resolution > 0.1 ? round(2000/fine_resolution) : round(500/fine_resolution);
+    mw_resolution = 1e-12;
+
+    fgid.assign(size, PMember());
     
   }
 
   double MIDAsPolynomialID::fact_ln(UInt x)
   {    
-    return x>1 ? fact_ln(x-1) + log(x) : 0;
+    return x > 1 ? fact_ln(x - 1) + log(x) : 0;
   }
 
 
-  void MIDAsPolynomialID::multiplyPolynomial(Element& p, SignedSize size)
+  void MIDAsPolynomialID::generatePolynomial(Element& p, SignedSize size)
   {
+    std::vector<Polynomial> polynomials;
+    std::vector<UInt> base_power;
     const IsotopeDistribution::ContainerType& isotope = p.getIsotopeDistribution().getContainer();
     CounterSet c(size);
     Polynomial pol;
@@ -556,6 +563,7 @@ namespace OpenMS
       UInt U = expectation + (N*sqrt(1+var));
       UInt B = expectation > (N*sqrt(1+var)) ? expectation -(N*sqrt(1+var)) : 0;
       c.addCounter(B,U);
+      base_power.push_back(iso_it->first/mw_resolution);
     }
     
     for(CounterSet::ContainerType counters = c.getCounters(); c.hasNext(); ++c)
@@ -565,21 +573,74 @@ namespace OpenMS
      
       double power = 0, prob = fact_ln(size);
       UInt index = 0;
-      for(auto& isotope_count : counters)
+      for(CounterSet::ContainerType::iterator iso_count = counters.begin(); iso_count != counters.end(); ++iso_count, ++index)
       {
-        s += isotope_count;
-        prob -= fact_ln(isotope_count);
-        prob += isotope_count*log(isotope[index].second);
-        power += isotope_count*isotope[index].first;
+        UInt& isotopes = *iso_count;
+        s += isotopes;
+        prob -= fact_ln(isotopes);
+        prob += isotopes*log(isotope[index].second);
+        power += isotopes*base_power[index];
         member.power = power;
         member.probability = prob;
       }
       pol.push_back(member);
     }
+    
+    polynomials.push_back(pol);
+    
+  }
+
+  inline bool by_prob(const struct MIDAsPolynomialID::PMember& p0, const struct MIDAsPolynomialID::PMember& p)
+  {
+          return p0.power < p.power; 
+  }
+
+
+  void MIDAsPolynomialID::multiplyPolynomials(Polynomial& f, Polynomial& g)
+  {
+    std::vector<Polynomial> polynomials;
+    
+    sort(g.begin(), g.end(), by_prob);
+    sort(f.begin(), f.end(), by_prob);
+    
+    double min_mass = f.front().power + g.front().power;
+    double max_mass = f.back().power + g.back().power;
+    double delta_mass = fine_resolution/mw_resolution;
+    UInt max_index = round((max_mass-min_mass)/delta_mass);
+    
+    int new_items = max_index - polynomials.size();
+    if(new_items > 0)
+    {
+      Polynomial tmp(new_items, PMember());
+      fgid.insert(fgid.end(), tmp.begin(), tmp.end());
+    }
+    
+    for(Polynomial::iterator f_it = f.begin(); f_it != f.end(); ++f_it)
+    {
+      for(Polynomial::iterator g_it = g.begin(); g_it != f.end(); ++g_it)
+      {
+        double prob = f_it->probability*g_it->probability;
+        if(prob > min_prob)
+        {
+          double power = f_it->power + g_it->power;
+          UInt index = round((power - min_mass) / delta_mass);
+          fgid[index].probability += power;
+          fgid[index].power += power * prob;
+        }
+      }
+
+    }
+    
+    fgid.erase(remove_if(fgid.begin(), fgid.end(), [](const PMember& p){
+          return p.probability == 0;
+        }));
+    
+    UInt size = f.size();
+    f = fgid;
+    f.resize(size);
 
   }
 
-  
 
 
 }
