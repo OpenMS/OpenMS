@@ -292,7 +292,7 @@ namespace OpenMS
           const PeptideHit& p_hit = peptide_ids[l].getHits()[j];
           os << "\t\t\t<PeptideHit";
           os << " score=\"" << precisionWrapper(p_hit.getScore()) << "\"";
-          os << " sequence=\"" << p_hit.getSequence() << "\"";
+          os << " sequence=\"" << writeXMLEscape(p_hit.getSequence().toString()) << "\"";
           os << " charge=\"" << p_hit.getCharge() << "\"";
 
           std::vector<PeptideEvidence> pes = p_hit.getPeptideEvidences();
