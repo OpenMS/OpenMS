@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -867,8 +867,8 @@ set_tests_properties("TOPP_IDFilter_11_out1" PROPERTIES DEPENDS "TOPP_IDFilter_1
 
 # filters by digestion products 
 # default digestion parameters
-add_test("TOPP_IDFilter_12" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_12_input.idXML -out /tmp/IDFilter_12_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_12_input.fasta)
-add_test("TOPP_IDFilter_12_out1" ${DIFF} -in1 /tmp/IDFilter_12_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_12_output.idXML )
+add_test("TOPP_IDFilter_12" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_12_input.idXML -out IDFilter_12_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_12_input.fasta)
+add_test("TOPP_IDFilter_12_out1" ${DIFF} -in1 IDFilter_12_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_12_output.idXML )
 set_tests_properties("TOPP_IDFilter_12_out1" PROPERTIES DEPENDS "TOPP_IDFilter_12")
 # filters by digestion products considering missed cleavages
 add_test("TOPP_IDFilter_13" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_13_input.idXML -out IDFilter_13_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_13_input.fasta -digest:missed_cleavages 1)
@@ -2131,22 +2131,22 @@ set_tests_properties("UTILS_OpenPepXLLF_1_out_4" PROPERTIES DEPENDS "UTILS_OpenP
 #------------------------------------------------------------------------------
 # XFDR tests
 add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -out_idXML XFDR_test_out1_temp.idXML -out_mzIdentML XFDR_test_out1_temp.mzid)
-add_test("UTILS_XFDR_1_out11" ${DIFF} -in1 XFDR_test_out1_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.idXML)
-add_test("UTILS_XFDR_1_out12" ${DIFF} -whitelist "creationDate=" -in1 XFDR_test_out1_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.mzid)
+add_test("UTILS_XFDR_1_out11" ${DIFF} -whitelist "date=" -in1 XFDR_test_out1_temp.idXML  -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.idXML)
+add_test("UTILS_XFDR_1_out12" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out1_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.mzid)
 set_tests_properties("UTILS_XFDR_1_out11" PROPERTIES DEPENDS "UTILS_XFDR_1")
 set_tests_properties("UTILS_XFDR_1_out12" PROPERTIES DEPENDS "UTILS_XFDR_1")
 add_test("UTILS_XFDR_2" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -uniquexl -no_qvalues -out_idXML XFDR_test_out2_temp.idXML -out_mzIdentML XFDR_test_out2_temp.mzid)
-add_test("UTILS_XFDR_2_out21" ${DIFF} -in1 XFDR_test_out2_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.idXML)
-add_test("UTILS_XFDR_2_out22" ${DIFF} -whitelist "creationDate=" -in1 XFDR_test_out2_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.mzid)
+add_test("UTILS_XFDR_2_out21" ${DIFF} -whitelist "date=" -in1 XFDR_test_out2_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.idXML)
+add_test("UTILS_XFDR_2_out22" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out2_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.mzid)
 set_tests_properties("UTILS_XFDR_2_out21" PROPERTIES DEPENDS "UTILS_XFDR_2")
 set_tests_properties("UTILS_XFDR_2_out22" PROPERTIES DEPENDS "UTILS_XFDR_2")
 add_test("UTILS_XFDR_3" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in2.xml -out_idXML XFDR_test_out3_temp.idXML -out_mzIdentML XFDR_test_out3_temp.mzid)
-add_test("UTILS_XFDR_3_out31" ${DIFF} -in1 XFDR_test_out3_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.idXML)
-add_test("UTILS_XFDR_3_out32" ${DIFF} -whitelist "creationDate=" -in1 XFDR_test_out3_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.mzid)
+add_test("UTILS_XFDR_3_out31" ${DIFF} -whitelist "date=" -in1 XFDR_test_out3_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.idXML)
+add_test("UTILS_XFDR_3_out32" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out3_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.mzid)
 set_tests_properties("UTILS_XFDR_3_out31" PROPERTIES DEPENDS "UTILS_XFDR_3")
 set_tests_properties("UTILS_XFDR_3_out32" PROPERTIES DEPENDS "UTILS_XFDR_3")
 add_test("UTILS_XFDR_4" ${TOPP_BIN_PATH}/XFDR -test -minborder -5 -maxborder 5 -in ${DATA_DIR_TOPP}/XFDR_test_in2.xml -out_idXML XFDR_test_out4_temp.idXML -out_mzIdentML XFDR_test_out4_temp.mzid)
-add_test("UTILS_XFDR_4_out41" ${DIFF} -in1 XFDR_test_out4_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.idXML)
-add_test("UTILS_XFDR_4_out42" ${DIFF} -whitelist "creationDate=" -in1 XFDR_test_out4_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.mzid)
+add_test("UTILS_XFDR_4_out41" ${DIFF} -whitelist "date=" -in1 XFDR_test_out4_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.idXML)
+add_test("UTILS_XFDR_4_out42" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out4_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.mzid)
 set_tests_properties("UTILS_XFDR_4_out41" PROPERTIES DEPENDS "UTILS_XFDR_4")
 set_tests_properties("UTILS_XFDR_4_out42" PROPERTIES DEPENDS "UTILS_XFDR_4")
