@@ -48,7 +48,7 @@
 	<key>LSEnvironment</key>
 	<dict>
 		<key>PATH</key>
-		<string>TOPP/SEARCHENGINES/OMSSA:TOPP/SEARCHENGINES/XTandem</string>
+		<string>/usr/bin:TOPP/SEARCHENGINES/OMSSA:TOPP/SEARCHENGINES/XTandem</string>
 	</dict>  
 	<key>NSHumanReadableCopyright</key>
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
