@@ -67,6 +67,9 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
+#include <OpenMS/COMPARISON/SPECTRA/HashedSpectrum.h>
+#include <ctime>
+
 //Contrib includes
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
