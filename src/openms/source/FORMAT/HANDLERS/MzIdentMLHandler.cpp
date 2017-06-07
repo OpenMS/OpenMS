@@ -958,12 +958,7 @@ namespace OpenMS
               {
                 CrossLinksDB* xl_db = CrossLinksDB::getInstance();
                 std::vector<String> mods;
-                xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, String(jt->getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
-                if (mods.size() > 0)
-                {
-                  p += "\t\t<Modification location=\"" + String(i + 1);
-                }
-                else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
+                if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
                 {
                   xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::N_TERM);
                   if (mods.size() > 0)
@@ -977,6 +972,14 @@ namespace OpenMS
                   if (mods.size() > 0)
                   {
                     p += "\t\t<Modification location=\"" + String(i + 2);
+                  }
+                }
+                else
+                {
+                  xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, String(jt->getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
+                  if (mods.size() > 0)
+                  {
+                    p += "\t\t<Modification location=\"" + String(i + 1);
                   }
                 }
 

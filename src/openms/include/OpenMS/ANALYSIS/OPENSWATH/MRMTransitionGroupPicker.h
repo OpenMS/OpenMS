@@ -547,7 +547,7 @@ protected:
       // Resample all chromatograms around the current estimated peak and
       // collect the raw intensities. For resampling, use a bit more on either
       // side to correctly identify shoulders etc.
-      double resample_boundary = 15.0; // sample 15 seconds more on each side
+      double resample_boundary = resample_boundary_; // sample 15 seconds more on each side
       SpectrumT master_peak_container;
       const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
@@ -873,6 +873,7 @@ protected:
     double stop_after_intensity_ratio_;
     double min_peak_width_;
     double recalculate_peaks_max_z_;
+    double resample_boundary_;
   };
 }
 

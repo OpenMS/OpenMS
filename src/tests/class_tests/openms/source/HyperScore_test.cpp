@@ -76,10 +76,7 @@ START_SECTION((static double compute(double fragment_mass_tolerance, bool fragme
 {
   PeakSpectrum exp_spectrum;
   PeakSpectrum theo_spectrum;
-//  Peak1D p;
-//  p.setIntensity(1);
-//  RichPeak1D rp;
-//  rp.setIntensity(1);
+
   AASequence peptide = AASequence::fromString("PEPTIDE");
   
   // full match, 11 identical masses, identical intensities (=1)
@@ -97,12 +94,10 @@ START_SECTION((static double compute(double fragment_mass_tolerance, bool fragme
   TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 67.791224);
   TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 67.791224);
 
-
-
   // full match if ppm tolerance and partial match for Da tolerance
-  for (Size i = 1; i <= theo_spectrum.size(); ++i)
+  for (Size i = 0; i < theo_spectrum.size(); ++i)
   {
-    double mz = pow( theo_spectrum[i].getMZ(),  2);
+    double mz = pow( theo_spectrum[i].getMZ(), 2);
     exp_spectrum[i].setMZ(mz);
     theo_spectrum[i].setMZ(mz + 9 * 1e-6 * mz); // +9 ppm error
   }

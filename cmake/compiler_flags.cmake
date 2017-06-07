@@ -92,6 +92,9 @@ elseif (MSVC)
 
 	## xerces bug workaround
 	add_definitions(/DOPENMS_XERCESDLL)
+	
+	## coinor windows.h include bug workaround
+	add_definitions(/DNOMINMAX)
 
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
