@@ -47,7 +47,7 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     add_definitions( -fsanitize=address
                      -fno-omit-frame-pointer)
     # add AddressSanitizer also for linker
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+    set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
   endif()
 else()
   message(WARNING "AddressSanitizer is supported for OpenMS debug mode only")
