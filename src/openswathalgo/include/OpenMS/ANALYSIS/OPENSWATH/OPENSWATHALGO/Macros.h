@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENSWATHALGO_MACROS_H
-#define OPENSWATHALGO_MACROS_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MACROS_H
+#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MACROS_H
 
 #include <cassert>
 
@@ -49,4 +49,4 @@
 #define OPENMS_POSTCONDITION(condition, message)\
   assert( (condition) && (message));
 
-#endif // OPENSWATHALGO_MACROS_H
+#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_MACROS_H
