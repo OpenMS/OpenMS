@@ -411,9 +411,9 @@ namespace OpenMS
         d.estimateFromPeptideWeight(0.5 * mass_window_width_ + index * mass_window_width_);
         //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
         Size size_before = d.size();
-        d.trimLeft(intensity_percentage_optional_);
+        d.trimLeft(intensity_percentage_);
         isotope_distributions_[index].trimmed_left = size_before - d.size();
-        d.trimRight(intensity_percentage_optional_);
+        d.trimRight(intensity_percentage_);
 
         for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
         {
@@ -429,7 +429,7 @@ namespace OpenMS
 
         for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
         {
-          if (isotope_distributions_[index].intensity[i] < intensity_percentage_)
+          if (isotope_distributions_[index].intensity[i] < intensity_percentage_optional_)
           {
             if (!is_end && !is_begin) is_end = true;
             if (is_begin) ++begin;
