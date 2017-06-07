@@ -442,8 +442,8 @@ namespace OpenMS
 
         for (Int q1 = q_min; q1 <= q_max; ++q1) // ** q1
         {
-          //as long as we don't have it really verified for negative, skip in negative mode 
-          if (!is_neg && !chargeTestworthy_(f1.getCharge(), q1, true))
+          //We assume that ionization modes won't get mixed in pipeline -> detected features should have same charge sign as provided to decharger settings.
+          if (!chargeTestworthy_(f1.getCharge(), q1, true))
             continue;
 
           m1 = mz1 * abs(q1);
@@ -452,7 +452,7 @@ namespace OpenMS
                ; (q2 <= q_max) && (q2 <= q1 + q_span - 1)
                ; ++q2)
           { // ** q2
-            if (!is_neg && !chargeTestworthy_(f2.getCharge(), q2, f1.getCharge() == q1))
+            if (!chargeTestworthy_(f2.getCharge(), q2, f1.getCharge() == q1))
               continue;
 
             ++possibleEdges; // internal count, not vital
@@ -1210,13 +1210,15 @@ namespace OpenMS
     }
     return true;
   }
-  
-  //should be independent of charge direction
+
   bool MetaboliteFeatureDeconvolution::chargeTestworthy_(const Int feature_charge, const Int putative_charge, const bool other_unchanged) const
   {
+    //Swtiches of charge signs in one ionization mode should logically not occur. The assumed decharger charge settings should fit to feature charges
+    if (feature_charge * putative_charge < 0)
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("feature charge and putative charge switch charge direction!"), String(feature_charge)+" "+String(putative_charge));
 
-    // if no charge given or all-charges is selected
-    if ((feature_charge <= 0) || (q_try_ == QALL))
+    // if no charge given or all-charges is selected. Assume no charge detected -> charge 0
+    if ((feature_charge == 0) || (q_try_ == QALL))
     {
       return true;
     }
@@ -1243,7 +1245,6 @@ namespace OpenMS
     }
 
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q_try_ has unhandled enum value!", String((Int)q_try_));
-
   }
 
   void MetaboliteFeatureDeconvolution::checkSolution_(const ConsensusMap& cons_map) const
