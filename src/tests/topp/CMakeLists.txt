@@ -79,9 +79,6 @@ set(DATA_DIR_TOPP_BIN ${PROJECT_BINARY_DIR})
 set(INDEX_WHITELIST "offset" "indexListOffset")
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
 
-## configure resource files (for TOPPAS/ExecutePipeline) - there is no other way to specify the input
-configure_file(${DATA_DIR_TOPP}/ExecutePipeline_1.trf.in ${DATA_DIR_TOPP_BIN}/ExecutePipeline_1.trf)
-
 #------------------------------------------------------------------------------
 # test if -write_wdsl works
 #------------------------------------------------------------------------------
@@ -1949,12 +1946,7 @@ add_test("TOPP_PeptideIndexer_19" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta $
 add_test("TOPP_PeptideIndexer_19_out" ${DIFF} -in1 PeptideIndexer_19_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_19_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_19_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_19")
 
-if(WITH_GUI)
-  #------------------------------------------------------------------------------
-  # ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in binary tree, as they have been configured from a .in file (see above)!
-  add_test("TOPP_ExecutePipeline_1" ${TOPP_BIN_PATH}/ExecutePipeline -test -in ${DATA_DIR_TOPP}/ExecutePipeline_1.toppas -resource_file ${DATA_DIR_TOPP_BIN}/ExecutePipeline_1.trf -out_dir .)
-  set_tests_properties("TOPP_ExecutePipeline_1" PROPERTIES WILL_FAIL 1)
-endif()
+## Tests for TOPPAS/ExecutePipeline are in ./src/tests/TOPPAS/...
 
 #------------------------------------------------------------------------------
 # search engine tests (might be optional, depending on presence of external binaries, e.g., omssacl.exe)
