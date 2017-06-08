@@ -63,7 +63,7 @@ Library:
   - Allow estimation of isotope distributions with predefined numbers of sulfur atoms
   - Improved handling of bracket notation for modified residues (e.g. N[2457.877]VSVK)
   - Improved handling of terminal and residue specificity of modifications
-  - Improved annotation of spectrum references
+  - Improved annotation of peptide identifications with spectrum references
   - Improved handling of unknown amino acids ("X") in sequences
 
 File formats:
