@@ -169,7 +169,7 @@ namespace OpenMS
       {
         ++s_different_count;
         s_different_intensity += std::fabs(m_x(index, 0) - x(index));
-        //std::cout << "matrix: " << x(index) << " NNLS: " << m_x(index, 0) << "Intensity: " << cf_intensity(index, 0) <<std::endl;
+        std::cout << "matrix: " << x(index) << " NNLS: " << m_x(index, 0) << "Intensity: " << cf_intensity <<std::endl;
       }
     }
 
