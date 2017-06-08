@@ -60,11 +60,12 @@ using namespace std;
   This allows you to specify your target database plus a contaminant file and obtain a concatenated
   target-decoy database using a single call, e.g., DecoyDatabase -in human.fasta crap.fasta -out human_TD.fasta
 
-  If a combined database is requested (default), i.e. @em only_decoy is not used), then Target and Decoy sequences
-  are written interleaved. You need all Targets before the Decoy for some reason, use @em only_decoy and concatenate the files
+  By default, a combined database is created where target and decoy sequences are written interleaved
+  (i.e., target1, decoy1, target2, decoy2,...).
+  If you need all targets before the decoys for some reason, use @p only_decoy and concatenate the files
   externally.
 
-  The tool will keep track of all identifiers and report duplicates.
+  The tool will keep track of all protein identifiers and report duplicates.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_DecoyDatabase.cli
