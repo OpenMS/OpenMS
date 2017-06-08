@@ -106,6 +106,15 @@ if (NOT (${MSGFPLUS_BINARY} STREQUAL "MSGFPLUS_BINARY-NOTFOUND"))
 endif()
 
 #------------------------------------------------------------------------------
+if ((${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
+  ### NOT needs to be added after the binarys have been included
+  add_test("TOPP_CometAdapter_1" ${TOPP_BIN_PATH}/CometAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out CometAdapter_1_out1.tmp -pin_out CometAdapter_1_out2.tmp.csv -comet_executable "${COMET_BINARY}")
+  add_test("TOPP_CometAdapter_1_out1" ${DIFF} -in1 CometAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+  set_tests_properties("TOPP_CometAdapter_1_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_1")
+  ### Second test for optional pin file needs to be added, not sure how to do FuzzyDiff on the csv style pin file, whitelisting the first id column
+endif()
+
+#------------------------------------------------------------------------------
 if (NOT (${FIDOCHOOSEPARAMS_BINARY} STREQUAL "FIDOCHOOSEPARAMS_BINARY-NOTFOUND"))
   add_test("TOPP_FidoAdapter_1" ${TOPP_BIN_PATH}/FidoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out FidoAdapter_1_output.tmp -fidocp_executable "${FIDOCHOOSEPARAMS_BINARY}")
   add_test("TOPP_FidoAdapter_1_out" ${DIFF} -in1 FidoAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_output.idXML -whitelist "IdentificationRun date")
