@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka, Timo Sachsenberg $
+// $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
 //not sure if more #include directives are needed
@@ -44,55 +44,18 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
+#include <ostream>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <fstream>
+#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
+
+#include <QDir>
 
 using namespace OpenMS;
 using namespace std;
 
-
-
-//-------------------------------------------------------------
-//Doxygen docu
-//----------------------------------------------------------
-/**
-@page UTILS_SiriusMSConverter
-
-@brief Tool for the conversion of mzML files to (Sirius).ms files
-
-       Needed for the interal data structure of the Sirius command line tool
-
-<B>The command line parameters of this tool are:</B>
-@verbinclude UTILS_SiriusMSConverter.cli
-<B>INI file documentation of this tool:</B>
-@htmlinclude UTILS_SiriusMSConverter.html
-*/
-
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
-
-class TOPPSiriusMSConverter :
-    public TOPPBase
+namespace OpenMS
 {
-public:
-  TOPPSiriusMSConverter() :
-    TOPPBase("SiriusMSConverter", "Tool for the conversion of mzML files to (Sirius).ms files", false)
-  {
-  }
-
-protected:
-
-  void registerOptionsAndFlags_()
-  {
-    registerInputFile_("in", "<file>", "", "MzML Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzml"));
-
-    registerOutputFile_("out", "<file>", "", "Output of (Sirius).ms files");
-    setValidFormats_("out", ListUtils::create<String>("csv"));
-
-    registerIntOption_("batch_size", "<value>", 20,"The number of compounds used in one output file", false);
-  }
-
   //Precursor correction (highest intensity)
   Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum<Peak1D>& spectrum1, double left_tolerance, double right_tolerance)
   {
@@ -102,37 +65,25 @@ protected:
     // no MS1 precursor peak in +- tolerance window found
     if (left == right || left->getMZ() > test_mz + right_tolerance)
     {
-      return -1; //not sure if that is allright
+      return -1;
     }
 
     MSSpectrum<Peak1D>::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
 
-    if (max_intensity_it == right) return -1;
+    if (max_intensity_it == right)
+    {
+      return -1;
+    }
 
     return max_intensity_it - spectrum1.begin();
   }
 
-  ExitCodes main_(int, const char **)
+
+  std::vector<String> SiriusMSFile::store(const MSExperiment<> &spectra, Size batch_size)
   {
-    //-------------------------------------------------------------
-    // Parsing parameters
-    //-------------------------------------------------------------
+    std::vector<String> msfiles;
 
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
-    Int batch_size = getIntOption_("batch_size");
-
-    //-------------------------------------------------------------
-    // Calculations
-    //-------------------------------------------------------------
-
-    // laod spectra
-    PeakMap spectra;
-    MzMLFile f;
-    f.setLogType(log_type_);
-    f.load(in, spectra);
     int count = 0;
-
     //check for all spectra at the beginning if spectra are centroided
     // determine type of spectral data (profile or centroided) - only checking first spectrum (could be ms2 spectrum)
     SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
@@ -142,7 +93,7 @@ protected:
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra are needed. Please use PeakPicker to convert the spectra.");
     }
 
-    // loop over all spectra
+    // loop over all spectra in file
     ofstream os;
 
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
@@ -231,34 +182,36 @@ protected:
           }
         }
 
+        streamsize prec(0);
         String query_id = String("unknown") + String(scan_index);
 
-        streamsize prec(0);
-
-        if (count == 0)
+        if (count == 0) //only one .ms file always true
         {
             // store data
-            String unique_name =  String(File::getUniqueName()).toQString(); //if not done this way - always new "unique name"
-            String dir = getStringOption_("out");
-            String filename = dir  + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
+          String query_id = String("unknown") + String(scan_index);
+          String unique_name =  String(File::getUniqueName()).toQString(); //if not done this way - always new "unique name"
+          String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_out";
+          String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
 
-            // close previous (.ms) file
+
+          // close previous (.ms) file
             if (os.is_open()) os.close();
 
+            msfiles.push_back(tmp_filename);
+
             // create temporary input file (.ms)
-            os.open(filename.c_str());
+            os.open(tmp_filename.c_str());
 
             if (!os)
             {
-              throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+              throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
             }
             prec = os.precision();
             os.precision(12);
         }
 
-
         //TODO: Collision energy optional for MS2 - something wrong with .getActivationEnergy() (Precursor)
-        //TODO: MS2 instensity cutoff? -> to reduce the interference of low intensity peaks (?) - can do that for specific spectra (hard coded/soft coded?)
+        //TODO: MS2 instensity cutoff? -> to reduce the interference of low intensity peaks (?) - can do that for specific spectra (hard coded/soft coded?) - not sure if needed
 
         //write internal unique .ms data as sirius input
         os << fixed;
@@ -328,14 +281,9 @@ protected:
     // close previous (.ms) file
     if (os.is_open()) os.close();
 
-    return EXECUTION_OK;
+    return msfiles;
   }
-};
 
-int main(int argc, const char ** argv)
-{
-  TOPPSiriusMSConverter tool;
-  return tool.main(argc, argv);
 }
 
 /// @endcond

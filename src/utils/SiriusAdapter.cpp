@@ -49,9 +49,14 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
+//#include <OpenMS/?/SiriusMzTabWriter.h>
+//#include <OpenMS/?/CsiFingerIDMzTabWriter.h>
+
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
 #include <QDir>
+#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 
 
 using namespace OpenMS;
@@ -139,8 +144,11 @@ protected:
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
-    registerOutputFile_("out", "<file>", "", "MzTab Output file for SiriusAdapter results");
-    setValidFormats_("out", ListUtils::create<String>("csv"));
+    registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
+    setValidFormats_("out_sirius", ListUtils::create<String>("csv"));
+
+    registerOutputFile_("out_CsiFingerID","<file>", "", "MzTab ouput file for CsiFingerID", false);
+    setValidFormats_("out_CsiFingerID", ListUtils::create<String>("csv"));
 
     registerStringOption_("analysis_profile", "<choice>", "qtof", "Specify the used analysis profile", false);
     setValidStrings_("analysis_profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
@@ -154,29 +162,13 @@ protected:
     registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
     registerIntOption_("mass_deviation", "<num>", 5, "Specify the allowed mass deviation of the fragment peak in ppm.", false);
 
+    registerIntOption_("batch_size", "<num>", 0, "Number of files in one .ms file (Only needed if Rest-query is used)", false);
+
     registerIntOption_("number", "<num>", 10, "The number of compounds used in the output", false);
 
     registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
     registerFlag_("fingerid", "If this option is set, SIRIUS will search for molecular structure using CSI:FingerId after determining the molecIf this option is set, SIRIUS will search for molecular structure using CSI:FingerId after determining the molecular formulular formula", false);
-  }
-
-  Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum<Peak1D>& spectrum1, double left_tolerance, double right_tolerance)
-  {
-    MSSpectrum<Peak1D>::ConstIterator left = spectrum1.MZBegin(test_mz - left_tolerance);
-    MSSpectrum<Peak1D>::ConstIterator right = spectrum1.MZEnd(test_mz + right_tolerance);
-
-    // no MS1 precursor peak in +- tolerance window found
-    if (left == right || left->getMZ() > test_mz + right_tolerance)
-    {
-      return -1; //not sure if that is allright
-    }
-
-    MSSpectrum<Peak1D>::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
-
-    if (max_intensity_it == right) return -1;
-
-    return max_intensity_it - spectrum1.begin();
   }
 
   ExitCodes main_(int, const char **)
@@ -186,12 +178,15 @@ protected:
     //-------------------------------------------------------------
 
     String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    String out1 = getStringOption_("out_sirius");
+    String out2 = getStringOption_("out_CsiFingerID");
+
+    // needed for counting
     int number = getIntOption_("number");
-    number = number + 1; // needed for counting later on
+    number = number + 1;
+
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
-
     QString analysis_profile = getStringOption_("analysis_profile").toQString();
     QString elements = getStringOption_("elements").toQString();
     QString database = getStringOption_("database").toQString();
@@ -199,6 +194,12 @@ protected:
     QString noise = QString::number(getIntOption_("noise"));
     QString ppm_max = QString::number(getIntOption_("ppm_max"));
     QString candidates = QString::number(getIntOption_("candidates"));
+
+    Int batch_size = getIntOption_("batch_size");
+    if(batch_size == 0)
+    {
+      batch_size = static_cast<int>(in.size());
+    }
 
     bool no_recalibration = getFlag_("no_recalibration");
     bool fingerid = getFlag_("fingerid");
@@ -208,351 +209,61 @@ protected:
     // Calculations
     //-------------------------------------------------------------
 
-    // laod spectra
     PeakMap spectra;
     MzMLFile f;
     f.setLogType(log_type_);
     f.load(in, spectra);
 
-    SiriusAdapterRun csi_result;
+    std::vector<String> ms_files = SiriusMSFile::store(spectra, batch_size);
 
-    //check for all spectra at the beginning if spectra are centroided
-    // determine type of spectral data (profile or centroided) //only checking first spectrum (could be ms2 spectrum)
-    SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
-
-    if (spectrum_type == SpectrumSettings::RAWDATA)
+    for(int i = 0; i < ms_files.size(); ++i)
     {
-      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra are needed. Please use PeakPicker to convert the spectra.");
+
+      QStringList process_params; // the actual process
+      process_params << "-p" << analysis_profile
+                     << "-e" << elements
+                     << "-d" << database
+                     << "-s" << isotope
+                     << "--noise" << noise
+                     << "--candidates" << candidates
+                     << "--ppm-max" << ppm_max
+                     << "--output" << File::removeExtension(ms_files[i]).toQString(); //internal output folder for temporary files
+
+      if (no_recalibration)
+      {
+        process_params << "--no-recalibration";
+      }
+      if (fingerid)
+      {
+        process_params << "--fingerid";
+      }
+      if (iontree)
+      {
+        process_params << "--iontree";
+      }
+
+      process_params << ms_files[i].toQString();
+
+      QProcess qp;
+      qp.start(executable, process_params); // does automatic escaping etc... start
+      bool success = qp.waitForFinished(30000); // exits job after 30 seconds
+
+      if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
+      {
+        qp.close();
+        writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input within 30 seconds" );
+      }
+
+      //close the process
+      //-------------------------------------------------------------
+      // writing output
+      //-------------------------------------------------------------
+
+      //TODO: output from SirusMzTabWriter
+      //TODO: output from CsiFingerIDMzTabWriter
+
     }
 
-    // loop over all spectra
-    for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
-    {
-      // process only MS2 spectra
-      if (s_it->getMSLevel() != 2) continue;
-
-      const MSSpectrum<Peak1D>& spectrum = *s_it;
-
-      int scan_index = s_it - spectra.begin();
-
-      const vector<Precursor>& precursor = spectrum.getPrecursors();
-      double collision = precursor[0].getActivationEnergy();
-
-      IonSource::Polarity p = spectrum.getInstrumentSettings().getPolarity(); //charge
-
-      // needed later for writing in ms file
-      int int_charge(1);
-      //cout << IonSource::Polarity::POSITIVE << endl;
-      if (p == IonSource::Polarity::POSITIVE)
-      {
-        int_charge = +1;
-      }
-      else
-      {
-        LOG_WARN << "SiriusAdapter only support positive ion mode and mono charged analytes." << endl;
-        continue;
-      }
-
-      //there should be only one precursor and MS2 should contain peaks to be considered
-      if (precursor.size() == 1 && !spectrum.empty())
-      {
-        //read charge annotated to MS2
-        int precursor_charge = precursor[0].getCharge();
-
-        //sirius only supports +1 charge so far
-        if (precursor_charge > 1 || precursor_charge <= -1)
-        {
-          LOG_WARN << "Sirius only support positively mono charged analytes." << endl;
-        }
-
-        //get m/z and intensity of precursor != MS1 spectrum
-        double precursor_mz = precursor[0].getMZ();
-        float precursor_int = precursor[0].getIntensity();
-        double spectrum_rt = spectrum.getRT();
-
-        //find corresponding ms1 spectra (precursor)
-        PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum(s_it);
-
-        double test_mz = precursor_mz;
-
-        vector<Peak1D> isotopes;
-        isotopes.clear();
-
-        if (s_it2->getMSLevel() != 1)
-        {
-          LOG_WARN << "Error: no MS1 spectrum for this precursor. No isotopes considered in sirius." << endl;
-        }
-        //get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1Da
-        else
-        {
-          const MSSpectrum<Peak1D>& spectrum1 = *s_it2;
-
-          Int mono_index = getHighestIntensityPeakInMZRange(test_mz, spectrum1, 0.2, 0.2); //which window to choose for precursor
-
-          if (mono_index != -1)
-          {
-            const Peak1D& max_mono_peak = spectrum1[mono_index];
-            isotopes.push_back(max_mono_peak);
-
-            // make sure the 13C isotopic peak is picked up by doubling the (fractional) mass difference (approx. 1.0066)
-            const double C13_dd = 2.0 * (Constants::C13C12_MASSDIFF_U - 1.0);
-            Int iso1_index = getHighestIntensityPeakInMZRange(max_mono_peak.getMZ() + 1.0, spectrum1, 0, C13_dd);
-
-            if (iso1_index != -1)
-            {
-              const Peak1D& iso1_peak = spectrum1[iso1_index];
-              isotopes.push_back(iso1_peak);
-              Int iso2_index = getHighestIntensityPeakInMZRange(iso1_peak.getMZ() + 1.0, spectrum1, 0, C13_dd);
-
-              if (iso2_index != -1)
-              {
-                const Peak1D& iso2_peak = spectrum1[iso2_index];
-                isotopes.push_back(iso2_peak);
-              }
-            }
-          }
-        }
-
-        //store temporary data
-        String query_id = String("unknown") + String(scan_index);
-        String unique_name =  String(File::getUniqueName()).toQString(); //if not done this way - always new "unique name"
-        String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_out";
-        String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
-
-        //to get the path and filename
-        writeLog_(String("Temp_output_folder: " + tmp_dir));
-        writeLog_(String("Temp_filename: " + tmp_filename));
-        writeLog_(String("Activation Energy: " + String(collision)));
-
-        // create temporary input file (.ms)
-        ofstream os(tmp_filename.c_str());
-        if (!os)
-        {
-          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
-        }
-
-        // create temporary output folder
-        if (!QDir().mkdir(tmp_dir.toQString()))
-        {
-          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_dir);
-        }
-
-        //TODO: Collision energy optional for MS2 - something wrong with .getActivationEnergy() (Precursor)
-        //TODO: MS2 instensity cutoff? -> to reduce the interference of low intensity peaks (?) - can do that for specific spectra (hard coded/soft coded?)
-
-        //write internal unique .ms data as sirius input
-        streamsize prec = os.precision();
-        os.precision(12);
-        os << fixed;
-        os << ">compound " << query_id << "\n";
-        if (isotopes.empty() == false)
-        {
-          os << ">parentmass " << isotopes[0].getMZ() << fixed << "\n";
-        }
-        else
-        {
-          os << ">parentmass " << precursor_mz << fixed << "\n";
-        }
-        os << ">charge " << int_charge << "\n\n";
-
-        // Use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
-
-        if (isotopes.empty() == false) //if ms1 spectrum was present
-        {
-          os << ">ms1" << "\n";
-          //m/z and intensity have to be higher than 1e-10
-          //the intensity of the peaks of the isotope pattern have to be smaller than the one before
-          if (isotopes[0].getMZ() > 1e-10 && isotopes[0].getIntensity() > 1e-10){ os << isotopes[0].getMZ() << " " << isotopes[0].getIntensity() << "\n";}
-          if (isotopes[1].getMZ() > 1e-10 && isotopes[1].getIntensity() > 1e-10 && isotopes[1].getIntensity() < isotopes[0].getIntensity() > 1e-10){ os << isotopes[1].getMZ() << " " << isotopes[1].getIntensity() << "\n";}
-          if (isotopes[2].getMZ() > 1e-10 && isotopes[2].getIntensity() > 1e-10 && isotopes[2].getIntensity() < isotopes[1].getIntensity() > 1e-10){ os << isotopes[2].getMZ() << " " << isotopes[2].getIntensity() << "\n";}
-          os << "\n";
-        }
-        else
-        {
-          if(precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
-          {
-            os << ">ms1" << "\n"
-               << precursor_mz << " " << precursor_int << "\n\n";
-          }
-        }
-
-        //if collision energy was given - write it into .ms file if not use ms2 instead
-        if (collision == 0.0)
-        {
-          os << ">ms2" << "\n";
-        }
-        else
-        {
-          os << ">collision" << " " << collision << "\n";
-        }
-
-        //single spectrum peaks
-        for (Size i = 0; i != spectrum.size(); ++i)
-        {
-          const Peak1D& peak = spectrum[i];
-          double mz = peak.getMZ();
-          float intensity = peak.getIntensity();
-
-          //intensity has to be higher than zero
-          if (intensity != 0)
-          {
-            os << mz << " " << intensity << "\n";
-          }
-        }
-        os.precision(prec); //reset the precision
-        os.close();
-
-        QStringList process_params; // the actual process
-        process_params << "-p" << analysis_profile
-                       << "-e" << elements
-                       << "-d" << database
-                       << "-s" << isotope
-                       << "--noise" << noise
-                       << "--candidates" << candidates
-                       << "--ppm-max" << ppm_max
-                       << "--output" << tmp_dir.toQString(); //internal output folder for temporary files
-
-        if (no_recalibration) process_params << "--no-recalibration";
-        if (fingerid) process_params << "--fingerid";
-        if (iontree) process_params << "--iontree";
-
-        process_params << tmp_filename.toQString();
-
-        //no terminal output of SiriusAdapter/Sirius
-        QProcess qp;
-        qp.start(executable, process_params); // does automatic escaping etc... start
-        bool success = qp.waitForFinished(30000); // exits job after 30 seconds
-        //String output(QString(qp.readAllStandardOutput()));
-
-        if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
-        {
-          qp.close();
-          writeLog_("Fatal error: Running SiriusAdapter returned an error code or could no compute the input within 30 seconds for following scan index: " + String(scan_index));
-        }
-
-        //close the process
-        //-------------------------------------------------------------
-        // writing output
-        //-------------------------------------------------------------
-
-        ifstream file(tmp_dir + "/" + unique_name + "_" + query_id +".csv");
-        if (file)
-        {
-          // read results from sirius output files
-          CsvFile compounds(tmp_dir + "/" + unique_name + "_" + query_id +".csv", '\t');
-
-          // fill indentification structure containing all candidate hits for a single spectrum
-          SiriusAdapterIdentification csi_id;
-
-          // ?? comparison of int and unsigned long
-          if (number > (int)compounds.rowCount())
-          {
-            number = (int)compounds.rowCount();
-          }
-
-          for (Size j = 1; j < number; ++j)
-          {
-            StringList sl;
-            compounds.getRow(j,sl);
-            SiriusAdapterHit csi_hit;
-            // parse single candidate hit
-            csi_hit.inchikey2D = sl[0];
-            csi_hit.inchi = sl[1];
-            csi_hit.rank = sl[2].toInt();
-            csi_hit.score = sl[3].toDouble();
-            csi_hit.name = sl[4];
-            csi_hit.smiles = sl[5];
-            // split multiple ids: e.g.: 1233423;345345;435345
-            sl[6].split(';', csi_hit.pubchemids);
-            csi_hit.links = sl[7];
-            csi_id.hits.push_back(csi_hit);
-          }
-
-          csi_id.scan_index = scan_index;
-          csi_id.id = unique_name;
-          csi_id.charge = precursor_charge;
-          csi_id.mz = precursor_mz;
-          csi_id.rt = spectrum_rt;
-
-          csi_result.identifications.push_back(csi_id);
-
-          // clean up temporary input files and output folder
-               if (getIntOption_("debug") < 2)
-               {
-                writeDebug_("Removing temporary files", 1);
-
-                // remove temporary input file
-                if (File::exists(tmp_filename) && !File::remove(tmp_filename))
-                {
-                 LOG_WARN << "Unable to remove temporary file: " << tmp_filename << endl;
-                }
-
-                // remove temporary output folder
-                if (File::exists(tmp_dir) && !File::removeDirRecursively(tmp_dir))
-                {
-                 LOG_WARN << "Unable to remove temporary folder: " << tmp_dir << endl;
-                }
-               }
-               else
-               {
-                writeDebug_(String("Input to sirius kept for inspection at ") + tmp_filename + "\n", 2);
-                writeDebug_(String("Output folder kept for inspection at ") + tmp_dir + "\n", 2);
-               }
-        }
-        else
-        {
-          LOG_WARN << "No Output file was generated by SiriusAdapter. Scan Index: " << scan_index << endl;
-        }
-      }
-    }
-
-    // write out results to mzTab file
-    MzTab mztab;
-    MzTabFile mztab_out;
-    MzTabMetaData md;
-    MzTabMSRunMetaData md_run;
-    md_run.location = MzTabString(in);
-    md.ms_run[1] = md_run;
-
-    MzTabSmallMoleculeSectionRows smsd;
-    for (Size i = 0; i != csi_result.identifications.size(); ++i)
-    {
-      const SiriusAdapterIdentification& id = csi_result.identifications[i];
-      for (Size j = 0; j != id.hits.size(); ++j)
-      {
-        const SiriusAdapterHit& hit = id.hits[j];
-        MzTabSmallMoleculeSectionRow smsr;
-        smsr.best_search_engine_score[1] = MzTabDouble(hit.score);
-        smsr.charge = MzTabDouble(id.charge);
-        //smsr.chemical_formula = TODO extract from inchi
-        smsr.database = MzTabString(database);
-        smsr.description = MzTabString(hit.name);
-        smsr.exp_mass_to_charge = MzTabDouble(id.mz);
-        vector<MzTabString> pubchemids;
-        for (Size k = 0; k != hit.pubchemids.size(); ++k)
-        {
-          pubchemids.push_back(MzTabString(hit.pubchemids[k]));
-        }
-        smsr.identifier.set(pubchemids);
-        smsr.inchi_key = MzTabString(hit.inchikey2D);
-        smsr.smiles = MzTabString(hit.smiles);
-        vector<MzTabDouble> rts;
-        rts.push_back(MzTabDouble(id.rt));
-        smsr.retention_time.set(rts);
-        smsr.search_engine.fromCellString("[,,CSIFingerID,3.4.1]");
-        smsr.search_engine_score_ms_run[1] = smsr.best_search_engine_score;
-        smsr.spectra_ref.fromCellString(String("ms_run[1]:scan_index=" + String(id.scan_index)));
-        smsr.uri = MzTabString(hit.links);
-        MzTabOptionalColumnEntry rank;
-        rank.first = "rank";
-        rank.second = MzTabString(hit.rank);
-        smsr.opt_.push_back(rank);
-        smsd.push_back(smsr);
-      }
-    }
-
-    mztab.setSmallMoleculeSectionRows(smsd);
-    mztab_out.store(out, mztab);
 
     return EXECUTION_OK;
   }
