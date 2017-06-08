@@ -1184,7 +1184,7 @@ namespace OpenMS
     std::cout << " ----- printEdgesOfConnectedFeatures_ -----\n";
     return;
   }
-  //not verified, for negative mode -> don't use there
+
   inline bool MetaboliteFeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2)
   {
     if (!enable_intensity_filter_)
