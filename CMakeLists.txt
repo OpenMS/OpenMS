@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -98,7 +98,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "1")
+set(OPENMS_PACKAGE_VERSION_MINOR "2")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
 #------------------------------------------------------------------------------
@@ -269,10 +269,14 @@ foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
 endforeach()
 
 #------------------------------------------------------------------------------
-# lib naming when building with msvc
+# lib naming when building with msvc & convenience location of build.bat
 if (MSVC)
 	## use OpenMSd.dll in debug mode
 	SET(CMAKE_DEBUG_POSTFIX d)
+	## copy build.bat to root of binary dir to enable convenient invokation (instead of typing path to source dir all the time)
+	if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
+		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
+	endif()
 endif()
 
 #------------------------------------------------------------------------------

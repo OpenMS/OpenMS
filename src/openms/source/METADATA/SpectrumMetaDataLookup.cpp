@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace std;
 
@@ -181,19 +180,18 @@ namespace OpenMS
   }
 
 
-  bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
-    vector<PeptideIdentification>& peptides, const String& filename,
+  bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(vector<PeptideIdentification>& peptides, const String& filename,
     bool stop_on_error)
   {
     PeakMap exp;
     SpectrumLookup lookup;
     bool success = true;
     for (vector<PeptideIdentification>::iterator it = peptides.begin();
-         it != peptides.end(); ++it)
+            it != peptides.end(); ++it)
     {
       if (boost::math::isnan(it->getRT()))
       {
-        if (lookup.empty()) // load raw data only if we have to
+        if (lookup.empty())
         {
           FileHandler().loadExperiment(filename, exp);
           lookup.readSpectra(exp.getSpectra());
@@ -206,7 +204,7 @@ namespace OpenMS
         }
         catch (Exception::ElementNotFound&)
         {
-          LOG_ERROR << "Error: Failed to look up retention time for peptide ID with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
+          LOG_ERROR << "Error: Failed to look up retention time for peptide identification with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
           success = false;
           if (stop_on_error) break;
         }
@@ -214,5 +212,52 @@ namespace OpenMS
     }
     return success;
   }
+
+  bool SpectrumMetaDataLookup::addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, const String& filename,
+    bool stop_on_error, bool override_spectra_data, vector<ProteinIdentification> proteins)
+  {
+    bool success = true;
+    PeakMap exp;
+    SpectrumMetaDataLookup lookup;
+    if (lookup.empty())
+    {
+      FileHandler().loadExperiment(filename, exp);
+      lookup.readSpectra(exp.getSpectra());
+      lookup.setSpectraDataRef(filename);
+    }
+    if (override_spectra_data)
+    {
+      vector<String> spectra_data(1);
+      spectra_data[0] = "file://" + lookup.spectra_data_ref;
+      for (vector<ProteinIdentification>::iterator it =
+            proteins.begin(); it !=
+            proteins.end(); ++it)
+      {
+        it->setMetaValue("spectra_data", spectra_data);
+      }
+    }
+    for (vector<PeptideIdentification>::iterator it =
+          peptides.begin(); it !=
+          peptides.end(); ++it)
+    {
+      try
+      {
+        Size index = lookup.findByRT(it->getRT());
+        SpectrumMetaDataLookup::SpectrumMetaData meta;
+        lookup.getSpectrumMetaData(index, meta);
+        it->setMetaValue("spectrum_reference", meta.native_id);
+      }
+      catch (Exception::ElementNotFound&)
+      {
+        LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(it->getRT()) + "'." << endl;
+        success = false;
+        if (stop_on_error) break;
+      }
+    }
+
+
+    return success;
+  }
+
 
 } // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,8 @@
 // $Authors: Johannes Veit $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_KDTREEDATA_H
-#define OPENMS_ANALYSIS_QUANTITATION_KDTREEDATA_H
+#ifndef OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATUREMAPS_H
+#define OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATUREMAPS_H
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -179,4 +179,4 @@ protected:
 };
 }
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_KDTREEDATA_H
+#endif // OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATUREMAPS_H

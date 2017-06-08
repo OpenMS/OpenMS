@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,22 +65,43 @@ namespace OpenMS
     }
   }
 
-  double HyperScore::compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const RichPeakSpectrum& theo_spectrum)
+  double HyperScore::compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const PeakSpectrum& theo_spectrum)
   {
     double dot_product = 0.0;
     UInt y_ion_count = 0;
     UInt b_ion_count = 0;
 
-    for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+    if (exp_spectrum.size() < 1 || theo_spectrum.size() < 1)
     {
-      if (!theo_peak_it->metaValueExists("IonName"))
-      {
-        std::cout << "Error: Theoretical spectrum without IonName annotation provided." << std::endl;
-        return 0.0;
-      }
+      std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
+      return 0.0;
+    }
 
-      const double& theo_mz = theo_peak_it->getMZ();
-      const double& theo_intensity = theo_peak_it->getIntensity();
+    // TODO this assumes only one StringDataArray is present and it is the right one
+    PeakSpectrum::StringDataArray ion_names;
+    if (theo_spectrum.getStringDataArrays().size() > 0)
+    {
+      ion_names = theo_spectrum.getStringDataArrays()[0];
+    }
+    else
+    {
+      std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << std::endl;
+      return 0.0;
+    }
+
+    //for (MSSpectrum<Peak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+    for (Size i = 0; i < theo_spectrum.size(); ++i)
+    {
+//      if (!theo_peak_it->metaValueExists("IonName"))
+//      {
+//        std::cout << "Error: Theoretical spectrum without IonName annotation provided." << std::endl;
+//        return 0.0;
+//      }
+
+//      const double theo_mz = theo_peak_it->getMZ();
+//      const double theo_intensity = theo_peak_it->getIntensity();
+      const double theo_mz = theo_spectrum[i].getMZ();
+      const double theo_intensity = theo_spectrum[i].getIntensity();
 
       double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
@@ -92,20 +113,24 @@ namespace OpenMS
       if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
       {
         dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
-        if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
+//        if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
+        if (ion_names[i][0] == 'y')
         {
           #ifdef DEBUG_HYPERSCORE
-            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+//            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+            std::cout << ion_names[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
           #endif
           ++y_ion_count;
         }
-        else if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'b')
+//        else if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'b')
+        else if (ion_names[i][0] == 'b')
         {
           #ifdef DEBUG_HYPERSCORE
-            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+//            std::cout << theo_peak_it->getMetaValue("IonName").toString() << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+            std::cout << ion_names[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
           #endif
           ++b_ion_count;
-        }       
+        }
       }
     }
 

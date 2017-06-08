@@ -438,13 +438,11 @@ set(analysis_executables_list
   IsobaricQuantitationMethod_test
   IsobaricQuantifier_test
   IsobaricQuantifierStatistics_test
-  ItraqChannelExtractor_test
   ItraqConstants_test
   ItraqFourPlexQuantitationMethod_test
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
-  ItraqQuantifier_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
@@ -548,14 +546,6 @@ set(transformations_executables_list
   SeedListGenerator_test
   TraceFitter_test
 )
-
-if(NOT DISABLE_WAVELET2DTEST)
-set(transformations_executables_list
-  ${transformations_executables_list}
-  TwoDOptimization_test
-)
-endif(NOT DISABLE_WAVELET2DTEST)
-
 
 if(NOT DISABLE_OPENSWATH)
 set(transformations_executables_list

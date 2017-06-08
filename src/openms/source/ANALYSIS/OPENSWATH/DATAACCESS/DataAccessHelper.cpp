@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -198,10 +198,15 @@ namespace OpenMS
     OpenSwath::LightModification light_mod;
 
     p.id = pep.id;
-    if (!pep.rts.empty())
+    if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1000896"))
     {
       p.rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
     }
+    else if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1002005")) // iRT
+    {
+      p.rt = pep.rts[0].getCVTerms()["MS:1002005"][0].getValue().toString().toDouble();
+    }
+
     if (pep.hasCharge())
     {
       p.charge = pep.getChargeState();
@@ -264,10 +269,15 @@ namespace OpenMS
   void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
   {
     comp.id = compound.id;
-    if (!compound.rts.empty())
+    if (!compound.rts.empty() && compound.rts[0].hasCVTerm("MS:1000896"))
     {
       comp.rt = compound.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
     }
+    else if (!compound.rts.empty() && compound.rts[0].hasCVTerm("MS:1002005")) // iRT
+    {
+      comp.rt = compound.rts[0].getCVTerms()["MS:1002005"][0].getValue().toString().toDouble();
+    }
+
     if (compound.hasCharge())
     {
       comp.charge = compound.getChargeState();

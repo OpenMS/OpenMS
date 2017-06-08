@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -333,6 +333,12 @@ public:
             transition_group_subset.addChromatogram(chromatograms_[chromatogram_map_[tr_it->getNativeID()]], tr_it->getNativeID());
           }
         }
+      }
+
+      for (typename std::vector<SpectrumType>::iterator pr_it = precursor_chromatograms_.begin(); pr_it != precursor_chromatograms_.end(); ++pr_it)
+      {
+        // add precursor chromatograms if present
+        transition_group_subset.addPrecursorChromatogram(*pr_it,pr_it->getNativeID());
       }
 
       for (std::vector< MRMFeature >::iterator tgf_it = mrm_features_.begin(); tgf_it != mrm_features_.end(); ++tgf_it)

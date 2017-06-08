@@ -5,7 +5,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 --------------------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -111,7 +111,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
                     found = True
                     break
                 else:
-                    print "Something went wrong, %s is not equal to %s" (assumed_fullname, klass[0].cname)
+                    print "Something went wrong, %s is not equal to %s" % (assumed_fullname, klass[0].cname)
 
         if not found:
             tres.setPassed(False)
@@ -1100,7 +1100,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             pxdfile = pxd_class.pxdfile
         except PXDFileParseError as e:
             # TODO specific exception
-            msg = "Skip:: No-pxd :: " + e.message + "for %s (in pxd file %s)" % (comp_name, pxdfiles)
+            msg = "Skip:: No-pxd :: " + e.message + " for %s (in pxd file %s)" % (comp_name, pxdfiles)
             tres = TestResult(False, msg,  name="Missing_%s_test" % comp_name )
             tres.maintainer = maintainer
             testresults.append([ tres ])

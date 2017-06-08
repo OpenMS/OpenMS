@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1081,7 +1081,17 @@ namespace OpenMS
             for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
             {
               String pevid =  "PEV_" + String(UniqueIdGenerator::getUniqueId());
-              String dBSequence_ref = String(sen_ids.find(pe->getProteinAccession())->second);
+              String dBSequence_ref;
+              map<String, String>::const_iterator pos = sen_ids.find(pe->getProteinAccession());
+              if (pos != sen_ids.end())
+              {
+                dBSequence_ref = pos->second;
+              }
+              else
+              {
+                LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe->getProteinAccession() << "' - skipping." << endl;
+                continue;
+              }
               String idec;
               if (jt->metaValueExists("target_decoy"))
               {

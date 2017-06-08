@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,13 +62,12 @@ namespace OpenMS
 
     @brief The MRMTransitionGroupPicker finds peaks in chromatograms that belong to the same precursors.
 
-      @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
+    @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
 
     It is called through pickTransitionGroup which will accept an
     MRMTransitionGroup filled with n chromatograms and perform the following steps:
      - Step 1: find features (peaks) in individual chromatograms
      - Step 2: merge these features to consensus features that span multiple chromatograms
-
 
     Step 1 is performed by smoothing the individual chromatogram and applying the
     PeakPickerHiRes.
@@ -345,12 +344,19 @@ public:
         }
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
-        f.setMZ(chromatogram.getMetaValue("product_mz"));
         f.setIntensity(intensity_sum);
         ConvexHull2D hull;
         hull.setHullPoints(hull_points);
         f.getConvexHulls().push_back(hull);
-        f.setMetaValue("MZ", chromatogram.getMetaValue("product_mz"));
+        if (chromatogram.metaValueExists("product_mz"))
+        {
+          f.setMetaValue("MZ", chromatogram.getMetaValue("product_mz"));
+          f.setMZ(chromatogram.getMetaValue("product_mz"));
+        }
+        else
+        {
+          LOG_WARN << "Please set meta value 'product_mz' on chromatogram to populate feature m/z value" << std::endl;
+        }
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
         //f.setMetaValue("leftWidth", best_left);

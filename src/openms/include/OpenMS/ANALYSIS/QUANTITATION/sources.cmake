@@ -9,11 +9,9 @@ IsobaricNormalizer.h
 IsobaricQuantifier.h
 IsobaricQuantifierStatistics.h
 IsobaricQuantitationMethod.h
-ItraqChannelExtractor.h
 ItraqConstants.h
 ItraqEightPlexQuantitationMethod.h
 ItraqFourPlexQuantitationMethod.h
-ItraqQuantifier.h
 KDTreeFeatureMaps.h
 KDTreeFeatureNode.h
 PeptideAndProteinQuant.h

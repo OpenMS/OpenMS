@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.9" id="fm_5156711929824391485" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<UserParam type="floatList" name="FDR_probabilities" value="[0.0648797824978828, 0.234535679221153, 0.866869628429413]"/>
+	<UserParam type="floatList" name="FDR_probabilities" value="[0.0422636196017265, 0.195453345775604, 0.897265672683716]"/>
 	<UserParam type="floatList" name="FDR_qvalues_raw" value="[0.117647058823529, 0.0625, 0]"/>
 	<UserParam type="floatList" name="FDR_qvalues_corrected" value="[0.040920716112532, 0.0217391304347826, 0]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
@@ -285,7 +285,7 @@
 		<UserParam type="string" name="FFId_category" value="external"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="404.203002929688" RT="2003.33984375" >
-		<PeptideHit score="0.0454545454545455" sequence="LAADDFR" charge="2" aa_before="K X X X X X X" aa_after="T X X X X X X" protein_refs="PH_20 PH_21 PH_22 PH_23 PH_18 PH_17 PH_19">
+		<PeptideHit score="0.0454545454545455" sequence="LAADDFR" charge="2" aa_before="K X X X X X X" aa_after="T X X X X X X" protein_refs="PH_18 PH_21 PH_22 PH_20 PH_19 PH_17 PH_23">
 			<UserParam type="float" name="OMSSA_score" value="0.060731076753908"/>
 			<UserParam type="string" name="target_decoy" value="target"/>
 		</PeptideHit>
@@ -438,7 +438,7 @@
 			<intensity>7.81384e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.915508</overallquality>
+			<overallquality>0.940651</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1998.99108886719" y="461.697653035421" />
@@ -524,7 +524,7 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.915508204763859"/>
+			<UserParam type="float" name="predicted_probability" value="0.94065110026853"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_15004869347769368353">
@@ -533,7 +533,7 @@
 			<intensity>2.40299e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.90784</overallquality>
+			<overallquality>0.93411</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="2045.21923828125" y="395.676522907821" />
@@ -621,7 +621,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.907839726540635"/>
+			<UserParam type="float" name="predicted_probability" value="0.934109550764107"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_17413765565443951891">
@@ -630,7 +630,7 @@
 			<intensity>5.9601e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.425157</overallquality>
+			<overallquality>0.405836</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="2092.81127929688" y="455.705280535421" />
@@ -716,7 +716,7 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="0"/>
-			<UserParam type="float" name="predicted_probability" value="0.425157462299421"/>
+			<UserParam type="float" name="predicted_probability" value="0.405835872305979"/>
 			<UserParam type="float" name="q-value" value="0.0217391304347826"/>
 		</feature>
 		<feature id="f_10306100746905639127">
@@ -725,7 +725,7 @@
 			<intensity>1.41631e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.86687</overallquality>
+			<overallquality>0.897266</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1735.69311523438" y="569.702618393021" />
@@ -820,7 +820,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.866869606461152"/>
+			<UserParam type="float" name="predicted_probability" value="0.897265655055033"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_17314619952666245179">
@@ -829,7 +829,7 @@
 			<intensity>3.6544e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.948762</overallquality>
+			<overallquality>0.967421</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1718.70336914062" y="443.661267907821" />
@@ -915,7 +915,7 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.948762241220119"/>
+			<UserParam type="float" name="predicted_probability" value="0.967420949328927"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_15050004366391181853">
@@ -924,7 +924,7 @@
 			<intensity>8.88946e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.938268</overallquality>
+			<overallquality>0.959282</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1825.08544921875" y="487.682534471621" />
@@ -1026,7 +1026,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.93826774591314"/>
+			<UserParam type="float" name="predicted_probability" value="0.959282487237445"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_16177748921272733768">
@@ -1035,7 +1035,7 @@
 			<intensity>6.43095e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.9458</overallquality>
+			<overallquality>0.965156</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1825.08544921875" y="325.440781803338" />
@@ -1121,7 +1121,7 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.94579950165904"/>
+			<UserParam type="float" name="predicted_probability" value="0.965155765179076"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_12665713047548007769">
@@ -1130,7 +1130,7 @@
 			<intensity>1.62243e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.916278</overallquality>
+			<overallquality>0.941301</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="2047.82275390625" y="554.210602012071" />
@@ -1225,7 +1225,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.916277740735144"/>
+			<UserParam type="float" name="predicted_probability" value="0.941300668251564"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_10627069796380146481">
@@ -1234,7 +1234,7 @@
 			<intensity>1.15352e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.950638</overallquality>
+			<overallquality>0.968841</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1744.55932617188" y="646.254684132271" />
@@ -1322,7 +1322,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.950638129450958"/>
+			<UserParam type="float" name="predicted_probability" value="0.968841252735696"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_11275867043381640475">
@@ -1331,7 +1331,7 @@
 			<intensity>1.49441e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.921307</overallquality>
+			<overallquality>0.945514</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1746.17114257812" y="431.155548243771" />
@@ -1417,7 +1417,7 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.921307164333322"/>
+			<UserParam type="float" name="predicted_probability" value="0.945513969241561"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_3246735940528705071">
@@ -1426,7 +1426,7 @@
 			<intensity>3.18473e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.94932</overallquality>
+			<overallquality>0.967844</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1973.24267578125" y="379.665100772821" />
@@ -1514,7 +1514,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.94931958110708"/>
+			<UserParam type="float" name="predicted_probability" value="0.967844077192149"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_17671779025680303814">
@@ -1523,7 +1523,7 @@
 			<intensity>351473</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0636001</overallquality>
+			<overallquality>0.041238</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1857.064453125" y="408.824238280604" />
@@ -1609,7 +1609,7 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="0"/>
-			<UserParam type="float" name="predicted_probability" value="0.0636000869226747"/>
+			<UserParam type="float" name="predicted_probability" value="0.0412380426905807"/>
 			<UserParam type="float" name="q-value" value="0.040920716112532"/>
 		</feature>
 		<feature id="f_7870901012988979006">
@@ -1618,7 +1618,7 @@
 			<intensity>107976</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.234536</overallquality>
+			<overallquality>0.195453</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="2288.541015625" y="435.860228820904" />
@@ -1706,7 +1706,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="0"/>
-			<UserParam type="float" name="predicted_probability" value="0.234535673882784"/>
+			<UserParam type="float" name="predicted_probability" value="0.195453344777092"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_12561328592123678330">
@@ -1715,7 +1715,7 @@
 			<intensity>128355</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.907919</overallquality>
+			<overallquality>0.934178</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1633.28234863281" y="532.198746583271" />
@@ -1803,7 +1803,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.907918888620816"/>
+			<UserParam type="float" name="predicted_probability" value="0.934177702474675"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_11106716189850669289">
@@ -1812,7 +1812,7 @@
 			<intensity>444698</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.907812</overallquality>
+			<overallquality>0.934086</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1953.46435546875" y="404.153412328071" />
@@ -1900,7 +1900,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.907812056180384"/>
+			<UserParam type="float" name="predicted_probability" value="0.934085725968335"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_12388384985798314387">
@@ -1909,7 +1909,7 @@
 			<intensity>1.17056e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.938717</overallquality>
+			<overallquality>0.959637</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1763.34350585938" y="300.145528597604" />
@@ -1997,7 +1997,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.938717146258226"/>
+			<UserParam type="float" name="predicted_probability" value="0.959637362703152"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_7344192187426184761">
@@ -2006,7 +2006,7 @@
 			<intensity>9.25278e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.394079</overallquality>
+			<overallquality>0.370489</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1595.50939941406" y="368.812109904738" />
@@ -2092,7 +2092,7 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="0"/>
-			<UserParam type="float" name="predicted_probability" value="0.394079133722073"/>
+			<UserParam type="float" name="predicted_probability" value="0.370489338009821"/>
 			<UserParam type="float" name="q-value" value="0.0217391304347826"/>
 		</feature>
 		<feature id="f_25974125700937907">
@@ -2101,7 +2101,7 @@
 			<intensity>1.7437e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.981494</overallquality>
+			<overallquality>0.990289</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1761.75610351562" y="449.694389900421" />
@@ -2160,9 +2160,9 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.995444848298674"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.994000524898595"/>
 			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0584307399821589"/>
-			<UserParam type="float" name="var_library_sangle" value="0.100167183533034"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0584307399821589"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0584307399821588"/>
+			<UserParam type="float" name="var_library_sangle" value="0.100167183533035"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0584307399821588"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.0670063315124288"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.997948935934463"/>
 			<UserParam type="float" name="var_intensity_score" value="0.675325870287564"/>
@@ -2174,7 +2174,7 @@
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.984152837341836"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.26696240901947"/>
 			<UserParam type="float" name="var_massdev_score" value="0.43272982427065"/>
-			<UserParam type="float" name="var_massdev_score_weighted" value="0.447953512388762"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.447953512388763"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.698534764147426"/>
@@ -2187,7 +2187,7 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.981494175701799"/>
+			<UserParam type="float" name="predicted_probability" value="0.99028897925455"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_7619024488371696138">
@@ -2196,7 +2196,7 @@
 			<intensity>1.17279e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.907933</overallquality>
+			<overallquality>0.93419</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1761.75610351562" y="300.115352089204" />
@@ -2255,10 +2255,10 @@
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999223453079938"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.998977229691247"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.998977229691246"/>
+			<UserParam type="float" name="var_library_corr" value="1"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.0278949113172731"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0488381457118354"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0488381457118399"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0278949113172731"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.0312839115958893"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.99954626385961"/>
@@ -2284,7 +2284,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.907933294765693"/>
+			<UserParam type="float" name="predicted_probability" value="0.934190103549167"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_7273255783824449336">
@@ -2293,7 +2293,7 @@
 			<intensity>8.96624e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.90784</overallquality>
+			<overallquality>0.93411</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1918.98767089844" y="395.189463487571" />
@@ -2381,7 +2381,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.907839725643447"/>
+			<UserParam type="float" name="predicted_probability" value="0.934109549991633"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_4804931408721345291">
@@ -2390,7 +2390,7 @@
 			<intensity>3.71667e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.907795</overallquality>
+			<overallquality>0.934071</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="2367.25073242188" y="501.745134726821" />
@@ -2478,7 +2478,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.907795140040147"/>
+			<UserParam type="float" name="predicted_probability" value="0.934071160028356"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_12855069628258305325">
@@ -2487,7 +2487,7 @@
 			<intensity>1.33422e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.90779</overallquality>
+			<overallquality>0.934067</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1537.60900878906" y="358.124576486338" />
@@ -2547,11 +2547,11 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.9957892536018"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.994227305045081"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0593418626095539"/>
-			<UserParam type="float" name="var_library_sangle" value="0.105494126637743"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0593418626095539"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0656174027045489"/>
+			<UserParam type="float" name="var_library_corr" value="1"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.059341862609554"/>
+			<UserParam type="float" name="var_library_sangle" value="0.105494126637741"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.059341862609554"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0656174027045491"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.997986000179241"/>
 			<UserParam type="float" name="var_intensity_score" value="0.770001778814904"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -2575,7 +2575,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.907790328616306"/>
+			<UserParam type="float" name="predicted_probability" value="0.934067016960979"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_12175240310315893095">
@@ -2584,7 +2584,7 @@
 			<intensity>1.18363e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.961975</overallquality>
+			<overallquality>0.977176</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="2036.53295898438" y="421.708354535421" />
@@ -2670,7 +2670,7 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.961974770987438"/>
+			<UserParam type="float" name="predicted_probability" value="0.97717556019133"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 		<feature id="f_15490049804574065229">
@@ -2679,7 +2679,7 @@
 			<intensity>1.26924e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.956574</overallquality>
+			<overallquality>0.973261</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="2307.17138671875" y="464.200362519471" />
@@ -2767,7 +2767,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.956574020333033"/>
+			<UserParam type="float" name="predicted_probability" value="0.973260623803488"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 	</featureList>
