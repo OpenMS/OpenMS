@@ -344,12 +344,19 @@ public:
         }
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
-        f.setMZ(chromatogram.getMetaValue("product_mz"));
         f.setIntensity(intensity_sum);
         ConvexHull2D hull;
         hull.setHullPoints(hull_points);
         f.getConvexHulls().push_back(hull);
-        f.setMetaValue("MZ", chromatogram.getMetaValue("product_mz"));
+        if (chromatogram.metaValueExists("product_mz"))
+        {
+          f.setMetaValue("MZ", chromatogram.getMetaValue("product_mz"));
+          f.setMZ(chromatogram.getMetaValue("product_mz"));
+        }
+        else
+        {
+          LOG_WARN << "Please set meta value 'product_mz' on chromatogram to populate feature m/z value" << std::endl;
+        }
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
         //f.setMetaValue("leftWidth", best_left);
@@ -540,7 +547,7 @@ protected:
       // Resample all chromatograms around the current estimated peak and
       // collect the raw intensities. For resampling, use a bit more on either
       // side to correctly identify shoulders etc.
-      double resample_boundary = 15.0; // sample 15 seconds more on each side
+      double resample_boundary = resample_boundary_; // sample 15 seconds more on each side
       SpectrumT master_peak_container;
       const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
@@ -866,6 +873,7 @@ protected:
     double stop_after_intensity_ratio_;
     double min_peak_width_;
     double recalculate_peaks_max_z_;
+    double resample_boundary_;
   };
 }
 

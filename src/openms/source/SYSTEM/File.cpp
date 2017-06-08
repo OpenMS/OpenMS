@@ -55,7 +55,6 @@
 #include <cstdio>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#  define NOMINMAX
 #  include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #else
 #  include <unistd.h> // for 'getpid()'

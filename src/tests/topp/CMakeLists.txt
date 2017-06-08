@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -269,6 +269,9 @@ set_tests_properties("TOPP_FeatureFinderMetabo_1_out" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FeatureFinderMetabo_2" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_input.mzML -out FeatureFinderMetabo_2.tmp)
 add_test("TOPP_FeatureFinderMetabo_2_out" ${DIFF} -whitelist "id=" "completion_time" -in1 FeatureFinderMetabo_2.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_2_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_2")
+add_test("TOPP_FeatureFinderMetabo_3" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_3.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_input.mzML -out FeatureFinderMetabo_3.tmp -out_chrom FeatureFinderMetabo_3_chrom.tmp)
+add_test("TOPP_FeatureFinderMetabo_3_chrom_out" ${DIFF} -whitelist "<chromatogram id=" "<offset" "<userParam name=" -in1 FeatureFinderMetabo_3_chrom.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_chrom_output.mzML)
+set_tests_properties("TOPP_FeatureFinderMetabo_3_chrom_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_3")
 
 #------------------------------------------------------------------------------
 # FeatureFinderCentroided test
@@ -804,6 +807,10 @@ set_tests_properties("TOPP_IDFileConverter_20_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_21" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_21_input.idXML -out_type idXML -out IDFileConverter_21_output.tmp -mz_file ${DATA_DIR_TOPP}/IDMapper_4_input.mzML)
 add_test("TOPP_IDFileConverter_21_out1" ${DIFF} -in1 IDFileConverter_21_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_21_output.idXML -whitelist "creationDate" "id" "spectraData_ref" "searchDatabase_ref")
 set_tests_properties("TOPP_IDFileConverter_21_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_21")
+# Testing add_ionmatch_annotation
+add_test("TOPP_IDFileConverter_22" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_22_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -add_ionmatch_annotation 0.01)
+add_test("TOPP_IDFileConverter_22_out1" ${DIFF} -in1 IDFileConverter_22_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_22_output.idXML -whitelist "IdentificationRun date" )
+set_tests_properties("TOPP_IDFileConverter_22_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_22")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -860,8 +867,8 @@ set_tests_properties("TOPP_IDFilter_11_out1" PROPERTIES DEPENDS "TOPP_IDFilter_1
 
 # filters by digestion products 
 # default digestion parameters
-add_test("TOPP_IDFilter_12" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_12_input.idXML -out /tmp/IDFilter_12_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_12_input.fasta)
-add_test("TOPP_IDFilter_12_out1" ${DIFF} -in1 /tmp/IDFilter_12_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_12_output.idXML )
+add_test("TOPP_IDFilter_12" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_12_input.idXML -out IDFilter_12_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_12_input.fasta)
+add_test("TOPP_IDFilter_12_out1" ${DIFF} -in1 IDFilter_12_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_12_output.idXML )
 set_tests_properties("TOPP_IDFilter_12_out1" PROPERTIES DEPENDS "TOPP_IDFilter_12")
 # filters by digestion products considering missed cleavages
 add_test("TOPP_IDFilter_13" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_13_input.idXML -out IDFilter_13_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_13_input.fasta -digest:missed_cleavages 1)
@@ -2099,3 +2106,47 @@ add_test("UTILS_TICCalculator_3" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA
 add_test("UTILS_TICCalculator_4" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed)
 add_test("UTILS_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed_parallel)
 
+# OpenPepXL test:
+add_test("UTILS_OpenPepXL_1" ${TOPP_BIN_PATH}/OpenPepXL -test -in ${DATA_DIR_TOPP}/OpenPepXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenPepXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenPepXL_input.fasta -out_xquestxml OpenPepXL_output.xquest.xml.tmp -out_xquest_specxml OpenPepXL_output.spec.xml.tmp -out_mzIdentML OpenPepXL_output.mzid.tmp -out_idXML OpenPepXL_output.idXML.tmp)
+add_test("UTILS_OpenPepXL_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenPepXL_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.xquest.xml )
+add_test("UTILS_OpenPepXL_1_out_2" ${DIFF} -in1 OpenPepXL_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.spec.xml )
+add_test("UTILS_OpenPepXL_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "OpenPepXL_input" -in1 OpenPepXL_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.mzid )
+add_test("UTILS_OpenPepXL_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXL_input" -in1 OpenPepXL_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.idXML )
+set_tests_properties("UTILS_OpenPepXL_1_out_1" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+set_tests_properties("UTILS_OpenPepXL_1_out_2" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+set_tests_properties("UTILS_OpenPepXL_1_out_3" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+set_tests_properties("UTILS_OpenPepXL_1_out_4" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+
+# OpenPepXLLF test:
+add_test("UTILS_OpenPepXLLF_1" ${TOPP_BIN_PATH}/OpenPepXLLF -test -in ${DATA_DIR_TOPP}/OpenPepXLLF_input.mzML -database ${DATA_DIR_TOPP}/OpenPepXLLF_input.fasta -out_xquestxml OpenPepXLLF_output.xquest.xml.tmp -out_xquest_specxml OpenPepXLLF_output.spec.xml.tmp -out_mzIdentML OpenPepXLLF_output.mzid.tmp -out_idXML OpenPepXLLF_output.idXML.tmp)
+add_test("UTILS_OpenPepXLLF_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenPepXLLF_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.xquest.xml )
+add_test("UTILS_OpenPepXLLF_1_out_2" ${DIFF} -in1 OpenPepXLLF_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.spec.xml )
+add_test("UTILS_OpenPepXLLF_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "input_mzML" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.mzid )
+add_test("UTILS_OpenPepXLLF_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.idXML )
+set_tests_properties("UTILS_OpenPepXLLF_1_out_1" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+set_tests_properties("UTILS_OpenPepXLLF_1_out_2" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+set_tests_properties("UTILS_OpenPepXLLF_1_out_3" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+set_tests_properties("UTILS_OpenPepXLLF_1_out_4" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+
+#------------------------------------------------------------------------------
+# XFDR tests
+add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -out_idXML XFDR_test_out1_temp.idXML -out_mzIdentML XFDR_test_out1_temp.mzid)
+add_test("UTILS_XFDR_1_out11" ${DIFF} -whitelist "date=" -in1 XFDR_test_out1_temp.idXML  -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.idXML)
+add_test("UTILS_XFDR_1_out12" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out1_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.mzid)
+set_tests_properties("UTILS_XFDR_1_out11" PROPERTIES DEPENDS "UTILS_XFDR_1")
+set_tests_properties("UTILS_XFDR_1_out12" PROPERTIES DEPENDS "UTILS_XFDR_1")
+add_test("UTILS_XFDR_2" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -uniquexl -no_qvalues -out_idXML XFDR_test_out2_temp.idXML -out_mzIdentML XFDR_test_out2_temp.mzid)
+add_test("UTILS_XFDR_2_out21" ${DIFF} -whitelist "date=" -in1 XFDR_test_out2_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.idXML)
+add_test("UTILS_XFDR_2_out22" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out2_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.mzid)
+set_tests_properties("UTILS_XFDR_2_out21" PROPERTIES DEPENDS "UTILS_XFDR_2")
+set_tests_properties("UTILS_XFDR_2_out22" PROPERTIES DEPENDS "UTILS_XFDR_2")
+add_test("UTILS_XFDR_3" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in2.xml -out_idXML XFDR_test_out3_temp.idXML -out_mzIdentML XFDR_test_out3_temp.mzid)
+add_test("UTILS_XFDR_3_out31" ${DIFF} -whitelist "date=" -in1 XFDR_test_out3_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.idXML)
+add_test("UTILS_XFDR_3_out32" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out3_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.mzid)
+set_tests_properties("UTILS_XFDR_3_out31" PROPERTIES DEPENDS "UTILS_XFDR_3")
+set_tests_properties("UTILS_XFDR_3_out32" PROPERTIES DEPENDS "UTILS_XFDR_3")
+add_test("UTILS_XFDR_4" ${TOPP_BIN_PATH}/XFDR -test -minborder -5 -maxborder 5 -in ${DATA_DIR_TOPP}/XFDR_test_in2.xml -out_idXML XFDR_test_out4_temp.idXML -out_mzIdentML XFDR_test_out4_temp.mzid)
+add_test("UTILS_XFDR_4_out41" ${DIFF} -whitelist "date=" -in1 XFDR_test_out4_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.idXML)
+add_test("UTILS_XFDR_4_out42" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out4_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.mzid)
+set_tests_properties("UTILS_XFDR_4_out41" PROPERTIES DEPENDS "UTILS_XFDR_4")
+set_tests_properties("UTILS_XFDR_4_out42" PROPERTIES DEPENDS "UTILS_XFDR_4")

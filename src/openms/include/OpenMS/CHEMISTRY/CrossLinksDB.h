@@ -32,8 +32,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef CROSSLINKSDB_H
-#define CROSSLINKSDB_H
+#ifndef OPENMS_CHEMISTRY_CROSSLINKSDB_H
+#define OPENMS_CHEMISTRY_CROSSLINKSDB_H
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 

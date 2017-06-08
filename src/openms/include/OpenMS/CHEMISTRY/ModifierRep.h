@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg,Andreas Bertsch$
-// $Authors: $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Andreas Bertsch$
 // --------------------------------------------------------------------------
 
 
