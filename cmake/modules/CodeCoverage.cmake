@@ -49,25 +49,25 @@
 #      INCLUDE(CodeCoverage)
 #
 # 3. Set compiler flags to turn off optimization and enable coverage
-#	(also use Debug build type to ensure the first two arguments):
+#   (also use Debug build type to ensure the first two arguments):
 #
 #    SET(CMAKE_CXX_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
-#	 SET(CMAKE_C_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+#    SET(CMAKE_C_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
 #
 # 3. Use the function SETUP_TARGET_FOR_COVERAGE to create a custom make target
 #    which runs your test executable and produces a lcov code coverage report:
 #    Example:
-#	 SETUP_TARGET_FOR_COVERAGE(
-#				my_coverage_target      # Name for custom target.
-#				coverage                # Name of output directory.
-#				/home/my_external_libs  # Semicolon seperated paths to exclude external sources from report.
-#				)
+#    SETUP_TARGET_FOR_COVERAGE(
+#               my_coverage_target      # Name for custom target.
+#               coverage                # Name of output directory.
+#               /home/my_external_libs  # Semicolon seperated paths to exclude external sources from report.
+#               )
 #
 # 4. Build a Debug build and run tests:
-#	 cmake -DCMAKE_BUILD_TYPE=Debug ..
-#	 make
-#	 make test
-#	 make my_coverage_target
+#    cmake -DCMAKE_BUILD_TYPE=Debug ..
+#    make
+#    make test
+#    make my_coverage_target
 #
 #
 
@@ -77,7 +77,7 @@ FIND_PROGRAM( LCOV_PATH lcov )
 FIND_PROGRAM( GENHTML_PATH genhtml )
 
 IF(NOT GCOV_PATH)
-	MESSAGE(FATAL_ERROR "gcov not found! Aborting...")
+    MESSAGE(FATAL_ERROR "gcov not found! Aborting...")
 ENDIF() # NOT GCOV_PATH
 
 IF(NOT CMAKE_COMPILER_IS_GNUCXX)
@@ -122,53 +122,59 @@ ENDIF() # NOT CMAKE_BUILD_TYPE STREQUAL "Debug"
 
 FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _outputname _addignorelibpaths)
 
-	IF(NOT LCOV_PATH)
-		MESSAGE(FATAL_ERROR "lcov not found! Aborting...")
-	ENDIF() # NOT LCOV_PATH
+    IF(NOT LCOV_PATH)
+        MESSAGE(FATAL_ERROR "lcov not found! Aborting...")
+    ENDIF() # NOT LCOV_PATH
 
-	IF(NOT GENHTML_PATH)
-		MESSAGE(FATAL_ERROR "genhtml not found! Aborting...")
-	ENDIF() # NOT GENHTML_PATH
+    IF(NOT GENHTML_PATH)
+        MESSAGE(FATAL_ERROR "genhtml not found! Aborting...")
+    ENDIF() # NOT GENHTML_PATH
 
-	SET(coverage_info "${CMAKE_BINARY_DIR}/${_outputname}.info")
-	SET(coverage_cleaned "${coverage_info}.cleaned")
+    SET(coverage_info "${CMAKE_BINARY_DIR}/${_outputname}.info")
+    SET(coverage_cleaned "${coverage_info}.cleaned")
 
-	SET(ignorelibpaths \"tests/*\" \"/usr/*\" \"/Applications/*\")
-	foreach(libpath ${_addignorelibpaths})
-		list(APPEND ignorelibpaths \"${libpath}/*\")
-	endforeach()
+    SET(ignorelibpaths \"tests/*\" \"/usr/*\" \"/Applications/*\")
+    foreach(libpath ${_addignorelibpaths})
+        list(APPEND ignorelibpaths \"${libpath}/*\")
+    endforeach()
 
-	ADD_CUSTOM_COMMAND(
-	    OUTPUT ${_outputname}/index.html
-	    
-	    # Capturing lcov counters and generating report
-		COMMAND ${LCOV_PATH} --directory . --capture --output-file ${coverage_info}
-		# Removing external sources
-		COMMAND ${LCOV_PATH} --remove ${coverage_info} ${ignorelibpaths} --output-file ${coverage_cleaned}
-		# Generating html
-		COMMAND ${GENHTML_PATH} -o ${_outputname} ${coverage_cleaned}
-		# Remove temporaries
-		COMMAND ${CMAKE_COMMAND} -E remove ${coverage_info} ${coverage_cleaned}
-		# Compares the timestamps of the last tests with the index.html of the generated report and
-		# only rebuilds if tests were performed after last report generation.
-	    MAIN_DEPENDENCY ${CMAKE_CURRENT_BINARY_DIR}/Testing/Temporary/LastTest.log
-	    VERBATIM
-	    COMMENT "Coverage data outdated. Processing code coverage counters and generating report."
-	)
+    ## Workaroud that CMake does not complain during configure, that the log is missing.
+    SET_SOURCE_FILES_PROPERTIES(
+        ${CMAKE_CURRENT_BINARY_DIR}/Testing/Temporary/LastTest.log
+        PROPERTIES GENERATED TRUE
+    )
 
-	# Setup target
-	ADD_CUSTOM_TARGET(${_targetname}
-		# Depends on the output of the previous command. Always checks if this custom_command needs to be re-executed.
-		DEPENDS ${_outputname}/index.html
+    ADD_CUSTOM_COMMAND(
+        OUTPUT ${_outputname}/index.html
+        
+        # Capturing lcov counters and generating report
+        COMMAND ${LCOV_PATH} --directory . --capture --output-file ${coverage_info}
+        # Removing external sources
+        COMMAND ${LCOV_PATH} --remove ${coverage_info} ${ignorelibpaths} --output-file ${coverage_cleaned}
+        # Generating html
+        COMMAND ${GENHTML_PATH} -o ${_outputname} ${coverage_cleaned}
+        # Remove temporaries
+        COMMAND ${CMAKE_COMMAND} -E remove ${coverage_info} ${coverage_cleaned}
+        # Compares the timestamps of the last tests with the index.html of the generated report and
+        # only rebuilds if tests were performed after last report generation.
+        MAIN_DEPENDENCY ${CMAKE_CURRENT_BINARY_DIR}/Testing/Temporary/LastTest.log
+        VERBATIM
+        COMMENT "Coverage data outdated. Processing code coverage counters and generating report."
+    )
 
-		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-		COMMENT "Coverage report up-to-date. Re-run tests if you need a new report."
-	)
+    # Setup target
+    ADD_CUSTOM_TARGET(${_targetname}
+        # Depends on the output of the previous command. Always checks if this custom_command needs to be re-executed.
+        DEPENDS ${_outputname}/index.html
 
-	# Show info where to find the report and clean up.
-	ADD_CUSTOM_COMMAND(TARGET ${_targetname} POST_BUILD
-		COMMAND ${LCOV_PATH} --directory . --zerocounters
-		COMMENT "Cleaning up counters.. for another fresh coverage scan please execute make test again.\nOpen ./${_outputname}/index.html in your browser to view the coverage report."
-	)
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Coverage report up-to-date. Re-run tests if you need a new report."
+    )
+
+    # Show info where to find the report and clean up.
+    ADD_CUSTOM_COMMAND(TARGET ${_targetname} POST_BUILD
+        COMMAND ${LCOV_PATH} --directory . --zerocounters
+        COMMENT "Cleaning up counters.. for another fresh coverage scan please execute make test again.\nOpen ./${_outputname}/index.html in your browser to view the coverage report."
+    )
 
 ENDFUNCTION() # SETUP_TARGET_FOR_COVERAGE
