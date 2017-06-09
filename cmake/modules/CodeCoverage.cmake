@@ -138,7 +138,7 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _outputname _addignorelibpaths)
         list(APPEND ignorelibpaths \"${libpath}/*\")
     endforeach()
 
-    ## Workaroud that CMake does not complain during configure, that the log is missing.
+    ## Workaround that CMake does not complain during configure, that the log is missing.
     SET_SOURCE_FILES_PROPERTIES(
         ${CMAKE_CURRENT_BINARY_DIR}/Testing/Temporary/LastTest.log
         PROPERTIES GENERATED TRUE
