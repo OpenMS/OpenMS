@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_PSCORE
-#define OPENMS_ANALYSIS_RNPXL_PSCORE
+#ifndef OPENMS_ANALYSIS_RNPXL_PSCORE_H
+#define OPENMS_ANALYSIS_RNPXL_PSCORE_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -86,7 +86,7 @@ struct OPENMS_DLLAPI PScore
    * @param theo_spectra theoretical spectra as obtained e.g. from TheoreticalSpectrumGenerator
    * @param mz_window window in Thomson centered at each peak
    */ 
-  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const std::vector<RichPeakSpectrum>& theo_spectra, double mz_window = 100.0);
+  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const std::vector<PeakSpectrum>& theo_spectra, double mz_window = 100.0);
 
   /* @brief Computes the PScore for a single theoretical spectrum
    * @param fragment_mass_tolerance mass tolerance for matching peaks
@@ -95,7 +95,7 @@ struct OPENMS_DLLAPI PScore
    * @param theo_spectra theoretical spectra as obtained e.g. from TheoreticalSpectrumGenerator
    * @param mz_window window in Thomson centered at each peak
    */ 
-  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const RichPeakSpectrum& theo_spectrum, double mz_window = 100.0);
+  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const PeakSpectrum& theo_spectrum, double mz_window = 100.0);
 
   /// additive correction terms used by Andromeda (pscore + massC + cleaveC + modC - 100). For reference see the Andromeda source code.
   /// @note: constants used in the correction term might be instrument dependent

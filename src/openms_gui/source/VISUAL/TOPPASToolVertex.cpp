@@ -846,22 +846,27 @@ namespace OpenMS
         for (int fi = 0; fi < it->second.filenames.size(); ++fi)
         {
           // rename file and update record
-          QFile file(it->second.filenames[fi]);
+          String old_filename = it->second.filenames[fi];
           String new_filename = name_old_to_new[it->second.filenames[fi]].toString();
+          if (QFileInfo(old_filename.toQString()).canonicalFilePath() == QFileInfo(new_filename.toQString()).canonicalFilePath())
+          { // source and target are identical -- no action required
+            continue;
+          }
+          QFile file(old_filename.toQString());
           if (File::exists(new_filename))
-          {
+          { // rename only works if the target file does not exist: delete it first
             bool success = File::remove(new_filename);
             if (!success)
             {
               LOG_ERROR << "Could not remove '" << new_filename << "'.\n";
-              return false;
+              throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_filename);
             }
           }
           bool success = file.rename(new_filename.toQString());
           if (!success)
           {
-            LOG_ERROR << "Could not rename " << String(it->second.filenames[fi]) << " to " << new_filename << "\n";
-            return false;
+            LOG_ERROR << "Could not rename '" << String(it->second.filenames[fi]) << "' to '" << new_filename << "'\n";
+            throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_filename);
           }
           it->second.filenames.set(new_filename.toQString(), fi);
         }

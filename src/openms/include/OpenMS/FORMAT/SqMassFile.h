@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_SQMASS_H
-#define OPENMS_FORMAT_SQMASS_H
+#ifndef OPENMS_FORMAT_SQMASSFILE_H
+#define OPENMS_FORMAT_SQMASSFILE_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -84,5 +84,5 @@ protected:
   };
 }
 
-#endif // OPENMS_FORMAT_SQMASS_H
+#endif // OPENMS_FORMAT_SQMASSFILE_H
 

@@ -32,7 +32,9 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
 
       bool isValidProduct(AASequence protein, Size pep_pos, Size pep_length, 
                           bool methionine_cleavage, bool ignore_missed_cleavages) nogil except +
-
+      bool isValidProduct(String protein, Size pep_pos, Size pep_length, 
+                          bool methionine_cleavage, bool ignore_missed_cleavages) nogil except +
+						  
       # void digestUnmodifiedString(StringView sequence, libcpp_vector[ StringView ] & output, Size min_length, Size max_length) nogil except +
 
 cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::EnzymaticDigestion":

@@ -65,14 +65,16 @@ namespace OpenMS
           coeff = std::numeric_limits<double>::max();
         }
 
-        p_cumul += coeff * pow(p,  j) * pow((1-p), (n-j));
+        p_cumul += coeff * pow(p,  static_cast<int>(j)) * pow((1-p), static_cast<int>((n-j)));
       }
 
       // A result of p_cumul >= 1.0 does not make sense theoretically, but it might reach 1.0 because of insufficient precision,
       // solved by using largest value smaller than 1.0
       if (p_cumul >= 1.0)
       {
-        p_cumul = nexttoward(1.0, 0.0);
+        // TODO: C11 change to nexttoward
+//        p_cumul = nexttoward(1.0, 0.0);
+        p_cumul = 1.0 - std::numeric_limits<double>::epsilon();
       }
 
       return p_cumul;
