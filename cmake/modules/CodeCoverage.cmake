@@ -165,10 +165,19 @@ FUNCTION(SETUP_TARGET_FOR_COVERAGE _targetname _outputname _addignorelibpaths)
     # Setup target
     ADD_CUSTOM_TARGET(${_targetname}
         # Depends on the output of the previous command. Always checks if this custom_command needs to be re-executed.
-        DEPENDS ${_outputname}/index.html
+        DEPENDS testsExecuted ${_outputname}/index.html
 
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Coverage report up-to-date. Re-run tests if you need a new report."
+    )
+    
+    # This target is basically there for a better error message.
+    # Otherwise you get "No target for Testing/Temporary/LastTest.log"
+    # Workaround because you can not depend on internal targets like "test" (https://gitlab.kitware.com/cmake/cmake/issues/8438)
+    # Alternative: Always auto-invoke "make test" before. But in some scenarios you already have them built already.
+    ADD_CUSTOM_TARGET(testsExecuted
+        COMMAND ${CMAKE_COMMAND} -E md5sum "${CMAKE_CURRENT_BINARY_DIR}/Testing/Temporary/LastTest.log"
+        COMMENT "Checking existence of test timestamp. If this step fails, please run 'make test' (again)."
     )
 
     # Show info where to find the report and clean up.
