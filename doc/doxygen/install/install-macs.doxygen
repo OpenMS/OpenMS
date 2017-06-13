@@ -186,7 +186,7 @@
 
         \code
         cd <path_to_OpenMS_build>
-        cmake -DCMAKE_PREFIX_PATH=<path_to_contrib_build> <path_to_OpenMS>
+        cmake -DOPENMS_CONTRIB_LIBS=<path_to_contrib_build> <path_to_OpenMS>
         \endcode
 
       You can set CMake variables using the <code>-DVARIABLE=VALUE</code> option.
@@ -205,10 +205,25 @@
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
     <tr>
+      <td valign="top">\c CMAKE_INSTALL_PREFIX</td>
+      <td>the path where the bin/ and lib/ directories should be installed to
+          (when <pre>sudo make install</pre> is wished for a system-wide
+          install: e.g. -DCMAKE_INSTALL_PREFIX=/usr/local/)
+          <BR>
+          <b>Note:</b> Moving these directories after installing is not supported.
+
+          <b>For development, install prefixes are not supported. In this case %OpenMS must
+           be built in place!</b>
+     </td>
+    </tr>
+    <tr>
+      <td valign="top">\c OPENMS_CONTRIB_LIBS</td>
+      <td>Seperate search path for the contrib libraries from github.com/OpenMS/contrib that is internally considered before
+      CMAKE_PREFIX_PATH for searching, linking and adding include directories.</td>
+    </tr>
+    <tr>
       <td valign="top">\c CMAKE_PREFIX_PATH</td>
       <td>Additional search path for the contrib libraries.
-          If not set the the location is assumed to be
-          <tt>&lt;path_to_OpenMS&gt;/contrib</tt>.
           If you want to use libraries installed via Homebrew or MacPorts you might
           need to provide the corresponding paths
 
@@ -216,8 +231,7 @@
           <code>-DCMAKE_PREFIX_PATH=/opt/local</code> for MacPorts
 
           Please keep in mind that both Homebrew and MacPorts do not provide all libraries so
-          you also need to specify the path to your self-build contrib.
-          <code>-DCMAKE_PREFIX_PATH="/opt/local;~/openms-development/contrib-build"</code>
+          you also need to specify the path to your self-build contrib via -DOPENMS_CONTRIB_LIBS
       </td>
     </tr>
     <tr>
