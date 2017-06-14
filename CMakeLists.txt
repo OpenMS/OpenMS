@@ -92,21 +92,21 @@ set(OPENMS_PACKAGE_VERSION_MAJOR "2")
 set(OPENMS_PACKAGE_VERSION_MINOR "2")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
-## Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
-if(PACKAGE_TYPE STREQUAL)
-  
-  # No RPATH at all in any of the binaries built here:
-  set (CMAKE_SKIP_RPATH TRUE)
-  MESSAGE(STATUS "Official Debian packaging recognized")
-  MESSAGE(STATUS "CMAKE_SKIP_RPATH: ${CMAKE_SKIP_RPATH}")
-  
-  # Let's have the lib version and the soversion in
-  # the lib filename. No symlinking upon install.
-  set(OPENMS_VSTRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-  
-  # Force *.so to be used, not *.a.
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
-endif()
+### Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
+#if(PACKAGE_TYPE STREQUAL)
+#  
+#  # No RPATH at all in any of the binaries built here:
+#  set (CMAKE_SKIP_RPATH TRUE)
+#  MESSAGE(STATUS "Official Debian packaging recognized")
+#  MESSAGE(STATUS "CMAKE_SKIP_RPATH: ${CMAKE_SKIP_RPATH}")
+#  
+#  # Let's have the lib version and the soversion in
+#  # the lib filename. No symlinking upon install.
+#  set(OPENMS_VSTRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+#  
+#  # Force *.so to be used, not *.a.
+#  set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
+#endif()
 
 ## End Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
 
