@@ -137,3 +137,29 @@ macro(install_export_targets )
             COMPONENT share)
   endif()
 endmacro()
+
+#------------------------------------------------------------------------------
+# Installs Thirdparty folders with executables
+macro(install_thirdparty_folder foldername)
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/${foldername})
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/${foldername}
+            DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
+            COMPONENT             ${foldername}
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+            )
+    list(APPEND THIRDPARTY_COMPONENT_GROUP ${foldername})
+    cpack_add_component(${foldername}
+                    DISPLAY_NAME ${foldername}
+                    DESCRIPTION "Thirdparty engine ${foldername}"
+                    GROUP thirdparty
+                    INSTALL_TYPES recommended full
+                    )
+  endif()
+endmacro()

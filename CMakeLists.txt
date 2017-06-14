@@ -92,6 +92,24 @@ set(OPENMS_PACKAGE_VERSION_MAJOR "2")
 set(OPENMS_PACKAGE_VERSION_MINOR "2")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
+## Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
+if(PACKAGE_TYPE STREQUAL)
+  
+  # No RPATH at all in any of the binaries built here:
+  set (CMAKE_SKIP_RPATH TRUE)
+  MESSAGE(STATUS "Official Debian packaging recognized")
+  MESSAGE(STATUS "CMAKE_SKIP_RPATH: ${CMAKE_SKIP_RPATH}")
+  
+  # Let's have the lib version and the soversion in
+  # the lib filename. No symlinking upon install.
+  set(OPENMS_VSTRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+  
+  # Force *.so to be used, not *.a.
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
+endif()
+
+## End Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
+
 #------------------------------------------------------------------------------
 # retrieve detailed informations on the working copy (git)
 include(GetGitRevisionDescription)
@@ -248,15 +266,6 @@ endif()
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 set(INSTALL_LIB_DIR ${DEF_INSTALL_LIB_DIR} CACHE PATH "Installation directory for libraries")
 
-## Why force it absolute??
-# Make relative paths absolute (needed later on)
-# foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
-#   set(var INSTALL_${p}_DIR)
-#   if(NOT IS_ABSOLUTE "${${var}}")
-#     set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
-#   endif()
-# endforeach()
-
 #------------------------------------------------------------------------------
 # lib naming when building with msvc & convenience location of build.bat
 if (MSVC)
@@ -296,7 +305,7 @@ add_subdirectory(doc)
 #------------------------------------------------------------------------------
 # GKN Package building
 #------------------------------------------------------------------------------
-# We will use this path for the KNIME packages and the OS X installer
+# We will use this path for the KNIME packages and the installers
 set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engine executables that should be shipped with OpenMS. Note: We expect the layout from the SVN.")
 
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")
