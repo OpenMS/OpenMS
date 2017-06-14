@@ -48,17 +48,7 @@ set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
 set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
 set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
 
-cpack_add_install_type(recommended DISPLAY_NAME "Recommended")
-cpack_add_install_type(full DISPLAY_NAME "Full")
-cpack_add_install_type(minimal DISPLAY_NAME "Minimal")
-
-
 ########################################################### Share
-cpack_add_component(share
-                DISPLAY_NAME "OpenMS shared files"
-                DESCRIPTION "OpenMS shared files"
-                INSTALL_TYPES recommended full minimal
-                )
 
 install(DIRECTORY share/
   DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share
@@ -74,11 +64,6 @@ install(DIRECTORY share/
 )
 
 ########################################################### Libraries
-cpack_add_component(library
-                DISPLAY_NAME "Libraries"
-                DESCRIPTION "Libraries"
-                INSTALL_TYPES recommended full minimal
-                )
 # Libraries hack, avoid cmake interferring with our own lib fixes
 install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
   DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_LIB_DIR}/
@@ -86,11 +71,6 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
 )
 
 ########################################################### TOPP Binaries
-cpack_add_component(applications
-                DISPLAY_NAME "OpenMS binaries"
-                DESCRIPTION "OpenMS binaries including TOPP tools/utils, TOPPView and TOPPAS."
-                INSTALL_TYPES recommended full minimal
-                )
 # Binary hack, avoid cmake interferring with our own lib fixes
 install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
   DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_BIN_DIR}
@@ -107,11 +87,7 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
 )
 
 ########################################################### Documentation Preparation
-cpack_add_component(doc
-                DISPLAY_NAME "Documentation"
-                DESCRIPTION "Class and tool documentation. With tutorials."
-                INSTALL_TYPES recommended full
-                )
+
 #------------------------------------------------------------------------------
 # Since doc_tutorial is built with ALL when ENABLE_TUTORIALS is ON, we can assume these
 # PDFs are present. The ALL target is executed automatically with "make package"
@@ -164,11 +140,7 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html
 ########################################################### SEARCHENGINES
 set(THIRDPARTY_COMPONENT_GROUP)
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
-  cpack_add_component_group(thirdparty
-                         DISPLAY_NAME "Thirdparty binaries"
-                         DESCRIPTION "Binaries and files for thirdparty tools and engines."
-                         EXPANDED
-                         )
+
   ## populates the THIRDPARTY_COMPONENT_GROUP list
   install_thirdparty_folder("Comet")
   install_thirdparty_folder("Fido")

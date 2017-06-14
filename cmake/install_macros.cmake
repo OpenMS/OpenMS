@@ -155,11 +155,5 @@ macro(install_thirdparty_folder foldername)
             REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
     list(APPEND THIRDPARTY_COMPONENT_GROUP ${foldername})
-    cpack_add_component(${foldername}
-                    DISPLAY_NAME ${foldername}
-                    DESCRIPTION "Thirdparty engine ${foldername}"
-                    GROUP thirdparty
-                    INSTALL_TYPES recommended full
-                    )
   endif()
 endmacro()
