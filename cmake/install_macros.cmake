@@ -84,7 +84,7 @@ macro(install_tool tool_target_name)
     install(TARGETS ${tool_target_name}
       RUNTIME DESTINATION ${INSTALL_BIN_DIR}
       BUNDLE DESTINATION ${INSTALL_BIN_DIR}
-      COMPONENT applications)
+      COMPONENT Applications)
 endmacro()
 
 #------------------------------------------------------------------------------
