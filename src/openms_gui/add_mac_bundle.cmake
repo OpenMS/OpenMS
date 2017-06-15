@@ -67,6 +67,9 @@ macro(add_mac_app_bundle _name)
 
 	set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
+	## If you are packaging: Fix up the bundle. -> Copies all non-system dylibs into the bundles
+	## Results in duplicate libraries in the different bundles.. but well.. that's how it is
+	## If you are not packaging, libraries are linked via hardcoded paths specific to your machine.
 	if("${PACKAGE_TYPE}" STREQUAL "dmg")
 		install(CODE "
 			set(BU_CHMOD_BUNDLE_ITEMS On)
