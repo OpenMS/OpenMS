@@ -237,10 +237,7 @@ is_valid_package(${PACKAGE_TYPE})
 
 ### Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
 if("${PACKAGE_TYPE}" STREQUAL "deb" OR "${PACKAGE_TYPE}" STREQUAL "rpm")
- 
- # No RPATH at all in any of the binaries built here:
- set (CMAKE_SKIP_RPATH TRUE)
- 
+
  # Let's have the lib version and the soversion in
  # the lib filename. No symlinking upon install.
  set(OPENMS_VSTRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
@@ -321,13 +318,8 @@ install_export_targets()
 #------------------------------------------------------------------------------
 # Installation and packaging:
 #------------------------------------------------------------------------------
-# RPATH settings for relocatable binaries after install
-# use, i.e. don't skip the full RPATH for the build tree
-SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+# Never use RPATH. We have other means on every platform.
+SET(CMAKE_SKIP_BUILD_RPATH TRUE)
 
 # packaging routines:
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
