@@ -319,6 +319,7 @@ install_export_targets()
 # Installation and packaging:
 #------------------------------------------------------------------------------
 # Never use RPATH. We have other means on every platform.
+# E.g. not yet compatible with our fix_mac_dependencies script.
 SET(CMAKE_SKIP_BUILD_RPATH TRUE)
 
 # packaging routines:
