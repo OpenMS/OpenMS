@@ -47,9 +47,9 @@ set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 1)
 
 ## Fix OpenMS dependencies for all executables in the install directory
 ########################################################### Fix Dependencies
-# Use CPACK_INSTALL_COMMANDS to only do this during packaging.
-# I don't know where the ALL_IN_ONE comes from.
-set(CPACK_INSTALL_COMMANDS "${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_BINARY_DIR}/_CPack_Packages/${CPACK_TOPLEVEL_TAG}/${CPACK_GENERATOR}/${CPACK_PACKAGE_FILE_NAME}/ALL_IN_ONE/${INSTALL_BIN_DIR} -l \${CMAKE_BINARY_DIR}/_CPack_Packages/${CPACK_TOPLEVEL_TAG}/${CPACK_GENERATOR}/${CPACK_PACKAGE_FILE_NAME}/ALL_IN_ONE/${INSTALL_LIB_DIR} -v")
+install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -v)"
+  COMPONENT zzz-fixing-dependencies
+)
 
 ## Additionally install TOPPShell into root of install folder
 ########################################################### TOPPShell
