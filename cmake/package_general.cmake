@@ -65,26 +65,27 @@ install(DIRECTORY share/
 
 ########################################################### Libraries
 # Libraries hack, avoid cmake interferring with our own lib fixes
-install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_LIB_DIR}/
-  COMPONENT library
-)
+#install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
+#  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_LIB_DIR}/
+#  COMPONENT library
+#)
 
 ########################################################### TOPP Binaries
 # Binary hack, avoid cmake interferring with our own lib fixes
-install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_BIN_DIR}
-  COMPONENT applications
-  FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                        GROUP_READ GROUP_EXECUTE
-                        WORLD_READ WORLD_EXECUTE
-  DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                        GROUP_READ GROUP_EXECUTE
-                        WORLD_READ WORLD_EXECUTE
-  PATTERN "*.app" EXCLUDE
-  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
-  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
-)
+#install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
+#  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_BIN_DIR}
+#  COMPONENT applications
+#  FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+#                        GROUP_READ GROUP_EXECUTE
+#                        WORLD_READ WORLD_EXECUTE
+#  DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+#                        GROUP_READ GROUP_EXECUTE
+#                        WORLD_READ WORLD_EXECUTE
+#  PATTERN "*.app" EXCLUDE
+#  ## TODO exclude Tutorial_binaries?
+#  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+#  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+#)
 
 ########################################################### Documentation Preparation
 
@@ -94,7 +95,7 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
 
 if (ENABLE_TUTORIALS)
   install(FILES       ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf
-          DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
+          DESTINATION doc
           COMPONENT doc
           PERMISSIONS OWNER_WRITE OWNER_READ
                       GROUP_READ
@@ -103,7 +104,7 @@ if (ENABLE_TUTORIALS)
   )
 
   install(FILES     ${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf
-          DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
+          DESTINATION doc
           COMPONENT doc
           PERMISSIONS OWNER_WRITE OWNER_READ
                       GROUP_READ
@@ -113,10 +114,9 @@ else()
   message("Warning: Configuring for packaging without tutorials. If you want to build a full package make sure that configuration with -DENABLE_TUTORIALS=On succeeds.")
 endif ()
 
-
 ########################################################### Documentation
 install(FILES       ${PROJECT_BINARY_DIR}/doc/index.html
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
+        DESTINATION doc
         RENAME OpenMSAndTOPPDocumentation.html
         COMPONENT doc
         PERMISSIONS OWNER_WRITE OWNER_READ
@@ -125,7 +125,7 @@ install(FILES       ${PROJECT_BINARY_DIR}/doc/index.html
 )
 
 install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
+        DESTINATION doc
         COMPONENT doc
         FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
                               GROUP_READ
@@ -136,6 +136,19 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html
         REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
         REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
 )
+
+########################################################### Fixing dynamic dependencies
+# Done on Windows via copying external and internal dlls to the install/bin/ folder
+# Done on Mac via fixup_bundle for the GUI apps (TOPPView, TOPPAS) and via fix_mac_dependencies for the TOPP tools
+# which recursively gathers dylds, copies them to install/lib/ and sets the install_name of the binaries to @executable_path/../lib
+# Not done on Linux. Either install systemwide (omit CMAKE_INSTALL_PREFIX or set it to /usr/) or install and add the
+# install/lib/ folder to the LD_LIBRARY_PATH
+
+#install(CODE "
+#  include(BundleUtilities)
+#  GET_BUNDLE_ALL_EXECUTABLES(\${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR} EXECS)
+#  fixup_bundle(\"${EXECS}\" \"\" \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}\")
+#  " COMPONENT applications)
 
 ########################################################### SEARCHENGINES
 set(THIRDPARTY_COMPONENT_GROUP)

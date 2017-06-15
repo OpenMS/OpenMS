@@ -38,28 +38,22 @@
 
 set(CPACK_GENERATOR "DragNDrop")
 
-## drag'n'drop installation configuration
-## Note: We have certain dependencies between the individual components!!!
-##       To ensure that the components are executed in the correct order
-##       we use the fact that cmake executes them in alphabetical order
-##        1. A-Z
-##        2. a-z
-##       So before adding an additional target make sure that you do not
-##       intefer with other namings/components.
-##
+## We want to package the whole top-level dir so a user can drag'n'drop it via the image.
+set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 1)
+
 ## Note: That the mac app bundles (TOPPView) take care of themselves
 ##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
 
 
 ## Fix OpenMS dependencies for all executables in the install directory
 ########################################################### Fix Dependencies
-install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${CPACK_PACKAGE_INSTALL_DIRECTORY}/${DMG_BINARY_DIR_NAME}/ -l \${CMAKE_INSTALL_PREFIX}/${CPACK_PACKAGE_INSTALL_DIRECTORY}/lib/ -v)"
-  COMPONENT zzz-fixing-dependencies
-)
+# Use CPACK_INSTALL_COMMANDS to only do this during packaging.
+#set(CPACK_INSTALL_COMMANDS "${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_BINARY_DIR}/_CPack_Packages/${CPACK_TOPLEVEL_TAG}/${CPACK_GENERATOR}/${INSTALL_BIN_DIR} -l \${CMAKE_BINARY_DIR}/_CPack_Packages/${CPACK_TOPLEVEL_TAG}/${CPACK_GENERATOR}/${INSTALL_LIB_DIR} -v")
 
+## Additionally install TOPPShell into root of install folder
 ########################################################### TOPPShell
 install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+        DESTINATION .
         RENAME      "TOPP Shell"
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                     GROUP_READ GROUP_EXECUTE
@@ -67,7 +61,7 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command
         COMPONENT   TOPPShell)
 
 install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+        DESTINATION .
         RENAME      .TOPP_bash_profile
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
@@ -75,7 +69,7 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile
         COMPONENT   TOPPShell)
 
 install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+        DESTINATION .
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
                     WORLD_READ
@@ -93,20 +87,21 @@ else()
   ## The old scripts need the background image in the target folder.
   ########################################################### Background Image
   install(FILES ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share/OpenMS/
+        DESTINATION share/OpenMS/
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
                     WORLD_READ
         COMPONENT share)
   ## Use custom scripts and targets (just 'make package' creates a very simple dmg).
+  add_custom_target(dmg
+    COMMAND cpack -G DragNDrop
+    COMMENT "Building intermediate dmg package"
+  )
+  
+  ## Next command assumes the dmg was already generated and lies in the build directory.
   add_custom_target(final_package
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMENT "Finalizing dmg image"
     DEPENDS dmg)
-
-  add_custom_target(dmg
-    COMMAND cpack -G DragNDrop
-    COMMENT "Building intermediate dmg package"
-  )
 endif()

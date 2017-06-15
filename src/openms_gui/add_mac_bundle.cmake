@@ -55,14 +55,14 @@ macro(add_mac_app_bundle _name)
 	set_target_properties(${_name} PROPERTIES
 		# we want our own info.plist template
 		MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
-		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2016 The OpenMS Team."
+		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2017 The OpenMS Team."
 		MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
 		MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${_name}"
 		MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
 		MACOSX_BUNDLE_BUNDLE_NAME ${_name}
 		MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
 		MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
-		MACOSX_BUNDLE_COPYRIGHT "Copyright 2016, The OpenMS Team. All Rights Reserved."
+		MACOSX_BUNDLE_COPYRIGHT "Copyright 2017, The OpenMS Team. All Rights Reserved."
 	)
 
 	set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -76,7 +76,7 @@ macro(add_mac_app_bundle _name)
 			COMPONENT AApplications)
 
 		install(TARGETS ${_name} BUNDLE
-			DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+			DESTINATION .
 			COMPONENT Applications)
 
 	endif("${PACKAGE_TYPE}" STREQUAL "dmg")

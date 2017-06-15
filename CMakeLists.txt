@@ -92,24 +92,6 @@ set(OPENMS_PACKAGE_VERSION_MAJOR "2")
 set(OPENMS_PACKAGE_VERSION_MINOR "2")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
-### Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
-#if(PACKAGE_TYPE STREQUAL)
-#  
-#  # No RPATH at all in any of the binaries built here:
-#  set (CMAKE_SKIP_RPATH TRUE)
-#  MESSAGE(STATUS "Official Debian packaging recognized")
-#  MESSAGE(STATUS "CMAKE_SKIP_RPATH: ${CMAKE_SKIP_RPATH}")
-#  
-#  # Let's have the lib version and the soversion in
-#  # the lib filename. No symlinking upon install.
-#  set(OPENMS_VSTRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-#  
-#  # Force *.so to be used, not *.a.
-#  set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
-#endif()
-
-## End Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
-
 #------------------------------------------------------------------------------
 # retrieve detailed informations on the working copy (git)
 include(GetGitRevisionDescription)
@@ -241,6 +223,34 @@ include (${PROJECT_SOURCE_DIR}/cmake/add_library_macros.cmake)
 # .. and some to ease the export process
 include (${PROJECT_SOURCE_DIR}/cmake/export_macros.cmake)
 
+
+#------------------------------------------------------------------------------
+# Initialize package building environment
+set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
+                        "rpm"  # rpm package
+                        "deb"  # deb package
+                        "dmg"  # a drag&drop dmg package for macosx
+                        "nsis") # an NSIS installer for Windows
+
+set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
+is_valid_package(${PACKAGE_TYPE})
+
+### Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
+if("${PACKAGE_TYPE}" STREQUAL "deb" OR "${PACKAGE_TYPE}" STREQUAL "rpm")
+ 
+ # No RPATH at all in any of the binaries built here:
+ set (CMAKE_SKIP_RPATH TRUE)
+ 
+ # Let's have the lib version and the soversion in
+ # the lib filename. No symlinking upon install.
+ set(OPENMS_VSTRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+ 
+ # Force *.so to be used, not *.a.
+ #set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
+endif()
+
+## End Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
+
 #------------------------------------------------------------------------------
 # Output directories
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
@@ -281,16 +291,6 @@ endif()
 # setup path for external libs (contrib or system)
 include(${OPENMS_HOST_DIRECTORY}/cmake/setup_lib_find_paths.cmake)
 
-#------------------------------------------------------------------------------
-# Initialize package building environment
-set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
-                        "rpm"  # rpm package
-                        "deb"  # deb package
-                        "dmg"  # a drag&drop dmg package for macosx
-                        "nsis") # an NSIS installer for Windows
-
-set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
-is_valid_package(${PACKAGE_TYPE})
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
@@ -319,16 +319,20 @@ openms_export_targets()
 install_export_targets()
 
 #------------------------------------------------------------------------------
-# build settings and configs for external code
+# Installation and packaging:
 #------------------------------------------------------------------------------
-# install routines for ..
+# RPATH settings for relocatable binaries after install
+# use, i.e. don't skip the full RPATH for the build tree
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+
+# packaging routines:
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
-  ## Needed in package_general.cmake
-  set(PACKAGE_LIB_DIR lib)
-  set(PACKAGE_BIN_DIR bin)
   
   if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
-    set(PACKAGE_BIN_DIR TOPP)
     include(cmake/package_general.cmake)
     include(cmake/package_dragndrop_dmg.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
@@ -338,7 +342,6 @@ if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
     include(cmake/package_general.cmake)
     include(cmake/package_deb.cmake)
     elseif("${PACKAGE_TYPE}" STREQUAL "nsis") # .. Windows nsis
-    set(PACKAGE_LIB_DIR bin)
     # For now we use the old NSIS script AS IS
     # If we include the install commands, we can let CMake generate parts of it. 
     #include(cmake/package_general.cmake)
