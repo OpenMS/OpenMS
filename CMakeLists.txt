@@ -275,12 +275,7 @@ set(INSTALL_LIB_DIR ${DEF_INSTALL_LIB_DIR} CACHE PATH "Installation directory fo
 
 # Never use RPATH. We have other means on every platform.
 # E.g. not yet compatible with our fix_mac_dependencies script.
-SET(CMAKE_SKIP_BUILD_RPATH TRUE)
-SET(MACOSX_RPATH FALSE)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
-SET(CMAKE_INSTALL_RPATH "")
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-## Dammit CMake.. just leave our binaries alone!!
+SET(CMAKE_MACOSX_RPATH FALSE)
 
 #------------------------------------------------------------------------------
 # lib naming when building with msvc & convenience location of build.bat
