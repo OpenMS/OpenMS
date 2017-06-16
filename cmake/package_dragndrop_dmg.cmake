@@ -40,6 +40,7 @@ set(CPACK_GENERATOR "DragNDrop")
 
 ## We want to package the whole top-level dir so a user can drag'n'drop it via the image.
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 1)
+set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY 1)
 
 ## Note: That the mac app bundles (TOPPView) take care of themselves
 ##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
