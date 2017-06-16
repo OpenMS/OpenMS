@@ -288,24 +288,27 @@ namespace OpenMS
         String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
         String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
 
-        // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
-        spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_light], String(""));
-        spec_xml_file << "</spectrum>" << std::endl;
+        if (scan_index_light < spectra.size() && scan_index_heavy < spectra.size() && i < preprocessed_pair_spectra.spectra_common_peaks.size() && i < preprocessed_pair_spectra.spectra_xlink_peaks.size())
+        {
+          // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
+          spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << std::endl;
+          spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_light], String(""));
+          spec_xml_file << "</spectrum>" << std::endl;
 
-        spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_heavy], String(""));
-        spec_xml_file << "</spectrum>" << std::endl;
+          spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << std::endl;
+          spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_heavy], String(""));
+          spec_xml_file << "</spectrum>" << std::endl;
 
-        String spectrum_common_name = spectrum_name + String("_common.txt");
-        spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_common_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
-        spec_xml_file << "</spectrum>" << std::endl;
+          String spectrum_common_name = spectrum_name + String("_common.txt");
+          spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << std::endl;
+          spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_common_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+          spec_xml_file << "</spectrum>" << std::endl;
 
-        String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
-        spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_xlink_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
-        spec_xml_file << "</spectrum>" << std::endl;
+          String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
+          spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << std::endl;
+          spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_xlink_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+          spec_xml_file << "</spectrum>" << std::endl;
+        }
       }
     }
 
@@ -366,8 +369,13 @@ namespace OpenMS
     std::vector<String> in_strings;
     StringList sl;
 
-    double precursor_mz = spec.getPrecursors()[0].getMZ();
-    double precursor_z = spec.getPrecursors()[0].getCharge();
+    double precursor_mz = 0;
+    double precursor_z = 0;
+    if (spec.getPrecursors().size() > 0)
+    {
+      precursor_mz = spec.getPrecursors()[0].getMZ();
+      precursor_z = spec.getPrecursors()[0].getCharge();
+    }
 
     // header lines
     if (!header.empty()) // common or xlinker spectrum will be reported
