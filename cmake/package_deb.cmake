@@ -1,5 +1,12 @@
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "OpenMS developers <open-ms-general@lists.sourceforge.net>")
 set(CPACK_GENERATOR "DEB")
+## CPack issues when building the package.
+## https://bugs.launchpad.net/ubuntu/+source/cmake/+bug/972419
+## https://ubuntuforums.org/showthread.php?t=2316865
+## Workaround after packaging: https://cmake.org/pipermail/cmake/2012-May/050483.html
+## Following needs CMake 3.7+ just install from cmake.org
+set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
+
 ## TODO also install headers? make a dev package configuration?
 set(CPACK_COMPONENTS_ALL applications library share ${THIRDPARTY_COMPONENT_GROUP})
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libsqlite3-dev, libxerces-c-dev (>= 3.1.1), libeigen3-dev, libwildmagic-dev, libboost-dev (>= 1.54.0), libboost-iostreams-dev (>= 1.54.0), libboost-date-time-dev (>= 1.54.0), libboost-math-dev (>= 1.54.0), seqan-dev (>= 1.4.1), libsvm-dev (>= 3.12), libglpk-dev (>= 4.52.1), zlib1g-dev (>= 1.2.7), libbz2-dev (>= 1.0.6), libqt4-dev (>= 4.8.2), libqt4-opengl-dev (>= 4.8.2), libqtwebkit-dev (>= 2.2.1), coinor-libcoinutils-dev (>= 2.6.4)")

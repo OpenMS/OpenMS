@@ -28,8 +28,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
 
@@ -47,95 +47,6 @@ set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDesc
 set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
 set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
 set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
-
-########################################################### Share
-
-install(DIRECTORY share/
-  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/share
-  COMPONENT share
-  FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
-                        GROUP_READ
-                        WORLD_READ
-  DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                        GROUP_EXECUTE GROUP_READ
-                        WORLD_EXECUTE WORLD_READ
-  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
-  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
-)
-
-########################################################### Libraries
-# Libraries hack, avoid cmake interferring with our own lib fixes
-#install(DIRECTORY ${PROJECT_BINARY_DIR}/lib/
-#  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_LIB_DIR}/
-#  COMPONENT library
-#)
-
-########################################################### TOPP Binaries
-# Binary hack, avoid cmake interferring with our own lib fixes
-#install(DIRECTORY ${PROJECT_BINARY_DIR}/bin/
-#  DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/${PACKAGE_BIN_DIR}
-#  COMPONENT applications
-#  FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
-#                        GROUP_READ GROUP_EXECUTE
-#                        WORLD_READ WORLD_EXECUTE
-#  DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-#                        GROUP_READ GROUP_EXECUTE
-#                        WORLD_READ WORLD_EXECUTE
-#  PATTERN "*.app" EXCLUDE
-#  ## TODO exclude Tutorial_binaries?
-#  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
-#  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
-#)
-
-########################################################### Documentation Preparation
-
-#------------------------------------------------------------------------------
-# Since doc_tutorial is built with ALL when ENABLE_TUTORIALS is ON, we can assume these
-# PDFs are present. The ALL target is executed automatically with "make package"
-
-if (ENABLE_TUTORIALS)
-  install(FILES       ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf
-          DESTINATION doc
-          COMPONENT doc
-          PERMISSIONS OWNER_WRITE OWNER_READ
-                      GROUP_READ
-                      WORLD_READ
-
-  )
-
-  install(FILES     ${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf
-          DESTINATION doc
-          COMPONENT doc
-          PERMISSIONS OWNER_WRITE OWNER_READ
-                      GROUP_READ
-                      WORLD_READ
-  )
-else()
-  message("Warning: Configuring for packaging without tutorials. If you want to build a full package make sure that configuration with -DENABLE_TUTORIALS=On succeeds.")
-endif ()
-
-########################################################### Documentation
-install(FILES       ${PROJECT_BINARY_DIR}/doc/index.html
-        DESTINATION doc
-        RENAME OpenMSAndTOPPDocumentation.html
-        COMPONENT doc
-        PERMISSIONS OWNER_WRITE OWNER_READ
-                    GROUP_READ
-                    WORLD_READ
-)
-
-install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html
-        DESTINATION doc
-        COMPONENT doc
-        FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
-                              GROUP_READ
-                              WORLD_READ
-        DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                              GROUP_EXECUTE GROUP_READ
-                              WORLD_EXECUTE WORLD_READ
-        REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
-        REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
-)
 
 ########################################################### Fixing dynamic dependencies
 # Done on Windows via copying external and internal dlls to the install/bin/ folder

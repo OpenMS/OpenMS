@@ -28,8 +28,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
 # a collection of wrapper for install functions that allows easier usage
@@ -95,7 +95,16 @@ endmacro()
 macro(install_directory directory destination component)
     install(DIRECTORY ${directory}
       DESTINATION ${destination}
-      COMPONENT ${component})
+      COMPONENT ${component}
+      FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
+                            GROUP_READ
+                            WORLD_READ
+      DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                            GROUP_EXECUTE GROUP_READ
+                            WORLD_EXECUTE WORLD_READ
+      REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+      REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+        )
 endmacro()
 
 #------------------------------------------------------------------------------
