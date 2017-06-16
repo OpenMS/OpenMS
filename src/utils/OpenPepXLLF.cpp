@@ -914,29 +914,14 @@ protected:
         all_csms_spectrum.push_back(csm);
       } // candidates for peak finished, determine best matching candidate
 
-      Int top = 0;
-
       // collect top n matches to spectrum
-      while (!all_csms_spectrum.empty() && top < number_top_hits)
+      sort(all_csms_spectrum.rbegin(), all_csms_spectrum.rend());
+      Size max_hit = min(all_csms_spectrum.size(), static_cast<Size>(number_top_hits));
+
+      for (Size top = 0; top < max_hit; top++)
       {
-        top++;
-        Int max_position = distance(all_csms_spectrum.begin(), max_element(all_csms_spectrum.begin(), all_csms_spectrum.end()));
-        all_csms_spectrum[max_position].rank = top;
-        top_csms_spectrum.push_back(all_csms_spectrum[max_position]);
-        all_csms_spectrum.erase(all_csms_spectrum.begin() + max_position);
-
-        LOG_DEBUG << "Score: " << all_csms_spectrum[max_position].score << "\t wTIC: " << all_csms_spectrum[max_position].wTIC << "\t xcorrx: " << all_csms_spectrum[max_position].xcorrx_max
-                << "\t xcorrc: " << all_csms_spectrum[max_position].xcorrc_max << "\t match-odds: " << all_csms_spectrum[max_position].match_odds << "\t Intsum: " << all_csms_spectrum[max_position].int_sum << endl;
-
-        if (all_csms_spectrum[max_position].cross_link.getType() == OPXLDataStructs::CROSS)
-        {
-          LOG_DEBUG << "Matched ions calpha , cbeta , xalpha , xbeta" << "\t" << all_csms_spectrum[max_position].matched_common_alpha << "\t" << all_csms_spectrum[max_position].matched_common_beta
-                  << "\t" << all_csms_spectrum[max_position].matched_xlink_alpha <<  "\t" << all_csms_spectrum[max_position].matched_xlink_beta << endl;
-        }
-        else
-        {
-          LOG_DEBUG << "Matched ions common, cross-links " << all_csms_spectrum[max_position].matched_common_alpha << "\t" << all_csms_spectrum[max_position].matched_xlink_alpha << endl;
-        }
+        all_csms_spectrum[top].rank = top+1;
+        top_csms_spectrum.push_back(all_csms_spectrum[top]);
       }
 
       Size all_top_csms_current_index = 0;
