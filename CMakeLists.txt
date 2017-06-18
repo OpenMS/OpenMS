@@ -326,20 +326,19 @@ install_export_targets()
 
 # packaging routines:
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
-  
+  include(cmake/package_general.cmake)
   if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
-    include(cmake/package_general.cmake)
     include(cmake/package_dragndrop_dmg.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
-    include(cmake/package_general.cmake)
     include(cmake/package_rpm.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. debs
-    include(cmake/package_general.cmake)
     include(cmake/package_deb.cmake)
-    elseif("${PACKAGE_TYPE}" STREQUAL "nsis") # .. Windows nsis
+  elseif("${PACKAGE_TYPE}" STREQUAL "nsis") # .. Windows nsis
     # For now we use the old NSIS script AS IS
-    # If we include the install commands, we can let CMake generate parts of it. 
-    #include(cmake/package_general.cmake)
+    # i.e. although CMake runs make install etc. NSIS
+    # will use everything from the usual build folder like before.
+    # TODO automate more and let CMake generate install commands
+    # in the script. Unfortunately we have a lot of specific code in the script.
     include(cmake/package_nsis.cmake)
   endif()
   include(CPack)
