@@ -1,4 +1,10 @@
 ## Windows installer
+## TODO readd UAC plugin.. otherwise fails as normal user "Cant write file"
+## No description of the search engines (subsections of Thirdparty)
+## .NET install error message shows twice
+## Our vcredist.exe is located in a weird place and is not found during install
+## e.g. C:\Temp\NSIS\C:\ProgramFiles\...oldPathOnPackMachine...
+## Sqlite not installed?
 
 set(PACKAGE_LIB_DIR bin)
 set(PACKAGE_BIN_DIR TOPP)
@@ -19,7 +25,8 @@ if (NOT VC_REDIST_PATH)
 	  message(FATAL_ERROR "Variable VC_REDIST_PATH missing. Before Visual Studio 2012 you have to provide the file and its path on your own.")
 	endif()
 endif()
-##TODO use following instead
+
+##TODO try following instead?
 # ########################################################### System runtime libraries
 # set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 # include(InstallRequiredSystemLibraries)
@@ -34,8 +41,9 @@ set(CPACK_GENERATOR NSIS)
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}_Win${PLATFORM}")
 set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/cmake/Windows/OpenMS.ico")
 
-## For now we fully  rely only on our NSIS template. Later we could use CMake install commands
-## and the following to let CMake generate snippets for the NSIS script
+## For now we fully rely only on our NSIS template. Later we could use
+## the following to let CMake generate snippets for the NSIS script
+## Plus an additional entry in the nsis template (see CPack-NSIS docu)
 
 # set(CPACK_NSIS_MUI_ICON "${PROJECT_SOURCE_DIR}/cmake/Windows/OpenMS.ico")
 # set(CPACK_NSIS_MUI_UNIICON "${PROJECT_SOURCE_DIR}/cmake/Windows/OpenMS.ico")
