@@ -84,7 +84,7 @@ namespace OpenMS
     ContainerType counters;
     bool has_next;
     Ranges::reverse_iterator count_it;
-
+    
     void prepare();
 
 

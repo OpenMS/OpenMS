@@ -704,6 +704,17 @@ END_SECTION
 
 delete iso;
 
+START_SECTION(MIDAsDistributionID(double,EmpiricalFormula&))
+
+  EmpiricalFormula f("C1991H570");
+
+  MIDAsPolynomialID *midas = new MIDAsPolynomialID(0.01, f);
+
+  midas->run();
+  delete midas;
+
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

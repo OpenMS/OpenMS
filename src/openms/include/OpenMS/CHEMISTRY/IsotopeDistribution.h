@@ -36,9 +36,12 @@
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <utility>
+#include <deque>
 #include <vector>
 #include <set>
+#include <map>
 
 namespace OpenMS
 {
@@ -394,7 +397,7 @@ protected:
     ContainerType distribution_;
   };
 
-  class MIDAsPolynomialID : public IsotopeDistribution
+  class OPENMS_DLLAPI MIDAsPolynomialID : public IsotopeDistribution
   {
  public:
     struct PMember
@@ -403,18 +406,25 @@ protected:
       double probability;
       PMember():power(0), probability(0) {}
     };
-    typedef std::vector<struct PMember> Polynomial;
+    typedef std::deque<struct PMember> Polynomial;
 
-    MIDAsPolynomialID(double);
-    void generatePolynomial(Element&, SignedSize);
-    void multiplyPolynomials(Polynomial&, Polynomial&);
+    MIDAsPolynomialID(double,EmpiricalFormula&);
+    void run();
     
  private:
+    Polynomial generatePolynomial(const Element&, const SignedSize);
+    double lightest_mass();
+    void multiplyPolynomials(Polynomial&, Polynomial&);
+    void merge_polynomial(Polynomial&);
+    void dumpID(Polynomial&);
     double fact_ln(UInt);
-    Polynomial fgid;
+    EmpiricalFormula& formula_;
+    //Polynomial fgid;
     UInt N;
     double fine_resolution;
     double min_prob;
+    double lighter_isotope;
+    double merge_fine_resolution;
     
     double mw_resolution;
     double resolution;
