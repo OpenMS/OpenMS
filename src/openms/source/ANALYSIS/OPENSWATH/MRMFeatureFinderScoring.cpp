@@ -513,7 +513,7 @@ namespace OpenMS
           {
             Feature & f = mrmfeature->getPrecursorFeature(transition_group_detection.getPrecursorChromatograms()[k].getNativeID());
             double sn_value = ms1_signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT());
-            if (sn_value < 1) sn_value = 1.0;
+            if (sn_value < 1) {sn_value = 1.0;}
             f.setMetaValue("logSN", std::log(sn_value));
           }
         }
@@ -678,7 +678,7 @@ namespace OpenMS
           {
             Feature & f = mrmfeature->getFeature(transition_group_detection.getChromatograms()[k].getNativeID());
             double sn_value = signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT());
-            if (sn_value < 1) sn_value = 1.0;
+            if (sn_value < 1) {sn_value = 1.0;}
             f.setMetaValue("logSN", std::log(sn_value));
           }
         }
