@@ -1,5 +1,5 @@
 
-import copy, sys
+import sys
 import pyopenms
 
 def getTransitionGroup(exp, targeted, key, trgr_ids, chrom_map):
@@ -51,7 +51,7 @@ def main(options):
 
     pp = pyopenms.MRMTransitionGroupPicker()
 
-    scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
+    # scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
 
     pp_params = pp.getDefaults();
     pp_params.setValue("PeakPickerMRM:remove_overlapping_peaks", options.remove_overlapping_peaks, '')

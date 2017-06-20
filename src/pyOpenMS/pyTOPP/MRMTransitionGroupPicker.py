@@ -54,8 +54,6 @@ def main(options):
 
     pp = pyopenms.MRMTransitionGroupPicker()
 
-    # scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
-
     pp_params = pp.getDefaults();
     pp_params.setValue("PeakPickerMRM:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
     pp_params.setValue("PeakPickerMRM:method", options.method, '')
