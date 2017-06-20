@@ -1,10 +1,6 @@
 ## Windows installer
 ## TODO readd UAC plugin.. otherwise fails as normal user "Cant write file"
 ## No description of the search engines (subsections of Thirdparty)
-## .NET install error message shows twice
-## Our vcredist.exe is located in a weird place and is not found during install
-## e.g. C:\Temp\NSIS\C:\ProgramFiles\...oldPathOnPackMachine...
-## Sqlite not installed?
 
 set(PACKAGE_LIB_DIR bin)
 set(PACKAGE_BIN_DIR TOPP)
@@ -20,13 +16,16 @@ endif()
 ## Find redistributable to be installed by NSIS
 if (NOT VC_REDIST_PATH)
 	if(CMAKE_GENERATOR MATCHES ".*Visual Studio 1[1-9].*")
-	  set(VC_REDIST_PATH "$ENV{VSINSTALLDIR}VC\\redist\\1033\\vcredist_${ARCH}.exe")
+	  set(VC_REDIST_PATH "$ENV{VSINSTALLDIR}VC\\redist\\1033")
+	  set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
 	else()
-	  message(FATAL_ERROR "Variable VC_REDIST_PATH missing. Before Visual Studio 2012 you have to provide the file and its path on your own.")
+	  message(FATAL_ERROR "Variable VC_REDIST_PATH missing."
+	  "Before Visual Studio 2012 you have to provide the path"
+	  "to the redistributable package of the VS you are using on your own.")
 	endif()
 endif()
 
-##TODO try following instead?
+##TODO try following instead once CMake generates NSIS commands for us.
 # ########################################################### System runtime libraries
 # set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 # include(InstallRequiredSystemLibraries)
