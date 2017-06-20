@@ -487,7 +487,7 @@ Section "-PathInst" SEC_PathRegister
       StrCmp $1 ".." skip
       IfFileExists "$INSTDIR\share\OpenMS\THIRDPARTY\$1\*.*" IsDir skip
       IsDir:
-        ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$1"
+        ${EnvVarUpdate} $3 "PATH" "A" "HKLM" "$1"
         IfErrors 0 +2
           MessageBox MB_OK "Unable to add '$1' to PATH environment. Add manually if required. See 'details' for details."
       skip:
@@ -703,19 +703,19 @@ Section "Uninstall"
     
     # Third Party library paths
     FindFirst $0 $1 $INSTDIR\share\OpenMS\THIRDPARTY\*.*
-    loop:
-      StrCmp $1 "" done
-      StrCmp $1 "." skip
-      StrCmp $1 ".." skip
-      IfFileExists "$INSTDIR\share\OpenMS\THIRDPARTY\$1\*.*" IsDir skip
-      IsDir:
-        ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$1"
+    loopun:
+      StrCmp $1 "" doneun
+      StrCmp $1 "." skipun
+      StrCmp $1 ".." skipun
+      IfFileExists "$INSTDIR\share\OpenMS\THIRDPARTY\$1\*.*" IsDirun skipun
+      IsDirun:
+        ${un.EnvVarUpdate} $3 "PATH" "R" "HKLM" "$1"
         IfErrors 0 +2
           MessageBox MB_OK "Unable to remove '$1' from PATH environment. Remove manually if required. See 'details' for details."
-      skip:
+      skipun:
         FindNext $0 $1
-        Goto loop
-    done:
+        Goto loopun
+    doneun:
       FindClose $0
 
     ## remove OPENMS_DATA_PATH
