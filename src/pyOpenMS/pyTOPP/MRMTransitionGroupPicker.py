@@ -1,5 +1,5 @@
 
-import copy, sys
+import sys
 import pyopenms
 
 def getTransitionGroup(exp, targeted, key, trgr_ids, chrom_map):
@@ -54,7 +54,7 @@ def main(options):
 
     pp = pyopenms.MRMTransitionGroupPicker()
 
-    scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
+    # scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
 
     pp_params = pp.getDefaults();
     pp_params.setValue("PeakPickerMRM:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
@@ -67,7 +67,7 @@ def main(options):
     targeted = pyopenms.TargetedExperiment();
     tramlfile = pyopenms.TraMLFile();
     tramlfile.load(traml_in, targeted);
-     
+
     output = algorithm(chromatograms, targeted, pp)
 
     pyopenms.FeatureXMLFile().store(out, output);
@@ -75,7 +75,7 @@ def main(options):
 def handle_args():
     import argparse
 
-    usage = "" 
+    usage = ""
     usage += "\nMRMTransitionGroupPicker picks transition groups in measured chromatograms (mzML)"
 
     parser = argparse.ArgumentParser(description = usage )

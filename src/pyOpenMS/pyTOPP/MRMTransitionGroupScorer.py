@@ -19,7 +19,6 @@ def getTransitionGroup(exp, targeted, key, trgr_ids, chrom_map):
 def algorithm(exp, targeted, picker, scorer):
 
     output = pyopenms.FeatureMap()
-    output2 = pyopenms.FeatureMap()
 
     trafo = pyopenms.TransformationDescription()
 
@@ -67,7 +66,7 @@ def main(options):
     targeted = pyopenms.TargetedExperiment();
     tramlfile = pyopenms.TraMLFile();
     tramlfile.load(traml_in, targeted);
-        
+
     light_targeted = pyopenms.LightTargetedExperiment();
     pyopenms.OpenSwathDataAccessHelper().convertTargetedExp(targeted, light_targeted)
     output = algorithm(chromatograms, light_targeted, pp, scorer)
@@ -77,7 +76,7 @@ def main(options):
 def handle_args():
     import argparse
 
-    usage = "" 
+    usage = ""
     usage += "\nMRMTransitionGroupScorer picks transition groups in measured chromatograms (mzML) and scores them"
 
     parser = argparse.ArgumentParser(description = usage )
