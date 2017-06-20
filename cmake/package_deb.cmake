@@ -13,6 +13,8 @@ set(CPACK_DEBIAN_ARCHIVE_TYPE "gnutar")
 
 ## Try autogeneration of dependencies
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+## Debug for now
+set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
 
 ## TODO also install headers? make a dev package configuration?
 set(CPACK_COMPONENTS_ALL applications library share ${THIRDPARTY_COMPONENT_GROUP})
