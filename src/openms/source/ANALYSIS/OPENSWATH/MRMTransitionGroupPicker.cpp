@@ -102,7 +102,8 @@ namespace OpenMS
     resample_boundary_ = (double)param_.getValue("resample_boundary");
   }
 
-  double MRMTransitionGroupPicker::calculateBgEstimation_(const MSChromatogram<>& chromatogram, double best_left, double best_right)
+  void MRMTransitionGroupPicker::calculateBgEstimation_(const MSChromatogram<>& chromatogram,
+      double best_left, double best_right, double & background, double & avg_noise_level)
   {
     // determine (in the chromatogram) the intensity at the left / right border
     MSChromatogram<>::const_iterator it = chromatogram.begin();
@@ -128,15 +129,15 @@ namespace OpenMS
     {
       // something is fishy, the endpoint of the peak is the beginning of the chromatogram
       std::cerr << "Tried to calculate background but no points were found " << std::endl;
-      return 0;
+      return;
     }
 
     // decrease the iterator and the nr_points by one (because we went one too far)
     double intensity_right = (it--)->getIntensity();
     nr_points--;
 
-    double avg_noise_level = (intensity_right + intensity_left) / 2;
-    return avg_noise_level * nr_points;
+    avg_noise_level = (intensity_right + intensity_left) / 2;
+    background = avg_noise_level * nr_points;
   }
 
   void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram<> >& picked_chroms, int& chr_idx, int& peak_idx)
