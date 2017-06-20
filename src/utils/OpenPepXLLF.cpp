@@ -888,6 +888,7 @@ protected:
         csm.matched_xlink_alpha = matched_spec_xlinks_alpha.size();
         csm.matched_xlink_beta = matched_spec_xlinks_beta.size();
         csm.scan_index_light = scan_index;
+        // scan_index_heavy is of type Size, so this index will be UINT_MAX - 1 and hopefully out of range for all spectrum maps
         csm.scan_index_heavy = -1;
 
 
@@ -929,12 +930,18 @@ protected:
 #pragma omp critical (all_top_csms_access)
 #endif
       {
-        all_top_csms.push_back(top_csms_spectrum);
-        all_top_csms_current_index = all_top_csms.size()-1;
+        if (!top_csms_spectrum.empty())
+        {
+          all_top_csms.push_back(top_csms_spectrum);
+          all_top_csms_current_index = all_top_csms.size()-1;
+        }
       }
 
       // Write PeptideIdentifications and PeptideHits for n top hits
-      OPXLHelper::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index);
+      if (!top_csms_spectrum.empty())
+      {
+        OPXLHelper::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index);
+      }
 
       LOG_DEBUG << "Next Spectrum ##################################" << endl;
     }

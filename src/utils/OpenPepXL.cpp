@@ -1081,12 +1081,18 @@ protected:
 #pragma omp critical (all_top_csms_access)
 #endif
       {
-        all_top_csms.push_back(top_csms_spectrum);
-        all_top_csms_current_index = all_top_csms.size()-1;
+        if (!top_csms_spectrum.empty())
+        {
+          all_top_csms.push_back(top_csms_spectrum);
+          all_top_csms_current_index = all_top_csms.size()-1;
+        }
       }
 
-      // Write PeptideIdentifications and PeptideHits for n top hits
-      OPXLHelper::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index_heavy);
+      // Write PeptideIdentifications and PeptideHits for n top hits of this spectrum
+      if (!top_csms_spectrum.empty())
+      {
+        OPXLHelper::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index_heavy);
+      }
 
       LOG_DEBUG << "Next Spectrum #############################################" << endl;
     }
