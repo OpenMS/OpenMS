@@ -579,10 +579,7 @@ namespace OpenMS
 
     LOG_INFO << no_cmp_hit << " of " << (no_cmp_hit + cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
 
-    if (!is_neg)// for now defer until clear about behavior
-    {
-      inferMoreEdges_(feature_relation, feature_adducts);
-    }
+    inferMoreEdges_(feature_relation, feature_adducts);
 
     // DEBUG:
 #ifdef DC_DEVEL
@@ -1070,8 +1067,9 @@ namespace OpenMS
       default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);    
     }
 
-    Size edges_size = edges.size();
+    int left_charges, right_charges;
 
+    Size edges_size = edges.size();
     for (Size i = 0; i < edges_size; ++i)
     {
       Size idx0 = edges[i].getElementIndex(0);
@@ -1101,23 +1099,26 @@ namespace OpenMS
 
         new_cmp.add(to_add, Compomer::LEFT);
         new_cmp.add(to_add, Compomer::RIGHT);
+        
+        //We again need to consider inverted behavior (but cp.getCharge(x) gets negative charges as assigned before!
+        if (is_neg)
+        {
+          left_charges =  -new_cmp.getPositiveCharges();
+          right_charges =  -new_cmp.getNegativeCharges();
+        }else
+        {
+          left_charges = new_cmp.getNegativeCharges();
+          right_charges = new_cmp.getPositiveCharges();
+        }
+
+
         // refill with default adducts (usually H+):
-        if (((cp.getCharge(0) - new_cmp.getNegativeCharges()) % default_adduct.getCharge() == 0) &&
-            ((cp.getCharge(1) - new_cmp.getPositiveCharges()) % default_adduct.getCharge() == 0)) // for singly charged default_adducts this should always be true
+        if (((cp.getCharge(0) - left_charges) % default_adduct.getCharge() == 0) &&
+            ((cp.getCharge(1) - right_charges) % default_adduct.getCharge() == 0)) // for singly charged default_adducts this should always be true
         {
           int hc_left, hc_right;
-
-          if (is_neg)
-          {
-            hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / abs(default_adduct.getCharge()); // this should always be positive! check!!
-            hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / abs(default_adduct.getCharge()); // this should always be positive! check!!          
-          }else
-          {
-            hc_left  = (cp.getCharge(0) - new_cmp.getNegativeCharges()) / default_adduct.getCharge(); // this should always be positive! check!!
-            hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / default_adduct.getCharge(); // this should always be positive! check!!         
-
-          }
-          
+          hc_left = (cp.getCharge(0) - left_charges) / default_adduct.getCharge();
+          hc_right = (cp.getCharge(1) - right_charges) / default_adduct.getCharge();
 
           // we have not stepped over the charge capacity of the features
           if (hc_left >= 0 && hc_right >= 0)
@@ -1128,36 +1129,34 @@ namespace OpenMS
             if (hc_right > 0)
               new_cmp.add(default_adduct * hc_right, Compomer::RIGHT);
 
-            // charge constraints of feature still fulfilled?
+            // charge constraints of feature still fulfilled? (taking ionization mode into account)
             int left_charge, right_charge;
-            //agains, swap hack? or not?
             if (is_neg)
             {
-              left_charge = new_cmp.getNegativeCharges();
-              right_charge = new_cmp.getPositiveCharges();
+              left_charge =  -new_cmp.getPositiveCharges();
+              right_charge =  -new_cmp.getNegativeCharges();
             }else
             {
               left_charge = new_cmp.getNegativeCharges();
               right_charge = new_cmp.getPositiveCharges();
             }
-            // charge constraints of feature still fulfilled? (taking ionization mode into account)            
+
             if ((left_charge == cp.getCharge(0)) &&
                 (right_charge == cp.getCharge(1)))
             {
               cp.setCompomer(new_cmp);
               cp.setEdgeScore(0.99); //TODO how to score this new edge?
               edges.push_back(cp); // add edge
-              //std::cout << "adding infer CMP with log-score: " << new_cmp.getLogP() << "\n";
             }
             else
             {
-              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MetaboliteFeatureDeconvolution::inferMoreEdges_(): Inferred edges with wrong(switched?) charges!", String(new_cmp.getNegativeCharges()));
+              throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MetaboliteFeatureDeconvolution::inferMoreEdges_(): Inferred edges with wrong(switched?) charges! Left neg_charge, left feature charge, right pos_charge, right feature charge", String(new_cmp.getNegativeCharges())+","+String(cp.getCharge(0))+","+String(new_cmp.getPositiveCharges())+","+String(cp.getCharge(1)));
             }
           }
 
         }else // have nonzero modulo.SHOULD NOT HAPPEN FOR DEFAULT CHARGE 1/-1 !!
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MetaboliteFeatureDeconvolution::inferMoreEdges_(): Modulo returns leftover charge!", String(new_cmp.getNegativeCharges()));        
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MetaboliteFeatureDeconvolution::inferMoreEdges_(): Modulo returns leftover charge!", String(new_cmp.getNegativeCharges()));
         }
 
         ++result_it;
