@@ -472,51 +472,29 @@ SectionEnd
 Section "-PathInst" SEC_PathRegister
     SectionIn 1 2 3
     # no logging required, as we do not install files in this section
-    
     ## HINT: do not forget to also add/modify the un.EnvVarUpdate in the uninstall section!
     
     # OpenMS binary path
     ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
     IfErrors 0 +2
-			MessageBox MB_OK "Unable to add '$INSTDIR\bin' to PATH environment. Add manually if required. See 'details' for details."
+      MessageBox MB_OK "Unable to add '$INSTDIR\bin' to PATH environment. Add manually if required. See 'details' for details."
 	
     # Third Party library paths
-    
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\Fido\*.*"
-      ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\Fido"
-      IfErrors 0 +2
-        MessageBox MB_OK "Unable to add '$INSTDIR\share\OpenMS\THIRDPARTY\Fido' to PATH environment. Add manually if required. See 'details' for details."
-    ${EndIf}
-
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\MyriMatch\*.*"
-      ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\MyriMatch"
-      IfErrors 0 +2
-        MessageBox MB_OK "Unable to add '$INSTDIR\share\OpenMS\THIRDPARTY\MyriMatch' to PATH environment. Add manually if required. See 'details' for details."
-    ${EndIf}
-
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\XTandem\*.*"
-      ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\XTandem"
-      IfErrors 0 +2
-        MessageBox MB_OK "Unable to add '$INSTDIR\share\OpenMS\THIRDPARTY\XTandem' to PATH environment. Add manually if required. See 'details' for details."
-    ${EndIf}
-
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\MSGFPlus\*.*"
-      ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\MSGFPlus"
-      IfErrors 0 +2
-        MessageBox MB_OK "Unable to add '$INSTDIR\share\OpenMS\THIRDPARTY\MSGFPlus' to PATH environment. Add manually if required. See 'details' for details."
-    ${EndIf}
-
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\OMSSA\*.*"
-      ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\OMSSA"
-      IfErrors 0 +2
-        MessageBox MB_OK "Unable to add '$INSTDIR\share\OpenMS\THIRDPARTY\OMSSA' to PATH environment. Add manually if required. See 'details' for details."
-    ${EndIf}
-
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\LuciPHOr2\*.*"
-      ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\LuciPHOr2"
-      IfErrors 0 +2
-        MessageBox MB_OK "Unable to add '$INSTDIR\share\OpenMS\THIRDPARTY\LuciPHOr2' to PATH environment. Add manually if required. See 'details' for details."
-    ${EndIf}    
+    FindFirst $0 $1 $INSTDIR\share\OpenMS\THIRDPARTY\*.*
+    loop:
+      StrCmp $1 "" done
+      StrCmp $1 "." skip
+      StrCmp $1 ".." skip
+      IfFileExists "$1\*.*" IsDir skip
+      IsDir:
+        ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$1"
+        IfErrors 0 +2
+          MessageBox MB_OK "Unable to add '$1' to PATH environment. Add manually if required. See 'details' for details."
+      skip:
+        FindNext $0 $1
+        Goto loop
+    done:
+      FindClose $0
 
     #create OPENMS_DATA_PATH environment variable (for shared xml files etc)
     ; set variable
@@ -724,30 +702,21 @@ Section "Uninstall"
     ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\bin"
     
     # Third Party library paths
-    
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\Fido\*.*"
-      ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\Fido"
-    ${EndIf}
-
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\MyriMatch\*.*"
-      ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\MyriMatch"
-    ${EndIf}
-
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\XTandem\*.*"
-      ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\XTandem"
-    ${EndIf}
-
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\MSGFPlus\*.*"
-      ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\MSGFPlus"
-    ${EndIf}
-
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\OMSSA\*.*"
-      ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\OMSSA"
-    ${EndIf}
-
-    ${If} ${FileExists} "$INSTDIR\share\OpenMS\THIRDPARTY\LuciPHOr2\*.*"
-      ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\LuciPHOr2"
-    ${EndIf}    
+    FindFirst $0 $1 $INSTDIR\share\OpenMS\THIRDPARTY\*.*
+    loop:
+      StrCmp $1 "" done
+      StrCmp $1 "." skip
+      StrCmp $1 ".." skip
+      IfFileExists "$1\*.*" IsDir skip
+      IsDir:
+        ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$1"
+        IfErrors 0 +2
+          MessageBox MB_OK "Unable to remove '$1' from PATH environment. Remove manually if required. See 'details' for details."
+      skip:
+        FindNext $0 $1
+        Goto loop
+    done:
+      FindClose $0
 
     ## remove OPENMS_DATA_PATH
     ${un.EnvVarUpdate} $0 "OPENMS_DATA_PATH" "R" "HKLM" "$INSTDIR\share\OpenMS"
