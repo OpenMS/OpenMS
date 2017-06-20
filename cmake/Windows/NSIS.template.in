@@ -479,13 +479,13 @@ Section "-PathInst" SEC_PathRegister
     IfErrors 0 +2
       MessageBox MB_OK "Unable to add '$INSTDIR\bin' to PATH environment. Add manually if required. See 'details' for details."
 	
-    # Third Party library paths
+    # Add all folders of all INSTALLED Third Party libraries to PATH that adapters find them
     FindFirst $0 $1 $INSTDIR\share\OpenMS\THIRDPARTY\*.*
     loop:
       StrCmp $1 "" done
       StrCmp $1 "." skip
       StrCmp $1 ".." skip
-      IfFileExists "$1\*.*" IsDir skip
+      IfFileExists "$INSTDIR\share\OpenMS\THIRDPARTY\$1\*.*" IsDir skip
       IsDir:
         ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$1"
         IfErrors 0 +2
@@ -707,7 +707,7 @@ Section "Uninstall"
       StrCmp $1 "" done
       StrCmp $1 "." skip
       StrCmp $1 ".." skip
-      IfFileExists "$1\*.*" IsDir skip
+      IfFileExists "$INSTDIR\share\OpenMS\THIRDPARTY\$1\*.*" IsDir skip
       IsDir:
         ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$1"
         IfErrors 0 +2
