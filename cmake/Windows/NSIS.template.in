@@ -239,6 +239,7 @@ Section "OpenMS Library" SEC_Lib
 
     # install file (with logging)
     !insertmacro InstallFile "${CONTRIBDIR}\lib\xerces-c_3_1.dll"
+    !insertmacro InstallFile "${CONTRIBDIR}\lib\sqlite3.dll"
     
     !insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenMS.dll"
     !insertmacro InstallFile "${OPENMSDIR}\bin\Release\OpenMS_GUI.dll"
@@ -334,14 +335,14 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 					"http://www.microsoft.com/downloads/info.aspx?na=41&SrcFamilyId=AB99342F-5D1A-413D-8319-81DA479AB0D7&SrcDisplayLang=en&u=http%3a%2f%2fdownload.microsoft.com%2fdownload%2f0%2f6%2f1%2f061F001C-8752-4600-A198-53214C69B51F%2fdotnetfx35setup.exe" \
 					"$EXEDIR\NET3.5_SP1_installer.exe"
 			Pop $0
-			StrCmp $0 "OK" dl35ok
+			StrCmp $0 "OK" dl35ok net35_install_success
 			MessageBox MB_OK|MB_ICONEXCLAMATION "Downloading 'Microsoft .NET 3.5 SP1' failed. You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 				
 			dl35ok:
 			ClearErrors
 			ExecWait '"$EXEDIR\NET3.5_SP1_installer.exe" $netSilentArgs' $0
 			StrCmp $0 0 net35_install_success
-			MessageBox MB_OK "The installation of the Microsoft .NET 3.5 SP1' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
+			MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Microsoft .NET 3.5 SP1' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 			
 			net35_install_success:
 			## .NET 3.5 installed, yeah!
@@ -351,14 +352,14 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 					"$EXEDIR\NET4.0_installer.exe"
 					
 			Pop $0
-			StrCmp $0 "OK" dl40ok
+			StrCmp $0 "OK" dl40ok net40_install_success
 			MessageBox MB_OK|MB_ICONEXCLAMATION "Downloading 'Microsoft .NET 4.0' failed. You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 				
 			dl40ok:
 			ClearErrors
 			ExecWait '"$EXEDIR\NET4.0_installer.exe" $netSilentArgs' $0
 			StrCmp $0 0 net40_install_success
-			MessageBox MB_OK "The installation of the Microsoft .NET 4.0' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
+			MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Microsoft .NET 4.0' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 			
 			net40_install_success:
 			## .NET 4.0 installed, yeah!
@@ -540,23 +541,14 @@ SectionGroupEnd
 
 Section "-hidden VSRuntime"
     # this requires admin privileges!
-    
-    ## TODO (when bored)
-		#install the visual studio runtime
-		#NSISdl::download http://www.domain.com/file localfile.exe
-		#Pop $R0 ;Get the return value
-		#	StrCmp $R0 "success" +3
-		#		MessageBox MB_OK "The download of the Visual Studio redistributable failed!\nP"
-		#		Quit
-
-	SetOutPath $TEMP
+    SetOutPath $TEMP
     SetOverwrite on
 
-    !insertmacro InstallFile "${VS_REDISTRIBUTABLE_EXE}"
-	ClearErrors
+    !insertmacro InstallFile "${VS_REDISTRIBUTABLE_PATH}\${VS_REDISTRIBUTABLE_EXE}"
+    ClearErrors
     ExecWait '$TEMP\${VS_REDISTRIBUTABLE_EXE} /q' $0
-	StrCmp $0 0 vs_install_success
-	MessageBox MB_OK "The installation of the Visual Studio redistributable package '${VS_REDISTRIBUTABLE_EXE}' failed! OpenMS will not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
+    StrCmp $0 0 vs_install_success
+    MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Visual Studio redistributable package '${VS_REDISTRIBUTABLE_EXE}' failed! OpenMS will not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
 		
     ## reasons why the install might fail:
     ## see doc\doxygen\install\install-win-bin.doxygen --> FAQ
