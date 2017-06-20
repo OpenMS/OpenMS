@@ -134,6 +134,10 @@ protected:
     
     IntList ms_level = getIntList_("ms_level");
 
+    double offset = getDoubleOption_("offset");
+    double slope = getDoubleOption_("slope");
+    double power = getDoubleOption_("power");
+
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
@@ -145,7 +149,7 @@ protected:
     mz_file.load(in, exp);
 
     MZTrafoModel tm;
-    tm.setCoefficients(getDoubleOption_("offset"), getDoubleOption_("slope"), getDoubleOption_("power"));
+    tm.setCoefficients(offset, slope, power);
 
     InternalCalibration ic;
     ic.setLogType(log_type_);

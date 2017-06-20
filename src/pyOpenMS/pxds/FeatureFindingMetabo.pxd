@@ -1,4 +1,5 @@
 from MSExperiment cimport *
+from MSChromatogram cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
@@ -20,7 +21,8 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>" names
 
         FeatureFindingMetabo()      nogil except +
 
-        void run(libcpp_vector[Kernel_MassTrace] input,
-                 FeatureMap & result, 
-                 libcpp_vector[ libcpp_vector[ MSChromatogram[ ChromatogramPeak] ] ] & output_chromatograms) nogil except +
+        void run(libcpp_vector[Kernel_MassTrace] input_mtraces,
+                 FeatureMap & output_featmap,
+                 libcpp_vector[ libcpp_vector[ MSChromatogram[ChromatogramPeak] ] ] & output_chromatograms
+                 ) nogil except +
 
