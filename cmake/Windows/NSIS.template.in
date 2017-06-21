@@ -487,7 +487,7 @@ Section "-PathInst" SEC_PathRegister
       StrCmp $1 ".." skip
       IfFileExists "$INSTDIR\share\OpenMS\THIRDPARTY\$1\*.*" IsDir skip
       IsDir:
-        ${EnvVarUpdate} $3 "PATH" "A" "HKLM" "$1"
+        ${EnvVarUpdate} $3 "PATH" "A" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\$1"
         IfErrors 0 +2
           MessageBox MB_OK "Unable to add '$1' to PATH environment. Add manually if required. See 'details' for details."
       skip:
@@ -709,7 +709,7 @@ Section "Uninstall"
       StrCmp $1 ".." skipun
       IfFileExists "$INSTDIR\share\OpenMS\THIRDPARTY\$1\*.*" IsDirun skipun
       IsDirun:
-        ${un.EnvVarUpdate} $3 "PATH" "R" "HKLM" "$1"
+        ${un.EnvVarUpdate} $3 "PATH" "R" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\$1"
         IfErrors 0 +2
           MessageBox MB_OK "Unable to remove '$1' from PATH environment. Remove manually if required. See 'details' for details."
       skipun:
