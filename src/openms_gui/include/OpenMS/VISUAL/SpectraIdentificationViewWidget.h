@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,19 +66,23 @@ public:
     /// Helper function to block outgoing signals
     bool ignore_update;
 
-    // access the table widget
+    /// Access the table widget
     QTableWidget* getTableWidget();
 public slots:
     /// Rebuild table entries
     void updateEntries();
 signals:
-    void spectrumSelected(int);
+    void spectrumSelected(int, int, int);
     void spectrumDeselected(int);
     void spectrumDoubleClicked(int);
     void showSpectrumAs1D(int);
     void showSpectrumMetaData(int);
     void requestVisibleArea1D(double, double);
 private:
+    void addTextItemToBottomRow_(const QString& text, Size column_index, const QColor& c);
+    void addIntItemToBottomRow_(const Int i, Size column_index, const QColor& c);
+    void addDoubleItemToBottomRow_(const double d, Size column_index, const QColor& c);
+    void addCheckboxItemToBottomRow_(bool selected,  Size column_index, const QColor& c);
     LayerData* layer_;
     QCheckBox* hide_no_identification_;
     QCheckBox* create_rows_for_commmon_metavalue_;
@@ -91,6 +95,10 @@ private slots:
     void exportEntries_();
     /// Saves the (potentially filtered) idXML
     void saveIdXML_();
+    /// Saves the (potentially filtered) mzIdentML
+    void saveMzIdentML_();
+    /// update PeptideIdentification / PeptideHits, when data in the table changes (status of checkboxes)
+    void updateData_(QTableWidgetItem* item);
     /// Display header context menu
     void headerContextMenu_(const QPoint&);
     /// Cell clicked in table_widget

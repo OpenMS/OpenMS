@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,47 @@ namespace OpenMS
 
   using namespace ms; // numpress namespace
 
-  void MSNumpressCoder::encodeNP_(const std::vector<double>& in, String& result, const NumpressConfig & config)
+  void MSNumpressCoder::encodeNP(const std::vector<double> & in, String & result,
+      bool zlib_compression, const NumpressConfig & config)
+  {
+    result.clear();
+    encodeNPRaw(in, result, config);
+    if (result.empty())
+    {
+      return;
+    }
+
+    // Encode in base64 and compress
+    std::vector<String> tmp;
+    tmp.push_back(result);
+    base64coder_.encodeStrings(tmp, result, zlib_compression, false);
+  }
+
+  void MSNumpressCoder::encodeNP(const std::vector<float> & in, String & result,
+      bool zlib_compression, const NumpressConfig & config)
+  {
+    std::vector<double> dvector(in.begin(), in.end());
+    encodeNP(dvector, result, zlib_compression, config);
+  }
+
+  void MSNumpressCoder::decodeNP(const String & in, std::vector<double> & out,
+      bool zlib_compression, const NumpressConfig & config)
+  {
+    QByteArray base64_uncompressed;
+    base64coder_.decodeSingleString(in, base64_uncompressed, zlib_compression);
+
+    // Create a temporary string (*not* null-terminated) to hold the data
+    std::string tmpstring(base64_uncompressed.constData(), base64_uncompressed.size());
+    decodeNPRaw(tmpstring, out, config);
+
+    // NOTE: it is possible (and likely faster) to call directly the const
+    // unsigned char * function but this would make it necessary to deal with
+    // reinterpret_cast ugliness here ... 
+    //
+    // decodeNP_internal_(reinterpret_cast<const unsigned char*>(base64_uncompressed.constData()), base64_uncompressed.size(), out, config);
+  }
+
+  void MSNumpressCoder::encodeNPRaw(const std::vector<double>& in, String& result, const NumpressConfig & config)
   {
     if (in.empty()) return;
 
@@ -149,7 +189,7 @@ namespace OpenMS
       }
 
 #ifdef NUMPRESS_DEBUG
-      std::cout << "encodeNP_: numpressed array with with length " << numpressed.size() << std::endl;
+      std::cout << "encodeNPRaw: numpressed array with with length " << numpressed.size() << std::endl;
       for (int i = 0; i < byteCount; i++)
       {
         std::cout << "array[" << i << "] : " << (int)numpressed[i] << std::endl;
@@ -242,7 +282,7 @@ namespace OpenMS
     }
   }
 
-  void MSNumpressCoder::decodeNP_(const std::string & in, std::vector<double>& out, const NumpressConfig & config)
+  void MSNumpressCoder::decodeNPRaw(const std::string & in, std::vector<double>& out, const NumpressConfig & config)
   {
     decodeNPInternal_(reinterpret_cast<const unsigned char*>(in.c_str()), in.size(), out, config);
   }
@@ -255,7 +295,7 @@ namespace OpenMS
     size_t byteCount = in_size;
 
 #ifdef NUMPRESS_DEBUG
-    std::cout << "decodeNP_: array input with length " << in_size << std::endl;
+    std::cout << "decodeNPInternal_: array input with length " << in_size << std::endl;
     for (int i = 0; i < in_size; i++)
     {
       std::cout << "array[" << i << "] : " << (int)in[i] << std::endl;
@@ -311,7 +351,7 @@ namespace OpenMS
     }
 
 #ifdef NUMPRESS_DEBUG
-    std::cout << "decodeNP_: output size " << out.size() << std::endl;
+    std::cout << "decodeNPInternal_: output size " << out.size() << std::endl;
     for (int i = 0; i < out.size(); i++)
     {
       std::cout << "array[" << i << "] : " << out[i] << std::endl;

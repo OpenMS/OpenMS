@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -202,7 +202,7 @@ public:
     */
     void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
       std::vector< ExtractionCoordinates > & coordinates,
-      OpenMS::TargetedExperiment & transition_exp,
+      const OpenMS::TargetedExperiment & transition_exp,
       const double rt_extraction_window,
       const bool ms1) const;
 
@@ -222,8 +222,10 @@ public:
     template <typename TransitionExpT>
     static void return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > & chromatograms,
       std::vector< ChromatogramExtractor::ExtractionCoordinates > & coordinates,
-      TransitionExpT& transition_exp_used, SpectrumSettings settings,
-      std::vector<OpenMS::MSChromatogram<> > & output_chromatograms, bool ms1)
+      TransitionExpT& transition_exp_used,
+      SpectrumSettings settings,
+      std::vector<OpenMS::MSChromatogram<> > & output_chromatograms,
+      bool ms1)
     {
       typedef std::map<String, const typename TransitionExpT::Transition* > TransitionMapType;
       TransitionMapType trans_map;
@@ -233,16 +235,13 @@ public:
       }
 
       for (Size i = 0; i < chromatograms.size(); i++)
-      { 
+      {
         const OpenSwath::ChromatogramPtr & chromptr = chromatograms[i];
         const ChromatogramExtractor::ExtractionCoordinates & coord = coordinates[i];
 
-        typename TransitionExpT::Peptide pep;
-        typename TransitionExpT::Transition transition;
-        OpenMS::MSChromatogram<> chrom;
-
         // copy data
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom, chromptr);
+        OpenMS::MSChromatogram<> chrom;
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromptr, chrom);
         chrom.setNativeID(coord.id);
 
         // Create precursor and set
@@ -252,14 +251,17 @@ public:
         Precursor prec;
         if (ms1) 
         {
-          pep = transition_exp_used.getPeptideByRef(coord.id); 
           prec.setMZ(coord.mz);
           chrom.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+
+          // extract compound / peptide id from transition and store in
+          // more-or-less default field
+          String r = extract_id_(transition_exp_used, coord.id);
+          prec.setMetaValue("peptide_sequence", r);
         }
         else 
         {
-          transition = (*trans_map[coord.id]);
-          pep = transition_exp_used.getPeptideByRef(transition.getPeptideRef()); 
+          typename TransitionExpT::Transition transition = (*trans_map[coord.id]);
 
           prec.setMZ(transition.getPrecursorMZ());
           if (settings.getPrecursors().size() > 0)
@@ -273,8 +275,20 @@ public:
           prod.setMZ(transition.getProductMZ());
           chrom.setProduct(prod);
           chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+
+          // extract compound / peptide id from transition and store in
+          // more-or-less default field
+          if (!transition.getPeptideRef().empty())
+          {
+            String r = extract_id_(transition_exp_used, transition.getPeptideRef());
+            prec.setMetaValue("peptide_sequence", r);
+          }
+          else
+          {
+            String r = extract_id_(transition_exp_used, transition.getCompoundRef());
+            prec.setMetaValue("peptide_sequence", r);
+          }
         }
-        prec.setMetaValue("peptide_sequence", pep.sequence);
         chrom.setPrecursor(prec);
 
         // Set the rest of the meta-data
@@ -455,6 +469,16 @@ public:
 private:
 
     /**
+     * @brief Extracts id (peptide sequence or compound name) for a compound
+     *
+     * @param transition_exp The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
+     * @param id The identifier of the compound or peptide
+     *
+    */
+    template <typename TransitionExpT>
+    static String extract_id_(TransitionExpT& transition_exp_used, String id);
+    
+    /**
      * @brief This populates the chromatograms vector with empty chromatograms
      * (but sets their meta-information)
      *
@@ -471,7 +495,6 @@ private:
     template <class SpectrumSettingsT, class ChromatogramT>
     void prepareSpectra_(SpectrumSettingsT& settings, std::vector<ChromatogramT>& chromatograms, OpenMS::TargetedExperiment& transition_exp)
     {
-
       // first prepare all the spectra (but leave them empty)
       for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
       {
@@ -487,7 +510,7 @@ private:
           prec.setIsolationWindowUpperOffset(settings.getPrecursors()[0].getIsolationWindowUpperOffset());
         }
 
-        // 3) set precursor peptide sequence
+        // 3) set precursor peptide sequence / compound id in more-or-less default field
         String pepref = transition->getPeptideRef();
         for (Size pep_idx = 0; pep_idx < transition_exp.getPeptides().size(); pep_idx++)
         {
@@ -498,6 +521,17 @@ private:
             break;
           }
         }
+        String compref = transition->getCompoundRef();
+        for (Size comp_idx = 0; comp_idx < transition_exp.getCompounds().size(); comp_idx++)
+        {
+          const OpenMS::TargetedExperiment::Compound* comp = &transition_exp.getCompounds()[comp_idx];
+          if (comp->id == compref)
+          {
+            prec.setMetaValue("peptide_sequence", String(comp->id) );
+            break;
+          }
+        }
+
         // add precursor to spectrum
         chrom.setPrecursor(prec);
 
@@ -538,7 +572,42 @@ private:
     std::map<OpenMS::String, double> PeptideRTMap_;
 
   };
+    
+  // Specialization for template (LightTargetedExperiment)
+  template<>
+  inline String ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used, String id)
+  {
+    OpenSwath::LightCompound comp = transition_exp_used.getCompoundByRef(id);
+    if (!comp.sequence.empty())
+    {
+      return comp.sequence;
+    }
+    else
+    {
+      return comp.compound_name;
+    }
+  }
 
+
+  // Specialization for template (TargetedExperiment)
+  template<>
+  inline String ChromatogramExtractor::extract_id_<OpenMS::TargetedExperiment>(OpenMS::TargetedExperiment& transition_exp_used, String id)
+  {
+    if (transition_exp_used.hasPeptide(id))
+    {
+      TargetedExperiment::Peptide p = transition_exp_used.getPeptideByRef(id);
+      return p.sequence;
+    }
+    else if (transition_exp_used.hasCompound(id))
+    {
+      TargetedExperiment::Compound c = transition_exp_used.getCompoundByRef(id);
+      return c.id;
+    }
+    else
+    {
+      return "";
+    }
+  }
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H

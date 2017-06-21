@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
 project("OpenMS_host")
 
 #------------------------------------------------------------------------------
@@ -49,16 +49,6 @@ if (NOT CMAKE_SIZEOF_VOID_P)
                       " CMakeCache.txt and rerun CMake again! This is some"
                       " weird CMake bug that seems to appear when updating the"
                       " CMake version.")
-endif()
-
-
-#------------------------------------------------------------------------------
-# -> used from VTK
-# Set a consistent MACOSX_RPATH default across all CMake versions.
-# When CMake 2.8.12 is required, change this default to 1.
-# When CMake 3.0.0 is required, remove this block (see CMP0042).
-if (NOT DEFINED CMAKE_MACOSX_RPATH)
-  set(CMAKE_MACOSX_RPATH 0)
 endif()
 
 #------------------------------------------------------------------------------
@@ -91,14 +81,15 @@ if(NOT CMAKE_MODULE_PATH)
 	set(CMAKE_MODULE_PATH)
 endif()
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
-
+## CMake looks for the NSIS script in the module path.
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 
 #------------------------------------------------------------------------------
 # OpenMS Version Information
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "1")
+set(OPENMS_PACKAGE_VERSION_MINOR "2")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
 #------------------------------------------------------------------------------
@@ -126,9 +117,6 @@ else()
   message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
   message(STATUS "  [CMake is tracking Git commits and branching. To disable use '-D GIT_TRACKING=OFF'.]")
 endif()
-
-# add some informations used when building packages
-include(cmake/package_definitions.cmake)
 
 #------------------------------------------------------------------------------
 # Unsupported systems
@@ -260,19 +248,24 @@ endif()
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 set(INSTALL_LIB_DIR ${DEF_INSTALL_LIB_DIR} CACHE PATH "Installation directory for libraries")
 
+## Why force it absolute??
 # Make relative paths absolute (needed later on)
-foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
-  set(var INSTALL_${p}_DIR)
-  if(NOT IS_ABSOLUTE "${${var}}")
-    set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
-  endif()
-endforeach()
+# foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
+#   set(var INSTALL_${p}_DIR)
+#   if(NOT IS_ABSOLUTE "${${var}}")
+#     set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
+#   endif()
+# endforeach()
 
 #------------------------------------------------------------------------------
-# lib naming when building with msvc
+# lib naming when building with msvc & convenience location of build.bat
 if (MSVC)
 	## use OpenMSd.dll in debug mode
 	SET(CMAKE_DEBUG_POSTFIX d)
+	## copy build.bat to root of binary dir to enable convenient invokation (instead of typing path to source dir all the time)
+	if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
+		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
+	endif()
 endif()
 
 #------------------------------------------------------------------------------
@@ -284,7 +277,8 @@ include(${OPENMS_HOST_DIRECTORY}/cmake/setup_lib_find_paths.cmake)
 set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "rpm"  # rpm package
                         "deb"  # deb package
-                        "dmg") # a drag&drop dmg package for macosx
+                        "dmg"  # a drag&drop dmg package for macosx
+                        "nsis") # an NSIS installer for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
 is_valid_package(${PACKAGE_TYPE})
@@ -312,19 +306,35 @@ endif()
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them
-openms_export_targes()
+openms_export_targets()
 install_export_targets()
 
 #------------------------------------------------------------------------------
 # build settings and configs for external code
 #------------------------------------------------------------------------------
 # install routines for ..
-if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
-  include(cmake/package_dragndrop_dmg.cmake)
-elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
-  include(cmake/package_rpm.cmake)
-elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. deps
-  include(cmake/package_deb.cmake)
+if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
+  ## Needed in package_general.cmake
+  set(PACKAGE_LIB_DIR lib)
+  set(PACKAGE_BIN_DIR bin)
+  
+  if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
+    set(PACKAGE_BIN_DIR TOPP)
+    include(cmake/package_general.cmake)
+    include(cmake/package_dragndrop_dmg.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
+    include(cmake/package_general.cmake)
+    include(cmake/package_rpm.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. debs
+    include(cmake/package_general.cmake)
+    include(cmake/package_deb.cmake)
+    elseif("${PACKAGE_TYPE}" STREQUAL "nsis") # .. Windows nsis
+    set(PACKAGE_LIB_DIR bin)
+    include(cmake/package_general.cmake)
+    include(cmake/package_nsis.cmake)
+  endif()
+  
+  include(CPack)
 endif()
 
 #------------------------------------------------------------------------------
