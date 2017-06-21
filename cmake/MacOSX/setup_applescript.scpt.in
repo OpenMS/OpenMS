@@ -85,5 +85,5 @@ on run argv
     -- Weird behaviour of the CPACK module. Sometimes it does not write the changes to the dmg.
     delay 20
   end tell
-  do shell script("@CPACK_COMMAND_CODESIGN@ @CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER@ --verbose -s '@CPACK_BUNDLE_APPLE_CERT_APP@' " & image_name)
+  --do shell script("@CPACK_COMMAND_CODESIGN@ @CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER@ --verbose -s '@CPACK_BUNDLE_APPLE_CERT_APP@' " & image_name)
 end run
