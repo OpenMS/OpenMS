@@ -552,9 +552,13 @@ namespace OpenMS
 
                   // add implicit default adduct (H+ or H-) (if != 0)
                   if (hc_left > 0)
+                  {
                     cmp.add(default_adduct * hc_left, Compomer::LEFT);
+                  }
                   if (hc_right > 0)
+                  {
                     cmp.add(default_adduct * hc_right, Compomer::RIGHT);
+                  }
 
                   ChargePair cp(i_RT, i_RT_window, q1, q2, cmp, naive_mass_diff - md_s->getMass(), false);
                   feature_relation.push_back(cp);
@@ -1212,9 +1216,11 @@ namespace OpenMS
 
   bool MetaboliteFeatureDeconvolution::chargeTestworthy_(const Int feature_charge, const Int putative_charge, const bool other_unchanged) const
   {
-    //Swtiches of charge signs in one ionization mode should logically not occur. The assumed decharger charge settings should fit to feature charges
+    //Switches of charge signs in one ionization mode should logically not occur. The assumed decharger charge settings should fit to feature charges
     if (feature_charge * putative_charge < 0)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("feature charge and putative charge switch charge direction!"), String(feature_charge)+" "+String(putative_charge));
+    }
 
     // if no charge given or all-charges is selected. Assume no charge detected -> charge 0
     if ((feature_charge == 0) || (q_try_ == QALL))
@@ -1269,8 +1275,10 @@ namespace OpenMS
         }
       }
 
-      if (!has_odd)
+      if (not has_odd)
+      {
         ++ladders_even;
+      }
     }
 
     // if more than 5% of charge ladder have this, then report
