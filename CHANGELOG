@@ -22,59 +22,62 @@ New tools:
   - TargetedFileConverter -- Conversion of multiple targeted file formats (CSV, TraML etc)
   
 Deprecated and removed tools:
-  - ITRAQAnalyzer -- Calculates iTRAQ quantitative values for peptides (TOPP)
-  - MapAlignmentEvaluation -- Evaluates alignment results against a ground truth (UTIL)
-  - TMTAnalyzer -- Calculates TMT quantitative values for peptides (TOPP)
-  - ConvertTSVToTraML - see TargetedFileConverter now
-  - ConvertTraMLToTSV - see TargetedFileConverter now
+  - ITRAQAnalyzer -- superseded by IsobaricAanalyzer
+  - TMTAnalyzer -- superseded by IsobaricAanalyzer
+  - ConvertTSVToTraML - superseded by TargetedFileConverter
+  - ConvertTraMLToTSV - superseded by TargetedFileConverter
+  - MapAlignmentEvaluation -- removed as deprecated
    
 Major changes in functionality:
-  - OpenSwath Analysis
-    - support for metabolomics workflows
-    - support for scanning SWATH (Sonar)
-    - support for SQL-based file formats    
+  - OpenSWATH analysis
+    - Support for metabolomics workflows
+    - Support for scanning SWATH (SONAR)
+    - Support for SQL-based file formats
   - XTandemAdapter 
-    - removed deprecated parameters
-    - support for "Vengeance" and "ALANINE"
+    - Simplified usage
+    - Improved support for PTMs and newer X! Tandem versions ("Vengeance", "Alanine")
   - IsobaricAnalyzer
     - Support for TMT10plex
-    - Support for isotopic labeling in MS3
-  - IDMapper: 
-    - Allows to map unidentified tandem spectra to features.
+    - Support for quantification in MS3 data
+  - IDMapper
+    - Allows to map unidentified tandem mass spectra to features
   - FeatureFinderIdentification
-    - Advanced multi-sample support
+    - Advanced multi-sample support using machine learning
   - FileFilter
-    - allows users to enable zlib and lossy compression (see "-lossy_compression")
-    - allows users to set desired mass accuracy
+    - Allows users to enable zlib and lossy compression (see "-lossy_compression")
+    - Allows users to set desired mass accuracy
   - IDFilter
-    - Filter results if they are valid digestion products
+    - Added option to filter for valid digestion products
   - FalseDiscoveryRate
-    - Allow filtering by q-value in the tool (no need for IDFilter score:pep option)
-  - Library:
-  	- Averagine approximation for fragment isotope distributions
-	- Precursor mass correction supports correction to highest intensity peak in tolerance window
-	- Functionality for resampling and adding of spectra
-	- Protein-Protein cross-link spectrum generator
-	- Terminal mods are now separated by "."
-	- SQLite support in OpenSWATH
-	- TheoreticalSpectrumGenerator speedup and removal of RichPeak code
-	- removal of template parameters from MSExperiment (speedup of compile time, reduction of binary size)
-	- Allow estimation of isotope distributions with preconfigured number of sulfurs
-	- Improved handling of residues and bracket notation (e.g. N[2457.877]VSVK)
-	- Improved annotation of spectrum references
-	- Improved handling of X in sequences
+    - Allow filtering by q-value in the tool (no need for IDFilter with "score:pep" option)
+    
+Library:
+  - Averagine approximation for fragment isotope distributions
+  - Precursor mass correction supports correction to highest intensity peak in tolerance window
+  - Functionality for resampling and adding of spectra
+  - Protein-protein cross-link spectrum generator
+  - Terminal modifications are now separated by "." in text output
+  - SQLite support in OpenSWATH
+  - TheoreticalSpectrumGenerator speed-up and removal of RichPeak code
+  - Removal of template parameters from MSExperiment (reduced compile time and binary size)
+  - Allow estimation of isotope distributions with predefined numbers of sulfur atoms
+  - Improved handling of bracket notation for modified residues (e.g. N[2457.877]VSVK)
+  - Improved handling of terminal and residue specificity of modifications
+  - Improved annotation of peptide identifications with spectrum references
+  - Improved handling of unknown amino acids ("X") in sequences
 
 File formats:
   - Improved mzML support for SONAR data and mzML with drift time (experimental)
   - Improved support for cross-link data and unknown modifications in mzIdentML
-  - mzXML writer able to write MaxQuant compatible files
+  - mzXML writer able to write MaxQuant-compatible files
   - mzML files now routinely support substantial compression (up to 5x compression, see #2449, #2458)
+  - Support for Percolator result files based on X! Tandem searches
 
 Scripts:
-  - new R script for visualizing RT transformations (trafoXML) 
+  - New R script for visualizing RT transformations (trafoXML) 
  
 Databases:
-  - By default, decoy sequences are now denoted by a prefix 'DECOY_'.
+  - By default, decoy sequences are now denoted by the prefix "DECOY_"
 
 Third-party software:
   
