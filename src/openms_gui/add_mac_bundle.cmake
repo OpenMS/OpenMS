@@ -81,6 +81,14 @@ macro(add_mac_app_bundle _name)
 		install(TARGETS ${_name} BUNDLE
 			DESTINATION .
 			COMPONENT Applications)
+		
+		if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+		   
+		   install(CODE "execute_process(COMMAND \${CPACK_COMMAND_CODESIGN} --deep --force --sign '${CPACK_BUNDLE_APPLE_CERT_APP}' -i 'de.openms.${_name}' '\${CMAKE_INSTALL_PREFIX}/${_name}.app')")
+		   
+		   install(CODE "execute_process(COMMAND \${CPACK_COMMAND_CODESIGN} -dv '\${CMAKE_INSTALL_PREFIX}/${_name}.app')" )
+		 
+		endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 
 	endif("${PACKAGE_TYPE}" STREQUAL "dmg")
 endmacro()
