@@ -83,10 +83,15 @@ macro(add_mac_app_bundle _name)
 			COMPONENT Applications)
 		
 		if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+		   ## TODO try to find codesign to make sure the right exec is used
 		   
-		   install(CODE "execute_process(COMMAND \${CPACK_COMMAND_CODESIGN} --deep --force --sign '${CPACK_BUNDLE_APPLE_CERT_APP}' -i 'de.openms.${_name}' '\${CMAKE_INSTALL_PREFIX}/${_name}.app')")
-		   
-		   install(CODE "execute_process(COMMAND \${CPACK_COMMAND_CODESIGN} -dv '\${CMAKE_INSTALL_PREFIX}/${_name}.app')" )
+                   install(CODE "
+execute_process(COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign ${CPACK_BUNDLE_APPLE_CERT_APP} -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
+message('\${sign_out}')" COMPONENT BApplications)
+
+                   install(CODE "
+execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_check_out ERROR_VARIABLE sign_check_out)
+message('\${sign_check_out}')" COMPONENT BApplications)
 		 
 		endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 
