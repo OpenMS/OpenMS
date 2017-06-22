@@ -245,8 +245,14 @@ if("${PACKAGE_TYPE}" STREQUAL "deb" OR "${PACKAGE_TYPE}" STREQUAL "rpm")
  # Force *.so to be used, not *.a.
  #set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
 endif()
+### End Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
 
-## End Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
+if("${PACKAGE_TYPE}" STREQUAL "dmg")
+  if (NOT DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+    safe_message(WARNING "Trying to create dmg image without CPACK_BUNDLE_APPLE_CERT_APP being set. "
+                         "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
+  endif()
+endif()
 
 #------------------------------------------------------------------------------
 # Output directories
