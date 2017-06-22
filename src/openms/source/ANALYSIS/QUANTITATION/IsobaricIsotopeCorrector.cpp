@@ -169,14 +169,8 @@ namespace OpenMS
       {
         ++s_different_count;
         s_different_intensity += std::fabs(m_x(index, 0) - x(index));
-        std::cout << "matrix: " << x(index) << " NNLS: " << m_x(index, 0) << "Intensity: " << cf_intensity <<std::endl;
       }
     }
-
-//    if (s_negative == 0 && s_different_count > 0) // solutions are inconsistent, despite being positive! This should not happen!
-//    {
-//      throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!");
-//    }
 
     // update global stats
     stats.iso_number_reporter_negative += s_negative;
