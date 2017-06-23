@@ -37,10 +37,10 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
         # Spectra functions
         void addSpectrum(MSSpectrum[PeakT] spec) nogil except +
-        MSSpectrum[PeakT] operator[](int)      nogil except + # wrap-upper-limit:size()  # TODO deprecate for 1.12
+        MSSpectrum[PeakT] operator[](int)      nogil except + # wrap-upper-limit:size()
         MSSpectrum[PeakT] getSpectrum(Size id_) nogil except +
         void setSpectra(libcpp_vector[ MSSpectrum[ PeakT ] ] & spectra) nogil except +
-        libcpp_vector[MSSpectrum[PeakT]] getSpectra() nogil except +  # TODO deprecate for 1.12
+        libcpp_vector[MSSpectrum[PeakT]] getSpectra() nogil except +
 
         libcpp_vector[MSSpectrum[PeakT]].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum[PeakT])
         libcpp_vector[MSSpectrum[PeakT]].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum[PeakT])
@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         MSChromatogram[ ChromoPeakT ]  getChromatogram(Size id_) nogil except +
         void addChromatogram(MSChromatogram[ChromoPeakT] chromatogram) nogil except +
         void setChromatograms(libcpp_vector[MSChromatogram[ChromoPeakT]] chromatograms) nogil except +
-        libcpp_vector[MSChromatogram[ChromoPeakT]] getChromatograms() nogil except + # TODO deprecate for 1.12
+        libcpp_vector[MSChromatogram[ChromoPeakT]] getChromatograms() nogil except +
 
         MSChromatogram[ChromoPeakT] getTIC() nogil except +
         void clear(bool clear_meta_data) nogil except +
@@ -67,7 +67,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
         # Size of experiment
         UInt64 getSize() nogil except +
-        int   size() nogil except + # TODO deprecate for 1.12
+        int   size() nogil except + 
         void resize(Size s) nogil except +
         bool empty() nogil except +
         void reserve(Size s) nogil except +
