@@ -87,5 +87,5 @@ on run argv
   end tell
   -- TODO use variables for the codesign command?
   -- do shell script("@CPACK_COMMAND_CODESIGN@ @CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER@ --verbose -s '@CPACK_BUNDLE_APPLE_CERT_APP@' " & image_name)
-  do shell script("codesign --deep --force --keychain /Library/Keychains/System.keychain --sign @CPACK_BUNDLE_APPLE_CERT_APP@ " & image_name)
+  do shell script("if [ '@CPACK_BUNDLE_APPLE_CERT_APP@' != '' ]; then codesign --deep --force --keychain /Library/Keychains/System.keychain --sign @CPACK_BUNDLE_APPLE_CERT_APP@ " & image_name & " ; fi")
 end run
