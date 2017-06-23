@@ -249,7 +249,7 @@ endif()
 
 if("${PACKAGE_TYPE}" STREQUAL "dmg")
   if (NOT DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
-    safe_message(WARNING "Trying to create dmg image without CPACK_BUNDLE_APPLE_CERT_APP being set. "
+    message(WARNING "Trying to create dmg image without CPACK_BUNDLE_APPLE_CERT_APP being set. "
                          "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
   endif()
 endif()
