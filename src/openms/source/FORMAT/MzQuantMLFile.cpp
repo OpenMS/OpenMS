@@ -32,6 +32,7 @@
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
@@ -59,6 +60,12 @@ namespace OpenMS
 
   void MzQuantMLFile::store(const String & filename, const MSQuantifications & cmsq) const
   {
+    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
+    if (ft != FileTypes::MZQUANTML && ft != FileTypes::UNKNOWN)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename  + " has invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::MZQUANTML) + "'");
+    }
+
     Internal::MzQuantMLHandler handler(cmsq, filename, schema_version_, *this);
     save_(filename, &handler);
   }

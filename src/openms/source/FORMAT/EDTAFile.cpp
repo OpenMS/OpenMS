@@ -32,7 +32,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <cmath>
@@ -287,6 +289,12 @@ namespace OpenMS
 
   void EDTAFile::store(const String& filename, const ConsensusMap& map) const
   {
+    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
+    if (ft != FileTypes::EDTA && ft != FileTypes::UNKNOWN)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename  + " has invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::EDTA) + "'");
+    }
+
     TextFile tf;
 
     // search for maximum number of sub-features (since this determines the number of columns)

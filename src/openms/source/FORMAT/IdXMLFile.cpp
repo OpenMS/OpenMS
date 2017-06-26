@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -99,6 +100,13 @@ namespace OpenMS
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
+
+    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
+    if (ft != FileTypes::IDXML && ft != FileTypes::UNKNOWN)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename  + " has invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::IDXML) + "'");
+    }
+
     os.precision(writtenDigits<double>(0.0));
 
     //write header

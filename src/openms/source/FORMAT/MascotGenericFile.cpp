@@ -32,6 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 
 #include <OpenMS/METADATA/Precursor.h>
@@ -138,6 +139,12 @@ namespace OpenMS
 
   void MascotGenericFile::store(const String& filename, const PeakMap& experiment, bool compact)
   {
+    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
+    if (ft != FileTypes::MGF && ft != FileTypes::UNKNOWN)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename  + " has invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::MGF) + "'");
+    }
+
     if (!File::writable(filename))
     {
       throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
