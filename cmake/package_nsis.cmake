@@ -46,11 +46,14 @@ add_custom_target(dist
   COMMENT "Building ${CPACK_GENERATOR} package"
 )
 
-## TODO check out signing on Windows.
-#add_custom_target(signed_dist
-#  COMMAND cpack -G ${CPACK_GENERATOR}
-#  COMMENT "Building ${CPACK_GENERATOR} package"
-#)
+## TODO maybe find signtool and maybe check existence of ID in the beginning.
+if (DEFINED SIGNING_IDENTITY AND NOT "${SIGNING_IDENTITY}" STREQUAL "") 
+	add_custom_target(signed_dist
+	  COMMAND signtool sign /v /n ${SIGNING_IDENTITY} /t http://timestamp.digicert.com ${CPACK_PACKAGE_FILE_NAME}.exe
+	  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+	  COMMENT "Signing ${CPACK_PACKAGE_FILE_NAME}.exe with '${SIGNING_IDENTITY}'"
+	)
+endif()
 
 ## For now we fully rely only on our NSIS template. Later we could use
 ## the following to let CMake generate snippets for the NSIS script
