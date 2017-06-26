@@ -418,13 +418,14 @@ protected:
     void merge_polynomial(Polynomial&);
     void dumpID(Polynomial&);
     double fact_ln(UInt);
+    void merge(Polynomial&, double);
+    
     EmpiricalFormula& formula_;
     //Polynomial fgid;
     UInt N;
     double fine_resolution;
     double min_prob;
     double lighter_isotope;
-    double merge_fine_resolution;
     
     double mw_resolution;
     double resolution;
