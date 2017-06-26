@@ -249,7 +249,7 @@ endif()
 
 ## Warn here because you n
 if("${PACKAGE_TYPE}" STREQUAL "dmg")
-  if (NOT DEFINED SIGNING_IDENTITY)
+  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "")
     message(WARNING "Trying to create dmg image without SIGNING_IDENTITY being set. "
                          "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
   else()
