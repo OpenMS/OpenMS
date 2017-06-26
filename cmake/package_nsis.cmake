@@ -40,6 +40,18 @@ set(CPACK_GENERATOR NSIS)
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}_Win${PLATFORM}")
 set(CPACK_PACKAGE_ICON "${PROJECT_SOURCE_DIR}/cmake/Windows/OpenMS.ico")
 
+## Create own target because you cannot "depend" on the internal target 'package'
+add_custom_target(dist
+  COMMAND cpack -G ${CPACK_GENERATOR}
+  COMMENT "Building ${CPACK_GENERATOR} package"
+)
+
+## TODO check out signing on Windows.
+#add_custom_target(signed_dist
+#  COMMAND cpack -G ${CPACK_GENERATOR}
+#  COMMENT "Building ${CPACK_GENERATOR} package"
+#)
+
 ## For now we fully rely only on our NSIS template. Later we could use
 ## the following to let CMake generate snippets for the NSIS script
 ## Plus an additional entry in the nsis template (see CPack-NSIS docu)

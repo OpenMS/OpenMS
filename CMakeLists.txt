@@ -247,10 +247,14 @@ if("${PACKAGE_TYPE}" STREQUAL "deb" OR "${PACKAGE_TYPE}" STREQUAL "rpm")
 endif()
 ### End Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
 
+## Warn here because you n
 if("${PACKAGE_TYPE}" STREQUAL "dmg")
-  if (NOT DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
-    message(WARNING "Trying to create dmg image without CPACK_BUNDLE_APPLE_CERT_APP being set. "
+  if (NOT DEFINED SIGNING_IDENTITY)
+    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY being set. "
                          "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
+  else()
+    ## CPack has a special variable for it.
+    set(CPACK_BUNDLE_APPLE_CERT_APP ${SIGNING_IDENTITY})
   endif()
 endif()
 

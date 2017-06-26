@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 ## Very useful for debugging purposes: Disables the dependency on the "make install" target.
-## In our case e.g. "make install" always builds the documentation. 
+## In our case e.g. "make install" always builds the documentation etc. 
 #set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY On)
 
 set(CPACK_GENERATOR "DragNDrop")
@@ -44,7 +44,6 @@ set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY 1) ## Therefore _only_ use the se
 
 ## Note: That the mac app bundles (TOPPView) take care of themselves
 ##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
-
 
 ## Fix OpenMS dependencies for all executables in the install directory
 ########################################################### Fix Dependencies
@@ -77,6 +76,14 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README
                     WORLD_READ
         COMPONENT   TOPPShell)
 
+
+
+## Create own target because you cannot "depend" on the internal target 'package'
+add_custom_target(dist
+  COMMAND cpack -G ${CPACK_GENERATOR}
+  COMMENT "Building ${CPACK_GENERATOR} package"
+)
+
 ########################################################### Create dmg with background image
 if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
   set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transparent.png) ## For configuration of the script
@@ -85,6 +92,16 @@ if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
   #Next line could overcome a script but since we do not have a fixed name of the OpenMS-$VERSION folder, it probably won't work
   #set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store_new)
   set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
+
+  ## Sign the image
+  if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+    add_custom_target(signed_dist
+      COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign ${CPACK_BUNDLE_APPLE_CERT_APP} \${CPACK_PACKAGE_FILE_NAME}.dmg
+      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+      COMMENT "Signing dmg image"
+      DEPENDS dist)
+  endif()
+
 else()
   ## The old scripts need the background image in the target folder.
   ########################################################### Background Image
@@ -94,14 +111,9 @@ else()
                     GROUP_READ
                     WORLD_READ
         COMPONENT share)
-  ## Use custom scripts and targets (just 'make package' creates a very simple dmg).
-  add_custom_target(dmg
-    COMMAND cpack -G DragNDrop
-    COMMENT "Building intermediate dmg package"
-  )
   
   ## Next command assumes the dmg was already generated and lies in the build directory.
-  add_custom_target(final_package
+  add_custom_target(finalized_dist
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMENT "Finalizing dmg image"
