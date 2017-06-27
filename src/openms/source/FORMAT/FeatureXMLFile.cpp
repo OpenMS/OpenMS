@@ -137,10 +137,10 @@ namespace OpenMS
 
   void FeatureXMLFile::store(const String& filename, const FeatureMap& feature_map)
   {
-    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
-    if (ft != FileTypes::FEATUREXML && ft != FileTypes::UNKNOWN)
+    if (!FileHandler::hasValidExtension(filename, FileTypes::FEATUREXML))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename  + " has invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::FEATUREXML) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::FEATUREXML) + "'");
     }
 
     //open stream

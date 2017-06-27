@@ -289,10 +289,10 @@ namespace OpenMS
 
   void EDTAFile::store(const String& filename, const ConsensusMap& map) const
   {
-    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
-    if (ft != FileTypes::EDTA && ft != FileTypes::UNKNOWN)
+    if (!FileHandler::hasValidExtension(filename, FileTypes::EDTA))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename  + " has invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::EDTA) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::EDTA) + "'");
     }
 
     TextFile tf;

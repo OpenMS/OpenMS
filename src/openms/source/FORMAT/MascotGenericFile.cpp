@@ -139,10 +139,10 @@ namespace OpenMS
 
   void MascotGenericFile::store(const String& filename, const PeakMap& experiment, bool compact)
   {
-    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
-    if (ft != FileTypes::MGF && ft != FileTypes::UNKNOWN)
+    if (!FileHandler::hasValidExtension(filename, FileTypes::MGF))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename  + " has invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::MGF) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::MGF) + "'");
     }
 
     if (!File::writable(filename))

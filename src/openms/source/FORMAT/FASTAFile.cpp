@@ -128,10 +128,10 @@ namespace OpenMS
 
   void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const
   {
-    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
-    if (ft != FileTypes::FASTA && ft != FileTypes::UNKNOWN)
+    if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename  + " has invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::FASTA) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::FASTA) + "'");
     }
 
     ofstream outfile;

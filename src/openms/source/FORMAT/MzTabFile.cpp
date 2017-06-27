@@ -2504,10 +2504,11 @@ String MzTabFile::generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMolecule
 
 void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
 {
-  FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
-  if (ft != FileTypes::TSV && ft != FileTypes::UNKNOWN)
+
+  if (!FileHandler::hasValidExtension(filename, FileTypes::TSV))
   {
-    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename  + " has invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+     "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::TSV) + "'");
   }
 
   StringList out;

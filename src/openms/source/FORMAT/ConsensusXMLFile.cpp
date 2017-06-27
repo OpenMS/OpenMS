@@ -636,10 +636,10 @@ namespace OpenMS
   void
   ConsensusXMLFile::store(const String& filename, const ConsensusMap& consensus_map)
   {
-    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
-    if (ft != FileTypes::CONSENSUSXML && ft != FileTypes::UNKNOWN)
+    if (!FileHandler::hasValidExtension(filename, FileTypes::CONSENSUSXML))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename  + " has invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
     }
 
     if (!consensus_map.isMapConsistent(&LOG_WARN))
