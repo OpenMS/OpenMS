@@ -173,30 +173,32 @@ protected:
     };
   
   struct PercolatorProteinResult
+  {
+    String protein_accession;
+    double qvalue;
+    double posterior_error_prob;
+
+    PercolatorProteinResult(const String& pid, const double q, const double pep):
+        protein_accession (pid),
+        qvalue (q),
+        posterior_error_prob (pep)
     {
-      String protein_accession;
-      double qvalue;
-      double posterior_error_prob;
+    }
 
-      PercolatorProteinResult(const String& pid, const double q, const double pep):
-          protein_accession (pid),
-          qvalue (q),
-          posterior_error_prob (pep)
+    bool operator!=(const PercolatorProteinResult& rhs) const
+    {
+      if (protein_accession != rhs.protein_accession || qvalue != rhs.qvalue ||
+          posterior_error_prob != rhs.posterior_error_prob)
       {
+        return true;
       }
+      return false;
+    }
 
-      bool operator!=(const PercolatorProteinResult& rhs) const
-      {
-        if (protein_accession != rhs.protein_accession || qvalue != rhs.qvalue ||
-            posterior_error_prob != rhs.posterior_error_prob)
-          return true;
-        return false;
-      }
-
-      bool operator==(const PercolatorProteinResult& rhs) const
-      {
-        return !(operator !=(rhs));
-      }
+    bool operator==(const PercolatorProteinResult& rhs) const
+    {
+      return !(operator !=(rhs));
+    }
   };
   
   void registerOptionsAndFlags_()
@@ -566,7 +568,8 @@ protected:
       }
       
       //paranoia check if this comes from the same search engine! (only in the first proteinidentification of the first proteinidentifications vector vector)
-      if (!all_protein_ids.empty()) {
+      if (!all_protein_ids.empty()) 
+      {
         if (protein_ids.front().getSearchEngine() != all_protein_ids.front().getSearchEngine())
         {
           writeLog_("Input files are not all from the same search engine: " + protein_ids.front().getSearchEngine() + " and " + all_protein_ids.front().getSearchEngine() + ". Use TOPP_PSMFeatureExtractor to merge results from different search engines if desired. Aborting!");
@@ -597,31 +600,31 @@ protected:
           return INCOMPATIBLE_INPUT_DATA;
         }
         
-        if (protein_ids.front().getScoreType()        != all_protein_ids.front().getScoreType()        )
+        if (protein_ids.front().getScoreType() != all_protein_ids.front().getScoreType())
         {
           LOG_WARN << "Warning: differing ScoreType between input files" << endl;
         }
-        if (search_parameters.digestion_enzyme        != all_search_parameters.digestion_enzyme        )
+        if (search_parameters.digestion_enzyme != all_search_parameters.digestion_enzyme)
         {
           LOG_WARN << "Warning: differing DigestionEnzyme between input files" << endl;
         }
-        if (search_parameters.variable_modifications  != all_search_parameters.variable_modifications  )
+        if (search_parameters.variable_modifications != all_search_parameters.variable_modifications)
         {
           LOG_WARN << "Warning: differing VarMods between input files" << endl;
         }
-        if (search_parameters.fixed_modifications     != all_search_parameters.fixed_modifications     )
+        if (search_parameters.fixed_modifications != all_search_parameters.fixed_modifications)
         {
           LOG_WARN << "Warning: differing FixMods between input files" << endl;
         }
-        if (search_parameters.charges                 != all_search_parameters.charges                 )
+        if (search_parameters.charges != all_search_parameters.charges)
         {
           LOG_WARN << "Warning: differing SearchCharges between input files" << endl;
         }
-        if (search_parameters.fragment_mass_tolerance != all_search_parameters.fragment_mass_tolerance )
+        if (search_parameters.fragment_mass_tolerance != all_search_parameters.fragment_mass_tolerance)
         {
           LOG_WARN << "Warning: differing FragTol between input files" << endl;
         }
-        if (search_parameters.precursor_mass_tolerance     != all_search_parameters.precursor_mass_tolerance     )
+        if (search_parameters.precursor_mass_tolerance != all_search_parameters.precursor_mass_tolerance)
         {
           LOG_WARN << "Warning: differing PrecTol between input files" << endl;
         }
