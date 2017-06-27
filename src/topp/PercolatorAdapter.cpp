@@ -201,8 +201,9 @@ protected:
   
   void registerOptionsAndFlags_()
   {
-    bool is_required = true;
-    bool is_advanced_option = true;
+    const static bool is_required(true);
+    const static bool is_advanced_option(true);
+    
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", is_required);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
     registerInputFileList_("in_decoy", "<files>", StringList(), "Input decoy file(s) in case of separate searches", !is_required);
