@@ -949,8 +949,10 @@ namespace OpenMS
 
   TOPPASWidget* TOPPASBase::activeSubWindow_() const
   {
-    if (ws_ == 0 || ws_->currentSubWindow() == 0 || ws_->currentSubWindow()->widget() == 0)
+    if (ws_ == 0  || ws_->currentSubWindow() == 0 || ws_->currentSubWindow()->widget() == 0)
+    {
       return 0;
+    }
 
     return dynamic_cast<TOPPASWidget*>(ws_->currentSubWindow()->widget());
   }
