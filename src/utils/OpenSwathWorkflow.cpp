@@ -822,7 +822,7 @@ protected:
       LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
       return PARSE_ERROR;
     }
-    std::cout << "Loaded " << transition_exp.getProteins().size() << " proteins, " << 
+    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " << 
       transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
 
