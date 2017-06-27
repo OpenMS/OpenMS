@@ -34,7 +34,6 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <cmath>
