@@ -110,6 +110,8 @@ namespace OpenMS
 
   void MascotRemoteQuery::run()
   {
+    // TODO: docu is out of date
+
     // Due to the asynchronous nature of Qt network requests (and the resulting use
     // of signals and slots), the information flow in this class is not very
     // clear. After the initial call to "run", the steps are roughly as follows:
