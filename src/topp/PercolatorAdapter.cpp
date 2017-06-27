@@ -203,8 +203,8 @@ protected:
   
   void registerOptionsAndFlags_()
   {
-    const static bool is_required(true);
-    const static bool is_advanced_option(true);
+    static const bool is_required(true);
+    static const bool is_advanced_option(true);
     
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", is_required);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
