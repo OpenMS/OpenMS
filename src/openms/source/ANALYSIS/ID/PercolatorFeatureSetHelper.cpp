@@ -221,29 +221,29 @@ namespace OpenMS
     /**
     Features 1-9 Represent the Basic Feature Set
 
-    feature abbreviation	feature description
-    1. mass	Calculated monoisotopic mass of the identified peptide. Present as generic feature.
-    2. charge	Precursor ion charge. Present as generic feature.
-    3. mScore	Mascot score. Added in this function.
-    4. dScore	Mascot score minus Mascot score of next best nonisobaric peptide hit. Added in this function.
-    5. deltaM	Calculated minus observed peptide mass (in Dalton and ppm). Present as generic feature.
-    6. absDeltaM	Absolute value of calculated minus observed peptide mass (in Dalton and ppm). Present as generic feature.
-    7. isoDeltaM	Calculated minus observed peptide mass, isotope error corrected (in Dalton and ppm)
-    8. uniquePeps	None (0), one (1), two or more (2) distinct peptide sequences match same protein. Added in this function.
-    9. mc	Missed tryptic cleavages. Present as generic feature.
+    feature abbreviation  feature description
+    1. mass        Calculated monoisotopic mass of the identified peptide. Present as generic feature.
+    2. charge      Precursor ion charge. Present as generic feature.
+    3. mScore      Mascot score. Added in this function.
+    4. dScore      Mascot score minus Mascot score of next best nonisobaric peptide hit. Added in this function.
+    5. deltaM      Calculated minus observed peptide mass (in Dalton and ppm). Present as generic feature.
+    6. absDeltaM   Absolute value of calculated minus observed peptide mass (in Dalton and ppm). Present as generic feature.
+    7. isoDeltaM   Calculated minus observed peptide mass, isotope error corrected (in Dalton and ppm)
+    8. uniquePeps  None (0), one (1), two or more (2) distinct peptide sequences match same protein. Added in this function.
+    9. mc          Missed tryptic cleavages. Present as generic feature.
 
     Features 10-18 Represent the Extended Feature Set As Used in Mascot Percolator
 
-    feature abbreviation	feature description
-    10. totInt	Total ion intensity (log). Not available in mascot adapter.
-    11. intMatchedTot	Total matched ion intensity (log). Not available in mascot adapter.
-    12. relIntMatchedTot	Total matched ion intensity divided by total ion intensity. Not available in mascot adapter.
-    13. binom	Peptide Score as described in ref 28. Not available in mascot adapter.
-    14. fragMassError	Mean fragment mass error (in Dalton and ppm). Not available in mascot adapter.
-    15. absFragMassError	Mean absolute fragment mass error (in Dalton and ppm). Not available in mascot adapter.
-    16. fracIonsMatched	Fraction of calculated ions matched (per ion series). Not available in mascot adapter.
-    17. seqCov	Sequence coverage of matched ions (per ion series). Not available in mascot adapter.
-    18. intMatched	Matched ion intensity (per ion series). Not available in mascot adapter.
+    feature abbreviation  feature description
+    10. totInt            Total ion intensity (log). Not available in mascot adapter.
+    11. intMatchedTot     Total matched ion intensity (log). Not available in mascot adapter.
+    12. relIntMatchedTot  Total matched ion intensity divided by total ion intensity. Not available in mascot adapter.
+    13. binom             Peptide Score as described in ref 28. Not available in mascot adapter.
+    14. fragMassError     Mean fragment mass error (in Dalton and ppm). Not available in mascot adapter.
+    15. absFragMassError  Mean absolute fragment mass error (in Dalton and ppm). Not available in mascot adapter.
+    16. fracIonsMatched   Fraction of calculated ions matched (per ion series). Not available in mascot adapter.
+    17. seqCov            Sequence coverage of matched ions (per ion series). Not available in mascot adapter.
+    18. intMatched        Matched ion intensity (per ion series). Not available in mascot adapter.
     */
     void PercolatorFeatureSetHelper::addMASCOTFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {      
@@ -794,6 +794,4 @@ namespace OpenMS
       }
       return String(scan);
     }
-    
-
 }
