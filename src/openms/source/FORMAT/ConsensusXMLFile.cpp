@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -635,6 +636,12 @@ namespace OpenMS
   void
   ConsensusXMLFile::store(const String& filename, const ConsensusMap& consensus_map)
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::CONSENSUSXML))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
+    }
+
     if (!consensus_map.isMapConsistent(&LOG_WARN))
     {
       // Currently it is possible that FeatureLinkerUnlabeledQT triggers this exception
