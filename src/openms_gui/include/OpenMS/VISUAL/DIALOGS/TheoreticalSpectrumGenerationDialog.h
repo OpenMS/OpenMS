@@ -69,8 +69,6 @@ public:
 
     Param getParam() const;
 
-    QListWidget* getListWidget();
-
 protected slots:
 
     void itemChanged(QListWidgetItem * item);

@@ -71,11 +71,6 @@ namespace OpenMS
     return ui_->line_edit->text();
   }
 
-  QListWidget* TheoreticalSpectrumGenerationDialog::getListWidget()
-  {
-    return ui_->list_widget;
-  }
-
   Param TheoreticalSpectrumGenerationDialog::getParam() const
   {
     Param p;
