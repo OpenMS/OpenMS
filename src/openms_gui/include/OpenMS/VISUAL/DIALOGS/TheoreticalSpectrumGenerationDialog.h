@@ -38,6 +38,7 @@
 
 #include <QtWidgets/QDialog>
 class QListWidgetItem;
+class QListWidget;
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 namespace Ui
@@ -67,6 +68,8 @@ public:
     String getSequence() const;
 
     Param getParam() const;
+
+    QListWidget* getListWidget();
 
 protected slots:
 
