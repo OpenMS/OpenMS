@@ -50,6 +50,8 @@ namespace OpenMS
 
   MascotRemoteQuery::MascotRemoteQuery(QObject* parent) :
     QObject(parent),
+    manager_(NULL),
+    reply_(NULL),
     DefaultParamHandler("MascotRemoteQuery")
   {
     // server specifications
@@ -89,15 +91,15 @@ namespace OpenMS
 
   MascotRemoteQuery::~MascotRemoteQuery()
   {
-    if (reply_->isRunning())
+    if (reply_ && reply_->isRunning())
     {
 #ifdef MASCOTREMOTEQUERY_DEBUG
       std::cerr << "Aborting open connection!\n";
 #endif
       reply_->abort(); // abort connection (otherwise server might have too many dangling requests)
     }
-    delete reply_;
-    delete manager_;
+    if (reply_) {delete reply_;}
+    if (manager_) {delete manager_;}
   }
 
   void MascotRemoteQuery::timedOut()
@@ -124,6 +126,13 @@ namespace OpenMS
 
     updateMembers_();
 
+    // Make sure we do not mess with the asynchronous nature of the call and
+    // start a second one while the first one is still running.
+    if (manager_)
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__,
+          "Error: Please call run() only once per MascotRemoteQuery.");
+    }
     manager_ = new QNetworkAccessManager(this);
 
     if (use_ssl_)
@@ -712,3 +721,4 @@ namespace OpenMS
     return tmp.toInt();
   }
 }
+
