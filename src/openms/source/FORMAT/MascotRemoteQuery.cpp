@@ -50,9 +50,9 @@ namespace OpenMS
 
   MascotRemoteQuery::MascotRemoteQuery(QObject* parent) :
     QObject(parent),
+    DefaultParamHandler("MascotRemoteQuery"),
     manager_(NULL),
-    reply_(NULL),
-    DefaultParamHandler("MascotRemoteQuery")
+    reply_(NULL)
   {
     // server specifications
     defaults_.setValue("hostname", "", "Address of the host where Mascot listens, e.g. 'mascot-server' or '127.0.0.1'");
