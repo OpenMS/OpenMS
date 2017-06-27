@@ -52,6 +52,7 @@ if (DEFINED SIGNING_IDENTITY AND NOT "${SIGNING_IDENTITY}" STREQUAL "")
 	  COMMAND signtool sign /v /n ${SIGNING_IDENTITY} /t http://timestamp.digicert.com ${CPACK_PACKAGE_FILE_NAME}.exe
 	  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 	  COMMENT "Signing ${CPACK_PACKAGE_FILE_NAME}.exe with '${SIGNING_IDENTITY}'"
+	  DEPENDS dist
 	)
 endif()
 
