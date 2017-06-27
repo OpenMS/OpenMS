@@ -3135,8 +3135,7 @@ namespace OpenMS
       }
 
       PeakSpectrum spectrum;
-      TheoreticalSpectrumGenerator generator;
-      Param p = generator.getParameters();
+      Param p = spec_gen_dialog.getParam();
       Int charge = p.getValue("charge");
 
       p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
@@ -3171,6 +3170,7 @@ namespace OpenMS
         p.setValue("add_z_ions", "true", "Add peaks of z-ions to the spectrum");
       }
 
+      TheoreticalSpectrumGenerator generator;
       generator.setParameters(p);
 
       try
