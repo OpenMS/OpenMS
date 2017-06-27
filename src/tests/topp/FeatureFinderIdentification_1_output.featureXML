@@ -133,6 +133,7 @@
 					<UserParam type="float" name="MZ" value="461.747653035421"/>
 					<UserParam type="string" name="native_id" value="AEFVEVTK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="7271544.12011719"/>
+					<UserParam type="float" name="logSN" value="4.59546331992326"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.66642596900412"/>
 				</feature>
@@ -147,6 +148,7 @@
 					<UserParam type="float" name="MZ" value="462.249330454321"/>
 					<UserParam type="string" name="native_id" value="AEFVEVTK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="3647712.47851562"/>
+					<UserParam type="float" name="logSN" value="4.59717042478583"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.33357403099588"/>
 				</feature>
@@ -173,12 +175,12 @@
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999964845503361"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999953110426825"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00123025228850404"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999953110426824"/>
+			<UserParam type="float" name="var_library_corr" value="1"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00123025228850399"/>
 			<UserParam type="float" name="var_library_sangle" value="0.00221672421707534"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00123025228850404"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.00134201647916671"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00123025228850399"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0013420164791666"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999999149732785"/>
 			<UserParam type="float" name="var_intensity_score" value="0.990032925340049"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -233,6 +235,7 @@
 					<UserParam type="float" name="MZ" value="395.726522907821"/>
 					<UserParam type="string" name="native_id" value="AGAFSLPK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1920706.55371094"/>
+					<UserParam type="float" name="logSN" value="4.50573682255772"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.692511512336989"/>
 				</feature>
@@ -247,6 +250,7 @@
 					<UserParam type="float" name="MZ" value="396.228200326721"/>
 					<UserParam type="string" name="native_id" value="AGAFSLPK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="787648.461669922"/>
+					<UserParam type="float" name="logSN" value="4.49812710953621"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.307488487663011"/>
 				</feature>
@@ -326,6 +330,7 @@
 					<UserParam type="float" name="MZ" value="455.755280535421"/>
 					<UserParam type="string" name="native_id" value="AGDLLFFK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="309924.96875"/>
+					<UserParam type="float" name="logSN" value="4.37532407446154"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.652807062123664"/>
 				</feature>
@@ -340,6 +345,7 @@
 					<UserParam type="float" name="MZ" value="456.256957954321"/>
 					<UserParam type="string" name="native_id" value="AGDLLFFK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="157846.099365234"/>
+					<UserParam type="float" name="logSN" value="4.46522979466635"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.347192937876336"/>
 				</feature>
@@ -419,6 +425,7 @@
 					<UserParam type="float" name="MZ" value="569.752618393021"/>
 					<UserParam type="string" name="native_id" value="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1354679.41699219"/>
+					<UserParam type="float" name="logSN" value="4.77002905621228"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.644498608917742"/>
 				</feature>
@@ -433,6 +440,7 @@
 					<UserParam type="float" name="MZ" value="570.254295811921"/>
 					<UserParam type="string" name="native_id" value="C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="754406.354980469"/>
+					<UserParam type="float" name="logSN" value="4.76501488124851"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.355501391082258"/>
 				</feature>
@@ -478,7 +486,7 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0.385620600005746"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.754351526419968"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.754351526419969"/>
 			<UserParam type="float" name="var_manhatt_score" value="0.84165907229483"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.74484798021522"/>
 			<UserParam type="float" name="PrecursorMZ" value="569.752618393021"/>
@@ -519,6 +527,7 @@
 					<UserParam type="float" name="MZ" value="443.711267907821"/>
 					<UserParam type="string" name="native_id" value="DDSPDLPK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="2805595.68164062"/>
+					<UserParam type="float" name="logSN" value="4.51465397165232"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.691417156355378"/>
 				</feature>
@@ -533,6 +542,7 @@
 					<UserParam type="float" name="MZ" value="444.212945326721"/>
 					<UserParam type="string" name="native_id" value="DDSPDLPK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="1242968.625"/>
+					<UserParam type="float" name="logSN" value="4.50258985282365"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.308582843644622"/>
 				</feature>
@@ -554,9 +564,9 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.999913661505798"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999889473186652"/>
 			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00059963032698801"/>
-			<UserParam type="float" name="var_library_sangle" value="0.00104554317450789"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00059963032698801"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.000599630326988065"/>
+			<UserParam type="float" name="var_library_sangle" value="0.00104554317429552"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.000599630326988065"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.000675051683031891"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999999789234646"/>
 			<UserParam type="float" name="var_intensity_score" value="0.990566158000927"/>
@@ -567,13 +577,13 @@
 			<UserParam type="float" name="xx_lda_prelim_score" value="7.47518657598361"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.990743065551955"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.307983219623566"/>
-			<UserParam type="float" name="var_massdev_score" value="0.760948674247052"/>
-			<UserParam type="float" name="var_massdev_score_weighted" value="0.544374916743954"/>
+			<UserParam type="float" name="var_massdev_score" value="0.760948673990978"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.544374916487825"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="1"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.767922678010944"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.870417252673125"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.77097449225763"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.870417252673124"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="4.7709744922802"/>
 			<UserParam type="float" name="PrecursorMZ" value="443.711267907821"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="int" name="n_total_ids" value="1"/>
@@ -612,6 +622,7 @@
 					<UserParam type="float" name="MZ" value="487.732534471621"/>
 					<UserParam type="string" name="native_id" value="DLGEEHFK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="4428198.99023438"/>
+					<UserParam type="float" name="logSN" value="4.58290781658702"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.658472827804029"/>
 				</feature>
@@ -626,6 +637,7 @@
 					<UserParam type="float" name="MZ" value="488.234211890521"/>
 					<UserParam type="string" name="native_id" value="DLGEEHFK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="2308221"/>
+					<UserParam type="float" name="logSN" value="4.57438827070168"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.341527172195971"/>
 				</feature>
@@ -726,6 +738,7 @@
 					<UserParam type="float" name="MZ" value="325.490781803338"/>
 					<UserParam type="string" name="native_id" value="DLGEEHFK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="3052206.5"/>
+					<UserParam type="float" name="logSN" value="4.55388754649503"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.658472827804029"/>
 				</feature>
@@ -740,6 +753,7 @@
 					<UserParam type="float" name="MZ" value="325.825233415938"/>
 					<UserParam type="string" name="native_id" value="DLGEEHFK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="1595702"/>
+					<UserParam type="float" name="logSN" value="4.55380707152941"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.341527172195971"/>
 				</feature>
@@ -819,6 +833,7 @@
 					<UserParam type="float" name="MZ" value="554.260602012071"/>
 					<UserParam type="string" name="native_id" value="EAC(Carbamidomethyl)FAVEGPK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="1290034.34765625"/>
+					<UserParam type="float" name="logSN" value="4.62416465928969"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.630481343594174"/>
 				</feature>
@@ -833,6 +848,7 @@
 					<UserParam type="float" name="MZ" value="554.762279430971"/>
 					<UserParam type="string" name="native_id" value="EAC(Carbamidomethyl)FAVEGPK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="740503.5625"/>
+					<UserParam type="float" name="logSN" value="4.600106227039"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.369518656405826"/>
 				</feature>
@@ -859,13 +875,13 @@
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999826714315203"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999757773001665"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999757773001666"/>
 			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00144004892103045"/>
-			<UserParam type="float" name="var_library_sangle" value="0.00269456187360245"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00144004892103045"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.00151895727538687"/>
-			<UserParam type="float" name="var_library_dotprod" value="0.999998886455479"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00144004892103047"/>
+			<UserParam type="float" name="var_library_sangle" value="0.00269456187368486"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00144004892103047"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.00151895727538698"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.999998886455478"/>
 			<UserParam type="float" name="var_intensity_score" value="0.994648915812717"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="100.706242859935"/>
@@ -919,6 +935,7 @@
 					<UserParam type="float" name="MZ" value="646.304684132271"/>
 					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="59630.41796875"/>
+					<UserParam type="float" name="logSN" value="4.53672659042566"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.602938310378619"/>
 				</feature>
@@ -933,6 +950,7 @@
 					<UserParam type="float" name="MZ" value="646.806361551171"/>
 					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="32722.078125"/>
+					<UserParam type="float" name="logSN" value="4.47233649208969"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.397061689621381"/>
 				</feature>
@@ -964,7 +982,7 @@
 			<UserParam type="float" name="var_library_rmsd" value="0.0386749522384563"/>
 			<UserParam type="float" name="var_library_sangle" value="0.0729584275113503"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0386749522384563"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0405203562071071"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0405203562071072"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999204154558718"/>
 			<UserParam type="float" name="var_intensity_score" value="0.91682016468998"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -1019,6 +1037,7 @@
 					<UserParam type="float" name="MZ" value="431.205548243771"/>
 					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="536289.844238281"/>
+					<UserParam type="float" name="logSN" value="2.87064380469375"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.602938310378619"/>
 				</feature>
@@ -1033,6 +1052,7 @@
 					<UserParam type="float" name="MZ" value="431.539999856371"/>
 					<UserParam type="string" name="native_id" value="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="332317.34375"/>
+					<UserParam type="float" name="logSN" value="3.3210516663648"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.397061689621381"/>
 				</feature>
@@ -1057,7 +1077,7 @@
 			<UserParam type="float" name="var_library_rmsd" value="0.0072716568743896"/>
 			<UserParam type="float" name="var_library_sangle" value="0.0139110994886304"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0072716568743896"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.00752932229758962"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.00752932229758968"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999972302719226"/>
 			<UserParam type="float" name="var_intensity_score" value="0.988331099493958"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -1112,6 +1132,7 @@
 					<UserParam type="float" name="MZ" value="379.715100772821"/>
 					<UserParam type="string" name="native_id" value="GAC(Carbamidomethyl)LLPK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="2254385.11621094"/>
+					<UserParam type="float" name="logSN" value="4.51735439746189"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.710034950213183"/>
 				</feature>
@@ -1126,6 +1147,7 @@
 					<UserParam type="float" name="MZ" value="380.216778191721"/>
 					<UserParam type="string" name="native_id" value="GAC(Carbamidomethyl)LLPK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="911381.791015625"/>
+					<UserParam type="float" name="logSN" value="4.51233661403883"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.289965049786817"/>
 				</feature>
@@ -1160,10 +1182,10 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999815237705664"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999771760935785"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00700750452065474"/>
+			<UserParam type="float" name="var_library_corr" value="1"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00700750452065482"/>
 			<UserParam type="float" name="var_library_sangle" value="0.011853004652809"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00700750452065474"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00700750452065482"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.00813985718240695"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999969969287405"/>
 			<UserParam type="float" name="var_intensity_score" value="0.993388624131706"/>
@@ -1219,6 +1241,7 @@
 					<UserParam type="float" name="MZ" value="408.874238280604"/>
 					<UserParam type="string" name="native_id" value="GM(Oxidation)LWAVFEQK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="14049.859375"/>
+					<UserParam type="float" name="logSN" value="0.0022424078808149"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.592413860111113"/>
 				</feature>
@@ -1233,6 +1256,7 @@
 					<UserParam type="float" name="MZ" value="409.208689893204"/>
 					<UserParam type="string" name="native_id" value="GM(Oxidation)LWAVFEQK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="4732.01318359375"/>
+					<UserParam type="float" name="logSN" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.407586139888887"/>
 				</feature>
@@ -1254,10 +1278,10 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.859158419623954"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.795954623732148"/>
 			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0387753364781598"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0738293770300613"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0387753364781598"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0403113938333929"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0387753364781597"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0738293770300568"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0387753364781597"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0403113938333928"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999208292111752"/>
 			<UserParam type="float" name="var_intensity_score" value="0.141288564394706"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -1312,6 +1336,7 @@
 					<UserParam type="float" name="MZ" value="435.910228820904"/>
 					<UserParam type="string" name="native_id" value="HLVDEPQNLIK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="15366.9287109375"/>
+					<UserParam type="float" name="logSN" value="1.20774307201212"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.586748524736467"/>
 				</feature>
@@ -1326,6 +1351,7 @@
 					<UserParam type="float" name="MZ" value="436.244680433504"/>
 					<UserParam type="string" name="native_id" value="HLVDEPQNLIK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="8652.01141357422"/>
+					<UserParam type="float" name="logSN" value="0.962914427282685"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.413251475263533"/>
 				</feature>
@@ -1405,6 +1431,7 @@
 					<UserParam type="float" name="MZ" value="532.248746583271"/>
 					<UserParam type="string" name="native_id" value="KSDDGGEVEK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="16335.642578125"/>
+					<UserParam type="float" name="logSN" value="4.82108329622124"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.66039156605171"/>
 				</feature>
@@ -1419,6 +1446,7 @@
 					<UserParam type="float" name="MZ" value="532.750424002171"/>
 					<UserParam type="string" name="native_id" value="KSDDGGEVEK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="4576.82275390625"/>
+					<UserParam type="float" name="logSN" value="4.26176982337882"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.33960843394829"/>
 				</feature>
@@ -1498,6 +1526,7 @@
 					<UserParam type="float" name="MZ" value="404.203412328071"/>
 					<UserParam type="string" name="native_id" value="LAADDFR/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="24527.0495605469"/>
+					<UserParam type="float" name="logSN" value="1.28464131865243"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.701130386577533"/>
 				</feature>
@@ -1512,6 +1541,7 @@
 					<UserParam type="float" name="MZ" value="404.705089746971"/>
 					<UserParam type="string" name="native_id" value="LAADDFR/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="4520.375"/>
+					<UserParam type="float" name="logSN" value="4.2173420876759"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.298869613422467"/>
 				</feature>
@@ -1591,6 +1621,7 @@
 					<UserParam type="float" name="MZ" value="300.195528597604"/>
 					<UserParam type="string" name="native_id" value="LALDLVVR/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="576644.387084961"/>
+					<UserParam type="float" name="logSN" value="2.32498002648157"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.668051514852376"/>
 				</feature>
@@ -1605,6 +1636,7 @@
 					<UserParam type="float" name="MZ" value="300.529980210204"/>
 					<UserParam type="string" name="native_id" value="LALDLVVR/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="265400.1875"/>
+					<UserParam type="float" name="logSN" value="4.36501162167554"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.331948485147624"/>
 				</feature>
@@ -1625,11 +1657,11 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999219220116872"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.998961131663337"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0338819666057769"/>
-			<UserParam type="float" name="var_library_sangle" value="0.059594307856544"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0338819666057769"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0378305231519567"/>
+			<UserParam type="float" name="var_library_corr" value="1"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.033881966605777"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0595943078565422"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.033881966605777"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0378305231519566"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999334609191848"/>
 			<UserParam type="float" name="var_intensity_score" value="0.669437494083765"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -1684,6 +1716,7 @@
 					<UserParam type="float" name="MZ" value="368.862109904738"/>
 					<UserParam type="string" name="native_id" value="LAMTLAEAER/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="301442.201293945"/>
+					<UserParam type="float" name="logSN" value="2.85914040049617"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.637366103952144"/>
 				</feature>
@@ -1698,6 +1731,7 @@
 					<UserParam type="float" name="MZ" value="369.196561517338"/>
 					<UserParam type="string" name="native_id" value="LAMTLAEAER/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="164956.921875"/>
+					<UserParam type="float" name="logSN" value="2.79933895654908"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.362633896047856"/>
 				</feature>
@@ -1725,11 +1759,11 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.97124963771702"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.960129477115842"/>
-			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0112721013675148"/>
+			<UserParam type="float" name="var_library_corr" value="0.999999999999998"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0112721013675149"/>
 			<UserParam type="float" name="var_library_sangle" value="0.021080330114212"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0112721013675148"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0118955544334975"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0112721013675149"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0118955544334976"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999931728221565"/>
 			<UserParam type="float" name="var_intensity_score" value="0.890087065317977"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -1745,7 +1779,7 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.567734792584532"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.42292916274579"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.87806461617499"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.878064616174989"/>
 			<UserParam type="float" name="PrecursorMZ" value="368.862109904738"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="int" name="n_total_ids" value="2"/>
@@ -1784,6 +1818,7 @@
 					<UserParam type="float" name="MZ" value="449.744389900421"/>
 					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="91264.109375"/>
+					<UserParam type="float" name="logSN" value="2.98021662171035"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.674606839793181"/>
 				</feature>
@@ -1798,6 +1833,7 @@
 					<UserParam type="float" name="MZ" value="450.246067319321"/>
 					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="32936.89453125"/>
+					<UserParam type="float" name="logSN" value="3.38276550507305"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.325393160206819"/>
 				</feature>
@@ -1877,6 +1913,7 @@
 					<UserParam type="float" name="MZ" value="300.165352089204"/>
 					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="50742.7026367188"/>
+					<UserParam type="float" name="logSN" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.674606839793181"/>
 				</feature>
@@ -1891,6 +1928,7 @@
 					<UserParam type="float" name="MZ" value="300.499803701804"/>
 					<UserParam type="string" name="native_id" value="LC(Carbamidomethyl)VLHEK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="21832.7421875"/>
+					<UserParam type="float" name="logSN" value="0.481182626816772"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.325393160206819"/>
 				</feature>
@@ -1977,6 +2015,7 @@
 					<UserParam type="float" name="MZ" value="395.239463487571"/>
 					<UserParam type="string" name="native_id" value="LVTDLTK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="11353591.1308594"/>
+					<UserParam type="float" name="logSN" value="4.64464550873581"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.704209887318509"/>
 				</feature>
@@ -1991,6 +2030,7 @@
 					<UserParam type="float" name="MZ" value="395.741140906471"/>
 					<UserParam type="string" name="native_id" value="LVTDLTK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="4777608.1171875"/>
+					<UserParam type="float" name="logSN" value="4.64211942601004"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.295790112681491"/>
 				</feature>
@@ -2012,9 +2052,9 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.999855522861782"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999819433927319"/>
 			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00155698400061227"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00155698400061224"/>
 			<UserParam type="float" name="var_library_sangle" value="0.00266588296521212"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00155698400061227"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00155698400061224"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.00178551886317935"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999998543005867"/>
 			<UserParam type="float" name="var_intensity_score" value="0.995940359920697"/>
@@ -2070,6 +2110,7 @@
 					<UserParam type="float" name="MZ" value="501.795134726821"/>
 					<UserParam type="string" name="native_id" value="LVVSTQTALA/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="5217008.28320312"/>
+					<UserParam type="float" name="logSN" value="4.69568679503664"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.653030735732608"/>
 				</feature>
@@ -2084,6 +2125,7 @@
 					<UserParam type="float" name="MZ" value="502.296812145721"/>
 					<UserParam type="string" name="native_id" value="LVVSTQTALA/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="2826096.25"/>
+					<UserParam type="float" name="logSN" value="4.71879720189093"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.346969264267392"/>
 				</feature>
@@ -2163,6 +2205,7 @@
 					<UserParam type="float" name="MZ" value="358.174576486338"/>
 					<UserParam type="string" name="native_id" value="SHC(Carbamidomethyl)IAEVEK/3_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="54360.2887573242"/>
+					<UserParam type="float" name="logSN" value="2.41365803639093"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.646660950740033"/>
 				</feature>
@@ -2177,6 +2220,7 @@
 					<UserParam type="float" name="MZ" value="358.509028098938"/>
 					<UserParam type="string" name="native_id" value="SHC(Carbamidomethyl)IAEVEK/3_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="26582.2421875"/>
+					<UserParam type="float" name="logSN" value="2.51156489486958"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.353339049259967"/>
 				</feature>
@@ -2256,6 +2300,7 @@
 					<UserParam type="float" name="MZ" value="421.758354535421"/>
 					<UserParam type="string" name="native_id" value="VATVSLPR/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="508755.363769531"/>
+					<UserParam type="float" name="logSN" value="4.27426201203986"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.688369804746839"/>
 				</feature>
@@ -2270,6 +2315,7 @@
 					<UserParam type="float" name="MZ" value="422.260031954321"/>
 					<UserParam type="string" name="native_id" value="VATVSLPR/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="228173.1875"/>
+					<UserParam type="float" name="logSN" value="4.32673447388325"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.311630195253161"/>
 				</feature>
@@ -2349,6 +2395,7 @@
 					<UserParam type="float" name="MZ" value="722.324660331071"/>
 					<UserParam type="string" name="native_id" value="YIC(Carbamidomethyl)DNQDTISSK/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="2373589.49951172"/>
+					<UserParam type="float" name="logSN" value="5.03029842213158"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.579648044979989"/>
 				</feature>
@@ -2363,6 +2410,7 @@
 					<UserParam type="float" name="MZ" value="722.826337749971"/>
 					<UserParam type="string" name="native_id" value="YIC(Carbamidomethyl)DNQDTISSK/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="1749065.44458008"/>
+					<UserParam type="float" name="logSN" value="5.03198176188001"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.420351955020011"/>
 				</feature>
@@ -2442,6 +2490,7 @@
 					<UserParam type="float" name="MZ" value="464.250362519471"/>
 					<UserParam type="string" name="native_id" value="YLYEIAR/2_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="3748789.63964844"/>
+					<UserParam type="float" name="logSN" value="4.17805499424384"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.655742026441336"/>
 				</feature>
@@ -2456,6 +2505,7 @@
 					<UserParam type="float" name="MZ" value="464.752039938371"/>
 					<UserParam type="string" name="native_id" value="YLYEIAR/2_i2"/>
 					<UserParam type="float" name="peak_apex_int" value="1970969.68359375"/>
+					<UserParam type="float" name="logSN" value="4.17070855700728"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.344257973558664"/>
 				</feature>
