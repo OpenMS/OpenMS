@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
+// $Maintainer: Chris Bielow $
 // $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -200,6 +200,22 @@ private:
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
     double computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const;
+
+    /**
+      @brief Get the first (of potentially many) activation methods (HCD,CID,...) of this spectrum.
+
+      @param s The spectrum
+      @return Entry from Precursor::NamesOfActivationMethod or empty string.
+    */
+    String getActivationMethod_(const PeakMap::SpectrumType& s) const
+    {
+      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      {
+        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[*(it->getActivationMethods().begin())];
+      }
+      return "";
+    }
+
 
 protected:
     /// implemented for DefaultParamHandler

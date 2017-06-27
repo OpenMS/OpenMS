@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,6 +80,11 @@ public:
     }
 
     std::string getPeptideRef() const
+    {
+      return peptide_ref;
+    }
+
+    std::string getCompoundRef() const
     {
       return peptide_ref;
     }
@@ -193,6 +198,7 @@ public:
 
     typedef LightTransition Transition;
     typedef LightCompound Peptide;
+    typedef LightCompound Compound;
     typedef LightProtein Protein;
 
     std::vector<LightTransition> transitions;
@@ -203,12 +209,27 @@ public:
       return transitions;
     }
 
+    const std::vector<LightTransition> & getTransitions() const
+    {
+      return transitions;
+    }
+
     std::vector<LightCompound> & getCompounds()
     {
       return compounds;
     }
 
+    const std::vector<LightCompound> & getCompounds() const
+    {
+      return compounds;
+    }
+
     std::vector<LightProtein> & getProteins()
+    {
+      return proteins;
+    }
+
+    const std::vector<LightProtein> & getProteins() const
     {
       return proteins;
     }

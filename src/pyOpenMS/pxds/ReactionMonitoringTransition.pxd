@@ -26,15 +26,18 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
 
         void setCompoundRef(String & compound_ref)nogil except +
         String  getCompoundRef()nogil except +
+
+        bool hasPrecursorCVTerms() nogil except +
         void setPrecursorCVTermList(CVTermList & list_)nogil except +
         void addPrecursorCVTerm(CVTerm & cv_term)nogil except +
-        bool hasPrecursorCVTerms() nogil except +
         CVTermList getPrecursorCVTermList()nogil except +
 
         void addProductCVTerm(CVTerm & cv_term)nogil except +
+
         libcpp_vector[ TraMLProduct ]  getIntermediateProducts()nogil except +
         void addIntermediateProduct(TraMLProduct product)nogil except +
         void setIntermediateProducts(libcpp_vector[ TraMLProduct ] & products)nogil except +
+
         void setProduct(TraMLProduct product)nogil except +
         TraMLProduct getProduct()nogil except +
         void setRetentionTime(RetentionTime rt)nogil except +
@@ -46,6 +49,7 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         Prediction getPrediction()nogil except +
 
         void setDecoyTransitionType(DecoyTransitionType & d)nogil except +
+
         double getLibraryIntensity()nogil except +
         void setLibraryIntensity(double intensity)nogil except +
 

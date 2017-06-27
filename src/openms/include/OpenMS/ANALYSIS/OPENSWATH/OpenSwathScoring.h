@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -491,6 +491,7 @@ var_yseries_score   -0.0327896378737766
     void calculateChromatographicScores(
           OpenSwath::IMRMFeature* imrmfeature,
           const std::vector<std::string>& native_ids,
+          const std::string& precursor_chrom_id,
           const std::vector<double>& normalized_library_intensity,
           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
           OpenSwath_Scores & scores);
@@ -538,7 +539,7 @@ var_yseries_score   -0.0327896378737766
     void calculateLibraryScores(
           OpenSwath::IMRMFeature* imrmfeature,
           const std::vector<TransitionType> & transitions,
-          const CompoundType& pep,
+          const CompoundType& compound,
           const double normalized_feature_rt,
           OpenSwath_Scores & scores);
 
@@ -560,8 +561,26 @@ var_yseries_score   -0.0327896378737766
         std::vector<OpenSwath::SwathMap> swath_maps,
         OpenSwath::SpectrumAccessPtr ms1_map,
         OpenMS::DIAScoring & diascoring,
-        const CompoundType& pep,
+        const CompoundType& compound,
         OpenSwath_Scores & scores);
+
+    /** @brief Score a single chromatographic feature using the precursor map.
+     *
+     * The scores are returned in the OpenSwath_Scores object. 
+     *
+     * @param ms1_map The MS1 (precursor ion map) from which the precursor spectra can be retrieved
+     * @param diascoring DIA Scoring object to use for scoring
+     * @param precursor_mz The m/z ratio of the precursor
+     * @param rt The compound retention time
+     * @param scores The object to store the result
+     *
+    */
+    void calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
+                                     OpenMS::DIAScoring & diascoring, 
+                                     double precursor_mz, 
+                                     double rt, 
+                                     const CompoundType& compound, 
+                                     OpenSwath_Scores & scores);
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.
      *

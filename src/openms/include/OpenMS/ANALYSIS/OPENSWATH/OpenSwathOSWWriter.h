@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -177,7 +177,7 @@ namespace OpenMS
       rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
       if( rc != SQLITE_OK )
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
             zErrMsg);
         sqlite3_free(zErrMsg);
       }
@@ -412,7 +412,7 @@ namespace OpenMS
         rc = sqlite3_exec(db, to_osw_output[i].c_str(), callback, 0, &zErrMsg);
         if( rc != SQLITE_OK )
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               zErrMsg);
           sqlite3_free(zErrMsg);
         }
