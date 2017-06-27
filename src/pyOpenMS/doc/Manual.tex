@@ -205,6 +205,24 @@ pattern are \texttt{GaussFilter, SavitzkyGolayFilter} as well as the spectral
 filters \texttt{BernNorm, MarkerMower, NLargest, Normalizer, ParentPeakMower,
 Scaler, SpectraMerger, SqrtMower, ThresholdMower, WindowMower}.
 
+There are multiple ways to access the raw data from mzMl files
+
+\begin{verbatim}
+from pyopenms import *
+file = MzMLFile()
+exp = MSExperiment()
+filename_in = "input.mzML"
+file.load(filename_in, exp)
+for spec in exp:
+  for peak in spec:
+    print peak
+
+# alternatively 
+for spec in exp:
+  peaks = spec.get_peaks()
+  # process peaks
+\end{verbatim}
+
 \section{Complex algorithmic tools}
 
 More complex algorithmic tools require a short explanation and usage:

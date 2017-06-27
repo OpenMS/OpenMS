@@ -32,8 +32,8 @@
 // $Authors: Johannes Veit $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_KDTREENODE_H
-#define OPENMS_ANALYSIS_QUANTITATION_KDTREENODE_H
+#ifndef OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATURENODE_H
+#define OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATURENODE_H
 
 #include <OpenMS/config.h>
 
@@ -90,4 +90,4 @@ private:
 
 }
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_KDTREENODE_H
+#endif // OPENMS_ANALYSIS_QUANTITATION_KDTREEFEATURENODE_H

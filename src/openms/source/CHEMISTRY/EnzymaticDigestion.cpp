@@ -112,19 +112,20 @@ namespace OpenMS
     specificity_ = spec;
   }
 
-  std::vector<Size> EnzymaticDigestion::tokenize_(const String& s) const
+  std::vector<Size> EnzymaticDigestion::tokenize_(const String& protein) const
   {
     std::vector<Size> pep_positions;
     Size pos = 0;
-    boost::regex re(enzyme_.getRegEx());
     if (enzyme_.getRegEx() != "()") // if it's not "no cleavage"
     {
-      boost::sregex_token_iterator i(s.begin(), s.end(), re, -1);
+      boost::regex re(enzyme_.getRegEx());
+      boost::sregex_token_iterator i(protein.begin(), protein.end(), re, -1);
       boost::sregex_token_iterator j;
       while (i != j)
       {
-        pep_positions.push_back(pos);
-        pos += (i++)->length();
+        pep_positions.push_back(pos); // 1st push 0, then all the real cleavage sites (instead of all cleavage sites and end-of-string)
+        pos += i->length();
+        ++i;
       }
     }
     else
@@ -134,19 +135,30 @@ namespace OpenMS
     return pep_positions;
   }
 
+
   bool EnzymaticDigestion::isValidProduct(const AASequence& protein,
-                                          Size pep_pos, Size pep_length,
+    Size pep_pos,
+    Size pep_length,
+    bool methionine_cleavage,
+    bool ignore_missed_cleavages) const
+  {
+    return isValidProduct(protein.toUnmodifiedString(), pep_pos, pep_length, methionine_cleavage, ignore_missed_cleavages);
+  }
+
+  bool EnzymaticDigestion::isValidProduct(const String& protein,
+                                          Size pep_pos,
+                                          Size pep_length,
                                           bool methionine_cleavage,
                                           bool ignore_missed_cleavages) const
   {
     if (pep_pos >= protein.size())
     {
-      LOG_WARN << "Error: start of peptide (" << pep_pos << ") is beyond end of protein '" << protein.toString() << "'!" << endl;
+      LOG_WARN << "Error: start of peptide (" << pep_pos << ") is beyond end of protein '" << protein << "'!" << endl;
       return false;
     }
     else if (pep_pos + pep_length > protein.size())
     {
-      LOG_WARN << "Error: end of peptide (" << (pep_pos + pep_length) << ") is beyond end of protein '" << protein.toString() << "'!" << endl;
+      LOG_WARN << "Error: end of peptide (" << (pep_pos + pep_length) << ") is beyond end of protein '" << protein << "'!" << endl;
       return false;
     }
     else if (pep_length == 0 || protein.size() == 0)
@@ -154,73 +166,63 @@ namespace OpenMS
       LOG_WARN << "Error: peptide or protein must not be empty!" << endl;
       return false;
     }
+    const Size pep_end = pep_pos + pep_length; // past-the-end index into protein of last peptide amino acid
 
     if (specificity_ == SPEC_NONE)
-    {
-      return true; // we don't care about terminal ends
+    { // we don't care about terminal ends
+      if (ignore_missed_cleavages) return true;
+      const std::vector<Size> cleavage_positions = tokenize_(protein); // has '0' as first site
+      return (countMissedCleavages_(cleavage_positions, pep_pos, pep_end) <= missed_cleavages_);
     }
     else // either SPEC_SEMI or SPEC_FULL
     {
       bool spec_c = false, spec_n = false;
-
-      std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
-      // initialize start and end
-      std::vector<Size>::const_iterator begin_pos, end_pos;
-      begin_pos = end_pos = pep_positions.end();
-      // test each end
-      if (pep_pos == 0 ||
-          (begin_pos = std::find(pep_positions.begin(), pep_positions.end(), pep_pos)) != pep_positions.end())
-      {
+      const std::vector<Size> cleavage_positions = tokenize_(protein); // has '0' as first site
+      //
+      // test each terminal end of peptide
+      //
+      // N-term:
+      if (std::find(cleavage_positions.begin(), cleavage_positions.end(), pep_pos) != cleavage_positions.end())
+      { // '0' is included in cleavage_positions, so N-terminal peptides will be found as well
         spec_n = true;
       }
-      // if allow methionine cleavage at the protein start position
-      if (pep_pos == 1 && methionine_cleavage && protein.getResidue((Size)0).getOneLetterCode() == "M")
-      {
-        // methionine_cleavage:consider the first product for begin_pos
-        begin_pos = pep_positions.begin();
+      else if (pep_pos == 1 && methionine_cleavage && protein[0] == 'M')
+      { // if allow methionine cleavage at the protein start position
+        // if there were a real cleavage site at pos '1' it would be found in the first if-block, so we're not overlooking a MC here
         spec_n = true;
       }
-      if (pep_pos + pep_length == protein.size() ||
-          (end_pos = std::find(pep_positions.begin(), pep_positions.end(), pep_pos  + pep_length)) != pep_positions.end())
+      
+      // C-term:
+      if (pep_end == protein.size())
+      { // full length match (protein C-term is not in cleavage_positions)
+        spec_c = true;
+      } 
+      else if (std::find(cleavage_positions.begin(), cleavage_positions.end(), pep_end) != cleavage_positions.end())
       {
         spec_c = true;
       }
 
-      if (spec_n && spec_c)
+      if ( (spec_n && spec_c) || // full spec
+           ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
       {
         if (ignore_missed_cleavages)
         {
           return true;
         }
-        Size offset = std::distance(begin_pos, end_pos);
-        if (pep_pos + pep_length == protein.size())
-        {
-          return (pep_positions.size() <= getMissedCleavages() + 1);
-        }
-        else if (offset > getMissedCleavages() + 1)
-        {
-          return false;
-        }
-        else if (offset == 0)
-        {
-          // This corner case needs to be checked when peptide is at the start and the end of the protein.
-          // We check with the total number of cleavages.
-          return (pep_positions.size() >= getMissedCleavages() + 1);
-        }
-        else
-        {
-          return true;
-        }
+        return (countMissedCleavages_(cleavage_positions, pep_pos, pep_end) <= missed_cleavages_);
       }
-      else if ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))
-      {
-        return true; // one only for SEMI
-      }
-      else
-      {
-        return false;
-      }
+      return false;
     }
+  }
+
+  Size EnzymaticDigestion::countMissedCleavages_(const std::vector<Size>& cleavage_positions, Size pep_start, Size pep_end) const
+  {
+    Size count(0);
+    for (std::vector<Size>::const_iterator it = cleavage_positions.begin(); it != cleavage_positions.end(); ++it)
+    { // count MCs within peptide borders
+      if ((pep_start < *it) && (*it < pep_end)) ++count;
+    }
+    return count;
   }
 
   Size EnzymaticDigestion::peptideCount(const AASequence& protein)

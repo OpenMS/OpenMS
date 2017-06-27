@@ -31,6 +31,9 @@ build_contrib EIGEN
 # we build Sqlite as the versions shipped in Ubuntu are not recent enough
 build_contrib SQLITE
 
+# necessary for succesfull build?
+build_contrib COINOR
+
 # leave contrib
 popd
 

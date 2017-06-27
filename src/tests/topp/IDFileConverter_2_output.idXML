@@ -56,11 +56,11 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="538.605091698567" RT="1.3653" >
-			<PeptideHit score="8" sequence=".(Glu->pyro-Glu)ELNKEMAAEKAKAAAG" charge="3" aa_before="R X X" aa_after="E X X" protein_refs="PH_0 PH_1 PH_2" >
+			<PeptideHit score="8" sequence=".(Glu-&gt;pyro-Glu)ELNKEMAAEKAKAAAG" charge="3" aa_before="R X X" aa_after="E X X" protein_refs="PH_0 PH_1 PH_2" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="637.8851750319" RT="1.719" >
-			<PeptideHit score="7.7" sequence=".(Gln->pyro-Glu)QLPGVNIKPVVK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_3" >
+			<PeptideHit score="7.7" sequence=".(Gln-&gt;pyro-Glu)QLPGVNIKPVVK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_3" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="678.3847250319" RT="2.0436" >

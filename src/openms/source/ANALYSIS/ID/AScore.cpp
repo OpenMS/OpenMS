@@ -195,7 +195,20 @@ namespace OpenMS
     // score = sum_{k=n..N}(\choose{N}{k}p^k(1-p)^{N-k})
     for (Size k = n; k <= N; ++k)
     {
-      double coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
+      double coeff = 0;
+
+      try
+      {
+        coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
+      }
+      catch (std::overflow_error const& e)
+      {
+        // not sure if a warning is appropriate here, since if it happens, it will happen very often for the same spectrum and flood the stdout
+//        std::cout << "Warning: Binomial coefficient for AScore has overflowed! Setting value to the maximal double value." << std::endl;
+//        std::cout << "binomial_coefficient was called with N = " << N << " and k = " << k << std::endl;
+        coeff = std::numeric_limits<double>::max();
+      }
+
       double pow1 = pow((double)p, (int)k);
       double pow2 = pow(double(1 - p), double(N - k));
       
@@ -492,8 +505,8 @@ namespace OpenMS
         }
       }
 
-      // we mono-charge spectra, generating b- and y-ions with charge 1 is the default behavior of the TSG
-      spectrum_generator.getSpectrum(th_spectra[i], seq);
+      // we mono-charge spectra, generating b- and y-ions is the default behavior of the TSG
+      spectrum_generator.getSpectrum(th_spectra[i], seq, 1, 1);
       th_spectra[i].setName(seq.toString());
     }
     return th_spectra;
@@ -515,7 +528,7 @@ namespace OpenMS
     for (Size current_window = 0; current_window < number_of_windows; ++current_window)
     {
       PeakSpectrum real_window;
-      while (((*it_current_peak).getMZ() <= window_upper_bound) && (it_current_peak < real_spectrum.end()))
+      while ((it_current_peak < real_spectrum.end()) && ((*it_current_peak).getMZ() <= window_upper_bound))
       {
         real_window.push_back(*it_current_peak);
         ++it_current_peak;

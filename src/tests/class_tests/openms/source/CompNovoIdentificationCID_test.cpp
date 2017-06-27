@@ -94,7 +94,7 @@ START_SECTION((void getIdentifications(std::vector<PeptideIdentification>& ids, 
   tsg.setParameters(tsg_param);
 
   PeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"), 1, 1);
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)
@@ -133,7 +133,7 @@ START_SECTION((void getIdentification(PeptideIdentification& id, const PeakSpect
   tsg.setParameters(tsg_param);
 
   PeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"), 1, 1);
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)
