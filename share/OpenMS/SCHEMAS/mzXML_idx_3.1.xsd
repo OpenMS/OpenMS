@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by Patrick Pedrioli (Institute For Systems Biology) -->
 <xs:schema targetNamespace="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1" elementFormDefault="qualified" attributeFormDefault="unqualified" version="3.1">
-	<xs:include schemaLocation="mzXML_3.1_mod.xsd"/> <!-- a modified mzXML_3.1.xsd, since we need a locally fixed mzXML3.1 scheme for XercerC parsing -->
+	<xs:include schemaLocation="mzXML_3.1_mod.xsd"/> <!-- a modified mzXML_3.1.xsd, since we need a locally fixed mzXML3.1 scheme for XercesC parsing -->
 	<xs:element name="mzXML">
 		<xs:annotation>
 			<xs:documentation>Comment describing your root element</xs:documentation>
