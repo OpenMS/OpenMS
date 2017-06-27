@@ -128,6 +128,7 @@ protected:
           PSMId (pid),
           score (s),
           qvalue (q),
+          posterior_error_prob (0.0),
           peptide (p),
           preAA (pre),
           postAA (pos),
@@ -169,7 +170,7 @@ protected:
       {
         return !(operator !=(rhs));
       }
-  };
+    };
   
   struct PercolatorProteinResult
     {
