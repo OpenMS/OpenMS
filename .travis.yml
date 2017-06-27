@@ -8,8 +8,11 @@ addons:
       sources:
          - ubuntu-toolchain-r-test
          - boost-latest
+         - george-edison55-precise-backports
       packages:
          - glpk
+         - cmake
+         - cmake-data
          - g++-4.8
          - libboost-chrono1.55-dev
          - libboost-date-time1.55-dev

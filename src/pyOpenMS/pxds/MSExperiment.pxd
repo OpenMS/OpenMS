@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
         # Spectra functions
         void addSpectrum(MSSpectrum[Peak1D] spec) nogil except +
-        MSSpectrum[Peak1D] operator[](int)      nogil except + # wrap-upper-limit:size()  # TODO deprecate for 1.12
+        MSSpectrum[Peak1D] operator[](int)      nogil except + # wrap-upper-limit:size()
         MSSpectrum[Peak1D] getSpectrum(Size id_) nogil except +
         void setSpectra(libcpp_vector[ MSSpectrum[ Peak1D ] ] & spectra) nogil except +
         libcpp_vector[MSSpectrum[Peak1D]] getSpectra() nogil except +  # TODO deprecate for 1.12

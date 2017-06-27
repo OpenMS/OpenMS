@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Andreas Bertsch$
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_IDDECOYPROBABILITY_H

@@ -1,5 +1,4 @@
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.string cimport string as libcpp_string
+from Types cimport *
 from ChromatogramSettings cimport *
 from MetaInfoInterface cimport *
 from ChromatogramPeak cimport *
@@ -20,6 +19,9 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
         # wrap-instances:
         #   MSChromatogram := MSChromatogram[ChromatogramPeak]
+
+        # COMMENT: get raw data through get_peaks or by iterating through peaks
+        # COMMENT: set raw data through set_peaks
 
         MSChromatogram() nogil except +
         MSChromatogram(MSChromatogram &) nogil except +
