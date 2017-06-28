@@ -34,6 +34,14 @@ addons:
          - subversion
          - doxygen 
          - graphviz
+         - coinor-libcbc0
+         - coinor-libcgl0
+         - coinor-libcoinutils-dev
+         - coinor-libcgl-dev
+         - coinor-libcbc-dev
+         - coinor-libclp-dev
+         - coinor-libosi-dev
+         - coinor-libvol-dev
          - libpcre3-dev
          
 before_script:
