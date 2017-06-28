@@ -32,8 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
-
 namespace OpenMS
 {
 

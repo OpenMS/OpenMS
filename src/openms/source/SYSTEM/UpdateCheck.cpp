@@ -48,12 +48,8 @@
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <QDir>
-#include <QFile>
 #include <QCoreApplication>
-#include <QtCore/QTimer>
 #include <QtCore/QDateTime>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 

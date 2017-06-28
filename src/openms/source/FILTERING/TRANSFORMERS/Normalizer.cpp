@@ -34,9 +34,6 @@
 //
 
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <cmath>
-#include <set>
 
 using namespace std;
 namespace OpenMS

@@ -38,8 +38,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <boost/regex.hpp>
 
-#include <iostream>
-
 using namespace std;
 
 namespace OpenMS

@@ -42,10 +42,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <vector>
-#include <algorithm>
 #include <fstream>
-#include <cmath>
 
 using namespace std;
 

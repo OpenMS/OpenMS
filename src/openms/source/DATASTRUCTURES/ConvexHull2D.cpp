@@ -34,10 +34,6 @@
 
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-#include <OpenMS/config.h>
-
 namespace OpenMS
 {
 

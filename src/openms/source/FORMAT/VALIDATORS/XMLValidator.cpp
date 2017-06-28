@@ -39,7 +39,6 @@
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
-#include <xercesc/validators/common/Grammar.hpp>
 
 using namespace xercesc;
 using namespace std;

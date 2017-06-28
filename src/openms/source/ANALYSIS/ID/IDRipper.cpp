@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <QDir>
 

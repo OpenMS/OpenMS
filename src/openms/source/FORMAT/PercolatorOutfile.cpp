@@ -36,12 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
-#include <boost/regex.hpp>
 
 namespace OpenMS
 {

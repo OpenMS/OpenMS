@@ -34,10 +34,6 @@
 
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <cmath>
-#include <limits>
-#include <iostream>
 #include <boost/math/special_functions/gamma.hpp>
 
 #ifndef ONEOLOG2E

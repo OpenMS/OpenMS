@@ -37,8 +37,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
-#include <fstream>
-
 using namespace OpenMS;
 using namespace std;
 

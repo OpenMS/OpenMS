@@ -34,7 +34,6 @@
 //
 
 #include <OpenMS/CHEMISTRY/Enzyme.h>
-#include <cstdlib>
 #include <iostream>
 
 using namespace std;

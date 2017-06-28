@@ -32,8 +32,6 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/RichPeak1D.h>
-
 namespace OpenMS
 {
 

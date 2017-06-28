@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <cmath>
 #include <numeric> // for "accumulate"
 
 using namespace std;

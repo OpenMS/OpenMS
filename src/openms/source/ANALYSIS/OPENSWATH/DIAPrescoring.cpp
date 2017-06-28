@@ -39,8 +39,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
 
-#include <iostream>
-
 namespace OpenMS
 {
 

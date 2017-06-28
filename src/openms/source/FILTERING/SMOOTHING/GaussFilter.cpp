@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {

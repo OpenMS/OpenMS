@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 //OpenMS
-#include <OpenMS/MATH/STATISTICS/Histogram.h>
 
 namespace OpenMS
 {

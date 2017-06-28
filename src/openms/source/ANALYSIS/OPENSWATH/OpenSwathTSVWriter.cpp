@@ -32,8 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
-
 namespace OpenMS
 {
 }

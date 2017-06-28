@@ -33,11 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/MATH/MISC/BSpline2d.h>
-
-#include <vector>
-#include <algorithm>
 
 namespace OpenMS
 {

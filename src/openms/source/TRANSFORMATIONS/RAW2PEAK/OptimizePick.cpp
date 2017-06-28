@@ -35,10 +35,8 @@
 #include <cmath>
 
 #include <boost/math/special_functions/acosh.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 
 using std::max;

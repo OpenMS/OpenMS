@@ -37,9 +37,6 @@
 // Spline2dInterpolator
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
-#include <map>
-#include <vector>
-#include <algorithm>
 #include <numeric>
 
 // AkimaInterpolator

@@ -35,16 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
-
-#include <fstream>
-#include <vector>
-#include <map>
-#include <cmath>
-#include <algorithm>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 // #define Debug_PoseClusteringAffineSuperimposer
 

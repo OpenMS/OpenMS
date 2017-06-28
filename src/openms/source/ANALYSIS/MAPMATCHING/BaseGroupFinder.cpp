@@ -40,8 +40,6 @@
 
 #include <OpenMS/CONCEPT/Factory.h>
 
-#include <set>
-
 namespace OpenMS
 {
 

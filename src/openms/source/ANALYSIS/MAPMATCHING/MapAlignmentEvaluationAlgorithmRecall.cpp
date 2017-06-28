@@ -34,8 +34,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
 
-#include <vector>
-
 namespace OpenMS
 {
 

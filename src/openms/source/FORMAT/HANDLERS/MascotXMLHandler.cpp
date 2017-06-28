@@ -35,10 +35,6 @@
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
-#include <xercesc/sax2/DefaultHandler.hpp>
-#include <xercesc/sax/Locator.hpp>
-#include <xercesc/sax2/Attributes.hpp>
-
 using namespace std;
 using namespace xercesc;
 

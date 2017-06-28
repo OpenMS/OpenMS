@@ -34,9 +34,7 @@
 
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzQuantMLValidator.h>
 
 namespace OpenMS

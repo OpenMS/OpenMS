@@ -35,7 +35,6 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 

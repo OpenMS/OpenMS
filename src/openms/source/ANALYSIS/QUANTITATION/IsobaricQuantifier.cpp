@@ -36,8 +36,6 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>

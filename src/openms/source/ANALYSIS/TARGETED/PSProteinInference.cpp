@@ -33,11 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>
-#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-
-#include <algorithm>
 
 using namespace std;
 //#define PIS_DEBUG

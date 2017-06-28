@@ -35,7 +35,6 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -43,14 +42,12 @@
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
 
-#include <xercesc/framework/XMLFormatter.hpp>
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <fstream>
 #include <iomanip> // setprecision etc.
-#include <iosfwd>
 
 #include <boost/shared_ptr.hpp>
 

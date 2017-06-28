@@ -35,8 +35,6 @@
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <iostream>
 

@@ -35,8 +35,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
-#include <vector>
-
 using namespace std;
 
 namespace OpenMS

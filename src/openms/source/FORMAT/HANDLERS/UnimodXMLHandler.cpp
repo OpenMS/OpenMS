@@ -34,7 +34,6 @@
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
-#include <xercesc/sax2/Attributes.hpp>
 
 using namespace std;
 using namespace xercesc;

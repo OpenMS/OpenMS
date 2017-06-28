@@ -42,9 +42,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
-#include <cmath>
-#include <sstream>
-
 using namespace std;
 
 namespace OpenMS

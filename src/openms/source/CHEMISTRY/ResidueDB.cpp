@@ -39,14 +39,11 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <iostream>
 
 using namespace std;
 

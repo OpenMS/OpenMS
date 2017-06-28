@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <QtCore/QList>
 #include <QtCore/QString>

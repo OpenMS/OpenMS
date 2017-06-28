@@ -37,7 +37,6 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
-#include <string>
 
 using namespace std;
 

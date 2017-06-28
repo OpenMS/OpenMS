@@ -32,7 +32,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/DATASTRUCTURES/SparseVector.h>
 
 namespace OpenMS
 {

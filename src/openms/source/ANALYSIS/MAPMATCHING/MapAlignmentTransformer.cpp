@@ -38,8 +38,6 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 using std::vector;
 

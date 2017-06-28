@@ -38,13 +38,8 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
 #include <OpenMS/MATH/MISC/RANSACModelQuadratic.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-
-#include <algorithm>
-#include <iterator>
-#include <map>
 
 namespace OpenMS
 {

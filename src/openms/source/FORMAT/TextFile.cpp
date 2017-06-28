@@ -33,11 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <fstream>
-#include <iostream>
 
 using namespace std;
 

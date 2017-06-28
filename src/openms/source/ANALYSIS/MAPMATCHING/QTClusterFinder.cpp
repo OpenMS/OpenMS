@@ -33,14 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
-#include <list>
-#include <vector>
-#include <algorithm> // for max
 
 // #define DEBUG_QTCLUSTERFINDER
 
@@ -48,8 +42,6 @@ using std::list;
 using std::vector;
 using std::max;
 using std::make_pair;
-
-#include <iostream>
 
 namespace OpenMS
 {

@@ -36,16 +36,12 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <windows.h> // for GetConsoleScreenBufferInfo()
 #undef min
 #undef max
 #endif
-
-#include <stdlib.h>
-#include <stdio.h>
 
 namespace OpenMS
 {

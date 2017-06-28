@@ -36,14 +36,9 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
-#include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/config.h>
 
 namespace OpenMS
 {

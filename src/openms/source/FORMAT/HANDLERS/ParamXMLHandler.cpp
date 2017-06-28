@@ -35,10 +35,6 @@
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
-#include <iostream>
-
-#include <xercesc/sax2/Attributes.hpp>
-
 using namespace xercesc;
 using namespace std;
 

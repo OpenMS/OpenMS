@@ -36,12 +36,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-
-#include <iostream>
-#include <vector>
-#include <string>
 
 using namespace std;
 using namespace xercesc;

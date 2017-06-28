@@ -35,7 +35,6 @@
 
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>

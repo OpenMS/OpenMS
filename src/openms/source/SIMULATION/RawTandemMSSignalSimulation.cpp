@@ -36,9 +36,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorSet.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {

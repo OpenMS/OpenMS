@@ -34,16 +34,9 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorTrainer.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
-#include <stdio.h>
-#include <sstream>
 
 using namespace std;
 
