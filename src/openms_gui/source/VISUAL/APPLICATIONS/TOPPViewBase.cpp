@@ -3144,7 +3144,7 @@ namespace OpenMS
       p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
       p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
 
-			// for losses, isotopes, abundant_immonium_ions see getParam
+      // for losses, isotopes, abundant_immonium_ions see getParam
       if (p.getValue("has_A").toBool()) // "A-ions"
       {
         p.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");

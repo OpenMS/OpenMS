@@ -304,7 +304,7 @@ namespace OpenMS
     activeSubWindow_()->getScene()->setDescription(desc_->toHtml());
   }
 
-  void TOPPASBase::toppasFileDownloaded_(QNetworkReply* r)
+  void TOPPASBase::toppasFileDownloaded_(QNetworkReply* /* r */)
   {
 /* QT5
     r->deleteLater();
