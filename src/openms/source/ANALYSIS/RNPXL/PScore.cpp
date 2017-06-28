@@ -130,15 +130,15 @@ namespace OpenMS
     return peak_level_spectra;
   }
 
-  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const vector<RichPeakSpectrum> & theo_spectra, double mz_window)
+  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const vector<PeakSpectrum> & theo_spectra, double mz_window)
   {
     AScore a_score_algorithm; // TODO: make the cumulative score function static
 
     double best_pscore = 0.0;
 
-    for (vector<RichPeakSpectrum>::const_iterator theo_spectra_it = theo_spectra.begin(); theo_spectra_it != theo_spectra.end(); ++theo_spectra_it)
+    for (vector<PeakSpectrum>::const_iterator theo_spectra_it = theo_spectra.begin(); theo_spectra_it != theo_spectra.end(); ++theo_spectra_it)
     {
-      const RichPeakSpectrum& theo_spectrum = *theo_spectra_it;
+      const PeakSpectrum& theo_spectrum = *theo_spectra_it;
 
       // number of theoretical ions for current spectrum
       Size N = theo_spectrum.size();
@@ -149,7 +149,7 @@ namespace OpenMS
         const PeakSpectrum& exp_spectrum = l_it->second;
 
         Size matched_peaks(0);
-        for (RichPeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+        for (PeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
         {
           const double& theo_mz = theo_peak_it->getMZ();
 
@@ -179,7 +179,7 @@ namespace OpenMS
     return best_pscore;
   }
 
-  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const RichPeakSpectrum & theo_spectrum, double mz_window)
+  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const PeakSpectrum & theo_spectrum, double mz_window)
   {
     AScore a_score_algorithm; // TODO: make the cumulative score function static
 
@@ -194,7 +194,7 @@ namespace OpenMS
       const PeakSpectrum& exp_spectrum = l_it->second;
 
       Size matched_peaks(0);
-      for (RichPeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+      for (PeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
       {
         const double& theo_mz = theo_peak_it->getMZ();
 

@@ -69,7 +69,7 @@ namespace OpenMS
       ModelParameters rm_fit(const DVecIt& begin, const DVecIt& end) const
       {
         return static_cast<const ModelT*>(this)->rm_fit_impl(begin, end);
-      };
+      }
       
       /**
         @brief Returns the R-squared of the data applied to the model (computed on-the-fly).

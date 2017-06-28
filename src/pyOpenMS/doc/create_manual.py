@@ -62,6 +62,8 @@ def prepare_line(line):
         if re.search(comment_line, line) is not None and not wrap_found:
             if line.find("COMMENT:") != -1:
                 line = line.replace("COMMENT:", "")
+            elif line.find(" COMMENT:") != -1:
+                line = line.replace(" COMMENT:", "")
             else:
                 print "Remove line", line.strip()
                 return ""

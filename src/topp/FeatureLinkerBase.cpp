@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
@@ -78,6 +79,8 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
+    registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
+    setValidFormats_("design", ListUtils::create<String>("tsv"));
     addEmptyLine_();
     registerFlag_("keep_subelements", "For consensusXML input only: If set, the sub-features of the inputs are transferred to the output.");
   }
@@ -89,10 +92,16 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
     StringList ins;
-    if (labeled) ins.push_back(getStringOption_("in"));
-    else ins = getStringList_("in");
+    if (labeled)
+    {
+      ins.push_back(getStringOption_("in"));
+    }
+    else
+    {
+      ins = getStringList_("in");
+    }
     String out = getStringOption_("out");
-
+    
     //-------------------------------------------------------------
     // check for valid input
     //-------------------------------------------------------------
@@ -120,8 +129,55 @@ protected:
     // load input
     ConsensusMap out_map;
     StringList ms_run_locations;
+
+    String design_file;
+
+    // TODO: support design in labeled feature linker
+    if (!labeled)
+    {
+      design_file = getStringOption_("design");
+    }
+
+    if (file_type == FileTypes::CONSENSUSXML && !design_file.empty())
+    {
+      writeLog_("Error: Using fractionated design with consensusXML als input is not supported!");
+      return ILLEGAL_PARAMETERS;
+    }
+  
+  
     if (file_type == FileTypes::FEATUREXML)
     {
+      //-------------------------------------------------------------
+      // Extract (optional) fraction identifiers and associate with featureXMLs
+      //-------------------------------------------------------------
+
+      // determine map of fractions to runs
+      map<unsigned, set<unsigned> > frac2run;
+
+      if (!design_file.empty())
+      {
+        // parse design file and determine fractions
+        ExperimentalDesign ed;
+        ExperimentalDesign().load(design_file, ed);
+
+        // determine if design defines more than one fraction
+        frac2run = ed.getFractionToRunsMapping();
+
+        // check if all fractions have the same number of MS runs associated
+        if (!ed.sameNrOfRunsPerFraction())
+        {
+          writeLog_("Error: Number of runs must match for every fraction!");
+          return ILLEGAL_PARAMETERS;
+        }
+      }
+      else // no design file given
+      {
+        for (Size i = 0; i != ins.size(); ++i)
+        {
+          frac2run[1].insert(i + 1); // associate each run with fraction 1
+        }
+      }
+
       vector<ConsensusMap > maps(ins.size());
       FeatureXMLFile f;
       FeatureFileOptions param = f.getOptions();
@@ -170,8 +226,27 @@ protected:
         out_map.getFileDescriptions()[1].label = "heavy";
       }
 
-      // group
-      algorithm->group(maps, out_map);
+      ////////////////////////////////////////////////////
+      // invoke feature grouping algorithm
+      
+      if (frac2run.size() == 1) // group one fraction
+      {
+        algorithm->group(maps, out_map);
+      }
+      else // group multiple fractions
+      {
+        writeDebug_(String("Grouping ") + String(frac2run.size()) + " fractions.", 3);
+        writeDebug_(String("Stored in ") + String(maps.size()) + " maps.", 3);
+        for (Size i = 1; i <= frac2run.size(); ++i)
+        {
+          vector<ConsensusMap> fraction_maps;
+          for (set<unsigned>::const_iterator sit = frac2run[i].begin(); sit != frac2run[i].end(); ++sit)
+          {
+            fraction_maps.push_back(maps[*sit - 1]); // TODO: *sit is currently the run identifier but we need to know the corresponding feature index in ins
+          }
+          algorithm->group(fraction_maps, out_map);
+        }
+      }
     }
     else
     {

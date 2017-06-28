@@ -38,6 +38,7 @@
 
 #include <QtWidgets/QDialog>
 class QListWidgetItem;
+class QListWidget;
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
 namespace Ui

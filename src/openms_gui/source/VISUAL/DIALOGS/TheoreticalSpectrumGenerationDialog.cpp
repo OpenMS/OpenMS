@@ -87,6 +87,10 @@ namespace OpenMS
     String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
     p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
 
+    bool precursor_ions = (ui_->list_widget->item(6)->checkState() == Qt::Checked); // "add precursor ions"
+    String precursor_ions_str = precursor_ions ? "true" : "false";
+    p.setValue("add_precursor_peaks", precursor_ions_str, "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+
     Size max_iso_count = (Size)ui_->max_iso_spinbox->value();
     p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
     p.setValue("a_intensity", ui_->a_intensity->value(), "Intensity of the a-ions");

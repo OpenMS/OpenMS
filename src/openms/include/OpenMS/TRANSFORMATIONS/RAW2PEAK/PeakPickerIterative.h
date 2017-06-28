@@ -334,7 +334,7 @@ public:
         if (input[k].getMZ() > picked_spectrum[j].getMZ())
         {
           LOG_DEBUG << "got a value " << k << " @ " << input[k] << std::endl;
-          PeakCandidate pc = { /*.index=*/ k, /*.intensity=*/ picked_spectrum[j].getIntensity(), -1, -1, -1, -1};
+          PeakCandidate pc = { /*.index=*/ static_cast<int>(k), /*.intensity=*/ picked_spectrum[j].getIntensity(), -1, -1, -1, -1};
           newPeakCandidates_.push_back(pc);
           j++;
         }

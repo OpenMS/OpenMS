@@ -518,7 +518,7 @@ namespace OpenMS
     spectra_identification_view_widget_ = new SpectraIdentificationViewWidget(Param());
     connect(spectra_identification_view_widget_, SIGNAL(spectrumDeselected(int)), identificationview_behavior_, SLOT(deactivate1DSpectrum(int)));
     connect(spectra_identification_view_widget_, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
-    connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), identificationview_behavior_, SLOT(activate1DSpectrum(int)));
+    connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int, int, int)), identificationview_behavior_, SLOT(activate1DSpectrum(int, int, int)));
     connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
 
     views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
@@ -2448,7 +2448,8 @@ namespace OpenMS
       connect(sw2->getHorizontalProjection(), SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
       connect(sw2->getVerticalProjection(), SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatusInvert(double, double)));
       connect(sw2, SIGNAL(showSpectrumAs1D(int)), this, SLOT(showSpectrumAs1D(int)));
-      connect(sw2, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
+      connect(sw2, SIGNAL(showSpectrumAs1D(int)), identificationview_behavior_, SLOT(showSpectrumAs1D(int)));
+//      connect(sw2, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SLOT(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
       connect(sw2, SIGNAL(showCurrentPeaksAs3D()), this, SLOT(showCurrentPeaksAs3D()));
     }
 
@@ -3134,8 +3135,7 @@ namespace OpenMS
       }
 
       PeakSpectrum spectrum;
-      TheoreticalSpectrumGenerator generator;
-      Param p = generator.getParameters();
+      Param p = spec_gen_dialog.getParam();
       Int charge = p.getValue("charge");
 
       p.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
@@ -3144,57 +3144,33 @@ namespace OpenMS
       p.setValue("add_y_ions", "false", "Add peaks of y-ions to the spectrum");
       p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum");
 
-      bool losses = (spec_gen_dialog.list_widget->item(7)->checkState() == Qt::Checked); // "Neutral losses"
-      String losses_str = losses ? "true" : "false";
-      p.setValue("add_losses", losses_str, "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-
-      bool isotopes = (spec_gen_dialog.list_widget->item(8)->checkState() == Qt::Checked); // "Isotope clusters"
-      String iso_str = isotopes ? "true" : "false";
-      p.setValue("add_isotopes", iso_str, "If set to 1 isotope peaks of the product ion peaks are added");
-
-      bool abundant_immonium_ions = (spec_gen_dialog.list_widget->item(9)->checkState() == Qt::Checked); // "abundant immonium-ions"
-      String abundant_immonium_ions_str = abundant_immonium_ions ? "true" : "false";
-      p.setValue("add_abundant_immonium_ions", abundant_immonium_ions_str, "Add most abundant immonium ions");
-
-      bool precursor_ions = (spec_gen_dialog.list_widget->item(6)->checkState() == Qt::Checked); // "add precursor ions"
-      String precursor_ions_str = precursor_ions ? "true" : "false";
-      p.setValue("add_precursor_peaks", precursor_ions_str, "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-
-      Size max_iso_count = (Size)spec_gen_dialog.max_iso_spinbox->value();
-      p.setValue("max_isotope", max_iso_count, "Number of isotopic peaks");
-      p.setValue("a_intensity", spec_gen_dialog.a_intensity->value(), "Intensity of the a-ions");
-      p.setValue("b_intensity", spec_gen_dialog.b_intensity->value(), "Intensity of the b-ions");
-      p.setValue("c_intensity", spec_gen_dialog.c_intensity->value(), "Intensity of the c-ions");
-      p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
-      p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
-      p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
-      double rel_loss_int = (double)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
-      p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
-
-      if (spec_gen_dialog.list_widget->item(0)->checkState() == Qt::Checked) // "A-ions"
+      // for losses, isotopes, abundant_immonium_ions see getParam
+      if (p.getValue("has_A").toBool()) // "A-ions"
       {
         p.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
       }
-      if (spec_gen_dialog.list_widget->item(1)->checkState() == Qt::Checked) // "B-ions"
+      if (p.getValue("has_B").toBool()) // "B-ions"
       {
         p.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
       }
-      if (spec_gen_dialog.list_widget->item(2)->checkState() == Qt::Checked) // "C-ions"
+      if (p.getValue("has_C").toBool()) // "C-ions"
       {
         p.setValue("add_c_ions", "true", "Add peaks of c-ions to the spectrum");
       }
-      if (spec_gen_dialog.list_widget->item(3)->checkState() == Qt::Checked) // "X-ions"
+      if (p.getValue("has_X").toBool()) // "X-ions"
       {
         p.setValue("add_x_ions", "true", "Add peaks of x-ions to the spectrum");
       }
-      if (spec_gen_dialog.list_widget->item(4)->checkState() == Qt::Checked) // "Y-ions"
+      if (p.getValue("has_Y").toBool()) // "Y-ions"
       {
         p.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
       }
-      if (spec_gen_dialog.list_widget->item(5)->checkState() == Qt::Checked) // "Z-ions"
+      if (p.getValue("has_Z").toBool()) // "Z-ions"
       {
         p.setValue("add_z_ions", "true", "Add peaks of z-ions to the spectrum");
       }
+
+      TheoreticalSpectrumGenerator generator;
       generator.setParameters(p);
 
       try
