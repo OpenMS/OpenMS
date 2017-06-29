@@ -97,7 +97,7 @@ public:
     OpenSwath::SpectrumMeta getSpectrumMetaById(int /* id */) const;
 
     /// Load all spectra from the underlying sqMass file into memory
-    void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra, std::vector< OpenSwath::SpectrumMeta > & spectra_meta);
+    void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra, std::vector< OpenSwath::SpectrumMeta > & spectra_meta) const;
 
     std::vector<std::size_t> getSpectraByRT(double /* RT */, double /* deltaRT */) const;
 

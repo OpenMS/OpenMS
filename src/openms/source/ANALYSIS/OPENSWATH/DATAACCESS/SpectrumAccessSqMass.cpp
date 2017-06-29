@@ -85,17 +85,62 @@ namespace OpenMS
       return boost::shared_ptr<SpectrumAccessSqMass>(new SpectrumAccessSqMass(*this));
     }
 
-    OpenSwath::SpectrumPtr SpectrumAccessSqMass::getSpectrumById(int /* id */)
+    OpenSwath::SpectrumPtr SpectrumAccessSqMass::getSpectrumById(int id)
     {
-      throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
+      std::vector<int> indices;
+      if (sidx_.empty())
+      {
+        indices.push_back(id);
+      }
+      else
+      {
+        indices.push_back(sidx_[id]);
+      }
+
+      // read MSSpectra and prepare for conversion
+      std::vector<MSSpectrum<> > tmp_spectra;
+      handler_.readSpectra(tmp_spectra, indices, false);
+
+      const MSSpectrumType& spectrum = tmp_spectra[0];
+      OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
+      OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
+      for (MSSpectrumType::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+      {
+        mz_array->data.push_back(it->getMZ());
+        intensity_array->data.push_back(it->getIntensity());
+      }
+
+      OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
+      sptr->setMZArray(mz_array);
+      sptr->setIntensityArray(intensity_array);
+      return sptr;
     }
 
-    OpenSwath::SpectrumMeta SpectrumAccessSqMass::getSpectrumMetaById(int /* id */) const
+    OpenSwath::SpectrumMeta SpectrumAccessSqMass::getSpectrumMetaById(int id) const
     {
-      throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
+      std::vector<int> indices;
+      if (sidx_.empty())
+      {
+        indices.push_back(id);
+      }
+      else
+      {
+        indices.push_back(sidx_[id]);
+      }
+
+      // read MSSpectra and prepare for conversion
+      std::vector<MSSpectrum<> > tmp_spectra;
+      handler_.readSpectra(tmp_spectra, indices, false);
+
+      const MSSpectrumType& spectrum = tmp_spectra[0];
+      OpenSwath::SpectrumMeta m;
+      m.id = spectrum.getNativeID();
+      m.RT = spectrum.getRT();
+      m.ms_level = spectrum.getMSLevel();
+      return m;
     }
 
-    void SpectrumAccessSqMass::getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra, std::vector< OpenSwath::SpectrumMeta > & spectra_meta) 
+    void SpectrumAccessSqMass::getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra, std::vector< OpenSwath::SpectrumMeta > & spectra_meta) const
     {
       // read MSSpectra and prepare for conversion
       std::vector<MSSpectrum<> > tmp_spectra;
