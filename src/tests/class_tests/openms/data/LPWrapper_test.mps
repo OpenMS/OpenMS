@@ -16,6 +16,6 @@ RHS
     rhs       Const_2                        12
     rhs       Const_3                        12
 BOUNDS
- BV BOUND       y
- BV BOUND       x
+ BV BOUNDY       y
+ BV BOUNDX       x
 ENDATA
