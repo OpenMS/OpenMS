@@ -31,7 +31,9 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/FORMAT/CompressedInputSource.h>
+
 #include <OpenMS/FORMAT/GzipInputStream.h>
 #include <OpenMS/FORMAT/Bzip2InputStream.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>

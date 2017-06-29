@@ -86,7 +86,7 @@ namespace OpenMS
     {
       close();
     }
-    gzfile_ = gzopen(filename, "rb");       //read binary: always open in binary mode because windows and mac open in text mode
+    gzfile_ = gzopen(filename, "rb"); // read binary: always open in binary mode because windows and mac open in text mode
 
     //aborting, ahhh!
     if (gzfile_ == NULL)
