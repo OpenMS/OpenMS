@@ -174,6 +174,22 @@ namespace OpenMS
     save_(filename, &handler);
   }
 
+  void MzMLFile::storeString(std::string & output, const PeakMap& map) const
+  {
+    Internal::MzMLHandler handler(map, "dummy", getVersion(), *this);
+    handler.setOptions(options_);
+    {
+      std::stringstream os;
+
+      //set high precision for writing of floating point numbers
+      os.precision(writtenDigits(double()));
+
+      // write data and close stream
+      handler.writeTo(os);
+      output = os.str();
+    }
+  }
+
   void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count, bool skip_first_pass)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer

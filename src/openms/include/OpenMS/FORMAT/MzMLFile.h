@@ -97,6 +97,8 @@ public:
     */
     void store(const String& filename, const PeakMap& map) const;
 
+    void storeString(std::string & output, const PeakMap& map) const;
+
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer.
 
