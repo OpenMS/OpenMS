@@ -51,6 +51,23 @@ namespace OpenMS
   {
 public:
 
+
+  /**
+    @brief Configuration class for SqMassConfig
+
+    Contains configuration options for sqlite file
+  */
+    struct OPENMS_DLLAPI SqMassConfig 
+    {
+      bool use_lossy_numpress; /// use lossy numpress compression
+      double linear_fp_mass_acc; /// desired mass accuracy for numpress linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
+
+      SqMassConfig () :
+        use_lossy_numpress(false),
+        linear_fp_mass_acc(-1) {}
+
+    };
+
     typedef MSExperiment MapType;
 
     /** @name Constructors and Destructor
@@ -71,6 +88,11 @@ public:
 
     void store(const String& filename, MapType& map);
 
+    void setConfig(SqMassConfig config) 
+    {
+      config_ = config;
+    }
+
     // maybe later ...
     // static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1,
     //                                     OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs, int& ms_level,
@@ -80,6 +102,8 @@ public:
     //                                        OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs)
 
 protected:
+
+      SqMassConfig config_;
 
   };
 }
