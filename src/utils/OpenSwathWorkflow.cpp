@@ -399,7 +399,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp')");
     setValidFormats_("tr", ListUtils::create<String>("traML,tsv,pqp"));
@@ -576,6 +576,10 @@ protected:
         || file_list[0].suffix(8).toLower() == "mzxml.gz"  )
       {
         swath_maps = swath_file.loadMzXML(file_list[0], tmp, exp_meta, readoptions);
+      }
+      else if (in_file_type == FileTypes::SQMASS || file_list[0].suffix(6).toLower() == "sqmass")
+      {
+        swath_maps = swath_file.loadSqMass(file_list[0], exp_meta);
       }
       else
       {
