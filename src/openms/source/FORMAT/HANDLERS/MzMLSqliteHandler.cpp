@@ -36,9 +36,12 @@
 
 #include <sqlite3.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
+#include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/FORMAT/MSNumpressCoder.h>
+
 #include <QtCore/QFileInfo>
 
-// #include <type_traits>
+// #include <type_traits> // for template arg detection
 #include <boost/type_traits.hpp>
 
 namespace OpenMS

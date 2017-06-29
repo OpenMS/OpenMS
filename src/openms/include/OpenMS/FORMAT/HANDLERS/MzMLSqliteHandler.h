@@ -37,9 +37,6 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/FORMAT/MSNumpressCoder.h>
-
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // forward declarations
@@ -91,6 +88,12 @@ public:
       Size getNrSpectra() const;
 
       Size getNrChromatograms() const;
+
+      void setConfig(bool use_lossy_compression, double linear_abs_mass_acc) 
+      {
+        use_lossy_compression_ = use_lossy_compression;
+        linear_abs_mass_acc_ = linear_abs_mass_acc; 
+      }
 
 protected:
 
@@ -165,6 +168,9 @@ protected:
       */
       Int spec_id_;
       Int chrom_id_;
+
+      bool use_lossy_compression_;
+      double linear_abs_mass_acc_; 
 
     };
 
