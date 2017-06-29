@@ -42,6 +42,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <QFile>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -151,11 +153,121 @@ START_SECTION(void store(const String& filename, MapType& map))
   MSExperiment exp_orig;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp_orig);
 
+  SqMassFile::SqMassConfig config;
+  config.use_lossy_numpress = false;
+  config.linear_fp_mass_acc = -1;
+
   SqMassFile file;
+  file.setConfig(config);
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename, exp_orig);
+
+  {
+    QFile* file = new QFile(tmp_filename.c_str());
+    file->open(QFile::ReadOnly);
+    double size1 = file->size();
+    file->close();
+    TEST_EQUAL(size1 < 323584+100 && size1 > 323584-100, true);
+  }
+
+  MSExperiment exp;
+  file.load(tmp_filename, exp);
+
+  TEST_EQUAL(exp.getNrSpectra(), exp_orig.getSpectra().size())
+  TEST_EQUAL(exp.getNrChromatograms(), exp_orig.getChromatograms().size())
+  TEST_EQUAL(exp.getNrSpectra(), 2)
+  TEST_EQUAL(exp.getNrChromatograms(), 1)
+  TEST_EQUAL(exp.getSpectrum(0) == exp_orig.getSpectra()[0], false) // no exact duplicate
+
+  MSExperiment exp2 = exp_orig;
+
+  // Logic of comparison: if the absolute difference criterion is fulfilled,
+  // the relative one does not matter. If the absolute difference is larger
+  // than allowed, the test does not fail if the relative difference is less
+  // than allowed.
+  // Note that the sample spectrum intensity has a very large range, from
+  // 0.00013 to 183 838 intensity and encoding both values with high accuracy
+  // is difficult.
+  TOLERANCE_ABSOLUTE(1e-4)
+  TOLERANCE_RELATIVE(1.001) // 0.1 % error for intensity 
+
+  // reset error tolerances to default values
+  TOLERANCE_ABSOLUTE(1e-5)
+  TOLERANCE_RELATIVE(1+1e-5)
+
+  // since we specified no lossy compression, we expect high accuracy
+  TOLERANCE_ABSOLUTE(1e-8)
+  TOLERANCE_RELATIVE(1.00000001) 
+
+  for (Size i = 0; i < exp.getNrSpectra(); i++)
+  {
+    TEST_EQUAL(exp.getSpectrum(i).size(), exp2.getSpectra()[i].size())
+    for (Size k = 0; k < exp.getSpectrum(i).size(); k++)
+    {
+      // slof is no good for values smaller than 5
+      // if (exp.getSpectrum(i)[k].getIntensity() < 1.0) {continue;} 
+      TEST_REAL_SIMILAR(exp.getSpectrum(i)[k].getIntensity(), exp2.getSpectra()[i][k].getIntensity())
+    }
+
+  }
+
+  for (Size i = 0; i < exp.getNrChromatograms(); i++)
+  {
+    TEST_EQUAL(exp.getChromatogram(i).size() == exp2.getChromatograms()[i].size(), true)
+    for (Size k = 0; k < exp.getChromatogram(i).size(); k++)
+    {
+      TEST_REAL_SIMILAR(exp.getChromatogram(i)[k].getIntensity(), exp2.getChromatograms()[i][k].getIntensity())
+    }
+  }
+
+  for (Size i = 0; i < exp.getNrSpectra(); i++)
+  {
+    TEST_EQUAL(exp.getSpectrum(i).size(), exp2.getSpectra()[i].size())
+    for (Size k = 0; k < exp.getSpectrum(i).size(); k++)
+    {
+      TEST_REAL_SIMILAR(exp.getSpectrum(i)[k].getMZ(), exp2.getSpectra()[i][k].getMZ())
+    }
+  }
+
+  for (Size i = 0; i < exp.getNrChromatograms(); i++)
+  {
+    TEST_EQUAL(exp.getChromatogram(i).size() == exp2.getChromatograms()[i].size(), true)
+    for (Size k = 0; k < exp.getChromatogram(i).size(); k++)
+    {
+      TEST_REAL_SIMILAR(exp.getChromatogram(i)[k].getRT(), exp2.getChromatograms()[i][k].getRT())
+    }
+  }
+
+  // no 1:1 mapping of experimental settings ...
+  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, false)
+}
+END_SECTION
+
+START_SECTION([EXTRA] void store(const String& filename, MapType& map))
+{
+  MSExperiment exp_orig;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"), exp_orig);
+
+  SqMassFile::SqMassConfig config;
+  config.use_lossy_numpress = true;
+  config.linear_fp_mass_acc = 0.0001;
+
+  SqMassFile file;
+  file.setConfig(config);
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  std::cout << "Storing in file " << tmp_filename << std::endl;
+  file.store(tmp_filename, exp_orig);
+
+  {
+    QFile* file = new QFile(tmp_filename.c_str());
+    file->open(QFile::ReadOnly);
+    double size1 = file->size();
+    file->close();
+    TEST_EQUAL(size1 < 65536+100 && size1 > 65536-100, true);
+  }
 
   MSExperiment exp;
   file.load(tmp_filename, exp);
