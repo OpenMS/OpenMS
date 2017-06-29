@@ -148,18 +148,19 @@ protected:
       void executeBlobBind_(sqlite3 *db, String& prepare_statement, std::vector<String>& data);
 
       void executeSql_(sqlite3 *db, const std::stringstream& statement);
+
+      sqlite3* openDB() const;
       //@}
 
       String filename_;
-
-      /// Decoder/Encoder for Base64-data in MzML
-      Base64 base64coder_;
-      MSNumpressCoder numpress_coder_;
 
       /*
        * These are spectra and chromatogram ids that are global for a specific
        * database file. Keeping track of them allows us to append spectra and
        * chromatograms multiple times to a database.
+       *
+       * However, currently they are initialized to zero when opening a new
+       * file, so appending to an existing file won't work.
       */
       Int spec_id_;
       Int chrom_id_;

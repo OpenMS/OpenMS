@@ -54,17 +54,17 @@ namespace OpenMS
       return(0);
     }
 
-
+    // the cost for initialization and copy should be minimal
+    //  - a single C string is created
+    //  - two ints
     MzMLSqliteHandler::MzMLSqliteHandler(String filename) :
       filename_(filename),
-      base64coder_(),
-      numpress_coder_(),
       spec_id_(0),
       chrom_id_(0)
     {
     }
 
-    void MzMLSqliteHandler::readExperiment(MSExperiment & exp, bool meta_only)
+    sqlite3* MzMLSqliteHandler::openDB() const
     {
       sqlite3 *db;
       int rc;
@@ -75,6 +75,12 @@ namespace OpenMS
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
       }
+      return db;
+    }
+
+    void MzMLSqliteHandler::readExperiment(MSExperiment & exp, bool meta_only)
+    {
+      sqlite3 *db = openDB();
 
       // creates the spectra and chromatograms but does not fill them with data (provides option to return meta-data only)
       std::vector<MSChromatogram<> > chromatograms;
@@ -102,22 +108,13 @@ namespace OpenMS
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index")
 
-      sqlite3 *db;
-      int rc;
-
-      // Open database
-      rc = sqlite3_open(filename_.c_str(), &db);
-      if (rc)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
-      }
+      sqlite3 *db = openDB();
 
       // creates the spectra but does not fill them with data (provides option to return meta-data only)
       std::vector<MSSpectrum<> > spectra;
       prepareSpectra_(db, spectra);
       for (Size k = 0; k < indices.size(); k++)
       {
-        std::cout << " for idx " << k << " get idx " << indices[k] << std::endl;
         exp.push_back(spectra[indices[k]]); // TODO make more efficient
       }
 
@@ -135,27 +132,18 @@ namespace OpenMS
 
     Size MzMLSqliteHandler::getNrSpectra() const
     {
-      sqlite3 *db;
-      int rc;
-
-      // Open database
-      rc = sqlite3_open(filename_.c_str(), &db);
-      if (rc)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
-      }
-
+      sqlite3 *db = openDB();
       sqlite3_stmt * stmt;
+
+      Size ret(0);
       std::string select_sql;
       select_sql = "SELECT COUNT(*) FROM SPECTRUM;";
       sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
-      sqlite3_step( stmt );
-      Size ret;
+      sqlite3_step(stmt);
       if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) ret = sqlite3_column_int(stmt, 0);
 
-      // free memory
+      // free memory and free up connection
       sqlite3_finalize(stmt);
-      // free up connection
       sqlite3_close(db);
 
       return ret;
@@ -163,27 +151,18 @@ namespace OpenMS
 
     Size MzMLSqliteHandler::getNrChromatograms() const
     {
-      sqlite3 *db;
-      int rc;
-
-      // Open database
-      rc = sqlite3_open(filename_.c_str(), &db);
-      if (rc)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
-      }
-
+      sqlite3 *db = openDB();
       sqlite3_stmt * stmt;
+
+      Size ret(0);
       std::string select_sql;
       select_sql = "SELECT COUNT(*) FROM CHROMATOGRAM;";
       sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
       sqlite3_step( stmt );
-      Size ret;
       if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) ret = sqlite3_column_int(stmt, 0);
 
-      // free memory
+      // free memory and free up connection
       sqlite3_finalize(stmt);
-      // free up connection
       sqlite3_close(db);
 
       return ret;
@@ -466,7 +445,6 @@ namespace OpenMS
       sqlite3_step(stmt);
 
       std::vector<int> specdata; specdata.resize(spectra.size());
-      int kk  = 0;
       std::map<Size,Size> spec_id_map;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
@@ -754,20 +732,11 @@ namespace OpenMS
 
     void MzMLSqliteHandler::createTables()
     {
-      sqlite3 *db;
-      char *zErrMsg = 0;
-      int rc;
-
       // delete file if present
       QFile file (filename_.toQString());
       file.remove();
 
-      // Open database
-      rc = sqlite3_open(filename_.c_str(), &db);
-      if (rc)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
-      }
+      sqlite3 *db = openDB();
 
       // Create SQL structure
       char const *create_sql =
@@ -823,8 +792,9 @@ namespace OpenMS
         "ISOLATION_UPPER REAL NULL" \
         ");";
 
-
       // Execute SQL statement
+      char *zErrMsg = 0;
+      int rc;
       rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
       if (rc != SQLITE_OK)
       {
@@ -843,16 +813,9 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (spectra.empty()) return;
 
-      sqlite3 *db;
       char *zErrMsg = 0;
-      int rc;
 
-      // Open database
-      rc = sqlite3_open(filename_.c_str(), &db);
-      if (rc)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
-      }
+      sqlite3 *db = openDB();
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_spectra_sql;
@@ -1010,16 +973,9 @@ namespace OpenMS
       // prevent writing of empty data which would throw an SQL exception
       if (chroms.empty()) return;
 
-      sqlite3 *db;
       char *zErrMsg = 0;
-      int rc;
 
-      // Open database
-      rc = sqlite3_open(filename_.c_str(), &db);
-      if (rc)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
-      }
+      sqlite3 *db = openDB();
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_chrom_sql;
