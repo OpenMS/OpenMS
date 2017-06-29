@@ -76,7 +76,7 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
       }
 
-      // creates the chromatograms but does not fill them with data (provides option to return meta-data only)
+      // creates the spectra and chromatograms but does not fill them with data (provides option to return meta-data only)
       std::vector<MSChromatogram<> > chromatograms;
       std::vector<MSSpectrum<> > spectra;
       prepareChroms_(db, chromatograms);
@@ -93,6 +93,100 @@ namespace OpenMS
 
       exp.setChromatograms(chromatograms);
       exp.setSpectra(spectra);
+
+      // free up connection
+      sqlite3_close(db);
+    }
+
+    void MzMLSqliteHandler::readSpectra(std::vector<MSSpectrum<> > & exp, std::vector<int> & indices, bool meta_only)
+    {
+      OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index")
+
+      sqlite3 *db;
+      int rc;
+
+      // Open database
+      rc = sqlite3_open(filename_.c_str(), &db);
+      if (rc)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
+      }
+
+      // creates the spectra but does not fill them with data (provides option to return meta-data only)
+      std::vector<MSSpectrum<> > spectra;
+      prepareSpectra_(db, spectra);
+      for (Size k = 0; k < indices.size(); k++)
+      {
+        std::cout << " for idx " << k << " get idx " << indices[k] << std::endl;
+        exp.push_back(spectra[indices[k]]); // TODO make more efficient
+      }
+
+      if (meta_only) 
+      {
+        return;
+      }
+
+      // populateChromatogramsWithData_(db, chromatograms);
+      populateSpectraWithData_(db, exp, indices);
+
+      // free up connection
+      sqlite3_close(db);
+    }
+
+    Size MzMLSqliteHandler::getNrSpectra() const
+    {
+      sqlite3 *db;
+      int rc;
+
+      // Open database
+      rc = sqlite3_open(filename_.c_str(), &db);
+      if (rc)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
+      }
+
+      sqlite3_stmt * stmt;
+      std::string select_sql;
+      select_sql = "SELECT COUNT(*) FROM SPECTRUM;";
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_step( stmt );
+      Size ret;
+      if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) ret = sqlite3_column_int(stmt, 0);
+
+      // free memory
+      sqlite3_finalize(stmt);
+      // free up connection
+      sqlite3_close(db);
+
+      return ret;
+    }
+
+    Size MzMLSqliteHandler::getNrChromatograms() const
+    {
+      sqlite3 *db;
+      int rc;
+
+      // Open database
+      rc = sqlite3_open(filename_.c_str(), &db);
+      if (rc)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
+      }
+
+      sqlite3_stmt * stmt;
+      std::string select_sql;
+      select_sql = "SELECT COUNT(*) FROM CHROMATOGRAM;";
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_step( stmt );
+      Size ret;
+      if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) ret = sqlite3_column_int(stmt, 0);
+
+      // free memory
+      sqlite3_finalize(stmt);
+      // free up connection
+      sqlite3_close(db);
+
+      return ret;
     }
 
     void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms)
@@ -255,6 +349,149 @@ namespace OpenMS
         }
         if (native_id != spectra[spec_id].getNativeID())
         {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Native id for spectrum doesnt match");
+        }
+
+        int compression = sqlite3_column_int( stmt, 2 );
+        int data_type = sqlite3_column_int( stmt, 3 );
+
+        const void * tt = sqlite3_column_blob(stmt, 4);
+        size_t blob_bytes = sqlite3_column_bytes(stmt, 4);
+
+        // data_type is one of 0 = mz, 1 = int, 2 = rt
+        // compression is one of 0 = no, 1 = zlib, 2 = np-linear, 3 = np-slof, 4 = np-pic, 5 = np-linear + zlib, 6 = np-slof + zlib, 7 = np-pic + zlib
+        std::vector<double> data;
+        if (compression == 5)
+        {
+          std::string uncompressed;
+          OpenMS::ZlibCompression::uncompressString(tt, blob_bytes, uncompressed);
+          MSNumpressCoder::NumpressConfig config;
+          config.setCompression("linear");
+          MSNumpressCoder().decodeNPRaw(uncompressed, data, config);
+        }
+        else if (compression == 6)
+        {
+          std::string uncompressed;
+          OpenMS::ZlibCompression::uncompressString(tt, blob_bytes, uncompressed);
+          MSNumpressCoder::NumpressConfig config;
+          config.setCompression("slof");
+          MSNumpressCoder().decodeNPRaw(uncompressed, data, config);
+        }
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Compression not supported");
+        }
+
+        if (data_type == 1)
+        {
+          // intensity
+          if (spectra[spec_id].empty()) spectra[spec_id].resize(data.size());
+          std::vector< double >::iterator data_it = data.begin();
+          for (MSSpectrum<>::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); ++it, ++data_it)
+          {
+            it->setIntensity(*data_it);
+          }
+          specdata[spec_id] += 1;
+        }
+        else if (data_type == 0)
+        {
+          // mz
+          if (spectra[spec_id].empty()) spectra[spec_id].resize(data.size());
+          std::vector< double >::iterator data_it = data.begin();
+          for (MSSpectrum<>::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); ++it, ++data_it)
+          {
+            it->setMZ(*data_it);
+          }
+          specdata[spec_id] += 1;
+        }
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Found data type other than RT/Intensity for spectra");
+        }
+
+        sqlite3_step( stmt );
+      }
+
+      // ensure that all spectra have their data: we expect two data arrays per spectrum (int and mz)
+      for (Size k = 0; k < specdata.size(); k++)
+      {
+        if (specdata[k] < 2)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Spectrum ") + k + " does not have 2 data arrays.");
+        }
+      }
+
+      sqlite3_finalize(stmt);
+    }
+
+    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra, std::vector<int> & indices)
+    {
+      OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
+      OPENMS_PRECONDITION(indices.size() == spectra.size(), "Spectra and indices need to have the same length.")
+
+      sqlite3_stmt * stmt;
+      int rc;
+      std::string select_sql;
+
+      select_sql = "SELECT " \
+                    "SPECTRUM.ID as spec_id," \
+                    "SPECTRUM.NATIVE_ID as spec_native_id," \
+                    "DATA.COMPRESSION as data_compression," \
+                    "DATA.DATA_TYPE as data_type," \
+                    "DATA.DATA as binary_data " \
+                    "FROM SPECTRUM " \
+                    "INNER JOIN DATA ON SPECTRUM.ID = DATA.SPECTRUM_ID " \
+                    "WHERE SPECTRUM.ID IN (";
+
+      for (Size k = 0; k < indices.size()-1; k++)
+      {
+        select_sql += String(indices[k]) + ",";
+      }
+
+      select_sql += String(indices[indices.size()-1]) + ");";
+
+      std::cout << " get statement " << select_sql << std::endl;
+
+      // Execute SQL statement
+      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      if (rc != SQLITE_OK)
+      {
+        std::cerr << "SQL error after sqlite3_prepare" << std::endl;
+        std::cerr << "Prepared statement " << select_sql << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+      }
+      sqlite3_step(stmt);
+
+      std::vector<int> specdata; specdata.resize(spectra.size());
+      int kk  = 0;
+      std::map<Size,Size> spec_id_map;
+      while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+      {
+
+        Size spec_id_orig = sqlite3_column_int( stmt, 0 );
+        // Size spec_id = 0;
+        if (spec_id_map.find(spec_id_orig) == spec_id_map.end()) 
+        {
+          Size tmp = spec_id_map.size();
+          spec_id_map[spec_id_orig] = tmp;
+        }
+        Size spec_id = spec_id_map[spec_id_orig];
+
+        // std::cout << " working on spec " << spec_id_orig << " mapped to idx " << spec_id << std::endl;
+        const unsigned char * native_id_ = sqlite3_column_text(stmt, 1);
+        std::string native_id(reinterpret_cast<const char*>(native_id_), sqlite3_column_bytes(stmt, 1));
+
+        if (spec_id >= spectra.size())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Data for non-existent spectrum found");
+        }
+        if (native_id != spectra[spec_id].getNativeID())
+        {
+          std::cout << " mismatch " << native_id << " w " <<  spectra[spec_id].getNativeID() << std::endl;
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Native id for spectrum doesnt match");
         }

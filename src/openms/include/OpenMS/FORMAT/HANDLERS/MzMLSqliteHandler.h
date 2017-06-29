@@ -40,6 +40,8 @@
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+
 // forward declarations
 struct sqlite3;
 
@@ -83,11 +85,19 @@ public:
       */
       void readExperiment(MSExperiment & exp, bool meta_only = false);
 
+      void readSpectra(std::vector<MSSpectrum<> > & exp, std::vector<int> & indices, bool meta_only = false);
+
+      Size getNrSpectra() const;
+
+      Size getNrChromatograms() const;
+
 protected:
 
       void populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms);
 
       void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra);
+
+      void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra, std::vector<int> & indices);
 
       void prepareChroms_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms);
 
