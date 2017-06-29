@@ -5,10 +5,12 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS)
 set(sources_list_h
 DataAccessHelper.h
 MRMFeatureAccessOpenMS.h
+SimpleOpenMSSpectraAccessFactory.h
 SpectrumAccessOpenMS.h
 SpectrumAccessOpenMSCached.h
 SpectrumAccessOpenMSInMemory.h
-SimpleOpenMSSpectraAccessFactory.h
+SpectrumAccessSqMass.h
+SpectrumAccessTransforming.h
 SpectrumAccessQuadMZTransforming.h
 )
 
