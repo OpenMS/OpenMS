@@ -33,21 +33,31 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 
 namespace OpenMS
 {
 
   SpectrumAccessOpenMSInMemory::SpectrumAccessOpenMSInMemory(OpenSwath::ISpectrumAccess & origin)
   {
-    for (Size i = 0; i < origin.getNrSpectra(); ++i)
+    // special case: we can grab the data directly (and fast)
+    if (dynamic_cast<SpectrumAccessSqMass*> (&origin))
     {
-      spectra_.push_back( origin.getSpectrumById(i) );
-      spectra_meta_.push_back( origin.getSpectrumMetaById(i) );
+        SpectrumAccessSqMass* tmp = dynamic_cast<SpectrumAccessSqMass*> (&origin);
+        tmp->getAllSpectra(spectra_, spectra_meta_);
     }
-    for (Size i = 0; i < origin.getNrChromatograms(); ++i)
+    else
     {
-      chromatograms_.push_back( origin.getChromatogramById(i) );
-      chromatogram_ids_.push_back( origin.getChromatogramNativeID(i) );
+      for (Size i = 0; i < origin.getNrSpectra(); ++i)
+      {
+        spectra_.push_back( origin.getSpectrumById(i) );
+        spectra_meta_.push_back( origin.getSpectrumMetaById(i) );
+      }
+      for (Size i = 0; i < origin.getNrChromatograms(); ++i)
+      {
+        chromatograms_.push_back( origin.getChromatogramById(i) );
+        chromatogram_ids_.push_back( origin.getChromatogramNativeID(i) );
+      }
     }
   }
 
