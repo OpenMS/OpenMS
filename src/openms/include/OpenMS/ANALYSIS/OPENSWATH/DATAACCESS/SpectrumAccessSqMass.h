@@ -77,114 +77,37 @@ public:
     typedef OpenMS::MSChromatogram<ChromatogramPeak> MSChromatogramType;
 
     /// Constructor
-    SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler) :
-      handler_(handler)
-    {}
+    SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler);
 
-    SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, std::vector<int> indices) :
-      handler_(handler),
-      sidx_(indices)
-    {}
+    SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, std::vector<int> indices);
+
+    SpectrumAccessSqMass(SpectrumAccessSqMass sp, std::vector<int> indices);
 
     /// Destructor
-    virtual ~SpectrumAccessSqMass() {}
+    virtual ~SpectrumAccessSqMass();
 
     /// Copy constructor
-    SpectrumAccessSqMass(const SpectrumAccessSqMass & rhs) :
-      handler_(rhs.handler_),
-      sidx_(rhs.sidx_)
-    {
-    }
+    SpectrumAccessSqMass(const SpectrumAccessSqMass & rhs);
 
     /// Light clone operator (actual data will not get copied)
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const
-    {
-      return boost::shared_ptr<SpectrumAccessSqMass>(new SpectrumAccessSqMass(*this));
-    }
+    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const;
 
-    OpenSwath::SpectrumPtr getSpectrumById(int /* id */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
-    }
+    OpenSwath::SpectrumPtr getSpectrumById(int /* id */);
 
-    OpenSwath::SpectrumMeta getSpectrumMetaById(int /* id */) const
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
-    }
+    OpenSwath::SpectrumMeta getSpectrumMetaById(int /* id */) const;
 
-    void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra, std::vector< OpenSwath::SpectrumMeta > & spectra_meta) 
-    {
-      // read MSSpectra and prepare for conversion
-      std::vector<MSSpectrum<> > tmp_spectra;
-      if (sidx_.empty())
-      {
-        MSExperiment exp;
-        handler_.readExperiment(exp, false);
-        tmp_spectra = exp.getSpectra();
-      }
-      else
-      {
-        handler_.readSpectra(tmp_spectra, sidx_, false);
-      }
-      spectra.reserve(tmp_spectra.size());
-      spectra_meta.reserve(tmp_spectra.size());
-    
-      for (Size k = 0; k < tmp_spectra.size(); k++)
-      {
-        const MSSpectrumType& spectrum = tmp_spectra[k];
-        OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-        OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-        for (MSSpectrumType::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
-        {
-          mz_array->data.push_back(it->getMZ());
-          intensity_array->data.push_back(it->getIntensity());
-        }
+    /// Load all spectra from the underlying sqMass file into memory
+    void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra, std::vector< OpenSwath::SpectrumMeta > & spectra_meta);
 
-        OpenSwath::SpectrumMeta m;
-        m.id = spectrum.getNativeID();
-        m.RT = spectrum.getRT();
-        m.ms_level = spectrum.getMSLevel();
-        spectra_meta.push_back(m);
+    std::vector<std::size_t> getSpectraByRT(double /* RT */, double /* deltaRT */) const;
 
-        OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-        sptr->setMZArray(mz_array);
-        sptr->setIntensityArray(intensity_array);
-        spectra.push_back(sptr);
-      }
-    }
+    size_t getNrSpectra() const;
 
-    std::vector<std::size_t> getSpectraByRT(double /* RT */, double /* deltaRT */) const
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
-    }
+    OpenSwath::ChromatogramPtr getChromatogramById(int /* id */);
 
-    size_t getNrSpectra() const
-    {
-      if (sidx_.empty())
-      {
-        return handler_.getNrSpectra();
-      }
-      else
-      {
-        return sidx_.size();
-      }
-    }
+    size_t getNrChromatograms() const;
 
-    OpenSwath::ChromatogramPtr getChromatogramById(int /* id */)
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
-    }
-
-    size_t getNrChromatograms() const
-    {
-      // TODO: currently chrom indices are not supported
-      return handler_.getNrChromatograms();
-    }
-
-    std::string getChromatogramNativeID(int /* id */) const
-    {
-      throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
-    }
+    std::string getChromatogramNativeID(int /* id */) const;
 
 private:
 
