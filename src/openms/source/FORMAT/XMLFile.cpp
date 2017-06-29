@@ -106,6 +106,7 @@ private:
       // reader, e.g. FeatureXMLFile, is used again)
       XMLCleaner_ clean(handler);
 
+      StringManager sm;
       //try to open file
       if (!File::exists(filename))
       {
@@ -123,7 +124,6 @@ private:
             "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
-
       boost::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
@@ -131,12 +131,15 @@ private:
       parser->setContentHandler(handler);
       parser->setErrorHandler(handler);
 
-      //is it bzip2 or gzip compressed?
-      std::ifstream file(filename.c_str());
-      char tmp_bz[3];
-      file.read(tmp_bz, 2);
-      tmp_bz[2] = '\0';
-      String bz = String(tmp_bz);
+      // peak ahead into the file: is it bzip2 or gzip compressed?
+      String bz;
+      {
+        std::ifstream file(filename.c_str());
+        char tmp_bz[3];
+        file.read(tmp_bz, 2);
+        tmp_bz[2] = '\0';
+        bz = String(tmp_bz);
+      }
 
       boost::shared_ptr< xercesc::InputSource > source;
 
@@ -149,11 +152,11 @@ private:
       //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
       if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2))
       {
-        source.reset(new CompressedInputSource(StringManager().convert(filename.c_str()), bz));
+        source.reset(new CompressedInputSource(sm.convert(filename.c_str()), bz));
       }
       else
       {
-        source.reset(new xercesc::LocalFileInputSource(StringManager().convert(filename.c_str())));
+        source.reset(new xercesc::LocalFileInputSource(sm.convert(filename.c_str())));
       }
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())
