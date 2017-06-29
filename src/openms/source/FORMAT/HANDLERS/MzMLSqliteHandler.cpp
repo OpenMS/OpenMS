@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 
+#include <OpenMS/FORMAT/MzMLFile.h> // for writing to stringstream
+
 #include <sqlite3.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/FORMAT/Base64.h>
@@ -58,6 +60,9 @@ namespace OpenMS
      * compression (int)
      * data_type (int)
      * binary_Data (blob)
+     *
+     * It is designed to work with containers of type MSSpectrum<> and
+     * MSChromatogram<> to provide a single function for both use-cases.
      * 
      */
     template<class ContainerT>
@@ -108,17 +113,14 @@ namespace OpenMS
           std::string uncompressed;
           OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
 
-          typedef double ToType;
-
-          const Size element_size = sizeof(ToType);
           void* byte_buffer = reinterpret_cast<void *>(&uncompressed[0]);
           Size buffer_size = uncompressed.size();
-          const ToType * float_buffer = reinterpret_cast<const ToType *>(byte_buffer);
-          if (buffer_size % element_size != 0)
+          const double * float_buffer = reinterpret_cast<const double *>(byte_buffer);
+          if (buffer_size % sizeof(double) != 0)
           {
             throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
           }
-          Size float_count = buffer_size / element_size;
+          Size float_count = buffer_size / sizeof(double);
           // copy values
           data.assign(float_buffer, float_buffer + float_count);
         }
@@ -225,8 +227,11 @@ namespace OpenMS
       filename_(filename),
       spec_id_(0),
       chrom_id_(0),
+      run_id_(0),
       use_lossy_compression_(true),
-      linear_abs_mass_acc_(0.0001) // set the desired mass accuracy = 1ppm at 100 m/z
+      linear_abs_mass_acc_(0.0001), // set the desired mass accuracy = 1ppm at 100 m/z
+      // write_full_meta_(true)
+      write_full_meta_(false)
     {
     }
 
@@ -248,23 +253,68 @@ namespace OpenMS
     {
       sqlite3 *db = openDB();
 
-      // creates the spectra and chromatograms but does not fill them with data (provides option to return meta-data only)
-      std::vector<MSChromatogram<> > chromatograms;
-      std::vector<MSSpectrum<> > spectra;
-      prepareChroms_(db, chromatograms);
-      prepareSpectra_(db, spectra);
-      if (meta_only) 
+      if (write_full_meta_)
       {
+        sqlite3_stmt * stmt;
+        std::string select_sql;
+        select_sql = "SELECT " \
+                      "RUN.ID as chrom_id," \
+                      "RUN.NATIVE_ID as native_id," \
+                      "RUN.FILENAME as filename," \
+                      "RUN_EXTRA.DATA as data " \
+                      "FROM RUN " \
+                      "LEFT JOIN RUN_EXTRA ON RUN.ID = RUN_EXTRA.RUN_ID " \
+                      ";";
+
+        sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+        sqlite3_step( stmt );
+
+        Size nr_results = 0;
+
+        // read data (throw exception if we find multiple runs)
+        while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+        {
+          if (nr_results > 0)
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "More than one run found, cannot read both into memory");
+          }
+
+          const void * raw_text = sqlite3_column_blob(stmt, 3);
+          size_t blob_bytes = sqlite3_column_bytes(stmt, 3);
+
+          // create mzML file and parse full structure
+          MzMLFile f;
+          std::string uncompressed;
+          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
+          f.loadBuffer(uncompressed, exp);
+
+          nr_results++;
+          sqlite3_step( stmt );
+        }
+
+        // free memory
+        sqlite3_finalize(stmt);
+      }
+      else
+      {
+        // creates the spectra and chromatograms but does not fill them with data (provides option to return meta-data only)
+        std::vector<MSChromatogram<> > chromatograms;
+        std::vector<MSSpectrum<> > spectra;
+        prepareChroms_(db, chromatograms);
+        prepareSpectra_(db, spectra);
         exp.setChromatograms(chromatograms);
         exp.setSpectra(spectra);
+      }
+
+      if (meta_only) 
+      {
+        // free up connection
+        sqlite3_close(db);
         return;
       }
 
-      populateChromatogramsWithData_(db, chromatograms);
-      populateSpectraWithData_(db, spectra);
-
-      exp.setChromatograms(chromatograms);
-      exp.setSpectra(spectra);
+      populateChromatogramsWithData_(db, exp.getChromatograms());
+      populateSpectraWithData_(db, exp.getSpectra());
 
       // free up connection
       sqlite3_close(db);
@@ -610,6 +660,62 @@ namespace OpenMS
 
     void MzMLSqliteHandler::writeExperiment(const MSExperiment & exp)
     {
+
+      sqlite3 *db = openDB();
+
+      // store run information
+      {
+        char *zErrMsg = 0;
+
+        // prepare streams and set required precision (default is 6 digits)
+        std::stringstream insert_run_sql;
+
+        std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
+        insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
+            run_id_ << ",'" << native_id << "','" << native_id << "'); ";
+        sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
+        executeSql_(db, insert_run_sql);
+        sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
+      }
+
+      // store full mzML document structure
+      if (write_full_meta_)
+      {
+        MSExperiment meta;
+
+        // copy experimental settings
+        meta.reserveSpaceSpectra(exp.getNrSpectra());
+        meta.reserveSpaceChromatograms(exp.getNrChromatograms());
+        static_cast<ExperimentalSettings &>(meta) = exp;
+        for (Size k = 0; k < exp.getNrSpectra(); k++)
+        {
+          MSSpectrum<> s = exp.getSpectra()[k];
+          s.clear(false);
+          meta.addSpectrum(s);
+        }
+        for (Size k = 0; k < exp.getNrChromatograms(); k++)
+        {
+          MSChromatogram<> c = exp.getChromatograms()[k];
+          c.clear(false);
+          meta.addChromatogram(c);
+        }
+        String prepare_statement = "INSERT INTO RUN_EXTRA (RUN_ID, DATA) VALUES ";
+        prepare_statement += String("(") + run_id_ + ", ?)";
+        std::vector<String> data;
+
+        std::string output;
+        MzMLFile().storeString(output, meta);
+
+        // write the full metadata into the sql file (compress with zlib before)
+        std::string encoded_string;
+        OpenMS::ZlibCompression::compressString(output, encoded_string);
+        data.push_back(encoded_string);
+        // data.push_back(output); // in case you need to debug ... 
+        executeBlobBind_(db, prepare_statement, data);
+      }
+
+      sqlite3_close(db);
+
       writeChromatograms(exp.getChromatograms());
       writeSpectra(exp.getSpectra());
     }
@@ -640,15 +746,30 @@ namespace OpenMS
         // spectrum table
         "CREATE TABLE SPECTRUM(" \
         "ID INT PRIMARY KEY NOT NULL," \
+        "RUN_ID INT," \
         "MSLEVEL INT NULL," \
         "RETENTION_TIME REAL NULL," \
         "SCAN_POLARITY INT NULL," \
         "NATIVE_ID TEXT NOT NULL" \
         ");" \
 
+        // ms-run table
+        "CREATE TABLE RUN(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "FILENAME TEXT NOT NULL, " \
+        "NATIVE_ID TEXT NOT NULL" \
+        ");" \
+
+        // ms-run extra table
+        "CREATE TABLE RUN_EXTRA(" \
+        "RUN_ID INT," \
+        "DATA BLOB NOT NULL" \
+        ");" \
+
         // chromatogram table
         "CREATE TABLE CHROMATOGRAM(" \
         "ID INT PRIMARY KEY NOT NULL," \
+        "RUN_ID INT," \
         "NATIVE_ID TEXT NOT NULL" \
         ");" \
 
@@ -685,9 +806,6 @@ namespace OpenMS
         sqlite3_free(zErrMsg);
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
             zErrMsg);
-      }
-      else {
-        std::cout << "Done creating tables" << std::endl;
       }
       sqlite3_close(db);
     }
@@ -730,10 +848,13 @@ namespace OpenMS
       {
         const MSSpectrum<>& spec = spectra[k];
         int polarity = (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE); // 1 = positive
-        insert_spectra_sql << "INSERT INTO SPECTRUM(ID, NATIVE_ID, MSLEVEL, RETENTION_TIME, SCAN_POLARITY) VALUES (" << 
-          spec_id_ << ",'" << spec.getNativeID() << 
-          "'," << spec.getMSLevel() << "," << spec.getRT() << 
-          "," << polarity << "); ";
+        insert_spectra_sql << "INSERT INTO SPECTRUM(ID, RUN_ID, NATIVE_ID, MSLEVEL, RETENTION_TIME, SCAN_POLARITY) VALUES (" << 
+          spec_id_ << "," << 
+          run_id_ << ",'" <<
+          spec.getNativeID() << "'," << 
+          spec.getMSLevel() << "," << 
+          spec.getRT() << "," << 
+          polarity << "); ";
 
         if (!spec.getPrecursors().empty())
         {
@@ -756,7 +877,7 @@ namespace OpenMS
               "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
               "," << prec.getDriftTime() << 
               "," << prec.getActivationEnergy() << 
-              "," << activation_method << ",'" << pepseq << "'" <<  "); ";
+              "," << activation_method << ",'" << pepseq << "'" << "); ";
           }
           else
           {
@@ -907,7 +1028,7 @@ namespace OpenMS
       for (Size k = 0; k < chroms.size(); k++)
       {
         const MSChromatogram<>& chrom = chroms[k];
-        insert_chrom_sql << "INSERT INTO CHROMATOGRAM (ID, NATIVE_ID) VALUES (" << chrom_id_ << ",'" << chrom.getNativeID() << "'); ";
+        insert_chrom_sql << "INSERT INTO CHROMATOGRAM (ID, RUN_ID, NATIVE_ID) VALUES (" << chrom_id_ << "," << run_id_ << ",'" << chrom.getNativeID() << "'); ";
 
         OpenMS::Precursor prec = chrom.getPrecursor();
         // see src/openms/include/OpenMS/METADATA/Precursor.h for activation modes
@@ -925,7 +1046,7 @@ namespace OpenMS
             "," << prec.getIsolationWindowLowerOffset() << "," << prec.getIsolationWindowUpperOffset() <<
             "," << prec.getDriftTime() << 
             "," << prec.getActivationEnergy() << 
-            "," << activation_method << ",'" << pepseq << "'" <<  "); ";
+            "," << activation_method << ",'" << pepseq << "'" << "); ";
         }
         else
         {

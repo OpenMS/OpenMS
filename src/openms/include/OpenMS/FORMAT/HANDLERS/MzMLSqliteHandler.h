@@ -36,6 +36,7 @@
 #define OPENMS_FORMAT_HANDLERS_MZMLSQLITEHANDLER_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ExperimentalSettings.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
@@ -168,14 +169,15 @@ protected:
       */
       Int spec_id_;
       Int chrom_id_;
+      Int run_id_;
 
       bool use_lossy_compression_;
       double linear_abs_mass_acc_; 
-
+      double write_full_meta_; 
     };
 
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS
 
 #endif // OPENMS_FORMAT_HANDLERS_MZMLSQLITEHANDLER_H
