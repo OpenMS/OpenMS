@@ -46,6 +46,7 @@
 #include <xercesc/framework/XMLFormatter.hpp>
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
+#include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 
 #include <fstream>
@@ -157,6 +158,74 @@ private:
       else
       {
         source.reset(new xercesc::LocalFileInputSource(sm.convert(filename.c_str())));
+      }
+      // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
+      if (!enforced_encoding_.empty())
+      {
+        static const XMLCh* s_enc = xercesc::XMLString::transcode(enforced_encoding_.c_str());
+        source->setEncoding(s_enc);
+      }
+      // try to parse file
+      try
+      {
+        parser->parse(*source);
+      }
+      catch (const xercesc::XMLException & toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", 
+            String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
+      }
+      catch (const xercesc::SAXException & toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
+            String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+      }
+      catch (const XMLHandler::EndParsingSoftly & /*toCatch*/)
+      {
+        // nothing to do here, as this exception is used to softly abort the
+        // parsing for whatever reason.
+      }
+      catch (...)
+      {
+        // re-throw
+        throw;
+      }
+    }
+
+    void XMLFile::parseBuffer_(const std::string & buffer, XMLHandler * handler)
+    {
+      // ensure handler->reset() is called to save memory (in case the XMLFile
+      // reader, e.g. FeatureXMLFile, is used again)
+      XMLCleaner_ clean(handler);
+
+      StringManager sm;
+
+      // initialize parser
+      try
+      {
+        xercesc::XMLPlatformUtils::Initialize();
+      }
+      catch (const xercesc::XMLException & toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
+      }
+
+      boost::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
+      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
+      parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
+
+      parser->setContentHandler(handler);
+      parser->setErrorHandler(handler);
+
+      // TODO: handle non-plaintext
+      // peak ahead into the file: is it bzip2 or gzip compressed?
+      // String bz = buffer.substr(0, 2);
+
+      boost::shared_ptr< xercesc::InputSource > source;
+      {
+        const XMLCh* fake_id = sm.convert("inMemory");
+        source.reset(new xercesc::MemBufInputSource(reinterpret_cast<const unsigned char *>(buffer.c_str()), buffer.size(), fake_id));
       }
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())

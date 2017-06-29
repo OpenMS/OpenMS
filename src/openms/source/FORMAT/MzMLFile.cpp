@@ -154,6 +154,15 @@ namespace OpenMS
     }
   }
 
+  void MzMLFile::loadBuffer(const std::string& buffer, PeakMap& map)
+  {
+    map.reset();
+
+    Internal::MzMLHandler handler(map, "memory", getVersion(), *this);
+    handler.setOptions(options_);
+    parseBuffer_(buffer, &handler);
+  }
+
   void MzMLFile::load(const String& filename, PeakMap& map)
   {
     map.reset();

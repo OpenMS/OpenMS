@@ -84,6 +84,16 @@ public:
     void load(const String& filename, PeakMap& map);
 
     /**
+      @brief Loads a map from a MzML file stored in a buffer (in memory).
+
+      @p filename The buffer with the data
+      @p map Is an MSExperiment
+
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    void loadBuffer(const std::string& buffer, PeakMap& map);
+
+    /**
       @brief Only count the number of spectra and chromatograms from a file
     */
     void loadSize(const String & filename, Size& scount, Size& ccount);

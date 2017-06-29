@@ -84,6 +84,15 @@ protected:
       void parse_(const String & filename, XMLHandler * handler);
 
       /**
+        @brief Parses the in-memory buffer given by @p buffer using the handler given by @p handler.
+
+        @note Currently the buffer needs to be plain text, gzip buffer is not supported.
+
+        @exception Exception::ParseError is thrown if an error occurred during the parsing
+      */
+      void parseBuffer_(const std::string & buffer, XMLHandler * handler);
+
+      /**
         @brief Stores the contents of the XML handler given by @p handler in the file given by @p filename.
 
         @exception Exception::UnableToCreateFile is thrown if the file cannot be created
