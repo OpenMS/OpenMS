@@ -18,8 +18,8 @@ RHS
     rhs       Const_2                        12
     rhs       Const_3                        12
 BOUNDS
- LI BOUND       y       0
- LI BOUND       x       0
- UI BOUND       y       5
- UI BOUND       x       5
+ LI BOUND     y         0
+ LI BOUND     x         0
+ UI BOUND     y         5
+ UI BOUND     x         5
 ENDATA
