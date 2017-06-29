@@ -103,7 +103,26 @@ namespace OpenMS
         // data_type is one of 0 = mz, 1 = int, 2 = rt
         // compression is one of 0 = no, 1 = zlib, 2 = np-linear, 3 = np-slof, 4 = np-pic, 5 = np-linear + zlib, 6 = np-slof + zlib, 7 = np-pic + zlib
         std::vector<double> data;
-        if (compression == 5)
+        if (compression == 1)
+        {
+          std::string uncompressed;
+          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
+
+          typedef double ToType;
+
+          const Size element_size = sizeof(ToType);
+          void* byte_buffer = reinterpret_cast<void *>(&uncompressed[0]);
+          Size buffer_size = uncompressed.size();
+          const ToType * float_buffer = reinterpret_cast<const ToType *>(byte_buffer);
+          if (buffer_size % element_size != 0)
+          {
+            throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
+          }
+          Size float_count = buffer_size / element_size;
+          // copy values
+          data.assign(float_buffer, float_buffer + float_count);
+        }
+        else if (compression == 5)
         {
           std::string uncompressed;
           OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
@@ -205,7 +224,9 @@ namespace OpenMS
     MzMLSqliteHandler::MzMLSqliteHandler(String filename) :
       filename_(filename),
       spec_id_(0),
-      chrom_id_(0)
+      chrom_id_(0),
+      use_lossy_compression_(true),
+      linear_abs_mass_acc_(0.0001) // set the desired mass accuracy = 1ppm at 100 m/z
     {
     }
 
@@ -694,7 +715,7 @@ namespace OpenMS
       npconfig_mz.estimate_fixed_point = true; // critical
       npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
       npconfig_mz.setCompression("linear");
-      npconfig_mz.linear_fp_mass_acc = 0.0001; // set the desired mass accuracy = 1ppm at 100 m/z
+      npconfig_mz.linear_fp_mass_acc = linear_abs_mass_acc_;
       MSNumpressCoder::NumpressConfig npconfig_int;
       npconfig_int.estimate_fixed_point = true; // critical
       npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
@@ -762,7 +783,7 @@ namespace OpenMS
         //  data_type is one of 0 = mz, 1 = int, 2 = rt
         //  compression is one of 0 = no, 1 = zlib, 2 = np-linear, 3 = np-slof, 4 = np-pic, 5 = np-linear + zlib, 6 = np-slof + zlib, 7 = np-pic + zlib
 
-        // encode mz data
+        // encode mz data (zlib or np-linear + zlib)
         {
           std::vector<double> data_to_encode;
           data_to_encode.resize(spec.size());
@@ -773,13 +794,23 @@ namespace OpenMS
 
           String uncompressed_str;
           String encoded_string;
-          MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
-          OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-          data.push_back(encoded_string);
-          prepare_statement += String("(") + spec_id_ + ", 0, 5, ?" + sql_it++ + " ),";
+          if (use_lossy_compression_)
+          {
+            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
+            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
+            data.push_back(encoded_string);
+            prepare_statement += String("(") + spec_id_ + ", 0, 5, ?" + sql_it++ + " ),";
+          }
+          else
+          {
+            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
+            data.push_back(encoded_string);
+            prepare_statement += String("(") + spec_id_ + ", 0, 1, ?" + sql_it++ + " ),";
+          }
         }
 
-        // encode intensity data
+        // encode intensity data (zlib or np-slof + zlib)
         {
           std::vector<double> data_to_encode;
           data_to_encode.resize(spec.size());
@@ -790,10 +821,20 @@ namespace OpenMS
 
           String uncompressed_str;
           String encoded_string;
-          MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
-          OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-          data.push_back( encoded_string );
-          prepare_statement += String("(") + spec_id_ + ", 1, 6, ?" + sql_it++ + " ),";
+          if (use_lossy_compression_)
+          {
+            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
+            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
+            data.push_back( encoded_string );
+            prepare_statement += String("(") + spec_id_ + ", 1, 6, ?" + sql_it++ + " ),";
+          }
+          else
+          {
+            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
+            data.push_back(encoded_string);
+            prepare_statement += String("(") + spec_id_ + ", 1, 1, ?" + sql_it++ + " ),";
+          }
         }
         spec_id_++;
 
@@ -904,7 +945,7 @@ namespace OpenMS
         //  data_type is one of 0 = mz, 1 = int, 2 = rt
         //  compression is one of 0 = no, 1 = zlib, 2 = np-linear, 3 = np-slof, 4 = np-pic, 5 = np-linear + zlib, 6 = np-slof + zlib, 7 = np-pic + zlib
 
-        // encode retention time data
+        // encode retention time data (zlib or np-linear + zlib)
         {
           std::vector<double> data_to_encode;
           data_to_encode.resize(chrom.size());
@@ -915,13 +956,23 @@ namespace OpenMS
 
           String uncompressed_str;
           String encoded_string;
-          MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
-          OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-          data.push_back(encoded_string);
-          prepare_statement += String("(") + chrom_id_ + ", 2, 5, ?" + sql_it++ + " ),";
+          if (use_lossy_compression_)
+          {
+            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
+            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
+            data.push_back(encoded_string);
+            prepare_statement += String("(") + chrom_id_ + ", 2, 5, ?" + sql_it++ + " ),";
+          }
+          else
+          {
+            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
+            data.push_back(encoded_string);
+            prepare_statement += String("(") + chrom_id_ + ", 2, 1, ?" + sql_it++ + " ),";
+          }
         }
 
-        // encode intensity data
+        // encode intensity data (zlib or np-slof + zlib)
         {
           std::vector<double> data_to_encode;
           data_to_encode.resize(chrom.size());
@@ -932,10 +983,20 @@ namespace OpenMS
 
           String uncompressed_str;
           String encoded_string;
-          MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
-          OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-          data.push_back( encoded_string );
-          prepare_statement += String("(") + chrom_id_ + ", 1, 6, ?" + sql_it++ + " ),";
+          if (use_lossy_compression_)
+          {
+            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
+            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
+            data.push_back( encoded_string );
+            prepare_statement += String("(") + chrom_id_ + ", 1, 6, ?" + sql_it++ + " ),";
+          }
+          else
+          {
+            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
+            data.push_back(encoded_string);
+            prepare_statement += String("(") + chrom_id_ + ", 1, 1, ?" + sql_it++ + " ),";
+          }
         }
         chrom_id_++;
 
