@@ -166,7 +166,14 @@ class TOPPOpenSwathMzMLFileCacher
     else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS)
     {
       MzMLFile f;
+
+      SqMassFile::SqMassConfig config;
+      config.use_lossy_numpress = true;
+      config.linear_fp_mass_acc = 0.0001;
+
       SqMassFile sqfile;
+      sqfile.setConfig(config);
+
       MapType exp;
       f.load(in, exp);
       sqfile.store(out, exp);
