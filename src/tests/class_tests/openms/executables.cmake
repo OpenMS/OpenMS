@@ -240,6 +240,7 @@ set(format_executables_list
   MSDataStoringConsumer_test
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
+  SpectrumAccessSqMass_test
 )
 
 set(math_executables_list
