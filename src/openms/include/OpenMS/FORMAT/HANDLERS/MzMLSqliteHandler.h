@@ -83,9 +83,9 @@ public:
           @param exp The result data structure
           @param meta_only Only read the meta data
       */
-      void readExperiment(MSExperiment & exp, bool meta_only = false);
+      void readExperiment(MSExperiment & exp, bool meta_only = false) const;
 
-      void readSpectra(std::vector<MSSpectrum<> > & exp, std::vector<int> & indices, bool meta_only = false);
+      void readSpectra(std::vector<MSSpectrum<> > & exp, const std::vector<int> & indices, bool meta_only = false) const;
 
       Size getNrSpectra() const;
 
@@ -93,15 +93,15 @@ public:
 
 protected:
 
-      void populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms);
+      void populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms) const;
 
-      void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra);
+      void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra) const;
 
-      void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra, std::vector<int> & indices);
+      void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra, const std::vector<int> & indices) const;
 
-      void prepareChroms_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms);
+      void prepareChroms_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms) const;
 
-      void prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra);
+      void prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra) const;
       //@}
 
 public:

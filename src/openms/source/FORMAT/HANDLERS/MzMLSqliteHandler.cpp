@@ -78,7 +78,7 @@ namespace OpenMS
       return db;
     }
 
-    void MzMLSqliteHandler::readExperiment(MSExperiment & exp, bool meta_only)
+    void MzMLSqliteHandler::readExperiment(MSExperiment & exp, bool meta_only) const
     {
       sqlite3 *db = openDB();
 
@@ -104,7 +104,7 @@ namespace OpenMS
       sqlite3_close(db);
     }
 
-    void MzMLSqliteHandler::readSpectra(std::vector<MSSpectrum<> > & exp, std::vector<int> & indices, bool meta_only)
+    void MzMLSqliteHandler::readSpectra(std::vector<MSSpectrum<> > & exp, const std::vector<int> & indices, bool meta_only) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index")
 
@@ -168,7 +168,7 @@ namespace OpenMS
       return ret;
     }
 
-    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms)
+    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms) const
     {
       int rc;
       sqlite3_stmt * stmt;
@@ -287,7 +287,7 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra)
+    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra) const
     {
       sqlite3_stmt * stmt;
       int rc;
@@ -406,7 +406,7 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra, std::vector<int> & indices)
+    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra, const std::vector<int> & indices) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
       OPENMS_PRECONDITION(indices.size() == spectra.size(), "Spectra and indices need to have the same length.")
@@ -548,7 +548,7 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms)
+    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms) const
     {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -634,7 +634,7 @@ namespace OpenMS
       sqlite3_finalize(stmt);
   }
 
-    void MzMLSqliteHandler::prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra)
+    void MzMLSqliteHandler::prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra) const
     {
       sqlite3_stmt * stmt;
       std::string select_sql;
