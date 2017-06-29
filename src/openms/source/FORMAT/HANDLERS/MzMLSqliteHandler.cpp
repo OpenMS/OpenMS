@@ -38,10 +38,152 @@
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <QtCore/QFileInfo>
 
+// #include <type_traits>
+#include <boost/type_traits.hpp>
+
 namespace OpenMS
 {
   namespace Internal
   {
+
+    /*
+     *
+     * This function parses all rows produced by an sql statement with the following columns:
+     *
+     * id (integer)
+     * native_id (string)
+     * compression (int)
+     * data_type (int)
+     * binary_Data (blob)
+     * 
+     */
+    template<class ContainerT>
+    void populateContainer_sub_(sqlite3_stmt *stmt, std::vector<ContainerT >& container)
+    {
+      // perform first step
+      sqlite3_step(stmt);
+
+      std::vector<int> cont_data; cont_data.resize(container.size());
+      std::map<Size,Size> sql_container_map;
+      while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+      {
+        Size id_orig = sqlite3_column_int( stmt, 0 );
+
+        // map the sql table id to the index in the "container" vector
+        if (sql_container_map.find(id_orig) == sql_container_map.end()) 
+        {
+          Size tmp = sql_container_map.size();
+          sql_container_map[id_orig] = tmp;
+        }
+        Size curr_id = sql_container_map[id_orig];
+
+        const unsigned char * native_id_ = sqlite3_column_text(stmt, 1);
+        std::string native_id(reinterpret_cast<const char*>(native_id_), sqlite3_column_bytes(stmt, 1));
+
+        if (curr_id >= container.size())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Data for non-existent spectrum / chromatogram found");
+        }
+        if (native_id != container[curr_id].getNativeID())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Native id for spectrum / chromatogram doesnt match");
+        }
+
+        int compression = sqlite3_column_int( stmt, 2 );
+        int data_type = sqlite3_column_int( stmt, 3 );
+
+        const void * raw_text = sqlite3_column_blob(stmt, 4);
+        size_t blob_bytes = sqlite3_column_bytes(stmt, 4);
+
+        // data_type is one of 0 = mz, 1 = int, 2 = rt
+        // compression is one of 0 = no, 1 = zlib, 2 = np-linear, 3 = np-slof, 4 = np-pic, 5 = np-linear + zlib, 6 = np-slof + zlib, 7 = np-pic + zlib
+        std::vector<double> data;
+        if (compression == 5)
+        {
+          std::string uncompressed;
+          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
+          MSNumpressCoder::NumpressConfig config;
+          config.setCompression("linear");
+          MSNumpressCoder().decodeNPRaw(uncompressed, data, config);
+        }
+        else if (compression == 6)
+        {
+          std::string uncompressed;
+          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
+          MSNumpressCoder::NumpressConfig config;
+          config.setCompression("slof");
+          MSNumpressCoder().decodeNPRaw(uncompressed, data, config);
+        }
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Compression not supported");
+        }
+
+        if (data_type == 1)
+        {
+          // intensity
+          if (container[curr_id].empty()) container[curr_id].resize(data.size());
+          std::vector< double >::iterator data_it = data.begin();
+          for (typename ContainerT::iterator it = container[curr_id].begin(); it != container[curr_id].end(); ++it, ++data_it)
+          {
+            it->setIntensity(*data_it);
+          }
+          cont_data[curr_id] += 1;
+        }
+        else if (data_type == 0)
+        {
+          // mz (should only occur in container)
+          if (boost::is_same<ContainerT, MSChromatogram<> >::value) 
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                "Found m/z data type for spectra (instead of retention time)");
+          }
+
+          if (container[curr_id].empty()) container[curr_id].resize(data.size());
+          std::vector< double >::iterator data_it = data.begin();
+          for (typename ContainerT::iterator it = container[curr_id].begin(); it != container[curr_id].end(); ++it, ++data_it)
+          {
+            it->setMZ(*data_it);
+          }
+          cont_data[curr_id] += 1;
+        }
+        else if (data_type == 2)
+        {
+          // rt (should only occur in chromatograms)
+          if (boost::is_same<ContainerT, MSSpectrum<> >::value) 
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                "Found retention time data type for spectra (instead of m/z)");
+          }
+          if (container[curr_id].empty()) container[curr_id].resize(data.size());
+          std::vector< double >::iterator data_it = data.begin();
+          for (typename ContainerT::iterator it = container[curr_id].begin(); it != container[curr_id].end(); ++it, ++data_it)
+          {
+            it->setMZ(*data_it);
+          }
+          cont_data[curr_id] += 1;
+        }
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              "Found data type other than RT/Intensity for spectra");
+        }
+
+        sqlite3_step( stmt );
+      }
+
+      // ensure that all spectra/chromatograms have their data: we expect two data arrays per container (int and mz/rt)
+      for (Size k = 0; k < cont_data.size(); k++)
+      {
+        if (cont_data[k] < 2)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Spectrum/Chromatogram ") + k + " does not have 2 data arrays.");
+        }
+      }
+    }
 
     static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
     {
@@ -190,103 +332,9 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
       }
 
-      populateChromatogramsWithData_sub_(stmt, chromatograms);
+      populateContainer_sub_< MSChromatogram<> > (stmt, chromatograms);
 
       sqlite3_finalize(stmt);
-    }
-
-    void MzMLSqliteHandler::populateChromatogramsWithData_sub_(sqlite3_stmt *stmt, std::vector<MSChromatogram<> >& chromatograms) const
-    {
-      sqlite3_step(stmt);
-
-      std::vector<int> chromdata; chromdata.resize(chromatograms.size());
-      while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
-      {
-        Size chrom_id = sqlite3_column_int( stmt, 0 );
-        const unsigned char * native_id_ = sqlite3_column_text(stmt, 1);
-        std::string native_id(reinterpret_cast<const char*>(native_id_), sqlite3_column_bytes(stmt, 1));
-
-        if (chrom_id >= chromatograms.size())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Data for non-existent chromatogram found");
-        }
-        if (native_id != chromatograms[chrom_id].getNativeID())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Native id for chromatogram doesnt match");
-        }
-
-        int compression = sqlite3_column_int( stmt, 2 );
-        int data_type = sqlite3_column_int( stmt, 3 );
-
-        const void * tt = sqlite3_column_blob(stmt, 4);
-        size_t blob_bytes = sqlite3_column_bytes(stmt, 4);
-
-        // data_type is one of 0 = mz, 1 = int, 2 = rt
-        // compression is one of 0 = no, 1 = zlib, 2 = np-linear, 3 = np-slof, 4 = np-pic, 5 = np-linear + zlib, 6 = np-slof + zlib, 7 = np-pic + zlib
-        std::vector<double> data;
-        if (compression == 5)
-        {
-          std::string uncompressed;
-          OpenMS::ZlibCompression::uncompressString(tt, blob_bytes, uncompressed);
-          MSNumpressCoder::NumpressConfig config;
-          config.setCompression("linear");
-          MSNumpressCoder().decodeNPRaw(uncompressed, data, config);
-        }
-        else if (compression == 6)
-        {
-          std::string uncompressed;
-          OpenMS::ZlibCompression::uncompressString(tt, blob_bytes, uncompressed);
-          MSNumpressCoder::NumpressConfig config;
-          config.setCompression("slof");
-          MSNumpressCoder().decodeNPRaw(uncompressed, data, config);
-        }
-        else
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Compression not supported");
-        }
-
-        if (data_type == 1)
-        {
-          // intensity
-          if (chromatograms[chrom_id].empty()) chromatograms[chrom_id].resize(data.size());
-          std::vector< double >::iterator data_it = data.begin();
-          for (MSChromatogram<>::iterator it = chromatograms[chrom_id].begin(); it != chromatograms[chrom_id].end(); ++it, ++data_it)
-          {
-            it->setIntensity(*data_it);
-          }
-          chromdata[chrom_id] += 1;
-        }
-        else if (data_type == 2)
-        {
-          // rt
-          if (chromatograms[chrom_id].empty()) chromatograms[chrom_id].resize(data.size());
-          std::vector< double >::iterator data_it = data.begin();
-          for (MSChromatogram<>::iterator it = chromatograms[chrom_id].begin(); it != chromatograms[chrom_id].end(); ++it, ++data_it)
-          {
-            it->setRT(*data_it);
-          }
-          chromdata[chrom_id] += 1;
-        }
-        else
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Found data type other than RT/Intensity for chromatograms");
-        }
-
-        sqlite3_step( stmt );
-      }
-
-      // ensure that all spectra have their data: we expect two data arrays per spectrum (int and rt)
-      for (Size k = 0; k < chromdata.size(); k++)
-      {
-        if (chromdata[k] < 2)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Chromatogram ") + k + " does not have 2 data arrays.");
-        }
-      }
     }
 
     void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra) const
@@ -315,7 +363,7 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
       }
 
-      populateSpectraWithData_sub_(stmt, spectra);
+      populateContainer_sub_< MSSpectrum<> > (stmt, spectra);
 
       sqlite3_finalize(stmt);
     }
@@ -355,114 +403,9 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
       }
 
-      populateSpectraWithData_sub_(stmt, spectra);
+      populateContainer_sub_< MSSpectrum<> > (stmt, spectra);
 
       sqlite3_finalize(stmt);
-    }
-
-    void MzMLSqliteHandler::populateSpectraWithData_sub_(sqlite3_stmt *stmt, std::vector<MSSpectrum<> >& spectra) const
-    {
-      // perform first step
-      sqlite3_step(stmt);
-
-      std::vector<int> specdata; specdata.resize(spectra.size());
-      std::map<Size,Size> spec_id_map;
-      while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
-      {
-        Size spec_id_orig = sqlite3_column_int( stmt, 0 );
-
-        // map the spectrum id to the index in the "spectra" vector
-        if (spec_id_map.find(spec_id_orig) == spec_id_map.end()) 
-        {
-          Size tmp = spec_id_map.size();
-          spec_id_map[spec_id_orig] = tmp;
-        }
-        Size spec_id = spec_id_map[spec_id_orig];
-
-        const unsigned char * native_id_ = sqlite3_column_text(stmt, 1);
-        std::string native_id(reinterpret_cast<const char*>(native_id_), sqlite3_column_bytes(stmt, 1));
-
-        if (spec_id >= spectra.size())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Data for non-existent spectrum found");
-        }
-        if (native_id != spectra[spec_id].getNativeID())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Native id for spectrum doesnt match");
-        }
-
-        int compression = sqlite3_column_int( stmt, 2 );
-        int data_type = sqlite3_column_int( stmt, 3 );
-
-        const void * tt = sqlite3_column_blob(stmt, 4);
-        size_t blob_bytes = sqlite3_column_bytes(stmt, 4);
-
-        // data_type is one of 0 = mz, 1 = int, 2 = rt
-        // compression is one of 0 = no, 1 = zlib, 2 = np-linear, 3 = np-slof, 4 = np-pic, 5 = np-linear + zlib, 6 = np-slof + zlib, 7 = np-pic + zlib
-        std::vector<double> data;
-        if (compression == 5)
-        {
-          std::string uncompressed;
-          OpenMS::ZlibCompression::uncompressString(tt, blob_bytes, uncompressed);
-          MSNumpressCoder::NumpressConfig config;
-          config.setCompression("linear");
-          MSNumpressCoder().decodeNPRaw(uncompressed, data, config);
-        }
-        else if (compression == 6)
-        {
-          std::string uncompressed;
-          OpenMS::ZlibCompression::uncompressString(tt, blob_bytes, uncompressed);
-          MSNumpressCoder::NumpressConfig config;
-          config.setCompression("slof");
-          MSNumpressCoder().decodeNPRaw(uncompressed, data, config);
-        }
-        else
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Compression not supported");
-        }
-
-        if (data_type == 1)
-        {
-          // intensity
-          if (spectra[spec_id].empty()) spectra[spec_id].resize(data.size());
-          std::vector< double >::iterator data_it = data.begin();
-          for (MSSpectrum<>::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); ++it, ++data_it)
-          {
-            it->setIntensity(*data_it);
-          }
-          specdata[spec_id] += 1;
-        }
-        else if (data_type == 0)
-        {
-          // mz
-          if (spectra[spec_id].empty()) spectra[spec_id].resize(data.size());
-          std::vector< double >::iterator data_it = data.begin();
-          for (MSSpectrum<>::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); ++it, ++data_it)
-          {
-            it->setMZ(*data_it);
-          }
-          specdata[spec_id] += 1;
-        }
-        else
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              "Found data type other than RT/Intensity for spectra");
-        }
-
-        sqlite3_step( stmt );
-      }
-
-      // ensure that all spectra have their data: we expect two data arrays per spectrum (int and mz)
-      for (Size k = 0; k < specdata.size(); k++)
-      {
-        if (specdata[k] < 2)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Spectrum ") + k + " does not have 2 data arrays.");
-        }
-      }
     }
 
     void MzMLSqliteHandler::prepareChroms_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms) const

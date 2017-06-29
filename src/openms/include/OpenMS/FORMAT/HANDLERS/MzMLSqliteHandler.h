@@ -96,13 +96,9 @@ protected:
 
       void populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms) const;
 
-      void populateChromatogramsWithData_sub_(sqlite3_stmt *stmt, std::vector<MSChromatogram<> >& chromatograms) const;
-
       void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra) const;
 
       void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra, const std::vector<int> & indices) const;
-
-      void populateSpectraWithData_sub_(sqlite3_stmt *stmt, std::vector<MSSpectrum<> >& spectra) const;
 
       void prepareChroms_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms) const;
 
