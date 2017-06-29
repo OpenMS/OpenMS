@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_UTILS")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # OpenMS' UTILS tools
@@ -41,6 +41,8 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 # add OpenMS includes
 include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 add_definitions(/DBOOST_ALL_NO_LIB)
+
+find_package(Qt5 COMPONENTS Core Network REQUIRED)
 
 # add all the tools
 set(UTILS_executables)
