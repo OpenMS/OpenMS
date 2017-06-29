@@ -61,13 +61,6 @@ namespace OpenMS
       // Decoy string used by xQuest
       static const String decoy_string;
 
-      /**
-       * @brief Removes a substring from a larger string
-       * @param large String from which `small` should be removed
-       * @param small Substring to be removed from `large`
-       */
-      static void removeSubstring(String & large, const String & small);
-
       XQuestResultXMLHandler(const String & filename,
                              std::vector< std::vector< PeptideIdentification > > & csms,
                              std::vector< ProteinIdentification > & prot_ids,
