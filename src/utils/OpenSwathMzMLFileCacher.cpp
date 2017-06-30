@@ -171,7 +171,7 @@ class TOPPOpenSwathMzMLFileCacher
     }
     else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS && process_lowmemory)
     {
-      MSDataSqlConsumer consumer(out, true, batchSize);
+      MSDataSqlConsumer consumer(out, batchSize);
       MzMLFile().transform(in, &consumer, true, true);
       return EXECUTION_OK;
     }
