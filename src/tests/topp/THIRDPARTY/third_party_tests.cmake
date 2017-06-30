@@ -40,6 +40,10 @@ endmacro (openms_check_tandem_version)
 message(STATUS "Searching for third party tools...")
 
 #------------------------------------------------------------------------------
+# MS-GF+
+OPENMS_FINDBINARY(COMET_BINARY "comet.exe" "Comet")
+
+#------------------------------------------------------------------------------
 # OMSSA
 OPENMS_FINDBINARY(OMSSA_BINARY "omssacl" "OMSSA")
 
