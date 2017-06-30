@@ -33,7 +33,7 @@ addons:
          - libqt4-gui
          - libsvm-dev
          - libsvm3
-         - glpk
+         - libglpk40
          - subversion
          - doxygen 
          - graphviz
