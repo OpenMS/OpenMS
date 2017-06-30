@@ -230,7 +230,6 @@ namespace OpenMS
       run_id_(0),
       use_lossy_compression_(true),
       linear_abs_mass_acc_(0.0001), // set the desired mass accuracy = 1ppm at 100 m/z
-      // write_full_meta_(true)
       write_full_meta_(false)
     {
     }
