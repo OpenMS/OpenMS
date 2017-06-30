@@ -112,6 +112,10 @@ class TOPPOpenSwathMzMLFileCacher
     //setValidFormats_("out_meta",ListUtils::create<String>("mzML"));
 
     registerFlag_("convert_back", "Convert back to mzML");
+
+    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
+    registerIntOption_("lowmem_batchsize", "<number>", 500, "The batch size of the low memory conversion", false, true);
+    setMinInt_("lowmem_batchsize", 0);
   }
 
   ExitCodes main_(int , const char**)
@@ -119,6 +123,8 @@ class TOPPOpenSwathMzMLFileCacher
     String out_meta = getStringOption_("out");
     String out_cached = out_meta + ".cached";
     bool convert_back =  getFlag_("convert_back");
+    bool process_lowmemory = getFlag_("process_lowmemory");
+    int batchSize = (int)getIntOption_("lowmem_batchsize");
 
     FileHandler fh;
 
@@ -161,6 +167,12 @@ class TOPPOpenSwathMzMLFileCacher
       MzMLFile f;
       sqfile.load(in, exp);
       f.store(out, exp);
+      return EXECUTION_OK;
+    }
+    else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS && process_lowmemory)
+    {
+      MSDataSqlConsumer consumer(out, true, batchSize);
+      MzMLFile().transform(in, &consumer, true, true);
       return EXECUTION_OK;
     }
     else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS)
