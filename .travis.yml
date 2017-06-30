@@ -1,3 +1,4 @@
+dist: trusty
 sudo: false
 language: cpp
 os:
@@ -32,12 +33,14 @@ addons:
          - libqt4-gui
          - libsvm-dev
          - libsvm3
-         - glpk
+         - libglpk36
+         - libglpk-dev
          - subversion
          - doxygen 
          - graphviz
-         - coinor-libcbc0
-         - coinor-libcgl0
+         - coinor-cbc
+         - coinor-libcgl1
+         - coinor-libclp1
          - coinor-libcoinutils-dev
          - coinor-libcgl-dev
          - coinor-libcbc-dev
