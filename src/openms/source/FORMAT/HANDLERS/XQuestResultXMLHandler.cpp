@@ -46,15 +46,6 @@ namespace OpenMS
 {
   namespace Internal
   {
-    void XQuestResultXMLHandler::removeSubstring(String &  large, const String & small)
-    {
-      std::string::size_type i = large.find(small);
-      if (i != std::string::npos)
-      {
-        large.erase(i, small.length());
-      }
-    }
-
     // Initialize static const members
     std::map< Size, String > XQuestResultXMLHandler::enzymes = boost::assign::map_list_of(0, "no_enzyme")
         (1, "trypsin") (2, "chymotrypsin") (3, "unknown_enzyme") (9, "unknown_enzyme")
@@ -477,20 +468,23 @@ namespace OpenMS
           this->setPeptideEvidence_(prot2_string, peptide_hit_beta);
 
           // Determine if protein is intra/inter protein, check all protein ID combinations
-          XQuestResultXMLHandler::removeSubstring(prot1_string, "reverse_");
-          XQuestResultXMLHandler::removeSubstring(prot1_string, XQuestResultXMLHandler::decoy_string);
           StringList prot1_list;
-          StringUtils::split(prot1_string, ",", prot1_list);
-          XQuestResultXMLHandler::removeSubstring(prot2_string, "reverse_");
-          XQuestResultXMLHandler::removeSubstring(prot2_string, XQuestResultXMLHandler::decoy_string);
+          prot1_string.split(",", prot1_list);
           StringList prot2_list;
-          StringUtils::split(prot2_string, ",", prot2_list);
+          prot2_string.split( ",", prot2_list);
 
           for (StringList::const_iterator it1 = prot1_list.begin(); it1 != prot1_list.end(); ++it1)
           {
             for (StringList::const_iterator it2 = prot2_list.begin(); it2 != prot2_list.end(); ++it2)
             {
-              this->setMetaValue_((*it1 == *it2) ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein",
+              String s1 = *it1;
+              String s2 = *it2;
+              s1.substitute("reverse_", "");
+              s2.substitute("reverse_", "");
+              s1.substitute(XQuestResultXMLHandler::decoy_string, "");
+              s2.substitute(XQuestResultXMLHandler::decoy_string, "");
+
+              this->setMetaValue_((s1.compare(s2) == 0) ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein",
                                  DataValue(), peptide_identification, peptide_hit_alpha, peptide_hit_beta);
             }
           }

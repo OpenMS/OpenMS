@@ -16,11 +16,9 @@ def getTransitionGroup(exp, targeted, key, trgr_ids, chrom_map):
     return r
 
 
-def algorithm(exp, targeted, picker, scorer):
+def algorithm(exp, targeted, picker, scorer, trafo):
 
     output = pyopenms.FeatureMap()
-
-    trafo = pyopenms.TransformationDescription()
 
     scorer.prepareProteinPeptideMaps_(targeted)
 
@@ -38,7 +36,11 @@ def algorithm(exp, targeted, picker, scorer):
 
     swath_maps_dummy = []
     for key, value in trmap.iteritems():
-        transition_group = getTransitionGroup(exp, targeted, key, value, chrom_map)
+        try:
+            transition_group = getTransitionGroup(exp, targeted, key, value, chrom_map)
+        except Exception:
+            print "Skip ", key, value
+            continue
         picker.pickTransitionGroup(transition_group);
         scorer.scorePeakgroups(transition_group, trafo, swath_maps_dummy, output, False);
 
@@ -48,17 +50,35 @@ def main(options):
     out = options.outfile
     chromat_in = options.infile
     traml_in = options.traml_in
+    trafo_in = options.trafo_in
 
     pp = pyopenms.MRMTransitionGroupPicker()
 
-    # scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
+
+    metabolomics = False
+    # this is an important weight for RT-deviation -- the larger the value, the less importance will be given to exact RT matches
+    # for proteomics data it tends to be a good idea to set it to the length of
+    # the RT space (e.g. for 100 second RT space, set it to 100)
+    rt_normalization_factor = 100.0
 
     pp_params = pp.getDefaults();
     pp_params.setValue("PeakPickerMRM:remove_overlapping_peaks", options.remove_overlapping_peaks, '')
     pp_params.setValue("PeakPickerMRM:method", options.method, '')
-    pp.setParameters(pp_params);
+    if (metabolomics):
+        # Need to change those for metabolomics and very short peaks!
+        pp_params.setValue("PeakPickerMRM:signal_to_noise", 0.01, '')
+        pp_params.setValue("PeakPickerMRM:peak_width", 0.1, '')
+        pp_params.setValue("PeakPickerMRM:gauss_width", 0.1, '')
+        pp_params.setValue("resample_boundary", 0.05, '')
+        pp_params.setValue("compute_peak_quality", "true", '')
+    pp.setParameters(pp_params)
 
     scorer = pyopenms.MRMFeatureFinderScoring()
+    scoring_params = scorer.getDefaults();
+    # Only report the top 5 features
+    scoring_params.setValue("stop_report_after_feature", 5, '')
+    scoring_params.setValue("rt_normalization_factor", rt_normalization_factor, '')
+    scorer.setParameters(scoring_params);
 
     chromatograms = pyopenms.MSExperiment()
     fh = pyopenms.FileHandler()
@@ -67,9 +87,19 @@ def main(options):
     tramlfile = pyopenms.TraMLFile();
     tramlfile.load(traml_in, targeted);
 
+    trafoxml = pyopenms.TransformationXMLFile()
+    trafo = pyopenms.TransformationDescription()
+    if trafo_in is not None:
+        model_params = pyopenms.Param()
+        model_params.setValue("symmetric_regression", "false", "", [])
+        model_type = "linear"
+        trafoxml.load(trafo_in, trafo, True)
+        trafo.fitModel(model_type, model_params);
+
+
     light_targeted = pyopenms.LightTargetedExperiment();
     pyopenms.OpenSwathDataAccessHelper().convertTargetedExp(targeted, light_targeted)
-    output = algorithm(chromatograms, light_targeted, pp, scorer)
+    output = algorithm(chromatograms, light_targeted, pp, scorer, trafo)
 
     pyopenms.FeatureXMLFile().store(out, output);
 
@@ -82,6 +112,7 @@ def handle_args():
     parser = argparse.ArgumentParser(description = usage )
     parser.add_argument('--in', dest="infile", help = 'An input file containing chromatograms')
     parser.add_argument("--tr", dest="traml_in", help="TraML input file containt the transitions")
+    parser.add_argument("--trafo", dest="trafo_in", help="Trafo input file")
     parser.add_argument("--out", dest="outfile", help="Output file with annotated chromatograms")
     parser.add_argument("--remove_overlapping_peaks", dest="remove_overlapping_peaks", default="false", help="true/false", metavar='0.1', type=str)
     parser.add_argument("--method", dest="method", default="legacy", help="legacy/corrected", metavar='0.1', type=str)

@@ -11,7 +11,7 @@ OpenMS
 is an open-source software C++ library for LC-MS data management and
 analyses. It offers an infrastructure for the rapid development of mass
 spectrometry related software. OpenMS is free software available under the
-three clause BSD license and runs under Windows, MacOSX and Linux. 
+three clause BSD license and runs under Windows, macOS and Linux. 
 
 It comes with a vast variety of pre-built and ready-to-use tools for proteomics
 and metabolomics data analysis (TOPPTools) and powerful 2D and 3D
@@ -36,7 +36,7 @@ Features
 --------
 - Core C++ library
 - TOPP Tools, 150+ analysis tools (150+), covering most MS and LC-MS data processing and mining tasks. 
-- Support for all major platforms (Windows [XP, 7, 8, 10], Linux, MacOS).
+- Support for all major platforms (Windows [XP, 7, 8, 10], Linux, macOS).
 
 Licence
 -------
