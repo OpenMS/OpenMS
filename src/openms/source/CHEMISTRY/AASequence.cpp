@@ -846,7 +846,7 @@ namespace OpenMS
     if (aas.peptide_.empty()) // start of peptide -> N-terminal modification?
     {
       aas.n_term_mod_ = &(mod_db->getModification(mod, "",
-                                                  ResidueModification::N_TERM));
+                                                    ResidueModification::N_TERM));
       return mod_end;
     }
 
@@ -864,7 +864,7 @@ namespace OpenMS
         {
           if (dot_terminal)
           {
-            const ResidueModification* term_mod = 
+            const ResidueModification* term_mod =
               &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
             aas.c_term_mod_ = term_mod;
           }
@@ -874,7 +874,7 @@ namespace OpenMS
           try
           {
             // this might throw ElementNotFound, but so be it:
-            const ResidueModification* term_mod = 
+            const ResidueModification* term_mod =
               &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
             aas.c_term_mod_ = term_mod;
           }
@@ -1305,6 +1305,7 @@ namespace OpenMS
       n_term_mod_ = 0;
       return;
     }
+
     n_term_mod_ = &ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
   }
 
