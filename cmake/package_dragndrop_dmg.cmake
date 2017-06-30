@@ -207,10 +207,26 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
             REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
             )
   endif()
+
   if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2)
     install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2
             DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
             COMPONENT             SearchEngine-LuciPHOr2
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+            )
+  endif()
+
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/Comet)
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/Comet
+            DESTINATION           OpenMS-${CPACK_PACKAGE_VERSION}/TOPP/SEARCHENGINES
+            COMPONENT             SearchEngine-Comet
             FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
                                   WORLD_READ WORLD_EXECUTE
