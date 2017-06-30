@@ -99,7 +99,13 @@ namespace OpenMS
 
       // read MSSpectra and prepare for conversion
       std::vector<MSSpectrum<> > tmp_spectra;
-      handler_.readSpectra(tmp_spectra, indices, false);
+      // lets prevent any concurrent access to the spectra by multiple threads
+#ifdef _OPENMP
+#pragma omp critical (sqlite_db_access)
+#endif
+      {
+        handler_.readSpectra(tmp_spectra, indices, false);
+      }
 
       const MSSpectrumType& spectrum = tmp_spectra[0];
       OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
@@ -130,7 +136,13 @@ namespace OpenMS
 
       // read MSSpectra and prepare for conversion
       std::vector<MSSpectrum<> > tmp_spectra;
-      handler_.readSpectra(tmp_spectra, indices, false);
+      // lets prevent any concurrent access to the spectra by multiple threads
+#ifdef _OPENMP
+#pragma omp critical (sqlite_db_access)
+#endif
+      {
+        handler_.readSpectra(tmp_spectra, indices, false);
+      }
 
       const MSSpectrumType& spectrum = tmp_spectra[0];
       OpenSwath::SpectrumMeta m;
@@ -144,15 +156,22 @@ namespace OpenMS
     {
       // read MSSpectra and prepare for conversion
       std::vector<MSSpectrum<> > tmp_spectra;
-      if (sidx_.empty())
+
+      // lets prevent any concurrent access to the spectra by multiple threads
+#ifdef _OPENMP
+#pragma omp critical (sqlite_db_access)
+#endif
       {
-        MSExperiment exp;
-        handler_.readExperiment(exp, false);
-        tmp_spectra = exp.getSpectra();
-      }
-      else
-      {
-        handler_.readSpectra(tmp_spectra, sidx_, false);
+        if (sidx_.empty())
+        {
+          MSExperiment exp;
+          handler_.readExperiment(exp, false);
+          tmp_spectra = exp.getSpectra();
+        }
+        else
+        {
+          handler_.readSpectra(tmp_spectra, sidx_, false);
+        }
       }
       spectra.reserve(tmp_spectra.size());
       spectra_meta.reserve(tmp_spectra.size());
@@ -188,14 +207,22 @@ namespace OpenMS
 
     size_t SpectrumAccessSqMass::getNrSpectra() const
     {
+      size_t res;
       if (sidx_.empty())
       {
-        return handler_.getNrSpectra();
+        // lets prevent any concurrent access to the spectra by multiple threads
+#ifdef _OPENMP
+#pragma omp critical (sqlite_db_access)
+#endif
+        {
+          res = handler_.getNrSpectra();
+        }
       }
       else
       {
-        return sidx_.size();
+        res = sidx_.size();
       }
+      return res;
     }
 
     OpenSwath::ChromatogramPtr SpectrumAccessSqMass::getChromatogramById(int /* id */)
@@ -205,8 +232,16 @@ namespace OpenMS
 
     size_t SpectrumAccessSqMass::getNrChromatograms() const
     {
-      // TODO: currently chrom indices are not supported
-      return handler_.getNrChromatograms();
+      size_t res;
+      // lets prevent any concurrent access to the spectra by multiple threads
+#ifdef _OPENMP
+#pragma omp critical (sqlite_db_access)
+#endif
+      {
+        // TODO: currently chrom indices are not supported
+        res = handler_.getNrChromatograms();
+      }
+      return res;
     }
 
     std::string SpectrumAccessSqMass::getChromatogramNativeID(int /* id */) const
