@@ -37,15 +37,21 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
-#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
+
+    namespace Internal
+    {
+      class MzMLSqliteHandler;
+    }
+
     /**
       @brief A data consumer that inserts data into a SQL database
 
       Consumes spectra and chromatograms and inserts them into an file-based
-      SQL database using sqlite. As Sqlite is highly inefficient when inserting
+      SQL database using sqlite. As sqlite is highly inefficient when inserting
       one spectrum/chromatogram at a time, the consumer collects the data in an
       internal buffer and then flushes them all together to disk.
     */
@@ -101,8 +107,9 @@ namespace OpenMS
 
     protected:
 
-      OpenMS::Internal::MzMLSqliteHandler sql_writer_;
-      bool clearData_;
+      String filename_;
+      OpenMS::Internal::MzMLSqliteHandler * handler_;
+
       size_t flush_after_;
       std::vector<SpectrumType> spectra_;
       std::vector<ChromatogramType> chromatograms_;

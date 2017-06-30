@@ -34,19 +34,21 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
+#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+
 namespace OpenMS
 {
 
-  MSDataSqlConsumer::MSDataSqlConsumer(String filename, bool clearData, int flush_after, bool lossy_compression, double linear_mass_acc) :
-        sql_writer_(filename),
-        clearData_(clearData),
+  MSDataSqlConsumer::MSDataSqlConsumer(String filename, int flush_after, bool lossy_compression, double linear_mass_acc) :
+        filename_(filename),
+        handler_(new OpenMS::Internal::MzMLSqliteHandler(filename) ),
         flush_after_(flush_after)
   {
     spectra_.reserve(flush_after_);
     chromatograms_.reserve(flush_after_);
 
-    sql_writer_.setConfig(lossy_compression, linear_mass_acc);
-    sql_writer_.createTables();
+    handler_->setConfig(lossy_compression, linear_mass_acc);
+    handler_->createTables();
   }
 
   MSDataSqlConsumer::~MSDataSqlConsumer()
@@ -56,21 +58,24 @@ namespace OpenMS
     // Write run level information into the file (e.g. run id, run name and mzML structure)
     bool write_full_meta = true;
     int run_id = 0;
-    sql_writer_.writeRunLevelInformation(peak_meta_, write_full_meta, run_id);
+		peak_meta_.setLoadedFilePath(filename_);
+    handler_->writeRunLevelInformation(peak_meta_, write_full_meta, run_id);
+
+		delete handler_;
   }
 
   void MSDataSqlConsumer::flush()
   {
     if (!spectra_.empty() ) 
     {
-      sql_writer_.writeSpectra(spectra_);
+      handler_->writeSpectra(spectra_);
       spectra_.clear();
       spectra_.reserve(flush_after_);
     }
 
     if (!chromatograms_.empty() ) 
     {
-      sql_writer_.writeChromatograms(chromatograms_);
+      handler_->writeChromatograms(chromatograms_);
       chromatograms_.clear();
       chromatograms_.reserve(flush_after_);
     }
@@ -97,8 +102,6 @@ namespace OpenMS
   void MSDataSqlConsumer::setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {;}
 
   void MSDataSqlConsumer::setExperimentalSettings(const ExperimentalSettings& /* exp */) {;}
-
-
 
 } // namespace OpenMS
 
