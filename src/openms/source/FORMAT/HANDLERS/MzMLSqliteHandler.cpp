@@ -661,25 +661,32 @@ namespace OpenMS
     void MzMLSqliteHandler::writeExperiment(const MSExperiment & exp)
     {
 
+      // write run level information
+      writeRunLevelInformation(exp, write_full_meta_, run_id_);
+
+      // write data
+      writeChromatograms(exp.getChromatograms());
+      writeSpectra(exp.getSpectra());
+    }
+
+    void MzMLSqliteHandler::writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id)
+    {
       sqlite3 *db = openDB();
 
       // store run information
-      {
-        char *zErrMsg = 0;
+      char *zErrMsg = 0;
 
-        // prepare streams and set required precision (default is 6 digits)
-        std::stringstream insert_run_sql;
+      // prepare streams and set required precision (default is 6 digits)
+      std::stringstream insert_run_sql;
 
-        std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
-        insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
-            run_id_ << ",'" << native_id << "','" << native_id << "'); ";
-        sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
-        executeSql_(db, insert_run_sql);
-        sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
-      }
+      std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
+      insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
+          run_id << ",'" << native_id << "','" << native_id << "'); ";
+      sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
+      executeSql_(db, insert_run_sql);
+      sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
 
-      // store full mzML document structure
-      if (write_full_meta_)
+      if (write_full_meta)
       {
         MSExperiment meta;
 
@@ -700,7 +707,7 @@ namespace OpenMS
           meta.addChromatogram(c);
         }
         String prepare_statement = "INSERT INTO RUN_EXTRA (RUN_ID, DATA) VALUES ";
-        prepare_statement += String("(") + run_id_ + ", ?)";
+        prepare_statement += String("(") + run_id + ", ?)";
         std::vector<String> data;
 
         std::string output;
@@ -713,11 +720,7 @@ namespace OpenMS
         // data.push_back(output); // in case you need to debug ... 
         executeBlobBind_(db, prepare_statement, data);
       }
-
       sqlite3_close(db);
-
-      writeChromatograms(exp.getChromatograms());
-      writeSpectra(exp.getSpectra());
     }
 
     void MzMLSqliteHandler::createTables()

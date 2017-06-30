@@ -148,6 +148,16 @@ public:
       */
       void writeChromatograms(const std::vector<MSChromatogram<> >& chroms);
 
+      /**
+          @brief Write the run-level information for an experiment into tables
+
+          @note This is a low level function, do not call this function unless you know what you are doing!
+
+          @param exp The result data structure
+          @param meta_only Only read the meta data
+      */
+      void writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id);
+
 protected:
 
       void executeBlobBind_(sqlite3 *db, String& prepare_statement, std::vector<String>& data);
