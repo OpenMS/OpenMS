@@ -1,4 +1,5 @@
 #!/bin/bash
+export CLINKER=`which gold`
 
 function build_contrib {
   cmake . -DBUILD_TYPE=$1
