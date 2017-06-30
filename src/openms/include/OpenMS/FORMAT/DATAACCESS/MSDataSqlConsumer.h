@@ -67,7 +67,7 @@ namespace OpenMS
         @param clearData Whether to clear the data from memory after writing it
         @param buffer_size How large the internal buffer size should be (defaults to 500 spectra / chromatograms)
       */
-      MSDataSqlConsumer(String filename, bool clearData=true, int buffer_size = 500);
+      MSDataSqlConsumer(String filename, bool clearData=true, int buffer_size = 500, bool lossy_compression=true, double linear_mass_acc=1e-4);
 
       /**
         @brief Destructor
@@ -106,6 +106,8 @@ namespace OpenMS
       size_t flush_after_;
       std::vector<SpectrumType> spectra_;
       std::vector<ChromatogramType> chromatograms_;
+
+      MSExperiment peak_meta_;
     };
 
 } //end namespace OpenMS

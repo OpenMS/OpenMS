@@ -37,47 +37,61 @@
 namespace OpenMS
 {
 
-  MSDataSqlConsumer::MSDataSqlConsumer(String filename, bool clearData, int flush_after) :
+  MSDataSqlConsumer::MSDataSqlConsumer(String filename, bool clearData, int flush_after, bool lossy_compression, double linear_mass_acc) :
         sql_writer_(filename),
         clearData_(clearData),
         flush_after_(flush_after)
-      {
-        sql_writer_.createTables();
-      }
+  {
+    spectra_.reserve(flush_after_);
+    chromatograms_.reserve(flush_after_);
+
+    sql_writer_.setConfig(lossy_compression, linear_mass_acc);
+    sql_writer_.createTables();
+  }
 
   MSDataSqlConsumer::~MSDataSqlConsumer()
   {
     flush();
+
+    // Write run level information into the file (e.g. run id, run name and mzML structure)
+    bool write_full_meta = true;
+    int run_id = 0;
+    sql_writer_.writeRunLevelInformation(peak_meta_, write_full_meta, run_id);
   }
 
   void MSDataSqlConsumer::flush()
   {
-    sql_writer_.writeSpectra(spectra_);
-    spectra_.clear();
-    sql_writer_.writeChromatograms(chromatograms_);
-    chromatograms_.clear();
+    if (!spectra_.empty() ) 
+    {
+      sql_writer_.writeSpectra(spectra_);
+      spectra_.clear();
+      spectra_.reserve(flush_after_);
+    }
+
+    if (!chromatograms_.empty() ) 
+    {
+      sql_writer_.writeChromatograms(chromatograms_);
+      chromatograms_.clear();
+      chromatograms_.reserve(flush_after_);
+    }
   }
 
   void MSDataSqlConsumer::consumeSpectrum(SpectrumType & s)
   {
     spectra_.push_back(s);
-    if (spectra_.size() >= flush_after_)
-    {
-      sql_writer_.writeSpectra(spectra_);
-      spectra_.clear();
-    }
-    if (clearData_) {s.clear(false);}
+    s.clear(false);
+    peak_meta_.addSpectrum(s);
+
+    if (spectra_.size() >= flush_after_) {flush();}
   }
 
   void MSDataSqlConsumer::consumeChromatogram(ChromatogramType & c)
   {
     chromatograms_.push_back(c);
-    if (chromatograms_.size() >= flush_after_)
-    {
-      sql_writer_.writeChromatograms(chromatograms_);
-      chromatograms_.clear();
-    }
-    if (clearData_) {c.clear(false);}
+    c.clear(false);
+    peak_meta_.addChromatogram(c);
+
+    if (chromatograms_.size() >= flush_after_) {flush();}
   }
 
   void MSDataSqlConsumer::setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {;}
