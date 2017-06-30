@@ -43,7 +43,7 @@
 #else
 #include <cstdio>
 #include <unistd.h>
-#include <stdlib.h>
+
 #define OMS_USELINUXMEMORYPLATFORM
 #endif
 

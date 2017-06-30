@@ -36,17 +36,10 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <QDir>
-
-#include <boost/math/special_functions/fpclassify.hpp>
-
-#include <algorithm>
-
 
 
 using namespace std;

@@ -34,9 +34,7 @@
 
 #include <OpenMS/FORMAT/ToolDescriptionFile.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/HANDLERS/ToolDescriptionHandler.h>
-#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {

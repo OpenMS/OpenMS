@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
-
 namespace OpenMS
 {
 

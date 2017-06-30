@@ -34,10 +34,8 @@
 
 #include <OpenMS/SIMULATION/DigestSimulation.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>
-#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 namespace OpenMS

@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussModel.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <numeric>
 
 namespace OpenMS
 {

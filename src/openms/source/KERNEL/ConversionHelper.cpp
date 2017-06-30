@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {

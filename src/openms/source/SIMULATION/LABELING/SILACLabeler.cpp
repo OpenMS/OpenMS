@@ -33,12 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-
-#include <vector>
 
 using std::vector;
 

@@ -35,8 +35,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 
-#include <OpenMS/KERNEL/ConversionHelper.h>
-
 namespace OpenMS
 {
 

@@ -38,9 +38,6 @@
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 
 #include <fstream>
-#include <iostream>
-#include <sstream>
-#include <set>
 
 using namespace std;
 

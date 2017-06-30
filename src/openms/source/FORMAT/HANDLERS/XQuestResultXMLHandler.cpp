@@ -33,19 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
-#include <xercesc/sax2/Attributes.hpp>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 #include <boost/assign/list_of.hpp>
-#include <iostream>
-#include <utility>
-
-#include <assert.h>
 
 using namespace std;
 using namespace xercesc;

@@ -32,8 +32,6 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/SpectrumHelper.h>
-
 namespace OpenMS
 {
 }

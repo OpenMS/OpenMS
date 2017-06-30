@@ -33,12 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/PTMXMLHandler.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-
-#include <xercesc/sax2/Attributes.hpp>
-
-#include <iostream>
-#include <map>
 
 using namespace std;
 using namespace xercesc;

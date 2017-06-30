@@ -34,8 +34,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerSH.h>
 
-#include <vector>
-
 namespace OpenMS
 {
   PeakPickerSH::PeakPickerSH() :

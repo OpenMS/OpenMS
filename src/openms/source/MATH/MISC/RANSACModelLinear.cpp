@@ -36,7 +36,6 @@
 
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <numeric>
-#include <algorithm>
 
 
 namespace OpenMS

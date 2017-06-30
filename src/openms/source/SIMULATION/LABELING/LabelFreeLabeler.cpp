@@ -36,7 +36,6 @@
 #include <vector>
 
 #include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
-#include <OpenMS/METADATA/ProteinHit.h>
 
 using std::map;
 using std::vector;

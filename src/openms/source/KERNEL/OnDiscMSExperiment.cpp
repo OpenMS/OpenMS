@@ -32,8 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
-
 namespace OpenMS
 {
 } //namespace OpenMS

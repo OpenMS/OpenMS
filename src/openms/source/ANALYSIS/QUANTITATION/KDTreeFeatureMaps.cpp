@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <cmath>
 
 using namespace std;
 

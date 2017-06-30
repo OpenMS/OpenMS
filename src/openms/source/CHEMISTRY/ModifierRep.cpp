@@ -36,9 +36,6 @@
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <set>
-#include <list>
-#include <sstream>
 
 using namespace std;
 

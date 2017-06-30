@@ -34,12 +34,8 @@
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtGui/QTextDocument>
-#include <QtNetwork/QNetworkRequest>
-
-#include <iostream>
 
 using namespace std;
 

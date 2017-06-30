@@ -36,8 +36,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-
 namespace OpenMS
 {
   ClusterFunctor * SingleLinkage::create()

@@ -46,12 +46,7 @@
 #endif
 
 
-#include <algorithm>
 #include <fstream>
-#include <iostream>
-#include <exception>
-#include <cstdio>
-#include <ctime>
 
 using namespace std;
 

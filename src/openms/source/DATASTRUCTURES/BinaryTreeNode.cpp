@@ -34,8 +34,6 @@
 
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
 
-#include <OpenMS/CONCEPT/Types.h>
-
 namespace OpenMS
 {
 

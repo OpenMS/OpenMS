@@ -35,7 +35,6 @@
 #include <OpenMS/FORMAT/UnimodXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 using namespace xercesc;
 using namespace std;

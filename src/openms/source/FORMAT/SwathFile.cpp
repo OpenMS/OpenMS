@@ -32,9 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/SwathFile.h>
-
-namespace OpenMS 
+namespace OpenMS
 {
 }
 

@@ -34,8 +34,6 @@
 //
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
 
-#include <cmath>
-
 // #define SPECTRUMCHEAPDPCORR_DEBUG
 // #undef  SPECTRUMCHEAPDPCORR_DEBUG
 

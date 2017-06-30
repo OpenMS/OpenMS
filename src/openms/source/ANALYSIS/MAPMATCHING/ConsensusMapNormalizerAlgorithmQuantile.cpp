@@ -36,9 +36,6 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <cmath>
-#include <algorithm>
-
 using namespace std;
 
 namespace OpenMS

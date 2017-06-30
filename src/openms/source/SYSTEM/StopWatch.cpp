@@ -38,16 +38,13 @@
 #include <unistd.h>
 #endif
 #ifdef OPENMS_HAS_TIME_H
-#include <ctime>
 #endif
 #ifdef OPENMS_HAS_SYS_TYPES_H
-#include <sys/types.h>
 #endif
 #ifdef OPENMS_HAS_SYS_TIMES_H
 #include <sys/times.h>
 #endif
 #ifdef OPENMS_HAS_SYS_TIME_H
-#include <sys/time.h>
 #endif
 
 #ifdef OPENMS_WINDOWSPLATFORM

@@ -32,8 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>
-
 namespace OpenMS
 {
 

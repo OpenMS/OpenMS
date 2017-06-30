@@ -35,9 +35,7 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 //#include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
 
 
 using namespace std;

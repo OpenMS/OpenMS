@@ -32,10 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <vector>
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
-
 namespace OpenMS
 {
 }

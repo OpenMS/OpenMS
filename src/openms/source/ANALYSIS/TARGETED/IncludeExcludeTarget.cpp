@@ -34,8 +34,6 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>
 
-#include <algorithm>
-
 namespace OpenMS
 {
   IncludeExcludeTarget::IncludeExcludeTarget() :

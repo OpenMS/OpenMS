@@ -35,8 +35,6 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 #include <boost/date_time/posix_time/posix_time_types.hpp> //no i/o just types
-#include <limits>
-#include <iostream>
 
 namespace OpenMS
 {

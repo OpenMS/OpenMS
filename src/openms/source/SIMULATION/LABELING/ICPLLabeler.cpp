@@ -33,10 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <vector>
 
 using std::vector;
 

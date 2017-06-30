@@ -37,12 +37,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <map>
-#include <utility> //for pair
-#include <string>
-#include <vector>
-#include <algorithm> // for sort
-
 namespace OpenMS
 {
   std::vector<std::pair<std::string::size_type, std::string> > MRMDecoy::find_all_tryptic(std::string sequence)

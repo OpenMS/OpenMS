@@ -37,15 +37,10 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 
-#include <numeric>
-#include <iostream>
 #include <fstream>
-#include <cmath>
-#include <ctime>
 
 #include <boost/math/distributions/normal.hpp>
 

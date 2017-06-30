@@ -36,14 +36,9 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <iostream>
 #include <fstream>
-#include <cmath>
-#include <numeric>
-#include <algorithm>
 
 // #define SIMPLE_DEBUG2
 // #undef  SIMPLE_DEBUG2

@@ -34,22 +34,12 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <set>
-#include <string>
-#include <iostream>
-#include <stdexcept>
-#include <list>
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace xercesc;

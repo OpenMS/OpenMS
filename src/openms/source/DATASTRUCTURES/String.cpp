@@ -33,19 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <OpenMS/CONCEPT/Types.h>
-
-#include <QtCore/QString>
-#include <cstddef>
-#include <algorithm>
-#include <cmath>
-#include <cstdlib>
-#include <iostream>
-#include <limits>
-#include <sstream>
-#include <string>
 
 using namespace std;
 

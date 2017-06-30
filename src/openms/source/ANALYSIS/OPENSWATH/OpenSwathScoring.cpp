@@ -45,8 +45,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
 // basic file operations
-#include <iostream>
-#include <fstream>
 
 namespace OpenMS
 {

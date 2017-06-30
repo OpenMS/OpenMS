@@ -41,8 +41,6 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <cmath>
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 
 // #define DEBUG_SONAR
 

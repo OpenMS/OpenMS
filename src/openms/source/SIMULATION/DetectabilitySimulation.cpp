@@ -35,15 +35,8 @@
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <vector>
-#include <iostream>
 
 using std::vector;
 using std::cout;

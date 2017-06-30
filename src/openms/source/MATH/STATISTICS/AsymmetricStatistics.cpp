@@ -33,4 +33,3 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>

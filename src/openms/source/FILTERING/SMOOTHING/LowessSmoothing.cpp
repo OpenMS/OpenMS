@@ -37,9 +37,6 @@
 
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
-#include <algorithm>
-#include <cstdlib>
-
 namespace OpenMS
 {
   LowessSmoothing::LowessSmoothing() :

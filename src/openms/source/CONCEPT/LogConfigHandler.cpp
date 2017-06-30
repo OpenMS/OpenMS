@@ -35,8 +35,6 @@
 #include <iostream>
 
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
-#include <OpenMS/CONCEPT/StreamHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 using std::cout;
 using std::cerr;

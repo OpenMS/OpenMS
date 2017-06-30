@@ -35,13 +35,10 @@
 #include <OpenMS/SYSTEM/RWrapper.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QProcess>
-#include <QtCore/QStringList>
 
 namespace OpenMS
 {

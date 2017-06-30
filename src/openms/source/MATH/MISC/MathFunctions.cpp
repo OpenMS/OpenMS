@@ -32,8 +32,6 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-
 namespace OpenMS
 {
 

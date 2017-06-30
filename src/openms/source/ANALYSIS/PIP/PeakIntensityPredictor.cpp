@@ -35,8 +35,6 @@
 
 #include <OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>
 #include <OpenMS/CHEMISTRY/AAIndex.h>
-#include <math.h>
-#include <string>
 
 using namespace std;
 

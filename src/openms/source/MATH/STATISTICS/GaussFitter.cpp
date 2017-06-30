@@ -38,9 +38,6 @@
 #include <boost/math/distributions/normal.hpp>
 #include <unsupported/Eigen/NonLinearOptimization>
 
-#include <sstream>
-#include <iostream>
-
 using namespace std;
 
 // #define GAUSS_FITTER_VERBOSE

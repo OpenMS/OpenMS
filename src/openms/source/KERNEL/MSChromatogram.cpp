@@ -32,8 +32,6 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/MSChromatogram.h>
-
 namespace OpenMS
 {
 }

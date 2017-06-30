@@ -35,21 +35,11 @@
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/CONCEPT/Constants.h>
-
-#include <algorithm>
-#include <iterator>
 
 #include <boost/bind.hpp>
 #include <boost/random/discrete_distribution.hpp>
 
 #ifdef _OPENMP
-#include <omp.h>
-#include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
-#include <boost/shared_ptr.hpp>
 #endif
 
 // #define DEBUG

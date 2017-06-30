@@ -32,8 +32,6 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/MRMTransitionGroup.h>
-
 namespace OpenMS
 {
 }

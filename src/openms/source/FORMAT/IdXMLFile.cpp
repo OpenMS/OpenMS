@@ -39,9 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <iostream>
 #include <fstream>
-#include <limits>
 
 using namespace std;
 

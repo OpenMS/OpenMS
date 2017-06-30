@@ -35,12 +35,9 @@
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
 
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 //#define DAC_DEBUG
 

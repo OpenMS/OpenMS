@@ -36,12 +36,6 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
-
-#include <vector>
-#include <map>
-#include <cmath>
-#include <iostream>
 
 using std::vector;
 

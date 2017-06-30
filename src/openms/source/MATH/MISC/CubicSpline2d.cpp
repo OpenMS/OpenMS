@@ -35,10 +35,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
-#include <vector>
-#include <map>
-#include <functional> 
-
 using namespace std;
 
 namespace OpenMS

@@ -33,11 +33,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
-#include <stdexcept>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-
-#include <cmath>
-#include <ctime>
 
 using namespace std;
 

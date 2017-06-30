@@ -35,7 +35,6 @@
 #include <OpenMS/MATH/STATISTICS/ROCCurve.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
-#include <iostream>
 #include <cmath>
 
 namespace OpenMS

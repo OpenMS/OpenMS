@@ -32,8 +32,6 @@
 // $Authors: Rene Hussong $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
-
 namespace OpenMS
 {
 }

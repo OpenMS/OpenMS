@@ -32,8 +32,6 @@
 // $Authors: Christian Ehrlich $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/Spline2d.h>
-
 namespace OpenMS
 {
 

@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/MSQuantifications.h>
-#include <set>
-#include <iostream>
 
 using namespace std;
 

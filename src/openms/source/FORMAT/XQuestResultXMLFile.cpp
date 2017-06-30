@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <fstream>
 
