@@ -44,7 +44,7 @@ macro(openms_register_export_target target_name)
     CACHE INTERNAL "List of targets that will be exported.")
 endmacro()
 
-macro(openms_export_targes )
+macro(openms_export_targets )
   set(_EXPORT_INCLUDE_BLOCK "")
 
   foreach(_target ${_OPENMS_EXPORT_TARGETS})

@@ -312,9 +312,9 @@ public:
           }
         }
 
+        double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
         {
-          double background = 0;
           if (background_subtraction_ == "smoothed")
           {
             throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
@@ -333,14 +333,12 @@ public:
           }
           else if (background_subtraction_ == "original")
           {
-            background = calculateBgEstimation_(used_chromatogram, best_left, best_right);
+            calculateBgEstimation_(used_chromatogram, best_left, best_right, background, avg_noise_level);
           }
           intensity_sum -= background;
-          if (intensity_sum < 0)
-          {
-            std::cerr << "Warning: Intensity was below 0 after background subtraction: " << intensity_sum << ". Setting it to 0." << std::endl;
-            intensity_sum = 0;
-          }
+          peak_apex_int -= avg_noise_level;
+          if (intensity_sum < 0) {intensity_sum = 0;}
+          if (peak_apex_int < 0) {peak_apex_int = 0;}
         }
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
@@ -359,8 +357,11 @@ public:
         }
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
-        //f.setMetaValue("leftWidth", best_left);
-        //f.setMetaValue("rightWidth", best_right);
+        if (background_subtraction_ != "none")
+        {
+          f.setMetaValue("area_background_level", background);
+          f.setMetaValue("noise_background_level", avg_noise_level);
+        }
 
         if (transition_group.getTransitions()[k].isDetectingTransition())
         {
@@ -547,7 +548,7 @@ protected:
       // Resample all chromatograms around the current estimated peak and
       // collect the raw intensities. For resampling, use a bit more on either
       // side to correctly identify shoulders etc.
-      double resample_boundary = 15.0; // sample 15 seconds more on each side
+      double resample_boundary = resample_boundary_; // sample 15 seconds more on each side
       SpectrumT master_peak_container;
       const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
@@ -860,7 +861,8 @@ protected:
       The background is estimated by averaging the noise on either side of the
       peak and then subtracting that from the total intensity.
     */
-    double calculateBgEstimation_(const MSChromatogram<>& chromatogram, double best_left, double best_right);
+    void calculateBgEstimation_(const MSChromatogram<>& chromatogram, 
+                                  double best_left, double best_right, double & background, double & avg_noise_level);
 
     // Members
     String background_subtraction_;
@@ -873,6 +875,7 @@ protected:
     double stop_after_intensity_ratio_;
     double min_peak_width_;
     double recalculate_peaks_max_z_;
+    double resample_boundary_;
   };
 }
 
