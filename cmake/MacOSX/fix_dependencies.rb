@@ -61,7 +61,9 @@ end
 
 ###############################################################################
 def fixable(path)
-  if path.match(/^\./)
+  if File.directory?(path)
+    return false
+  elsif path.match(/^\./)
     return false
   elsif path.match(/\.app$/)
     return false
