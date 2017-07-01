@@ -41,6 +41,8 @@ set(CPACK_GENERATOR "DragNDrop")
 ## We want to package the whole top-level dir so a user can drag'n'drop it via the image.
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0) ## dmg seems to be component-aware and makes an ALL-IN-ONE package
 set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY 1) ## Therefore _only_ use the second.. weird stuff.
+## we make sure it is called like we want although this is the standard name I think.
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Darwin")  
 
 ## Note: That the mac app bundles (TOPPView) take care of themselves
 ##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
@@ -94,13 +96,11 @@ if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
   set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
 
   ## Sign the image. System keychain needs to be unlocked and include the ID used.
-  ## Be careful when changing the name of the image. I see no fully automated way since the CPACK_PACKAGE_FILE_NAME is not yet populated.
-  ## We could move the signed_dist targets after the include(CPack) command.
   if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
     add_custom_target(signed_dist
-      COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_INSTALL_DIRECTORY}-Darwin.dmg
+      COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILENAME}.dmg
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-      COMMENT "Signing ${CPACK_PACKAGE_INSTALL_DIRECTORY}-Darwin.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
+      COMMENT "Signing ${CPACK_PACKAGE_FILENAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
       DEPENDS dist)
   endif()
 
