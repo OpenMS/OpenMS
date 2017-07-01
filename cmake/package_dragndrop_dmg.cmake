@@ -93,12 +93,14 @@ if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
   #set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store_new)
   set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
 
-  ## Sign the image
+  ## Sign the image. System keychain needs to be unlocked and include the ID used.
+  ## Be careful when changing the name of the image. I see no fully automated way since the CPACK_PACKAGE_FILE_NAME is not yet populated.
+  ## We could move the signed_dist targets after the include(CPack) command.
   if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
     add_custom_target(signed_dist
-      COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign ${CPACK_BUNDLE_APPLE_CERT_APP} \${CPACK_PACKAGE_FILE_NAME}.dmg
+      COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_INSTALL_DIRECTORY}-Darwin.dmg
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-      COMMENT "Signing \${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
+      COMMENT "Signing ${CPACK_PACKAGE_INSTALL_DIRECTORY}-Darwin.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
       DEPENDS dist)
   endif()
 
