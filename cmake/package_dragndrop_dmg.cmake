@@ -98,9 +98,9 @@ if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
   ## Sign the image. System keychain needs to be unlocked and include the ID used.
   if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
     add_custom_target(signed_dist
-      COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILENAME}.dmg
+      COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-      COMMENT "Signing ${CPACK_PACKAGE_FILENAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
+      COMMENT "Signing ${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
       DEPENDS dist)
   endif()
 
