@@ -47,6 +47,7 @@ add_custom_target(dist
 )
 
 ## TODO maybe find signtool and maybe check existence of ID in the beginning.
+## ID needs to be installed beforehand. Rightclick a p12 file that has a cert for codesigning.
 if (DEFINED SIGNING_IDENTITY AND NOT "${SIGNING_IDENTITY}" STREQUAL "") 
 	add_custom_target(signed_dist
 	  COMMAND signtool sign /v /n ${SIGNING_IDENTITY} /t http://timestamp.digicert.com ${CPACK_PACKAGE_FILE_NAME}.exe
