@@ -68,9 +68,39 @@ namespace OpenMS
 
     /// Evaluates the model at the given value
     virtual double evaluate(double value) const;
+    
+    /**
+    @brief Weight the data by the given weight function
+
+    1 / x	If |x| < 10-5 then w = 10e5; otherwise w = 1 / |x|.
+    1 / x2	If |x| < 10-5 then w = 10e10; otherwise w = 1 / x2.
+    1 / y	If |y| < 10-8 then w = 10e8; otherwise w = 1 / |y|.
+    1 / y2	If |y| < 10-8 then w = 10e16; otherwise w = 1 / y2.
+    ln x	If x < 0 an error is generated; otherwise if x < 10-5 then w = ln 10e-5,
+    otherwise w = |ln x|.
+    */
+    virtual void weightData(DataPoints& data, const Param& params);
+    
+    /// Unweight the data by the given weight function
+    virtual void unWeightData(DataPoints& data, const Param& params);
+    
+    /// 
+    bool checkValidWeight(const std::string& weight, const std::vector<std::string>& valid_weights) const;
+
+    ///
+    double weightDatum(const double& datum, const std::string& weight) const;
+
+    ///
+    double unWeightDatum(const double& datum, const std::string& weight) const;
 
     /// Gets the (actual) parameters
     const Param& getParameters() const;
+
+    ///
+    std::vector<std::string> getValidXWeights() const;
+
+    ///
+    std::vector<std::string> getValidYWeights() const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param& params);
@@ -78,6 +108,10 @@ namespace OpenMS
   protected:
     /// Parameters
     Param params_;
+    /// x weighting
+    std::string x_weight_;
+    /// y weighting
+    std::string y_weight_;
 
   private:
     /// do not allow copy

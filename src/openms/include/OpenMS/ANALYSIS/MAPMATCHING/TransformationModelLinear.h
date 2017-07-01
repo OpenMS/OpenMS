@@ -37,7 +37,8 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+// #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include "/home/user/code/OpenMS/include/TransformationModel.h"
 
 namespace OpenMS
 {
@@ -50,7 +51,8 @@ namespace OpenMS
     Depending on parameter @p symmetric_regression, a normal regression (@e y on @e x) or
     symmetric regression (@f$ y - x @f$ on @f$ y + x @f$) is performed.
 
-    Without data, the model can be specified by giving the parameters @p slope and @p intercept explicitly.
+    Without data, the model can be specified by giving the parameters @p slope, @p intercept, 
+    @p x_weight, @p y_weight explicitly.
 
     @ingroup MapAlignment
   */
@@ -74,7 +76,7 @@ public:
     using TransformationModel::getParameters;
 
     /// Gets the "real" parameters
-    void getParameters(double& slope, double& intercept) const;
+    void getParameters(double& slope, double& intercept, std::string& x_weight, std::string& y_weight) const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param& params);
