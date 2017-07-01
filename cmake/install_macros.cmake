@@ -45,10 +45,10 @@ set(OPENMS_EXPORT_SET "OpenMSTargets")
 macro(install_library lib_target_name)
     install(TARGETS ${lib_target_name}
       EXPORT ${OPENMS_EXPORT_SET}
-      LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-      ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-      RUNTIME DESTINATION ${INSTALL_LIB_DIR}
-      COMPONENT library)
+      LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT library
+      ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT library
+      RUNTIME DESTINATION ${INSTALL_LIB_DIR} COMPONENT library
+      )
 endmacro()
 
 #------------------------------------------------------------------------------
@@ -82,9 +82,9 @@ endmacro()
 # @param tool_target_name The target name of the tool that should be installed
 macro(install_tool tool_target_name)
     install(TARGETS ${tool_target_name}
-      RUNTIME DESTINATION ${INSTALL_BIN_DIR}
-      BUNDLE DESTINATION ${INSTALL_BIN_DIR}
-      COMPONENT Applications)
+      RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+      BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+      )
 endmacro()
 
 #------------------------------------------------------------------------------
