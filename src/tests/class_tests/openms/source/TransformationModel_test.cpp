@@ -33,12 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-// #include <OpenMS/test_config.h>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
 
-// #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include "/home/user/code/OpenMS/include/TransformationModel.h"
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 
 ///////////////////////////
 

@@ -32,11 +32,10 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-// #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <iostream>     // std::cout
 #include <algorithm>    // std::find
 #include <math.h>    // std::log
-#include "/home/user/code/OpenMS/include/TransformationModel.h"
 
 namespace OpenMS
 {

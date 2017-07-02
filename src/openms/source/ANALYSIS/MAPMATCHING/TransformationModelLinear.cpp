@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-// #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
-#include "/home/user/code/OpenMS/include/TransformationModelLinear.h"
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
 #include <Wm5Vector2.h>
 #include <Wm5ApprLineFit2.h>

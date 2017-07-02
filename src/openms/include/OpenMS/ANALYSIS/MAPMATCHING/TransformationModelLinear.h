@@ -37,8 +37,7 @@
 
 #include <OpenMS/config.h>
 
-// #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include "/home/user/code/OpenMS/include/TransformationModel.h"
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 
 namespace OpenMS
 {
