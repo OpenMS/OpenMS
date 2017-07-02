@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/InspectInfile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
@@ -124,6 +125,12 @@ namespace OpenMS
 
   void InspectInfile::store(const String& filename)
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::TSV))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+    }
+
     ofstream ofs(filename.c_str());
     if (!ofs)
     {
