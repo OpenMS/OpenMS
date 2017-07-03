@@ -97,6 +97,6 @@ message('\${sign_check_out}')" COMPONENT BApplications)
 
 	else()
 	  ## Just install to the usual bin dir without fixing it up
-	  install_tool(${i})
+	  install_tool(${_name})
 	endif()
 endmacro()
