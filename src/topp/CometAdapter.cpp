@@ -231,7 +231,7 @@ protected:
 
   void removeTempDir_(const String& tmp_dir)
   {
-    if (tmp_dir.empty()) return; // no temp. dir. created
+    if (tmp_dir.empty()) {return;} // no temp. dir. created
 
     if (debug_level_ >= 2)
     {
