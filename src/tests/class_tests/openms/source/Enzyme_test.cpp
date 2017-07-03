@@ -95,44 +95,44 @@ START_SECTION(Enzyme(const String &name,
 END_SECTION
 
 START_SECTION(Enzyme& operator=(const Enzyme &enzyme))
-	Enzyme copy("","");
-	copy = *e_ptr;
-	TEST_EQUAL(copy, *e_ptr)
+  Enzyme copy("","");
+  copy = *e_ptr;
+  TEST_EQUAL(copy, *e_ptr)
 END_SECTION
 
 START_SECTION(void setName(const String &name))
-	Enzyme copy(*e_ptr);
-	e_ptr->setName("PepsinA");
-	TEST_NOT_EQUAL(copy, *e_ptr)
+  Enzyme copy(*e_ptr);
+  e_ptr->setName("PepsinA");
+  TEST_NOT_EQUAL(copy, *e_ptr)
 END_SECTION
 
 START_SECTION(const String& getName() const)
-	TEST_EQUAL(e_ptr->getName(), "PepsinA")
+  TEST_EQUAL(e_ptr->getName(), "PepsinA")
 END_SECTION
 
 START_SECTION(void setSynonyms(const std::set< String > &synonyms))
-	Enzyme copy(*e_ptr);
-	set<String> syn;
-	syn.insert("BLI");
-	syn.insert("BLA");
-	e_ptr->setSynonyms(syn);
-	TEST_NOT_EQUAL(*e_ptr, copy)
+  Enzyme copy(*e_ptr);
+  set<String> syn;
+  syn.insert("BLI");
+  syn.insert("BLA");
+  e_ptr->setSynonyms(syn);
+  TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
 START_SECTION(void addSynonym(const String &synonym))
-	Enzyme copy(*e_ptr);
-	e_ptr->addSynonym("Tryp");
-	TEST_NOT_EQUAL(*e_ptr, copy)
+  Enzyme copy(*e_ptr);
+  e_ptr->addSynonym("Tryp");
+  TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
 START_SECTION(const std::set<String>& getSynonyms() const)
-	TEST_EQUAL(e_ptr->getSynonyms().size(), 3)
+  TEST_EQUAL(e_ptr->getSynonyms().size(), 3)
 END_SECTION
 
 START_SECTION(void setRegEx(const String & cleavage_regex))
-	Enzyme copy(*e_ptr);
-	e_ptr->setRegEx(RKP);
-	TEST_NOT_EQUAL(*e_ptr, copy)
+  Enzyme copy(*e_ptr);
+  e_ptr->setRegEx(RKP);
+  TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
 START_SECTION(const String& getRegEx() const)
@@ -140,39 +140,39 @@ START_SECTION(const String& getRegEx() const)
 END_SECTION
 
 START_SECTION(void setRegExDescription(String value))
-	Enzyme copy(*e_ptr);
-	e_ptr->setRegExDescription("cutting after R K unless followed by P");
-	TEST_NOT_EQUAL(*e_ptr, copy)
+  Enzyme copy(*e_ptr);
+  e_ptr->setRegExDescription("cutting after R K unless followed by P");
+  TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
 START_SECTION(String getRegExDescription() const)
-	TEST_EQUAL(e_ptr->getRegExDescription(), "cutting after R K unless followed by P")
+  TEST_EQUAL(e_ptr->getRegExDescription(), "cutting after R K unless followed by P")
 END_SECTION
 
 START_SECTION(void setNTermGain(EmpiricalFormula value))
-	Enzyme copy(*e_ptr);
-	e_ptr->setNTermGain(EmpiricalFormula("H2"));
-	TEST_NOT_EQUAL(*e_ptr, copy)
+  Enzyme copy(*e_ptr);
+  e_ptr->setNTermGain(EmpiricalFormula("H2"));
+  TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
 START_SECTION(EmpiricalFormula getNTermGain() const)
-	TEST_EQUAL(e_ptr->getNTermGain(), EmpiricalFormula("H2"))
+  TEST_EQUAL(e_ptr->getNTermGain(), EmpiricalFormula("H2"))
 END_SECTION
 
 START_SECTION(void setCTermGain(EmpiricalFormula value))
-	Enzyme copy(*e_ptr);
-	e_ptr->setCTermGain(EmpiricalFormula("OH2"));
-	TEST_NOT_EQUAL(*e_ptr, copy)
+  Enzyme copy(*e_ptr);
+  e_ptr->setCTermGain(EmpiricalFormula("OH2"));
+  TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
 START_SECTION(EmpiricalFormula getCTermGain() const)
-	TEST_EQUAL(e_ptr->getCTermGain(), EmpiricalFormula("OH2"))
+  TEST_EQUAL(e_ptr->getCTermGain(), EmpiricalFormula("OH2"))
 END_SECTION
 
 START_SECTION(void setPSIID(String value))
-	Enzyme copy(*e_ptr);
-	e_ptr->setPSIID("MS:000");
-	TEST_NOT_EQUAL(*e_ptr, copy)
+  Enzyme copy(*e_ptr);
+  e_ptr->setPSIID("MS:000");
+  TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
 START_SECTION(String getPSIID() const)
@@ -180,121 +180,121 @@ START_SECTION(String getPSIID() const)
 END_SECTION
 
 START_SECTION(void setXTandemID(String value))
-        Enzyme copy(*e_ptr);
-        e_ptr->setXTandemID("[]|[]");
-        TEST_NOT_EQUAL(*e_ptr, copy)
+  Enzyme copy(*e_ptr);
+  e_ptr->setXTandemID("[]|[]");
+  TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
 START_SECTION(String getXTandemID() const)
-        TEST_EQUAL(e_ptr->getXTandemID(), "[]|[]")
+  TEST_EQUAL(e_ptr->getXTandemID(), "[]|[]")
 END_SECTION
 
 START_SECTION(void setOMSSAID(UInt value))
-	Enzyme copy(*e_ptr);
-	e_ptr->setOMSSAID(2);
-	TEST_NOT_EQUAL(*e_ptr, copy)
+  Enzyme copy(*e_ptr);
+  e_ptr->setOMSSAID(2);
+  TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
 
 START_SECTION(UInt getOMSSAID() const)
-	TEST_EQUAL(e_ptr->getOMSSAID(), 2)
+  TEST_EQUAL(e_ptr->getOMSSAID(), 2)
 END_SECTION
 
 START_SECTION(bool operator==(const Enzyme &enzyme) const)
-	Enzyme r("","");
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
-	r.setName("other_name");
-	TEST_EQUAL(r == *e_ptr, false)
+  Enzyme r("","");
+  r = *e_ptr;
+  TEST_EQUAL(r == *e_ptr, true)
+  r.setName("other_name");
+  TEST_EQUAL(r == *e_ptr, false)
 
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
-	r.setRegEx("?<=[P]");
-	TEST_EQUAL(r == *e_ptr, false)
+  r = *e_ptr;
+  TEST_EQUAL(r == *e_ptr, true)
+  r.setRegEx("?<=[P]");
+  TEST_EQUAL(r == *e_ptr, false)
 
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
-	set<String> syns;
-	syns.insert("new_syn");
-	r.setSynonyms(syns);
-	TEST_EQUAL(r == *e_ptr, false)
+  r = *e_ptr;
+  TEST_EQUAL(r == *e_ptr, true)
+  set<String> syns;
+  syns.insert("new_syn");
+  r.setSynonyms(syns);
+  TEST_EQUAL(r == *e_ptr, false)
 
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
-	r.setRegExDescription("new description");
-	TEST_EQUAL(r == *e_ptr, false)
+  r = *e_ptr;
+  TEST_EQUAL(r == *e_ptr, true)
+  r.setRegExDescription("new description");
+  TEST_EQUAL(r == *e_ptr, false)
 
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
-	r.setNTermGain(EmpiricalFormula("H2O"));
-	TEST_EQUAL(r == *e_ptr, false)
+  r = *e_ptr;
+  TEST_EQUAL(r == *e_ptr, true)
+  r.setNTermGain(EmpiricalFormula("H2O"));
+  TEST_EQUAL(r == *e_ptr, false)
 
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
-	r.setCTermGain(EmpiricalFormula("H6O"));
-	TEST_EQUAL(r == *e_ptr, false)
+  r = *e_ptr;
+  TEST_EQUAL(r == *e_ptr, true)
+  r.setCTermGain(EmpiricalFormula("H6O"));
+  TEST_EQUAL(r == *e_ptr, false)
 
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
-	r.setPSIID("new id");
-	TEST_EQUAL(r == *e_ptr, false)
+  r = *e_ptr;
+  TEST_EQUAL(r == *e_ptr, true)
+  r.setPSIID("new id");
+  TEST_EQUAL(r == *e_ptr, false)
 
-	r = *e_ptr;
-	TEST_EQUAL(r == *e_ptr, true)
-	r.setOMSSAID(-2);
-	TEST_EQUAL(r == *e_ptr, false)
+  r = *e_ptr;
+  TEST_EQUAL(r == *e_ptr, true)
+  r.setOMSSAID(-2);
+  TEST_EQUAL(r == *e_ptr, false)
 END_SECTION
 
 START_SECTION(bool operator!=(const Enzyme &enzyme) const)
-    Enzyme r("","");
-    r = *e_ptr;
-	TEST_EQUAL(r != *e_ptr, false)
-	r.setName("other_name");
-	TEST_EQUAL(r != *e_ptr, true)
+  Enzyme r("","");
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setName("other_name");
+  TEST_EQUAL(r != *e_ptr, true)
 
-	r = *e_ptr;
-	TEST_EQUAL(r != *e_ptr, false)
-	r.setRegEx("?<=[P]");
-	TEST_EQUAL(r != *e_ptr, true)
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setRegEx("?<=[P]");
+  TEST_EQUAL(r != *e_ptr, true)
 
-	r = *e_ptr;
-	TEST_EQUAL(r != *e_ptr, false)
-	set<String> syns;
-	syns.insert("new_syn");
-	r.setSynonyms(syns);
-	TEST_EQUAL(r != *e_ptr, true)
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  set<String> syns;
+  syns.insert("new_syn");
+  r.setSynonyms(syns);
+  TEST_EQUAL(r != *e_ptr, true)
 
-	r = *e_ptr;
-	TEST_EQUAL(r != *e_ptr, false)
-	r.setRegExDescription("new description");
-	TEST_EQUAL(r != *e_ptr, true)
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setRegExDescription("new description");
+  TEST_EQUAL(r != *e_ptr, true)
 
-	r = *e_ptr;
-	TEST_EQUAL(r != *e_ptr, false)
-	r.setNTermGain(EmpiricalFormula("H2O"));
-	TEST_EQUAL(r != *e_ptr, true)
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setNTermGain(EmpiricalFormula("H2O"));
+  TEST_EQUAL(r != *e_ptr, true)
 
-	r = *e_ptr;
-	TEST_EQUAL(r != *e_ptr, false)
-	r.setCTermGain(EmpiricalFormula("O"));
-	TEST_EQUAL(r != *e_ptr, true)
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setCTermGain(EmpiricalFormula("O"));
+  TEST_EQUAL(r != *e_ptr, true)
 
-	r = *e_ptr;
-	TEST_EQUAL(r != *e_ptr, false)
-	r.setPSIID("new id");
-	TEST_EQUAL(r != *e_ptr, true)
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setPSIID("new id");
+  TEST_EQUAL(r != *e_ptr, true)
 
-	r = *e_ptr;
-	TEST_EQUAL(r != *e_ptr, false)
-	r.setOMSSAID(4);
-	TEST_EQUAL(r != *e_ptr, true)
+  r = *e_ptr;
+  TEST_EQUAL(r != *e_ptr, false)
+  r.setOMSSAID(4);
+  TEST_EQUAL(r != *e_ptr, true)
 END_SECTION
 
 START_SECTION(bool operator==(String cleavage_regex) const)
-	TEST_EQUAL(*e_ptr == RKP, true)
+  TEST_EQUAL(*e_ptr == RKP, true)
 END_SECTION
 
 START_SECTION(bool operator!=(String cleavage_regex) const)
-	TEST_EQUAL(*e_ptr != "?<=[P]", true)
+  TEST_EQUAL(*e_ptr != "?<=[P]", true)
 END_SECTION
 
 END_TEST
