@@ -39,6 +39,7 @@
 #include <boost/regex.hpp>
 
 #include <iostream>
+#include <limits>
 
 using namespace std;
 
@@ -86,6 +87,7 @@ namespace OpenMS
   void EnzymaticDigestion::setEnzyme(const String enzyme_name)
   {
     enzyme_ = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+    if (enzyme_name == "unspecific_cleavage) { missed_cleavages_ = std::numeric_limits<int>::max(); }
   }
 
   String EnzymaticDigestion::getEnzymeName() const
@@ -282,24 +284,6 @@ namespace OpenMS
     {
       max_length = sequence.size();
     }
-
-    // Unspecific cleavage:
-    // For unspecific cleavages every amino acid is a cutting position.
-    // And all substrings of legnth minx_size to max_size are generated.
-    if (enzyme_.getName() == "unspecific cleavage")
-    {
-      for (Size i = 0; i <= sequence.size() - min_length; ++i)
-      {
-        for (Size j = i + min_length; j <= i + max_length; ++j)
-        {
-          if (j > sequence.size()) { continue; }
-          output.push_back(sequence.substr(i, j - 1));
-        }
-      }
-      return;
-    }
-
-    // Specific cleavage
 
     // naive cleavage sites
     std::vector<Size> pep_positions = tokenize_(sequence.getString());
