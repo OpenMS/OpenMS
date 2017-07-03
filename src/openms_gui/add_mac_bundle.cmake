@@ -95,5 +95,8 @@ message('\${sign_check_out}')" COMPONENT BApplications)
 		 
 		endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 
-	endif("${PACKAGE_TYPE}" STREQUAL "dmg")
+	else()
+	  ## Just install to the usual bin dir without fixing it up
+	  install_tool(${i})
+	endif()
 endmacro()
