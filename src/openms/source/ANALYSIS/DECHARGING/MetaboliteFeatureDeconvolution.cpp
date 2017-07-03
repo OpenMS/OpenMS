@@ -1255,8 +1255,9 @@ namespace OpenMS
   void MetaboliteFeatureDeconvolution::checkSolution_(const ConsensusMap& cons_map) const
   {
     Size ladders_total(0);
-    Size ladders_even(0);
-    // count number of charge ladders which have gapped shapes, hinting at wrong lower-bound bound (should be lower)
+    Size ladders_with_odd(0);
+
+    // checking number of charge ladders which have all gapped shapes, hinting at wrong lower-bound bound (should be lower)
     for (ConsensusMap::const_iterator it = cons_map.begin(); it != cons_map.end(); ++it)
     {
       if (it->size() == 1)
@@ -1265,26 +1266,21 @@ namespace OpenMS
       ++ladders_total;
       IntList charges = it->getMetaValue("distinct_charges");
 
-      bool has_odd = false;
       for (Size i = 0; i < charges.size(); ++i)
       {
         if (charges[i] % 2 == 1)
         {
-          has_odd = true;
+          ++ladders_with_odd;
           break;
         }
       }
 
-      if (not has_odd)
-      {
-        ++ladders_even;
-      }
     }
 
-    // if more than 5% of charge ladder have this, then report
-    if (ladders_total * 0.05 < ladders_even)
+    // if more than 5% of charge ladder have only gapped, report
+    if (ladders_with_odd < ladders_total * 0.95)
     {
-      LOG_WARN << ".\n..\nWarning: a significant portion of your decharged molecules have gapped, even-numbered charge ladders (" << ladders_even << " of " << ladders_total << ")";
+      LOG_WARN << ".\n..\nWarning: a significant portion of your decharged molecules have gapped, even-numbered charge ladders (" << ladders_total - ladders_with_odd << " of " << ladders_total << ")";
       LOG_WARN <<"This might indicate a too low charge interval being tested.\n..\n.\n";
     }
 
