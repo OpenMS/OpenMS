@@ -239,7 +239,10 @@ protected:
     }
     else
     {
-      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
+      if (debug_level_ == 1) 
+      {
+        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
+      }
       File::removeDirRecursively(tmp_dir);
     }
   }
@@ -559,7 +562,6 @@ protected:
       }
     }
 
-
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
@@ -592,11 +594,9 @@ protected:
     writeDebug_(out, 1);
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
-
     //-------------------------------------------------------------
     // create (move) optional pin output
     //-------------------------------------------------------------
-
 
     String pin_out = getStringOption_("pin_out");
     if (!pin_out.empty())
@@ -614,8 +614,6 @@ protected:
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }
-
-
 
     // remove tempdir
     if (this->debug_level_ == 0)
