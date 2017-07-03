@@ -114,7 +114,6 @@ namespace OpenMS
     // unweight x values 
     std::vector<std::string> valid_weights;
     valid_weights = getValidXWeights();
-    bool valid_weight;
     if (params.exists("x_weight") && checkValidWeight(params.getValue("x_weight"), valid_weights) && !data.empty())
     {
       std::string x_weight = params.getValue("x_weight");
