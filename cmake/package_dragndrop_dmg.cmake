@@ -94,6 +94,7 @@ if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
   #Next line could overcome a script but since we do not have a fixed name of the OpenMS-$VERSION folder, it probably won't work
   #set(CPACK_DMG_DS_STORE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/DS_store_new)
   set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
+  set(CPACK_DMG_FORMAT UDBZ) ## Try bzip2 to get slighlty smaller images
 
   ## Sign the image. System keychain needs to be unlocked and include the ID used.
   if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
