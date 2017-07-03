@@ -87,7 +87,7 @@ namespace OpenMS
   void EnzymaticDigestion::setEnzyme(const String enzyme_name)
   {
     enzyme_ = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
-    if (enzyme_name == "unspecific_cleavage) { missed_cleavages_ = std::numeric_limits<int>::max(); }
+    if (enzyme_name == "unspecific_cleavage) { missed_cleavages_ = std::numeric_limits<Size>::max(); }
   }
 
   String EnzymaticDigestion::getEnzymeName() const
