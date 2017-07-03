@@ -185,7 +185,7 @@ if (APPLE)
 elseif(WIN32)
   # assemble required libraries for win32
   # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces, sqlite
-  get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
+  set(WIN32_DLLLOCATION "$<TARGET_FILE:OpenMS>")
   get_filename_component(WIN32_DLLPATH "${WIN32_DLLLOCATION}" PATH)
 
   add_custom_command(
