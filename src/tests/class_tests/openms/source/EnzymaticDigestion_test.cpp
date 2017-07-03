@@ -427,6 +427,15 @@ START_SECTION((bool digestUnmodifiedString(const StringView sequence, std::vecto
     TEST_EQUAL(out[0].getString(), "ACR")
     TEST_EQUAL(out[1].getString(), "PDE")
 
+    s = "ABCDEFGHIJ";
+    ed.setEnzyme("unspecific cleavage");
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 11*10/2)
+
+    s = "ABC";
+    ed.setEnzyme("unspecific cleavage");
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 4*3/2)
 END_SECTION
 
 START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size pep_length, bool methionine_cleavage)))

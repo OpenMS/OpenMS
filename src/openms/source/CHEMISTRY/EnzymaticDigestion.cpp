@@ -277,15 +277,33 @@ namespace OpenMS
     // initialization
     output.clear();
 
-    // naive cleavage sites
-    std::vector<Size> pep_positions = tokenize_(sequence.getString());
-    Size count = pep_positions.size();
-
     // disable max length filter by setting to maximum length
     if (max_length == 0)
     {
       max_length = sequence.size();
     }
+
+    // Unspecific cleavage:
+    // For unspecific cleavages every amino acid is a cutting position.
+    // And all substrings of legnth minx_size to max_size are generated.
+    if (enzyme_.getName() == "unspecific cleavage")
+    {
+      for (Size i = 0; i <= sequence.size() - min_length; ++i)
+      {
+        for (Size j = i + min_length; j <= i + max_length; ++j)
+        {
+          if (j > sequence.size()) { continue; }
+          output.push_back(sequence.substr(i, j - 1));
+        }
+      }
+      return;
+    }
+
+    // Specific cleavage
+
+    // naive cleavage sites
+    std::vector<Size> pep_positions = tokenize_(sequence.getString());
+    Size count = pep_positions.size();
 
     // no cleavage sites? return full string
     if (count == 0) 
