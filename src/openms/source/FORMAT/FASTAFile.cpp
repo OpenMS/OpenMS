@@ -32,6 +32,7 @@
 // $Authors: Nico PFeifer $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -127,6 +128,12 @@ namespace OpenMS
 
   void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::FASTA) + "'");
+    }
+
     ofstream outfile;
     outfile.open(filename.c_str(), ofstream::out);
 

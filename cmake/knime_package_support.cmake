@@ -185,7 +185,6 @@ if (APPLE)
 elseif(WIN32)
   # assemble required libraries for win32
   # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces, sqlite
-
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenMS> ${PAYLOAD_LIB_PATH}

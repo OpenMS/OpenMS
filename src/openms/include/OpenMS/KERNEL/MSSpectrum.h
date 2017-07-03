@@ -70,7 +70,7 @@ namespace OpenMS
   {
 public:
 
-    ///Comparator for the retention time.
+    /// Comparator for the retention time.
     struct RTLess :
       public std::binary_function<MSSpectrum, MSSpectrum, bool>
     {

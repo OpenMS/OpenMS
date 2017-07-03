@@ -6,6 +6,7 @@ from ChromatogramPeak cimport *
 from MassTrace cimport *
 from Feature cimport *
 from FeatureMap cimport *
+from MSChromatogram cimport *
 
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *

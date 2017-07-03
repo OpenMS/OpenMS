@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <fstream>
 
@@ -136,6 +137,12 @@ namespace OpenMS
 
   void FeatureXMLFile::store(const String& filename, const FeatureMap& feature_map)
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::FEATUREXML))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::FEATUREXML) + "'");
+    }
+
     //open stream
     ofstream os(filename.c_str());
     if (!os)
