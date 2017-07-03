@@ -126,6 +126,7 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-documentation
                   -Wno-source-uses-openmp
                   -Wno-old-style-cast
+		  -Wno-c++98-compat
                   # These are warnings of moderate severity, which are disabled
                   # for now until we are down to a reasonable size of warnings.
                   -Wno-conversion
