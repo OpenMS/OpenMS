@@ -316,12 +316,12 @@ namespace OpenMS
     // lambda predicate
     auto mapIndexLess = [] (const PeptideIdentification & a, const PeptideIdentification & b) -> bool
     {
-      bool has_a = a.metaValueExists("map_index");
-      bool has_b = b.metaValueExists("map_index");
+      const bool has_a = a.metaValueExists("map_index");
+      const bool has_b = b.metaValueExists("map_index");
 
       // moves IDs without meta value to end
-      if (has_a && !has_b) return true;
-      if (!has_a && has_b) return false;
+      if (has_a && !has_b) { return true; }
+      if (!has_a && has_b) { return false; }
 
       // both have map index annotated
       if (has_a && has_b)
