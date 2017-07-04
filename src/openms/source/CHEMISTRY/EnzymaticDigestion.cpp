@@ -288,21 +288,22 @@ namespace OpenMS
     output.clear();
 
     // disable max length filter by setting to maximum length
-    if (max_length == 0)
+    if (max_length == 0 || max_length > sequence.size())
     {
       max_length = sequence.size();
     }
 
     // Unspecific cleavage:
-    // For unspecific cleavages every amino acid is a cutting position.
-    // And all substrings of legnth minx_size to max_size are generated.
+    // For unspecific cleavage every amino acid is a cutting position.
+    // All substrings of legnth min_size..max_size are generated.
     if (enzyme_.getName() == "unspecific cleavage")
     {
+      output.reserve(sequence.size() * (max_length - min_length + 1));
       for (Size i = 0; i <= sequence.size() - min_length; ++i)
       {
-        for (Size j = i + min_length; j <= i + max_length; ++j)
+        const Size right = std::min(i + max_length, sequence.size());
+        for (Size j = i + min_length; j <= right; ++j)
         {
-          if (j > sequence.size()) { continue; }
           output.push_back(sequence.substr(i, j - 1));
         }
       }
