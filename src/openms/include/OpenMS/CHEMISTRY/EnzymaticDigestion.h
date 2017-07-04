@@ -72,6 +72,7 @@ public:
     /// Names of the Specificity
     static const std::string NamesOfSpecificity[SIZE_OF_SPECIFICITY];
     
+    /// Name for unspecific cleavage
     static const std::string UnspecificCleavage;
 
     /// Default constructor
