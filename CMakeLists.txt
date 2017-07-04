@@ -239,19 +239,8 @@ set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
 is_valid_package(${PACKAGE_TYPE})
 
-### Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
-if("${PACKAGE_TYPE}" STREQUAL "deb" OR "${PACKAGE_TYPE}" STREQUAL "rpm")
-
- # Let's have the lib version and the soversion in
- # the lib filename. No symlinking upon install.
- set(OPENMS_VSTRING "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
- 
- # Force *.so to be used, not *.a.
- #set(CMAKE_FIND_LIBRARY_SUFFIXES ".so")
-endif()
-### End Official Debian stuff by Filippo Rusconi <lopippo@debian.org>
-
-## Warn here because you n
+## Warn here because you need the signing identity before the app bundles are defined in the
+## src subfolder
 if("${PACKAGE_TYPE}" STREQUAL "dmg")
   if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "")
     message(WARNING "Trying to create dmg image without SIGNING_IDENTITY being set. "
