@@ -49,6 +49,7 @@ set(datastructures_executables_list
   MassExplainer_test
   Matrix_test
   #MatrixUtils_test
+  OPXLDataStructs_test
   Param_test
   QTCluster_test
   RangeManager_test
@@ -228,6 +229,7 @@ set(format_executables_list
   XMassFile_test
   XMLFile_test
   XMLValidator_test
+  XQuestResultXMLFile_test
   XTandemInfile_test
   XTandemXMLFile_test
   ZlibCompression_test
@@ -247,6 +249,7 @@ set(math_executables_list
   BilinearInterpolation_test
   BSpline2d_test
   CubicSpline2d_test
+  CumulativeBinomial_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
@@ -372,10 +375,12 @@ set(chemistry_executables_list
   ResidueDB_test
   ResidueModification_test
   Residue_test
+  SpectrumAnnotator_test
   SvmTheoreticalSpectrumGenerator_test
   SvmTheoreticalSpectrumGeneratorTrainer_test
   SvmTheoreticalSpectrumGeneratorSet_test
   TheoreticalSpectrumGenerator_test
+  TheoreticalSpectrumGeneratorXLMS_test
   TrypticIterator_test
   WeightWrapper_test
   IMSAlphabetTextParser_test
@@ -438,13 +443,11 @@ set(analysis_executables_list
   IsobaricQuantitationMethod_test
   IsobaricQuantifier_test
   IsobaricQuantifierStatistics_test
-  ItraqChannelExtractor_test
   ItraqConstants_test
   ItraqFourPlexQuantitationMethod_test
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
-  ItraqQuantifier_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
@@ -461,6 +464,7 @@ set(analysis_executables_list
   MapAlignmentTransformer_test
   MassDecompositionAlgorithm_test
   MassDecomposition_test
+  MetaboliteFeatureDeconvolution_test
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
@@ -468,6 +472,8 @@ set(analysis_executables_list
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
+  OPXLHelper_test
+  OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test
   PoseClusteringShiftSuperimposer_test
   PrecursorIonSelectionPreprocessing_test
@@ -492,6 +498,7 @@ set(analysis_executables_list
   TransformationModelLowess_test
   TransformationModelInterpolated_test
   TransformationModelLinear_test
+  XQuestScores_test
 )
 
 set(applications_executables_list
@@ -548,14 +555,6 @@ set(transformations_executables_list
   SeedListGenerator_test
   TraceFitter_test
 )
-
-if(NOT DISABLE_WAVELET2DTEST)
-set(transformations_executables_list
-  ${transformations_executables_list}
-  TwoDOptimization_test
-)
-endif(NOT DISABLE_WAVELET2DTEST)
-
 
 if(NOT DISABLE_OPENSWATH)
 set(transformations_executables_list

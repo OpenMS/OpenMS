@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,6 +51,8 @@ namespace OpenMS
     defaults_.setValidStrings("retentionTimeInterpretation", ListUtils::create<String>("iRT,seconds,minutes"));
     defaults_.setValue("override_group_label_check", "false", "Override an internal check that assures that all members of the same PeptideGroupLabel have the same PeptideSequence (this ensures that only different isotopic forms of the same peptide can be grouped together in the same label group). Only turn this off if you know what you are doing.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("override_group_label_check", ListUtils::create<String>("true,false"));
+    defaults_.setValue("force_invalid_mods", "false", "Force reading even if invalid modifications are encountered (OpenMS may not recognize the modification)", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("force_invalid_mods", ListUtils::create<String>("true,false"));
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -65,6 +67,7 @@ namespace OpenMS
   {
     retentionTimeInterpretation_ = param_.getValue("retentionTimeInterpretation");
     override_group_label_check_ = param_.getValue("override_group_label_check").toBool();
+    force_invalid_mods_ = param_.getValue("force_invalid_mods").toBool();
   }
 
   const char* TransitionTSVReader::strarray_[] =
@@ -222,7 +225,7 @@ namespace OpenMS
       cnt++;
 
 #ifdef TRANSITIONTSVREADER_TESTING
-      for (int i = 0; i < tmp_line.size(); i++)
+      for (Size i = 0; i < tmp_line.size(); i++)
       {
         std::cout << "line " << i << " " << tmp_line[i] << std::endl;
       }
@@ -638,9 +641,6 @@ namespace OpenMS
 
     resolveMixedSequenceGroups_(transition_list);
 
-    OpenMS::TargetedExperiment::Peptide tramlpeptide;
-    OpenMS::TargetedExperiment::Compound tramlcompound;
-
     Size progress = 0;
     startProgress(0, transition_list.size(), "converting to Transition List Format");
     for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
@@ -678,11 +678,13 @@ namespace OpenMS
         OpenSwath::LightCompound compound;
         if (tr_it->isPeptide())
         {
+          OpenMS::TargetedExperiment::Peptide tramlpeptide;
           createPeptide_(tr_it, tramlpeptide);
           OpenSwathDataAccessHelper::convertTargetedCompound(tramlpeptide, compound);
         }
         else
         {
+          OpenMS::TargetedExperiment::Compound tramlcompound;
           createCompound_(tr_it, tramlcompound);
           OpenSwathDataAccessHelper::convertTargetedCompound(tramlcompound, compound);
         }
@@ -1058,12 +1060,43 @@ namespace OpenMS
     interpretRetentionTime_(retention_times, rt_value);
     peptide.rts = retention_times;
 
-    // try to parse it and get modifications out
-    // TODO: at this point we could check whether the modification is actually valid
-    // aas.setModification(it->location, "UniMod:" + mo->getAccession().substr(7));
+    // Try to parse full UniMod string including modifications. If we fail, we
+    // can force reading and only parse the "naked" sequence.
     std::vector<TargetedExperiment::Peptide::Modification> mods;
+    AASequence aa_sequence;
+    try
+    {
+      aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
+    } catch (Exception::InvalidValue & e)
+    {
+      if (force_invalid_mods_)
+      {
+        std::cout << "Warning while reading file: " << e.what() << std::endl;
+        aa_sequence = AASequence::fromString(tr_it->PeptideSequence);
+      }
+      else 
+      {
+        std::cerr << "Error while reading file (use force_invalid_mods to override): " << e.what() << std::endl;
+        throw;
+      }
+    }
 
-    AASequence aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
+    std::vector<String> tmp_proteins;
+    tmp_proteins.push_back(tr_it->ProteinName);
+    peptide.protein_refs = tmp_proteins;
+
+    // check if the naked peptide sequence is equal to the unmodified AASequence
+    if (peptide.sequence != aa_sequence.toUnmodifiedString())
+    {
+      if (force_invalid_mods_)
+      {
+        // something is wrong, return and do not try and add any modifications
+        return;
+      }
+      LOG_WARN << "Warning: The peptide sequence " << peptide.sequence << " and the full peptide name " << aa_sequence << 
+        " are not equal. Please check your input." << std::endl;
+      LOG_WARN << "(use force_invalid_mods to override)" << std::endl;
+    }
 
     // Unfortunately, we cannot store an AASequence here but have to work with
     // the TraML modification object.
@@ -1099,10 +1132,6 @@ namespace OpenMS
     }
 
     peptide.mods = mods;
-
-    std::vector<String> tmp_proteins;
-    tmp_proteins.push_back(tr_it->ProteinName);
-    peptide.protein_refs = tmp_proteins;
 
     OPENMS_POSTCONDITION(aa_sequence.toUnmodifiedString() == peptide.sequence,
                          (String("Internal error: the sequences of the naked and modified peptide sequence are unequal(")
@@ -1172,10 +1201,10 @@ namespace OpenMS
       const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getPeptideRef());
       mytransition.group_id = it->getPeptideRef();
 
-  #ifdef TRANSITIONTSVREADER_TESTING
-      std::cout << "Peptide rts empty " <<
+#ifdef TRANSITIONTSVREADER_TESTING
+      LOG_DEBUG << "Peptide rts empty " <<
       pep.rts.empty()  << " or no cv term " << pep.rts[0].hasCVTerm("MS:1000896") << std::endl;
-  #endif
+#endif
 
       if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1000896"))
       {
@@ -1266,7 +1295,7 @@ namespace OpenMS
     }
     else
     {
-      // Error? 
+      // Error?
     }
 
     if (it->isProductChargeStateSet())

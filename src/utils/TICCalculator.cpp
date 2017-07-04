@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 
 #include <OpenMS/SYSTEM/SysInfo.h>
@@ -61,7 +60,7 @@ using namespace OpenSwath;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_TICCalculator TICCalculator
+  @page UTILS_TICCalculator TICCalculator
 
   @brief Calculates the TIC of a raw mass spectrometric file. 
   
@@ -71,9 +70,10 @@ using namespace OpenSwath;
   also calculate the TIC with this tool.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_TICCalculator.cli
+  @verbinclude UTILS_TICCalculator.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_TICCalculator.html
+  @htmlinclude UTILS_TICCalculator.html
+
 */
 
 // We do not want this class to show up in the docu:

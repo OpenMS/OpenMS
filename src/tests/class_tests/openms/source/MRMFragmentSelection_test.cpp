@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,15 +90,14 @@ START_SECTION((MRMFragmentSelection& operator=(const MRMFragmentSelection &rhs))
 }
 END_SECTION
 
-START_SECTION((void selectFragments(std::vector< RichPeak1D > &selected_peaks, const RichPeakSpectrum &spec)))
+START_SECTION((void selectFragments(std::vector< Peak1D > &selected_peaks, const PeakSpectrum &spec)))
 {
-	RichPeakSpectrum spec;
+	PeakSpectrum spec;
 	TheoreticalSpectrumGenerator tsg;
 	Param tsg_param(tsg.getParameters());
 	tsg_param.setValue("add_metainfo", "true");
 	tsg.setParameters(tsg_param);
-	tsg.addPeaks(spec, AASequence::fromString("DFPIANGER"), Residue::YIon, 1);
-	tsg.addPeaks(spec, AASequence::fromString("DFPIANGER"), Residue::BIon, 1);
+	tsg.getSpectrum(spec, AASequence::fromString("DFPIANGER"), 1, 1);
 
 	spec.sortByPosition();
 	Precursor prec;
@@ -124,7 +123,7 @@ START_SECTION((void selectFragments(std::vector< RichPeak1D > &selected_peaks, c
 	p.setValue("allowed_ion_types", ListUtils::create<String>("y"));
 	mrmfs.setParameters(p);
 
-	vector<RichPeak1D> selected_peaks;
+	vector<Peak1D> selected_peaks;
 	mrmfs.selectFragments(selected_peaks, spec);
 	TEST_EQUAL(selected_peaks.size(), 1)
 

@@ -6,8 +6,8 @@
 	id="OpenMS_14509930621887606273"
 	creationDate="2017-04-26T17:30:00">
 <cvList>
-	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv> 
- 	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv> 
+	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
+ 	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
 	<cv id="UO"     fullName="UNIT-ONTOLOGY" uri="https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
@@ -36,22 +36,22 @@
 	</DBSequence>
 	<Peptide id="PEP_14811341817612382122" name="PEPTIDERR">
 		<PeptideSequence>PEPTIDERR</PeptideSequence>
-	</Peptide> 
+	</Peptide>
  	<Peptide id="PEP_15050004366391181853" name="N[3899.3500281914]PEPTIDEK">
 		<PeptideSequence>NPEPTIDEK</PeptideSequence>
 		<Modification location="1" residues="N" monoisotopicMassDelta="3785.3071">
-			<cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
+			<cvParam cvRef="MS" accession="MS:1001460" name="unknown modification"/>
 		</Modification>
-	</Peptide> 
+	</Peptide>
  	<Peptide id="PEP_16907355690727166316" name="PEPTIDER">
 		<PeptideSequence>PEPTIDER</PeptideSequence>
-	</Peptide> 
+	</Peptide>
  	<Peptide id="PEP_3023658190814908261" name="PEPTIDERRR">
 		<PeptideSequence>PEPTIDERRR</PeptideSequence>
-	</Peptide> 
+	</Peptide>
  	<Peptide id="PEP_7276556891837796968" name="PEPTIDERRRRR">
 		<PeptideSequence>PEPTIDERRRRR</PeptideSequence>
-	</Peptide> 
+	</Peptide>
  	<PeptideEvidence id="PEV_10306100746905639127" peptide_ref="PEP_16907355690727166316" dBSequence_ref="PROT_13440783915218733453" post="B" pre="A"/>
 	<PeptideEvidence id="PEV_1147219038608936718" peptide_ref="PEP_7276556891837796968" dBSequence_ref="PROT_12999979801269632061"/>
 	<PeptideEvidence id="PEV_12524258085768770586" peptide_ref="PEP_16907355690727166316" dBSequence_ref="PROT_15916652588957785155"/>
@@ -75,6 +75,9 @@
 			<userParam name="charges" unitName="xsd:string" value="+1, +2"/>
 		</AdditionalSearchParams>
 		<ModificationParams>
+			<SearchModification fixedMod="true" massDelta="3785.3071" residues="N">
+				<cvParam cvRef="MS" accession="MS:1001460" name="unknown modification"/>
+			</SearchModification>
 		</ModificationParams>
 		<Enzymes independent="false">
 			<Enzyme missedCleavages="0" id="ENZ_7804704400743266335">
@@ -170,7 +173,7 @@
 			</FragmentationTable>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="MZ:nan@RT:nan" id="SIR_16250062551099875712">
 				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_7276556891837796968" calculatedMassToCharge="1580.87280307147" experimentalMassToCharge="nan" chargeState="1" id="SII_11115414975438642789">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_1147219038608936718"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_1147219038608936718"/>
 					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="PSM-level search engine specific statistic"/>
 					<userParam name="MOWSE" unitName="xsd:double" value="1.4"/>
 				</SpectrumIdentificationItem>
@@ -190,8 +193,8 @@
 			</FragmentationTable>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="17" id="SIR_17413765565443951891">
 				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_16907355690727166316" calculatedMassToCharge="956.468357540271" experimentalMassToCharge="675.9" chargeState="1" id="SII_1755235105885170967">
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_10306100746905639127"/> 
-					<PeptideEvidenceRef peptideEvidence_ref="PEV_12524258085768770586"/> 
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_10306100746905639127"/>
+					<PeptideEvidenceRef peptideEvidence_ref="PEV_12524258085768770586"/>
 					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="PSM-level search engine specific statistic"/>
 					<userParam name="MOWSE" unitName="xsd:double" value="0.9"/>
 					<userParam name="name" unitName="xsd:string" value="PeptideHit"/>

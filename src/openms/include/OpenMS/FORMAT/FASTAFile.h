@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Nico Pfeifer $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_FASTAFILE_H
@@ -38,15 +38,28 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <functional>
+#include <fstream>
+#include <memory>
 #include <vector>
 
 namespace OpenMS
 {
-/**
-    @brief This class serves for reading in FASTA files
+  /**
+    @brief This class serves for reading in and writing FASTA files
+
+    You can use aggegate methods load() and store() to read/write a
+    set of protein sequences at the cost of memory.
+    
+    Or use single read/write of protein sequences using readStart(), readNext()
+    and writeStart(), writeNext(), writeEnd() for more memory efficiency.
+    Reading from one and writing to another FASTA file can be handled by 
+    one single FASTAFile instance.
+
   */
-class OPENMS_DLLAPI FASTAFile
-{
+
+  class OPENMS_DLLAPI FASTAFile
+  {
 public:
   /**
       @brief FASTA entry type (identifier, description and sequence)
@@ -59,62 +72,108 @@ public:
     */
   struct FASTAEntry
   {
-    String identifier;
-    String description;
-    String sequence;
+      String identifier;
+      String description;
+      String sequence;
 
-    FASTAEntry() : identifier(""),
-                   description(""),
-                   sequence("")
-    {
-    }
+      FASTAEntry() :
+        identifier(""),
+        description(""),
+        sequence("")
+      {
+      }
 
-    FASTAEntry(String id, String desc, String seq) : identifier(id),
-                                                     description(desc),
-                                                     sequence(seq)
-    {
-    }
+      FASTAEntry(String id, String desc, String seq) :
+        identifier(id),
+        description(desc),
+        sequence(seq)
+      {
+      }
 
-    bool operator==(const FASTAEntry &rhs) const
-    {
-      return identifier == rhs.identifier && 
-	     description == rhs.description && 
-	     sequence == rhs.sequence;
-    }
+      bool operator==(const FASTAEntry& rhs) const
+      {
+        return identifier == rhs.identifier
+               && description == rhs.description
+               && sequence == rhs.sequence;
+      }
 
-    bool headerMatches(const FASTAEntry rhs)
-    {
-      return identifier == rhs.identifier && 
-	     description == rhs.description;
-    }
+    };
 
-    bool sequenceMatches(const FASTAEntry rhs)
-    {
-      return sequence == rhs.sequence;
-    }
-  };
+    /// Copy constructor
+    FASTAFile();
 
-  /// Copy constructor
-  FASTAFile();
+    /// Destructor
+    virtual ~FASTAFile();
 
-  /// Destructor
-  virtual ~FASTAFile();
-
-  /**
-      @brief loads a FASTA file given by 'filename' and stores the information in 'data'
+    /**
+      @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
 
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
     */
-  void load(const String &filename, std::vector<FASTAEntry> &data);
+    void readStart(const String& filename);
+
+    /**
+    @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
+
+    If you want to read all entries in one go, use load().
+
+    @return true if entry was read; false if eof was reached
+    @exception Exception::FileNotFound is thrown if the file does not exists.
+    @exception Exception::ParseError is thrown if the file does not suit to the standard.
+    */
+    bool readNext(FASTAEntry& protein);
+
+
+    /**
+    @brief Prepares a FASTA file given by 'filename' for streamed writing using writeNext().
+
+    @exception Exception::UnableToCreateFile is thrown if the process is not able to write to the file (disk full?).
+    */
+    void writeStart(const String& filename);
+
+    /**
+    @brief Stores the data given by @p protein. Call writeStart() once before calling writeNext().
+
+    Call writeEnd() when done to close the file!
+
+    @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
+    */
+    void writeNext(const FASTAEntry& protein);
+
+    /**
+    @brief Closes the file (flush). Called implicitly when FASTAFile object does out of scope.
+
+    */
+    void writeEnd();
+
+
+
+    /**
+      @brief loads a FASTA file given by 'filename' and stores the information in 'data'
+
+      This uses more RAM than readStart() and readNext().
+
+      @exception Exception::FileNotFound is thrown if the file does not exists.
+      @exception Exception::ParseError is thrown if the file does not suit to the standard.
+    */
+    void static load(const String& filename, std::vector<FASTAEntry>& data);
 
   /**
       @brief stores the data given by 'data' at the file 'filename'
+      
+      This uses more RAM than writeStart() and writeNext().
 
       @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
     */
-  void store(const String &filename, const std::vector<FASTAEntry> &data) const;
-};
+    void static store(const String& filename, const std::vector<FASTAEntry>& data);
+
+protected:
+    std::fstream infile_;   //< filestream for reading; init using FastaFile::readStart()
+    std::ofstream outfile_; //< filestream for writing; init using FastaFile::writeStart()
+    std::unique_ptr<void, std::function<void(void*) > > reader_; //< filestream for reading; init using FastaFile::readStart(); needs to be a pointer, since its not copy-constructable; we use void* here, to avoid pulling in seqan includes
+    Size entries_read_; //< some internal book-keeping during reading
+  };
 
 } // namespace OpenMS
 

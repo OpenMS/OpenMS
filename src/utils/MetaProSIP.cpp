@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -3243,7 +3243,7 @@ protected:
         LOG_DEBUG << "Feature type: (" << sip_peptide.feature_type << ") Seq.: " << feature_hit_seq << " m/z: " << feature_hit_theoretical_mz << endl;
       }
 
-      const set<String> protein_accessions = feature_hit.extractProteinAccessions();
+      const set<String> protein_accessions = feature_hit.extractProteinAccessionsSet();
       sip_peptide.accessions = vector<String>(protein_accessions.begin(), protein_accessions.end());
       sip_peptide.sequence = feature_hit_aaseq;
       sip_peptide.mz_theo = feature_hit_theoretical_mz;

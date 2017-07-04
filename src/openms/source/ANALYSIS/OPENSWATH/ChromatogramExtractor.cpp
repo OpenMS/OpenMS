@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -180,40 +180,6 @@ namespace OpenMS
   }
 
 
-  // Specialization for template (LightTargetedExperiment)
-  template <>
-  String ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used, String id)
-  {
-    OpenSwath::LightCompound comp = transition_exp_used.getCompoundByRef(id); 
-    if (!comp.sequence.empty())
-    {
-      return comp.sequence;
-    }
-    else
-    {
-      return comp.compound_name;
-    }
-  }
 
-
-  // Specialization for template (TargetedExperiment)
-  template <>
-  String ChromatogramExtractor::extract_id_<TargetedExperiment>(TargetedExperiment& transition_exp_used, String id)
-  {
-    if (transition_exp_used.hasPeptide(id))
-    {
-      TargetedExperiment::Peptide p = transition_exp_used.getPeptideByRef(id);
-      return p.sequence;
-    }
-    else if (transition_exp_used.hasCompound(id))
-    {
-      TargetedExperiment::Compound c = transition_exp_used.getCompoundByRef(id);
-      return c.id;
-    }
-    else
-    {
-      return "";
-    }
-  }
 
 }

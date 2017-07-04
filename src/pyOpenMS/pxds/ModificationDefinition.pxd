@@ -12,6 +12,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
         ModificationDefinition() nogil except +
         ModificationDefinition(ModificationDefinition) nogil except +
         ModificationDefinition(String &mod) nogil except +
+        ModificationDefinition(String &mod, bool fixed) nogil except +
+        ModificationDefinition(String &mod, bool fixed, UInt max_occur) nogil except +
+        ModificationDefinition(ResidueModification &mod) nogil except +
+        ModificationDefinition(ResidueModification &mod, bool fixed) nogil except +
+        ModificationDefinition(ResidueModification &mod, bool fixed, UInt max_occur) nogil except +
 
         bool operator==(ModificationDefinition &rhs) nogil except +
         bool operator!=(ModificationDefinition &rhs) nogil except +
@@ -19,8 +24,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
 
         void setFixedModification(bool fixed) nogil except +
         bool isFixedModification() nogil except +
-        void setMaxOccurences(UInt num) nogil except +
-        UInt getMaxOccurences() nogil except +
+        void setMaxOccurrences(UInt num) nogil except +
+        UInt getMaxOccurrences() nogil except +
         String getModificationName() nogil except +
         void setModification(String &modification) nogil except +
 

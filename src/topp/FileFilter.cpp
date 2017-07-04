@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -210,7 +210,7 @@ private:
           }
 
           //loop over all accessions of the peptideHits
-          set<String> protein_accessions = pep_hit_it->extractProteinAccessions();
+          set<String> protein_accessions = pep_hit_it->extractProteinAccessionsSet();
           for (set<String>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
           {
             //loop over all accessions entries of the StringList

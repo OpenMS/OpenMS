@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Stephan Aiche$
+// $Maintainer: Chris Bielow $
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -179,13 +179,13 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
     TEST_EQUAL(cm_out[1].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=4")
     TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_intensity"), 7365030)
     TEST_EQUAL(cm_out[1].getCharge(), 3)
-    TEST_REAL_SIMILAR(cm_out[1].getIntensity(), 2358063.25)
+    TEST_REAL_SIMILAR(cm_out[1].getIntensity(), 2329603)
     cf_it = cm_out[1].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 851248.38)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 847251)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 875994.77)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 861806)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 322173.1)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 311899)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 308647)
     ++cf_it;
@@ -195,13 +195,13 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
     TEST_EQUAL(cm_out[2].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=6")
     TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_intensity"), 6835636)
     TEST_EQUAL(cm_out[2].getCharge(), 3)
-    TEST_REAL_SIMILAR(cm_out[2].getIntensity(), 2623415.33)
+    TEST_REAL_SIMILAR(cm_out[2].getIntensity(), 2520967)
     cf_it = cm_out[2].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 898583.7)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 894414)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 977466.23)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 958965)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 406220.4)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 326443)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 341145)
     ++cf_it;
@@ -211,13 +211,13 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
     TEST_EQUAL(cm_out[3].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=8")
     TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_intensity"), 6762358)
     TEST_EQUAL(cm_out[3].getCharge(), 3)
-    TEST_REAL_SIMILAR(cm_out[3].getIntensity(), 1692679.37)
+    TEST_REAL_SIMILAR(cm_out[3].getIntensity(), 1585286)
     cf_it = cm_out[3].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 593009)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 581601)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 661448.27)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 623851)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 249740.1)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 191352)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 188482)
     ++cf_it;
@@ -354,33 +354,33 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
     ABORT_IF(cf_it != cm_out[0].end())
 
     cf_it = cm_out[1].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 851248.38)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 847251)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 875994.77)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 861806)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 322173.1)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 311899)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 308647)
     ++cf_it;
     ABORT_IF(cf_it != cm_out[1].end())
 
     cf_it = cm_out[2].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 898583.7)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 894414)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 977466.23)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 958965)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 406220.4)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 326443)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 341145)
     ++cf_it;
     ABORT_IF(cf_it != cm_out[2].end())
 
     cf_it = cm_out[3].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 593009)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 581601)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 661448.27)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 623851)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 249740.1)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0) // is 191352 < 200.000
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0) // is 188482 < 200.000
     ++cf_it;
@@ -428,22 +428,22 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
     ABORT_IF(cm_out.size() != 3)
 
     cf_it = cm_out[0].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 851248.38)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 847251)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 875994.77)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 861806)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 322173.1)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 311899)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 308647)
     ++cf_it;
     ABORT_IF(cf_it != cm_out[0].end())
 
     cf_it = cm_out[1].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 898583.7)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 894414)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 977466.23)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 958965)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 406220.4)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 326443)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 341145)
     ++cf_it;
@@ -583,7 +583,7 @@ START_SECTION(([EXTRA] TMT 10plex support))
 
   // disable activation filtering
   Param p = ice.getParameters();
-  p.setValue("reporter_mass_shift", 0.005);
+  p.setValue("reporter_mass_shift", 0.003);
   ice.setParameters(p);
 
   // extract channels

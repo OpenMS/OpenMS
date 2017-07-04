@@ -1491,47 +1491,7 @@ def testItraqConstants():
     assert constants.translateIsotopeMatrix is not None
 
 @report
-def testItraqChannelExtractor():
-    """
-    @tests:
-     ItraqChannelExtractor.__init__
-    """
-    extractor = pyopenms.ItraqChannelExtractor()
-    p = extractor.getDefaults()
-    _testParam(p)
 
-
-    # Note that using TMT_SIXPLEX will not work here
-    p = extractor.getDefaults()
-    pyopenms.ItraqChannelExtractor(pyopenms.ITRAQ_TYPES.FOURPLEX, p)
-    assert pyopenms.ItraqChannelExtractor().run is not None
-
-    assert extractor.getIsotopeMatrixAsStringList is not None
-    assert extractor.updateIsotopeMatrixFromStringList is not None
-    assert extractor.translateIsotopeMatrix is not None
-
-@report
-def testItraqQuantifier():
-    """
-    @tests:
-     ItraqQuantifier.__init__
-    """
-    ff = pyopenms.ItraqQuantifier()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    assert pyopenms.ItraqQuantifier().run is not None
-
-    # Note that using TMT_SIXPLEX will not work here
-    p = ff.getDefaults()
-    pyopenms.ItraqQuantifier(pyopenms.ITRAQ_TYPES.FOURPLEX, p)
-    assert pyopenms.ItraqChannelExtractor().run is not None
-
-    assert ff.getIsotopeMatrixAsStringList is not None
-    assert ff.updateIsotopeMatrixFromStringList is not None
-    assert ff.translateIsotopeMatrix is not None
-
-@report
 def testLinearResampler():
     """
     @tests:
@@ -4088,37 +4048,37 @@ def testType():
      Type.XMASS
     """
     for ti in  [
-      pyopenms.Type.CONSENSUSXML
-     ,pyopenms.Type.DTA
-     ,pyopenms.Type.DTA2D
-     ,pyopenms.Type.EDTA
-     ,pyopenms.Type.FASTA
-     ,pyopenms.Type.FEATUREXML
-     ,pyopenms.Type.GELML
-     ,pyopenms.Type.HARDKLOER
-     ,pyopenms.Type.IDXML
-     ,pyopenms.Type.INI
-     ,pyopenms.Type.KROENIK
-     ,pyopenms.Type.MASCOTXML
-     ,pyopenms.Type.MGF
-     ,pyopenms.Type.MS2
-     ,pyopenms.Type.MSP
-     ,pyopenms.Type.MZDATA
-     ,pyopenms.Type.MZIDENTML
-     ,pyopenms.Type.MZML
-     ,pyopenms.Type.MZXML
-     ,pyopenms.Type.OMSSAXML
-     ,pyopenms.Type.PEPLIST
-     ,pyopenms.Type.PEPXML
-     ,pyopenms.Type.PNG
-     ,pyopenms.Type.PROTXML
-     ,pyopenms.Type.SIZE_OF_TYPE
-     ,pyopenms.Type.TOPPAS
-     ,pyopenms.Type.TRAML
-     ,pyopenms.Type.TRANSFORMATIONXML
-     ,pyopenms.Type.TSV
-     ,pyopenms.Type.UNKNOWN
-     ,pyopenms.Type.XMASS]:
+      pyopenms.FileType.CONSENSUSXML
+     ,pyopenms.FileType.DTA
+     ,pyopenms.FileType.DTA2D
+     ,pyopenms.FileType.EDTA
+     ,pyopenms.FileType.FASTA
+     ,pyopenms.FileType.FEATUREXML
+     ,pyopenms.FileType.GELML
+     ,pyopenms.FileType.HARDKLOER
+     ,pyopenms.FileType.IDXML
+     ,pyopenms.FileType.INI
+     ,pyopenms.FileType.KROENIK
+     ,pyopenms.FileType.MASCOTXML
+     ,pyopenms.FileType.MGF
+     ,pyopenms.FileType.MS2
+     ,pyopenms.FileType.MSP
+     ,pyopenms.FileType.MZDATA
+     ,pyopenms.FileType.MZIDENTML
+     ,pyopenms.FileType.MZML
+     ,pyopenms.FileType.MZXML
+     ,pyopenms.FileType.OMSSAXML
+     ,pyopenms.FileType.PEPLIST
+     ,pyopenms.FileType.PEPXML
+     ,pyopenms.FileType.PNG
+     ,pyopenms.FileType.PROTXML
+     ,pyopenms.FileType.SIZE_OF_TYPE
+     ,pyopenms.FileType.TOPPAS
+     ,pyopenms.FileType.TRAML
+     ,pyopenms.FileType.TRANSFORMATIONXML
+     ,pyopenms.FileType.TSV
+     ,pyopenms.FileType.UNKNOWN
+     ,pyopenms.FileType.XMASS]:
         assert isinstance(ti, int)
 
 @report

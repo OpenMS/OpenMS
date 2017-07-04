@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/Enzyme.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
@@ -524,43 +525,59 @@ namespace OpenMS
           sip += "\n\t\t\t" + cv_.getTermByName("cross-linking search").toXMLString(cv_ns) + "\n";
         }
         //remove MS:1001029 written if present in <SearchDatabase> as of SearchDatabase_may rule
-        ProteinIdentification::SearchParameters p = it->getSearchParameters();
-        p.removeMetaValue("MS:1001029");
-        writeMetaInfos_(sip, p, 3);
-        sip += String(3, '\t') + "<userParam name=\"charges\" unitName=\"xsd:string\" value=\"" + it->getSearchParameters().charges + "\"/>\n";
+        ProteinIdentification::SearchParameters search_params = it->getSearchParameters();
+        search_params.removeMetaValue("MS:1001029");
+        writeMetaInfos_(sip, search_params, 3);
+        sip += String(3, '\t') + "<userParam name=\"charges\" unitName=\"xsd:string\" value=\"" + search_params.charges + "\"/>\n";
 //        sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
         sip += "\t\t</AdditionalSearchParams>\n";
         // modifications:
-        sip += "\t\t<ModificationParams>\n";
-        writeModParam_(sip, it->getSearchParameters().fixed_modifications, true, 2);
-        writeModParam_(sip, it->getSearchParameters().variable_modifications, false, 2);
-        sip += "\t\t</ModificationParams>\n";
-
-        writeEnzyme_(sip, it->getSearchParameters().digestion_enzyme, it->getSearchParameters().missed_cleavages, 2);
+        if (search_params.fixed_modifications.empty() &&
+            search_params.variable_modifications.empty()
+            && (!is_ppxl)) // TODO some OpenPepXL modifications are not covered by the unimod.obo and cause problems in the search_params
+        {
+          // no modifications used or are they just missing from the parameters?
+          ModificationDefinitionsSet mod_defs;
+          mod_defs.inferFromPeptides(*cpep_id_);
+          mod_defs.getModificationNames(search_params.fixed_modifications,
+                                        search_params.variable_modifications);
+        }
+        if (!search_params.fixed_modifications.empty() ||
+            !search_params.variable_modifications.empty())
+        {
+          sip += "\t\t<ModificationParams>\n";
+          writeModParam_(sip, search_params.fixed_modifications, true, 2);
+          writeModParam_(sip, search_params.variable_modifications, false, 2);
+          sip += "\t\t</ModificationParams>\n";
+        }
+        writeEnzyme_(sip, search_params.digestion_enzyme, search_params.missed_cleavages, 2);
         // TODO MassTable section
         sip += String("\t\t<FragmentTolerance>\n");
         String unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
-        if (it->getSearchParameters().fragment_mass_tolerance_ppm)
+        if (search_params.fragment_mass_tolerance_ppm)
         {
           unit_str = "unitCvRef=\"UO\" unitName=\"parts per million\" unitAccession=\"UO:0000169\"";
         }
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>\n";
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().fragment_mass_tolerance) + "\"/>\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(search_params.fragment_mass_tolerance) + "\"/>\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(search_params.fragment_mass_tolerance) + "\"/>\n";
         sip += String("\t\t</FragmentTolerance>\n");
         sip += String("\t\t<ParentTolerance>\n");
         unit_str = "unitCvRef=\"UO\" unitName=\"dalton\" unitAccession=\"UO:0000221\"";
-        if (it->getSearchParameters().precursor_mass_tolerance_ppm)
+        if (search_params.precursor_mass_tolerance_ppm)
         {
           unit_str = "unitCvRef=\"UO\" unitName=\"parts per million\" unitAccession=\"UO:0000169\"";
         }
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_mass_tolerance) + "\"/>\n";
-        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_mass_tolerance) + "\"/>\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(search_params.precursor_mass_tolerance) + "\"/>\n";
+        sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" " + unit_str + " cvRef=\"PSI-MS\" value=\"" + String(search_params.precursor_mass_tolerance) + "\"/>\n";
         sip += String("\t\t</ParentTolerance>\n");
         sip += String("\t\t<Threshold>\n\t\t\t") + thcv + "\n";
         sip += String("\t\t</Threshold>\n");
         sip += String("\t</SpectrumIdentificationProtocol>\n");
         sip_set.insert(sip);
-        sil_2_date.insert(make_pair(sil_id, String(it->getDateTime().getDate() + "T" + it->getDateTime().getTime())));
+        // empty date would lead to XML schema validation error:
+        DateTime date_time = it->getDateTime();
+        if (!date_time.isValid()) date_time = DateTime::now();
+        sil_2_date.insert(make_pair(sil_id, String(date_time.getDate() + "T" + date_time.getTime())));
 
         //~ collect SpectraData element for each ProteinIdentification
         String sdat_id;
@@ -602,7 +619,7 @@ namespace OpenMS
 
         //~ collect SearchDatabase element for each ProteinIdentification
         String sdb_id;
-        String sdb_file(it->getSearchParameters().db); //TODO @mths for several IdentificationRuns this must be something else, otherwise for two of the same db just one will be created
+        String sdb_file(search_params.db); //TODO @mths for several IdentificationRuns this must be something else, otherwise for two of the same db just one will be created
         std::map<String, String>::iterator dbit = sdb_ids.find(sdb_file);
         if (dbit == sdb_ids.end())
         {
@@ -610,17 +627,18 @@ namespace OpenMS
 
           search_database += String("\t\t<SearchDatabase ");
           search_database += String("location=\"") + sdb_file + "\" ";
-          if (!String(it->getSearchParameters().db_version).empty())
+          if (!String(search_params.db_version).empty())
           {
-            search_database += String("version=\"") + String(it->getSearchParameters().db_version) + "\" ";
+            search_database += String("version=\"") + String(search_params.db_version) + "\" ";
           }
           search_database += String("id=\"") + sdb_id + String("\">\n\t\t\t<FileFormat>\n");
           //TODO Searchdb file format type cvParam handling
           search_database += String(4, '\t') + cv_.getTermByName("FASTA format").toXMLString(cv_ns);
           search_database += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + sdb_file + String("\"/>\n\t\t\t</DatabaseName>\n");
+          // "MS:1001029" was removed from the "search_params" copy!
           if (it->getSearchParameters().metaValueExists("MS:1001029"))
           {
-            search_database += String(3, '\t') + cv_.getTerm("MS:1001029").toXMLString(cv_ns, it->getSearchParameters().getMetaValue("MS:1001029")) + String(" \n");
+            search_database += String(3, '\t') + cv_.getTerm("MS:1001029").toXMLString(cv_ns, it->getSearchParameters().getMetaValue("MS:1001029")) + String("\n");
           }
           search_database += "\t\t</SearchDatabase>\n";
 
@@ -915,7 +933,7 @@ namespace OpenMS
                         double diffmass = mod->getMonoMass() - jt->getSequence()[i].getMonoWeight();
                         p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
                       }
-                      p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\" value=\"N-Glycan\"/>";
+                      p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
                       p += "\n\t\t</Modification>\n";
                     }
                   }
@@ -926,32 +944,23 @@ namespace OpenMS
                 {
                   p += "\t\t<Modification location=\"" + String(i + 1);
                   p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
-                  p += "\"> \n\t\t\t<cvParam accession=\"XLMOD:XXXXX";
+                  p += "\">\n\t\t\t<cvParam accession=\"XLMOD:XXXXX";
                   p += "\" name=\"" +  jt->getMetaValue("xl_mod").toString();
                   p += "\" cvRef=\"XLMOD\"/>";
-                  p += "\n\t\t</Modification> \n";
+                  p += "\n\t\t</Modification>\n";
                 }
               }
             }
             if (jt->metaValueExists("xl_chain") && jt->getMetaValue("xl_type") != "mono-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv) <- check for use of unimod:DSS use
             {
               int i = jt->getMetaValue("xl_pos").toString().toInt();
-//              p += "\t\t<Modification location=\"" + String(i + 1);
-//              p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
               if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               {
-//                ModificationsDB* xl_db = ModificationsDB::getInstance();
                 CrossLinksDB* xl_db = CrossLinksDB::getInstance();
                 std::vector<String> mods;
-                xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, String(jt->getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
-                if (mods.size() > 0)
-                {
-                  p += "\t\t<Modification location=\"" + String(i + 1);
-                }
-
                 if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
                 {
-                  ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::N_TERM);
+                  xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::N_TERM);
                   if (mods.size() > 0)
                   {
                     p += "\t\t<Modification location=\"0";
@@ -959,10 +968,18 @@ namespace OpenMS
                 }
                 else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
                 {
-                  ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::C_TERM);
+                  xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::C_TERM);
                   if (mods.size() > 0)
                   {
                     p += "\t\t<Modification location=\"" + String(i + 2);
+                  }
+                }
+                else
+                {
+                  xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, String(jt->getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
+                  if (mods.size() > 0)
+                  {
+                    p += "\t\t<Modification location=\"" + String(i + 1);
                   }
                 }
 
@@ -1006,14 +1023,14 @@ namespace OpenMS
                 if (!acc.empty())
                 {
                   p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
-                  p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
+                  p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\">\n";
                   p += "\t\t\t<cvParam accession=\"" + acc + "\" cvRef=\"XLMOD\" name=\"" + name + "\"/>\n";
                 }
                 else // if there is no matching modification in the database, write out a placeholder
                 {
                   p += "\t\t<Modification location=\"" + String(i + 1);
                   p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
-                  p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\"> \n";
+                  p += "\" monoisotopicMassDelta=\"" + jt->getMetaValue("xl_mass").toString() + "\">\n";
                   p += "\t\t\t<cvParam accession=\"XLMOD:XXXXX\" cvRef=\"XLMOD\" name=\"" + jt->getMetaValue("xl_mod").toString() + "\"/>\n";
                 }
               }
@@ -1032,10 +1049,10 @@ namespace OpenMS
                   p += "\t\t<Modification location=\"" + String(i + 1);
                 }
                 p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
-                p += "\" monoisotopicMassDelta=\"0\"> \n";
+                p += "\" monoisotopicMassDelta=\"0\">\n";
               }
               p += "\t\t\t" + cv_.getTerm(jt->getMetaValue("xl_chain").toString()).toXMLString(cv_ns, DataValue(ppxl_linkid));
-              p += "\n\t\t</Modification> \n";
+              p += "\n\t\t</Modification>\n";
             }
             if (jt->metaValueExists("xl_pos2"))  // TODO ppxl metavalue subject to change (location and upgrade to cv)
             {
@@ -1044,10 +1061,10 @@ namespace OpenMS
               p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
               p += "\" monoisotopicMassDelta=\"0";
               // ppxl crosslink loop xl_pos2 is always the acceptor ("MS:1002510")
-              p += "\"> \n\t\t\t" + cv_.getTerm("MS:1002510").toXMLString(cv_ns, DataValue(ppxl_linkid));
-              p += "\n\t\t</Modification> \n";
+              p += "\">\n\t\t\t" + cv_.getTerm("MS:1002510").toXMLString(cv_ns, DataValue(ppxl_linkid));
+              p += "\n\t\t</Modification>\n";
             }
-            p += "\t</Peptide> \n ";
+            p += "\t</Peptide>\n ";
             sen_set.insert(p);
             pep_ids.insert(std::make_pair(pepi, pepid));
           }
@@ -1064,7 +1081,17 @@ namespace OpenMS
             for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
             {
               String pevid =  "PEV_" + String(UniqueIdGenerator::getUniqueId());
-              String dBSequence_ref = String(sen_ids.find(pe->getProteinAccession())->second);
+              String dBSequence_ref;
+              map<String, String>::const_iterator pos = sen_ids.find(pe->getProteinAccession());
+              if (pos != sen_ids.end())
+              {
+                dBSequence_ref = pos->second;
+              }
+              else
+              {
+                LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe->getProteinAccession() << "' - skipping." << endl;
+                continue;
+              }
               String idec;
               if (jt->metaValueExists("target_decoy"))
               {
@@ -1178,7 +1205,7 @@ namespace OpenMS
           }
           for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {
-            sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
+            sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/>\n";
           }
 
           if (! jt->getFragmentAnnotations().empty())
@@ -1410,14 +1437,14 @@ namespace OpenMS
       os << "<cvList>\n"
          << "\t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\" "
          << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo\" "
-         << "version=\"3.15.0\"></cv> \n "
-         << "\t<cv id=\"UNIMOD\" fullName=\"UNIMOD\" uri=\"http://www.unimod.org/obo/unimod.obo\"></cv> \n"
+         << "version=\"3.15.0\"></cv>\n "
+         << "\t<cv id=\"UNIMOD\" fullName=\"UNIMOD\" uri=\"http://www.unimod.org/obo/unimod.obo\"></cv>\n"
          << "\t<cv id=\"UO\"     fullName=\"UNIT-ONTOLOGY\" "
          << "uri=\"https://raw.githubusercontent.com/bio-ontology-research-group/unit-ontology/master/unit.obo\"></cv>\n";
       if (is_ppxl)
       {
           os << "\t<cv id=\"XLMOD\" fullName=\"PSI cross-link modifications\" "
-             << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo\"></cv> \n";
+             << "uri=\"https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo\"></cv>\n";
       }
       os << "</cvList>\n";
 
@@ -1590,15 +1617,16 @@ namespace OpenMS
         ModificationsDB::getInstance()->searchModifications(mods, *it);
         if (!mods.empty())
         {
+          // @TODO: if multiple mods match, we write all of them?
           for (std::set<const ResidueModification*>::const_iterator mt = mods.begin(); mt != mods.end(); ++mt)
           {
-            String origin = (*mt)->getOrigin();
-            if ((origin == "C-term") || (origin == "N-term")) origin = ".";
+            char origin = (*mt)->getOrigin();
+            if (origin == 'X') origin = '.'; // terminal without res. spec.
 
             s += String(indent + 1, '\t') + "<SearchModification fixedMod=\"" + (fixed ? "true" : "false") + "\" massDelta=\"" + String((*mt)->getDiffMonoMass()) + "\" residues=\"" + origin + "\">\n";
 
-            ResidueModification::TermSpecificity spec = (*mt)->getTermSpecificity();
             // @TODO: handle protein C-term/N-term
+            ResidueModification::TermSpecificity spec = (*mt)->getTermSpecificity();
             if ((spec == ResidueModification::C_TERM) || (spec == ResidueModification::N_TERM))
             {
               const String& cv_name = "modification specificity peptide " + (*mt)->getTermSpecificityName();
@@ -1609,13 +1637,20 @@ namespace OpenMS
 
             String ac = (*mt)->getUniModAccession();
             if (ac.hasPrefix("UniMod:")) ac = "UNIMOD:" + ac.suffix(':');
-            s += String(indent + 2, '\t') + unimod_.getTerm(ac).toXMLString(cv_ns) + "\n";
+            if (!ac.empty())
+            {
+              s += String(indent + 2, '\t') + unimod_.getTerm(ac).toXMLString(cv_ns) + "\n";
+            }
+            else
+            {
+              s += String(indent + 2, '\t') + "<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>\n";
+            }
             s += String(indent + 1, '\t') + "</SearchModification>\n";
           }
         }
         else
         {
-          LOG_WARN << String("Registered ") + (fixed ? "fixed" : "variable") + " modification not writable, unknown or unable to convert to cv parameter." << std::endl;
+          LOG_WARN << String("Registered ") + (fixed ? "fixed" : "variable") + " modification '" << *it << "' is unknown and will be ignored." << std::endl;
         }
       }
     }
