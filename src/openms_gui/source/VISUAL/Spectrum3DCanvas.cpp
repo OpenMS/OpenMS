@@ -202,7 +202,7 @@ namespace OpenMS
       openglwidget()->initializeGL();
     }
     openglwidget()->resizeGL(width(), height());
-    openglwidget()->glDraw();
+    openglwidget()->paintGL();
   }
 
   void Spectrum3DCanvas::showCurrentLayerPreferences()

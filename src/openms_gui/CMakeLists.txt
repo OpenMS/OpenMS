@@ -93,7 +93,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 set(OpenMS_GUI_DEP_LIBRARIES OpenMS
                              ${Qt5Widgets_LIBRARIES}
                              ${Qt5Svg_LIBRARIES}
-                             ${Qt5OpenGL_LIBRARIES}
+                             #${Qt5Gui_LIBRARIES}
                              ${Qt5Network_LIBRARIES}
                             )
 

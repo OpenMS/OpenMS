@@ -44,7 +44,7 @@
 
 
 class QPainter;
-class QGLWidget;
+class QOpenGLWidget;
 class QResizeEvent;
 
 namespace OpenMS

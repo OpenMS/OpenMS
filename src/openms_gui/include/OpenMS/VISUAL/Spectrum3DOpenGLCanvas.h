@@ -38,7 +38,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtOpenGL/QGLWidget>
+#include <QOpenGLWidget>
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -56,7 +56,7 @@ namespace OpenMS
   */
 
   class OPENMS_GUI_DLLAPI Spectrum3DOpenGLCanvas :
-    public QGLWidget
+    public QOpenGLWidget
   {
     Q_OBJECT
 
@@ -80,6 +80,13 @@ public:
         Destroys the OpenGLWidget and all associated data.
     */
     virtual ~Spectrum3DOpenGLCanvas();
+
+    ///helper function to replicate old behaviour of QGLWidget
+    void renderText(double x, double y, double z, const QString & text, const QFont & font);
+    ///helper function to replicate old behaviour of QGLWidget
+    void qglColor(QColor color);
+    ///helper function to replicate old behaviour of QGLWidget
+    void qglClearColor(QColor clearColor);
     ///virtual function provided from QGLWidget
     void initializeGL();
     /// virtual function provided from QGLWidget
