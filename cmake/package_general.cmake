@@ -28,14 +28,13 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
 
 # --------------------------------------------------------------------------
 # general definitions used for building OpenMS packages
-
 set(CPACK_PACKAGE_NAME "OpenMS")
 set(CPACK_PACKAGE_VENDOR "OpenMS.de")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
@@ -49,4 +48,29 @@ set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
 set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
 set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
 
-## This file should include general install commands once we unified the install procedures a bit more.
+########################################################### Fixing dynamic dependencies
+# Done on Windows via copying external and internal dlls to the install/bin/ folder
+# Done on Mac via fixup_bundle for the GUI apps (TOPPView, TOPPAS) and via fix_mac_dependencies for the TOPP tools
+# which recursively gathers dylds, copies them to install/lib/ and sets the install_name of the binaries to @executable_path/../lib
+# Not done on Linux. Either install systemwide (omit CMAKE_INSTALL_PREFIX or set it to /usr/) or install and add the
+# install/lib/ folder to the LD_LIBRARY_PATH
+
+#install(CODE "
+#  include(BundleUtilities)
+#  GET_BUNDLE_ALL_EXECUTABLES(\${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR} EXECS)
+#  fixup_bundle(\"${EXECS}\" \"\" \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}\")
+#  " COMPONENT applications)
+
+########################################################### SEARCHENGINES
+set(THIRDPARTY_COMPONENT_GROUP)
+if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
+
+  ## populates the THIRDPARTY_COMPONENT_GROUP list
+  install_thirdparty_folder("Comet")
+  install_thirdparty_folder("Fido")
+  install_thirdparty_folder("MSGFPlus")
+  install_thirdparty_folder("OMSSA")
+  install_thirdparty_folder("XTandem")
+  install_thirdparty_folder("LuciPHOr2")
+  install_thirdparty_folder("MyriMatch")
+endif()

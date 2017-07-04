@@ -30,7 +30,7 @@ With PyOpenMS, OpenMS offers Python bindings to a large part of the OpenMS API
 to enable rapid algorithm development. OpenMS supports the Proteomics Standard
 Initiative (PSI) formats for MS data. The main contributors of OpenMS are
 currently the Eberhard-Karls Universität in Tübingen, the Freie Universität
-Berlin and the ETH Zurich.
+Berlin and the ETH Zürich.
 
 Features
 --------

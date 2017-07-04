@@ -187,15 +187,12 @@ if (APPLE)
 elseif(WIN32)
   # assemble required libraries for win32
   # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces, sqlite
-  get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
-  get_filename_component(WIN32_DLLPATH "${WIN32_DLLLOCATION}" PATH)
-
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS.dll ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS_GUI.dll ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenSwathAlgo.dll ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/SuperHirn.dll ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenMS> ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenMS_GUI> ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenSwathAlgo> ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SuperHirn> ${PAYLOAD_LIB_PATH}
   )
 
   function(copy_library lib target_path)
