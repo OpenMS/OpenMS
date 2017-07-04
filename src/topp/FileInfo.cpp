@@ -460,7 +460,7 @@ protected:
           os << "Warning: Duplicate sequence, Number: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
         }
 
-        for (int i = 0; i < loopiter->sequence.size(); i++)
+        for (Size i = 0; i < loopiter->sequence.size(); i++)
         {
           ++aacids[loopiter->sequence[i]];
         }
