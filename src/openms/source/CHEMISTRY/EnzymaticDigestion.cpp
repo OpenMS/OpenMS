@@ -293,7 +293,21 @@ namespace OpenMS
       max_length = sequence.size();
     }
 
-    Size mc = (enzyme_.getName() == "unspecific cleavage") ? std::numeric_limits<Size>::max() : missed_cleavages_;
+    // Unspecific cleavage:
+    // For unspecific cleavages every amino acid is a cutting position.
+    // And all substrings of legnth minx_size to max_size are generated.
+    if (enzyme_.getName() == "unspecific cleavage")
+    {
+      for (Size i = 0; i <= sequence.size() - min_length; ++i)
+      {
+        for (Size j = i + min_length; j <= i + max_length; ++j)
+        {
+          if (j > sequence.size()) { continue; }
+          output.push_back(sequence.substr(i, j - 1));
+        }
+      }
+      return;
+    }
     
     // naive cleavage sites
     std::vector<Size> pep_positions = tokenize_(sequence.getString());
@@ -327,7 +341,7 @@ namespace OpenMS
     }
 
     // generate fragments with missed cleavages
-    for (Size i = 1; ((i <= mc) && (i < count)); ++i)
+    for (Size i = 1; ((i <= missed_cleavages_) && (i < count)); ++i)
     {
       for (Size j = 1; j < count - i; ++j)
       {
