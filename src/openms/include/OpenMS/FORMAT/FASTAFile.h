@@ -42,14 +42,13 @@
 
 namespace OpenMS
 {
-  /**
+/**
     @brief This class serves for reading in FASTA files
   */
-  class OPENMS_DLLAPI FASTAFile
-  {
+class OPENMS_DLLAPI FASTAFile
+{
 public:
-
-    /**
+  /**
       @brief FASTA entry type (identifier, description and sequence)
 
       The first String corresponds to the identifier that is
@@ -58,68 +57,64 @@ public:
       from the next line until the next > (exclusive) is stored
       in sequence.
     */
-    struct FASTAEntry
+  struct FASTAEntry
+  {
+    String identifier;
+    String description;
+    String sequence;
+
+    FASTAEntry() : identifier(""),
+                   description(""),
+                   sequence("")
     {
-      String identifier;
-      String description;
-      String sequence;
+    }
 
-      FASTAEntry() :
-        identifier(""),
-        description(""),
-        sequence("")
-      {
-      }
+    FASTAEntry(String id, String desc, String seq) : identifier(id),
+                                                     description(desc),
+                                                     sequence(seq)
+    {
+    }
 
-      FASTAEntry(String id, String desc, String seq) :
-        identifier(id),
-        description(desc),
-        sequence(seq)
-      {
-      }
+    bool operator==(const FASTAEntry &rhs) const
+    {
+      return identifier == rhs.identifier && 
+	     description == rhs.description && 
+	     sequence == rhs.sequence;
+    }
 
-      bool operator==(const FASTAEntry& rhs) const
-      {
-        return identifier == rhs.identifier
-               && description == rhs.description
-               && sequence == rhs.sequence;
-      }
+    bool headerMatches(const FASTAEntry rhs)
+    {
+      return identifier == rhs.identifier && 
+	     description == rhs.description;
+    }
 
-	  bool headerMatches(const FASTAEntry rhs)
-	  {
-		  return identifier == rhs.identifier
-			  && description == rhs.description;
-	  }
+    bool sequenceMatches(const FASTAEntry rhs)
+    {
+      return sequence == rhs.sequence;
+    }
+  };
 
-	  bool sequenceMatches(const FASTAEntry rhs)
-	  {
-		  return sequence == rhs.sequence;
-	  }
+  /// Copy constructor
+  FASTAFile();
 
-    };
+  /// Destructor
+  virtual ~FASTAFile();
 
-    /// Copy constructor
-    FASTAFile();
-
-    /// Destructor
-    virtual ~FASTAFile();
-
-    /**
+  /**
       @brief loads a FASTA file given by 'filename' and stores the information in 'data'
 
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
     */
-    void load(const String& filename, std::vector<FASTAEntry>& data);
+  void load(const String &filename, std::vector<FASTAEntry> &data);
 
-    /**
+  /**
       @brief stores the data given by 'data' at the file 'filename'
 
       @exception Exception::UnableToCreateFile is thrown if the process is not able to write the file.
     */
-    void store(const String& filename, const std::vector<FASTAEntry>& data) const;
-
-  };
+  void store(const String &filename, const std::vector<FASTAEntry> &data) const;
+};
 
 } // namespace OpenMS
 
