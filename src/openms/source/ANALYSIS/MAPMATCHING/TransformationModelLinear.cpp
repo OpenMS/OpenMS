@@ -44,6 +44,9 @@ namespace OpenMS
   {
     params_ = params;
     data_given_ = !data.empty();
+    TransformationModel::DataPoints data_weighted = data;
+    weightData(data_weighted, params); // weight the data
+
     if (!data_given_ && params.exists("slope") && (params.exists("intercept")))
     {
       // don't estimate parameters, use given values
@@ -56,6 +59,14 @@ namespace OpenMS
       getDefaultParameters(defaults);
       params_.setDefaults(defaults);
       symmetric_ = params_.getValue("symmetric_regression") == "true";
+      if (params.exists("x_weight"))
+      {// set x_weight
+        params_.setValue("x_weight",params.getValue("x_weight"));
+      }
+      else if (params.exists("y_weight"))
+      {// set y_weight
+        params_.setValue("y_weight",params.getValue("y_weight"));
+      }      
 
       size_t size = data.size();
       std::vector<Wm5::Vector2d> points;
@@ -65,15 +76,15 @@ namespace OpenMS
                                          "no data points for 'linear' model");
       }
       else if (size == 1) // degenerate case, but we can still do something
-      {
+      {               
         slope_ = 1.0;
-        intercept_ = data[0].second - data[0].first;
+        intercept_ = data_weighted[0].second - data_weighted[0].first;
       }
       else // compute least-squares fit
       {
         for (size_t i = 0; i < size; ++i)
         {
-          points.push_back(Wm5::Vector2d(data[i].first, data[i].second));
+          points.push_back(Wm5::Vector2d(data_weighted[i].first, data_weighted[i].second));
         }
         if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
         {
@@ -83,6 +94,8 @@ namespace OpenMS
       // update params
       params_.setValue("slope", slope_);
       params_.setValue("intercept", intercept_);
+      params_.setValue("x_weight", x_weight_);
+      params_.setValue("y_weight", y_weight_);
     }
   }
 
@@ -92,7 +105,12 @@ namespace OpenMS
 
   double TransformationModelLinear::evaluate(double value) const
   {
-    return slope_ * value + intercept_;
+    double weighted_value;
+    weighted_value = weightDatum(value, x_weight_);
+    double eval;
+    eval = unWeightDatum(slope_ * weighted_value + intercept_, y_weight_);
+    return eval;
+    // return slope_ * value + intercept_;
   }
 
   void TransformationModelLinear::invert()
@@ -109,10 +127,12 @@ namespace OpenMS
     params_.setValue("intercept", intercept_);
   }
 
-  void TransformationModelLinear::getParameters(double& slope, double& intercept) const
+  void TransformationModelLinear::getParameters(double& slope, double& intercept, std::string& x_weight, std::string& y_weight) const
   {
     slope = slope_;
     intercept = intercept_;
+    x_weight = x_weight_;
+    y_weight = y_weight_;
   }
 
   void TransformationModelLinear::getDefaultParameters(Param& params)
@@ -122,6 +142,12 @@ namespace OpenMS
                                                      " on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
     params.setValidStrings("symmetric_regression",
                            ListUtils::create<String>("true,false"));
+    params.setValue("x_weight", "", "Weight x values");
+    params.setValidStrings("x_weight",
+                           ListUtils::create<String>("1/x,1/x2,ln(x),"));
+    params.setValue("y_weight", "", "Weight y values");
+    params.setValidStrings("y_weight",
+                           ListUtils::create<String>("1/y,1/y2,ln(y),"));
   }
 
 } // namespace

@@ -97,7 +97,8 @@ namespace OpenMS
     {
       extrapolate_ = EX_GLOBAL_LINEAR;
       TransformationModelLinear lm(data, Param());
-      lm.getParameters(slope_min_, offset_min_);
+      std::string x_weight, y_weight;
+      lm.getParameters(slope_min_, offset_min_, x_weight, y_weight);
       slope_max_ = slope_min_;
       // extrapolation (left/right) considers xmin_/xmax_ as the origin (x = 0):
       offset_min_ = lm.evaluate(xmin_);
