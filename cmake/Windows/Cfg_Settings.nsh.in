@@ -1,5 +1,6 @@
 # path to visual studio redistributable (has to match your CMake generator)
-!define VS_REDISTRIBUTABLE_EXE "@VC_REDIST_PATH@"
+!define VS_REDISTRIBUTABLE_PATH "@VC_REDIST_PATH@"
+!define VS_REDISTRIBUTABLE_EXE "@VC_REDIST_EXE@"
 # define your platform:
 !define PLATFORM "@PLATFORM@"
 # path to QT dlls
