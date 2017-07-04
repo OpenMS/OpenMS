@@ -160,7 +160,7 @@ namespace OpenMS
     const String& tmp(protein.sequence);
 
     int chunks( tmp.size()/80 ); // number of complete chunks
-    int chunk_pos(0);
+    Size chunk_pos(0);
     while (--chunks >= 0)
     {
       outfile_.write(&tmp[chunk_pos], 80);
