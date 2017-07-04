@@ -17,8 +17,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
         # double evaluate(double value) nogil except +
         # void getDefaultParameters(Param & params) nogil except +
         
-        virtual void weightData(libcpp_vector[ libcpp_pair[double, double] ]& data, Param & params) nogil except +
-        virtual void weightData(libcpp_vector[ libcpp_pair[double, double] ]& data, Param & params) nogil except +
+        void weightData(libcpp_vector[ libcpp_pair[double, double] ]& data, Param & params) nogil except +
+        void weightData(libcpp_vector[ libcpp_pair[double, double] ]& data, Param & params) nogil except +
         bool checkValidWeight(libcpp_string& weight, libcpp_vector[libcpp_string] ]& valid_weights) nogil except +
         double weightDatum(double& datum, libcpp_string& weight) nogil except +
         double unWeightDatum(double& datum, libcpp_string& weight) nogil except +
