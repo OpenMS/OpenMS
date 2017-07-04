@@ -287,7 +287,7 @@ protected:
       vector <FASTAFile::FASTAEntry>::iterator loopiter;
       vector <FASTAFile::FASTAEntry>::iterator iter;
 
-      for (int i = 0; i < file_list.size(); i++)
+      for (Size i = 0; i < file_list.size(); ++i)
       {
         infile.load(file_list[i], temp_entries);
         entries.insert(entries.end(), temp_entries.begin(), temp_entries.end());
