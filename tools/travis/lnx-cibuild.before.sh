@@ -38,7 +38,7 @@ popd
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
   pushd cppcheck
-  git checkout 1.65
+  git checkout 1.79
   CXX=clang++ make SRCDIR=build CFGDIR=`pwd`/cfg HAVE_RULES=yes -j4
   popd
 else
