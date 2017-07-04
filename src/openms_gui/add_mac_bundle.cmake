@@ -28,8 +28,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
 # custom code to add a mac bundle application
@@ -55,18 +55,21 @@ macro(add_mac_app_bundle _name)
 	set_target_properties(${_name} PROPERTIES
 		# we want our own info.plist template
 		MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
-		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2016 The OpenMS Team."
+		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2017 The OpenMS Team."
 		MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
 		MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${_name}"
 		MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
 		MACOSX_BUNDLE_BUNDLE_NAME ${_name}
 		MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
 		MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
-		MACOSX_BUNDLE_COPYRIGHT "Copyright 2016, The OpenMS Team. All Rights Reserved."
+		MACOSX_BUNDLE_COPYRIGHT "Copyright 2017, The OpenMS Team. All Rights Reserved."
 	)
 
 	set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
+	## If you are packaging: Fix up the bundle. -> Copies all non-system dylibs into the bundles
+	## Results in duplicate libraries in the different bundles.. but well.. that's how it is
+	## If you are not packaging, libraries are linked via hardcoded paths specific to your machine.
 	if("${PACKAGE_TYPE}" STREQUAL "dmg")
 		install(CODE "
 			set(BU_CHMOD_BUNDLE_ITEMS On)
@@ -76,8 +79,24 @@ macro(add_mac_app_bundle _name)
 			COMPONENT AApplications)
 
 		install(TARGETS ${_name} BUNDLE
-			DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+			DESTINATION .
 			COMPONENT Applications)
+		
+		if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+		   ## TODO try to find codesign to make sure the right exec is used
+		   
+                   install(CODE "
+execute_process(COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign ${CPACK_BUNDLE_APPLE_CERT_APP} -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
+message('\${sign_out}')" COMPONENT BApplications)
 
-	endif("${PACKAGE_TYPE}" STREQUAL "dmg")
+                   install(CODE "
+execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_check_out ERROR_VARIABLE sign_check_out)
+message('\${sign_check_out}')" COMPONENT BApplications)
+		 
+		endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+
+	else()
+	  ## Just install to the usual bin dir without fixing it up
+	  install_tool(${_name})
+	endif()
 endmacro()
