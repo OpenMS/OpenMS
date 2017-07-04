@@ -357,10 +357,10 @@ class TOPPXFDR :
               String alpha_prot = alpha_ev_it->getProteinAccession();
               String beta_prot = beta_ev_it->getProteinAccession();
 
-              Internal::XQuestResultXMLHandler::removeSubstring(alpha_prot, "reverse_");
-              Internal::XQuestResultXMLHandler::removeSubstring(alpha_prot, Internal::XQuestResultXMLHandler::decoy_string);
-              Internal::XQuestResultXMLHandler::removeSubstring(beta_prot, "reverse_");
-              Internal::XQuestResultXMLHandler::removeSubstring(beta_prot, Internal::XQuestResultXMLHandler::decoy_string);
+              alpha_prot.substitute("reverse_", "");
+              alpha_prot.substitute(Internal::XQuestResultXMLHandler::decoy_string, "");
+              beta_prot.substitute("reverse_", "");
+              beta_prot.substitute(Internal::XQuestResultXMLHandler::decoy_string, "");
               pep_id.setMetaValue( alpha_prot == beta_prot ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein" , DataValue());
             }
           }

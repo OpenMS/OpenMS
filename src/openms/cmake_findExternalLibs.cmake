@@ -33,9 +33,7 @@
 # --------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# This cmake file handles finding external libs for OpenMS (note that the paths
-# for these libraries need to be defined on top-level, see the top-level file
-# cmake/OpenMSBuildSystem_externalLibs.cmake)
+# This cmake file handles finding external libs for OpenMS
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------

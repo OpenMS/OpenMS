@@ -1,3 +1,4 @@
+dist: trusty
 sudo: false
 language: cpp
 os:
@@ -34,8 +35,11 @@ addons:
          - subversion
          - doxygen 
          - graphviz
-         - coinor-libcbc0
-         - coinor-libcgl0
+         - libglpk36
+         - libglpk-dev
+         - coinor-cbc
+         - coinor-libcgl1
+         - coinor-libclp1
          - coinor-libcoinutils-dev
          - coinor-libcgl-dev
          - coinor-libcbc-dev

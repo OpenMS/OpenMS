@@ -32,6 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -323,6 +324,12 @@ namespace OpenMS
 
   void MSPFile::store(const String & filename, const PeakMap & exp) const
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::MSP) + "'");
+    }
+
     if (!File::writable(filename))
     {
       throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
