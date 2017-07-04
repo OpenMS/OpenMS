@@ -179,7 +179,7 @@ namespace OpenMS
 
         stickdata_ = makeDataAsTopView();
         axes_ticks_ = makeAxesTicks();
-        drawAxesLegend();
+        //drawAxesLegend();
       }
     }
     else if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
@@ -206,7 +206,7 @@ namespace OpenMS
 
       stickdata_ =  makeDataAsStick();
       axes_ticks_ = makeAxesTicks();
-      drawAxesLegend();
+      //drawAxesLegend();
     }
   }
 
@@ -239,6 +239,11 @@ namespace OpenMS
     zoom_ = zoom_tmp_;
   }
 
+  void Spectrum3DOpenGLCanvas::paintEvent(QPaintEvent * event)
+  {
+    drawAxesLegend();
+  }
+
   void Spectrum3DOpenGLCanvas::paintGL()
   {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -262,7 +267,7 @@ namespace OpenMS
       }
       glCallList(axes_);
       glCallList(axes_ticks_);
-      drawAxesLegend();
+      //drawAxesLegend();
       if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM || canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
       {
         glCallList(stickdata_);
@@ -1010,7 +1015,7 @@ namespace OpenMS
         normalizeAngle(&y_angle);
         yrot_ = y_angle;
 
-        drawAxesLegend();
+        //drawAxesLegend();
 
         mouse_move_end_ = e->pos();
         canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
