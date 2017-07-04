@@ -23,7 +23,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>" namesp
         void pickTransitionGroup(MRMTransitionGroup[MSChromatogram[ChromatogramPeak], LightTransition] transition_group) nogil except +
         void pickTransitionGroup(MRMTransitionGroup[MSChromatogram[ChromatogramPeak], ReactionMonitoringTransition] transition_group) nogil except +
 
-
         MRMFeature createMRMFeature(MRMTransitionGroup[ MSChromatogram[ChromatogramPeak], LightTransition] transition_group,
                                     libcpp_vector[ MSChromatogram[ChromatogramPeak] ] & picked_chroms,
                                     const int chr_idx,

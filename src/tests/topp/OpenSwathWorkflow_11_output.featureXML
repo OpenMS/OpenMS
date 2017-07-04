@@ -26,6 +26,7 @@
 					<UserParam type="float" name="MZ" value="100.01"/>
 					<UserParam type="string" name="native_id" value="tr1"/>
 					<UserParam type="float" name="peak_apex_int" value="945"/>
+					<UserParam type="float" name="logSN" value="0.658809291883646"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15157403601844400700_474525871221756682">
@@ -39,6 +40,7 @@
 					<UserParam type="float" name="MZ" value="101.01"/>
 					<UserParam type="string" name="native_id" value="tr2"/>
 					<UserParam type="float" name="peak_apex_int" value="1845"/>
+					<UserParam type="float" name="logSN" value="0.743478723066541"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15157403601844400700_12999979801269632061">
@@ -52,6 +54,7 @@
 					<UserParam type="float" name="MZ" value="102.02"/>
 					<UserParam type="string" name="native_id" value="3"/>
 					<UserParam type="float" name="peak_apex_int" value="2745"/>
+					<UserParam type="float" name="logSN" value="0.741318220818877"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
@@ -120,6 +123,7 @@
 					<UserParam type="float" name="MZ" value="300.01"/>
 					<UserParam type="string" name="native_id" value="7"/>
 					<UserParam type="float" name="peak_apex_int" value="900"/>
+					<UserParam type="float" name="logSN" value="0.491108057716722"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_17413765565443951891_16907355690727166316">
@@ -133,6 +137,7 @@
 					<UserParam type="float" name="MZ" value="301.01"/>
 					<UserParam type="string" name="native_id" value="8"/>
 					<UserParam type="float" name="peak_apex_int" value="1800"/>
+					<UserParam type="float" name="logSN" value="0.491108057716722"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_17413765565443951891_10306100746905639127">
@@ -146,6 +151,7 @@
 					<UserParam type="float" name="MZ" value="302.01"/>
 					<UserParam type="string" name="native_id" value="9"/>
 					<UserParam type="float" name="peak_apex_int" value="2700"/>
+					<UserParam type="float" name="logSN" value="0.491108057716722"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>

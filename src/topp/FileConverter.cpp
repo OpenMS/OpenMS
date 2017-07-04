@@ -361,7 +361,7 @@ protected:
         {
           consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
           consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
-          // f.getOptions().setCompression(true); // maybe later.
+          consumer.getOptions().setCompression(true);
         }
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
 
@@ -427,7 +427,7 @@ protected:
       {
         f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
         f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
-        // f.getOptions().setCompression(true); // maybe later.
+        f.getOptions().setCompression(true);
       }
 
       ChromatogramTools().convertSpectraToChromatograms(exp, true);
