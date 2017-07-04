@@ -96,7 +96,17 @@ public:
                && description == rhs.description
                && sequence == rhs.sequence;
       }
-
+    
+      bool headerMatches(const FASTAEntry rhs)
+      {
+        return identifier == rhs.identifier && 
+  	     description == rhs.description;
+      }
+ 
+      bool sequenceMatches(const FASTAEntry rhs)
+      {
+        return sequence == rhs.sequence;
+      }
     };
 
     /// Copy constructor
@@ -146,8 +156,7 @@ public:
 
     */
     void writeEnd();
-
-
+    
 
     /**
       @brief loads a FASTA file given by 'filename' and stores the information in 'data'
