@@ -89,7 +89,8 @@ START_SECTION((void align(const PeakMap& map, TransformationDescription& trafo))
   TransformationModelLinear lm(trafo.getDataPoints(),
                                trafo.getModelParameters());
   double slope, intercept;
-  lm.getParameters(slope, intercept);
+  std::string x_weight, y_weight;
+  lm.getParameters(slope, intercept, x_weight, y_weight);
   TEST_REAL_SIMILAR(slope, 1.01164);
   TEST_REAL_SIMILAR(intercept, -32.0912);
 }
