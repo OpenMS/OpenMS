@@ -169,7 +169,7 @@ namespace OpenMS
     }
     
     // ignore specificity and missed cleavage settings for unspecific cleavage
-    if (enzyme_name == "unspecific cleavage") { return true; }
+    if (enzyme_.getName() == "unspecific cleavage") { return true; }
     
     const Size pep_end = pep_pos + pep_length; // past-the-end index into protein of last peptide amino acid
 
@@ -233,7 +233,7 @@ namespace OpenMS
   Size EnzymaticDigestion::peptideCount(const AASequence& protein)
   {
     // For unspecific cleavage every cutting position may be skipped. Thus, we get (n + 1) \choose 2 products.
-    if (enzyme_name == "unspecific cleavage") { return (protein.size() + 1) * (protein.size()) / 2; };
+    if (enzyme_.getName() == "unspecific cleavage") { return (protein.size() + 1) * (protein.size()) / 2; };
     
     std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
     Size count = pep_positions.size();
@@ -252,7 +252,7 @@ namespace OpenMS
     // initialization
     output.clear();
     
-    Size mc = enzyme_name == "unspecific cleavage" ? std::numeric_limits<Size>::max() : missed_cleavages_ ;
+    Size mc = (enzyme_.getName() == "unspecific cleavage") ? std::numeric_limits<Size>::max() : missed_cleavages_;
     
     // naive cleavage sites
     std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
@@ -293,7 +293,7 @@ namespace OpenMS
       max_length = sequence.size();
     }
 
-    Size mc = enzyme_name == "unspecific cleavage" ? std::numeric_limits<Size>::max() : missed_cleavages_ ;
+    Size mc = (enzyme_.getName() == "unspecific cleavage") ? std::numeric_limits<Size>::max() : missed_cleavages_;
     
     // naive cleavage sites
     std::vector<Size> pep_positions = tokenize_(sequence.getString());
