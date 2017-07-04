@@ -275,7 +275,6 @@ START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&ou
     ed.digest(AASequence::fromString("ABCDEFGHIJ"), out);
     TEST_EQUAL(out.size(), 11*10/2)
     ed.digest(AASequence::fromString("ABC"), out);
-    ed.digestUnmodifiedString(s, out);
     TEST_EQUAL(out.size(), 4*3/2)
 END_SECTION
 
