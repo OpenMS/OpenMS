@@ -528,7 +528,7 @@ namespace OpenMS
     for (Size current_window = 0; current_window < number_of_windows; ++current_window)
     {
       PeakSpectrum real_window;
-      while (((*it_current_peak).getMZ() <= window_upper_bound) && (it_current_peak < real_spectrum.end()))
+      while ((it_current_peak < real_spectrum.end()) && ((*it_current_peak).getMZ() <= window_upper_bound))
       {
         real_window.push_back(*it_current_peak);
         ++it_current_peak;

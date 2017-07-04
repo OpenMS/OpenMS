@@ -200,8 +200,8 @@ namespace OpenMS
       {
         if (!dry_run && !File::exists(f))
         {
-          std::cerr << "The file '" << String(f) << "' does not exist!" << std::endl;
-          continue;
+          LOG_ERROR << "The file '" << String(f) << "' does not exist!" << std::endl;
+          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, f.toStdString());
         }
         QString new_file = full_dir.toQString()
             + QDir::separator()

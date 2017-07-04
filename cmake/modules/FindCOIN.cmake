@@ -1,9 +1,9 @@
 # - Try to find COIN
 # Once done this will define
 #
-#  COIN_FOUND - system has XercesC
-#  COIN_INCLUDE_DIRS - the XercesC include directory
-#  COIN_LIBRARIES - Link these to use XercesC
+#  COIN_FOUND - system has Coin
+#  COIN_INCLUDE_DIRS - the Coin include directory
+#  COIN_LIBRARIES - Link these to use Coin
 #
 # Inspired by LEMON's FindCOIN
 # https://lemon.cs.elte.hu/trac/lemon/browser/lemon/cmake/FindCOIN.cmake

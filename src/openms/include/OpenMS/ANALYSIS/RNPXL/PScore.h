@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_PSCORE
-#define OPENMS_ANALYSIS_RNPXL_PSCORE
+#ifndef OPENMS_ANALYSIS_RNPXL_PSCORE_H
+#define OPENMS_ANALYSIS_RNPXL_PSCORE_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 

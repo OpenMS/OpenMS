@@ -1,5 +1,6 @@
 from libcpp cimport bool
 from Feature cimport *
+from MRMFeature cimport *
 from UniqueIdInterface cimport *
 from ProteinIdentification cimport *
 from PeptideIdentification cimport *
@@ -30,6 +31,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         int size()  nogil except +
         Feature operator[](int)      nogil except + #wrap-upper-limit:size()
         void push_back(Feature spec) nogil except +
+        void push_back(MRMFeature spec) nogil except +
 
         void sortByIntensity() nogil except +
         void sortByIntensity(bool reverse) nogil except +
@@ -46,7 +48,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         FeatureMap operator+(FeatureMap) nogil except +
         FeatureMap iadd(FeatureMap) nogil except + # wrap-as:operator+=
 
-        void   updateRanges() nogil except +
+        void updateRanges() nogil except +
 
         libcpp_vector[ProteinIdentification] getProteinIdentifications() nogil except+
         void setProteinIdentifications(libcpp_vector[ProteinIdentification]) nogil except+

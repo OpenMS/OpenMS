@@ -77,6 +77,13 @@ public:
     static FileTypes::Type getTypeByFileName(const String& filename);
 
     /**
+       @brief Check if the file extension of @param type matches no other known FileType
+               
+       This means that may match the extension of @type or any other unknown extension (e.g., '.tmp')
+    */
+    static bool hasValidExtension(const String& filename, const FileTypes::Type type);
+
+    /**
       @brief Determines the file type of a file by parsing the first few lines
 
       @exception Exception::FileNotFound is thrown if the file is not present
