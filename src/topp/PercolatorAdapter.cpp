@@ -297,6 +297,7 @@ protected:
   }
   
   // Function adapted from Enzyme.h in Percolator converter
+  // TODO: adapt to OpenMS enzymes. Use existing functionality in EnzymaticDigestion.
   bool isEnz_(const char& n, const char& c, string& enz)
   {
     if (enz == "trypsin")
@@ -359,6 +360,7 @@ protected:
   }
 
   // Function adapted from Enzyme.h in Percolator converter
+  // TODO: Use existing OpenMS functionality.
   Size countEnzymatic_(String peptide, string& enz)
   {
     Size count = 0;
