@@ -81,7 +81,6 @@ public:
     */
     virtual ~Spectrum3DOpenGLCanvas();
 
-    void paintEvent(QPaintEvent * event);
     ///helper function to replicate old behaviour of QGLWidget
     void renderText(double x, double y, double z, const QString & text, const QFont & font);
     ///helper function to replicate old behaviour of QGLWidget

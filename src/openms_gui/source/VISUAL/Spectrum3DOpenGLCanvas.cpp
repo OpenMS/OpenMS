@@ -104,9 +104,9 @@ namespace OpenMS
     //GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
     //project(x, y, z, &textPosX, &textPosY, &textPosZ);
 
-    //TODO implement/figure out project. Use identity for testing
+    //TODO implement/figure out project function. Use identity for testing
     GLdouble textPosX = x, textPosY = y, textPosZ = z;
-    textPosY = height - textPosY; // y is inverted
+    //textPosY = height - textPosY; // y is inverted
 
     // Retrieve last OpenGL color to use as a font color
     GLdouble glColor[4];
@@ -114,11 +114,10 @@ namespace OpenMS
     QColor fontColor = QColor(glColor[0], glColor[1], glColor[2], glColor[3]);
 
     // Render text
-    QPainter painter(this);
-    painter.setPen(fontColor);
-    painter.setFont(font);
-    painter.drawText(textPosX, textPosY, text);
-    painter.end();
+    // TODO not sure where to start the painter. Here? In paintGL?
+    //painter.setPen(fontColor);
+    //painter.setFont(font);
+    //painter.drawText(textPosX, textPosY, text);
   }
 
   void Spectrum3DOpenGLCanvas::qglColor(QColor color) {
@@ -239,13 +238,13 @@ namespace OpenMS
     zoom_ = zoom_tmp_;
   }
 
-  void Spectrum3DOpenGLCanvas::paintEvent(QPaintEvent * event)
-  {
-    drawAxesLegend();
-  }
-
   void Spectrum3DOpenGLCanvas::paintGL()
   {
+    // Start a painter for renderText here? If you add this you will
+    // get errors and nothing but axes will be painted.
+    //QPainter painter(this);
+    //painter.begin(this);
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
@@ -267,12 +266,15 @@ namespace OpenMS
       }
       glCallList(axes_);
       glCallList(axes_ticks_);
-      //drawAxesLegend();
+      drawAxesLegend();
       if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM || canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
       {
         glCallList(stickdata_);
       }
     }
+    //Close painter
+    //painter.end();
+    update();
   }
 
   void Spectrum3DOpenGLCanvas::drawAxesLegend()
@@ -975,11 +977,13 @@ namespace OpenMS
       canvas_3d_.update_buffer_ = true;
       canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
     }
+    update();
   }
 
   void Spectrum3DOpenGLCanvas::focusOutEvent(QFocusEvent * e)
   {
     canvas_3d_.focusOutEvent(e);
+    update();
   }
 
   void Spectrum3DOpenGLCanvas::mousePressEvent(QMouseEvent * e)
@@ -994,6 +998,7 @@ namespace OpenMS
       canvas_3d_.update_buffer_ = true;
       canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
     }
+    update();
   }
 
   void Spectrum3DOpenGLCanvas::mouseMoveEvent(QMouseEvent * e)
@@ -1021,6 +1026,7 @@ namespace OpenMS
         canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
       }
     }
+    update();
   }
 
   void Spectrum3DOpenGLCanvas::mouseReleaseEvent(QMouseEvent * e)
@@ -1029,6 +1035,7 @@ namespace OpenMS
     {
       computeSelection();
     }
+    update();
   }
 
   void Spectrum3DOpenGLCanvas::computeSelection()
