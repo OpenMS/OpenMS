@@ -334,7 +334,7 @@ namespace OpenMS
     };
 
     std::transform(begin(), end(), begin(),
-      [mapIndexLess](ConsensusFeature c) 
+      [mapIndexLess](ConsensusFeature& c) 
       { 
         vector<PeptideIdentification> & pids = c.getPeptideIdentifications();
         return sort(pids.begin(), pids.end(), mapIndexLess); 
