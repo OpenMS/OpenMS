@@ -95,7 +95,11 @@ START_SECTION(void simulate(PeakSpectrum &spectrum, const AASequence &peptide, b
   PeakMap exp;
   MzMLFile mz_file;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   mz_file.load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
+#else
+  mz_file.load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test_boost58.mzML"),exp);
+#endif
 
   TEST_EQUAL(exp.size(), 1);
   if(exp.size())
