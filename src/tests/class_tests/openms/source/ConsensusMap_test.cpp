@@ -510,6 +510,12 @@ START_SECTION((void sortByMaps()))
 }
 END_SECTION
 
+START_SECTION((void sortPeptideIdentificationsByMapIndex()))
+{
+  NOT_TESTABLE; // tested within TOPP IDMapper
+}
+END_SECTION
+
 START_SECTION((void clear(bool clear_meta_data = true)))
 {
   ConsensusMap map1;
