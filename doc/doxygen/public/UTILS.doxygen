@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,8 +51,7 @@
 
   <b>File Handling</b>
   - @subpage UTILS_CVInspector - A tool for visualization and validation of PSI mapping and CV files.
-  - @subpage UTILS_ConvertTSVToTraML - Converts a tsv file (tab separated) to TraML.
-  - @subpage UTILS_ConvertTraMLToTSV - Converts a TraML file to TSV.
+  - @subpage UTILS_TargetedFileConverter - Converts targeted files (such as tsv or TraML files)
   - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
   - @subpage UTILS_IDSplitter - Splits protein/peptide identifications off of annotated data files.
   - @subpage UTILS_MzMLSplitter - Splits an mzML file into multiple parts
@@ -82,11 +81,13 @@
   <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.
   - @subpage UTILS_FeatureFinderSuperHirn - Find Features using the SuperHirn Algorithm (it can handle centroided or profile data, see .ini file).
+  - @subpage UTILS_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.  
   - @subpage UTILS_MRMPairFinder - Evaluate labeled pair ratios on MRM features.
   - @subpage UTILS_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
 
   <b>Metabolite Identification</b>
   - @subpage UTILS_AccurateMassSearch - Find potential HMDB IDs within the given mass error window.
+  - @subpage UTILS_MetaboliteSpectralMatcher - Identify small molecules from tandem MS spectra.  
 
   <b>Quality Control</b>
   - @subpage UTILS_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
@@ -104,7 +105,26 @@
   - @subpage UTILS_MassCalculator - Calculates masses and mass-to-charge ratios of peptide sequences.
   - @subpage UTILS_OpenSwathDIAPreScoring - SWATH (data-independent acquisition) pre-scoring.
   - @subpage UTILS_OpenSwathRewriteToFeatureXML - Rewrites results from mProphet back into featureXML.
+  - @subpage UTILS_OpenSwathFileSplitter - A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window.
   - @subpage UTILS_SvmTheoreticalSpectrumGeneratorTrainer - A trainer for SVM models as input for SvmTheoreticalSpectrumGenerator.
+  - @subpage UTILS_PeakPickerIterative A tool for peak detection in profile data.
+  - @subpage UTILS_DatabaseFilter - Filters a protein database in FASTA format according to one or multiple filtering criteria.
+  - @subpage UTILS_SpectraSTSearchAdapter - This tool provides an interface to the 'SEARCH' mode of the SpectraST program.
+  - @subpage UTILS_TICCalculator - Calculates the TIC of a raw mass spectrometric file. 
+  - @subpage UTILS_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
+  - @subpage UTILS_LowMemPeakPickerHiRes - A tool for peak detection on streamed profile data 
+  - @subpage UTILS_LowMemPeakPickerHiRes_RandomAccess - A tool for peak detection on streamed profile data 
+  - @subpage UTILS_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
+
+  <!--
+  - TODO we need descriptions for all of these
+  - @subpage UTILS_MetaProSIP - xxx
+  - @subpage UTILS_MultiplexResolver - xxx
+  - @subpage UTILS_OpenMSInfo
+  - @subpage UTILS_SimpleSearchEngine
+  - @subpage UTILS_TopPerc
+  - @subpage UTILS_RNPxlSearch - Tool for RNP 
+  -->
 
 
   <b>Deprecated</b>

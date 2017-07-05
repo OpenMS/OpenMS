@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -737,8 +737,8 @@ namespace OpenMS
       os << "id=\"PI_" << i << "\" ";
       identifier_id_[current_prot_id.getIdentifier()] = String("PI_") + i;
       os << "date=\"" << current_prot_id.getDateTime().getDate() << "T" << current_prot_id.getDateTime().getTime() << "\" ";
-      os << "search_engine=\"" << current_prot_id.getSearchEngine() << "\" ";
-      os << "search_engine_version=\"" << current_prot_id.getSearchEngineVersion() << "\">\n";
+      os << "search_engine=\"" << writeXMLEscape(current_prot_id.getSearchEngine()) << "\" ";
+      os << "search_engine_version=\"" << writeXMLEscape(current_prot_id.getSearchEngineVersion()) << "\">\n";
 
       //write search parameters
       const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
@@ -768,13 +768,11 @@ namespace OpenMS
       //modifications
       for (Size j = 0; j != search_param.fixed_modifications.size(); ++j)
       {
-        os << "\t\t\t<FixedModification name=\"" << search_param.fixed_modifications[j] << "\" />\n";
-        //Add MetaInfo, when modifications has it (Andreas)
+        os << "\t\t\t<FixedModification name=\"" << writeXMLEscape(search_param.fixed_modifications[j]) << "\" />\n";
       }
       for (Size j = 0; j != search_param.variable_modifications.size(); ++j)
       {
-        os << "\t\t\t<VariableModification name=\"" << search_param.variable_modifications[j] << "\" />\n";
-        //Add MetaInfo, when modifications has it (Andreas)
+        os << "\t\t\t<VariableModification name=\"" << writeXMLEscape(search_param.variable_modifications[j]) << "\" />\n";
       }
 
       writeUserParam_("UserParam", os, search_param, 4);
@@ -783,7 +781,7 @@ namespace OpenMS
 
       //write protein identifications
       os << "\t\t<ProteinIdentification";
-      os << " score_type=\"" << current_prot_id.getScoreType() << "\"";
+      os << " score_type=\"" << writeXMLEscape(current_prot_id.getScoreType()) << "\"";
       os << " higher_score_better=\"" << (current_prot_id.isHigherScoreBetter() ? "true" : "false") << "\"";
       os << " significance_threshold=\"" << current_prot_id.getSignificanceThreshold() << "\">\n";
 
@@ -797,7 +795,7 @@ namespace OpenMS
         accession_to_id_[current_prot_id.getIdentifier() + "_" + current_prot_id.getHits()[j].getAccession()] = prot_count;
         ++prot_count;
 
-        os << " accession=\"" << current_prot_id.getHits()[j].getAccession() << "\"";
+        os << " accession=\"" << writeXMLEscape(current_prot_id.getHits()[j].getAccession()) << "\"";
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
         
         double coverage = current_prot_id.getHits()[j].getCoverage();
@@ -806,7 +804,7 @@ namespace OpenMS
           os << " coverage=\"" << coverage << "\"";
         }
         
-        os << " sequence=\"" << current_prot_id.getHits()[j].getSequence() << "\">\n";
+        os << " sequence=\"" << writeXMLEscape(current_prot_id.getHits()[j].getSequence()) << "\">\n";
 
         writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);
 
@@ -951,7 +949,7 @@ namespace OpenMS
     }
     os << indent << "<" << tag_name << " ";
     os << "identification_run_ref=\"" << identifier_id_[id.getIdentifier()] << "\" ";
-    os << "score_type=\"" << id.getScoreType() << "\" ";
+    os << "score_type=\"" << writeXMLEscape(id.getScoreType()) << "\" ";
     os << "higher_score_better=\"" << (id.isHigherScoreBetter() ? "true" : "false") << "\" ";
     os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";
     //mz
@@ -968,7 +966,7 @@ namespace OpenMS
     DataValue dv = id.getMetaValue("spectrum_reference");
     if (dv != DataValue::EMPTY)
     {
-      os << "spectrum_reference=\"" << dv.toString() << "\" ";
+      os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
     }
     os << ">\n";
 
@@ -977,7 +975,7 @@ namespace OpenMS
     {
       os << indent << "\t<PeptideHit";
       os << " score=\"" << id.getHits()[j].getScore() << "\"";
-      os << " sequence=\"" << id.getHits()[j].getSequence() << "\"";
+      os << " sequence=\"" << writeXMLEscape(id.getHits()[j].getSequence().toString()) << "\"";
       os << " charge=\"" << id.getHits()[j].getCharge() << "\"";
 
       vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
@@ -985,30 +983,31 @@ namespace OpenMS
       os << IdXMLFile::createFlankingAAXMLString_(pes);
       os << IdXMLFile::createPositionXMLString_(pes);
 
-      set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
-
-      if (!protein_accessions.empty() && !accession_to_id_.empty())
+      String accs;
+      for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
       {
-        String accs;
-        for (set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
-        {
-          String a_2_id = String(accession_to_id_[id.getIdentifier() + "_" + *s_it]);
-          if (a_2_id.size() > 0)
-          {
-            if (!accs.empty())
-            {
-              accs += " ";
-            }
-            accs += "PH_";
-            accs += a_2_id;
-          }
-        }
         if (!accs.empty())
         {
-          os << " protein_refs=\"" << accs << "\"";
+          accs += " ";
+        }
+        String protein_accession = pe->getProteinAccession();
+
+        // empty accessions are not written out (legacy code)
+        if (!protein_accession.empty())
+        {
+          accs += "PH_";
+          accs += String(accession_to_id_[id.getIdentifier() + "_" + protein_accession]);
         }
       }
+
+      // don't write protein_refs if no peptide evidences present
+      if (!accs.empty())
+      {
+        os << " protein_refs=\"" << accs << "\"";
+      }
+
       os << ">\n";
+
       writeUserParam_("UserParam", os, id.getHits()[j], indentation_level + 2);
       os << indent << "\t</PeptideHit>\n";
     }

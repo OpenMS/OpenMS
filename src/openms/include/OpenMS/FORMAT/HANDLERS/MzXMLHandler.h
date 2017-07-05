@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
@@ -56,8 +56,8 @@ namespace OpenMS
     /**
       @brief XML handlers for MzXMLFile
 
-      MapType has to be a MSExperiment or have the same interface.
-      Do not use this class. It is only needed in MzXMLFile.
+          MapType has to be a MSExperiment or have the same interface.
+          Do not use this class. It is only needed in MzXMLFile.
     */
 
     typedef PeakMap MapType;
@@ -108,11 +108,6 @@ public:
       {
         consumer_ = consumer;
       }
-
-private:
-
-      /// initialize members (call from C'tor)
-      void init_();
 
 protected:
 
@@ -170,32 +165,42 @@ protected:
       /// Progress logging class
       const ProgressLogger& logger_;
 
+
+      /// write metaInfo to xml (usually in nameValue-tag)
+      inline std::ostream& writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname);
+
       /// write metaInfo to xml (usually in nameValue-tag)
       inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent = 4, String tag = "nameValue");
 
-      /// data processing auxiliary variable
-      std::vector< boost::shared_ptr< DataProcessing> > data_processing_;
-
       /**
-          @brief Fill a single spectrum with data from input
+      @brief Fill a single spectrum with data from input
 
-          @note Do not modify any internal state variables of the class since
-          this function will be executed in parallel.
-
+      @note Do not modify any internal state variables of the class since
+      this function will be executed in parallel.
       */
       void doPopulateSpectraWithData_(SpectrumData & spectrum_data);
 
       /**
-          @brief Populate all spectra on the stack with data from input
+      @brief Populate all spectra on the stack with data from input
 
-          Will populate all spectra on the current work stack with data (using
-          multiple threads if available) and append them to the result.
+      Will populate all spectra on the current work stack with data (using
+      multiple threads if available) and append them to the result.
       */
       void populateSpectraWithData_();
+
+      /// data processing auxiliary variable
+      std::vector< boost::shared_ptr< DataProcessing> > data_processing_;
+
 
 private:
       /// Not implemented
       MzXMLHandler();
+      
+      /// initialize members (call from C'tor)
+      void init_();
+
+      // init all the static members, which is necessary because otherwise the undefined order will cause problems
+      void initStaticMembers_();
 
       static const XMLCh* s_value_;
       static const XMLCh* s_count_;
@@ -208,7 +213,7 @@ private:
       static const XMLCh* s_completiontime_;
       static const XMLCh* s_precision_;
       static const XMLCh* s_byteorder_;
-      static const XMLCh* s_pairorder_;
+      static const XMLCh* s_contentType_;
       static const XMLCh* s_compressionType_;
       static const XMLCh* s_precursorintensity_;
       static const XMLCh* s_precursorcharge_;
@@ -231,10 +236,6 @@ private:
       static const XMLCh* s_centroided_;
       static const XMLCh* s_deisotoped_;
       static const XMLCh* s_chargedeconvoluted_;
-
-      // init all the static members, which is necessary because otherwise the undefined order will cause problems
-      void initStaticMembers_();
-
     };
 
   } // namespace Internal

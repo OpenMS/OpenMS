@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
@@ -38,6 +38,17 @@ namespace OpenMS
 {
   namespace Internal
   {
+
+    // class holding the byte offsets to '<scan>' tags in the mzXML file; req. to create the index at the end
+    struct IndexPos
+    {
+      Size id_;
+      std::ostream::streampos pos_;
+      IndexPos(const Size id, const std::ostream::streampos pos)
+        : id_(id),
+        pos_(pos) {}
+    };
+
 
     //--------------------------------------------------------------------------------
 
@@ -53,7 +64,7 @@ namespace OpenMS
     const XMLCh * MzXMLHandler::s_completiontime_ = 0;
     const XMLCh * MzXMLHandler::s_precision_ = 0;
     const XMLCh * MzXMLHandler::s_byteorder_ = 0;
-    const XMLCh * MzXMLHandler::s_pairorder_ = 0;
+    const XMLCh * MzXMLHandler::s_contentType_ = 0;
     const XMLCh * MzXMLHandler::s_compressionType_ = 0;
     const XMLCh * MzXMLHandler::s_precursorintensity_ = 0;
     const XMLCh * MzXMLHandler::s_precursorcharge_ = 0;
@@ -110,12 +121,12 @@ namespace OpenMS
     }
 
     void MzXMLHandler::startElement(const XMLCh* const /*uri*/,
-            const XMLCh* const /*local_name*/, const XMLCh* const qname,
-            const xercesc::Attributes& attributes)
+      const XMLCh* const /*local_name*/, const XMLCh* const qname,
+      const xercesc::Attributes& attributes)
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-      static bool init_static_members(false);
+        static bool init_static_members(false);
       if (!init_static_members)
       {
         initStaticMembers_();
@@ -184,7 +195,7 @@ namespace OpenMS
         }
         //pair order
         String pair_order = "m/z-int";
-        optionalAttributeAsString_(pair_order, attributes, s_pairorder_);
+        optionalAttributeAsString_(pair_order, attributes, s_contentType_);
         if (pair_order != "m/z-int")
         {
           error(LOAD, String("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
@@ -194,7 +205,7 @@ namespace OpenMS
         optionalAttributeAsString_(spectrum_data_.back().compressionType_, attributes, s_compressionType_);
         if (spectrum_data_.back().compressionType_ != "none" && spectrum_data_.back().compressionType_ != "zlib")
         {
-          error(LOAD, String("Invalid compression type ") +  spectrum_data_.back().compressionType_ + "in elements 'peaks'. Must be 'none' or 'zlib'! ");
+          error(LOAD, String("Invalid compression type ") + spectrum_data_.back().compressionType_ + "in elements 'peaks'. Must be 'none' or 'zlib'! ");
         }
       }
       else if (tag == "precursorMz")
@@ -269,8 +280,8 @@ namespace OpenMS
         logger_.setProgress(scan_count_);
 
         if ((options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time)))
-           || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level))
-           || options_.getSizeOnly())
+          || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level))
+          || options_.getSizeOnly())
         {
           // skip this tag
           skip_spectrum_ = true;
@@ -279,7 +290,7 @@ namespace OpenMS
         }
 
         // Add a new spectrum, initialize and set MS level and RT
-        spectrum_data_.resize(spectrum_data_.size() + 1); // TODO !!
+        spectrum_data_.resize(spectrum_data_.size() + 1);
         spectrum_data_.back().peak_count_ = 0;
 
         spectrum_data_.back().spectrum.setMSLevel(ms_level);
@@ -423,7 +434,7 @@ namespace OpenMS
       }
       else if (tag == "dataProcessing")
       {
-        data_processing_.push_back( DataProcessingPtr(new DataProcessing));
+        data_processing_.push_back(DataProcessingPtr(new DataProcessing));
 
         String boolean = "";
         optionalAttributeAsString_(boolean, attributes, s_deisotoped_);
@@ -498,9 +509,9 @@ namespace OpenMS
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-      //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
+        //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
 
-      static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
+        static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
       static const XMLCh* s_scan = xercesc::XMLString::transcode("scan");
 
       open_tags_.pop_back();
@@ -520,10 +531,10 @@ namespace OpenMS
         nesting_level_--;
         OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-        if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
-        {
+          if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
+          {
           populateSpectraWithData_();
-        }
+          }
       }
       //std::cout << " -- End -- " << "\n";
       sm_.clear();
@@ -598,22 +609,28 @@ namespace OpenMS
     void MzXMLHandler::writeTo(std::ostream& os)
     {
       //determine how many spectra there are (count only those with peaks)
-      UInt count_tmp_  = 0;
+      UInt count_tmp_ = 0;
       for (Size s = 0; s < cexp_->size(); s++)
       {
         const SpectrumType& spec = (*cexp_)[s];
         if (spec.size() != 0)
           ++count_tmp_;
       }
-      if (count_tmp_ == 0)
-        ++count_tmp_;
+      if (count_tmp_ == 0) ++count_tmp_;
+
       logger_.startProgress(0, cexp_->size(), "storing mzXML file");
+      double min_rt(0), max_rt(0);
+      if (cexp_->size() > 0)
+      {
+        min_rt = cexp_->begin()->getRT();
+        max_rt = (cexp_->end() - 1)->getRT();
+      }
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-         << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.1\" "
-         << "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
-         << "xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_2.1 "
-         << "http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/mzXML_idx_2.1.xsd\">\n"
-         << "\t<msRun scanCount=\"" << count_tmp_ << "\">\n";
+        << "<mzXML xmlns=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1\" \n"
+        << " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" \n"
+        << " xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/mzXML_3.1"
+        << " http://sashimi.sourceforge.net/schema_revision/mzXML_3.1/mzXML_idx_3.1.xsd\">\n"
+        << "\t<msRun scanCount=\"" << count_tmp_ << "\" startTime=\"PT" << min_rt << "S\" endTime=\"PT" << max_rt << "S\" >\n";
 
       //----------------------------------------------------------------------------------------
       // parent files
@@ -629,9 +646,7 @@ namespace OpenMS
           const SourceFile& sf = cexp_->getSourceFiles()[i];
           os << "\t\t<parentFile fileName=\"" << sf.getNameOfFile() << "\" fileType=\"";
           //file type is an enum in mzXML => search for 'raw' string
-          String tmp_string = sf.getFileType();
-          tmp_string.toLower();
-          if (tmp_string.hasSubstring("raw"))
+          if (String(sf.getFileType()).toLower().hasSubstring("raw"))
           {
             os << "RAWData";
           }
@@ -641,7 +656,6 @@ namespace OpenMS
           }
           //Sha1 checksum must have 40 characters => create a fake if it is unknown
           os << "\" fileSha1=\"";
-          tmp_string = sf.getChecksum();
           if (sf.getChecksum().size() != 40 || sf.getChecksumType() != SourceFile::SHA1)
           {
             os << "0000000000000000000000000000000000000000";
@@ -660,27 +674,40 @@ namespace OpenMS
       if (cexp_->getInstrument() != Instrument() || cexp_->getContacts().size() != 0)
       {
         const Instrument& inst = cexp_->getInstrument();
+        // the Instrument Manufacturer is paramount for some downstream tools
+        // Since the .getVendor() is usually empty, we infer this via the Aquisiton Software, which is unique to Thermo
+        String manufacturer = inst.getVendor();
+        if (options_.getForceMQCompatability() || 
+            (manufacturer.empty() && String(inst.getSoftware().getName()).toLower().hasSubstring("xcalibur")))
+        { // MaxQuant's internal parameter defaults require either "Thermo Scientific" (MaxQuant 1.2 - 1.5), or "Thermo Finnigan" (MaxQuant 1.3 - 1.5)
+          manufacturer = "Thermo Scientific";
+          LOG_INFO << "Detected software '" << inst.getSoftware().getName() << "'. Setting <msManufacturer> as '" << manufacturer << "'." << std::endl;
+        }
         os << "\t\t<msInstrument>\n"
-           << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << inst.getVendor() << "\"/>\n" << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
-        if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod())
-        {
+          << "\t\t\t<msManufacturer category=\"msManufacturer\" value=\"" << manufacturer << "\"/>\n"
+          << "\t\t\t<msModel category=\"msModel\" value=\"" << inst.getModel() << "\"/>\n";
+
+        if (inst.getIonSources().empty() || !inst.getIonSources()[0].getIonizationMethod() || cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()].empty())
+        { // can be empty for MaxQuant
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"\"/>\n";
         }
         else
         {
           os << "\t\t\t<msIonisation category=\"msIonisation\" value=\"" << cv_terms_[2][inst.getIonSources()[0].getIonizationMethod()] << "\"/>\n";
         }
+        
         const std::vector<MassAnalyzer>& analyzers = inst.getMassAnalyzers();
-        if (analyzers.empty() || !analyzers[0].getResolutionMethod())
-        {
+        if (analyzers.empty() || cv_terms_[3][analyzers[0].getType()].empty())
+        { // can be empty for MaxQuant
           os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"\"/>\n";
         }
         else
         {
-          os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"" << cv_terms_[3][analyzers[0].getType()]  << "\"/>\n";
+          os << "\t\t\t<msMassAnalyzer category=\"msMassAnalyzer\" value=\"" << cv_terms_[3][analyzers[0].getType()] << "\"/>\n";
         }
-        if (inst.getIonDetectors().empty() || !inst.getIonDetectors()[0].getType())
-        {
+
+        if (inst.getIonDetectors().empty() || !inst.getIonDetectors()[0].getType() || cv_terms_[4][inst.getIonDetectors()[0].getType()].empty())
+        { // can be empty for MaxQuant
           os << "\t\t\t<msDetector category=\"msDetector\" value=\"\"/>\n";
         }
         else
@@ -688,12 +715,8 @@ namespace OpenMS
           os << "\t\t\t<msDetector category=\"msDetector\" value=\"" << cv_terms_[4][inst.getIonDetectors()[0].getType()] << "\"/>\n";
         }
         os << "\t\t\t<software type=\"acquisition\" name=\"" << inst.getSoftware().getName() << "\" version=\"" << inst.getSoftware().getVersion() << "\"/>\n";
-        if (analyzers.empty() || !analyzers[0].getResolutionMethod())
-        {
-          os << "\t\t\t<msResolution category=\"msResolution\" value=\"\"/>\n";
-        }
-        else
-        {
+        if (!(analyzers.empty() || !analyzers[0].getResolutionMethod() || cv_terms_[5][analyzers[0].getResolutionMethod()].empty()))
+        { // must not be empty, otherwise MaxQuant crashes upon loading mzXML
           os << "\t\t\t<msResolution category=\"msResolution\" value=\"" << cv_terms_[5][analyzers[0].getResolutionMethod()] << "\"/>\n";
         }
 
@@ -701,7 +724,7 @@ namespace OpenMS
         {
           const ContactPerson& cont = cexp_->getContacts()[0];
 
-          os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName() <<  "\"";
+          os << "\t\t\t<operator first=\"" << cont.getFirstName() << "\" last=\"" << cont.getLastName() << "\"";
 
           if (cont.getEmail() != "")
           {
@@ -731,32 +754,32 @@ namespace OpenMS
       }
 
       //----------------------------------------------------------------------------------------
-      //data processing (the information of the first spectrum is assigned to the whole file)
+      // data processing (the information of the first spectrum is assigned to the whole file)
       //----------------------------------------------------------------------------------------
       if (cexp_->size() == 0 || (*cexp_)[0].getDataProcessing().empty())
       {
         os << "\t\t<dataProcessing>\n"
-           << "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
-           << "\t\t</dataProcessing>\n";
+          << "\t\t\t<software type=\"processing\" name=\"\" version=\"\"/>\n"
+          << "\t\t</dataProcessing>\n";
       }
       else
       {
         for (Size i = 0; i < (*cexp_)[0].getDataProcessing().size(); ++i)
         {
-          const DataProcessing& data_processing = * (*cexp_)[0].getDataProcessing()[i].get();
+          const DataProcessing& data_processing = *(*cexp_)[0].getDataProcessing()[i].get();
           os << "\t\t<dataProcessing deisotoped=\""
-             << data_processing.getProcessingActions().count(DataProcessing::DEISOTOPING)
-             << "\" chargeDeconvoluted=\""
-             << data_processing.getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)
-             << "\" centroided=\""
-             << data_processing.getProcessingActions().count(DataProcessing::PEAK_PICKING)
-             << "\"";
+            << data_processing.getProcessingActions().count(DataProcessing::DEISOTOPING)
+            << "\" chargeDeconvoluted=\""
+            << data_processing.getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION)
+            << "\" centroided=\""
+            << data_processing.getProcessingActions().count(DataProcessing::PEAK_PICKING)
+            << "\"";
           if (data_processing.metaValueExists("#intensity_cutoff"))
           {
             os << " intensityCutoff=\"" << writeXMLEscape(data_processing.getMetaValue("#intensity_cutoff").toString()) << "\"";
           }
           os << ">\n"
-             << "\t\t\t<software type=\"";
+            << "\t\t\t<software type=\"";
           if (data_processing.metaValueExists("#type"))
           {
             os << writeXMLEscape(data_processing.getMetaValue("#type").toString());
@@ -767,7 +790,7 @@ namespace OpenMS
           }
 
           os << "\" name=\"" << data_processing.getSoftware().getName()
-             << "\" version=\"" << data_processing.getSoftware().getVersion();
+            << "\" version=\"" << data_processing.getSoftware().getVersion();
 
           if (data_processing.getCompletionTime() != DateTime())
           {
@@ -816,6 +839,8 @@ namespace OpenMS
         warning(STORE, "Not all spectrum native IDs are numbers or correctly prefixed with 'scan='. The spectra are renumbered and the native IDs are lost!");
       }
 
+      std::vector<IndexPos> scan_index_positions;
+
       // write scans
       std::stack<UInt> open_scans;
       for (Size s = 0; s < cexp_->size(); s++)
@@ -836,10 +861,13 @@ namespace OpenMS
           spectrum_id = spec.getNativeID().toInt();
         }
 
-        os << String(ms_level + 1, '\t')
-           << "<scan num=\"" << spectrum_id << "\" msLevel=\""
-           << ms_level << "\" peaksCount=\""
-           << spec.size() << "\" polarity=\"";
+        os << String(ms_level + 1, '\t');
+
+        scan_index_positions.push_back(IndexPos(spectrum_id, os.tellp())); // remember scan index
+        os << "<scan num=\"" << spectrum_id << "\""
+          << " msLevel=\"" << ms_level << "\""
+          << " peaksCount=\"" << spec.size() << "\""
+          << " polarity=\"";
         if (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE)
         {
           os << "+";
@@ -852,7 +880,7 @@ namespace OpenMS
         {
           os << "any";
         }
-
+        os << "\"";
         //scan type
         switch (spec.getInstrumentSettings().getScanMode())
         {
@@ -864,57 +892,42 @@ namespace OpenMS
         case InstrumentSettings::MSNSPECTRUM:
           if (spec.getInstrumentSettings().getZoomScan())
           {
-            os << "\" scanType=\"zoom";
+            os << " scanType=\"zoom\"";
           }
           else
           {
-            os << "\" scanType=\"Full";
+            os << " scanType=\"Full\"";
           }
           break;
 
         case InstrumentSettings::SIM:
-          os << "\" scanType=\"SIM";
+          os << " scanType=\"SIM\"";
           break;
 
         case InstrumentSettings::SRM:
-          os << "\" scanType=\"SRM";
+          os << " scanType=\"SRM\"";
           break;
 
         case InstrumentSettings::CRM:
-          os << "\" scanType=\"CRM";
+          os << " scanType=\"CRM\"";
           break;
 
         default:
-          os << "\" scanType=\"Full";
+          os << " scanType=\"Full\"";
           warning(STORE, String("Scan type '") + InstrumentSettings::NamesOfScanMode[spec.getInstrumentSettings().getScanMode()] + "' not supported by mzXML. Using 'Full' scan mode!");
         }
 
         // filter line
-        if (spec.metaValueExists("filter string") )
+        if (spec.metaValueExists("filter string"))
         {
-          os << "\" filterLine=\"";
-          os << writeXMLEscape ( (String)spec.getMetaValue("filter string") );
+          os << " filterLine=\"";
+          os << writeXMLEscape((String)spec.getMetaValue("filter string"));
+          os << "\"";
         }
-
-        // base peak mz (used by some programs like MAVEN), according to xsd:
-        // "m/z of the base peak (most intense peak)"
-        os << "\" basePeakMz=\"";
-        double basePeakInt = 0;
-        double basePeakMz = 0;
-        for (Size j = 0; j < spec.size(); j++)
-        {
-          if (spec[j].getIntensity() > basePeakInt)
-          {
-            basePeakInt = spec[j].getIntensity();
-            basePeakMz = spec[j].getMZ();
-          }
-        }
-        os << basePeakMz;
 
         // retention time
-        os << "\" retentionTime=\"";
-        if (spec.getRT() < 0)
-          os << "-";
+        os << " retentionTime=\"";
+        if (spec.getRT() < 0) os << "-";
         os << "PT" << std::fabs(spec.getRT()) << "S\"";
         if (!spec.getInstrumentSettings().getScanWindows().empty())
         {
@@ -925,6 +938,34 @@ namespace OpenMS
           warning(STORE, "The MzXML format can store only one scan window for each scan. Only the first one is stored!");
         }
 
+        // convert meta values to tags
+        writeAttributeIfExists_(os, spec, "lowest observed m/z", "lowMz");
+        writeAttributeIfExists_(os, spec, "highest observed m/z", "highMz");
+        if (spec.metaValueExists("base peak m/z")) writeAttributeIfExists_(os, spec, "base peak m/z", "basePeakMz");
+        else
+        { // base peak mz (used by some programs like MAVEN), according to xsd: "m/z of the base peak (most intense peak)"
+          os << " basePeakMz=\"";
+          double basePeakInt(0), basePeakMz(0);
+          for (Size j = 0; j < spec.size(); j++)
+          {
+            if (spec[j].getIntensity() > basePeakInt)
+            {
+              basePeakInt = spec[j].getIntensity();
+              basePeakMz = spec[j].getMZ();
+            }
+          }
+          os << basePeakMz << "\"";
+        }
+
+        writeAttributeIfExists_(os, spec, "base peak intensity", "basePeakIntensity");
+        writeAttributeIfExists_(os, spec, "total ion current", "totIonCurrent");
+
+        if (ms_level == 2 &&
+          !spec.getPrecursors().empty() &&
+          spec.getPrecursors().front().metaValueExists("collision energy"))
+        {
+          os << " collisionEnergy=\"" << spec.getPrecursors().front().getMetaValue("collision energy") << "\" ";
+        }
         // end of "scan" attributes
         os << ">\n";
 
@@ -932,23 +973,44 @@ namespace OpenMS
         for (Size i = 0; i < spec.getPrecursors().size(); ++i)
         {
           const Precursor& precursor = spec.getPrecursors()[i];
-          //intensity
-          os << String(ms_level + 2, '\t') << "<precursorMz precursorIntensity=\"" << precursor.getIntensity();
-          //charge
+          // intensity
+          os << String(ms_level + 2, '\t') << "<precursorMz precursorIntensity=\"" << (int)precursor.getIntensity() << "\"";
+          // charge
           if (precursor.getCharge() != 0)
-            os << "\" precursorCharge=\"" << precursor.getCharge();
-          //window size
+          {
+            os << " precursorCharge=\"" << precursor.getCharge() << "\"";
+          }
+          // window size
           if (precursor.getIsolationWindowLowerOffset() + precursor.getIsolationWindowUpperOffset() > 0.0)
-            os << "\" windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset());
+          {
+            os << " windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset()) << "\"";
+          }
+          if (!precursor.getActivationMethods().empty() && !Precursor::NamesOfActivationMethodShort[int(*(precursor.getActivationMethods().begin()))].empty())
+          { // must not be empty, but technically only ETD, ECD, CID are allowed in mzXML 3.1
+            os << " activationMethod=\"" << Precursor::NamesOfActivationMethodShort[int(*(precursor.getActivationMethods().begin()))] << "\" ";
+          }
+
           //m/z
-          os << "\">" << precursor.getMZ() << "</precursorMz>\n";
+          double mz = precursor.getMZ();
+          if (!spec.getAcquisitionInfo().empty() &&
+            spec.getAcquisitionInfo().begin()->metaValueExists("[Thermo Trailer Extra]Monoisotopic M/Z:"))
+          { // this value is usually more accurate; the old ReAdw-converter uses it as well
+            mz = spec.getAcquisitionInfo().begin()->getMetaValue("[Thermo Trailer Extra]Monoisotopic M/Z:");
+          }
+          os << ">" << mz << "</precursorMz>\n";
         }
 
+        // note: line breaks between attributes are required here! (MaxQuants mzXML reader will fail otherwise! -- dont ask..)
+        String s_peaks("<peaks precision=\"32\"\n byteOrder=\"network\"\n contentType=\"m/z-int\"\n compressionType=\"none\"\n compressedLen=\"0\" ");
+        if (options_.getForceMQCompatability() && !s_peaks.has('\n'))
+        { // internal check against inadvertedly removing line breaks above!
+          fatalError(STORE, "Internal error: <peaks> tag does not contain newlines as required by MaxQuant. Please report this as a bug.", __LINE__, 0);
+        }
+        os << String(ms_level + 2, '\t') << s_peaks;
         if (!spec.empty())
         {
-          os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
-
-          //std::cout << "Writing scan " << s << "\n";
+          os << ">";
+          // for MaxQuant-compatible mzXML, the data type must be 'float', i.e. precision=32 bit. 64bit will crash MaxQuant!
           std::vector<float> tmp;
           for (Size i = 0; i < spec.size(); i++)
           {
@@ -962,7 +1024,7 @@ namespace OpenMS
         }
         else
         {
-          os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\" xsi:nil=\"true\"/>\n";
+          os << " xsi:nil=\"true\" />\n";
         }
 
         writeUserParam_(os, spec, ms_level + 2);
@@ -988,9 +1050,25 @@ namespace OpenMS
         }
       }
 
-      os << "\t</msRun>\n"
-         << "\t<indexOffset>0</indexOffset>\n"
-         << "</mzXML>\n";
+      os << "\t</msRun>\n";
+
+      if (options_.getWriteIndex() || options_.getForceMQCompatability())
+      { // create scan index (does not take a lot of space and is required for MaxQuant)
+        if (!options_.getWriteIndex())
+        {
+          LOG_INFO << "mzXML: index was not requested, but will be written to maintain MaxQuant compatibility." << std::endl;
+        }
+        std::ostream::streampos index_offset = os.tellp();
+        os << "<index name = \"scan\" >\n";
+        for (Size i = 0; i < scan_index_positions.size(); ++i)
+        {
+          os << "<offset id = \"" << scan_index_positions[i].id_ << "\" >" << scan_index_positions[i].pos_ << "</offset>\n";
+        }
+        os << "</index>\n";
+        os << "<indexOffset>" << index_offset << "</indexOffset>\n";
+      }
+
+      os << "</mzXML>\n";
 
       logger_.endProgress();
       spec_write_counter_ = 1;
@@ -1012,7 +1090,7 @@ namespace OpenMS
         s_completiontime_ = xercesc::XMLString::transcode("completionTime");
         s_precision_ = xercesc::XMLString::transcode("precision");
         s_byteorder_ = xercesc::XMLString::transcode("byteOrder");
-        s_pairorder_ = xercesc::XMLString::transcode("pairOrder");
+        s_contentType_ = xercesc::XMLString::transcode("contentType");
         s_compressionType_ = xercesc::XMLString::transcode("compressionType");
         s_precursorintensity_ = xercesc::XMLString::transcode("precursorIntensity");
         s_precursorcharge_ = xercesc::XMLString::transcode("precursorCharge");
@@ -1039,6 +1117,15 @@ namespace OpenMS
         init = true;
       }
       return;
+    }
+
+    inline std::ostream& MzXMLHandler::writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname)
+    {
+      if (meta.metaValueExists(metakey))
+      {
+        os << " " << attname << "=\"" << meta.getMetaValue(metakey) << "\"";
+      }
+      return os;
     }
 
     inline void MzXMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent, String tag)
@@ -1186,33 +1273,22 @@ namespace OpenMS
       String("any;+;-").split(';', cv_terms_[0]);
       //Scan type
       // is no longer used cv_terms_[1] is empty now
+
       //Ionization method
-      String(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;;;;;;MALDI").split(';', cv_terms_[2]);
+      String(";ESI;EI;CI;FAB;;;;;;;;;;;;;APCI;;;NSI;;SELDI;;;MALDI").split(';', cv_terms_[2]);
       cv_terms_[2].resize(IonSource::SIZE_OF_IONIZATIONMETHOD);
+
       //Mass analyzer
-      String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;").split(';', cv_terms_[3]);
+      String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;;;;;;FTMS").split(';', cv_terms_[3]);
       cv_terms_[3].resize(MassAnalyzer::SIZE_OF_ANALYZERTYPE);
+
       //Detector
       String(";EMT;;;Faraday Cup;;;;;Channeltron;Daly;Microchannel plate").split(';', cv_terms_[4]);
       cv_terms_[4].resize(IonDetector::SIZE_OF_TYPE);
+
       //Resolution method
       String(";FWHM;TenPercentValley;Baseline").split(';', cv_terms_[5]);
       cv_terms_[5].resize(MassAnalyzer::SIZE_OF_RESOLUTIONMETHOD);
-      /* // OLD:
-          cv_terms_.resize(6);
-          //Polarity
-          String("any;+;-").split(';',cv_terms_[0]);
-          //Scan type
-          // is no longer used cv_terms_[1] is empty now
-          //Ionization method
-          String(";ESI;EI;CI;FAB;TSP;MALDI;FD;FI;PD;SI;TI;API;ISI;CID;CAD;HN;APCI;APPI;ICP").split(';',cv_terms_[2]);
-          //Mass analyzer
-          String(";Quadrupole;Quadrupole Ion Trap;;;TOF;Magnetic Sector;FT-ICR;").split(';',cv_terms_[3]);
-          //Detector
-          String(";EMT;Daly;;Faraday Cup;;;;Channeltron").split(';',cv_terms_[4]);
-          //Resolution method
-          String(";FWHM;TenPercentValley;Baseline").split(';',cv_terms_[5]);
-          */
     }
   }
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
 #include <vector>
 #include <algorithm>
@@ -141,12 +142,14 @@ namespace OpenMS
 
   bool ModificationsDB::has(String modification) const
   {
+    OPENMS_PRECONDITION(!modification_names_.has(modification) || (int)findModificationIndex(modification) >= 0,
+        "The modification being present implies that it can be found."); // NOTE: some very smart compilers may remove this statement ...
     return modification_names_.has(modification);
   }
 
   Size ModificationsDB::findModificationIndex(const String & mod_name) const
   {
-    Size idx(0);
+    Int idx(-1);
     if (modification_names_.has(mod_name))
     {
       if (modification_names_[mod_name].size() > 1)
@@ -168,6 +171,13 @@ namespace OpenMS
         break;
       }
     }
+
+    // throw if we did not find the modification
+    if (idx < 0)
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_name);
+    }
+
     return idx;
   }
 
@@ -189,10 +199,12 @@ namespace OpenMS
   }
 
 
-  const ResidueModification* ModificationsDB::getBestModificationByMonoMass(double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
+  const ResidueModification* ModificationsDB::getBestModificationByMonoMass(double mass, double max_error, const String& residue,
+                                                                            ResidueModification::TermSpecificity term_spec)
   {
     double min_error = max_error;
     const ResidueModification* mod = 0;
+    const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue); // is NULL if not found
     for (vector<ResidueModification*>::const_iterator it = mods_.begin();
          it != mods_.end(); ++it)
     {
@@ -203,8 +215,7 @@ namespace OpenMS
         // map to multiple residues), we calculate a monoisotopic mass from the
         // delta mass.
         // First the internal (inside an AA chain) weight of the residue:
-        const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue);
-        if (residue_ == 0) continue; // @TODO: throw an exception here?
+        if (residue_ != NULL) continue; // @TODO: throw an exception here?
         double internal_weight = residue_->getMonoWeight() -
           residue_->getInternalToFull().getMonoWeight();
         mono_mass = (*it)->getDiffMonoMass() + internal_weight;
@@ -281,6 +292,8 @@ namespace OpenMS
     modification_names_[new_mod->getId()].insert(new_mod);
     modification_names_[new_mod->getFullName()].insert(new_mod);
     modification_names_[new_mod->getUniModAccession()].insert(new_mod);
+
+    mods_.push_back(new_mod); // we probably want that
   }
 
   void ModificationsDB::readFromOBOFile(const String& filename)

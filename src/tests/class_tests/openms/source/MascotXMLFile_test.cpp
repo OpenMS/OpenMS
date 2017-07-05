@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -130,18 +130,18 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     TEST_EQUAL(peptide_identifications[0].getHits().size(), 2);
 
     peptide_hit = peptide_identifications[0].getHits()[0];
-    set<String> ref_set = peptide_hit.extractProteinAccessions();
+    set<String> ref_set = peptide_hit.extractProteinAccessionsSet();
     vector<String> references(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 2);
     TEST_EQUAL(references[0], "AAN17824");
     TEST_EQUAL(references[1], "GN1736");
     peptide_hit = peptide_identifications[0].getHits()[1];
-    ref_set = peptide_hit.extractProteinAccessions();
+    ref_set = peptide_hit.extractProteinAccessionsSet();
     references = vector<String>(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 1);
     TEST_EQUAL(references[0], "AAN17824");
     peptide_hit = peptide_identifications[1].getHits()[0];
-    ref_set = peptide_hit.extractProteinAccessions();
+    ref_set = peptide_hit.extractProteinAccessionsSet();
     references = vector<String>(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 1);
     TEST_EQUAL(references[0], "GN1736");
@@ -210,7 +210,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     vector<PeptideEvidence> pes = peptide_hit.getPeptideEvidences();
     TEST_EQUAL(pes.size(), 0);
     pes = peptide_identifications[34].getHits()[0].getPeptideEvidences();
-    set<String> accessions = peptide_identifications[34].getHits()[0].extractProteinAccessions();
+    set<String> accessions = peptide_identifications[34].getHits()[0].extractProteinAccessionsSet();
     references = vector<String>(accessions.begin(), accessions.end()); // corresponds to <peptide query="35" ...>
     ABORT_IF(references.size() != 5);
     TEST_EQUAL(references[0], "IPI00022434");
@@ -300,18 +300,18 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
   TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 
   peptide_hit = peptide_identifications[0].getHits()[0];  
-  set<String> accessions = peptide_hit.extractProteinAccessions();
+  set<String> accessions = peptide_hit.extractProteinAccessionsSet();
   references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 2)
   TEST_EQUAL(references[0], "AAN17824")
   TEST_EQUAL(references[1], "GN1736")  
   peptide_hit = peptide_identifications[0].getHits()[1];
-  accessions = peptide_hit.extractProteinAccessions();
+  accessions = peptide_hit.extractProteinAccessionsSet();
   references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 1)
   TEST_EQUAL(references[0], "AAN17824")
   peptide_hit = peptide_identifications[1].getHits()[0];
-  accessions = peptide_hit.extractProteinAccessions();
+  accessions = peptide_hit.extractProteinAccessionsSet();
   references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 1)
   TEST_EQUAL(references[0], "GN1736")

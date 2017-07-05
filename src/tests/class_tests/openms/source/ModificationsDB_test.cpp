@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -188,6 +188,31 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
   // something exotic.. mods should return empty (without clearing it before)
   ptr->searchModificationsByDiffMonoMass(mods, 800000000.0, 0.1);
   TEST_EQUAL(mods.size(), 0);
+
+  // make sure the common ones are also found for integer masses (this is how
+  // integer mass search is done)
+  mods.clear();
+  ptr->searchModificationsByDiffMonoMass(mods, 80.0, 1.0, "S");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Phospho (S)")
+  mods.clear();
+  ptr->searchModificationsByDiffMonoMass(mods, 80.0, 1.0, "T");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Phospho (T)")
+  mods.clear();
+  ptr->searchModificationsByDiffMonoMass(mods, 80.0, 1.0, "Y");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Phospho (Y)")
+  mods.clear();
+  ptr->searchModificationsByDiffMonoMass(mods, 16.0, 1.0, "M");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Oxidation (M)")
+  ptr->searchModificationsByDiffMonoMass(mods, 1.0, 1.0, "N");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Deamidated (N)")
+  ptr->searchModificationsByDiffMonoMass(mods, 1.0, 1.0, "Q");
+  TEST_EQUAL(mods.empty(), false)
+  TEST_EQUAL(mods[0], "Deamidated (Q)")
 }
 END_SECTION
 

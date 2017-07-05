@@ -13,6 +13,7 @@ MzIdentMLHandler.h
 MzMLHandler.h
 MzMLHandlerHelper.h
 MzMLSpectrumDecoder.h
+MzMLSqliteHandler.h
 MzQuantMLHandler.h
 MzXMLHandler.h
 PTMXMLHandler.h
@@ -21,6 +22,7 @@ ToolDescriptionHandler.h
 TraMLHandler.h
 UnimodXMLHandler.h
 XMLHandler.h
+XQuestResultXMLHandler.h
 )
 
 ### add path to the filenames

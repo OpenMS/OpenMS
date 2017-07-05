@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,10 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -84,11 +85,17 @@ namespace OpenMS
     void XMLHandler::fatalError(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
       if (mode == LOAD)
+      {
         error_message_ =  String("While loading '") + file_ + "': " + msg;
+      }
       else if (mode == STORE)
+      {
         error_message_ =  String("While storing '") + file_ + "': " + msg;
+      }
       if (line != 0 || column != 0)
+      {
         error_message_ += String("( in line ") + line + " column " + column + ")";
+      }
 
       // test if file has the wrong extension and is therefore passed to the wrong parser
       FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
@@ -107,23 +114,42 @@ namespace OpenMS
     void XMLHandler::error(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
       if (mode == LOAD)
+      {
         error_message_ =  String("Non-fatal error while loading '") + file_ + "': " + msg;
+      }
       else if (mode == STORE)
+      {
         error_message_ =  String("Non-fatal error while storing '") + file_ + "': " + msg;
+      }
       if (line != 0 || column != 0)
+      {
         error_message_ += String("( in line ") + line + " column " + column + ")";
+      }
       LOG_ERROR << error_message_ << std::endl;
     }
 
     void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
     {
       if (mode == LOAD)
+      {
         error_message_ =  String("While loading '") + file_ + "': " + msg;
+      }
       else if (mode == STORE)
+      {
         error_message_ =  String("While storing '") + file_ + "': " + msg;
+      }
       if (line != 0 || column != 0)
+      {
         error_message_ += String("( in line ") + line + " column " + column + ")";
+      }
+
+// warn only in Debug mode but suppress warnings in release mode (more happy users)
+#ifdef OPENMS_ASSERTIONS
       LOG_WARN << error_message_ << std::endl;
+#else
+      LOG_DEBUG << error_message_ << std::endl;
+#endif
+
     }
 
     void XMLHandler::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
@@ -188,7 +214,9 @@ namespace OpenMS
         {
           os << "stringList";
           StringList sld = d;
-          val = "[" + ListUtils::concatenate(sld, ",") + "]"; // manual concatenate, as operator<< inserts spaces, which are bad for reconstructing the list
+          // concatenate manually, as operator<< inserts spaces, which are bad
+          // for reconstructing the list
+          val = "[" + ListUtils::concatenate(sld, ",") + "]";
         }
         else
         {
@@ -201,16 +229,6 @@ namespace OpenMS
     //*******************************************************************************************************************
 
     
-    /*
-     * The main purpose of this class is to manage the string produced by
-     * XMLString::transcode which states in the documentation to use
-     * XMLString::release on the produced String once it is no longer needed.
-     *
-     * The decision when the string is no longer needed needs to be made in the
-     * child class which calls the functions described here (specifically the
-     * attributeAs* and optionalAttributeAs* functions
-     *
-    */
     StringManager::StringManager() :
       xml_strings_(0),
       c_strings_(0)
@@ -296,4 +314,5 @@ namespace OpenMS
     }
 
   }   // namespace Internal
+
 } // namespace OpenMS

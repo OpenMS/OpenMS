@@ -71,3 +71,4 @@ import numpy as np
                 I += p.getIntensity()
 
         return I
+

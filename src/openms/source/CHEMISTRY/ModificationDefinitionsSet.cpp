@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,17 +132,13 @@ namespace OpenMS
 
     for (StringList::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
     {
-      ModificationDefinition def;
-      def.setModification(*it);
-      def.setFixedModification(true);
+      ModificationDefinition def(*it, true);
       fixed_mods_.insert(def);
     }
 
     for (StringList::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
     {
-      ModificationDefinition def;
-      def.setModification(*it);
-      def.setFixedModification(false);
+      ModificationDefinition def(*it, false);
       variable_mods_.insert(def);
     }
   }
@@ -170,6 +166,22 @@ namespace OpenMS
       mod_names.insert(it->getModificationName());
     }
     return mod_names;
+  }
+
+  void ModificationDefinitionsSet::getModificationNames(StringList& fixed_modifications, StringList& variable_modifications) const
+  {
+    fixed_modifications.clear();
+    fixed_modifications.reserve(fixed_mods_.size());
+    for (set<ModificationDefinition>::const_iterator it = fixed_mods_.begin(); it != fixed_mods_.end(); ++it)
+    {
+      fixed_modifications.push_back(it->getModificationName());
+    }
+    variable_modifications.clear();
+    variable_modifications.reserve(variable_mods_.size());
+    for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
+    {
+      variable_modifications.push_back(it->getModificationName());
+    }
   }
 
   const set<ModificationDefinition>& ModificationDefinitionsSet::getFixedModifications() const
@@ -355,5 +367,57 @@ namespace OpenMS
       addMatches_(matches, mass, residue, term_spec, variable_mods_, is_delta, tolerance);
     }
   }
+
+  // @TODO: should this function handle "max_mods_per_peptide_" as well?
+  void ModificationDefinitionsSet::inferFromPeptides(const vector<PeptideIdentification>& peptides)
+  {
+    // amino acid (or terminus) -> set of modifications (incl. no mod. = 0):
+    map<String, set<const ResidueModification*> > mod_map;
+
+    for (vector<PeptideIdentification>::const_iterator pep_it =
+           peptides.begin(); pep_it != peptides.end(); ++pep_it)
+    {
+      for (vector<PeptideHit>::const_iterator hit_it =
+             pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
+           ++hit_it)
+      {
+        const AASequence& seq = hit_it->getSequence();
+        mod_map["N-term"].insert(seq.getNTerminalModification());
+        mod_map["C-term"].insert(seq.getCTerminalModification());
+        for (AASequence::ConstIterator seq_it = seq.begin();
+             seq_it != seq.end(); ++seq_it)
+        {
+          mod_map[seq_it->getOneLetterCode()].insert(seq_it->getModification());
+        }
+      }
+    }
+
+    fixed_mods_.clear();
+    variable_mods_.clear();
+    for (map<String, set<const ResidueModification*> >::const_iterator map_it =
+           mod_map.begin(); map_it != mod_map.end(); ++map_it)
+    {
+      set<const ResidueModification*>::const_iterator set_it =
+        map_it->second.begin();
+      // if there's only one mod, it's probably a fixed one:
+      if ((map_it->second.size() == 1) && (*set_it != 0))
+      {
+        ModificationDefinition mod_def(**set_it, true);
+        fixed_mods_.insert(mod_def);
+      }
+      else // variable mod(s)
+      {
+        for (; set_it != map_it->second.end(); ++set_it)
+        {
+          if (*set_it != 0)
+          {
+            ModificationDefinition mod_def(**set_it, false);
+            variable_mods_.insert(mod_def);
+          }
+        }
+      }
+    }
+  }
+
 
 } // namespace OpenMS

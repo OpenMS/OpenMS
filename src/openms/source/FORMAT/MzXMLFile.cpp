@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
   MzXMLFile::MzXMLFile() :
-    XMLFile("/SCHEMAS/mzXML_2_1.xsd", "2.1")
+    XMLFile("/SCHEMAS/mzXML_idx_3.1.xsd", "3.1")
   {
   }
 
@@ -84,6 +84,7 @@ namespace OpenMS
   void MzXMLFile::store(const String & filename, const MapType & map) const
   {
     Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
+    handler.setOptions(options_);
     save_(filename, &handler);
   }
 

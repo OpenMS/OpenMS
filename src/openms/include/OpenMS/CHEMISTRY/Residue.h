@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -228,16 +228,16 @@ public:
     /// returns the synonyms
     const std::set<String>& getSynonyms() const;
 
-    /// sets the name of the residue as three letter code
+    /// sets the name of the residue as three letter code (String of size 3)
     void setThreeLetterCode(const String& three_letter_code);
 
-    /// returns the name of the residue as three letter code
+    /// returns the name of the residue as three letter code (String of size 3)
     const String& getThreeLetterCode() const;
 
-    /// sets the name as one letter code
+    /// sets the name as one letter code (String of size 1)
     void setOneLetterCode(const String& one_letter_code);
 
-    /// returns the name as one letter code
+    /// returns the name as one letter code (String of size 1)
     const String& getOneLetterCode() const;
 
     /// adds a neutral loss formula
