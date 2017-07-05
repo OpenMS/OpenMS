@@ -843,8 +843,10 @@ protected:
 
     for (Size i = 0; i < swath_maps.size(); i++)
     {
-      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower
-        << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra()
+      LOG_DEBUG << "Found swath map " << i 
+        << " with lower " << swath_maps[i].lower
+        << " and upper " << swath_maps[i].upper 
+        << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
     }
 
