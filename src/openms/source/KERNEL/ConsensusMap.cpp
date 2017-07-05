@@ -337,7 +337,8 @@ namespace OpenMS
       [mapIndexLess](ConsensusFeature& c) 
       { 
         vector<PeptideIdentification> & pids = c.getPeptideIdentifications();
-        return sort(pids.begin(), pids.end(), mapIndexLess); 
+        stable_sort(pids.begin(), pids.end(), mapIndexLess);
+        return c;
       });
   }
 
