@@ -44,11 +44,11 @@ namespace OpenMS
   {
   }
 
-  std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold)
+  std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, const std::vector<std::pair<double, std::string> >& ions, const double mz_threshold)
   {
     std::vector<std::string> isoforms;
 
-    for (std::vector<std::pair<double, std::string> >::iterator i_it = ions.begin(); i_it != ions.end(); ++i_it)
+    for (std::vector<std::pair<double, std::string> >::const_iterator i_it = ions.begin(); i_it != ions.end(); ++i_it)
     {
       if (i_it->first - mz_threshold <= fragment_ion && i_it->first + mz_threshold >= fragment_ion)
       {

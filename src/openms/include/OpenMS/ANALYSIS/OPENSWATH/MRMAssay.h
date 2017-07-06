@@ -163,7 +163,9 @@ protected:
 
       @value a vector of strings containing all peptidoforms with which fragment_ion overlaps
     */
-    std::vector<std::string> getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold);
+    std::vector<std::string> getMatchingPeptidoforms_(const double fragment_ion,
+                                                      const std::vector<std::pair<double, std::string> >& ions,
+                                                      const double mz_threshold);
 
     /**
       @brief Get swath index (precursor isolation window ordinal) for a particular precursor
@@ -223,7 +225,7 @@ protected:
       @brief Generate alternative modified peptide forms according to ModificationsDB
 
       @details An input peptide sequence containing modifications is used as template to generate
-      all modification-carrying residue permutations (n choose k possibilites) that are
+      all modification-carrying residue permutations (n choose k possibilities) that are
       physicochemically possible according to ModificationsDB.
 
       @param sequence template AASequence
