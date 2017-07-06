@@ -292,6 +292,9 @@ protected:
     // set primary MS runs
     out_map.setPrimaryMSRunPath(ms_run_locations);
 
+    // sort list of peptide identifications in each consensus feature by map index
+    out_map.sortPeptideIdentificationsByMapIndex();
+
     // write output
     ConsensusXMLFile().store(out, out_map);
 
