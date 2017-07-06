@@ -217,6 +217,8 @@ public:
     /// Sorts with respect to the sets of maps covered by the consensus features (lexicographically).
     OPENMS_DLLAPI void sortByMaps();
 
+    /// Sorts PeptideIdentifications of consensus features with respect to their map index.
+    OPENMS_DLLAPI void sortPeptideIdentificationsByMapIndex();
     //@}
 
     // Docu in base class
