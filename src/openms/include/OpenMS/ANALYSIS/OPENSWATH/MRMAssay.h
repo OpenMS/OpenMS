@@ -318,6 +318,8 @@ protected:
 
       @details Used internally by MRMAssay::uisTransitions
 
+      TODO: why make copy of IonMapT ?
+
     */
    void generateDecoyAssays_(OpenMS::TargetedExperiment& exp,
                              TransitionVectorType& transitions,
