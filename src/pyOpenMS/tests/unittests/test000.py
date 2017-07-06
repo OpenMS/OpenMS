@@ -807,8 +807,8 @@ def testXTandemInfile():
     f.getDefaultParametersFilename is not None
 
 
-    f.setTaxon("testTaxon")
-    assert f.getTaxon() == "testTaxon"
+    f.setTaxon(b"testTaxon")
+    assert f.getTaxon() == b"testTaxon"
 
     assert f.setMaxPrecursorCharge is not None
     assert f.getMaxPrecursorCharge is not None
@@ -2870,8 +2870,8 @@ def testMSSpectrum():
     string_da[1].push_back("other")
     spec.setStringDataArrays( string_da )
     assert len(spec.getStringDataArrays()) == 2
-    assert spec.getStringDataArrays()[0][0] == "hello"
-    assert spec.getStringDataArrays()[1][0] == "other"
+    assert spec.getStringDataArrays()[0][0] == b"hello"
+    assert spec.getStringDataArrays()[1][0] == b"other"
 
     assert len(spec.getIntegerDataArrays()) == 0
     # int_da = [ [5, 6], [8] ]
@@ -2907,10 +2907,10 @@ def testStringDataArray():
     da.push_back("hello")
     da.push_back("world")
     assert da.size() == 2
-    assert da[0] == "hello"
-    assert da[1] == "world"
+    assert da[0] == b"hello"
+    assert da[1] == b"world"
     da[1] = "hello world"
-    assert da[1] == "hello world", da[1]
+    assert da[1] == b"hello world", da[1]
     da.clear()
     assert da.size() == 0
     da.push_back("hello")
