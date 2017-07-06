@@ -83,7 +83,7 @@ public:
 
     typedef boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > > SequenceMapT;
     typedef boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > > IonMapT;
-    typedef boost::unordered_map<String, std::vector<std::pair<std::string, double> > > PeptideMapT;
+    typedef std::map<String, std::vector<std::pair<std::string, double> > > PeptideMapT;
     typedef boost::unordered_map<String, String> SequenceMap_T;
 
     typedef boost::unordered_map<String, TargetedExperiment::Peptide> TargetDecoyMapT;
