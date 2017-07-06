@@ -81,6 +81,13 @@ public:
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
+    typedef boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > > SequenceMapT;
+    typedef boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > > IonMapT;
+    typedef boost::unordered_map<String, std::vector<std::pair<std::string, double> > > PeptideMapT;
+    typedef boost::unordered_map<String, String> SequenceMap_T;
+
+    typedef boost::unordered_map<String, TargetedExperiment::Peptide> TargetDecoyMapT;
+
     /**
       @brief Annotates and filters transitions in a TargetedExperiment
 
@@ -134,7 +141,17 @@ public:
       @param max_num_alternative_localizations maximum number of allowed peptide sequence permutations
       @param shuffle_seed set seed for shuffle (-1: select seed based on time)
     */
-    void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow = -4, size_t max_num_alternative_localizations = 20, int shuffle_seed = -1);
+    void uisTransitions(OpenMS::TargetedExperiment& exp,
+                        std::vector<String> fragment_types,
+                        std::vector<size_t> fragment_charges,
+                        bool enable_specific_losses,
+                        bool enable_unspecific_losses,
+                        bool enable_ms2_precursors,
+                        double mz_threshold,
+                        std::vector<std::pair<double, double> > swathes,
+                        int round_decPow = -4,
+                        size_t max_num_alternative_localizations = 20,
+                        int shuffle_seed = -1);
 
 protected:
     /**
@@ -240,7 +257,18 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-    void generateTargetInSilicoMap_(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, std::vector<std::pair<double, double> > swathes, int round_decPow, size_t max_num_alternative_localizations, boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& TargetIonMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap);
+    void generateTargetInSilicoMap_(OpenMS::TargetedExperiment& exp,
+                                    std::vector<String> fragment_types,
+                                    std::vector<size_t> fragment_charges,
+                                    bool enable_specific_losses,
+                                    bool enable_unspecific_losses,
+                                    bool enable_ms2_precursors,
+                                    std::vector<std::pair<double, double> > swathes,
+                                    int round_decPow,
+                                    size_t max_num_alternative_localizations,
+                                    SequenceMapT& TargetSequenceMap,
+                                    IonMapT& TargetIonMap,
+                                    PeptideMapT& TargetPeptideMap);
 
     /**
       @brief Generate decoy sequences
@@ -248,7 +276,10 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-    void generateDecoySequences_(boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap, boost::unordered_map<String, String>& DecoySequenceMap, int shuffle_seed);
+    void generateDecoySequences_(boost::unordered_map<size_t,
+                                 boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap,
+                                 boost::unordered_map<String, String>& DecoySequenceMap, 
+                                 int shuffle_seed);
 
     /**
       @brief Generate decoy in silico map
@@ -256,7 +287,18 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-    void generateDecoyInSilicoMap_(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, bool enable_ms2_precursors, std::vector<std::pair<double, double> > swathes, int round_decPow, boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap, boost::unordered_map<String, String>& DecoySequenceMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& DecoyIonMap, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& DecoyPeptideMap);
+    void generateDecoyInSilicoMap_(OpenMS::TargetedExperiment& exp,
+                                   std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
+                                   bool enable_specific_losses,
+                                   bool enable_unspecific_losses,
+                                   bool enable_ms2_precursors,
+                                   std::vector<std::pair<double, double> > swathes,
+                                   int round_decPow,
+                                   TargetDecoyMapT& TargetDecoyMap,
+                                   PeptideMapT& TargetPeptideMap,
+                                   boost::unordered_map<String, String>& DecoySequenceMap,
+                                   IonMapT& DecoyIonMap,
+                                   PeptideMapT& DecoyPeptideMap);
 
     /**
       @brief Generate target assays
@@ -264,7 +306,12 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-   void generateTargetAssays_(OpenMS::TargetedExperiment& exp, TransitionVectorType& transitions, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& TargetPeptideMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > >& TargetIonMap);
+   void generateTargetAssays_(OpenMS::TargetedExperiment& exp,
+                              TransitionVectorType& transitions, double mz_threshold,
+                              std::vector<std::pair<double, double> > swathes,
+                              int round_decPow,
+                              PeptideMapT& TargetPeptideMap,
+                              IonMapT& TargetIonMap);
 
     /**
       @brief Generate decoy assays
@@ -272,7 +319,15 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-   void generateDecoyAssays_(OpenMS::TargetedExperiment& exp, TransitionVectorType& transitions, double mz_threshold, std::vector<std::pair<double, double> > swathes, int round_decPow, boost::unordered_map<String, std::vector<std::pair<std::string, double> > >& DecoyPeptideMap, boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > > DecoyIonMap, boost::unordered_map<size_t, boost::unordered_map<String, std::vector<std::pair<double, std::string> > > > TargetIonMap);
+   void generateDecoyAssays_(OpenMS::TargetedExperiment& exp,
+                             TransitionVectorType& transitions,
+                             double mz_threshold,
+                             std::vector<std::pair<double, double> > swathes,
+                             int round_decPow,
+                             PeptideMapT& DecoyPeptideMap,
+                             TargetDecoyMapT& TargetDecoyMap, 
+                             IonMapT DecoyIonMap, 
+                             IonMapT TargetIonMap);
 
   };
 }
