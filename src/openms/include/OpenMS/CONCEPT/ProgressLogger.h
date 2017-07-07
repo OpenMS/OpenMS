@@ -109,7 +109,7 @@ public:
 
       @note Make sure to call setLogType first!
     */
-    void startProgress(SignedSize begin, SignedSize end, const String& label) const;
+    void startProgress(SignedSize begin, SignedSize end, const String label) const;
 
     /// Sets the current progress
     void setProgress(SignedSize value) const;
