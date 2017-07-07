@@ -62,7 +62,7 @@ public:
     /**
       @brief Implement ProgressLoggerImpl::startProgress().
     */
-    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const;
+    void startProgress(const SignedSize begin, const SignedSize end, const String label, const int /* current_recursion_depth */) const;
 
     /**
       @brief Implement ProgressLoggerImpl::setProgress().
