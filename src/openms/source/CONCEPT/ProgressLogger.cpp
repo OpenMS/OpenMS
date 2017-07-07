@@ -138,7 +138,7 @@ public:
       return "NONE";
     }
 
-    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const
+    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String /* label */, const int /* current_recursion_depth */) const
     {
     }
 
@@ -232,7 +232,7 @@ public:
     return type_;
   }
 
-  void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String& label) const
+  void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String label) const
   {
     OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
     last_invoke_ = time(NULL);
