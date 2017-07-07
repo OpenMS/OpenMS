@@ -81,7 +81,7 @@ public:
     class OPENMS_DLLAPI ProgressLoggerImpl
     {
 public:
-      virtual void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const = 0;
+      virtual void startProgress(const SignedSize begin, const SignedSize end, const String label, const int current_recursion_depth) const = 0;
       virtual void setProgress(const SignedSize value, const int current_recursion_depth) const = 0;
       virtual void endProgress(const int current_recursion_depth) const = 0;
 
@@ -109,7 +109,7 @@ public:
 
       @note Make sure to call setLogType first!
     */
-    void startProgress(SignedSize begin, SignedSize end, const String& label) const;
+    void startProgress(SignedSize begin, SignedSize end, const String label) const;
 
     /// Sets the current progress
     void setProgress(SignedSize value) const;
