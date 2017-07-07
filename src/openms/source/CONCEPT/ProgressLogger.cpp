@@ -71,11 +71,11 @@ public:
       return "CMD";
     }
 
-    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const
+    void startProgress(const SignedSize begin, const SignedSize end, const String label, const int current_recursion_depth) const
     {
       begin_ = begin;
       end_ = end;
-      if (current_recursion_depth) cout << '\n';
+      if (current_recursion_depth) { cout << '\n'; }
       cout << string(2 * current_recursion_depth, ' ') << "Progress of '" << label << "':" << endl;
       stop_watch_.reset();
       stop_watch_.start();
@@ -152,8 +152,7 @@ public:
 
   };
 
-
-
+  
   void ProgressLogger::ProgressLoggerImpl::registerChildren()
   {
     Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(CMDProgressLoggerImpl::getProductName(), &CMDProgressLoggerImpl::create);
@@ -244,7 +243,7 @@ public:
   void ProgressLogger::setProgress(SignedSize value) const
   {
     // update only if at least 1 second has passed
-    if (last_invoke_ == time(NULL)) return;
+    if (last_invoke_ == time(NULL)) { return; }
 
     last_invoke_ = time(NULL);
     current_logger_->setProgress(value, recursion_depth_);
