@@ -60,7 +60,7 @@ namespace OpenMS
   {
   }
 
-  void GUIProgressLoggerImpl::startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const
+  void GUIProgressLoggerImpl::startProgress(const SignedSize begin, const SignedSize end, const String label, const int /* current_recursion_depth */) const
   {
     begin_ = begin;
     end_ = end;
