@@ -37,6 +37,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
