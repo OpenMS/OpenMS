@@ -113,6 +113,13 @@ class TOPPOpenSwathMzMLFileCacher
 
     registerFlag_("convert_back", "Convert back to mzML");
 
+    registerStringOption_("lossy_compression", "<type>", "true", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data).", false);
+    setValidStrings_("lossy_compression", ListUtils::create<String>("true,false"));
+    registerStringOption_("full_meta", "<type>", "true", "Write full meta information into sqMass file", false);
+    setValidStrings_("full_meta", ListUtils::create<String>("true,false"));
+
+    registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
+
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
     registerIntOption_("lowmem_batchsize", "<number>", 500, "The batch size of the low memory conversion", false, true);
     setMinInt_("lowmem_batchsize", 0);
@@ -125,6 +132,10 @@ class TOPPOpenSwathMzMLFileCacher
     bool convert_back =  getFlag_("convert_back");
     bool process_lowmemory = getFlag_("process_lowmemory");
     int batchSize = (int)getIntOption_("lowmem_batchsize");
+
+    bool full_meta = (getStringOption_("full_meta") == "true");
+    bool lossy_compression = (getStringOption_("lossy_compression") == "true");
+    double mass_acc = getDoubleOption_("lossy_mass_accuracy");
 
     FileHandler fh;
 
@@ -171,7 +182,7 @@ class TOPPOpenSwathMzMLFileCacher
     }
     else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS && process_lowmemory)
     {
-      MSDataSqlConsumer consumer(out, batchSize);
+      MSDataSqlConsumer consumer(out, batchSize, lossy_compression, mass_acc);
       MzMLFile().transform(in, &consumer, true, true);
       return EXECUTION_OK;
     }
@@ -180,8 +191,9 @@ class TOPPOpenSwathMzMLFileCacher
       MzMLFile f;
 
       SqMassFile::SqMassConfig config;
-      config.use_lossy_numpress = true;
-      config.linear_fp_mass_acc = 0.0001;
+      config.write_full_meta = full_meta;
+      config.use_lossy_numpress = lossy_compression;
+      config.linear_fp_mass_acc = mass_acc;
 
       SqMassFile sqfile;
       sqfile.setConfig(config);
