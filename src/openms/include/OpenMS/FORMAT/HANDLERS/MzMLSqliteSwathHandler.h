@@ -171,19 +171,19 @@ public:
 
 protected:
 
-    sqlite3* openDB()
-    {
-      sqlite3 *db;
-      int rc;
-
-      // Open database
-      rc = sqlite3_open(filename_.c_str(), &db);
-      if (rc)
+      sqlite3* openDB()
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
+        sqlite3 *db;
+        int rc;
+
+        // Open database
+        rc = sqlite3_open(filename_.c_str(), &db);
+        if (rc)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
+        }
+        return db;
       }
-      return db;
-    }
 
       String filename_;
 
