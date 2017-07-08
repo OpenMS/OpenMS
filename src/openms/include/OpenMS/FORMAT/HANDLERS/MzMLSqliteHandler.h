@@ -90,8 +90,9 @@ public:
 
       Size getNrChromatograms() const;
 
-      void setConfig(bool use_lossy_compression, double linear_abs_mass_acc) 
+      void setConfig(bool write_full_meta, bool use_lossy_compression, double linear_abs_mass_acc) 
       {
+        write_full_meta_ = write_full_meta;
         use_lossy_compression_ = use_lossy_compression;
         linear_abs_mass_acc_ = linear_abs_mass_acc; 
       }

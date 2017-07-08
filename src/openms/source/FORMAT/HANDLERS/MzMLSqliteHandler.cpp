@@ -230,7 +230,7 @@ namespace OpenMS
       run_id_(0),
       use_lossy_compression_(true),
       linear_abs_mass_acc_(0.0001), // set the desired mass accuracy = 1ppm at 100 m/z
-      write_full_meta_(false)
+      write_full_meta_(true)
     {
     }
 
@@ -252,6 +252,7 @@ namespace OpenMS
     {
       sqlite3 *db = openDB();
 
+      Size nr_results = 0;
       if (write_full_meta_)
       {
         sqlite3_stmt * stmt;
@@ -268,8 +269,6 @@ namespace OpenMS
         sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
         sqlite3_step( stmt );
 
-        Size nr_results = 0;
-
         // read data (throw exception if we find multiple runs)
         while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
         {
@@ -282,19 +281,31 @@ namespace OpenMS
           size_t blob_bytes = sqlite3_column_bytes(stmt, 3);
 
           // create mzML file and parse full structure
-          MzMLFile f;
-          std::string uncompressed;
-          OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
-          f.loadBuffer(uncompressed, exp);
+          if (blob_bytes > 0)
+          {
+            MzMLFile f;
+            std::string uncompressed;
+            OpenMS::ZlibCompression::uncompressString(raw_text, blob_bytes, uncompressed);
+            f.loadBuffer(uncompressed, exp);
 
-          nr_results++;
+            nr_results++;
+          }
+          else
+          {
+            const unsigned char * native_id = sqlite3_column_text(stmt, 1);
+            const unsigned char * filename = sqlite3_column_text(stmt, 2);
+            LOG_WARN << "Warning: no full meta data found for run " << native_id << " from file "<< filename << std::endl;
+          }
           sqlite3_step( stmt );
         }
 
         // free memory
         sqlite3_finalize(stmt);
+
+        if (nr_results == 0) {LOG_WARN << "Warning: no meta data found, fall back to inference from SQL data structures." << std::endl;}
       }
-      else
+
+      if (!write_full_meta_ || nr_results == 0)
       {
         // creates the spectra and chromatograms but does not fill them with data (provides option to return meta-data only)
         std::vector<MSChromatogram<> > chromatograms;
