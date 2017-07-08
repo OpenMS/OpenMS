@@ -72,7 +72,7 @@ namespace OpenMS
         @param filename The filename of the Sqlite database
         @param buffer_size How large the internal buffer size should be (defaults to 500 spectra / chromatograms)
       */
-      MSDataSqlConsumer(String filename, int buffer_size = 500, bool lossy_compression=true, double linear_mass_acc=1e-4);
+      MSDataSqlConsumer(String filename, int buffer_size = 500, bool full_meta = true, bool lossy_compression=false, double linear_mass_acc=1e-4);
 
       /**
         @brief Destructor

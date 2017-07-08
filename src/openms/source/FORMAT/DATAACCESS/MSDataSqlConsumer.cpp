@@ -39,7 +39,7 @@
 namespace OpenMS
 {
 
-  MSDataSqlConsumer::MSDataSqlConsumer(String filename, int flush_after, bool lossy_compression, double linear_mass_acc) :
+  MSDataSqlConsumer::MSDataSqlConsumer(String filename, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
         filename_(filename),
         handler_(new OpenMS::Internal::MzMLSqliteHandler(filename) ),
         flush_after_(flush_after)
@@ -47,7 +47,7 @@ namespace OpenMS
     spectra_.reserve(flush_after_);
     chromatograms_.reserve(flush_after_);
 
-    handler_->setConfig(lossy_compression, linear_mass_acc);
+    handler_->setConfig(full_meta, lossy_compression, linear_mass_acc);
     handler_->createTables();
   }
 
