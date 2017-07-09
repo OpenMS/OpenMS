@@ -141,6 +141,7 @@ namespace OpenMS
     tools_map["SpectraMerger"] = Internal::ToolDescription("SpectraMerger", "Signal processing and preprocessing");
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", "File Handling");
     tools_map["TOFCalibration"] = Internal::ToolDescription("TOFCalibration", "Signal processing and preprocessing");
+    tools_map["XFDR"] = Internal::ToolDescription("XFDR", "ID Processing");
     tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", "Identification");
     // STOP! insert your tool in alphabetical order for easier maintenance (only tools requiring the GUI lib should be added below)
 
@@ -199,6 +200,7 @@ namespace OpenMS
     util_map["LowMemPeakPickerHiRes"] = Internal::ToolDescription("LowMemPeakPickerHiRes", util_category);
     util_map["LowMemPeakPickerHiRes_RandomAccess"] = Internal::ToolDescription("LowMemPeakPickerHiRes_RandomAccess", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
+    util_map["MetaboliteAdductDecharger"] = Internal::ToolDescription("MetaboliteAdductDecharger", util_category);
     util_map["MetaboliteSpectralMatcher"] = Internal::ToolDescription("MetaboliteSpectralMatcher", util_category);
     util_map["MetaProSIP"] = Internal::ToolDescription("MetaProSIP", util_category);
     util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
@@ -206,6 +208,8 @@ namespace OpenMS
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
     util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
+    util_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", util_category);
+    util_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", util_category);
     util_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", util_category);
     util_map["OpenSwathRewriteToFeatureXML"] = Internal::ToolDescription("OpenSwathRewriteToFeatureXML", "Targeted Experiments");
     util_map["OpenSwathFileSplitter"] = Internal::ToolDescription("OpenSwathFileSplitter", "Targeted Experiments");

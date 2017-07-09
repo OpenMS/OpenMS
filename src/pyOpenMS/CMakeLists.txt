@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -93,14 +93,14 @@ if(DEFINED CYTHON_EXECUTABLE-NOTFOUND)
 endif()
 
 # check minor version of Cython (0.xx.yy)
-# Working versions (tested manually) are 0.22, 0.23, 0.24 and 0.25
+# Working versions (tested manually) are 0.25.2
 set(CYTHON_VERSION_OK FALSE)
 if(CYTHON_MISSING)
 	message(FATAL_ERROR "Looking for cython - not found")
 else()
   execute_process(
       COMMAND
-      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) >= 22)"
+      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
       RESULT_VARIABLE _CYTHON_VERSION_OK
       ERROR_QUIET
       OUTPUT_QUIET
@@ -115,7 +115,7 @@ else()
       message(STATUS "Looking for Cython - found Cython ${CYTHON_VERSION}, version ok")
       set(CYTHON_VERSION_OK TRUE)
   else()
-      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.22 is required)")
+      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.25.2 is required)")
       message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
   endif()
 endif()
@@ -151,7 +151,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.8.0 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.11.0 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()

@@ -87,6 +87,7 @@ START_SECTION(void simulate(PeakSpectrum &spectrum, const AASequence &peptide, b
 
   Param p = ptr->getDefaults();
   p.setValue ("hide_losses", "true");
+  p.setValue ("add_metainfo", "true");
   ptr->setParameters (p);
 
   ptr->load();
@@ -95,7 +96,16 @@ START_SECTION(void simulate(PeakSpectrum &spectrum, const AASequence &peptide, b
   PeakMap exp;
   MzMLFile mz_file;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   mz_file.load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
+  TEST_EQUAL(spec.size(), 7);
+#else
+  mz_file.load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test_boost58.mzML"),exp);
+  TEST_EQUAL(spec.size(), 8);
+  // the extra peak:
+  TEST_EQUAL(spec.getStringDataArrays()[0][2], "YIon  0++") // TODO: ion_nr is always zero, its actually y4++
+  TEST_EQUAL(spec.getIntegerDataArrays()[0][2], 2)
+#endif
 
   TEST_EQUAL(exp.size(), 1);
   if(exp.size())

@@ -267,6 +267,15 @@ START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&ou
     TEST_EQUAL(out.size(), 2)
     TEST_EQUAL(out[0].toString(), "ACR")
     TEST_EQUAL(out[1].toString(), "PDE")
+        
+    // ------------------------
+    // unspecific cleavage
+    // ------------------------
+    ed.setEnzyme("unspecific cleavage");
+    ed.digest(AASequence::fromString("ABCDEFGHIJ"), out);
+    TEST_EQUAL(out.size(), 11*10/2)
+    ed.digest(AASequence::fromString("ABC"), out);
+    TEST_EQUAL(out.size(), 4*3/2)
 END_SECTION
 
 START_SECTION((bool digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length)))
@@ -427,6 +436,16 @@ START_SECTION((bool digestUnmodifiedString(const StringView sequence, std::vecto
     TEST_EQUAL(out[0].getString(), "ACR")
     TEST_EQUAL(out[1].getString(), "PDE")
 
+    // ------------------------
+    // unspecific cleavage
+    // ------------------------    
+    s = "ABCDEFGHIJ";
+    ed.setEnzyme("unspecific cleavage");
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 11*10/2)
+    s = "ABC";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 4*3/2)
 END_SECTION
 
 START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size pep_length, bool methionine_cleavage)))
@@ -529,20 +548,27 @@ START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size
     TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
     // test with different missed cleavages when this is not ignored (ignore_missed_cleavages = false)
-    ed.setEnzyme("Trypsin/P");    
-    prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB"); // cleavages on {0,8,12,16,19}
+    //                                    |8  |12 |16|19
+    prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB"); // 4 cleavages at {(0),8,12,16,19}
     ed.setMissedCleavages(0); // redundant, by default zero, should be zero
-    TEST_EQUAL(ed.isValidProduct(prot, 8, 4, false, false), true); //   valid fully-tryptic
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 4, false, false), true);  //  valid fully-tryptic
     TEST_EQUAL(ed.isValidProduct(prot, 8, 8, false, false), false); //  invalid, fully-tryptic but with a missing cleavage    
     ed.setMissedCleavages(1);
-    TEST_EQUAL(ed.isValidProduct(prot, 8, 8, false, false), true); // valid, fully-tryptic with a missing cleavage  (allow)
-    TEST_EQUAL(ed.isValidProduct(prot, 8, 11, false, false), false); //  invalid, fully-tryptic but with two missing cleavages
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 8, false, false), true);  //  valid, fully-tryptic with 1 missing cleavage (allow)
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 11, false, false), false);//  invalid, fully-tryptic but with 2 missing cleavages
     ed.setMissedCleavages(2);
-    TEST_EQUAL(ed.isValidProduct(prot, 8, 11, false, false), true); //  invalid, fully-tryptic but with a missing cleavage
-    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, true), true); //  boundary case,  length of protein
-    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), false); //  boundary case, this exceeds missing cleavages
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 11, false, false), true); //  valid, fully-tryptic with 2 missing cleavages
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, true), true);  //  boundary case, length of protein (no checking of MCs)
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), false);//  boundary case, this exceeds missing cleavages
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 19, false, false), false);//  start-boundary case, 2 allowed, 3 required
+    ed.setMissedCleavages(3);
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), false);//  boundary case, invalid: 3 allowed, 4 required
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 19, false, false), true);//  start-boundary case, 3 allowed, 3 required
     ed.setMissedCleavages(4); // maximum cleavages for this peptide
-    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), true); //  boundary case, accepted:enough allowed missed cleavages
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), true); //  boundary case, accepted: 4 allowed, 4 required
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 19, false, false), true); //  start-boundary case, 4 allowed, 3 required
+    ed.setMissedCleavages(5); // allow even more ...
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), true); //  boundary case, accepted: 5 allowed, 4 required
     ed.setMissedCleavages(0); // set back to default
 
     //################################################
@@ -569,7 +595,31 @@ START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size
     TEST_EQUAL(ed.isValidProduct(prot, 1, 7, true), true); // valid N-term (since protein starts with Met)
     TEST_EQUAL(ed.isValidProduct(prot, 1, 7, false), true); // invalid N-term (since Met cleavage is not allowed.)
     TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
-    
+
+    // test with different missed cleavages when this is not ignored (ignore_missed_cleavages = false)
+    //                                    |8  |12 |16|19
+    prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB"); // 4 cleavages at {(0),8,12,16,19}
+    ed.setMissedCleavages(0); // redundant, by default zero, should be zero
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 3, false, false), true);  //  valid semi-tryptic
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 5, false, false), false); //  invalid, semi-tryptic but with a missing cleavage    
+    ed.setMissedCleavages(1);
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 5, false, false), true);  //  valid, semi-tryptic with 1 missing cleavage (allow)
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 10, false, false), false);//  invalid, semi-tryptic but with 2 missing cleavages
+    ed.setMissedCleavages(2);
+    TEST_EQUAL(ed.isValidProduct(prot, 8, 10, false, false), true); //  valid, semi-tryptic with 2 missing cleavages
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, true), true);  //  boundary case, length of protein (no checking of MCs)
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), false);//  boundary case, this exceeds missing cleavages
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 18, false, false), false);//  start-boundary case, 2 allowed, 3 required
+    ed.setMissedCleavages(3);
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), false);//  boundary case, invalid: 3 allowed, 4 required
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 18, false, false), true); //  start-boundary case, 3 allowed, 3 required
+    ed.setMissedCleavages(4); // maximum cleavages for this peptide
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), true); //  boundary case, accepted: 4 allowed, 4 required
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 18, false, false), true); //  start-boundary case, 4 allowed, 3 required
+    ed.setMissedCleavages(5); // allow even more ...
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), true); //  boundary case, accepted: 5 allowed, 4 required
+    ed.setMissedCleavages(0); // set back to default
+        
     //################################################
     // same as above, just with other specificity
     
@@ -590,9 +640,38 @@ START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size
     TEST_EQUAL(ed.isValidProduct(prot, 1, 7), true); // invalid N-term
     TEST_EQUAL(ed.isValidProduct(prot, 0, prot.size()), true); // the whole thing
 
+    // test with different missed cleavages when this is not ignored (ignore_missed_cleavages = false)
+    //                                    |8  |12 |16|19
+    prot = AASequence::fromString("ABCDEFGKABCRAAAKAARPBBBB"); // 4 cleavages at {(0),8,12,16,19}
+    ed.setMissedCleavages(0); // redundant, by default zero, should be zero
+    TEST_EQUAL(ed.isValidProduct(prot, 9, 2, false, false), true);  //  valid not-tryptic
+    TEST_EQUAL(ed.isValidProduct(prot, 9, 5, false, false), false); //  invalid, not-tryptic but with a missing cleavage    
+    ed.setMissedCleavages(1);
+    TEST_EQUAL(ed.isValidProduct(prot, 9, 5, false, false), true);  //  valid, not-tryptic with 1 missing cleavage (allow)
+    TEST_EQUAL(ed.isValidProduct(prot, 9, 9, false, false), false); //  invalid, semi-tryptic but with 2 missing cleavages
+    ed.setMissedCleavages(2);
+    TEST_EQUAL(ed.isValidProduct(prot, 9, 9, false, false), true);  //  valid, semi-tryptic with 2 missing cleavages
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, true), true);  //  boundary case, length of protein (no checking of MCs)
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), false);//  boundary case, this exceeds missing cleavages
+    ed.setMissedCleavages(3);
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), false);//  boundary case, invalid: 3 allowed, 4 required
+    ed.setMissedCleavages(4); // maximum cleavages for this peptide
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), true); //  boundary case, accepted: 4 allowed, 4 required
+    ed.setMissedCleavages(5); // allow even more ...
+    TEST_EQUAL(ed.isValidProduct(prot, 0, 24, false, false), true); //  boundary case, accepted: 5 allowed, 4 required
+    ed.setMissedCleavages(0); // set back to default
 
 END_SECTION
 
+START_SECTION([EXTRA] Size countMissedCleavages_(const std::vector<Size>& cleavage_positions, Size pep_start, Size pep_end) const)
+  EnzymaticDigestion ed;
+  ed.setMissedCleavages(2);
+  TEST_EQUAL(ed.isValidProduct("KKKK", 0, 4, false, false), false); // has 3 MC's, should not be valid
+  TEST_EQUAL(ed.isValidProduct("MKKKK", 0, 5, true, false), false); // has 3 MC's, should not be valid
+  ed.setMissedCleavages(3);
+  TEST_EQUAL(ed.isValidProduct("KKKK", 0, 4, false, false), true);  // has 3 MC's, should be valid
+  TEST_EQUAL(ed.isValidProduct("MKKKK", 0, 5, true, false), true);  // has 3 MC's, should be valid
+  END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

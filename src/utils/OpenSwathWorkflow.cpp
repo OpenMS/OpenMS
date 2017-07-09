@@ -797,16 +797,19 @@ protected:
     OpenSwath::LightTargetedExperiment transition_exp;
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, 1, "Load TraML file");
     if (tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
     {
+      progresslogger.startProgress(0, 1, "Load TraML file");
       TargetedExperiment targeted_exp;
       TraMLFile().load(tr_file, targeted_exp);
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+      progresslogger.endProgress();
     }
     else if (tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
     {
+      progresslogger.startProgress(0, 1, "Load PQP file");
       TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
+      progresslogger.endProgress();
 
       remove(out_osw.c_str());
       if (!out_osw.empty())
@@ -819,17 +822,20 @@ protected:
     }
     else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
     {
+      progresslogger.startProgress(0, 1, "Load TSV file");
       TransitionTSVReader tsv_reader;
       tsv_reader.setParameters(tsv_reader_param);
       tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
-
+      progresslogger.endProgress();
     }
     else
     {
       LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
       return PARSE_ERROR;
     }
-    progresslogger.endProgress();
+    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " << 
+      transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
+
 
     ///////////////////////////////////
     // Load the SWATH files
@@ -848,8 +854,10 @@ protected:
 
     for (Size i = 0; i < swath_maps.size(); i++)
     {
-      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower
-        << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra()
+      LOG_DEBUG << "Found swath map " << i 
+        << " with lower " << swath_maps[i].lower
+        << " and upper " << swath_maps[i].upper 
+        << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
     }
 
@@ -938,7 +946,7 @@ protected:
 
         chromConsumer->getOptions().setNumpressConfigurationMassTime(npconfig_mz);
         chromConsumer->getOptions().setNumpressConfigurationIntensity(npconfig_int);
-        // chromConsumer->getOptions().setCompression(true); // need to wait for new obo
+        chromConsumer->getOptions().setCompression(true);
 
         chromatogramConsumer = chromConsumer;
       }

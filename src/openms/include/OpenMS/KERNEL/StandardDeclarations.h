@@ -32,8 +32,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_FORWARD_H
-#define OPENMS_KERNEL_FORWARD_H
+#ifndef OPENMS_KERNEL_STANDARDDECLARATIONS_H
+#define OPENMS_KERNEL_STANDARDDECLARATIONS_H
 
 // Forward declarations
 namespace OpenMS
@@ -51,4 +51,4 @@ namespace OpenMS
   class MSExperiment;
   class ExperimentalSettings;
 }
-#endif // OPENMS_KERNEL_FORWARD_H
+#endif // OPENMS_KERNEL_STANDARDDECLARATIONS_H

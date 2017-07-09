@@ -15,6 +15,7 @@ DataProcessing.cpp
 Digestion.cpp
 DocumentIDTagger.cpp
 DocumentIdentifier.cpp
+ExperimentalDesign.cpp
 ExperimentalSettings.cpp
 Gradient.cpp
 HPLC.cpp

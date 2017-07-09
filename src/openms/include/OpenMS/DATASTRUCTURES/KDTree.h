@@ -58,8 +58,8 @@
  * \author Martin F. Krafft <libkdtree@pobox.madduck.net>
  */
 
-#ifndef INCLUDE_KDTREE_NODE_HPP
-#define INCLUDE_KDTREE_NODE_HPP
+#ifndef OPENMS_DATASTRUCTURES_KDTREE_H
+#define OPENMS_DATASTRUCTURES_KDTREE_H
 
 #ifdef KDTREE_DEFINE_OSTREAM_OPERATORS
 #  include <ostream>
