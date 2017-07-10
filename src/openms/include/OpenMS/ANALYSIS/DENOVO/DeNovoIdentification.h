@@ -74,7 +74,7 @@ public:
     virtual void getIdentifications(std::vector<PeptideIdentification> & ids, const PeakMap & exp) = 0;
 
     /// performs an ProteinIdentification run on a PeakSpectrum
-    virtual void getIdentification(PeptideIdentification & id, const RichPeakSpectrum & spectrum) = 0;
+    virtual void getIdentification(PeptideIdentification & id, const PeakSpectrum & spectrum) = 0;
 
   };
 

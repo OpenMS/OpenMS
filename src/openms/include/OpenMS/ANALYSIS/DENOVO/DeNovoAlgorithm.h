@@ -72,7 +72,7 @@ public:
 
     virtual void generateCandidates(std::vector<PeptideIdentification> & candidates, const std::vector<std::vector<DeNovoIonScoring::IonScore> > & ion_scores, const PeakMap & exp) = 0;
 
-    virtual void generateCandidates(PeptideIdentification & candidates, std::vector<DeNovoIonScoring::IonScore> & ion_scores, const RichPeakSpectrum & spec) = 0;
+    virtual void generateCandidates(PeptideIdentification & candidates, std::vector<DeNovoIonScoring::IonScore> & ion_scores, const PeakSpectrum & spec) = 0;
 
   };
 
