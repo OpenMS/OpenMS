@@ -12,7 +12,6 @@ addons:
          - sourceline: 'ppa:beineri/opt-qt591-trusty'
       packages:
          - cmake
-         - glpk
          - qt59base
          - qt59svg
          - cmake-data
