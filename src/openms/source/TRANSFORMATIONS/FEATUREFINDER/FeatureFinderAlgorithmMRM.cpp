@@ -182,10 +182,12 @@ namespace OpenMS
       {
         std::cerr << first_it->getPrecursor().getMZ() << " " << first_it->getProduct().getMZ() << " ";
       }
+
+      PeakSpectrum::FloatDataArray signal_to_noise;
       for (PeakSpectrum::Iterator sit = chromatogram.begin(); sit != chromatogram.end(); ++sit)
       {
         double sn(sne.getSignalToNoise(sit));
-        sit->setMetaValue("SN", sn);
+        signal_to_noise.push_back(sn);
         if (write_debuginfo)
         {
           std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
@@ -195,6 +197,7 @@ namespace OpenMS
           sn_chrom.push_back(*sit);
         }
       }
+      chromatogram.getFloatDataArrays().push_back(signal_to_noise);
 
       // now find sections in the chromatogram which have high s/n value
       double last_rt(0);
