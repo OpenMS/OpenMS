@@ -4,7 +4,6 @@ set(directory source/APPLICATIONS/UTILS)
 ### list all filenames of the directory here
 set(UTILS_executables
 AccurateMassSearch
-CsiFingerIdMzTabWriter
 CVInspector
 DecoyDatabase
 DatabaseFilter
@@ -47,8 +46,6 @@ SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
 SiriusAdapter
-SiriusMsConverter
-SiriusMzTabWriter
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator

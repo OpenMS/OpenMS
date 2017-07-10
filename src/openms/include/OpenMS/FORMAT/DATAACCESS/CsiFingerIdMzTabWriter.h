@@ -32,35 +32,49 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
-#define OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
-
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-
+#ifndef OPENMS_HOST_CsiFINGERIDMZTABWRITER_H
+#define OPENMS_HOST_CsiFINGERIDMZTABWRITER_H
 
 namespace OpenMS
 {
+  class OPENMS_DLLAPI CsiFingerIdMzTabWriter
+      {
+          public:
 
-  class OPENMS_DLLAPI SiriusMSFile
-  {
-public:
+          /**
+          @brief Internal structure used in @ref SiriusAdapter that is used
+           for the conversion of the Csi:FingerID output to an mzTab.
+           @ingroup DATAACCESS
+          */
 
-  /**
-    @brief Internal structure used in @ref SiriusAdapter that is used
-    for the conversion of a MzMlFile to an internal format.
+          struct CsiAdapterHit
+          {
+            OpenMS::String inchikey2D;
+            OpenMS::String inchi;
+            unsigned int rank;
+            OpenMS::String molecular_formula;
+            double score;
+            OpenMS::String name;
+            OpenMS::String smiles;
+            std::vector<String> pubchemids;
+            std::vector<String> links;
 
-    @ingroup ID
-    */
+          };
 
+          struct CsiAdapterIdentification
+          {
+            OpenMS::String scan_index;
+            std::vector<CsiAdapterHit> hits;
+          };
 
-    /// store MS files of batch size @param batch_size in the temp folder
-    /// @return vector of file names (full path)
+          struct CsiAdapterRun
+          {
+            std::vector <CsiAdapterIdentification> identifications;
+          };
 
-    static String store(const MSExperiment<> & spectra);
+          static MzTab store(const std::vector<String> paths, Size number);
 
-  };
-
+      };
 }
 
-#endif //OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
+#endif //OPENMS_HOST_CsiFINGERIDMZTABWRITER_H

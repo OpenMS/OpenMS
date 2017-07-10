@@ -79,13 +79,12 @@ namespace OpenMS
   }
 
 
-  std::vector<String> SiriusMSFile::store(const MSExperiment<> &spectra, Size batch_size)
+  String SiriusMSFile::store(const MSExperiment<> &spectra)
   {
-    std::vector<String> msfiles;
-
+    OpenMS::String msfile;
     int count = 0;
     //check for all spectra at the beginning if spectra are centroided
-    // determine type of spectral data (profile or centroided) - only checking first spectrum (could be ms2 spectrum)
+    //determine type of spectral data (profile or centroided) - only checking first spectrum (could be ms2 spectrum)
     SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
 
     if (spectrum_type == SpectrumSettings::RAWDATA)
@@ -151,7 +150,7 @@ namespace OpenMS
         {
           LOG_WARN << "Error: no MS1 spectrum for this precursor. No isotopes considered in sirius." << endl;
         }
-        //get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da
+          //get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da
         else
         {
           const MSSpectrum<Peak1D>& spectrum1 = *s_it2;
@@ -185,34 +184,27 @@ namespace OpenMS
         streamsize prec(0);
         String query_id = String("unknown") + String(scan_index);
 
-        if (count == 0) //only one .ms file always true
+        if (count == 0) //one ms file
         {
-            // store data
-          String query_id = String("unknown") + String(scan_index);
+          // store data
           String unique_name =  String(File::getUniqueName()).toQString(); //if not done this way - always new "unique name"
-          String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_out";
           String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
+          msfile = tmp_filename;
 
+          std::cout << "unique_name: " << unique_name << std::endl;
+          std::cout << "tmp_filename: " << tmp_filename << std::endl;
 
-          // close previous (.ms) file
-            if (os.is_open()) os.close();
-
-            msfiles.push_back(tmp_filename);
-
-            // create temporary input file (.ms)
-            os.open(tmp_filename.c_str());
-
-            if (!os)
-            {
-              throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
-            }
-            prec = os.precision();
-            os.precision(12);
+          //create temporary input file (.ms)
+          os.open(tmp_filename.c_str());
+          if (!os)
+          {
+            throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
+          }
+          prec = os.precision();
+          os.precision(12);
         }
 
         //TODO: Collision energy optional for MS2 - something wrong with .getActivationEnergy() (Precursor)
-        //TODO: MS2 instensity cutoff? -> to reduce the interference of low intensity peaks (?) - can do that for specific spectra (hard coded/soft coded?) - not sure if needed
-
         //write internal unique .ms data as sirius input
         os << fixed;
         os << ">compound " << query_id << "\n";
@@ -224,10 +216,10 @@ namespace OpenMS
         {
           os << ">parentmass " << precursor_mz << fixed << "\n";
         }
+
         os << ">charge " << int_charge << "\n\n";
 
         // Use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
-
         if (isotopes.empty() == false) //if ms1 spectrum was present
         {
           os << ">ms1" << "\n";
@@ -273,15 +265,14 @@ namespace OpenMS
         os << "\n";
       }
 
-      // increase count and reset to zero if batch size reached
-      count = (count + 1) % batch_size;
+      count = count + 1; //needed that all spectra written in one ms-file
 
     }
 
     // close previous (.ms) file
     if (os.is_open()) os.close();
 
-    return msfiles;
+    return msfile;
   }
 
 }

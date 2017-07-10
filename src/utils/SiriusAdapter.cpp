@@ -50,13 +50,16 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
-//#include <OpenMS/?/SiriusMzTabWriter.h>
-//#include <OpenMS/?/CsiFingerIDMzTabWriter.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
 #include <QDir>
+#include <QDebug>
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
+
+#include <QDirIterator>
 
 
 using namespace OpenMS;
@@ -83,13 +86,7 @@ Please see the following publications:
 
 Kai Dührkop and Sebastian Böcker. Fragmentation trees reloaded.  J Cheminform, 8:5, 2016. (Cite this for fragmentation pattern analysis and fragmentation tree computation)
 
-Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker. Searching molecular structure databases with tandem mass spectra using CSI:FingerID. Proc Natl Acad Sci U S A, 112(41):12580-12585, 2015. (cite this when using CSI:FingerID)
-
-Sebastian Böcker, Matthias C. Letzel, Zsuzsanna Lipták and Anton Pervukhin. SIRIUS: decomposing isotope patterns for metabolite identification. Bioinformatics (2009) 25 (2): 218-224. (Cite this for isotope pattern analysis)
-
-Florian Rasche, Aleš Svatoš, Ravi Kumar Maddula, Christoph Böttcher, and Sebastian Böcker. Computing Fragmentation Trees from Tandem Mass Spectrometry Data. Analytical Chemistry (2011) 83 (4): 1243–1251. (Cite this for introduction of fragmentation trees as used by SIRIUS)
-
-Sebastian Böcker and Florian Rasche. Towards de novo identification of metabolites by analyzing tandem mass spectra. Bioinformatics (2008) 24 (16): i49-i55. (The very first paper to mention fragmentation trees as used by SIRIUS)
+Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker. Searching molecular structure databases with tandem mass spectra using CSI:FingerID. Proc Natl Acad Sci U S A, 112(41):12580-12585, 2015. (Cite this when using CSI:FingerID)
 
 <B>The command line parameters of this tool are:</B>
 @verbinclude UTILS_SiriusAdapter.cli
@@ -105,53 +102,41 @@ class TOPPSiriusAdapter :
 {
 public:
   TOPPSiriusAdapter() :
-    TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false)
+      TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false)
   {
   }
 
 protected:
 
-  struct SiriusAdapterHit
+  void removeTempDir_(const String& tmp_dir)
   {
-    String inchikey2D;
-    String inchi;
-    unsigned int rank;
-    double score;
-    String name;
-    String smiles;
-    vector<String> pubchemids;
-    String links;
-  };
+    if (tmp_dir.empty()) return;
 
-  struct SiriusAdapterIdentification
-  {
-    String id;
-    unsigned int scan_index;
-    int charge;
-    int mz;
-    int rt;
-    vector<SiriusAdapterHit> hits;
-  };
-
-  struct SiriusAdapterRun
-  {
-    vector<SiriusAdapterIdentification> identifications;
-  };
+    if (debug_level_ >= 2)
+    {
+      writeDebug_("Keeping temporary files in directory '" + tmp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
+    }
+    else
+    {
+      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
+      File::removeDirRecursively(tmp_dir);
+    }
+  }
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("executable", "<file>", "", "sirius file e.g. /bin/sirius3", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<file>", "", "sirius file e.g. /bin/sirius", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
     setValidFormats_("out_sirius", ListUtils::create<String>("csv"));
 
-    registerOutputFile_("out_CsiFingerID","<file>", "", "MzTab ouput file for CsiFingerID", false);
-    setValidFormats_("out_CsiFingerID", ListUtils::create<String>("csv"));
+    registerOutputFile_("out_CSIFingerID","<file>", "", "MzTab ouput file for CSI:FingerID", false);
+    setValidFormats_("out_CSIFingerID", ListUtils::create<String>("csv"));
 
-    registerStringOption_("analysis_profile", "<choice>", "qtof", "Specify the used analysis profile", false);
-    setValidStrings_("analysis_profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
+    registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
+    setValidStrings_("profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
     registerIntOption_("candidates", "<num>", 5, "The number of candidates in the output. Default 5 best candidates", false);
     registerStringOption_("database", "<choice>", "all", "search formulas in given database", false);
     setValidStrings_("database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));
@@ -160,15 +145,13 @@ protected:
     registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring (default). Use 'omit' to ignore isotope pattern.", false);
     setValidStrings_("isotope", ListUtils::create<String>("score,filter,both,omit"));
     registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurence of these elements: CHNOP[5]S[8]Cl[1]. By default CHNOP[5]S is used.", false);
-    registerIntOption_("mass_deviation", "<num>", 5, "Specify the allowed mass deviation of the fragment peak in ppm.", false);
-
-    registerIntOption_("batch_size", "<num>", 0, "Number of files in one .ms file (Only needed if Rest-query is used)", false);
 
     registerIntOption_("number", "<num>", 10, "The number of compounds used in the output", false);
 
+    registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
-    registerFlag_("fingerid", "If this option is set, SIRIUS will search for molecular structure using CSI:FingerId after determining the molecIf this option is set, SIRIUS will search for molecular structure using CSI:FingerId after determining the molecular formulular formula", false);
+    registerFlag_("fingerid", "If this option is set, SIRIUS will search for a molecular structure using CSI:FingerId after determining the sum formula", false);
   }
 
   ExitCodes main_(int, const char **)
@@ -179,15 +162,15 @@ protected:
 
     String in = getStringOption_("in");
     String out1 = getStringOption_("out_sirius");
-    String out2 = getStringOption_("out_CsiFingerID");
+    String out2 = getStringOption_("out_CSIFingerID");
 
     // needed for counting
     int number = getIntOption_("number");
-    number = number + 1;
+    number = number + 1; //needed to write the correct number of compounds
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
-    QString analysis_profile = getStringOption_("analysis_profile").toQString();
+    QString profile = getStringOption_("profile").toQString();
     QString elements = getStringOption_("elements").toQString();
     QString database = getStringOption_("database").toQString();
     QString isotope = getStringOption_("isotope").toQString();
@@ -195,12 +178,7 @@ protected:
     QString ppm_max = QString::number(getIntOption_("ppm_max"));
     QString candidates = QString::number(getIntOption_("candidates"));
 
-    Int batch_size = getIntOption_("batch_size");
-    if(batch_size == 0)
-    {
-      batch_size = static_cast<int>(in.size());
-    }
-
+    bool auto_charge = getFlag_("auto_charge");
     bool no_recalibration = getFlag_("no_recalibration");
     bool fingerid = getFlag_("fingerid");
     bool iontree = getFlag_("iontree");
@@ -213,57 +191,85 @@ protected:
     MzMLFile f;
     f.setLogType(log_type_);
     f.load(in, spectra);
+    std::vector<String> subdirs;
 
-    std::vector<String> ms_files = SiriusMSFile::store(spectra, batch_size);
+    //Write msfile
+    String ms_file = SiriusMSFile::store(spectra);
 
-    for(int i = 0; i < ms_files.size(); ++i)
+    std::cout << "ms_file: " << ms_file << std::endl;
+
+    String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + QString::number(0) + "_out";
+
+    //Start Sirius
+    QStringList process_params; // the actual process
+    process_params << "-p" << profile
+                   << "-e" << elements
+                   << "-d" << database
+                   << "-s" << isotope
+                   << "--noise" << noise
+                   << "--candidates" << candidates
+                   << "--ppm-max" << ppm_max
+                   << "--quiet"
+                   << "--output" << tmp_dir.toQString(); //internal output folder for temporary
+
+    if (no_recalibration)
     {
-
-      QStringList process_params; // the actual process
-      process_params << "-p" << analysis_profile
-                     << "-e" << elements
-                     << "-d" << database
-                     << "-s" << isotope
-                     << "--noise" << noise
-                     << "--candidates" << candidates
-                     << "--ppm-max" << ppm_max
-                     << "--output" << File::removeExtension(ms_files[i]).toQString(); //internal output folder for temporary files
-
-      if (no_recalibration)
-      {
-        process_params << "--no-recalibration";
-      }
-      if (fingerid)
-      {
-        process_params << "--fingerid";
-      }
-      if (iontree)
-      {
-        process_params << "--iontree";
-      }
-
-      process_params << ms_files[i].toQString();
-
-      QProcess qp;
-      qp.start(executable, process_params); // does automatic escaping etc... start
-      bool success = qp.waitForFinished(30000); // exits job after 30 seconds
-
-      if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
-      {
-        qp.close();
-        writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input within 30 seconds" );
-      }
-
-      //close the process
-      //-------------------------------------------------------------
-      // writing output
-      //-------------------------------------------------------------
-
-      //TODO: output from SirusMzTabWriter
-      //TODO: output from CsiFingerIDMzTabWriter
-
+      process_params << "--no-recalibration";
+    }
+    if (fingerid)
+    {
+      process_params << "--fingerid";
+    }
+    if (iontree)
+    {
+      process_params << "--iontree";
+    }
+    if (auto_charge)
+    {
+      process_params << "--auto-charge";
     }
 
+    process_params << ms_file.toQString();
+
+    qDebug() << process_params;
+
+    QProcess qp;
+    qp.start(executable, process_params); // does automatic escaping etc... start
+    bool success = qp.waitForFinished(-1); // wait till job is finished
+
+    if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    {
+      qp.close();
+      writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input" );
+    }
+
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
+
+    std::cout << "dir: " << tmp_dir << std::endl;
+
+    //Extract path to subfolders (sirius internal folder structure)
+    QDirIterator it(tmp_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+    while (it.hasNext())
+    {
+      subdirs.push_back(it.next());
+    }
+
+    std::cout << "subdir_vector: " << subdirs << std::endl;
+
+    //Convert sirius_output to mztab
+    MzTab smztab = SiriusMzTabWriter::store(subdirs, number);
+    MzTab cmztab = CsiFingerIdMzTabWriter::store(subdirs, number);
+
+    //Write output file
+    MzTabFile siriusfile;
+    MzTabFile csifile;
+    siriusfile.store(out1, smztab);
+    csifile.store(out2, cmztab);
+
+    //clean tmp directory
+    //removeTempDir_(tmp_dir);
 
     return EXECUTION_OK;
   }

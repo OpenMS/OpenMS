@@ -32,35 +32,51 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
-#define OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
-
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-
+#ifndef OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
+#define OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
 
 namespace OpenMS
 {
-
-  class OPENMS_DLLAPI SiriusMSFile
+  class OPENMS_DLLAPI SiriusMzTabWriter
   {
-public:
+  public:
 
-  /**
+    /**
     @brief Internal structure used in @ref SiriusAdapter that is used
-    for the conversion of a MzMlFile to an internal format.
-
+    for the conversion of the sirius output to an mzTab.
     @ingroup ID
     */
 
+     /// store a specific @param number of lines from sirius output
+     /// @return mzTab
 
-    /// store MS files of batch size @param batch_size in the temp folder
-    /// @return vector of file names (full path)
+    struct SiriusAdapterHit
+    {
+      OpenMS::String formula;
+      OpenMS::String adduct;
+      int rank;
+      double score;
+      double treescore;
+      double isoscore;
+      int explainedpeaks;
+      double explainedintensity;
+    };
 
-    static String store(const MSExperiment<> & spectra);
+    struct SiriusAdapterIdentification
+    {
+      OpenMS::String scan_index;
+      std::vector<SiriusAdapterHit> hits;
+    };
+
+    struct SiriusAdapterRun
+    {
+      std::vector<SiriusAdapterIdentification> identifications;
+    };
+
+    static MzTab store(const std::vector<String> file, Size number);
 
   };
 
 }
 
-#endif //OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
+#endif //OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
