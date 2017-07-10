@@ -181,7 +181,7 @@ namespace OpenMS
         {
           double xcorr = hit->getMetaValue("MS:1002252").toString().toDouble();
           worst_xcorr = xcorr;
-          if (cnt == 1) second_xcorr = xcorr;
+          if (cnt == 1) { second_xcorr = xcorr; }
           ++cnt;
         }
         
@@ -315,39 +315,45 @@ namespace OpenMS
         {
           // keep the hit score as meta value
           if (st == "MS-GF:RawScore")
-              st = "MS:1002049";
+          {
+            st = "MS:1002049";
+          }
           else if (st == "XTandem")
-              st = "MS:1001331";
+          {
+            st = "MS:1001331";
+          }
           else if (st == "Mascot")
-              st = "MS:1001171";
+          {
+            st = "MS:1001171";
+          }
           else if ((st == "expect" && search_engine == "Comet" )|| st == "Comet")
-              st = "MS:1002257";
+          {
+            st = "MS:1002257";
+          }
 
           if (!hit->metaValueExists(st))
+          {
             hit->setMetaValue(st, hit->getScore());
+          }
 
           hit->setScore(1);  // new 'multiple' score is just the number of times identified by different SE
 
           // rename ambiguous meta value names to PSI cv term ids
-          if (search_engine == "MS-GF+")  // MS-GF should have all values as PSI cv terms available anyway
+          if (search_engine == "MS-GF+" && hit->metaValueExists("EValue"))  // MS-GF should have all values as PSI cv terms available anyway
           {
-            if (hit->metaValueExists("EValue"))
-              hit->setMetaValue("MS:1002053", hit->getMetaValue("EValue"));
+            hit->setMetaValue("MS:1002053", hit->getMetaValue("EValue"));
           }
-          if (search_engine == "Mascot")
+          if (search_engine == "Mascot" && hit->metaValueExists("EValue"))
           {
-            if (hit->metaValueExists("EValue"))
-              hit->setMetaValue("MS:1001172", hit->getMetaValue("EValue"));
+            hit->setMetaValue("MS:1001172" && hit->getMetaValue("EValue"));
           }
-          if (search_engine == "Comet")
+          if (search_engine == "Comet" && hit->metaValueExists("xcorr"))
           {
-            if (hit->metaValueExists("xcorr"))
-              hit->setMetaValue("MS:1002252", hit->getMetaValue("xcorr"));
+            hit->setMetaValue("MS:1002252", hit->getMetaValue("xcorr"));
           }
-          if (search_engine == "XTandem")
+          if (search_engine == "XTandem" && hit->metaValueExists("E-Value"))
           {
-            if (hit->metaValueExists("E-Value"))
-              hit->setMetaValue("MS:1001330", hit->getMetaValue("E-Value"));
+            hit->setMetaValue("MS:1001330", hit->getMetaValue("E-Value"));
           }
 
         }
