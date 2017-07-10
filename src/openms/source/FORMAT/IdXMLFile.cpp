@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -93,12 +94,19 @@ namespace OpenMS
 
   void IdXMLFile::store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id)
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::IDXML))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::IDXML) + "'");
+    }
+
     //open stream
     std::ofstream os(filename.c_str());
     if (!os)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
+
     os.precision(writtenDigits<double>(0.0));
 
     //write header
@@ -292,7 +300,7 @@ namespace OpenMS
           const PeptideHit& p_hit = peptide_ids[l].getHits()[j];
           os << "\t\t\t<PeptideHit";
           os << " score=\"" << precisionWrapper(p_hit.getScore()) << "\"";
-          os << " sequence=\"" << p_hit.getSequence() << "\"";
+          os << " sequence=\"" << writeXMLEscape(p_hit.getSequence().toString()) << "\"";
           os << " charge=\"" << p_hit.getCharge() << "\"";
 
           std::vector<PeptideEvidence> pes = p_hit.getPeptideEvidences();

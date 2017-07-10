@@ -1761,7 +1761,7 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_pos", ++alpha_pos);
         ph_alpha.setMetaValue("xl_term_spec", "N_TERM");
       }
-      else if (alpha_pos == static_cast<SignedSize>((*pep_map_.find(peptides[alpha[0]])).second.size()))
+      else if (alpha_pos == static_cast<SignedSize>(ph_alpha.getSequence().size()))
       {
         ph_alpha.setMetaValue("xl_pos", --alpha_pos);
         ph_alpha.setMetaValue("xl_term_spec", "C_TERM");
@@ -1821,7 +1821,7 @@ namespace OpenMS
           ph_beta.setMetaValue("xl_pos", ++beta_pos);
           ph_beta.setMetaValue("xl_term_spec", "N_TERM");
         }
-        else if (beta_pos == static_cast<SignedSize>((*pep_map_.find(peptides[beta[0]])).second.size()))
+        else if (beta_pos == static_cast<SignedSize>(ph_beta.getSequence().size()))
         {
           ph_beta.setMetaValue("xl_pos", --beta_pos);
           ph_beta.setMetaValue("xl_term_spec", "C_TERM");

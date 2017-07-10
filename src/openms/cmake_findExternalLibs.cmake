@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,9 +33,7 @@
 # --------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# This cmake file handles finding external libs for OpenMS (note that the paths
-# for these libraries need to be defined on top-level, see the top-level file
-# cmake/OpenMSBuildSystem_externalLibs.cmake)
+# This cmake file handles finding external libs for OpenMS
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------

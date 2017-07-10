@@ -52,7 +52,7 @@
 #include <vector>
 
 namespace OpenMS
-{
+{ 
   class EmpiricalFormula;
 
   class OPENMS_DLLAPI AdductInfo

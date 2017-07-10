@@ -66,17 +66,17 @@
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
 				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
+				</PeptideHit>
 				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
 				</PeptideHit>
 				<UserParam type="int" name="map_index" value="2"/>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="0" sequence="PEPTIDEK" charge="0">
-				</PeptideHit>
-				<UserParam type="int" name="map_index" value="0"/>
 			</PeptideIdentification>
 		</consensusElement>
 		<consensusElement id="e_7804704400743266335" quality="0.77455">
@@ -94,12 +94,12 @@
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
 				</PeptideHit>
-				<UserParam type="int" name="map_index" value="2"/>
+				<UserParam type="int" name="map_index" value="1"/>
 			</PeptideIdentification>
 			<PeptideIdentification identification_run_ref="PI_2" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="PEPTIDER" charge="0">
 				</PeptideHit>
-				<UserParam type="int" name="map_index" value="1"/>
+				<UserParam type="int" name="map_index" value="2"/>
 			</PeptideIdentification>
 		</consensusElement>
 	</consensusElementList>
