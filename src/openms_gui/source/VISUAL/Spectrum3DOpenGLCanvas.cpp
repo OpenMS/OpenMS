@@ -98,27 +98,27 @@ namespace OpenMS
     AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0], canvas_3d_.visible_area_.max_[0], grid_mz_);
   }
 
-  void Spectrum3DOpenGLCanvas::renderText(double x, double y, double z, const QString & text, const QFont & font = QFont()) {
-    // Identify x and y locations to render text within widget
-    int height = this->height();
-    //GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
-    //project(x, y, z, &textPosX, &textPosY, &textPosZ);
+  // void Spectrum3DOpenGLCanvas::renderText(double x, double y, double z, const QString & text, const QFont & font = QFont()) {
+  //   // Identify x and y locations to render text within widget
+  //   int height = this->height();
+  //   //GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
+  //   //project(x, y, z, &textPosX, &textPosY, &textPosZ);
 
-    //TODO implement/figure out project function. Use identity for testing
-    GLdouble textPosX = x, textPosY = y, textPosZ = z;
-    //textPosY = height - textPosY; // y is inverted
+  //   //TODO implement/figure out project function. Use identity for testing
+  //   GLdouble textPosX = x, textPosY = y, textPosZ = z;
+  //   //textPosY = height - textPosY; // y is inverted
 
-    // Retrieve last OpenGL color to use as a font color
-    GLdouble glColor[4];
-    glGetDoublev(GL_CURRENT_COLOR, glColor);
-    QColor fontColor = QColor(glColor[0], glColor[1], glColor[2], glColor[3]);
+  //   // Retrieve last OpenGL color to use as a font color
+  //   GLdouble glColor[4];
+  //   glGetDoublev(GL_CURRENT_COLOR, glColor);
+  //   QColor fontColor = QColor(glColor[0], glColor[1], glColor[2], glColor[3]);
 
-    // Render text
-    // TODO not sure where to start the painter. Here? In paintGL?
-    //painter.setPen(fontColor);
-    //painter.setFont(font);
-    //painter.drawText(textPosX, textPosY, text);
-  }
+  //   // Render text
+  //   // TODO not sure where to start the painter. Here? In paintGL?
+  //   //painter.setPen(fontColor);
+  //   //painter.setFont(font);
+  //   //painter.drawText(textPosX, textPosY, text);
+  // }
 
   void Spectrum3DOpenGLCanvas::qglColor(QColor color) {
     glColor4f(color.redF(), color.greenF(), color.blueF(), color.alphaF());
