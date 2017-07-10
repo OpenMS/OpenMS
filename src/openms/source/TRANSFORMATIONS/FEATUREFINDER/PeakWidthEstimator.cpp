@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,11 +42,11 @@
 namespace OpenMS
 {
 
-  PeakWidthEstimator::PeakWidthEstimator(const MSExperiment<Peak1D> & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries)
+  PeakWidthEstimator::PeakWidthEstimator(const PeakMap & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries)
   {
     std::vector<double> peaks_mz;
     std::vector<double> peaks_width;
-    MSExperiment<Peak1D>::ConstIterator it_rt;
+    PeakMap::ConstIterator it_rt;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
     for (it_rt = exp_picked.begin(), it_rt_boundaries = boundaries.begin();
          it_rt < exp_picked.end() && it_rt_boundaries < boundaries.end();

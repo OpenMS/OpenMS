@@ -155,8 +155,12 @@
       \endcode
 
   To avoid problems while building the libraries contained in the contrib package,
-  the path to your contrib-build directory should not have any spaces in it.
-
+  the path to your contrib-build directory should not have any spaces in it. In case your distribution   
+  does not provide some of the packages (or in different versions than expected), it is sometimes easier 
+  to build all dependencies manually which can solve issues with incompatible versions:
+      \code
+          cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../contrib
+      \endcode
   @section build_linux_noroot Building without root privileges
 
   If you are on a system without root access (e.g. a shared cluster), there are
@@ -168,7 +172,7 @@
 
   \code
   cmake -DBUILD_TYPE=LIST ../contrib
-  cmake -DBUILD_TYPE=ALL ../contrib
+  cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../contrib
   \endcode
 
   Alternatively, you can build one package after the other by providing
@@ -185,7 +189,6 @@
   <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
   OpenGL and you may not have an X server.
   If you want to use your own qt installation, be sure to set the <tt>QT_QMAKE_EXECUTABLE=/path/to/qmake</tt> flag when using cmake to configure %OpenMS.
-  Finally, you may have to remove any system libraries from the <tt>CMAKE_PREFIX_PATH</tt> to ensure that the correct version of each library is used.
 
   @section install_linux_openms Configuring and building OpenMS/TOPP
 
@@ -203,7 +206,7 @@
   mkdir OpenMS-build
   cd OpenMS-build
   \endcode
-
+  
   In the %OpenMS build directory we execute %CMake to <i>configure</i> %OpenMS. You
   should substitute <tt>/PATH/TO/contrib/</tt> with the above path to the build
   contrib. Make sure you use the <i>absolute</i> (and not relative) path for the
@@ -212,8 +215,14 @@
   <tt>/usr;/usr/local</tt> part of the path:
 
   \code
-  cmake -DCMAKE_PREFIX_PATH="/PATH/TO/contrib-build;/usr;/usr/local" -DBOOST_USE_STATIC=OFF ../OpenMS
+  cmake -DOPENMS_CONTRIB_LIBS="/PATH/TO/contrib-build" -DBOOST_USE_STATIC=OFF ../OpenMS
   \endcode
+
+  If CMake has problems finding system libraries, you might consider adding:
+  \code
+  -DCMAKE_PREFIX_PATH="/usr;/usr/local"
+  \endcode
+  to the CMake options.
 
   In order to <i>build</i> the %OpenMS library, the TOPP tools, tests, and this
   documentation, execute the following command:
@@ -300,14 +309,18 @@
           <BR>
           <b>Note:</b> Moving these directories after installing is not supported.
 
-	<b>For development, install prefixes are not supported. In this case %OpenMS must
-	be built in place!</b>
+	        <b>For development, install prefixes are not supported. In this case %OpenMS must
+	         be built in place!</b>
      </td>
     </tr>
     <tr>
+      <td valign="top">\c OPENMS_CONTRIB_LIBS</td>
+      <td>Seperate search path for the contrib libraries from github.com/OpenMS/contrib that is internally considered before
+      CMAKE_PREFIX_PATH for searching, linking and adding include directories.</td>
+    </tr>
+    <tr>
       <td valign="top">\c CMAKE_PREFIX_PATH</td>
-      <td>Additional search path for the contrib libraries.
-          If not set the location is assumed to be <pre>contrib/</pre> as packaged in the Release tar.gz.</td>
+      <td>Additional search path for the contrib libraries.</td>
     </tr>
     <tr>
       <td valign="top">\c QT_QMAKE_EXECUTABLE</td>

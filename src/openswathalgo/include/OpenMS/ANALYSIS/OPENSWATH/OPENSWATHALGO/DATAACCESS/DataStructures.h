@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,6 +95,7 @@ namespace OpenSwath
   /// A single chromatogram.
   struct OPENSWATHALGO_DLLAPI OSChromatogram
   {
+private:
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
 
@@ -107,6 +108,7 @@ namespace OpenSwath
 
     /// list of binary data arrays.
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
+public:
 
     OSChromatogram() :
       defaultArrayLength(2),
@@ -188,11 +190,11 @@ public:
   /// The structure that captures the generation of a peak list (including the underlying acquisitions)
   struct OPENSWATHALGO_DLLAPI OSSpectrum
   {
+private:
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
 
     /// list of binary data arrays.
-private:
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
 public:
     OSSpectrum() :

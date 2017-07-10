@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,11 +36,14 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-
 ///////////////////////////
+
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/RichPeak1D.h>
 
 START_TEST(FileHandler, "$Id$")
 
@@ -88,19 +91,36 @@ TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
 END_SECTION
 
+START_SECTION((static bool hasValidExtension(const String& filename, const FileTypes::Type type)))
+TEST_EQUAL(FileHandler::hasValidExtension("test.bla", FileTypes::UNKNOWN), true)
+TEST_EQUAL(FileHandler::hasValidExtension("test.idXML", FileTypes::IDXML), true)
+TEST_EQUAL(FileHandler::hasValidExtension("test.consensusXML", FileTypes::CONSENSUSXML), true)
+
+// tmp (UNKNOWN)
+TEST_EQUAL(FileHandler::hasValidExtension("test.tmp", FileTypes::UNKNOWN), true)
+TEST_EQUAL(FileHandler::hasValidExtension("test.tmp", FileTypes::IDXML), true)
+TEST_EQUAL(FileHandler::hasValidExtension("test.tmp", FileTypes::CONSENSUSXML), true)
+
+// known other file type
+TEST_EQUAL(FileHandler::hasValidExtension("test.consensusXML", FileTypes::IDXML), false)
+TEST_EQUAL(FileHandler::hasValidExtension("test.idXML", FileTypes::CONSENSUSXML), false)
+END_SECTION
+
 START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))
 FileHandler tmp;
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData")), FileTypes::MZDATA)
-TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")), FileTypes::FEATUREXML)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML")), FileTypes::MZXML)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML")), FileTypes::MZML)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.bz2")), FileTypes::MZML)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompressed.mzML.gz")), FileTypes::MZML)
+TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid")), FileTypes::MZIDENTML)
+TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")), FileTypes::FEATUREXML)
+TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML")), FileTypes::CONSENSUSXML)
+TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileTypes::IDXML)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta")), FileTypes::DTA)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d")), FileTypes::DTA2D)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_2.dta2d")), FileTypes::DTA2D)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("class_test_infile.txt")), FileTypes::UNKNOWN)
-TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML")), FileTypes::IDXML)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML")), FileTypes::TRANSFORMATIONXML)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FASTAFile_test.fasta")), FileTypes::FASTA)
 TEST_EQUAL(tmp.getTypeByContent(OPENMS_GET_TEST_DATA_PATH("FileHandler_toppas.toppas")), FileTypes::TOPPAS)
@@ -125,7 +145,7 @@ END_SECTION
 
 START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
 FileHandler tmp;
-MSExperiment<> exp;
+PeakMap exp;
 TEST_EQUAL(tmp.loadExperiment("test.bla", exp), false)
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp), true)
 
@@ -155,8 +175,8 @@ TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 140)
 tmp.getOptions() = PeakFileOptions();
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp), true)
 TEST_EQUAL(exp.size(), 4)
-TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "ad860a7bf719bc0b2f709bfccaf9a56beaf2ea63")
-TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)  
+TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "310e4e89e3caa41ff6d79ee578522f47514ba9d6")
+TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
 
 tmp.getOptions() = PeakFileOptions();
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp), true)
@@ -182,7 +202,7 @@ TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PA
 END_SECTION
 
 START_SECTION((static String computeFileHash(const String& filename)))
-MSExperiment<> exp;
+PeakMap exp;
 FileHandler tmp;
 // compute hash
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, FileTypes::UNKNOWN, ProgressLogger::NONE, true, true), true)
@@ -225,7 +245,7 @@ END_SECTION
 
 START_SECTION((template <class PeakType> void storeExperiment(const String &filename, const MSExperiment<PeakType>&exp, ProgressLogger::LogType log = ProgressLogger::NONE)))
 FileHandler fh;
-MSExperiment<> exp;
+PeakMap exp;
 fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
 
 //test mzML

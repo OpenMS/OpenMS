@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="12protmixTW.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="C+57.0215" />
 		<VariableModification name="C-17.0265" />
@@ -137,7 +137,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="909.8467250319" RT="4508.88" >
-			<PeptideHit score="0.1714" sequence="(Glu->pyro-Glu)EAM(Oxidation)APKHK" charge="1" aa_before="K" aa_after="E" protein_refs="PH_12" >
+			<PeptideHit score="0.1714" sequence=".(Glu-&gt;pyro-Glu)EAM(Oxidation)APKHK" charge="1" aa_before="K" aa_after="E" protein_refs="PH_12" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="1203.9053250319" RT="4525.09" >
@@ -165,7 +165,7 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="570.3051250319" RT="4684.67" >
-			<PeptideHit score="-3" sequence="(Pyro-carbamidomethyl)C(Carbamidomethyl)STSPLLEAC(Carbamidomethyl)AFLTR" charge="3" aa_before="K" aa_after="-" protein_refs="PH_14" >
+			<PeptideHit score="-3" sequence=".(Pyro-carbamidomethyl)C(Carbamidomethyl)STSPLLEAC(Carbamidomethyl)AFLTR" charge="3" aa_before="K" aa_after="-" protein_refs="PH_14" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="620.601258365233" RT="4698.91" >

@@ -1,14 +1,17 @@
 OpenMS
 ====== 
 
-[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge) [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
+[![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/93e71bad214f46d2a534ec92dbc2efc9)](https://www.codacy.com/app/OpenMS/OpenMS?utm_source=github.com&utm_medium=referral&utm_content=OpenMS/OpenMS&utm_campaign=badger)
+[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms/README.html)
 
 
 <a href="http://www.openms.org/" target="_blank">OpenMS</a> 
 is an open-source software C++ library for LC-MS data management and
 analyses. It offers an infrastructure for the rapid development of mass
 spectrometry related software. OpenMS is free software available under the
-three clause BSD license and runs under Windows, MacOSX and Linux. 
+three clause BSD license and runs under Windows, macOS and Linux. 
 
 It comes with a vast variety of pre-built and ready-to-use tools for proteomics
 and metabolomics data analysis (TOPPTools) and powerful 2D and 3D
@@ -18,22 +21,22 @@ OpenMS offers analyses for various quantitation protocols, including label-free
 quantitation, SILAC, iTRAQ, SRM, SWATH, etc.
 
 It provides built-in algorithms for de-novo identification and database search,
-as well as adapters to other state-of-the art tools like XTandem, Mascot,
+as well as adapters to other state-of-the art tools like X!Tandem, Mascot,
 OMSSA, etc. It supports easy integration of OpenMS built tools into workflow
-engines like Knime, Galaxy, WS-Pgrade, and TOPPAS via the TOPPtools concept and
+engines like KNIME, Galaxy, WS-Pgrade, and TOPPAS via the TOPPtools concept and
 a unified parameter handling via a 'common tool description' (CTD) scheme.
 
 With PyOpenMS, OpenMS offers Python bindings to a large part of the OpenMS API
 to enable rapid algorithm development. OpenMS supports the Proteomics Standard
 Initiative (PSI) formats for MS data. The main contributors of OpenMS are
 currently the Eberhard-Karls Universität in Tübingen, the Freie Universität
-Berlin and the ETH Zurich.
+Berlin and the ETH Zürich.
 
 Features
 --------
 - Core C++ library
 - TOPP Tools, 150+ analysis tools (150+), covering most MS and LC-MS data processing and mining tasks. 
-- Support for all major platforms (Windows [XP, 7, 8, 10], Linux, MacOS).
+- Support for all major platforms (Windows [XP, 7, 8, 10], Linux, macOS).
 
 Licence
 -------

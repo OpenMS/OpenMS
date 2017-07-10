@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -299,6 +299,10 @@ namespace OpenMS
       SignedSize scan_index = distance<SimTypes::MSSimExperiment::ConstIterator>(experiment_.begin(), it_rt);
       pi.setMetaValue("RT_index", scan_index);
       pi.setRT(f.getRT());
+      if (!pi.hasMZ())
+      {
+        pi.setMZ(f.getMZ());
+      }
     }
 
     LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
@@ -419,14 +423,26 @@ namespace OpenMS
     return peak_map_;
   }
 
+  void MSSim::getIdentifications(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides) const
+  {
+    if (param_.getValue("RawTandemSignal:status") == "disabled")
+    {
+      getFeatureIdentifications(proteins, peptides);
+    }
+    else
+    {
+      getMS2Identifications(proteins, peptides);
+    }
+  }
+
   void MSSim::getMS2Identifications(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides) const
   {
-    // test if we have a feature map at all .. if not, no simulation was performed
-    if (feature_maps_.empty()) return;
-
     // clear incoming vectors
     proteins.clear();
     peptides.clear();
+
+    // test if we have a feature map at all .. if not, no simulation was performed
+    if (feature_maps_.empty()) return;
 
     // we need to keep track of the proteins we write out
     set<String> accessions;
@@ -461,7 +477,7 @@ namespace OpenMS
         // store m/z value, eases matching
         pep_ident.getHits().back().setMetaValue("MZ", ms_it->getPrecursors()[prec_idx].getMZ());
 
-        std::set<String> protein_accessions = pep_ident.getHits().back().extractProteinAccessions();
+        std::set<String> protein_accessions = pep_ident.getHits().back().extractProteinAccessionsSet();
         // store protein accessions
         accessions.insert(protein_accessions.begin(), protein_accessions.end());
 
@@ -496,6 +512,29 @@ namespace OpenMS
           proteins[0].insertHit(*prot_it);
         }
       }
+    }
+  }
+
+  void MSSim::getFeatureIdentifications(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides) const
+  {
+    // clear incoming vectors
+    proteins.clear();
+    peptides.clear();
+
+    // test if we have a feature map at all .. if not, no simulation was performed
+    if (feature_maps_.empty()) return;
+
+    // protein IDs
+    const FeatureMap& fmap = feature_maps_[0];
+    const vector<ProteinIdentification>& prot_ids = fmap.getProteinIdentifications();
+    proteins.reserve(prot_ids.size());
+    proteins.insert(proteins.end(), prot_ids.begin(), prot_ids.end());
+
+    // peptide IDs
+    peptides.reserve(fmap.size());
+    for (FeatureMap::ConstIterator it = fmap.begin(); it != fmap.end(); ++it)
+    {
+      peptides.push_back(it->getPeptideIdentifications()[0]);
     }
   }
 

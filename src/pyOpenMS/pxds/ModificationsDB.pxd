@@ -3,6 +3,7 @@ from Map cimport *
 from String cimport *
 from ResidueModification cimport *
 
+# see ../addons/ModificationsDB.pyx
 cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
     
     cdef cppclass ModificationsDB "OpenMS::ModificationsDB":
@@ -20,6 +21,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         ResidueModification getModification(String & mod_name, String & residue, TermSpecificity term_spec) nogil except +
 
         bool has(String modification) nogil except +
+
+        void addModification(ResidueModification * new_mod) nogil except +
 
         Size findModificationIndex(String & mod_name) nogil except +
 

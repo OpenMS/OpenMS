@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
@@ -208,7 +208,7 @@ namespace OpenMS
   {
     bseries_score = 0;
     yseries_score = 0;
-    OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
+    OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer"); // for peptides, charge should be positive
 
     double mz, intensity, left, right;
     std::vector<double> yseries, bseries;
@@ -346,7 +346,7 @@ namespace OpenMS
                                           const std::vector<double>& isotopes_int, int putative_fragment_charge,
                                           std::string sum_formula)
   {
-    OPENMS_PRECONDITION(putative_fragment_charge > 0, "Charge is a positive integer");
+    OPENMS_PRECONDITION(putative_fragment_charge != 0, "Charge needs to be set"); // charge can be positive and negative
 
     typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
 
@@ -362,7 +362,7 @@ namespace OpenMS
     {
       // create the theoretical distribution from the peptide weight
       isotope_dist.setMaxIsotope(dia_nr_isotopes_ + 1);
-      isotope_dist.estimateFromPeptideWeight(product_mz * putative_fragment_charge);
+      isotope_dist.estimateFromPeptideWeight(std::fabs(product_mz * putative_fragment_charge));
     }
 
 

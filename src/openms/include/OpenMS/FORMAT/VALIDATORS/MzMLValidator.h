@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,7 @@
 #ifndef OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
 #define OPENMS_FORMAT_VALIDATORS_MZMLVALIDATOR_H
 
-
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-
 
 namespace OpenMS
 {
@@ -56,9 +53,9 @@ public:
       /**
         @brief Constructor
 
-                @param mapping The mapping rules
-                @param cv @em All controlled vocabularies required for the mapping
-            */
+        @param mapping The mapping rules
+        @param cv @em All controlled vocabularies required for the mapping
+      */
       MzMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv);
 
       /// Destructor

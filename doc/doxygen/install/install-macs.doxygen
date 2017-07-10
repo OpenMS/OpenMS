@@ -22,24 +22,28 @@
   already known. If not, please write to the mailing list (open-ms-general AT lists.sourceforge.net) or report the error
   on our <a href="https://github.com/OpenMS/OpenMS/issues">issue tracker</a>.
 
-  @subsection hint_package_manager Package Mangers
+  @subsection hint_package_manager Package Managers
 
-  We suggest to use either <a href="http://mxcl.github.com/homebrew/" target="_new">Homebrew</a>
-  or <a href="http://www.macports.org" target="_new">MacPorts</a> as they
-  contain most of the requirements for %OpenMS and ease the process of
+  We suggest to use <a href="http://mxcl.github.com/homebrew/" target="_new">Homebrew</a>
+  to install most of the requirements for %OpenMS to ease the process of
   upgrading those dependencies.
 
   @subsection required_apps Required applications
 
   In order to compile %OpenMS, several applications need to be installed:
   <ul>
-   <li>Xcode (version 4.0 or higher) is required to build %OpenMS (the current version can be obtained from the Mac App Store). More details can be found on the <a href="https://developer.apple.com/xcode/" target="_new" title="Xcode 4 Downloads and Resources.">Apple Developer Site</a>.</li>
-   @note Since Xcode 4.3 you also need to install the "Command Line Tools" to access the compilers shipped with Xcode from the command line. An explanation on how to install the Command Line Tools can be found <a href="http://developer.apple.com/library/ios/#documentation/DeveloperTools/Conceptual/WhatsNewXcode/Articles/xcode_4_3.html#//apple_ref/doc/uid/1006-SW1" target="_new" title="Install Command Line Tools for Xcode">here</a>.
-   <li>CMake (version 2.8.3 or higher) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
-   <li>Qt4 (version 4.5 or higher) containing qmake and the header files is required (either a dmg file or source packages can be obtained from <a href="http://qt-project.org" target="_new" title="Get Qt">http://qt-project.org/</a>)
-   @note You can also try installing it e.g. using Homebrew with:
+   <li>We only support building OpenMS via the standard Apple LLVM compiler (GCC can be tried at your own risk). Minimal installation is achieved by downloading Apple's "Command Line Tools", however we suggest installing a full Xcode (the current version can be obtained from the Mac App Store; required is version 4 or greater). More details can be found on the <a href="https://developer.apple.com/xcode/" target="_new" title="Xcode Downloads and Resources.">Apple Developer Site</a>.</li>
+   @note Since macOS El Capitan 10.11, the "Command Line Tools" can easily be installed via:
    \code
-     (sudo) brew install qt
+     xcode-select --install
+   \endcode
+   <li>CMake (version 3.0.1 or higher) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
+   <li>Qt4+Webkit (version 4.5 or higher) containing qmake and the header files is required.
+   @note We recommend installing using Homebrew with:
+   \code
+     brew tap cartr/qt4
+     brew install qt@4
+     brew install qt-webkit@2.3
    \endcode
    @note Qt5 is not yet supported by %OpenMS.</li>
    <li>
@@ -76,11 +80,6 @@
 
   CMake is used to check your system and build the contrib libraries.
 
-  @note
-  As of %OpenMS 1.10 compiling %OpenMS with the Apple GCC 4.2 compiler can
-  lead to errors due to the update of Boost to version 1.52. Please use the
-  shipped Clang compiler instead (clang/clang++) to avoid this problem.
-
   @note To avoid problems while building the libraries contained in the contrib
   package, the path to your contrib directory should not contain any spaces.
 
@@ -96,7 +95,7 @@
 
         \code
         cd <path_to_contrib_build>
-        cmake -DBUILD_TYPE=ALL -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang <path_to_contrib>
+        cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang <path_to_contrib>
         \endcode
 
     Example:
@@ -186,7 +185,7 @@
 
         \code
         cd <path_to_OpenMS_build>
-        cmake -DCMAKE_PREFIX_PATH=<path_to_contrib_build> <path_to_OpenMS>
+        cmake -DOPENMS_CONTRIB_LIBS=<path_to_contrib_build> <path_to_OpenMS>
         \endcode
 
       You can set CMake variables using the <code>-DVARIABLE=VALUE</code> option.
@@ -205,10 +204,25 @@
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
     <tr>
+      <td valign="top">\c CMAKE_INSTALL_PREFIX</td>
+      <td>the path where the bin/ and lib/ directories should be installed to
+          (when <pre>sudo make install</pre> is wished for a system-wide
+          install: e.g. -DCMAKE_INSTALL_PREFIX=/usr/local/)
+          <BR>
+          <b>Note:</b> Moving these directories after installing is not supported.
+
+          <b>For development, install prefixes are not supported. In this case %OpenMS must
+           be built in place!</b>
+     </td>
+    </tr>
+    <tr>
+      <td valign="top">\c OPENMS_CONTRIB_LIBS</td>
+      <td>Seperate search path for the contrib libraries from github.com/OpenMS/contrib that is internally considered before
+      CMAKE_PREFIX_PATH for searching, linking and adding include directories.</td>
+    </tr>
+    <tr>
       <td valign="top">\c CMAKE_PREFIX_PATH</td>
       <td>Additional search path for the contrib libraries.
-          If not set the the location is assumed to be
-          <tt>&lt;path_to_OpenMS&gt;/contrib</tt>.
           If you want to use libraries installed via Homebrew or MacPorts you might
           need to provide the corresponding paths
 
@@ -216,8 +230,7 @@
           <code>-DCMAKE_PREFIX_PATH=/opt/local</code> for MacPorts
 
           Please keep in mind that both Homebrew and MacPorts do not provide all libraries so
-          you also need to specify the path to your self-build contrib.
-          <code>-DCMAKE_PREFIX_PATH="/opt/local;~/openms-development/contrib-build"</code>
+          you also need to specify the path to your self-build contrib via -DOPENMS_CONTRIB_LIBS
       </td>
     </tr>
     <tr>
@@ -298,7 +311,7 @@
     ctest
     \endcode
 
-  Using <tt>ctest</tt> you can also execute only a subset of tests by using the -R [REGEX] option and
+  Using <tt>ctest</tt> you can also execute only a subset of tests by using the -R [SUBSTRING] option and
   run tests in parallel using the -j parameter. For example,
 
     \code

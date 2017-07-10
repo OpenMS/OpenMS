@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 
 #include <vector>
 #include <svm.h>
@@ -101,8 +102,7 @@ public:
 
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;
-
-
+    std::vector< OpenMS::MSChromatogram<> > getChromatograms(UInt64 feature_id) const;
 
 private:
 
@@ -173,7 +173,7 @@ public:
     virtual ~FeatureFindingMetabo();
 
     /// main method of FeatureFindingMetabo
-    void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap);
+    void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram<> > >& output_chromatograms);
 
 protected:
     virtual void updateMembers_();
@@ -234,7 +234,8 @@ private:
     /** @brief Perform retention time scoring of two multiple mass traces
      *
      * Computes the similarity of the two peak shapes using cosine similarity
-     * (see computeCosineSim_) if some conditions are fulfilled. Mainly the
+     * (see computeCosineSim_) if som#include <OpenMS/KERNEL/MSExperiment.h>
+e conditions are fulfilled. Mainly the
      * overlap between the two peaks at FHWM needs to exceed a certain
      * threshold. The threshold is set at 0.7 (i.e. 70 % overlap) as also
      * described in Kenar et al.
@@ -283,6 +284,7 @@ private:
     
     bool use_mz_scoring_C13_;
     bool report_convex_hulls_;
+    bool report_chromatograms_;
   };
 
 }

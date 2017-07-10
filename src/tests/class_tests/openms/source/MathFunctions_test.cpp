@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,6 +123,15 @@ END_SECTION
 START_SECTION((template <typename T> T getPPMAbs(T mz_obs, T mz_ref)))
   TEST_REAL_SIMILAR(getPPMAbs(1001.0, 1000.0), 1000.0)  // == abs(1 / 1000 * 1e6)
   TEST_REAL_SIMILAR(getPPMAbs( 999.0, 1000.0), 1000.0)  // == abs(-1 / 1000 * 1e6)
+END_SECTION
+
+START_SECTION((pair<double, double> getTolWindow(double val, double tol, bool ppm)))
+  TEST_REAL_SIMILAR(getTolWindow(1000, 10, true).first, 999.99)
+  TEST_REAL_SIMILAR(getTolWindow(1000, 10, true).second, 1000.0100001)
+  TEST_REAL_SIMILAR(getTolWindow(1000, 10, false).first, 990)
+  TEST_REAL_SIMILAR(getTolWindow(1000, 10, false).second, 1010)
+  TEST_REAL_SIMILAR(getTolWindow(500, 5, true).first, 499.9975)
+  TEST_REAL_SIMILAR(getTolWindow(500, 5, true).second, 500.0025000125)
 END_SECTION
 
 /////////////////////////////////////////////////////////////);

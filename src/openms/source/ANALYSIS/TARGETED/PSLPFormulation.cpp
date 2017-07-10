@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1492,7 +1492,7 @@ namespace OpenMS
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();
       Size index = new_feature.getMetaValue("variable_index");
 
-      std::set<String> accs = new_feature.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+      std::set<String> accs = new_feature.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessionsSet();
       // check all proteins that were already detected (only there we need to update a constraint)
       for (Size pa = 0; pa < protein_accs.size(); ++pa)
       {
@@ -1855,5 +1855,103 @@ namespace OpenMS
     std::cout << timer.getClockTime() << " seconds needed to update combined ILP.\n";
 #endif
   }
+
+
+  void PSLPFormulation::getXIC_(const std::vector<std::pair<Size, Size> >& end_points,
+                                std::vector<double>& weights,
+                                const PeakMap& experiment,
+                                const bool normalize)
+  {
+    double max_weight = 0.;
+    weights.clear();
+    for (Size i = 0; i < end_points.size(); i += 2)
+    {
+      double weight = 0.;
+      for (Size j = end_points[i].second; j <= end_points[i + 1].second; ++j)
+      {
+        weight += experiment[end_points[i].first][j].getIntensity();
+        // std::cout << " add "<<experiment[end_points[i].first][j].getIntensity()<<std::endl;
+      }
+      if (weight > max_weight)
+        max_weight = weight;
+
+      weights.push_back(weight);
+    }
+
+    if (normalize)
+    {
+      // normalize weights
+      for (Size i = 0; i < weights.size(); ++i)
+      {
+#ifdef DEBUG_OPS
+        if (end_points.size() >= i)
+        {
+          std::cout << "scan " << end_points[i].first << " " << weights[i] << " " << max_weight
+                    << " " << weights[i] / max_weight << std::endl;
+        }
+#endif
+        weights[i] /= max_weight;
+      }
+    }
+  }
+
+  void PSLPFormulation::calculateXICs_(std::vector<std::vector<double> >& xics,
+                                       const FeatureMap& features,
+                                       const PeakMap& experiment,
+                                       const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
+                                       const bool normalize)
+  {
+    xics.clear();
+    xics.resize(features.size());
+    for (Size i = 0; i < features.size(); ++i)
+    {
+      getXIC_(mass_ranges[i], xics[i], experiment, normalize);
+    }
+  }
+
+  void PSLPFormulation::createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap& features,
+                                                                     const PeakMap& experiment,
+                                                                     std::vector<IndexTriple>& variable_indices,
+                                                                     std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
+                                                                     std::set<Int>& charges_set, UInt ms2_spectra_per_rt_bin,
+                                                                     std::vector<int>& solution_indices)
+  {
+
+    std::vector<std::vector<double> > intensity_weights;
+    if (param_.getValue("feature_based:no_intensity_normalization") == "false")
+    {
+      calculateXICs_(intensity_weights, features, experiment, mass_ranges, true);
+    }
+    else
+    {
+      calculateXICs_(intensity_weights, features, experiment, mass_ranges, false);
+    }
+#ifdef DEBUG_OPS
+    std::cout << "got xics" << std::endl;
+#endif
+
+    createAndSolveILP_(features, intensity_weights, charges_set, mass_ranges, variable_indices, solution_indices,
+                       ms2_spectra_per_rt_bin, experiment.size());
+  }
+
+  void PSLPFormulation::createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap& features,
+                                                                            const PeakMap& experiment,
+                                                                            std::vector<IndexTriple>& variable_indices,
+                                                                            std::vector<Int>& solution_indices,
+                                                                            std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
+                                                                            std::set<Int>& charges_set, UInt ms2_spectra_per_rt_bin,
+                                                                            Size step_size, bool sequential_order)
+  {
+
+    std::vector<std::vector<double> > intensity_weights;
+    calculateXICs_(intensity_weights, features, experiment, mass_ranges, true);
+#ifdef DEBUG_OPS
+    std::cout << "got xics" << std::endl;
+#endif
+
+    createAndSolveCombinedLPFeatureBased_(features, intensity_weights, charges_set, mass_ranges, variable_indices, solution_indices, ms2_spectra_per_rt_bin,
+                                          experiment.size(), step_size, sequential_order);
+  }
+
 
 } // namespace OpenMS

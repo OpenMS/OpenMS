@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ END_SECTION
 PeakPickerHiRes pp_hires;
 Param param;
 
-MSExperiment<Peak1D> input, output;
+PeakMap input, output;
 
 /////////////////////////
 // ORBITRAP data tests //
@@ -97,7 +97,7 @@ START_SECTION((template <typename PeakType> void pick(const MSSpectrum<PeakType>
   MSSpectrum<Peak1D> tmp_spec;
   pp_hires.pick(input[0], tmp_spec);
 #ifdef WRITE_REF_FILES
-  MSExperiment<> tmp_exp = input;
+  PeakMap tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
   {
     pp_hires.pick(input[scan_idx],tmp_spec);
@@ -118,7 +118,7 @@ START_SECTION((template <typename PeakType> void pick(const MSSpectrum<PeakType>
   std::vector<PeakPickerHiRes::PeakBoundary> tmp_boundaries;
   pp_hires.pick(input[0], tmp_spec, tmp_boundaries);
 #ifdef WRITE_REF_FILES
-  MSExperiment<> tmp_exp = input;
+  PeakMap tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
   {
     pp_hires.pick(input[scan_idx],tmp_spec);
@@ -151,7 +151,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSE
 END_SECTION
 
 START_SECTION((template <typename PeakType, typename ChromatogramPeakT> void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output) const))
-  MSExperiment<Peak1D> tmp_exp;
+  PeakMap tmp_exp;
   pp_hires.pickExperiment(input,tmp_exp);
 
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
@@ -187,7 +187,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
   MSSpectrum<Peak1D> tmp_spec;
   pp_hires.pick(input[0],tmp_spec);
 #ifdef WRITE_REF_FILES
-  MSExperiment<> tmp_exp = input;
+  PeakMap tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
   {
     pp_hires.pick(input[scan_idx],tmp_spec);
@@ -204,7 +204,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
 END_SECTION
 
 START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
-  MSExperiment<Peak1D> tmp_exp;
+  PeakMap tmp_exp;
   pp_hires.pickExperiment(input,tmp_exp);
 
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
@@ -251,7 +251,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
   MSSpectrum<Peak1D> tmp_spec;
   pp_hires.pick(input[0],tmp_spec);
 #ifdef WRITE_REF_FILES
-  MSExperiment<> tmp_exp = input;
+  PeakMap tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
   {
     pp_hires.pick(input[scan_idx],tmp_spec);
@@ -289,7 +289,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
   MSSpectrum<Peak1D> tmp_spec;
   pp_hires.pick(input[0],tmp_spec);
 #ifdef WRITE_REF_FILES
-  MSExperiment<> tmp_exp = input;
+  PeakMap tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
   {
     pp_hires.pick(input[scan_idx],tmp_spec);
@@ -306,7 +306,7 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
 END_SECTION
 
 START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
-  MSExperiment<Peak1D> tmp_exp;
+  PeakMap tmp_exp;
   pp_hires.pickExperiment(input,tmp_exp);
 
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
@@ -321,68 +321,19 @@ END_SECTION
 
 output.clear(true);
 
-/////////////////////////////////
-// repeat test with RichPeak1D //
-/////////////////////////////////
-
-MSExperiment<RichPeak1D> inRich, outRich;
-
-MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms.mzML"),inRich);
-MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn4_out.mzML"),outRich);
-
-//set data type (this is not stored correctly in mzML)
-for (Size scan_idx = 0; scan_idx < outRich.size(); ++scan_idx)
-{
-  outRich[scan_idx].setType(SpectrumSettings::PEAKS);
-}
-
-//set up PeakPicker
-param.setValue("signal_to_noise", 4.0);
-pp_hires.setParameters(param);
-
-
-START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<PeakType>& inRich, MSSpectrum<PeakType>& outRich)))
-  MSSpectrum<RichPeak1D> tmp_spec;
-  pp_hires.pick(inRich[0],tmp_spec);
-
-  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
-  {
-    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), outRich[0][peak_idx].getMZ())
-    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), outRich[0][peak_idx].getIntensity())
-  }
-END_SECTION
-
-START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& inRich, MSExperiment<PeakType>& outRich)))
-  MSExperiment<RichPeak1D> tmp_exp;
-  pp_hires.pickExperiment(inRich,tmp_exp);
-
-  TOLERANCE_RELATIVE(1e-4)
-  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
-  {
-    for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
-    {
-      TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), outRich[scan_idx][peak_idx].getMZ())
-      TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), outRich[scan_idx][peak_idx].getIntensity())
-    }
-  }
-END_SECTION
-
-inRich.clear(true);
-outRich.clear(true);
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 START_SECTION([EXTRA] test spectrum level selection)
 
-  MSExperiment<> inSpecSelection;
+  PeakMap inSpecSelection;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_spectrum_selection.mzML"), inSpecSelection);
 
   Param pp_hires_param;
   PeakPickerHiRes pp_spec_select;
 
   // pick only ms2
-  MSExperiment<> outMs2Only;
+  PeakMap outMs2Only;
   pp_hires_param.setValue("ms_levels", ListUtils::create<Int>("2"));
   pp_spec_select.setParameters(pp_hires_param);
 
@@ -402,7 +353,7 @@ START_SECTION([EXTRA] test spectrum level selection)
   }
 
   // pick only ms1
-  MSExperiment<> outMs1Only;
+  PeakMap outMs1Only;
   pp_hires_param.setValue("ms_levels", ListUtils::create<Int>("1"));
   pp_spec_select.setParameters(pp_hires_param);
 
@@ -422,7 +373,7 @@ START_SECTION([EXTRA] test spectrum level selection)
   }
 
   // pick ms1 and ms2
-  MSExperiment<> outMs1And2;
+  PeakMap outMs1And2;
   pp_hires_param.setValue("ms_levels", ListUtils::create<Int>("1,2"));
   pp_spec_select.setParameters(pp_hires_param);
 
@@ -452,7 +403,7 @@ param.setValue("spacing_difference_gap", 4.0);
 pp_hires.setParameters(param);
 
 START_SECTION(void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const)
-    MSExperiment<Peak1D> tmp_picked;
+    PeakMap tmp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c; // peak boundaries for chromatograms
 
@@ -505,7 +456,7 @@ param.setValue("spacing_difference_gap", 4.0);
 pp_hires.setParameters(param);
 
 START_SECTION(void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const)
-    MSExperiment<Peak1D> tmp_picked;
+    PeakMap tmp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c; // peak boundaries for chromatograms
 

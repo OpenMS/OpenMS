@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -126,7 +126,7 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   fm.setProteinIdentifications(prids);
 
   // create experiment
-  MSExperiment<> experiment;
+  PeakMap experiment;
   MSSpectrum<> spectrum;
   Precursor precursor;
   precursor.setMZ(0);
@@ -195,7 +195,7 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   TEST_EQUAL(protein_identifications[0].getHits().size(), 2)
 
   // create experiment
-  MSExperiment<> experiment;
+  PeakMap experiment;
   MSSpectrum<> spectrum;
   Precursor precursor;
   precursor.setMZ(0);
@@ -434,7 +434,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
     mapper.annotate(cons_map, peptide_ids, protein_ids);
     cons_file.store(tmp_filename,cons_map);
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_3_out1.consensusXML"));
   }
 
@@ -445,7 +445,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
     mapper.annotate(cons_map, peptide_ids, protein_ids, true);
     cons_file.store(tmp_filename,cons_map);
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_3_out2.consensusXML"));
   }
 
@@ -466,7 +466,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_5.consensusXML"), cons_map);
     mapper5.annotate(cons_map, peptide_ids2, protein_ids2, true, true);
     cons_file.store(tmp_filename,cons_map);
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet, date=");
     TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_5_out1.consensusXML"));
   }
 
@@ -496,6 +496,97 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
                peptide_ids.size());
   }
 
+  // annotation of precursors without id
+  IDMapper mapper6;
+  p = mapper6.getParameters();
+  p.setValue("mz_tolerance", 0.01);
+  p.setValue("mz_measure","Da");
+  p.setValue("ignore_charge", "true");
+  mapper6.setParameters(p);
+
+  TOLERANCE_ABSOLUTE(0.01);
+
+  PeakMap experiment;
+  MSSpectrum<> spectrum;
+
+  // match exactly to the first 10 consensusXML centroids 
+  double mzs[10] = { 426.849, 405.85, 506.815, 484.83, 496.244, 430.212, 446.081, 453.233, 400.172, 437.227 }; 
+  double rts[10] = { 306.58, 306.58, 312.738, 312.738, 3112.53, 3840.95, 3849.22, 3870.67, 3880.9, 3892.26}; 
+
+  for (Size i = 0; i != 10; ++i)
+  {
+    vector<Precursor> precursors;
+    Precursor prec;
+    prec.setMZ(mzs[i]);
+    precursors.push_back(prec);
+    spectrum.setRT(rts[i]);
+    spectrum.setPrecursors(precursors);
+    experiment.addSpectrum(spectrum);
+  }
+
+  {
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    ConsensusMap cons_map;
+    cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
+    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
+    cons_file.store(tmp_filename, cons_map);
+    WHITELIST("<?xml-stylesheet, date=");
+    TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out1.consensusXML"));
+  }
+
+  experiment.clear(true);
+
+
+  // only 5 should be in the 0.01 Da tolerance (every second entry is to much off)
+  double mzs_5_mismatch[10] = { 426.85899, 405, 506.815, 484.85, 496.244, 430, 446.081, 453, 400.172, 437.239 }; 
+
+  for (Size i = 0; i != 10; ++i)
+  {
+    vector<Precursor> precursors;
+    Precursor prec;
+    prec.setMZ(mzs_5_mismatch[i]);
+    precursors.push_back(prec);
+    spectrum.setRT(rts[i]);
+    spectrum.setPrecursors(precursors);
+    experiment.addSpectrum(spectrum);
+  }
+
+  {
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    ConsensusMap cons_map;
+    cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
+    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
+    cons_file.store(tmp_filename, cons_map);
+    WHITELIST("<?xml-stylesheet, date=");
+    TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out2.consensusXML"));
+  }
+
+  // check mappings of multiple precursors to one consensus feature
+  experiment.clear(true);
+  double rts_multiple[5] = { 306.58, 305.58, 307.58, 304.58, 308.58 };
+  for (Size i = 0; i != 5; ++i)
+  {
+    vector<Precursor> precursors;
+    Precursor prec;
+    prec.setMZ(426.849);
+    precursors.push_back(prec);
+    spectrum.setRT(rts_multiple[i]);
+    spectrum.setPrecursors(precursors);
+    experiment.addSpectrum(spectrum);
+  }
+
+  {
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    ConsensusMap cons_map;
+    cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.consensusXML"), cons_map);
+    mapper6.annotate(cons_map, vector<PeptideIdentification>(), vector<ProteinIdentification>(), false, false, experiment);
+    cons_file.store(tmp_filename, cons_map);
+    WHITELIST("<?xml-stylesheet, date=");
+    TEST_FILE_SIMILAR(tmp_filename, OPENMS_GET_TEST_DATA_PATH("IDMapper_6_out3.consensusXML"));
+  }
 }
 END_SECTION
 

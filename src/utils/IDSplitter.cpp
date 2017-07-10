@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,10 +132,10 @@ protected:
 
     if (in_type == FileTypes::MZML)
     {
-      MSExperiment<> experiment;
+      PeakMap experiment;
       MzMLFile().load(in, experiment);
       // what about unassigned peptide IDs?
-      for (MSExperiment<>::Iterator exp_it = experiment.begin();
+      for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)
       {
         peptides.insert(peptides.end(),

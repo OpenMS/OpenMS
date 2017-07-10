@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef std::map<String, MRMTransitionGroup< MSSpectrum <ChromatogramPeak>, OpenSwath::LightTransition > > TransitionGroupMapType;
+typedef std::map<String, MRMTransitionGroup< MSChromatogram<>, OpenSwath::LightTransition > > TransitionGroupMapType;
 
 START_TEST(MRMFeatureFinderScoring, "$Id$")
 
@@ -95,7 +95,9 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 #ifdef USE_SP_INTERFACE
   OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
   OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-  ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_ptr, transition_group_map);
+  std::vector< OpenSwath::SwathMap > swath_maps(1);
+  swath_maps[0].sptr = swath_ptr;
+  ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_maps, transition_group_map);
 #else
   ff.pickExperiment(exp, featureFile, transitions, trafo, *swath_map, transition_group_map);
 #endif
@@ -180,7 +182,6 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   TransformationDescription trafo;
   boost::shared_ptr<PeakMap> swath_map (new PeakMap);
   TransitionGroupMapType transition_group_map;
-  MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
 
   // Load the chromatograms (mzML) and the meta-information (TraML)
   boost::shared_ptr<PeakMap> exp (new PeakMap);
@@ -196,7 +197,9 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 #ifdef USE_SP_INTERFACE
   OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
   OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-  ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_ptr, transition_group_map);
+  std::vector< OpenSwath::SwathMap > swath_maps(1);
+  swath_maps[0].sptr = swath_ptr;
+  ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_maps, transition_group_map);
 #else
   ff.pickExperiment(exp, featureFile, transitions, trafo, *swath_map, transition_group_map);
 #endif
@@ -206,6 +209,7 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 
   ///////////////////////////////////////////////////////////////////////////
   //// Scores for the second group
+  MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
   transition_group = transition_group_map["tr_gr2"];
   TEST_EQUAL(transition_group.size(), 3)
   TEST_EQUAL(transition_group.getFeatures().size(), 2)

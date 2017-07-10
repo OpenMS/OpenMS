@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -361,12 +361,12 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::combineModifications_(Op
 {
   MRMAssay_test mrma;
 
-  std::vector<AASequence> sequences = mrma.combineModifications_test(AASequence::fromString("(Acetyl)PEPT(Phospho)DIEK"));
+  std::vector<AASequence> sequences = mrma.combineModifications_test(AASequence::fromString(".(Acetyl)PEPT(Phospho)DIEK"));
 
   TEST_EQUAL(sequences.size(), 7)
-  TEST_EQUAL(sequences[0], AASequence::fromString("(Acetyl)PEPT(Phospho)DIEK"));
-  TEST_EQUAL(sequences[1], AASequence::fromString("(Acetyl)PEPTD(Phospho)IEK"));
-  TEST_EQUAL(sequences[2], AASequence::fromString("(Acetyl)PEPTDIEK(Phospho)"));
+  TEST_EQUAL(sequences[0], AASequence::fromString(".(Acetyl)PEPT(Phospho)DIEK"));
+  TEST_EQUAL(sequences[1], AASequence::fromString(".(Acetyl)PEPTD(Phospho)IEK"));
+  TEST_EQUAL(sequences[2], AASequence::fromString(".(Acetyl)PEPTDIEK(Phospho)"));
   TEST_EQUAL(sequences[3], AASequence::fromString("PEPT(Acetyl)D(Phospho)IEK"));
   TEST_EQUAL(sequences[4], AASequence::fromString("PEPT(Acetyl)DIEK(Phospho)"));
   TEST_EQUAL(sequences[5], AASequence::fromString("PEPT(Phospho)DIEK(Acetyl)"));
@@ -379,16 +379,16 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::combineDecoyModification
 {
   MRMAssay_test mrma;
 
-  std::vector<AASequence> sequences = mrma.combineDecoyModifications_test(AASequence::fromString("(Acetyl)PEPT(Phospho)DIEK"), AASequence::fromString("PESTDIEK"));
+  std::vector<AASequence> sequences = mrma.combineDecoyModifications_test(AASequence::fromString(".(Acetyl)PEPT(Phospho)DIEK"), AASequence::fromString("PESTDIEK"));
 
   TEST_EQUAL(sequences.size(), 7)
-  TEST_EQUAL(sequences[0], AASequence::fromString("(Acetyl)PEST(Phospho)DIEK"));
-  TEST_EQUAL(sequences[1], AASequence::fromString("(Acetyl)PESTD(Phospho)IEK"));
-  TEST_EQUAL(sequences[2], AASequence::fromString("(Acetyl)PESTDIEK(Phospho)"));
-  TEST_EQUAL(sequences[3], AASequence::fromString("PEST(Acetyl)D(Phospho)IEK"));
-  TEST_EQUAL(sequences[4], AASequence::fromString("PEST(Acetyl)DIEK(Phospho)"));
-  TEST_EQUAL(sequences[5], AASequence::fromString("PEST(Phospho)DIEK(Acetyl)"));
-  TEST_EQUAL(sequences[6], AASequence::fromString("PESTD(Phospho)IEK(Acetyl)"));
+  TEST_EQUAL(sequences[0], AASequence::fromString(".(Acetyl)PEST(Phospho)DIEK"));
+  TEST_EQUAL(sequences[1], AASequence::fromString(".(Acetyl)PESTD(Phospho)IEK"));
+  TEST_EQUAL(sequences[2], AASequence::fromString(".(Acetyl)PESTDIEK(Phospho)"));
+  TEST_EQUAL(sequences[3], AASequence::fromString(".PEST(Acetyl)D(Phospho)IEK"));
+  TEST_EQUAL(sequences[4], AASequence::fromString(".PEST(Acetyl)DIEK(Phospho)"));
+  TEST_EQUAL(sequences[5], AASequence::fromString(".PEST(Phospho)DIEK(Acetyl)"));
+  TEST_EQUAL(sequences[6], AASequence::fromString(".PESTD(Phospho)IEK(Acetyl)"));
 }
 
 END_SECTION
@@ -610,7 +610,11 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   String out1 = "MRMAssay_uisTransitions_output_1.TraML";
+#else
+  String out1 = "MRMAssay_uisTransitions_output_1_boost58.TraML";
+#endif
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
@@ -631,7 +635,11 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   String out2 = "MRMAssay_uisTransitions_output_2.TraML";
+#else
+  String out2 = "MRMAssay_uisTransitions_output_2_boost58.TraML";
+#endif
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
@@ -697,7 +705,11 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors1 = false;
   double product_mz_threshold1 = 0.05;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   String out1 = "MRMAssay_uisTransitions_output_3.TraML";
+#else
+  String out1 = "MRMAssay_uisTransitions_output_3_boost58.TraML";
+#endif
 
   TargetedExperiment targeted_exp1 = targeted_exp;
 
@@ -719,7 +731,11 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors2 = false;
   double product_mz_threshold2 = 0.05;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   String out2 = "MRMAssay_uisTransitions_output_4.TraML";
+#else
+  String out2 = "MRMAssay_uisTransitions_output_4_boost58.TraML";
+#endif
 
   TargetedExperiment targeted_exp2 = targeted_exp;
 
@@ -741,7 +757,11 @@ START_SECTION(void uisTransitions(OpenMS::TargetedExperiment& exp, std::vector<S
   bool enable_ms2_precursors3 = true;
   double product_mz_threshold3 = 0.05;
 
+#if OPENMS_BOOST_VERSION_MINOR < 56
   String out3 = "MRMAssay_uisTransitions_output_5.TraML";
+#else
+  String out3 = "MRMAssay_uisTransitions_output_5_boost58.TraML";
+#endif
 
   TargetedExperiment targeted_exp3 = targeted_exp;
 

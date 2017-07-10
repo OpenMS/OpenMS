@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,15 +41,15 @@ namespace OpenMS
 {
 
   /**
-    @brief Consumer class that perform no operation.
+    @brief Consumer class that performs no operation.
 
     This is sometimes necessary to fulfill the requirement of passing an
-    valid Interfaces::IMSDataConsumer<> object or pointer but no operation is
+    valid Interfaces::IMSDataConsumer object or pointer but no operation is
     required.
 
   */
   class OPENMS_DLLAPI NoopMSDataConsumer :
-    public Interfaces::IMSDataConsumer< MSExperiment<> >
+    public Interfaces::IMSDataConsumer
   {
   public:
 
@@ -61,4 +61,5 @@ namespace OpenMS
   };
 } //end namespace OpenMS
 
-#endif
+#endif // OPENMS_FORMAT_DATAACCESS_NOOPMSDATACONSUMER_H
+

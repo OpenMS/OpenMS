@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,46 +54,48 @@ namespace OpenMS
       LOG_WARN << error_message_ << std::endl;
     }
 
-  String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, bool use_numpress)
+  String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, String indent, bool use_numpress)
   {
-    if (np.np_compression != MSNumpressCoder::NONE && opt.getCompression() )
+    if (opt.getCompression())
     {
-      // TODO check if zlib AND numpress are allowed at the same time by the standard ... 
-      // It is technically possible but
-      //
-      // MUST supply a *child* term of MS:1000572 (binary data compression type) only once
-      //
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot have numpress and zlib compression at the same time", "numpress, zlib");
-    }
-
-    if (np.np_compression == MSNumpressCoder::NONE || ! use_numpress)
-    {
-      if (opt.getCompression())
+      if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
       {
-        return "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
       }
-      else
+      else if (np.np_compression == MSNumpressCoder::LINEAR)
       {
-        return "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002746\" name=\"MS-Numpress linear prediction compression followed by zlib compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::PIC)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002747\" name=\"MS-Numpress positive integer compression followed by zlib compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::SLOF)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002748\" name=\"MS-Numpress short logged float compression followed by zlib compression\" />";
+      }
+    } else
+    {
+      if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
+      {
+        // default
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::LINEAR)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::PIC)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::SLOF)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
       }
     }
-    else if (np.np_compression == MSNumpressCoder::LINEAR)
-    {
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
-    }
-    else if (np.np_compression == MSNumpressCoder::PIC)
-    {
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
-    }
-    else if (np.np_compression == MSNumpressCoder::SLOF)
-    {
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
-    }
-    else
-    {
-      // default
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
-    }
+    // default
+    return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
   }
 
   void MzMLHandlerHelper::writeFooter_(std::ostream& os, const PeakFileOptions& options_, 
@@ -168,14 +170,24 @@ namespace OpenMS
         data_[i].base64.removeWhitespaces();
       }
 
-      // Catch proteowizard invalid conversion: as numpress arrays are always
-      // 64 bit, this should be safe. However, we cannot generally assume that
-      // DT_NONE means that we are dealing with a 64 bit float type. 
+      // Catch proteowizard invalid conversion where 
+      // (i) no data type is set 
+      // (ii) data type is set to integer for pic compression
+      //
+      // Since numpress arrays are always 64 bit and decode to double arrays,
+      // this should be safe. However, we cannot generally assume that DT_NONE
+      // means that we are dealing with a 64 bit float type. 
       if (data_[i].np_compression != MSNumpressCoder::NONE && 
           data_[i].data_type == BinaryData::DT_NONE)
       {
         MzMLHandlerHelper::warning(0, String("Invalid mzML format: Numpress-compressed binary data array '") + 
             data_[i].meta.getName() + "' has no child term of MS:1000518 (binary data type) set. Assuming 64 bit float data type.");
+        data_[i].data_type = BinaryData::DT_FLOAT;
+        data_[i].precision = BinaryData::PRE_64;
+      }
+      if (data_[i].np_compression == MSNumpressCoder::PIC && 
+          data_[i].data_type == BinaryData::DT_INT)
+      {
         data_[i].data_type = BinaryData::DT_FLOAT;
         data_[i].precision = BinaryData::PRE_64;
       }
@@ -185,11 +197,15 @@ namespace OpenMS
       {
         if (data_[i].np_compression != MSNumpressCoder::NONE)
         {
-          // If its numpress, we don't care about 32 / 64 bit but the numpress
-          // decoder expects std::vector<double> which are 64 bit.
+          // If its numpress, we don't distinguish 32 / 64 bit as the numpress
+          // decoder always works with 64 bit (takes std::vector<double>)
           MSNumpressCoder::NumpressConfig config;
           config.np_compression = data_[i].np_compression;
           MSNumpressCoder().decodeNP(data_[i].base64, data_[i].floats_64,  data_[i].compression, config);
+
+          // Next, ensure that we only look at the float array even if the
+          // mzML tags say 32 bit data (I am looking at you, proteowizard)
+          data_[i].precision = BinaryData::PRE_64;
         }
         else if (data_[i].precision == BinaryData::PRE_64)
         {
@@ -306,17 +322,32 @@ namespace OpenMS
     {
       data_.back().compression = true;
     }
-    else if (accession == "MS:1002312") //numpress compression: linear (proposed CV term)
+    else if (accession == "MS:1002312") //numpress compression: linear
     {
       data_.back().np_compression = MSNumpressCoder::LINEAR;
     }
-    else if (accession == "MS:1002313") //numpress compression: pic (proposed CV term)
+    else if (accession == "MS:1002313") //numpress compression: pic
     {
       data_.back().np_compression = MSNumpressCoder::PIC;
     }
-    else if (accession == "MS:1002314") //numpress compression: slof (proposed CV term)
+    else if (accession == "MS:1002314") //numpress compression: slof
     {
       data_.back().np_compression = MSNumpressCoder::SLOF;
+    }
+    else if (accession == "MS:1002746") //numpress compression: linear + zlib
+    {
+      data_.back().np_compression = MSNumpressCoder::LINEAR;
+      data_.back().compression = true;
+    }
+    else if (accession == "MS:1002747") //numpress compression: pic + zlib
+    {
+      data_.back().np_compression = MSNumpressCoder::PIC;
+      data_.back().compression = true;
+    }
+    else if (accession == "MS:1002748") //numpress compression: slof + zlib
+    {
+      data_.back().np_compression = MSNumpressCoder::SLOF;
+      data_.back().compression = true;
     }
     else if (accession == "MS:1000576") // no compression
     {

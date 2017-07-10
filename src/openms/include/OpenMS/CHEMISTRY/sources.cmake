@@ -4,6 +4,7 @@ set(directory include/OpenMS/CHEMISTRY)
 ### list all header files of the directory here
 set(sources_list_h
 AASequence.h
+CrossLinksDB.h
 Element.h
 ElementDB.h
 EmpiricalFormula.h
@@ -21,6 +22,8 @@ Residue.h
 ResidueDB.h
 ResidueModification.h
 TheoreticalSpectrumGenerator.h
+SpectrumAnnotator.h
+TheoreticalSpectrumGeneratorXLMS.h
 SvmTheoreticalSpectrumGenerator.h
 SvmTheoreticalSpectrumGeneratorSet.h
 SvmTheoreticalSpectrumGeneratorTrainer.h

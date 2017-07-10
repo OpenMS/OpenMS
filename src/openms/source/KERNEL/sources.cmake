@@ -29,6 +29,7 @@ StandardTypes.cpp
 ChromatogramPeak.cpp
 MSChromatogram.cpp
 ChromatogramTools.cpp
+SpectrumHelper.cpp
 )
 
 ### add path to the filenames

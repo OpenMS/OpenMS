@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -101,6 +101,22 @@ namespace OpenMS
     return weight;
   }
 
+  bool EmpiricalFormula::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+
+    double remaining_weight = average_weight - S * db->getElement("S")->getAverageWeight();
+
+    // The number of sulfurs is set to 0 because we're explicitly specifying their count.
+    // We propagate the return value to let the programmer know if the approximation succeeded
+    // without requesting a negative number of hydrogens.
+    bool ret = estimateFromWeightAndComp(remaining_weight, C, H, N, O, 0.0, P);
+
+    formula_.at(db->getElement("S")) = S;
+
+    return ret;
+  }
+
   bool EmpiricalFormula::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
   {
     const ElementDB* db = ElementDB::getInstance();
@@ -152,7 +168,7 @@ namespace OpenMS
     return result;
   }
 
-  IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::vector<UInt>& precursor_isotopes) const
+  IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const
   {
     // A fragment's isotopes can only be as high as the largest isolated precursor isotope.
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;

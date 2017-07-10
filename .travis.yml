@@ -1,3 +1,4 @@
+dist: trusty
 sudo: false
 language: cpp
 os:
@@ -8,7 +9,10 @@ addons:
       sources:
          - ubuntu-toolchain-r-test
          - boost-latest
+         - george-edison55-precise-backports
       packages:
+         - cmake
+         - cmake-data
          - g++-4.8
          - libboost-chrono1.55-dev
          - libboost-date-time1.55-dev
@@ -29,10 +33,20 @@ addons:
          - libqt4-gui
          - libsvm-dev
          - libsvm3
-         - glpk
+         - libglpk36
+         - libglpk-dev
          - subversion
          - doxygen 
          - graphviz
+         - coinor-cbc
+         - coinor-libcgl1
+         - coinor-libclp1
+         - coinor-libcoinutils-dev
+         - coinor-libcgl-dev
+         - coinor-libcbc-dev
+         - coinor-libclp-dev
+         - coinor-libosi-dev
+         - coinor-libvol-dev
          - libpcre3-dev
          
 before_script:
@@ -46,23 +60,25 @@ matrix:
     - env: ENABLE_STYLE_TESTING=ON WITH_GUI=ON 
       os: linux
       compiler: gcc
+
 ## gcc tests class and TOPP tests (if we run into a time limit, we can split it)
 ## PP Wavelet is turned off due to unstable behavior ... 
-#
-    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON DISABLE_WAVELET2DTEST=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release
       os: linux
       compiler: gcc
-## clang tests class and TOPP tests: without gui and with address sanitizer (needs debug build)
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_WAVELET2DTEST=ON ADDRESS_SANITIZER=On BUILD_TYPE=Debug
+
+## clang tests class and TOPP tests: without gui and without address sanitizer (debug build)
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Debug
       os: linux
       compiler: clang
-## clang tests class and TOPP tests: without gui and without address sanitizer
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON DISABLE_WAVELET2DTEST=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release
+
+## clang tests class and TOPP tests: without gui and without address sanitizer (release build)
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release
       os: linux
       compiler: clang
 
 ### OS X tests
-#    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF DISABLE_WAVELET2DTEST=OFF ADDRESS_SANITIZER=Off BUILD_TYPE=Release
+#    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF ADDRESS_SANITIZER=Off BUILD_TYPE=Release
 #      os: osx
 #      compiler: clang
 #

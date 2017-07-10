@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,48 +41,50 @@ using namespace std;
 namespace OpenMS
 {
   ModificationDefinition::ModificationDefinition() :
-    term_spec_(ResidueModification::ANYWHERE),
     mod_(0),
     fixed_modification_(true),
-    max_occurences_(0)
+    max_occurrences_(0)
   {
   }
 
   ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) :
-    term_spec_(rhs.term_spec_),
     mod_(rhs.mod_),
     fixed_modification_(rhs.fixed_modification_),
-    max_occurences_(rhs.max_occurences_)
+    max_occurrences_(rhs.max_occurrences_)
   {
   }
 
-  ModificationDefinition::ModificationDefinition(const String& mod) :
-    term_spec_(ResidueModification::ANYWHERE),
+  ModificationDefinition::ModificationDefinition(const String& mod, bool fixed, UInt max_occur) :
     mod_(0),
-    fixed_modification_(true),
-    max_occurences_(0)
+    fixed_modification_(fixed),
+    max_occurrences_(max_occur)
   {
     setModification(mod);
+  }
+
+  ModificationDefinition::ModificationDefinition(const ResidueModification& mod, bool fixed, UInt max_occur) :
+    mod_(&mod),
+    fixed_modification_(fixed),
+    max_occurrences_(max_occur)
+  {
   }
 
   ModificationDefinition& ModificationDefinition::operator=(const ModificationDefinition& rhs)
   {
     if (this != &rhs)
     {
-      term_spec_ = rhs.term_spec_;
       mod_ = rhs.mod_;
       fixed_modification_ = rhs.fixed_modification_;
-      max_occurences_ = rhs.max_occurences_;
+      max_occurrences_ = rhs.max_occurrences_;
     }
     return *this;
   }
 
   bool ModificationDefinition::operator==(const ModificationDefinition& rhs) const
   {
-    return term_spec_ == rhs.term_spec_ &&
-           mod_ == rhs.mod_ &&
+    return mod_ == rhs.mod_ &&
            fixed_modification_ == rhs.fixed_modification_ &&
-           max_occurences_ == rhs.max_occurences_;
+           max_occurrences_ == rhs.max_occurrences_;
   }
 
   bool ModificationDefinition::operator!=(const ModificationDefinition& rhs) const
@@ -96,17 +98,7 @@ namespace OpenMS
 
   bool ModificationDefinition::operator<(const ModificationDefinition& rhs) const
   {
-    return this->getModification() < rhs.getModification();
-  }
-
-  void ModificationDefinition::setTermSpecificity(ResidueModification::TermSpecificity pos)
-  {
-    term_spec_ = pos;
-  }
-
-  ResidueModification::TermSpecificity ModificationDefinition::getTermSpecificity() const
-  {
-    return term_spec_;
+    return this->getModificationName() < rhs.getModificationName();
   }
 
   void ModificationDefinition::setFixedModification(bool fixed_mod)
@@ -126,7 +118,17 @@ namespace OpenMS
     //cerr << "setModification: id=" << mod_->getId() << ", full_id=" << mod_->getFullId() << ", UniMod=" << mod_->getUniModAccession() << ", origin=" << mod_->getOrigin() << ", PSI-MOD=" << mod_->getPSIMODAccession() << endl;
   }
 
-  String ModificationDefinition::getModification() const
+  const ResidueModification& ModificationDefinition::getModification() const
+  {
+    if (!mod_)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    "No modification defined", 0);
+    }
+    return *mod_;
+  }
+
+  String ModificationDefinition::getModificationName() const
   {
     if (mod_ != 0)
     {
@@ -135,14 +137,14 @@ namespace OpenMS
     return "";
   }
 
-  void ModificationDefinition::setMaxOccurences(UInt max_occurences)
+  void ModificationDefinition::setMaxOccurrences(UInt max_occurrences)
   {
-    max_occurences_ = max_occurences;
+    max_occurrences_ = max_occurrences;
   }
 
-  UInt ModificationDefinition::getMaxOccurences() const
+  UInt ModificationDefinition::getMaxOccurrences() const
   {
-    return max_occurences_;
+    return max_occurrences_;
   }
 
 } // namespace OpenMS

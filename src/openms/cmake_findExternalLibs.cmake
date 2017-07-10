@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,9 +33,7 @@
 # --------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# This cmake file handles finding external libs for OpenMS (note that the paths
-# for these libraries need to be defined on top-level, see the top-level file
-# cmake/OpenMSBuildSystem_externalLibs.cmake)
+# This cmake file handles finding external libs for OpenMS
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -86,13 +84,8 @@ endif()
 
 #------------------------------------------------------------------------------
 # COIN-OR
-if (${USE_COINOR})
-	set(CF_USECOINOR 1)
-  find_package(COIN REQUIRED)
-else()
-	set(CF_USECOINOR 0)
-	set(CONTRIB_CBC)
-endif()
+set(CF_USECOINOR 1)
+find_package(COIN REQUIRED)
 
 #------------------------------------------------------------------------------
 # GLPK
@@ -124,11 +117,20 @@ if (WM5_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# Done finding contrib libraries
+# Find Crawdad libraries if requested
 # cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
 if (WITH_CRAWDAD)
-  find_package(Crawdad)
+  message(STATUS "Will compile with Crawdad support: ${Crawdad_DIR}" )
+  find_package(Crawdad REQUIRED)
+  # find archive (static) version and add it to the OpenMS library
+  find_library(Crawdad_LIBRARY
+   NAMES Crawdad.a Crawdad
+    HINTS ${Crawdad_DIR})
 endif()
+
+#------------------------------------------------------------------------------
+# SQLITE
+find_package(SQLITE 3.15.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
@@ -142,7 +144,7 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "4.6.0")
+SET(QT_MIN_VERSION "4.8.1")
 
 # find qt
 find_package(Qt4 REQUIRED QtCore QtNetwork)

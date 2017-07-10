@@ -10,12 +10,13 @@ ConsensusMapNormalizerAlgorithmMedian.cpp
 ConsensusMapNormalizerAlgorithmQuantile.cpp
 FeatureDistance.cpp
 FeatureGroupingAlgorithm.cpp
-FeatureGroupingAlgorithmIdentification.cpp
 FeatureGroupingAlgorithmLabeled.cpp
+FeatureGroupingAlgorithmKD.cpp
 FeatureGroupingAlgorithmQT.cpp
 FeatureGroupingAlgorithmUnlabeled.cpp
 LabeledPairFinder.cpp
 MapAlignmentAlgorithmIdentification.cpp
+MapAlignmentAlgorithmKD.cpp
 MapAlignmentAlgorithmPoseClustering.cpp
 MapAlignmentAlgorithmSpectrumAlignment.cpp
 MapAlignmentEvaluationAlgorithm.cpp

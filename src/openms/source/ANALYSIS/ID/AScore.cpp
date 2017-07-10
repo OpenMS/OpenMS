@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,7 +100,7 @@ namespace OpenMS
       return phospho;
     }
       
-    vector<RichPeakSpectrum> th_spectra(createTheoreticalSpectra_(permutations, seq_without_phospho));
+    vector<PeakSpectrum> th_spectra(createTheoreticalSpectra_(permutations, seq_without_phospho));
     
     // prepare real spectrum windows
     if (!real_spectrum.isSorted())
@@ -141,7 +141,7 @@ namespace OpenMS
       }
       else
       {
-        vector<RichPeakSpectrum> site_determining_ions;
+        vector<PeakSpectrum> site_determining_ions;
         
         computeSiteDeterminingIons_(th_spectra, *s_it, site_determining_ions, fragment_mass_tolerance, fragment_mass_unit_ppm);
         Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
@@ -195,7 +195,20 @@ namespace OpenMS
     // score = sum_{k=n..N}(\choose{N}{k}p^k(1-p)^{N-k})
     for (Size k = n; k <= N; ++k)
     {
-      double coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
+      double coeff = 0;
+
+      try
+      {
+        coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
+      }
+      catch (std::overflow_error const& e)
+      {
+        // not sure if a warning is appropriate here, since if it happens, it will happen very often for the same spectrum and flood the stdout
+//        std::cout << "Warning: Binomial coefficient for AScore has overflowed! Setting value to the maximal double value." << std::endl;
+//        std::cout << "binomial_coefficient was called with N = " << N << " and k = " << k << std::endl;
+        coeff = std::numeric_limits<double>::max();
+      }
+
       double pow1 = pow((double)p, (int)k);
       double pow2 = pow(double(1 - p), double(N - k));
       
@@ -295,22 +308,21 @@ namespace OpenMS
   }
   
   // calculation of the number of different speaks between the theoretical spectra of the two best scoring peptide permutations, respectively
-  void AScore::computeSiteDeterminingIons_(const vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, vector<RichPeakSpectrum> & site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  void AScore::computeSiteDeterminingIons_(const vector<PeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, vector<PeakSpectrum> & site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
   {
     site_determining_ions.clear();
     site_determining_ions.resize(2);
-    TheoreticalSpectrumGenerator spectrum_generator;
     
-    RichPeakSpectrum spectrum_first = th_spectra[candidates.seq_1];
-    RichPeakSpectrum spectrum_second = th_spectra[candidates.seq_2];
+    PeakSpectrum spectrum_first = th_spectra[candidates.seq_1];
+    PeakSpectrum spectrum_second = th_spectra[candidates.seq_2];
     
-    RichPeakSpectrum spectrum_first_diff;
+    PeakSpectrum spectrum_first_diff;
     AScore::getSpectrumDifference_(
       spectrum_first.begin(), spectrum_first.end(),
       spectrum_second.begin(), spectrum_second.end(),
       std::inserter(spectrum_first_diff, spectrum_first_diff.begin()), fragment_mass_tolerance, fragment_mass_unit_ppm);
       
-    RichPeakSpectrum spectrum_second_diff;
+    PeakSpectrum spectrum_second_diff;
     AScore::getSpectrumDifference_(
       spectrum_second.begin(), spectrum_second.end(),
       spectrum_first.begin(), spectrum_first.end(),
@@ -326,7 +338,7 @@ namespace OpenMS
     site_determining_ions[1].sortByPosition(); 
   }
 
-  Size AScore::numberOfMatchedIons_(const RichPeakSpectrum & th, const PeakSpectrum & window, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm) const
+  Size AScore::numberOfMatchedIons_(const PeakSpectrum & th, const PeakSpectrum & window, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm) const
   {
     PeakSpectrum window_reduced = window;
     if (window_reduced.size() > depth)
@@ -468,9 +480,9 @@ namespace OpenMS
   }
   
   /// Create theoretical spectra
-  vector<RichPeakSpectrum> AScore::createTheoreticalSpectra_(const vector<vector<Size> > & permutations, const AASequence & seq_without_phospho) const
+  vector<PeakSpectrum> AScore::createTheoreticalSpectra_(const vector<vector<Size> > & permutations, const AASequence & seq_without_phospho) const
   {
-    vector<RichPeakSpectrum> th_spectra;
+    vector<PeakSpectrum> th_spectra;
     TheoreticalSpectrumGenerator spectrum_generator;
     
     th_spectra.resize(permutations.size());
@@ -493,9 +505,8 @@ namespace OpenMS
         }
       }
 
-      // we mono-charge spectra
-      spectrum_generator.addPeaks(th_spectra[i], seq, Residue::BIon, 1);
-      spectrum_generator.addPeaks(th_spectra[i], seq, Residue::YIon, 1);
+      // we mono-charge spectra, generating b- and y-ions is the default behavior of the TSG
+      spectrum_generator.getSpectrum(th_spectra[i], seq, 1, 1);
       th_spectra[i].setName(seq.toString());
     }
     return th_spectra;
@@ -517,7 +528,7 @@ namespace OpenMS
     for (Size current_window = 0; current_window < number_of_windows; ++current_window)
     {
       PeakSpectrum real_window;
-      while (((*it_current_peak).getMZ() <= window_upper_bound) && (it_current_peak < real_spectrum.end()))
+      while ((it_current_peak < real_spectrum.end()) && ((*it_current_peak).getMZ() <= window_upper_bound))
       {
         real_window.push_back(*it_current_peak);
         ++it_current_peak;
@@ -534,14 +545,14 @@ namespace OpenMS
     return windows_top10;
   }
   
-  std::vector<std::vector<double> > AScore::calculatePermutationPeptideScores_(vector<RichPeakSpectrum>& th_spectra, const vector<PeakSpectrum>& windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  std::vector<std::vector<double> > AScore::calculatePermutationPeptideScores_(vector<PeakSpectrum>& th_spectra, const vector<PeakSpectrum>& windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
   {
     //prepare peak depth for all windows in the actual spectrum
     vector<vector<double> > permutation_peptide_scores(th_spectra.size());
     vector<vector<double> >::iterator site_score = permutation_peptide_scores.begin();
     
     // for each phospho site assignment
-    for (vector<RichPeakSpectrum>::iterator it = th_spectra.begin(); it != th_spectra.end(); ++it, ++site_score)
+    for (vector<PeakSpectrum>::iterator it = th_spectra.begin(); it != th_spectra.end(); ++it, ++site_score)
     {
       // the number of theoretical peaks (all b- and y-ions) correspond to the number of trials N
       Size N = it->size();

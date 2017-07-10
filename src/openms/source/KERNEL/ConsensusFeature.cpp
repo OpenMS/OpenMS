@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -120,7 +120,13 @@ namespace OpenMS
   void ConsensusFeature::insert(UInt64 map_index, const BaseFeature& element)
   {
     insert(FeatureHandle(map_index, element));
-    peptides_.insert(peptides_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
+    // annotate map index to peptide identification
+    std::vector<PeptideIdentification> ids(element.getPeptideIdentifications());
+    for (std::vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    {
+      it->setMetaValue("map_index", map_index);
+    }
+    peptides_.insert(peptides_.end(), ids.begin(), ids.end());
   }
 
   const ConsensusFeature::HandleSetType& ConsensusFeature::getFeatures() const
@@ -295,7 +301,7 @@ namespace OpenMS
       if (intensity_weighted_averaging)
         weighting_factor = it->getIntensity() / intensity;
       rt += it->getRT() * weighting_factor;
-      m += (it->getMZ() * q - adduct_mass) * weighting_factor;
+      m += (it->getMZ() * abs(q) - adduct_mass) * weighting_factor;
     }
 
     // compute the average position and intensity

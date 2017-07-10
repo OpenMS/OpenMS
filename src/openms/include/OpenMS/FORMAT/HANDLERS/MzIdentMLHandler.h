@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -109,7 +109,7 @@ protected:
       ///Controlled vocabulary for modifications (unimod from OpenMS/share/OpenMS/CV/unimod.obo)
       ControlledVocabulary unimod_;
 
-      //~ MSExperiment<>* ms_exp_;
+      //~ PeakMap* ms_exp_;
 
       ///XML tag parse element
       String tag_;
@@ -151,6 +151,12 @@ protected:
 
       /// Helper method that writes the modification search params (fixed or variable)
       void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
+
+      /// Helper method that writes the FragmentAnnotations section of a spectrum identification
+      void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent, bool is_ppxl) const;
+
+      /// Convenience method to remove the [] from OpenMS internal file uri representation
+      String trimOpenMSfileURI(const String file) const;
 
 private:
       MzIdentMLHandler();

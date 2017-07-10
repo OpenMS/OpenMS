@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,6 +166,7 @@ private:
   double averagine_similarity_;
   double averagine_similarity_scaling_;
   bool knock_out_;
+  String spectrum_type_;
   String averagine_type_;
 
   // section "labels"
@@ -230,6 +231,8 @@ public:
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
+      defaults.setValue("spectrum_type", "automatic", "Type of MS1 spectra in input mzML file. 'automatic' determines the spectrum type directly from the input mzML file.", ListUtils::create<String>("advanced"));
+      defaults.setValidStrings("spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
       defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
     }
@@ -301,6 +304,7 @@ public:
     averagine_similarity_scaling_ = getParam_().getValue("algorithm:averagine_similarity_scaling");
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
     knock_out_ = (getParam_().getValue("algorithm:knock_out") == "true");
+    spectrum_type_ = getParam_().getValue("algorithm:spectrum_type");
     averagine_type_ = getParam_().getValue("algorithm:averagine_type");
   }
 
@@ -559,9 +563,9 @@ public:
         // loop over points in cluster
         for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
         {
-          int index = (*point_it);
+          int idx = (*point_it);
 
-          MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(index);
+          MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(idx);
           double rt = result_peak.getRT();
 
           for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
@@ -688,7 +692,7 @@ public:
    * @param consensus_map    consensus map with complete quantitative information
    * @param quantifications    MSQuantifications data structure for writing mzQuantML (mzq)
    */
-  void generateMSQuantifications(MSExperiment<Peak1D>& exp, ConsensusMap& consensus_map, MSQuantifications& quantifications)
+  void generateMSQuantifications(PeakMap& exp, ConsensusMap& consensus_map, MSQuantifications& quantifications)
   {
     // generate the labels
     // (for each sample a list of (label string, mass shift) pairs)
@@ -924,7 +928,7 @@ private:
      * load input
      */
     MzMLFile file;
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
 
     // only read MS1 spectra
     std::vector<int> levels;
@@ -953,12 +957,24 @@ private:
       spectrum_type = PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end());
     }
 
-    bool centroided = spectrum_type == SpectrumSettings::PEAKS;
+    bool centroided;
+    if (spectrum_type_=="automatic")
+    {
+      centroided = spectrum_type == SpectrumSettings::PEAKS;
+    }
+    else if (spectrum_type_=="centroid")
+    {
+      centroided = true;
+    }
+    else  // "profile"
+    {
+      centroided = false;
+    }
 
     /**
      * pick peaks
      */
-    MSExperiment<Peak1D> exp_picked;
+    PeakMap exp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
 

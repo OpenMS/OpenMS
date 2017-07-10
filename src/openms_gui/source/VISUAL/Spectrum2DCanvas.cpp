@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/VISUAL/DIALOGS/Spectrum2DPrefDialog.h>
@@ -254,7 +255,7 @@ namespace OpenMS
     {
       const LayerData & layer = getCurrentLayer();
 
-      MSExperiment<Peak1D> exp;
+      PeakMap exp;
       exp = *layer.getPeakData();
       float mz_origin = 0.0;
 
@@ -476,7 +477,7 @@ namespace OpenMS
     }
     else if (layer.type == LayerData::DT_CHROMATOGRAM) // chromatograms
     {
-      const MSExperiment<Peak1D> exp = *layer.getPeakData();
+      const PeakMap exp = *layer.getPeakData();
       //TODO CHROM implement layer filters
       //TODO CHROM implement faster painting
 
@@ -1787,7 +1788,7 @@ namespace OpenMS
     {
       const LayerData & layer = getCurrentLayer();
 
-      MSExperiment<Peak1D> exp;
+      PeakMap exp;
       exp = *layer.getPeakData();
 
       vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin();
@@ -1955,7 +1956,7 @@ namespace OpenMS
       else if (action_mode_ == AM_ZOOM)
       {
         //translate (if not moving features)
-        if (!getCurrentLayer().type == LayerData::DT_FEATURE || !selected_peak_.isValid())
+        if ( !(getCurrentLayer().type == LayerData::DT_FEATURE) || !selected_peak_.isValid())
         {
           rubber_band_.setGeometry(QRect(e->pos(), QSize()));
           rubber_band_.show();
@@ -2442,7 +2443,7 @@ namespace OpenMS
       settings_menu->addAction("Show/hide projections");
       settings_menu->addAction("Show/hide MS/MS precursors");
 
-      MSExperiment<Peak1D> exp;
+      PeakMap exp;
       exp = *layer.getPeakData();
 
       int CHROMATOGRAM_SHOW_MZ_RANGE = 10;

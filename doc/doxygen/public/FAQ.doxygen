@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,8 +57,8 @@
 
       <LI><B>How to disable the OpenMS update check.</B><BR>
 				Starting with OpenMS 2.1 all TOPP tools will check for updated versions of the tools online and will print an information message if a newer version is available. This version check occurs only once per day and tool. Information on which tools are executed will be collected anonymously to identify which tools are no longer used and to optimally distribute development resources. If the feature causes problems or concerns, it can be disabled at build or runtime:  
-				- build time: disabling it in the build script (switch ENABLE_USAGE_STATISTICS to "OFF" )
-				- runtime: setting the environment variable (OPENMS_DISABLE_USAGE_STATISTICS to "ON")
+				- build time: disabling it in the build script (switch ENABLE_UPDATE_CHECK to "OFF" )
+				- runtime: setting the environment variable (OPENMS_DISABLE_UPDATE_CHECK to "ON")
 				
 
       <LI><B>Calling msConvert (of ProteoWizard) results in small mzML files with no peak data.</B><BR>

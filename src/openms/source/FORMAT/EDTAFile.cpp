@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -287,6 +288,12 @@ namespace OpenMS
 
   void EDTAFile::store(const String& filename, const ConsensusMap& map) const
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::EDTA))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::EDTA) + "'");
+    }
+
     TextFile tf;
 
     // search for maximum number of sub-features (since this determines the number of columns)

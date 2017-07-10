@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,13 +95,13 @@ namespace OpenMS
     }
     
     // split the labels_ string
-    String temp_labels(labels_);
+    String temp_labels_string(labels_);
     std::vector<String> temp_samples;
     
-    boost::replace_all(temp_labels, "[]", "no_label");
-    boost::replace_all(temp_labels, "()", "no_label");
-    boost::replace_all(temp_labels, "{}", "no_label");
-    boost::split(temp_samples, temp_labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+    boost::replace_all(temp_labels_string, "[]", "no_label");
+    boost::replace_all(temp_labels_string, "()", "no_label");
+    boost::replace_all(temp_labels_string, "{}", "no_label");
+    boost::split(temp_samples, temp_labels_string, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
     
     for (String::size_type i = 0; i < temp_samples.size(); ++i)
     {

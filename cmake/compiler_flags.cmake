@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -36,11 +36,6 @@
 # This cmake file handles all the project specific compiler flags
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	# Determine gcc version
-	execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GNUCXX_VERSION)
-	string(REGEX MATCHALL "[0-9]+" GCC_VERSION_COMPONENTS ${GNUCXX_VERSION})
-	list(GET GCC_VERSION_COMPONENTS 0 GNUCXX_MAJOR_VERSION)
-	list(GET GCC_VERSION_COMPONENTS 1 GNUCXX_MINOR_VERSION)
 
   add_definitions(-Wall -Wextra 
     -fvisibility=hidden
@@ -66,7 +61,8 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 		add_definitions(-fmessage-length=0)
 	endif()
 
-	if (NOT OPENMS_64BIT_ARCHITECTURE AND ${GNUCXX_MAJOR_VERSION} MATCHES "4" AND ${GNUCXX_MINOR_VERSION} MATCHES "3")
+	# Is this still needed? Why? Only on 4.3?
+	if (NOT OPENMS_64BIT_ARCHITECTURE AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.3.0" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.4.0")
 		add_definitions(-march=i486)
 	endif()
   
@@ -96,6 +92,9 @@ elseif (MSVC)
 
 	## xerces bug workaround
 	add_definitions(/DOPENMS_XERCESDLL)
+	
+	## coinor windows.h include bug workaround
+	add_definitions(/DNOMINMAX)
 
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
@@ -127,6 +126,8 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-documentation
                   -Wno-source-uses-openmp
                   -Wno-old-style-cast
+                  -Wno-c++98-compat
+                  -Wno-c++98-compat-pedantic
                   # These are warnings of moderate severity, which are disabled
                   # for now until we are down to a reasonable size of warnings.
                   -Wno-conversion

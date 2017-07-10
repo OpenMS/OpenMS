@@ -3,8 +3,6 @@
   <NODE name="info" description="">
     <ITEM name="num_vertices" value="7" type="int" description="" required="false" advanced="false" />
     <ITEM name="num_edges" value="6" type="int" description="" required="false" advanced="false" />
-    <ITEM name="version" value="2.1.0" type="string" description="" required="false" advanced="false" />
-    <ITEM name="description" value="&lt;![CDATA[]]&gt;" type="string" description="" required="false" advanced="false" />
   </NODE>
   <NODE name="vertices" description="">
     <NODE name="0" description="">
@@ -126,6 +124,9 @@
           <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." required="false" advanced="false" restrictions="true,false" />
           <ITEM name="annotate_ids_with_subelements" value="false" type="string" description="Store the map index of the sub-feature in the peptide ID." required="false" advanced="true" restrictions="true,false" />
         </NODE>
+        <NODE name="spectra" description="Additional options for mzML input">
+          <ITEM name="in" value="" type="input-file" description="MS run used to annotated unidentified spectra to features or consensus features." required="false" advanced="false" supported_formats="*.mzML" />
+        </NODE>
       </NODE>
     </NODE>
     <NODE name="5" description="">
@@ -139,6 +140,7 @@
         <ITEMLIST name="in" type="input-file" description="input files separated by blanks" required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML">
         </ITEMLIST>
         <ITEM name="out" value="" type="output-file" description="Output file" required="true" advanced="false" supported_formats="*.consensusXML" />
+        <ITEM name="design" value="" type="input-file" description="input file containing the experimental design" required="false" advanced="false" supported_formats="*.tsv" />
         <ITEM name="keep_subelements" value="false" type="string" description="For consensusXML input only: If set, the sub-features of the inputs are transferred to the output." required="false" advanced="false" restrictions="true,false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
@@ -164,6 +166,7 @@
           <NODE name="distance_intensity" description="Distance component based on differences in relative intensity (usually relative to highest peak in the whole data set)">
             <ITEM name="exponent" value="1" type="double" description="Differences in relative intensity ([0-1]) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />
             <ITEM name="weight" value="0" type="double" description="Final intensity distances are weighted by this factor" required="false" advanced="true" restrictions="0:" />
+            <ITEM name="log_transform" value="disabled" type="string" description="Log-transform intensities? If disabled, d = |int_f2 - int_f1| / int_max. If enabled, d = |log(int_f2 + 1) - log(int_f1 + 1)| / log(int_max + 1))" required="false" advanced="true" restrictions="enabled,disabled" />
           </NODE>
         </NODE>
       </NODE>
@@ -173,7 +176,6 @@
       <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="-120" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="260" type="double" description="" required="false" advanced="false" />
-      <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="4" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
@@ -189,10 +191,10 @@
         <ITEM name="" value="1/3" type="string" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="source_out_param" description="">
-        <ITEM name="" value="out" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="0" type="int" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="target_in_param" description="">
-        <ITEM name="" value="in" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="1" type="int" description="" required="false" advanced="false" />
       </NODE>
     </NODE>
     <NODE name="1" description="">
@@ -200,10 +202,10 @@
         <ITEM name="" value="2/3" type="string" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="source_out_param" description="">
-        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="-1" type="int" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="target_in_param" description="">
-        <ITEM name="" value="id" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="0" type="int" description="" required="false" advanced="false" />
       </NODE>
     </NODE>
     <NODE name="2" description="">
@@ -211,10 +213,10 @@
         <ITEM name="" value="0/1" type="string" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="source_out_param" description="">
-        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="-1" type="int" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="target_in_param" description="">
-        <ITEM name="" value="in" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="0" type="int" description="" required="false" advanced="false" />
       </NODE>
     </NODE>
     <NODE name="3" description="">
@@ -222,10 +224,10 @@
         <ITEM name="" value="5/6" type="string" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="source_out_param" description="">
-        <ITEM name="" value="out" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="0" type="int" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="target_in_param" description="">
-        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="-1" type="int" description="" required="false" advanced="false" />
       </NODE>
     </NODE>
     <NODE name="4" description="">
@@ -233,10 +235,10 @@
         <ITEM name="" value="3/4" type="string" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="source_out_param" description="">
-        <ITEM name="" value="out" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="0" type="int" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="target_in_param" description="">
-        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="-1" type="int" description="" required="false" advanced="false" />
       </NODE>
     </NODE>
     <NODE name="5" description="">
@@ -244,10 +246,10 @@
         <ITEM name="" value="4/5" type="string" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="source_out_param" description="">
-        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="-1" type="int" description="" required="false" advanced="false" />
       </NODE>
       <NODE name="target_in_param" description="">
-        <ITEM name="" value="in" type="string" description="" required="false" advanced="false" />
+        <ITEM name="" value="0" type="int" description="" required="false" advanced="false" />
       </NODE>
     </NODE>
   </NODE>

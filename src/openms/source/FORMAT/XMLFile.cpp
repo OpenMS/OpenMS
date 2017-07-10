@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,17 +33,26 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/XMLFile.h>
+
+#include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
 
+#include <xercesc/framework/XMLFormatter.hpp>
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
+
 #include <fstream>
 #include <iomanip> // setprecision etc.
+#include <iosfwd>
+
+#include <boost/shared_ptr.hpp>
 
 using namespace std;
 
@@ -93,7 +102,8 @@ private:
 
     void XMLFile::parse_(const String & filename, XMLHandler * handler)
     {
-      // ensure handler->reset() is called to save memory (in case the XMLFile reader, e.g. FeatureXMLFile, is used again)
+      // ensure handler->reset() is called to save memory (in case the XMLFile
+      // reader, e.g. FeatureXMLFile, is used again)
       XMLCleaner_ clean(handler);
 
       //try to open file
@@ -109,10 +119,12 @@ private:
       }
       catch (const xercesc::XMLException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
-      xercesc::SAX2XMLReader * parser = xercesc::XMLReaderFactory::createXMLReader();
+
+      boost::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
 
@@ -125,7 +137,8 @@ private:
       file.read(tmp_bz, 2);
       tmp_bz[2] = '\0';
       String bz = String(tmp_bz);
-      xercesc::InputSource * source;
+
+      boost::shared_ptr< xercesc::InputSource > source;
 
       char g1 = 0x1f;
       char g2 = 0;
@@ -136,11 +149,11 @@ private:
       //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
       if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2))
       {
-        source = new CompressedInputSource(StringManager().convert(filename.c_str()), bz);
+        source.reset(new CompressedInputSource(StringManager().convert(filename.c_str()), bz));
       }
       else
       {
-        source = new xercesc::LocalFileInputSource(StringManager().convert(filename.c_str()));
+        source.reset(new xercesc::LocalFileInputSource(StringManager().convert(filename.c_str())));
       }
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())
@@ -152,20 +165,26 @@ private:
       try
       {
         parser->parse(*source);
-        delete(parser);
-        delete source;
       }
       catch (const xercesc::XMLException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", 
+            String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const xercesc::SAXException & toCatch)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
+            String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
       }
       catch (const XMLHandler::EndParsingSoftly & /*toCatch*/)
       {
-        //nothing to do here, as this exception is used to softly abort the parsing for whatever reason.
+        // nothing to do here, as this exception is used to softly abort the
+        // parsing for whatever reason.
+      }
+      catch (...)
+      {
+        // re-throw
+        throw;
       }
     }
 

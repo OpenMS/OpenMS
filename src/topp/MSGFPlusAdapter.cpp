@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -333,8 +333,8 @@ protected:
   String makeModString_(const String& mod_name, bool fixed=true)
   {
     ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
-    String residue = mod.getOrigin();
-    if (residue.size() != 1) residue = "*"; // specificity groups, e.g. "Deamidated (NQ)", are not supported by OpenMS
+    char residue = mod.getOrigin();
+    if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
     String position = mod.getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
     if (position == "none") position = "any";
     return String(mod.getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod.getId() + "    # " + mod_name;
@@ -371,21 +371,6 @@ protected:
     }
   }
 
-  void removeTempDir_(const String& temp_dir)
-  {
-    if (temp_dir.empty()) return; // no temp. dir. created
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      File::removeDirRecursively(temp_dir);
-    }
-  }
-  
   String describeHit_(const PeptideHit& hit)
   {
     return "peptide hit with sequence '" + hit.getSequence().toString() +
@@ -466,10 +451,7 @@ protected:
 
     // create temporary directory (and modifications file, if necessary):
     String temp_dir, mzid_temp, mod_file;
-    temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
-    writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
-    QDir d;
-    d.mkpath(temp_dir.toQString());
+    temp_dir = makeTempDirectory_();
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
     // so we make sure that we have a properly named mzid file for the converter; see https://github.com/OpenMS/OpenMS/issues/1251)
@@ -749,7 +731,9 @@ protected:
         {
           switchScores_(*pep_it);
         }
+
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
+
         IdXMLFile().store(out, protein_ids, peptide_ids);
       }
     }
@@ -774,7 +758,7 @@ protected:
       }
     }
 
-    removeTempDir_(temp_dir);
+    removeTempDirectory_(temp_dir);
 
     return EXECUTION_OK;
   }

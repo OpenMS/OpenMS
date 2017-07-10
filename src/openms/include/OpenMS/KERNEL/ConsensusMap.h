@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -217,6 +217,8 @@ public:
     /// Sorts with respect to the sets of maps covered by the consensus features (lexicographically).
     OPENMS_DLLAPI void sortByMaps();
 
+    /// Sorts PeptideIdentifications of consensus features with respect to their map index.
+    OPENMS_DLLAPI void sortPeptideIdentificationsByMapIndex();
     //@}
 
     // Docu in base class

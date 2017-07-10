@@ -2,13 +2,16 @@
 REM
 REM  no-fuzz Windows build script (similar to 'make' on Linux)
 REM
+REM  Call build.bat without arguments to print usage
 REM
 REM Author: Chris Bielow
 REM 
 
 IF "%~1"=="" (
   ECHO.
-  ECHO   Usage: build ^<target^(- for all^)^> [[^<[r]elease^|[d]ebug^>] ^<Sln:[a]ll^|[c]lass-test^|[t]opp^|[u]til^|[g]ui^>]
+  ECHO.  This build script will use ALL your CPU cores ^(but on low priority^).
+  ECHO.
+  ECHO   Usage: build ^<target^(- for all^)^> [[^<[r]elease^|[d]ebug^>] ^<Sln:[a]ll^|[c]lass-test^|[t]opp^|[u]til^|[g]ui^|[d]oc^>]
   ECHO.
   ECHO  e.g.
   ECHO          // build all targets from all projects ^(TOPP, UTILS, tests, GUI^) in release mode
@@ -37,6 +40,7 @@ IF "%~3"=="c" set SLN=src\tests\class_tests\OpenMS_class_tests.sln
 IF "%~3"=="t" set SLN=src\topp\openms_topp.sln
 IF "%~3"=="u" set SLN=src\utils\openms_utils.sln
 IF "%~3"=="g" set SLN=src\openms_gui\openms_gui.sln
+IF "%~3"=="d" set SLN=doc\OpenMS_doc.sln
 
 echo.
 echo Params:
@@ -52,15 +56,19 @@ if not exist %SLN% (
 )
 
 REM
-REM MSBUild is usually found in C:\Windows\Microsoft.NET\Framework\v4.0.30319\
+REM MSBuild is usually found in C:\Windows\Microsoft.NET\Framework\v4.0.30319\
 REM
 where /q MSBuild.exe
 if not %ERRORLEVEL%==0 (
   ECHO.
-  ECHO Visual Studio's 'MSBuild.exe' was not found. Please modify this .bat file to point to the correct location or make it available in $PATH.
+  ECHO Visual Studio's 'MSBuild.exe' was not found. Please modify this build.bat to point to the correct location or make it available in %%PATH%%.
   goto end
 )
-MSBuild.exe %SLN% /target:%TARGET% /p:Configuration=%CFG%
+REM Invoke MSBuild.exe
+REM do not use "START /WAIT /B /LOW ..." since: 
+REM   - it does not allow to cancel the job on the console (it will keep running in the background)
+REM   - it might trick MSBuild.exe into assuming only single-core CPU, even if /maxcpucount is specified
+MSBuild.exe %SLN% /maxcpucount /target:%TARGET% /p:Configuration=%CFG%
 
 
 :end

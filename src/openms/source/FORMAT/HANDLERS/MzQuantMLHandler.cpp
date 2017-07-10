@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -821,7 +821,7 @@ namespace OpenMS
         {
           softwarelist_tag += "\t\t\t<userParam name=\"" + String(dit->getSoftware().getName()) + "\"/>\n";
         }
-        if (dit->getSoftware().getName() == "ITRAQAnalyzer")
+        if (dit->getSoftware().getName() == "ITRAQAnalyzer") // tool does not exist any more. replace by IsobaricAnalyzer?
         {
           softwarelist_tag += "\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"ITRAQAnalyzer\"/>\n";
         }
@@ -1026,7 +1026,7 @@ namespace OpenMS
         assay_xml += "\t\t\t</Label>\n";
         assay_xml += "\t\t</Assay>\n";
 
-        // for SILACAnalyzer/iTRAQAnalyzer one assay is one studyvariable, this may change!!! TODO for iTRAQ
+        // for SILACAnalyzer/IsobaricAnalyzer one assay is one studyvariable, this may change!!! TODO for iTRAQ/TMT
         study_xml += "\t<StudyVariable id=\"v_" + vr + "\" name=\"noname\">\n";
         study_xml += "\t\t\t<Assay_refs>a_" + String(ait->uid_) + "</Assay_refs>\n";
         study_xml += "\t</StudyVariable>\n";
@@ -1236,7 +1236,7 @@ namespace OpenMS
                 peptide_xml += String("\t\t\t<EvidenceRef feature_ref=\"f_") + String(fid[i]) + String("\" assay_refs=\"") + ass_refs + String("\" id_refs=\"") + cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() + String("\" identificationFile_ref=\"") + idfile_ref + String("\"/>\n");
                 peptide_xml += String("\t\t</PeptideConsensus>\n");
               }
-              //~ TODO ratios, when available (not yet for the iTRAQ tuples of iTRAQAnalyzer)
+              //~ TODO ratios, when available (not yet for the iTRAQ tuples of IsobaricAnalyzer)
             }
             peptide_xml += String("\t</PeptideConsensusList>\n");
           }

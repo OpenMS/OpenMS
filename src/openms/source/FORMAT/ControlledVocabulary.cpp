@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -164,8 +164,9 @@ namespace OpenMS
     }
     if (value.hasUnit())
     {
+      String un = *(this->units.begin());
       //  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO"
-      s += "\" unitAccession=\"" + value.getUnit() + "\" unitName=\"" + "\" unitCvRef=\"" + value.getUnit().prefix(2);
+      s += "\" unitAccession=\"" + un + "\" unitName=\"" + value.getUnit() + "\" unitCvRef=\"" + un.prefix(2);
     }
     s +=  "\"/>";
     return s;
