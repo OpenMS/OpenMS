@@ -309,7 +309,7 @@ namespace OpenMS
       for (vector<PeptideIdentification>::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
         PeptideIdentification ins = *pit;
-        string st = pit->getScoreType();
+        String st = pit->getScoreType();
         //prepare for merge
         for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
         {
@@ -345,7 +345,7 @@ namespace OpenMS
           }
           if (search_engine == "Mascot" && hit->metaValueExists("EValue"))
           {
-            hit->setMetaValue("MS:1001172" && hit->getMetaValue("EValue"));
+            hit->setMetaValue("MS:1001172", hit->getMetaValue("EValue"));
           }
           if (search_engine == "Comet" && hit->metaValueExists("xcorr"))
           {
@@ -600,7 +600,7 @@ namespace OpenMS
                 // TODO raise issue: MS-GF raw score values are sometimes registered as string DataValues and henceforth casted defectively
                 if (hit->getMetaValue(*feats).valueType() == DataValue::STRING_VALUE)
                 {
-                  string recast = hit->getMetaValue(*feats);
+                  String recast = hit->getMetaValue(*feats);
                   double d = boost::lexical_cast<double>(recast);
                   LOG_DEBUG << "recast: "
                             << recast << " "
@@ -788,12 +788,12 @@ namespace OpenMS
       for (StringList::const_iterator it = fields.begin(); it != fields.end(); ++it)
       {
         Size idx = 0;
-        if ((idx = it->find("scan=")) != string::npos)
+        if ((idx = it->find("scan=")) != String::npos)
         {
           scan = it->substr(idx + 5).toInt();
           break;
         }  // only if scan number is not available, use the scan index
-        else if ((idx = it->find("index=")) != string::npos)
+        else if ((idx = it->find("index=")) != String::npos)
         {
           scan = it->substr(idx + 6).toInt();
         }
