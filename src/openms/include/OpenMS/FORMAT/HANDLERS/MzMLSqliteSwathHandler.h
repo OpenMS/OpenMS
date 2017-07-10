@@ -82,7 +82,9 @@ public:
                     "DISTINCT(ISOLATION_TARGET)," \
                     "ISOLATION_TARGET - ISOLATION_LOWER," \
                     "ISOLATION_TARGET + ISOLATION_UPPER " \
-                    "FROM PRECURSOR"
+                    "FROM PRECURSOR " \
+                    "INNER JOIN SPECTRUM ON SPECTRUM_ID = SPECTRUM.ID " \
+                    "WHERE MSLEVEL == 2 "\
                     ";";
 
       sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
