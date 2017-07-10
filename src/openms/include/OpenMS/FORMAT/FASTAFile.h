@@ -61,8 +61,7 @@ namespace OpenMS
   class OPENMS_DLLAPI FASTAFile
   {
 public:
-
-    /**
+  /**
       @brief FASTA entry type (identifier, description and sequence)
 
       The first String corresponds to the identifier that is
@@ -71,8 +70,8 @@ public:
       from the next line until the next > (exclusive) is stored
       in sequence.
     */
-    struct FASTAEntry
-    {
+  struct FASTAEntry
+  {
       String identifier;
       String description;
       String sequence;
@@ -97,7 +96,17 @@ public:
                && description == rhs.description
                && sequence == rhs.sequence;
       }
-
+    
+      bool headerMatches(const FASTAEntry rhs)
+      {
+        return identifier == rhs.identifier && 
+  	     description == rhs.description;
+      }
+ 
+      bool sequenceMatches(const FASTAEntry rhs)
+      {
+        return sequence == rhs.sequence;
+      }
     };
 
     /// Copy constructor
@@ -147,8 +156,7 @@ public:
 
     */
     void writeEnd();
-
-
+    
 
     /**
       @brief loads a FASTA file given by 'filename' and stores the information in 'data'
@@ -160,7 +168,7 @@ public:
     */
     void static load(const String& filename, std::vector<FASTAEntry>& data);
 
-    /**
+  /**
       @brief stores the data given by 'data' at the file 'filename'
       
       This uses more RAM than writeStart() and writeNext().

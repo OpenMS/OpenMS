@@ -90,12 +90,6 @@
 	</instrumentConfigurationList>
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000592" name="smoothing" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
@@ -296,14 +290,14 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="PEPTIDEA_Precursor_i0">7205</offset>
-		<offset idRef="PEPTIDEB_Precursor_i0">9037</offset>
-		<offset idRef="PEPTIDEC_Precursor_i0">10869</offset>
-		<offset idRef="PEPTIDED_Precursor_i0">12701</offset>
-		<offset idRef="PEPTIDEF_Precursor_i0">14533</offset>
-		<offset idRef="PEPTIDEE_Precursor_i0">16422</offset>
+		<offset idRef="PEPTIDEA_Precursor_i0">6874</offset>
+		<offset idRef="PEPTIDEB_Precursor_i0">8706</offset>
+		<offset idRef="PEPTIDEC_Precursor_i0">10538</offset>
+		<offset idRef="PEPTIDED_Precursor_i0">12370</offset>
+		<offset idRef="PEPTIDEF_Precursor_i0">14202</offset>
+		<offset idRef="PEPTIDEE_Precursor_i0">16091</offset>
 	</index>
 </indexList>
-<indexListOffset>18345</indexListOffset>
+<indexListOffset>18014</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

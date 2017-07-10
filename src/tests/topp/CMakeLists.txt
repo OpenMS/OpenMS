@@ -619,6 +619,10 @@ set_tests_properties("TOPP_FileInfo_15_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileInfo_16" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_16_input.trafoXML -out FileInfo_16_output.tmp)
 add_test("TOPP_FileInfo_16_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_16_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_16_output.txt )
 set_tests_properties("TOPP_FileInfo_16_out1" PROPERTIES DEPENDS "TOPP_FileInfo_16")
+add_test("TOPP_FileInfo_17" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_17_input.fasta -out
+FileInfo_17_output.tmp)
+add_test("TOPP_FileInfo_17_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_17_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_17_output.txt )
+set_tests_properties("TOPP_FileInfo_17_out1" PROPERTIES DEPENDS "TOPP_FileInfo_17")
 
 #------------------------------------------------------------------------------
 # FileMerger tests
@@ -1066,9 +1070,9 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_TargetedFileConverter_test_4_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_4")
   set_tests_properties("TOPP_TargetedFileConverter_test_4" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_3")
 
-  add_test("TOPP_MRMMapping_test_1" ${TOPP_BIN_PATH}/MRMMapper -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out MRMMapping_output.chrom.mzML.tmp -test)
-  add_test("TOPP_MRMMapping_test_1_out_1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MRMMapping_output.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML)
-  set_tests_properties("TOPP_MRMMapping_test_1_out_1" PROPERTIES DEPENDS "TOPP_MRMMapping_test_1")
+  add_test("TOPP_MRMMapper_test_1" ${TOPP_BIN_PATH}/MRMMapper -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out MRMMapping_output.chrom.mzML.tmp -test)
+  add_test("TOPP_MRMMapper_test_1_out_1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MRMMapping_output.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML)
+  set_tests_properties("TOPP_MRMMapper_test_1_out_1" PROPERTIES DEPENDS "TOPP_MRMMapper_test_1")
 
   add_test("TOPP_OpenSwathFeatureXMLToTSV_test_1" ${TOPP_BIN_PATH}/OpenSwathFeatureXMLToTSV -in ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.featureXML -tr ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.TraML -out OpenSwathFeatureXMLToTSV_output.short.csv.tmp -short_format -test)
   add_test("TOPP_OpenSwathFeatureXMLToTSV_test_1_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_output.short.csv -in2 OpenSwathFeatureXMLToTSV_output.short.csv.tmp)

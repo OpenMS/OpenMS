@@ -410,7 +410,7 @@ namespace OpenMS
 
       // choose a point j with minimal distance to center i
       double min_dist = numeric_limits<double>::max();
-      Size best_index = numeric_limits<double>::max();
+      Size best_index = numeric_limits<Size>::max();
       for (vector<Size>::const_iterator c_it = candidates.begin(); c_it != candidates.end(); ++c_it)
       {
         double dist = const_cast<FeatureDistance&>(feature_distance_)(*(kd_data.feature(*c_it)),

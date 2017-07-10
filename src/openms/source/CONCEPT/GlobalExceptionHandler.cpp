@@ -67,9 +67,6 @@ namespace OpenMS
     }
 
     void GlobalExceptionHandler::newHandler()
-#ifndef OPENMS_COMPILER_MSVC
-    throw(OutOfMemory)
-#endif
     {
       throw OutOfMemory(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
