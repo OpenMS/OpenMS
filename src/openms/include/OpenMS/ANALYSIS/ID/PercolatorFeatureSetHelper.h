@@ -168,9 +168,6 @@ namespace OpenMS
         
 
     protected:
-        PercolatorFeatureSetHelper();
-        virtual ~PercolatorFeatureSetHelper();
-        
         /// Rescales the fragment features to penalize features calculated by few ions, adapted from MSGFtoPercolator
         static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
 
