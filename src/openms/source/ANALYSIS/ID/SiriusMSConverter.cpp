@@ -196,7 +196,7 @@ namespace OpenMS
 
           //create temporary input file (.ms)
           os.open(tmp_filename.c_str());
-          if (os == false)
+          if (not os)
           {
             throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
           }

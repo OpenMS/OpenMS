@@ -108,23 +108,24 @@ public:
 
 protected:
 
-  void removeTempDir_(const String& tmp_dir)
+  void removeTempFiles_(const String& tmp_dir, const String& ms_file)
   {
-    if (tmp_dir.empty()
+    if (tmp_dir.empty() && ms_file.empty())
      {
      return;
      }
 
     if (debug_level_ >= 2)
     {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
+      writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ ms_file + ". Set debug level to 1 or lower to remove them.", 2);
     }
     else
     {
-      if (debug_level_ == 1)
+      if (debug_level_ == 0)
       {
-        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
+        writeDebug_("Deleting temporary directory '" + tmp_dir +" and msfile " + ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
         File::removeDirRecursively(tmp_dir);
+        File::remove(ms_file);
       }
     }
   }
@@ -201,7 +202,7 @@ protected:
 
     //Write msfile
     String ms_file = SiriusMSFile::store(spectra);
-    String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + QString::number(0) + "_out";
+    String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + "sirius_out";
 
     //Start Sirius
     QStringList process_params; // the actual process
@@ -266,7 +267,7 @@ protected:
     csifile.store(out2, cmztab);
 
     //clean tmp directory
-    removeTempDir_(tmp_dir);
+    removeTempFiles_(tmp_dir, ms_file);
 
     return EXECUTION_OK;
   }
