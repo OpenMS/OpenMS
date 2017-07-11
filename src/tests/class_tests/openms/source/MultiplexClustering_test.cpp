@@ -47,7 +47,7 @@ using namespace OpenMS;
 START_TEST(MultiplexFilteringProfile, "$Id$")
 
 // read data
-MSExperiment<Peak1D> exp;
+MSExperiment exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexClustering.mzML"), exp);
 exp.updateRanges();
 
@@ -60,7 +60,7 @@ picker.setParameters(param);
 std::vector<PeakPickerHiRes::PeakBoundary> boundaries;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
-MSExperiment<Peak1D> exp_picked;
+MSExperiment exp_picked;
 picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 
 // set parameters
@@ -103,7 +103,7 @@ std::vector<MultiplexFilterResult> filter_results = filtering.filter();
 MultiplexClustering* nullPointer = 0;
 MultiplexClustering* ptr;
 
-START_SECTION(MultiplexClustering(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum))
+START_SECTION(MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum))
     MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum);
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
     ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum);
