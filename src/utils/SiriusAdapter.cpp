@@ -260,7 +260,7 @@ protected:
     csifile.store(out2, cmztab);
 
     //clean tmp directory
-    //removeTempDir_(tmp_dir);
+    removeTempDir_(tmp_dir);
 
     return EXECUTION_OK;
   }
