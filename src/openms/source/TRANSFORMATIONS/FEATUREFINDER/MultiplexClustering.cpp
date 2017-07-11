@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexClustering::MultiplexClustering(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum) :
+  MultiplexClustering::MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum) :
     rt_typical_(rt_typical), rt_minimum_(rt_minimum)
   {
     if (exp_picked.size() != boundaries.size())
@@ -73,11 +73,13 @@ namespace OpenMS
     double rt_min = exp_profile.getMinRT();
     double rt_max = exp_profile.getMaxRT();
     
-    // extend the grid by a small machine-epsilon-dependent margin
-    mz_min -= 2 * std::abs(mz_min) * std::numeric_limits<double>::epsilon();
-    mz_max += 2 * std::abs(mz_max) * std::numeric_limits<double>::epsilon();
-    rt_min -= 2 * std::abs(rt_min) * std::numeric_limits<double>::epsilon();
-    rt_max += 2 * std::abs(rt_max) * std::numeric_limits<double>::epsilon();
+    // extend the grid by a small absolute margin
+    double mz_margin = 1e-15;
+    double rt_margin = 1e-15;
+    mz_min -= mz_margin; 
+    mz_max += mz_margin; 
+    rt_min -= rt_margin; 
+    rt_max += rt_margin;
     
     // generate grid spacing
     PeakWidthEstimator estimator(exp_picked, boundaries);
@@ -98,7 +100,7 @@ namespace OpenMS
 
     // determine RT scaling
     std::vector<double> mz;
-    PeakMap::ConstIterator it_rt;
+    MSExperiment::ConstIterator it_rt;
     for (it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
     {
       MSSpectrum<Peak1D>::ConstIterator it_mz;
@@ -112,7 +114,7 @@ namespace OpenMS
 
   }
 
-  MultiplexClustering::MultiplexClustering(const PeakMap& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum) :
+  MultiplexClustering::MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum) :
     rt_typical_(rt_typical), rt_minimum_(rt_minimum)
   {
     // ranges of the experiment
@@ -121,11 +123,13 @@ namespace OpenMS
     double rt_min = exp.getMinRT();
     double rt_max = exp.getMaxRT();
     
-    // extend the grid by a small machine-epsilon-dependent margin
-    mz_min -= 2 * std::abs(mz_min) * std::numeric_limits<double>::epsilon();
-    mz_max += 2 * std::abs(mz_max) * std::numeric_limits<double>::epsilon();
-    rt_min -= 2 * std::abs(rt_min) * std::numeric_limits<double>::epsilon();
-    rt_max += 2 * std::abs(rt_max) * std::numeric_limits<double>::epsilon();
+    // extend the grid by a small absolute margin
+    double mz_margin = 1e-15;
+    double rt_margin = 1e-15;
+    mz_min -= mz_margin; 
+    mz_max += mz_margin; 
+    rt_min -= rt_margin; 
+    rt_max += rt_margin;
     
     // generate grid spacing
     // We assume that the jitter of the peak centres are less than <scaling> times the user specified m/z tolerance.
@@ -155,7 +159,7 @@ namespace OpenMS
 
     // determine RT scaling
     std::vector<double> mz;
-    PeakMap::ConstIterator it_rt;
+    MSExperiment::ConstIterator it_rt;
     for (it_rt = exp.begin(); it_rt < exp.end(); ++it_rt)
     {
       MSSpectrum<Peak1D>::ConstIterator it_mz;
@@ -176,7 +180,7 @@ namespace OpenMS
 
   }
 
-  std::vector<std::map<int, GridBasedCluster> > MultiplexClustering::cluster(const std::vector<MultiplexFilterResult>& filter_results)
+  std::vector<std::map<int, GridBasedCluster> > MultiplexClustering::cluster(const std::vector<MultiplexFilteredMSExperiment>& filter_results)
   {
     // progress logger
     unsigned progress = 0;
@@ -192,7 +196,7 @@ namespace OpenMS
       GridBasedClustering<MultiplexDistance> clustering(MultiplexDistance(rt_scaling_), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
       clustering.cluster();
       //clustering.extendClustersY();
-      clustering.removeSmallClustersY(rt_minimum_);
+      //clustering.removeSmallClustersY(rt_minimum_);    // No need here. We check for rt_min when constructing the feature maps in generateMaps_().
       cluster_results.push_back(clustering.getResults());
     }
 

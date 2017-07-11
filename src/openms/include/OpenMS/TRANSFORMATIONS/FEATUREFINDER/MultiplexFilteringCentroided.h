@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
@@ -72,10 +72,11 @@ public:
      *
      * @param exp_picked    experimental data in centroid mode
      * @param patterns    patterns of isotopic peaks to be searched for
-     * @param peaks_per_peptide_min    minimum number of isotopic peaks in peptides
-     * @param peaks_per_peptide_max    maximum number of isotopic peaks in peptides
+     * @param isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
+     * @param isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
      * @param missing_peaks    flag for missing peaks
      * @param intensity_cutoff    intensity cutoff
+     * @param rt_band    RT range for filtering
      * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
      * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
      * @param peptide_similarity    similarity score for two peptides in the same multiplet
@@ -83,7 +84,7 @@ public:
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
      * @param averagine_type    The averagine model to use, current options are RNA DNA or peptide.
      */
-    MultiplexFilteringCentroided(const PeakMap& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
+    MultiplexFilteringCentroided(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, bool missing_peaks, double intensity_cutoff, double rt_band, double rt_band_fraction, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
     /**
      * @brief filter for patterns
@@ -91,7 +92,7 @@ public:
      *
      * @see MultiplexIsotopicPeakPattern, MultiplexFilterResult
      */
-    std::vector<MultiplexFilterResult> filter();
+    std::vector<MultiplexFilteredMSExperiment> filter();
 
 private:
     /**

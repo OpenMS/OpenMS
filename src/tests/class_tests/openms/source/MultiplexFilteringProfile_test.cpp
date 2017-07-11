@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@ using namespace OpenMS;
 START_TEST(MultiplexFilteringProfile, "$Id$")
 
 // read data
-PeakMap exp;
+MSExperiment<Peak1D> exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexFiltering.mzML"), exp);
 exp.updateRanges();
 
@@ -58,7 +58,7 @@ picker.setParameters(param);
 std::vector<PeakPickerHiRes::PeakBoundary> boundaries;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
-PeakMap exp_picked;
+MSExperiment<Peak1D> exp_picked;
 picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 
 // set parameters
@@ -75,7 +75,7 @@ double mz_tolerance = 40;
 bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 
 // construct list of peak patterns
-MultiplexDeltaMasses shifts1;
+/*MultiplexDeltaMasses shifts1;
 shifts1.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
 shifts1.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(8.0443702794, "Arg8"));
 MultiplexDeltaMasses shifts2;
@@ -96,7 +96,7 @@ for (int c = charge_max; c >= charge_min; --c)
 MultiplexFilteringProfile* nullPointer = 0;
 MultiplexFilteringProfile* ptr;
 
-START_SECTION(MultiplexFilteringProfile(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling))
+START_SECTION(MultiplexFilteringProfile(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling))
     MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
     ptr = new MultiplexFilteringProfile(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
     TEST_NOT_EQUAL(ptr, nullPointer);
@@ -115,6 +115,6 @@ START_SECTION(std::vector<MultiplexFilterResult> filter())
     TEST_EQUAL(results[5].size(), 3);
     TEST_EQUAL(results[6].size(), 2);
     TEST_EQUAL(results[7].size(), 0);
-END_SECTION
+END_SECTION*/
 
 END_TEST

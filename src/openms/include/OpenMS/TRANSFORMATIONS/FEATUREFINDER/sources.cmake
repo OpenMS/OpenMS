@@ -8,7 +8,6 @@ BaseModel_impl.h
 BiGaussFitter1D.h
 BiGaussModel.h
 EGHTraceFitter.h
-ElutionModelFitter.h
 EmgFitter1D.h
 EmgModel.h
 EmgScoring.h
@@ -38,6 +37,8 @@ ModelDescription.h
 MultiplexClustering.h
 MultiplexDeltaMasses.h
 MultiplexDeltaMassesGenerator.h
+MultiplexFilteredMSExperiment.h
+MultiplexFilteredPeak.h
 MultiplexFiltering.h
 MultiplexFilteringCentroided.h
 MultiplexFilteringProfile.h

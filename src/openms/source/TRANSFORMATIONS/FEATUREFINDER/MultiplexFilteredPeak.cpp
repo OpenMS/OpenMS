@@ -34,8 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
 
 #include <vector>
 #include <algorithm>
@@ -45,59 +44,43 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  MultiplexIsotopicPeakPattern::MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) :
-    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
+  MultiplexFilteredPeak::MultiplexFilteredPeak(double mz, double rt, size_t mz_idx, size_t rt_idx) :
+    mz_(mz), rt_(rt), mz_idx_(mz_idx), rt_idx_(rt_idx)
   {
-    // generate m/z shifts
-    for (unsigned i = 0; i < mass_shifts_.getDeltaMasses().size(); ++i)
-    {
-      for (int j = 0; j < peaks_per_peptide_; ++j)
-      {
-        const std::vector<MultiplexDeltaMasses::DeltaMass>& delta_masses = mass_shifts_.getDeltaMasses();
-        mz_shifts_.push_back((delta_masses[i].delta_mass + j * Constants::C13C12_MASSDIFF_U) / charge_);
-      }
-    }
   }
 
-  int MultiplexIsotopicPeakPattern::getCharge() const
+  double MultiplexFilteredPeak::getMZ() const
   {
-    return charge_;
+    return mz_;
   }
 
-  int MultiplexIsotopicPeakPattern::getPeaksPerPeptide() const
+  double MultiplexFilteredPeak::getRT() const
   {
-    return peaks_per_peptide_;
+    return rt_;
   }
 
-  MultiplexDeltaMasses MultiplexIsotopicPeakPattern::getMassShifts() const
+  size_t MultiplexFilteredPeak::getMZidx() const
   {
-    return mass_shifts_;
+    return mz_idx_;
   }
 
-  int MultiplexIsotopicPeakPattern::getMassShiftIndex() const
+  size_t MultiplexFilteredPeak::getRTidx() const
   {
-    return mass_shift_index_;
+    return rt_idx_;
   }
 
-  unsigned MultiplexIsotopicPeakPattern::getMassShiftCount() const
+  void MultiplexFilteredPeak::addSatellite(size_t rt_idx, size_t mz_idx, size_t pattern_idx)
   {
-    return mass_shifts_.getDeltaMasses().size();
+    satellites_.insert(std::make_pair(pattern_idx, std::make_pair(rt_idx, mz_idx)));
   }
-
-  double MultiplexIsotopicPeakPattern::getMassShiftAt(size_t i) const
+  
+  const std::multimap<size_t, std::pair<size_t, size_t> >& MultiplexFilteredPeak::getSatellites() const
   {
-    return mass_shifts_.getDeltaMasses()[i].delta_mass;
+    return satellites_;
   }
-
-  double MultiplexIsotopicPeakPattern::getMZShiftAt(size_t i) const
+  
+  size_t MultiplexFilteredPeak::size() const
   {
-    return mz_shifts_[i];
+    return satellites_.size();
   }
-
-  unsigned MultiplexIsotopicPeakPattern::getMZShiftCount() const
-  {
-    return mz_shifts_.size();
-  }
-
 }

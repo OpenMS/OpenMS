@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,10 +75,12 @@ public:
      * @param exp_picked    experimental data in centroid mode
      * @param boundaries    peak boundaries for exp_picked
      * @param patterns    patterns of isotopic peaks to be searched for
-     * @param peaks_per_peptide_min    minimum number of isotopic peaks in peptides
-     * @param peaks_per_peptide_max    maximum number of isotopic peaks in peptides
+     * @param isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
+     * @param isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
      * @param missing_peaks    flag for missing peaks
      * @param intensity_cutoff    intensity cutoff
+     * @param rt_band    RT range used for filtering
+     * @param rt_band_fraction
      * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
      * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
      * @param peptide_similarity    similarity score for two peptides in the same multiplet
@@ -89,7 +91,7 @@ public:
      * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
      * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
      */
-    MultiplexFilteringProfile(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
+    MultiplexFilteringProfile(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, bool missing_peaks, double intensity_cutoff, double rt_band, double rt_band_fraction, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
     /**
      * @brief filter for patterns
@@ -136,7 +138,7 @@ private:
     /**
      * @brief profile experimental data and peak boundaries
      */
-    PeakMap exp_profile_;
+    MSExperiment exp_profile_;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;
 
   };

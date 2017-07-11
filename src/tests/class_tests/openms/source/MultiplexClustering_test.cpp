@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,7 @@ using namespace OpenMS;
 START_TEST(MultiplexFilteringProfile, "$Id$")
 
 // read data
-PeakMap exp;
+MSExperiment<Peak1D> exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexClustering.mzML"), exp);
 exp.updateRanges();
 
@@ -60,7 +60,7 @@ picker.setParameters(param);
 std::vector<PeakPickerHiRes::PeakBoundary> boundaries;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
-PeakMap exp_picked;
+MSExperiment<Peak1D> exp_picked;
 picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 
 // set parameters
@@ -79,7 +79,7 @@ double rt_typical = 90;
 double rt_minimum = 5;
 
 // construct list of peak patterns
-MultiplexDeltaMasses shifts1;
+/*MultiplexDeltaMasses shifts1;
 shifts1.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
 shifts1.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(8.0443702794, "Arg8"));
 MultiplexDeltaMasses shifts2;
@@ -103,7 +103,7 @@ std::vector<MultiplexFilterResult> filter_results = filtering.filter();
 MultiplexClustering* nullPointer = 0;
 MultiplexClustering* ptr;
 
-START_SECTION(MultiplexClustering(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum))
+START_SECTION(MultiplexClustering(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum))
     MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum);
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
     ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum);
@@ -123,6 +123,6 @@ START_SECTION(std::vector<std::map<int GridBasedCluster> > cluster(const std::ve
     TEST_EQUAL(cluster_results[5].size(), 0);
     TEST_EQUAL(cluster_results[6].size(), 0);
     TEST_EQUAL(cluster_results[7].size(), 0);
-END_SECTION
+END_SECTION*/
 
 END_TEST
