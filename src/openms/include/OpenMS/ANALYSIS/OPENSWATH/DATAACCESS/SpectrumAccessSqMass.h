@@ -67,6 +67,10 @@ namespace OpenMS
    * useful to provide a specific interface to MS1 or MS2  spectra only or to
    * different DIA / SWATH-MS windows.
    *
+   * Parallel access is supported through this interface as it is read-only and
+   * sqlite3 supports multiple parallel read threads as long as they use a
+   * different db connection.
+   *
   */
   class OPENMS_DLLAPI SpectrumAccessSqMass :
     public OpenSwath::ISpectrumAccess
