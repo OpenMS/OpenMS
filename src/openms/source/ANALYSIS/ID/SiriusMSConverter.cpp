@@ -79,7 +79,7 @@ namespace OpenMS
   }
 
 
-  String SiriusMSFile::store(const MSExperiment<> &spectra)
+  String SiriusMSFile::store(const PeakMap &spectra)
   {
     OpenMS::String msfile;
     int count = 0;
@@ -191,8 +191,8 @@ namespace OpenMS
           String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
           msfile = tmp_filename;
 
-          std::cout << "unique_name: " << unique_name << std::endl;
-          std::cout << "tmp_filename: " << tmp_filename << std::endl;
+          //std::cout << "unique_name: " << unique_name << std::endl;
+          //std::cout << "tmp_filename: " << tmp_filename << std::endl;
 
           //create temporary input file (.ms)
           os.open(tmp_filename.c_str());

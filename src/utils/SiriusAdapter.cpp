@@ -195,9 +195,6 @@ protected:
 
     //Write msfile
     String ms_file = SiriusMSFile::store(spectra);
-
-    std::cout << "ms_file: " << ms_file << std::endl;
-
     String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + QString::number(0) + "_out";
 
     //Start Sirius
@@ -231,8 +228,6 @@ protected:
 
     process_params << ms_file.toQString();
 
-    qDebug() << process_params;
-
     QProcess qp;
     qp.start(executable, process_params); // does automatic escaping etc... start
     bool success = qp.waitForFinished(-1); // wait till job is finished
@@ -247,16 +242,12 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    std::cout << "dir: " << tmp_dir << std::endl;
-
     //Extract path to subfolders (sirius internal folder structure)
     QDirIterator it(tmp_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
     while (it.hasNext())
     {
       subdirs.push_back(it.next());
     }
-
-    std::cout << "subdir_vector: " << subdirs << std::endl;
 
     //Convert sirius_output to mztab
     MzTab smztab = SiriusMzTabWriter::store(subdirs, number);

@@ -46,6 +46,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <regex>
 
 using namespace OpenMS;
 using namespace std;
@@ -74,20 +75,12 @@ MzTab SiriusMzTabWriter::store(const std::vector<String> paths, Size number)
       SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
 
       //Extract scan_index from path
-      OpenMS::String path = File::path(pathtosiriuscsv);
-      vector<String> substrings;
-      OpenMS::String SringString;
-      vector<String> newsubstrings;
-
-      // get the digits from the end of the path (independet of their length)
-      // /var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/0_out/9_2017-07-10_131258_unicorn.Informatik.Uni-Tuebingen.De_86791_1_unknown0_unknown9
-      path.split('_', substrings);
-      SringString = substrings[substrings.size() - 1];
-      SringString.split('_', newsubstrings);
-      vector<String> digit;
-      OpenMS::String SringStringString = newsubstrings[newsubstrings.size() - 1];
-      SringStringString.split('n', digit);
-      String scan_index = digit[digit.size() - 1];
+      OpenMS::String str = File::path(pathtosiriuscsv);
+      std::regex r("\\d*$"); //extract last digits from filepath - corresponding to scan_index of compound: /var/folders/T/0_out/xxx_unknown0_unknown10 -> 10
+      std::smatch m;
+      std::regex_search(str, m, r);
+      std::ssub_match x = m[0]; //need for retrieval of submatch
+      std::string scan_index = m[0].str();
 
       //If there are less rows than output -> rowCount - 1 is used since the last row of the file is empty
       if (number > compounds.rowCount())
@@ -117,12 +110,22 @@ MzTab SiriusMzTabWriter::store(const std::vector<String> paths, Size number)
       sirius_id.scan_index = scan_index;
       sirius_result.identifications.push_back(sirius_id);
 
-      // write out results to mzTab file
+      // write metadata to mzTab file
       MzTabMetaData md;
       MzTabMSRunMetaData md_run;
-      md_run.location = MzTabString(pathtosiriuscsv);
+      md_run.location = MzTabString(str);
       md.ms_run[1] = md_run;
+      md.description = MzTabString("Sirius-3.5");
 
+      //needed for header generation (score)
+      std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
+      smallmolecule_search_engine_score[1].setName("score");
+      smallmolecule_search_engine_score[2].setName("treescore");
+      smallmolecule_search_engine_score[3].setName("isoscore");
+      md.smallmolecule_search_engine_score = smallmolecule_search_engine_score;
+      mztab.setMetaData(md);
+
+      // write results to mzTab file
       MzTabSmallMoleculeSectionRows smsd;
       for (Size i = 0; i != sirius_result.identifications.size(); ++i)
       {
@@ -132,9 +135,12 @@ MzTab SiriusMzTabWriter::store(const std::vector<String> paths, Size number)
           const SiriusMzTabWriter::SiriusAdapterHit &hit = id.hits[j];
           MzTabSmallMoleculeSectionRow smsr;
 
-          smsr.best_search_engine_score[0] = MzTabDouble(hit.score);
-          smsr.best_search_engine_score[1] = MzTabDouble(hit.treescore);
-          smsr.best_search_engine_score[2] = MzTabDouble(hit.isoscore);
+          map<Size, MzTabDouble> engine_score;
+          engine_score[1] = MzTabDouble(hit.score);
+          engine_score[2] = MzTabDouble(hit.treescore);
+          engine_score[3] = MzTabDouble(hit.isoscore);
+          smsr.best_search_engine_score = engine_score;
+
           smsr.chemical_formula = MzTabString(hit.formula);
 
           MzTabOptionalColumnEntry adduct;
@@ -153,14 +159,15 @@ MzTab SiriusMzTabWriter::store(const std::vector<String> paths, Size number)
           explainedIntensity.first = "explainedIntensity";
           explainedIntensity.second = MzTabString(hit.explainedintensity);
 
-//          MzTabOptionalColumnEntry compound;
-//          compound.first = "compound";
-//          compound.second = MzTabString(id.scan_index);
+          MzTabOptionalColumnEntry compoundId;
+          compoundId.first = "compoundId";
+          compoundId.second = MzTabString(id.scan_index);
 
           smsr.opt_.push_back(adduct);
           smsr.opt_.push_back(rank);
           smsr.opt_.push_back(explainedPeaks);
           smsr.opt_.push_back(explainedIntensity);
+          smsr.opt_.push_back(compoundId);
           smsd.push_back(smsr);
         }
       }

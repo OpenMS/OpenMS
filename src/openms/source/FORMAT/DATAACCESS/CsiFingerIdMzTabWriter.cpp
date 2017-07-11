@@ -46,6 +46,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
+#include <regex>
 
 using namespace OpenMS;
 using namespace std;
@@ -73,17 +74,12 @@ MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> paths, Size number
       CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id;
 
       //Extract scan_index from path
-      OpenMS::String path = File::path(pathtocsicsv);
-      vector<String> substrings;
-      OpenMS::String SringString;
-      vector<String> newsubstrings;
-
-      path.split('_', substrings);
-      SringString.split('_', newsubstrings);
-      vector<String> digit;
-      OpenMS::String SringStringString = newsubstrings[newsubstrings.size() - 1];
-      SringStringString.split('n', digit);
-      String scan_index = digit[digit.size() - 1];
+      OpenMS::String str = File::path(pathtocsicsv);
+      std::regex r("\\d*$"); //extract last digits from filepath: /var/folders/T/0_out/xxx_unknown0_unknown10 -> 10
+      std::smatch m;
+      std::regex_search(str, m, r);
+      std::ssub_match x = m[0]; //need for retrieval of submatch
+      std::string scan_index = m[0].str();
 
       for (Size j = 1; j < number; ++j)
       {
@@ -106,13 +102,21 @@ MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> paths, Size number
       csi_id.scan_index = scan_index;
       csi_result.identifications.push_back(csi_id);
 
-      // write out results to mzTab file
+      // write metadata to mzTab file
       MzTabFile mztab_out;
       MzTabMetaData md;
       MzTabMSRunMetaData md_run;
-      md_run.location = MzTabString(pathtocsicsv);
+      md_run.location = MzTabString(str);
       md.ms_run[1] = md_run;
+      md.description = MzTabString("CSI:FingerID-3.5");
 
+      //needed for header generation (score)
+      std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
+      smallmolecule_search_engine_score[1].setName("score");
+      md.smallmolecule_search_engine_score = smallmolecule_search_engine_score;
+      mztab.setMetaData(md);
+
+      // write results to mzTab file
       MzTabSmallMoleculeSectionRows smsd;
       for (Size i = 0; i != csi_result.identifications.size(); ++i)
       {
@@ -122,10 +126,12 @@ MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> paths, Size number
           const CsiFingerIdMzTabWriter::CsiAdapterHit &hit = id.hits[j];
           MzTabSmallMoleculeSectionRow smsr;
 
-          smsr.best_search_engine_score[1] = MzTabDouble(hit.score);
+          map <Size, MzTabDouble> engine_score = {{1, MzTabDouble(hit.score)}};
+          smsr.best_search_engine_score = engine_score;
+
           smsr.chemical_formula = MzTabString(hit.molecular_formula);
           smsr.description = MzTabString(hit.name);
-          vector < MzTabString > pubchemids;
+          vector <MzTabString> pubchemids;
           for (Size k = 0; k != hit.pubchemids.size(); ++k)
           {
             pubchemids.push_back(MzTabString(hit.pubchemids[k]));
@@ -133,7 +139,6 @@ MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> paths, Size number
           smsr.identifier.set(pubchemids);
           smsr.inchi_key = MzTabString(hit.inchikey2D);
           smsr.smiles = MzTabString(hit.smiles);
-          smsr.search_engine.fromCellString("[,,CSI:FingerID,3.5]");
           vector < MzTabString > uri;
           for (Size k = 0; k != hit.links.size(); ++k)
           {
@@ -144,11 +149,12 @@ MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> paths, Size number
           rank.first = "rank";
           rank.second = MzTabString(hit.rank);
 
-//          MzTabOptionalColumnEntry compound;
-//          compound.first = "compound";
-//          compound.second = MzTabString(id.scan_index);
+          MzTabOptionalColumnEntry compoundId;
+          compoundId.first = "compoundId";
+          compoundId.second = MzTabString(id.scan_index);
 
           smsr.opt_.push_back(rank);
+          smsr.opt_.push_back(compoundId);
           smsd.push_back(smsr);
         }
       }
