@@ -150,6 +150,17 @@ namespace OpenMS
     DocumentIdentifier::operator=(empty_map);
     UniqueIdInterface::operator=(empty_map);
 
+    // append spectra_data information
+    StringList combined_run_paths_;
+    combined_run_paths_.insert(combined_run_paths_.end(),
+                            this->getPrimaryMSRunPath().begin(),
+                            this->getPrimaryMSRunPath().end());
+    combined_run_paths_.insert(combined_run_paths_.end(),
+                              rhs.getPrimaryMSRunPath().begin(),
+                              rhs.getPrimaryMSRunPath().end());
+
+    this->setPrimaryMSRunPath(combined_run_paths_);
+
     // append dataProcessing
     data_processing_.insert(data_processing_.end(),
                             rhs.data_processing_.begin(),
