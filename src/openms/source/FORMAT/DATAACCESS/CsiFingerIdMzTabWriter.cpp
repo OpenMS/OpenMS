@@ -51,7 +51,7 @@
 using namespace OpenMS;
 using namespace std;
 
-MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> &paths, Size number)
+MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> & paths, Size number)
 {
 
   MzTab mztab;

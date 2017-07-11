@@ -184,7 +184,6 @@ namespace OpenMS
           }
         }
 
-        streamsize prec(0);
         String query_id = String("unknown") + String(scan_index);
 
         if (count == 0) //one ms file

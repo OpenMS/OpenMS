@@ -202,7 +202,8 @@ protected:
 
     //Write msfile
     String ms_file = SiriusMSFile::store(spectra);
-    String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + "sirius_out";
+    String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + String(File::getUniqueName()).toQString();
+    String out_dir = tmp_dir + "/" + "sirius_out";
 
     //Start Sirius
     QStringList process_params; // the actual process
@@ -214,7 +215,7 @@ protected:
                    << "--candidates" << candidates
                    << "--ppm-max" << ppm_max
                    << "--quiet"
-                   << "--output" << tmp_dir.toQString(); //internal output folder for temporary
+                   << "--output" << out_dir.toQString(); //internal output folder for temporary
 
     if (no_recalibration)
     {
@@ -250,7 +251,7 @@ protected:
     //-------------------------------------------------------------
 
     //Extract path to subfolders (sirius internal folder structure)
-    QDirIterator it(tmp_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
+    QDirIterator it(out_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
     while (it.hasNext())
     {
       subdirs.push_back(it.next());

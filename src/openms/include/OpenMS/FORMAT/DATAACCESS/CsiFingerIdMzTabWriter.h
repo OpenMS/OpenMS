@@ -72,7 +72,7 @@ namespace OpenMS
             std::vector <CsiAdapterIdentification> identifications;
           };
 
-          static MzTab store(const std::vector<String> &paths, Size number);
+          static MzTab store(const std::vector<String> & paths, Size number);
 
       };
 }
