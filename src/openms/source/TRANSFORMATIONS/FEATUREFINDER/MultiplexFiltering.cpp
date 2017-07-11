@@ -210,7 +210,7 @@ namespace OpenMS
         // calculate m/z shift index in pattern
         size_t idx_mz_shift = peptide * isotopes_per_peptide_max_ + isotope;
         
-        double mz_shift = pattern.getMZShiftAt((size_t) idx_mz_shift);
+        double mz_shift = pattern.getMZShiftAt(idx_mz_shift);
         bool found = false;
         
         // count in how many spectra a peak matching this mass trace was found
@@ -278,7 +278,7 @@ namespace OpenMS
       std::advance(it_rt, peak.getRTidx());
 
       // Check that there is a first i.e. mono-isotopic peak for this peptide.
-      double mz_first_peak = peak.getMZ() + pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_);
+      double mz_first_peak = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_);
       int mz_idx_first_peak = it_rt->findNearest(mz_first_peak, mz_tolerance);
       if (mz_idx_first_peak != -1)
       {
@@ -289,7 +289,7 @@ namespace OpenMS
         double mz;
         
         // Check that there is a zeroth peak.
-        mz = peak.getMZ() + 2 * pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_) - pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_ + 1);        
+        mz = peak.getMZ() + 2 * pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_) - pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1);        
         if (checkForSignificantPeak_(mz, mz_tolerance, it_rt, intensity_first_peak))
         {
           return false;
@@ -302,14 +302,14 @@ namespace OpenMS
         if (pattern.getCharge() == 2)
         {
           // Is the 2+ pattern really a 4+ pattern?
-          mz = peak.getMZ() + pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_)/2 + pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_ + 1)/2;
+          mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)/2 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/2;
           if (checkForSignificantPeak_(mz, mz_tolerance, it_rt, intensity_first_peak))
           {
             return false;
           }
           
           // Is the 2+ pattern really a 6+ pattern?
-          mz = peak.getMZ() + pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_)*2/3 + pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_ + 1)/3;
+          mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)*2/3 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/3;
           if (checkForSignificantPeak_(mz, mz_tolerance, it_rt, intensity_first_peak))
           {
             return false;
@@ -319,7 +319,7 @@ namespace OpenMS
         if (pattern.getCharge() == 3)
         {
           // Is the 3+ pattern really a 6+ pattern?
-          mz = peak.getMZ() + pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_)/2 + pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_ + 1)/2;
+          mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)/2 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/2;
           if (checkForSignificantPeak_(mz, mz_tolerance, it_rt, intensity_first_peak))
           {
             return false;
@@ -331,7 +331,7 @@ namespace OpenMS
           for (int c = 2; c < 7; ++c)
           {
             // Is the 1+ pattern really a c+ pattern?
-            mz = peak.getMZ() + pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_)*(c-1)/c + pattern.getMZShiftAt((size_t) peptide * isotopes_per_peptide_max_ + 1)/c;
+            mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)*(c-1)/c + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/c;
             if (checkForSignificantPeak_(mz, mz_tolerance, it_rt, intensity_first_peak))
             {
               return false;
@@ -410,7 +410,7 @@ namespace OpenMS
     // loop over mass traces (i.e. the mass trace boundaries)
     for (std::map<size_t, std::pair<size_t, size_t> >::const_iterator it = rt_boundaries.begin(); it != rt_boundaries.end(); ++it)
     {
-      double mz = peak.getMZ() + patterns_[pattern_idx].getMZShiftAt((size_t) it->first);
+      double mz = peak.getMZ() + patterns_[pattern_idx].getMZShiftAt(it->first);
       
       MSExperiment::ConstIterator it_rt_begin = exp_picked_.begin() + (it->second).first;
       it_rt_begin = exp_picked_.RTBegin(it_rt_begin->getRT() - rt_band_);
