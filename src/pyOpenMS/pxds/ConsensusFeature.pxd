@@ -2,7 +2,6 @@ from libcpp cimport bool
 from Types cimport *
 from BaseFeature cimport *
 from Peak2D cimport *
-from RichPeak2D cimport *
 from UniqueIdInterface cimport *
 from FeatureMap cimport *
 from BaseFeature cimport *
@@ -90,5 +89,3 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS::Consens
       String denominator_ref_
       String numerator_ref_
       libcpp_vector[String] description_
-
-
