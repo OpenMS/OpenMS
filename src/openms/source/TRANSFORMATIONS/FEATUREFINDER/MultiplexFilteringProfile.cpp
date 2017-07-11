@@ -178,7 +178,7 @@ namespace OpenMS
           // loop over peaks in pattern
           for (size_t mz_position = 1; mz_position < pattern.getMZShiftCount(); ++mz_position)
           {
-            double mz_shift = pattern.getMZShiftAt((size_t) mz_position);
+            double mz_shift = pattern.getMZShiftAt(mz_position);
           
             // loop over RT band
             int count = 0;
