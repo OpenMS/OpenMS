@@ -1,6 +1,5 @@
 
 PeakSpectrum = MSSpectrum
-RichPeakSpectrum = RichMSSpectrum
 
 Chromatorgram = MSChromatogram
 
