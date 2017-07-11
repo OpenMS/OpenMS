@@ -51,7 +51,7 @@
 using namespace OpenMS;
 using namespace std;
 
-MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> paths, Size number)
+MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> &paths, Size number)
 {
 
   MzTab mztab;
@@ -78,7 +78,6 @@ MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> paths, Size number
       std::regex r("\\d*$"); //extract last digits from filepath: /var/folders/T/0_out/xxx_unknown0_unknown10 -> 10
       std::smatch m;
       std::regex_search(str, m, r);
-      std::ssub_match x = m[0]; //need for retrieval of submatch
       std::string scan_index = m[0].str();
 
       for (Size j = 1; j < number; ++j)

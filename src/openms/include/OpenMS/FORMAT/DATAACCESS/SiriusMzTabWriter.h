@@ -73,7 +73,7 @@ namespace OpenMS
       std::vector<SiriusAdapterIdentification> identifications;
     };
 
-    static MzTab store(const std::vector<String> file, Size number);
+    static MzTab store(const std::vector<String> &paths, Size number);
 
   };
 

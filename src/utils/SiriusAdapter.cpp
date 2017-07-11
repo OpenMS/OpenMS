@@ -110,7 +110,10 @@ protected:
 
   void removeTempDir_(const String& tmp_dir)
   {
-    if (tmp_dir.empty()) return;
+    if (tmp_dir.empty()
+     {
+     return;
+     }
 
     if (debug_level_ >= 2)
     {
@@ -118,8 +121,11 @@ protected:
     }
     else
     {
-      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      File::removeDirRecursively(tmp_dir);
+      if (debug_level_ == 1)
+      {
+        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
+        File::removeDirRecursively(tmp_dir);
+      }
     }
   }
 
@@ -232,7 +238,7 @@ protected:
     qp.start(executable, process_params); // does automatic escaping etc... start
     bool success = qp.waitForFinished(-1); // wait till job is finished
 
-    if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       qp.close();
       writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input" );

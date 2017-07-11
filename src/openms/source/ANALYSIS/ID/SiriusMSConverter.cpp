@@ -98,7 +98,10 @@ namespace OpenMS
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
       // process only MS2 spectra
-      if (s_it->getMSLevel() != 2) continue;
+      if (s_it->getMSLevel() != 2)
+      {
+      continue;
+      }
 
       const MSSpectrum<Peak1D>& spectrum = *s_it;
 
@@ -123,7 +126,7 @@ namespace OpenMS
       }
 
       //there should be only one precursor and MS2 should contain peaks to be considered
-      if (precursor.size() == 1 && !spectrum.empty())
+      if (precursor.size() == 1 && spectrum.empty() == false)
       {
         //read charge annotated to MS2
         int precursor_charge = precursor[0].getCharge();
@@ -191,16 +194,12 @@ namespace OpenMS
           String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
           msfile = tmp_filename;
 
-          //std::cout << "unique_name: " << unique_name << std::endl;
-          //std::cout << "tmp_filename: " << tmp_filename << std::endl;
-
           //create temporary input file (.ms)
           os.open(tmp_filename.c_str());
-          if (!os)
+          if (os == false)
           {
             throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
           }
-          prec = os.precision();
           os.precision(12);
         }
 
@@ -270,7 +269,10 @@ namespace OpenMS
     }
 
     // close previous (.ms) file
-    if (os.is_open()) os.close();
+    if (os.is_open())
+    {
+      os.close();
+    }
 
     return msfile;
   }
