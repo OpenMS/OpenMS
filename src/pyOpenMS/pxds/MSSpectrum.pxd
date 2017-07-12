@@ -3,7 +3,6 @@ from libcpp.string cimport string as libcpp_string
 from SpectrumSettings cimport *
 from MetaInfoInterface cimport *
 from Peak1D cimport *
-from RichPeak1D cimport *
 from String cimport *
 from RangeManager cimport *
 from DataArrays cimport *
@@ -20,7 +19,6 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         # wrap-instances:
         #   MSSpectrum := MSSpectrum[Peak1D]
-        #   RichMSSpectrum := MSSpectrum[RichPeak1D]
         #   ChromatogramSpectrum := MSSpectrum[ChromatogramPeak]
 
         # COMMENT: get raw data through get_peaks or by iterating through peaks
