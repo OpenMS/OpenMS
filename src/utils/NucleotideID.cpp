@@ -536,8 +536,8 @@ protected:
 
                   // StringList identifier_list= h_it->getMetaValue("identifier").toStringList(); //get the identifier
                   // String identifier = identifier_list[0];
-                   MSSpectrum<RichPeak1D> spec;
-                   test_generator.getSpectrum(spec, sequence, h_it->getCharge()); //there should only be one
+                   MSSpectrum<Peak1D> spec;
+                   test_generator.getSpectrum(spec, sequence, h_it->getCharge() <0 ? -1 : 1, h_it->getCharge()); //there should only be one
                    if (nearest.empty() != true)
                    {
                    h_it->setScore(metmatch.computeHyperScore(spectra.getSpectra()[*nearest.begin()], spec, 500.0, 100.0));

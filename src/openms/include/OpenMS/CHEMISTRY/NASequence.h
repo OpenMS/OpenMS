@@ -15,7 +15,8 @@ namespace OpenMS
 
 class OPENMS_DLLAPI NASequence
 {
-    public:
+
+public:
     NASequence(); //default constructor
     NASequence(const String & rhs); // copy constructor
     NASequence(const String & rhs, const Residue::NucleicAcidType & type);
@@ -27,14 +28,17 @@ class OPENMS_DLLAPI NASequence
     String getSequence() const;
     Residue::NucleicAcidType getType() const;
     size_t size() const;
-    double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
+    double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 1) const;
     NASequence getPrefix(Size index) const;
     NASequence getSuffix(Size index) const;
     bool empty() const;
     EmpiricalFormula getFormula(Residue::ResidueType type, Int charge) const;
-    private:
+
+private:
     String s_;
     Residue::NucleicAcidType type_;
+
+
 };
 OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& nucleotide);
 

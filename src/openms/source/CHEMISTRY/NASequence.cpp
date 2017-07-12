@@ -127,10 +127,10 @@ EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) c
 
     if (s_.size() > 0)
     {
-        if (s_.size() == 1)
+        if (s_.size() == 0) //FIXME
         {
             mono_formula+=base_to_formula[s_[0]]+abasicform;
-            return mono_formula-(H_weight*charge);
+            return mono_formula+(H_weight*charge)+internal_to_full; //FIXME add switch for other terminals (phosphates etc.)
         }
         else
         {

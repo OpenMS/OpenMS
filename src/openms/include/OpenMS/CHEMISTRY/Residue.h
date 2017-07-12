@@ -142,7 +142,7 @@ public:
     */
     //@{
     enum ResidueType
-    {
+    {                 // NB: Not all fragments types are valid for all residue types, this class should probably get split
       Full = 0,       // with N-terminus and C-terminus
       Internal,       // internal, without any termini
       NTerminal,      // only N-terminus

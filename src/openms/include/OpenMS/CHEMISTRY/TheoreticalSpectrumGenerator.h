@@ -116,8 +116,8 @@ namespace OpenMS
       void addAbundantImmoniumIons_(PeakSpectrum & spec, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
 
       /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true //TODO check tht this works
-      void addAbundantImmoniumIons_(PeakSpectrum & spec, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
-      
+      //void addAbundantImmoniumIons_(PeakSpectrum & spec, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const;
+      //We don't support Immonium ions in Nuc mode
 
       /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
@@ -140,6 +140,9 @@ namespace OpenMS
       bool add_c_ions_;
       bool add_x_ions_;
       bool add_z_ions_;
+      bool add_d_ions_;
+      bool add_w_ions_;
+      bool add_aB_ions_;
       bool add_first_prefix_ion_;
       bool add_losses_;
       bool add_metainfo_;
@@ -153,6 +156,10 @@ namespace OpenMS
       double x_intensity_;
       double y_intensity_;
       double z_intensity_;
+      double d_intensity_;
+      double w_intensity_;
+      double aB_intensity_;
+
       Int max_isotope_;
       double rel_loss_intensity_;
       double pre_int_;

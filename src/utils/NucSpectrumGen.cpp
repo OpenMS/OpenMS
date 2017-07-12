@@ -145,16 +145,14 @@ protected:
 
         test_generator.setParameters(gen_params);
 
-        MSSpectrum<RichPeak1D> spec;
-        test_generator.getSpectrum(spec, NucSequence, maxCharge);
+        MSSpectrum<Peak1D> spec;
+        Int minCharge = maxCharge < 0 ? -1 : 1;
+        test_generator.getSpectrum(spec, NucSequence, minCharge, maxCharge);
         //candidate_spectra[identifier]=spec;
-        MSSpectrum<Peak1D> theoretical_spectrum;
-        for (MSSpectrum<RichPeak1D>::ConstIterator p_it = spec.begin(); p_it != spec.end(); ++p_it)
-        {
-            theoretical_spectrum.push_back(*p_it);
-        }
+        //MSSpectrum<Peak1D> theoretical_spectrum;
+
         //theoretical_spectrum.setNativeID(identifier);
-        generated_exp.addSpectrum(theoretical_spectrum);
+        generated_exp.addSpectrum(spec);
 
         // extract candidates from feature
 
