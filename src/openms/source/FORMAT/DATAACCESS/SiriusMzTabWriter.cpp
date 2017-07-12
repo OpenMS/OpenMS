@@ -58,7 +58,7 @@ MzTab SiriusMzTabWriter::store(const std::vector<String> & paths, Size number)
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
 
-  for(std::vector<String>::const_iterator it = paths.begin(); it != paths.end(); ++it)
+  for (std::vector<String>::const_iterator it = paths.begin(); it != paths.end(); ++it)
   {
 
     std::string pathtosiriuscsv = *it + "/summary_sirius.csv";

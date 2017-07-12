@@ -230,7 +230,7 @@ namespace OpenMS
         }
         else
         {
-          if(precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
+          if (precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
           {
             os << ">ms1" << "\n"
                << precursor_mz << " " << precursor_int << "\n\n";

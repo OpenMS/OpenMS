@@ -108,6 +108,29 @@ public:
 
 protected:
 
+  bool removeDir(const QString & dirName)
+  {
+    bool result = true;
+    QDir dir(dirName);
+
+    if (dir.exists(dirName)) {
+      Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+          if (info.isDir()) {
+            result = removeDir(info.absoluteFilePath());
+          }
+          else {
+            result = QFile::remove(info.absoluteFilePath());
+          }
+
+          if (!result) {
+            return result;
+          }
+        }
+      result = dir.rmdir(dirName);
+    }
+    return result;
+  }
+
   void removeTempFiles_(const String& tmp_dir, const String& ms_file)
   {
     if (tmp_dir.empty() && ms_file.empty())
@@ -124,11 +147,13 @@ protected:
       if (debug_level_ == 0)
       {
         writeDebug_("Deleting temporary directory '" + tmp_dir +" and msfile " + ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::removeDirRecursively(tmp_dir);
-        File::remove(ms_file);
+        removeDir(tmp_dir.toQString());
+        File::remove(ms_file); // remove msfile
       }
     }
   }
+
+
 
   void registerOptionsAndFlags_()
   {

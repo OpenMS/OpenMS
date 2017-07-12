@@ -23,7 +23,7 @@ MetaboliteSpectralMatching.h
 PeptideProteinResolution.h
 ProtonDistributionModel.h
 PeptideIndexing.h
-PerculatorFeatureSetHelper.h
+PercolatorFeatureSetHelper.h
 SiriusMSConverter.h
 )
 
