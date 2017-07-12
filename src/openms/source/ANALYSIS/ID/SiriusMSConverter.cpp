@@ -224,8 +224,8 @@ namespace OpenMS
           //m/z and intensity have to be higher than 1e-10
           //the intensity of the peaks of the isotope pattern have to be smaller than the one before
           if (isotopes[0].getMZ() > 1e-10 && isotopes[0].getIntensity() > 1e-10){ os << isotopes[0].getMZ() << " " << isotopes[0].getIntensity() << "\n";}
-          if (isotopes[1].getMZ() > 1e-10 && isotopes[1].getIntensity() > 1e-10 && isotopes[1].getIntensity() < isotopes[0].getIntensity() > 1e-10){ os << isotopes[1].getMZ() << " " << isotopes[1].getIntensity() << "\n";}
-          if (isotopes[2].getMZ() > 1e-10 && isotopes[2].getIntensity() > 1e-10 && isotopes[2].getIntensity() < isotopes[1].getIntensity() > 1e-10){ os << isotopes[2].getMZ() << " " << isotopes[2].getIntensity() << "\n";}
+          if (isotopes[1].getMZ() > 1e-10 && isotopes[1].getIntensity() > 1e-10 && isotopes[1].getIntensity() < isotopes[0].getIntensity() && isotopes[1].getIntensity() > 1e-10){ os << isotopes[1].getMZ() << " " << isotopes[1].getIntensity() << "\n";}
+          if (isotopes[2].getMZ() > 1e-10 && isotopes[2].getIntensity() > 1e-10 && isotopes[2].getIntensity() < isotopes[1].getIntensity() && isotopes[2].getIntensity() > 1e-10){ os << isotopes[2].getMZ() << " " << isotopes[2].getIntensity() << "\n";}
           os << "\n";
         }
         else
