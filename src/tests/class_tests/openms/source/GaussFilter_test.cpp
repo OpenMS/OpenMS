@@ -39,7 +39,6 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/KERNEL/Peak2D.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 ///////////////////////////
 
@@ -64,7 +63,7 @@ END_SECTION
 
 START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& spectrum)))
   MSSpectrum<Peak1D> spectrum;
-	spectrum.resize(5);
+  spectrum.resize(5);
 
   MSSpectrum<Peak1D>::Iterator it = spectrum.begin();
   for (Size i=0; i<5; ++i, ++it)
@@ -88,9 +87,9 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& sp
   TEST_REAL_SIMILAR(it->getIntensity(),1.0)
   ++it;
   TEST_REAL_SIMILAR(it->getIntensity(),1.0)
-	
-	// We don't throw exceptions anymore... just issue warnings 
-	//test exception when the width is too small
+  
+  // We don't throw exceptions anymore... just issue warnings 
+  //test exception when the width is too small
   //param.setValue( "gaussian_width", 0.1);
   //gauss.setParameters(param);
   //TEST_EXCEPTION(Exception::IllegalArgument,gauss.filter(spectrum))
@@ -98,7 +97,7 @@ END_SECTION
 
 START_SECTION((template <typename PeakType> void filter(MSChromatogram<PeakType>& chromatogram)))
   MSChromatogram<ChromatogramPeak> chromatogram;
-	chromatogram.resize(5);
+  chromatogram.resize(5);
 
   MSChromatogram<ChromatogramPeak>::Iterator it = chromatogram.begin();
   for (Size i=0; i<5; ++i, ++it)
@@ -122,72 +121,72 @@ START_SECTION((template <typename PeakType> void filter(MSChromatogram<PeakType>
   TEST_REAL_SIMILAR(it->getIntensity(),1.0)
   ++it;
   TEST_REAL_SIMILAR(it->getIntensity(),1.0)
-	
+  
 END_SECTION 
 
 START_SECTION((template <typename PeakType> void filterExperiment(MSExperiment<PeakType>& map)))
-	PeakMap exp;
+  PeakMap exp;
   exp.resize(4);
   
-  RichPeak1D p;
+  Peak1D p;
   for (Size i=0; i<9; ++i)
   {
-  	p.setIntensity(0.0f);
+    p.setIntensity(0.0f);
     p.setMZ(500.0+0.03*i);
     if (i==3)
     {
-  		p.setIntensity(1.0f);
+      p.setIntensity(1.0f);
     }
     if (i==4)
     {
-  		p.setIntensity(0.8f);
+      p.setIntensity(0.8f);
     }
     if (i==5)
     {
-  		p.setIntensity(1.2f);
+      p.setIntensity(1.2f);
     }
     exp[0].push_back(p);
     exp[1].push_back(p);
   }
   exp[2].push_back(p);
-	
-	//test exception
-	GaussFilter gauss;
+  
+  //test exception
+  GaussFilter gauss;
   Param param;
-	
-	//real test
-	TOLERANCE_ABSOLUTE(0.01)
-	param.setValue("gaussian_width", 0.2);
+  
+  //real test
+  TOLERANCE_ABSOLUTE(0.01)
+  param.setValue("gaussian_width", 0.2);
   gauss.setParameters(param);
   gauss.filterExperiment(exp);
-	
-	TEST_EQUAL(exp.size(),4)
-	TEST_EQUAL(exp[0].size(),9)
-	TEST_EQUAL(exp[1].size(),9)
-	TEST_EQUAL(exp[2].size(),1)
-	TEST_EQUAL(exp[3].size(),0)
+  
+  TEST_EQUAL(exp.size(),4)
+  TEST_EQUAL(exp[0].size(),9)
+  TEST_EQUAL(exp[1].size(),9)
+  TEST_EQUAL(exp[2].size(),1)
+  TEST_EQUAL(exp[3].size(),0)
 
-	TEST_REAL_SIMILAR(exp[0][0].getIntensity(),0.000734827)	
-	TEST_REAL_SIMILAR(exp[0][1].getIntensity(),0.0543746)
-	TEST_REAL_SIMILAR(exp[0][2].getIntensity(),0.298025)
-	TEST_REAL_SIMILAR(exp[0][3].getIntensity(),0.707691)
-	TEST_REAL_SIMILAR(exp[0][4].getIntensity(),0.8963)
-	TEST_REAL_SIMILAR(exp[0][5].getIntensity(),0.799397)
-	TEST_REAL_SIMILAR(exp[0][6].getIntensity(),0.352416)
-	TEST_REAL_SIMILAR(exp[0][7].getIntensity(),0.065132)
-	TEST_REAL_SIMILAR(exp[0][8].getIntensity(),0.000881793)
+  TEST_REAL_SIMILAR(exp[0][0].getIntensity(),0.000734827)  
+  TEST_REAL_SIMILAR(exp[0][1].getIntensity(),0.0543746)
+  TEST_REAL_SIMILAR(exp[0][2].getIntensity(),0.298025)
+  TEST_REAL_SIMILAR(exp[0][3].getIntensity(),0.707691)
+  TEST_REAL_SIMILAR(exp[0][4].getIntensity(),0.8963)
+  TEST_REAL_SIMILAR(exp[0][5].getIntensity(),0.799397)
+  TEST_REAL_SIMILAR(exp[0][6].getIntensity(),0.352416)
+  TEST_REAL_SIMILAR(exp[0][7].getIntensity(),0.065132)
+  TEST_REAL_SIMILAR(exp[0][8].getIntensity(),0.000881793)
 
-	TEST_REAL_SIMILAR(exp[1][0].getIntensity(),0.000734827)	
-	TEST_REAL_SIMILAR(exp[1][1].getIntensity(),0.0543746)
-	TEST_REAL_SIMILAR(exp[1][2].getIntensity(),0.298025)
-	TEST_REAL_SIMILAR(exp[1][3].getIntensity(),0.707691)
-	TEST_REAL_SIMILAR(exp[1][4].getIntensity(),0.8963)
-	TEST_REAL_SIMILAR(exp[1][5].getIntensity(),0.799397)
-	TEST_REAL_SIMILAR(exp[1][6].getIntensity(),0.352416)
-	TEST_REAL_SIMILAR(exp[1][7].getIntensity(),0.065132)
-	TEST_REAL_SIMILAR(exp[1][8].getIntensity(),0.000881793)
+  TEST_REAL_SIMILAR(exp[1][0].getIntensity(),0.000734827)  
+  TEST_REAL_SIMILAR(exp[1][1].getIntensity(),0.0543746)
+  TEST_REAL_SIMILAR(exp[1][2].getIntensity(),0.298025)
+  TEST_REAL_SIMILAR(exp[1][3].getIntensity(),0.707691)
+  TEST_REAL_SIMILAR(exp[1][4].getIntensity(),0.8963)
+  TEST_REAL_SIMILAR(exp[1][5].getIntensity(),0.799397)
+  TEST_REAL_SIMILAR(exp[1][6].getIntensity(),0.352416)
+  TEST_REAL_SIMILAR(exp[1][7].getIntensity(),0.065132)
+  TEST_REAL_SIMILAR(exp[1][8].getIntensity(),0.000881793)
 
-	TEST_REAL_SIMILAR(exp[2][0].getIntensity(),0.0)
+  TEST_REAL_SIMILAR(exp[2][0].getIntensity(),0.0)
 
 
   // We don't throw exceptions anymore... just issue warnings 
