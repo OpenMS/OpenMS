@@ -70,31 +70,30 @@ using namespace std;
 //Doxygen docu
 //----------------------------------------------------------
 /**
-@page UTILS_SiriusAdapter
+  @page UTILS_SiriusAdapter
 
-@brief Metabolite identification using single and tandem mass spectrometry.
+  @brief De novo metabolite identification.
 
-CSI:FingerID (Compound Structure Identification: FingerID) is a method for searching a tandem mass spectrum of a small molecule (metabolite) in a database of molecular structures.
+  CSI:FingerID (Compound Structure Identification: FingerID) is a method for searching a tandem mass spectrum of a small molecule (metabolite) in a database of molecular structures.
 
-To use this feature, the Sirius command line tool as well as a java installation is needed.
+  To use this feature, the Sirius command line tool as well as a java installation is needed.
 
-Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/
+  Sirius can be found on https://bio.informatik.uni-jena.de/software/sirius/
 
-If you want to use the software with the Gurobi solver (free academic license) instead of GLPK, please follow the instructions in the sirius manual.
+  If you want to use the software with the Gurobi solver (free academic license) instead of GLPK, please follow the instructions in the sirius manual.
 
-Please see the following publications:
+  Please see the following publications:
 
-Kai Dührkop and Sebastian Böcker. Fragmentation trees reloaded.  J Cheminform, 8:5, 2016. (Cite this for fragmentation pattern analysis and fragmentation tree computation)
+  Kai Dührkop and Sebastian Böcker. Fragmentation trees reloaded.  J Cheminform, 8:5, 2016. (Cite this for fragmentation pattern analysis and fragmentation tree computation)
 
-Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker. Searching molecular structure databases with tandem mass spectra using CSI:FingerID. Proc Natl Acad Sci U S A, 112(41):12580-12585, 2015. (Cite this when using CSI:FingerID)
+  Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker. Searching molecular structure databases with tandem mass spectra using CSI:FingerID. Proc Natl Acad Sci U S A, 112(41):12580-12585, 2015. (Cite this when using CSI:FingerID)
 
-<B>The command line parameters of this tool are:</B>
-@verbinclude UTILS_SiriusAdapter.cli
-<B>INI file documentation of this tool:</B>
-@htmlinclude UTILS_SiriusAdapter.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_SiriusAdapter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_SiriusAdapter.html
 */
 
-// We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 class TOPPSiriusAdapter :
