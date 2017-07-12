@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <fstream>
 
 namespace OpenMS
@@ -405,7 +406,7 @@ namespace OpenMS
     double precursor_z = 0;
     if (spec.getPrecursors().size() > 0)
     {
-      precursor_mz = spec.getPrecursors()[0].getMZ();
+      precursor_mz = Math::roundDecimal(spec.getPrecursors()[0].getMZ(), -9);
       precursor_z = spec.getPrecursors()[0].getCharge();
     }
 
@@ -431,7 +432,7 @@ namespace OpenMS
     for (Size i = 0; i != spec.size(); ++i)
     {
       String s;
-      s += String(spec[i].getMZ()) + "\t";
+      s += String(Math::roundDecimal(spec[i].getMZ(), -9)) + "\t";
       s += String(spec[i].getIntensity()) + "\t";
 
       if (charges.size() > 0)
