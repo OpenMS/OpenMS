@@ -261,7 +261,7 @@ protected:
   OPXLDataStructs::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
   {
     OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra(spectrum_pairs.size());
- 
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -285,6 +285,9 @@ protected:
         spectrum_heavy_charges = spectrum_heavy.getIntegerDataArrays()[0];
       }
       xlink_peaks.getIntegerDataArrays().resize(1);
+
+      // keep track of matched peaks
+      vector<Size> used_peaks;
 
       // transform all peaks in the heavy spectrum by shifting them, considering all expected charge states
       for (Size charge = 1; charge <= max_charge_xlink; ++charge)
@@ -329,8 +332,14 @@ protected:
           // fill xlink_peaks spectrum with matched peaks from the light spectrum and add the currently considered charge
           for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
           {
-            xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
-            xlink_peaks.getIntegerDataArrays()[0].push_back(charge);
+            // test whether this peak was matched with a lower charge before (biased towards lower charge matches, if one light peak matches to multiple heavy peaks with different charges)
+            vector<Size>::iterator it = find(used_peaks.begin(), used_peaks.end(), matched_fragments_with_shift[i].first);
+            if (it == used_peaks.end())
+            {
+              xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
+              xlink_peaks.getIntegerDataArrays()[0].push_back(charge);
+              used_peaks.push_back(matched_fragments_with_shift[i].first);
+            }
           }
         }
       }
@@ -459,7 +468,7 @@ protected:
     vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames);
     vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
-    
+
     // load MS2 map
     PeakMap unprocessed_spectra;
     MzMLFile f;
@@ -479,9 +488,9 @@ protected:
     // load linked features
     ConsensusMap cfeatures;
     ConsensusXMLFile cf;
-    cf.load(in_consensus, cfeatures); 
+    cf.load(in_consensus, cfeatures);
 
-    // load fasta database    
+    // load fasta database
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
     FASTAFile fastaFile;
     vector<FASTAFile::FASTAEntry> fasta_db;
@@ -496,13 +505,13 @@ protected:
     }
 
     progresslogger.endProgress();
-    
+
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
     EnzymaticDigestion digestor;
     String enzyme_name = getStringOption_("peptide:enzyme");
     digestor.setEnzyme(enzyme_name);
     digestor.setMissedCleavages(missed_cleavages);
-    
+
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
 
@@ -1157,7 +1166,6 @@ int main(int argc, const char** argv)
 {
 
   TOPPOpenPepXL tool;
-  
+
   return tool.main(argc, argv);
 }
-
