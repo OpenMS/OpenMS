@@ -209,7 +209,7 @@ protected:
         // keep peptides that match length restrictions (and count those that don't match)
         std::copy_if(current_digest.begin(), current_digest.end(), std::back_inserter(temp_peptides), 
           [&dropped_bylength, &min_size, &max_size](const AASequence& s) -> bool
-	  { 
+          {
             bool valid_length = (s.size() >= min_size && s.size() <= max_size);
             if (!valid_length)
             {
