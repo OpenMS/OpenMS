@@ -76,7 +76,6 @@ namespace OpenMS
     return max_intensity_it - spectrum1.begin();
   }
 
-
   String SiriusMSFile::store(const PeakMap &spectra)
   {
     OpenMS::String msfile;
@@ -116,12 +115,12 @@ namespace OpenMS
 
       IonSource::Polarity p = spectrum.getInstrumentSettings().getPolarity(); //charge
 
-      // needed later for writing in ms file
-      int int_charge = 0;
-
       // there should be only one precursor and MS2 should contain peaks to be considered
       if (precursor.size() == 1 && !spectrum.empty())
       {
+        // needed later for writing in ms file
+        int int_charge = 0;
+
         // read precursor charge
         int precursor_charge = precursor[0].getCharge();
 
