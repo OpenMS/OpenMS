@@ -59,8 +59,8 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFiltering::MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, bool missing_peaks, double intensity_cutoff, double rt_band, double rt_band_fraction, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averigine_type) :
-    patterns_(patterns), isotopes_per_peptide_min_(isotopes_per_peptide_min), isotopes_per_peptide_max_(isotopes_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), rt_band_(rt_band), rt_band_fraction_(rt_band_fraction), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averigine_type)
+  MultiplexFiltering::MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, bool missing_peaks, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averigine_type) :
+    patterns_(patterns), isotopes_per_peptide_min_(isotopes_per_peptide_min), isotopes_per_peptide_max_(isotopes_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), rt_band_(rt_band), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averigine_type)
   {
     // initialise experiment exp_picked_
     // Any peaks below the intensity cutoff cannot be relevant and are therefore removed.
@@ -213,9 +213,6 @@ namespace OpenMS
         double mz_shift = pattern.getMZShiftAt(idx_mz_shift);
         bool found = false;
         
-        // count in how many spectra a peak matching this mass trace was found
-        size_t count_found = 0;
-      
         // loop over spectra in RT band
         for (MSExperiment::ConstIterator it_rt = it_rt_band_begin; it_rt < it_rt_band_end; ++it_rt)
         {
@@ -232,27 +229,9 @@ namespace OpenMS
             // Note that unlike primary peaks, satellite peaks are not restricted by the blacklist.
             peak.addSatellite(it_rt - it_rt_begin, index_mapping[it_rt - it_rt_begin][i], idx_mz_shift);
             found = true;
-            
-            ++count_found;
           }          
         }
-        
-        double fraction = (double) count_found / (it_rt_band_end - it_rt_band_begin);
-        
-        // debug output
-        /*if (debug_now)
-        {
-          std::cout << "peptide = " << peptide << "    isotope = " << isotope << "    fraction = " << fraction << "    count_found = " << count_found << "    total = " << (it_rt_band_end - it_rt_band_begin) << "\n";
-        }*/
-        
-        if ((fraction < rt_band_fraction_) && (isotope < isotopes_per_peptide_min_))
-        {
-          // Each mass trace should be populated with a significant number of peaks i.e. not just a single one.
-          // A single peak over the entire <rt_band> range is not enough. Especially in noisy Bruker data.
-          // If this is not the case for the first <isotopes_per_peptide_min_> isotopes then the peak is not reliable.
-          return false;
-        }
-        
+                
         if (found && (!interrupted))
         {
           ++length;

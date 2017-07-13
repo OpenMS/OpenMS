@@ -159,7 +159,6 @@ private:
   unsigned isotopes_per_peptide_max_;
   double rt_typical_;
   double rt_band_;
-  double rt_band_fraction_;
   double rt_min_;
   double mz_tolerance_;
   bool mz_unit_; // ppm (true), Da (false)
@@ -217,9 +216,6 @@ public:
       defaults.setMinFloat("rt_typical", 0.0);
       defaults.setValue("rt_band", 10.0, "RT band which is taken into considerations when filtering.TODO docu");
       defaults.setMinFloat("rt_band", 0.0);
-      defaults.setValue("rt_band_fraction", 0.0, "Fraction of the mass trace for which peaks should be found. TODO docu", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("rt_band_fraction", 0.0);
-      defaults.setMaxFloat("rt_band_fraction", 1.0);
       defaults.setValue("rt_min", 2.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
       defaults.setMinFloat("rt_min", 0.0);
       defaults.setValue("mz_tolerance", 6.0, "m/z tolerance for search of peak patterns.");
@@ -306,7 +302,6 @@ public:
 
     rt_typical_ = getParam_().getValue("algorithm:rt_typical");
     rt_band_ = getParam_().getValue("algorithm:rt_band");
-    rt_band_fraction_ = getParam_().getValue("algorithm:rt_band_fraction");
     rt_min_ = getParam_().getValue("algorithm:rt_min");
     mz_tolerance_ = getParam_().getValue("algorithm:mz_tolerance");
     mz_unit_ = (getParam_().getValue("algorithm:mz_unit") == "ppm");
@@ -1338,14 +1333,14 @@ private:
     if (centroided)
     {
       // centroided data
-      MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, rt_band_, rt_band_fraction_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
+      MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
     }
     else
     {
       // profile data
-      MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, rt_band_, rt_band_fraction_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
+      MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
       //filter_results = filtering.filter();
     }
