@@ -51,6 +51,16 @@
 using namespace OpenMS;
 using namespace std;
 
+
+String SiriusMzTabWriter::extract_scan_index(const String &path)
+{
+  std::regex r("\\d*$"); //extract last digits from filepath: /var/folders/T/0_out/xxx_unknown0_unknown10 -> 10
+  std::smatch m;
+  std::regex_search(path, m, r);
+  std::string scan_index = m[0].str();
+  return scan_index;
+}
+
 MzTab SiriusMzTabWriter::store(const std::vector<String> & paths, Size number)
 {
 
@@ -76,10 +86,7 @@ MzTab SiriusMzTabWriter::store(const std::vector<String> & paths, Size number)
 
       //Extract scan_index from path
       OpenMS::String str = File::path(pathtosiriuscsv);
-      std::regex r("\\d*$"); //extract last digits from filepath - corresponding to scan_index of compound: /var/folders/T/0_out/xxx_unknown0_unknown10 -> 10
-      std::smatch m;
-      std::regex_search(str, m, r);
-      std::string scan_index = m[0].str();
+      std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
 
       //If there are less rows than output -> rowCount - 1 is used since the last row of the file is empty
       if (number > compounds.rowCount())

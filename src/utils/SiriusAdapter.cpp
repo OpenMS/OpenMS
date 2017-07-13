@@ -60,7 +60,7 @@
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 
 #include <QDirIterator>
-
+#include <regex>
 
 using namespace OpenMS;
 using namespace std;
@@ -107,33 +107,6 @@ public:
 
 protected:
 
-  bool removeDir(const QString & dirName)
-  {
-    bool result = true;
-    QDir dir(dirName);
-
-    if (dir.exists(dirName))
-    {
-      Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
-        {
-          if (info.isDir())
-          {
-            result = removeDir(info.absoluteFilePath());
-          }
-          else
-          {
-            result = QFile::remove(info.absoluteFilePath());
-          }
-          if (!result)
-          {
-            return result;
-          }
-        }
-      result = dir.rmdir(dirName);
-    }
-    return result;
-  }
-
   void removeTempFiles_(const String& tmp_dir, const String& ms_file)
   {
     if (tmp_dir.empty() && ms_file.empty())
@@ -150,10 +123,15 @@ protected:
       if (debug_level_ == 0)
       {
         writeDebug_("Deleting temporary directory '" + tmp_dir +" and msfile " + ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
-        removeDir(tmp_dir.toQString());
+        File::removeDir(tmp_dir.toQString()); // remove directory & subdirectories
         File::remove(ms_file); // remove msfile
       }
     }
+  }
+
+  static bool sortByScanIndex(const String & i, const String & j)
+  {
+    return (atoi(SiriusMzTabWriter::extract_scan_index(i).c_str()) < atoi(SiriusMzTabWriter::extract_scan_index(j).c_str()));
   }
 
   void registerOptionsAndFlags_()
@@ -282,6 +260,9 @@ protected:
     {
       subdirs.push_back(it.next());
     }
+
+    //sort vector path list
+    std::sort(subdirs.begin(), subdirs.end(), sortByScanIndex);
 
     //Convert sirius_output to mztab
     MzTab smztab = SiriusMzTabWriter::store(subdirs, number);

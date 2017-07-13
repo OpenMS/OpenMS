@@ -73,6 +73,12 @@ namespace OpenMS
       std::vector<SiriusAdapterIdentification> identifications;
     };
 
+    // extract scan_index from filepath
+    static String extract_scan_index(const String & path);
+
+    //Output of Sirius is one directory per spectrum/compound
+    //paths: Path to output directories of sirius
+    //number: Amount of entries for each file/compound should be written to the mztab file
     static MzTab store(const std::vector<String> & paths, Size number);
 
   };

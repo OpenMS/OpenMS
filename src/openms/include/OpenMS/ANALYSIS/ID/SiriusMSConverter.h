@@ -53,8 +53,8 @@ public:
     @ingroup ID
     */
 
-    /// store MS files of batch size @param batch_size in the temp folder
-    /// @return vector of file names (full path)
+    /// store MS file
+    /// @return string (full path to file)
 
     static String store(const PeakMap &spectra);
 

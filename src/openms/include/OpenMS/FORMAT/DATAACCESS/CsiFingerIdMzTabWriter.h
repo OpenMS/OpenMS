@@ -32,8 +32,8 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_HOST_CsiFINGERIDMZTABWRITER_H
-#define OPENMS_HOST_CsiFINGERIDMZTABWRITER_H
+#ifndef OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
+#define OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
 
 namespace OpenMS
 {
@@ -72,9 +72,12 @@ namespace OpenMS
             std::vector <CsiAdapterIdentification> identifications;
           };
 
+          //Output of Sirius is one directory per spectrum/compound
+          //paths: Path to output directories of sirius
+          //number: Amount of entries for each file/compound should be written to the mztab file
           static MzTab store(const std::vector<String> & paths, Size number);
 
       };
 }
 
-#endif //OPENMS_HOST_CsiFINGERIDMZTABWRITER_H
+#endif //OPENMS_HOST_CSIFINGERIDMZTABWRITER_H

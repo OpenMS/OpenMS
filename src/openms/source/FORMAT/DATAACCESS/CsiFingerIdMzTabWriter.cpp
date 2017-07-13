@@ -46,7 +46,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
-#include <regex>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -75,10 +75,7 @@ MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> & paths, Size numb
 
       //Extract scan_index from path
       OpenMS::String str = File::path(pathtocsicsv);
-      std::regex r("\\d*$"); //extract last digits from filepath: /var/folders/T/0_out/xxx_unknown0_unknown10 -> 10
-      std::smatch m;
-      std::regex_search(str, m, r);
-      std::string scan_index = m[0].str();
+      std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
 
       for (Size j = 1; j < number; ++j)
       {

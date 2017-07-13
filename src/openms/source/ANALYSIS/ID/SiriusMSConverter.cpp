@@ -32,16 +32,14 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-//not sure if more #include directives are needed
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <ostream>
@@ -82,7 +80,13 @@ namespace OpenMS
   String SiriusMSFile::store(const PeakMap &spectra)
   {
     OpenMS::String msfile;
-    int count = 0;
+
+    int count = 0; // internal for compounds in msfile
+    int count_skipped_spectra = 0; // spectra skipped due to precursor charge
+    int count_to_pos = 0; // count if charge 0 -> +1
+    int count_to_neg = 0; // count if charge 0 -> -1
+    int count_no_ms1 = 0; // count if no precursor was found
+
     //check for all spectra at the beginning if spectra are centroided
     //determine type of spectral data (profile or centroided) - only checking first spectrum (could be ms2 spectrum)
     SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
@@ -100,7 +104,7 @@ namespace OpenMS
       // process only MS2 spectra
       if (s_it->getMSLevel() != 2)
       {
-      continue;
+        continue;
       }
 
       const MSSpectrum<Peak1D>& spectrum = *s_it;
@@ -108,33 +112,44 @@ namespace OpenMS
       int scan_index = s_it - spectra.begin();
 
       const vector<Precursor>& precursor = spectrum.getPrecursors();
-      double collision = precursor[0].getActivationEnergy(); //not working?
+      double collision = precursor[0].getActivationEnergy(); //extract collision energy - this function does not work
 
       IonSource::Polarity p = spectrum.getInstrumentSettings().getPolarity(); //charge
 
       // needed later for writing in ms file
-      int int_charge(1);
+      int int_charge = 0;
 
-      if (p == IonSource::Polarity::POSITIVE)
+      // there should be only one precursor and MS2 should contain peaks to be considered
+      if (precursor.size() == 1 && !spectrum.empty())
       {
-        int_charge = +1;
-      }
-      else
-      {
-        LOG_WARN << "SiriusMSConverter (due to Sirius) only support positive ion mode and mono charged analytes." << endl;
-        continue;
-      }
-
-      //there should be only one precursor and MS2 should contain peaks to be considered
-      if (precursor.size() == 1 && spectrum.empty() == false)
-      {
-        //read charge annotated to MS2
+        // read precursor charge
         int precursor_charge = precursor[0].getCharge();
 
-        //sirius only supports +1 charge so far
+        // sirius supports only single charged ions (+1; -1)
+        // if charge = 0, it will be allocted to +1; -1 depending on Polarity
         if (precursor_charge > 1 || precursor_charge <= -1)
         {
-          LOG_WARN << "SiriusMSConverter (due to Sirius) only support positively mono charged analytes." << endl;
+          count_skipped_spectra = count_skipped_spectra + 1;
+          continue;
+        }
+        // set charge value for msfile
+        if (p == IonSource::Polarity::POSITIVE && precursor_charge == +1)
+        {
+          int_charge = +1;
+        }
+        if (p == IonSource::Polarity::NEGATIVE && precursor_charge == -1)
+        {
+          int_charge = -1;
+        }
+        if (p == IonSource::Polarity::POSITIVE && precursor_charge == 0)
+        {
+          int_charge = +1;
+          count_to_pos = count_to_pos + 1;
+        }
+        if (p == IonSource::Polarity::NEGATIVE && precursor_charge == 0)
+        {
+          int_charge = -1;
+          count_to_neg = count_to_neg +1;
         }
 
         //get m/z and intensity of precursor != MS1 spectrum
@@ -151,13 +166,14 @@ namespace OpenMS
 
         if (s_it2->getMSLevel() != 1)
         {
-          LOG_WARN << "Error: no MS1 spectrum for this precursor. No isotopes considered in sirius." << endl;
+          count_no_ms1 = count_no_ms1 +1;
         }
-          //get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da
+        //get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da)
         else
         {
           const MSSpectrum<Peak1D>& spectrum1 = *s_it2;
 
+          // 0.2 Da left and right of the precursor m/z - we do not expect metabolites with charge 5 or higher.
           Int mono_index = getHighestIntensityPeakInMZRange(test_mz, spectrum1, 0.2, 0.2);
 
           if (mono_index != -1)
@@ -167,13 +183,13 @@ namespace OpenMS
 
             // make sure the 13C isotopic peak is picked up by doubling the (fractional) mass difference (approx. 1.0066)
             const double C13_dd = 2.0 * (Constants::C13C12_MASSDIFF_U - 1.0);
-            Int iso1_index = getHighestIntensityPeakInMZRange(max_mono_peak.getMZ() + 1.0, spectrum1, 0, C13_dd);
+            Int iso1_index = getHighestIntensityPeakInMZRange(max_mono_peak.getMZ() + Constants::C13C12_MASSDIFF_U, spectrum1, 0, C13_dd);
 
             if (iso1_index != -1)
             {
               const Peak1D& iso1_peak = spectrum1[iso1_index];
               isotopes.push_back(iso1_peak);
-              Int iso2_index = getHighestIntensityPeakInMZRange(iso1_peak.getMZ() + 1.0, spectrum1, 0, C13_dd);
+              Int iso2_index = getHighestIntensityPeakInMZRange(iso1_peak.getMZ() + Constants::C13C12_MASSDIFF_U, spectrum1, 0, C13_dd);
 
               if (iso2_index != -1)
               {
@@ -186,14 +202,14 @@ namespace OpenMS
 
         String query_id = String("unknown") + String(scan_index);
 
-        if (count == 0) //one ms file
+        if (count == 0) // one ms file
         {
           // store data
-          String unique_name =  String(File::getUniqueName()).toQString(); //if not done this way - always new "unique name"
+          String unique_name =  String(File::getUniqueName()).toQString(); // generate unique name once
           String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
           msfile = tmp_filename;
 
-          //create temporary input file (.ms)
+          // create temporary input file (.ms)
           os.open(tmp_filename.c_str());
           if (not os)
           {
@@ -202,7 +218,6 @@ namespace OpenMS
           os.precision(12);
         }
 
-        //TODO: Collision energy optional for MS2 - something wrong with .getActivationEnergy() (Precursor)
         //write internal unique .ms data as sirius input
         os << fixed;
         os << ">compound " << query_id << "\n";
@@ -223,9 +238,18 @@ namespace OpenMS
           os << ">ms1" << "\n";
           //m/z and intensity have to be higher than 1e-10
           //the intensity of the peaks of the isotope pattern have to be smaller than the one before
-          if (isotopes[0].getMZ() > 1e-10 && isotopes[0].getIntensity() > 1e-10){ os << isotopes[0].getMZ() << " " << isotopes[0].getIntensity() << "\n";}
-          if (isotopes[1].getMZ() > 1e-10 && isotopes[1].getIntensity() > 1e-10 && isotopes[1].getIntensity() < isotopes[0].getIntensity() && isotopes[0].getIntensity() > 1e-10){ os << isotopes[1].getMZ() << " " << isotopes[1].getIntensity() << "\n";}
-          if (isotopes[2].getMZ() > 1e-10 && isotopes[2].getIntensity() > 1e-10 && isotopes[2].getIntensity() < isotopes[1].getIntensity() && isotopes[1].getIntensity() > 1e-10){ os << isotopes[2].getMZ() << " " << isotopes[2].getIntensity() << "\n";}
+          if (isotopes[0].getMZ() > 1e-10 && isotopes[0].getIntensity() > 1e-10)
+            {
+              os << isotopes[0].getMZ() << " " << isotopes[0].getIntensity() << "\n";
+            }
+          if (isotopes[1].getMZ() > 1e-10 && isotopes[1].getIntensity() > 1e-10 && isotopes[1].getIntensity() < isotopes[0].getIntensity() && isotopes[0].getIntensity() > 1e-10)
+            {
+              os << isotopes[1].getMZ() << " " << isotopes[1].getIntensity() << "\n";
+            }
+          if (isotopes[2].getMZ() > 1e-10 && isotopes[2].getIntensity() > 1e-10 && isotopes[2].getIntensity() < isotopes[1].getIntensity() && isotopes[1].getIntensity() > 1e-10)
+            {
+              os << isotopes[2].getMZ() << " " << isotopes[2].getIntensity() << "\n";
+            }
           os << "\n";
         }
         else
@@ -272,6 +296,11 @@ namespace OpenMS
     {
       os.close();
     }
+
+    LOG_WARN << "No MS1 spectrum for this precursor. Occurred " << count_no_ms1 << " times." << endl;
+    LOG_WARN << count_skipped_spectra << " spectra were skipped due to precursor charge below -1 and above +1." << endl;
+    LOG_WARN << "Charge of 0 was set to +1 due to positive polarity " << count_to_pos << " times."<< endl;
+    LOG_WARN << "Charge of 0 was set to -1 due to negative polarity " << count_to_neg << " times." << endl;
 
     return msfile;
   }
