@@ -201,7 +201,6 @@ class TOPPXFDR :
       //Indices of the rank one elements within the all_ids vector
       const vector < PeptideIdentification > & all_ids;
       const vector< UInt >  & rank_one_ids;
-      const String & meta_value;  // Meta value to sort the peptideIdentifications
 
       inline bool operator()(const UInt & index1, const UInt & index2)
       {
@@ -827,7 +826,6 @@ class TOPPXFDR :
       greater_than_by_key order_conf = {
         all_ids,
         rank_one_ids,
-        "OpenXQuest:score"
       };
 
       std::sort(order_score.begin(), order_score.end(), order_conf);
