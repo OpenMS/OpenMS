@@ -279,7 +279,8 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.load(ins[i], maps[i]);
-        const StringList& ms_runs = maps[i].getPrimaryMSRunPath();
+        StringList ms_runs;
+        maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
       }
       // group

@@ -799,7 +799,8 @@ protected:
       meta_data.peptide_search_engine_score[1] = MzTabParameter();
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
       MzTabMSRunMetaData ms_run;
-      StringList ms_runs = consensus_map.getPrimaryMSRunPath();
+      StringList ms_runs;
+      consensus_map.getPrimaryMSRunPath(ms_runs);
       for (Size i = 0; i != ms_runs.size(); ++i)
       {
         ms_run.location = MzTabString(ms_runs[i]);
