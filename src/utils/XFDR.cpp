@@ -39,7 +39,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
-#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
@@ -47,7 +46,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <boost/iterator/counting_iterator.hpp>
-#include <boost/function.hpp>
 
 #include <string>
 #include <math.h>
@@ -64,11 +62,11 @@ using namespace std;
 /**
     @page UTILS_XFDR XFDR
 
-    @brief Calculates false discovery rate estimates on cross-link identifications.
+    @brief Calculates false discovery rate estimates on crosslink identifications.
 
-    This tool calculates and FDR estimate for cross-link identifications, which are produced by OpenProXL.
+    This tool calculates and FDR estimate for crosslink identifications, which are produced by OpenPepXL.
     The method employed currently is identical to the target-decoy approach used by xProphet (Walzthoeni et al., 2012).
-    Consequently, this tool can also consume xquest.xml files (produced either by OpenProXL or xQuest). The tool supports
+    Consequently, this tool can also consume xquest.xml files (produced either by OpenPepXL or xQuest). The tool supports
     output in the idXML and mzIdentML formats.
 
     @experimental This tool is work in progress and usage and input requirements might change.
@@ -81,8 +79,8 @@ using namespace std;
                 <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
             </tr>
             <tr>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenProXL </td>
-                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenProXLLF </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXL </td>
+                <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>  OpenPepXLLF </td>
                 <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> - </td>
             </tr>
             <tr>
@@ -120,25 +118,25 @@ class TOPPXFDR :
     // Number of ranks used
     static const UInt n_rank;
 
-    // Constants related to particular xl classes
-    static const String xlclass_intradecoys; // intradecoys
-    static const String xlclass_fulldecoysintralinks; // fulldecoysintralinks
-    static const String xlclass_interdecoys; // interdecoys
-    static const String xlclass_fulldecoysinterlinks; // fulldecoysinterlinks
-    static const String xlclass_intralinks; // intralinks
-    static const String xlclass_interlinks; // interlinks
-    static const String xlclass_monolinks;  // monolinks
-    static const String xlclass_monodecoys; // monodecoys
-    static const String xlclass_decoys; // decoys
-    static const String xlclass_hybriddecoysintralinks; // hybriddecoysintralinks
-    static const String xlclass_hybriddecoysinterlinks; // hybriddecoysintralinks
+    // Constants related to particular crosslink classes
+    static const String crosslink_class_intradecoys; // intradecoys
+    static const String crosslink_class_fulldecoysintralinks; // fulldecoysintralinks
+    static const String crosslink_class_interdecoys; // interdecoys
+    static const String crosslink_class_fulldecoysinterlinks; // fulldecoysinterlinks
+    static const String crosslink_class_intralinks; // intralinks
+    static const String crosslink_class_interlinks; // interlinks
+    static const String crosslink_class_monolinks;  // monolinks
+    static const String crosslink_class_monodecoys; // monodecoys
+    static const String crosslink_class_decoys; // decoys
+    static const String crosslink_class_hybriddecoysintralinks; // hybriddecoysintralinks
+    static const String crosslink_class_hybriddecoysinterlinks; // hybriddecoysintralinks
 
     // Score range for calculating the FPs
     static const double fpnum_score_step;
 
     // Meta values used to identify cross-links
-    static const String xl_type;
-    static const String xl_rank;
+    static const String crosslink_type;
+    static const String crosslink_rank;
     static const String target_decoy;
 
     TOPPXFDR() :
@@ -155,7 +153,7 @@ class TOPPXFDR :
       StringList formats = ListUtils::create<String>("xml,idXML,mzid");
 
       // File input
-      registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Crosslink Identifications in either xquest.xml, idXML, or mzIdentML format (as produced by OpenProXL)", false);
+      registerInputFile_(TOPPXFDR::param_in, "<file>", "", "Crosslink Identifications in either xquest.xml, idXML, or mzIdentML format (as produced by OpenPepXL)", false);
       setValidFormats_(TOPPXFDR::param_in, formats);
 
       // File input type (if omitted, guessed from the file extension)
@@ -198,49 +196,25 @@ class TOPPXFDR :
      */
     struct greater_than_by_key
     {
+      // Vector containing all crosslink peptide identifications of the input file
+      const vector< PeptideIdentification > & all_ids;
+
       //Indices of the rank one elements within the all_ids vector
-      const vector < PeptideIdentification > & all_ids;
       const vector< UInt >  & rank_one_ids;
-      const String & meta_value;  // Meta value to sort the peptideIdentifications
 
       inline bool operator()(const UInt & index1, const UInt & index2)
       {
-        return (  TOPPXFDR::getXLScore(all_ids[rank_one_ids[index1]])
-                > TOPPXFDR::getXLScore(all_ids[rank_one_ids[index2]]));
+        return (  TOPPXFDR::getCrosslinkScore(all_ids[rank_one_ids[index1]])
+                > TOPPXFDR::getCrosslinkScore(all_ids[rank_one_ids[index2]]));
       }
     };
 
     /**
-     * @brief Tests for descending ordering of a vector of rank one ids based on the score. Only used for assertions.
-     * @param order vector of ranks
-     * @param all_ids Vector with the actual PeptideIdentifictions which are queried for the score.
-     * @param rank_one_ids Vector of indices pointing to the rank one IDs in all_ids.
-     * @return Whether rank vector order reflects descending ordering of rank_one_ids by score.
-     */
-    static bool isSortedDescending(vector< UInt > & order, vector< PeptideIdentification > & all_ids, vector< UInt > & rank_one_ids )
-    {
-      if (order.empty())
-      {
-        return true;
-      }
-
-      for (Size i = 0; i < order.size() - 1; ++i)
-      {
-        if (   getXLScore(all_ids[rank_one_ids[order[i]]])
-               < getXLScore(all_ids[rank_one_ids[order[i + 1]]]))
-        {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    /**
-     * @brief Returns the score of a XL peptide identification.
+     * @brief Returns the score of a crosslink peptide identification.
      * @param pep_id Which peptide identification the score should be taken from
-     * @return XL score of that peptide identification
+     * @return crosslink score of that peptide identification
      */
-    static double getXLScore(const PeptideIdentification & pep_id)
+    static double getCrosslinkScore(const PeptideIdentification & pep_id)
     {
       const vector< PeptideHit > & pep_hits = pep_id.getHits();
 
@@ -283,10 +257,10 @@ class TOPPXFDR :
      * @brief Prepares vector of PeptideIdentification such that it can be processed downstream.
      * The encompassed steps are:
      *  * Set min_score and max_score encountered in the data
-     *  * Ensure that xl_type and xl_rank are available in the PeptideIdentification
+     *  * Ensure that crosslink_type and crosslink_rank are available in the PeptideIdentification
      *  * Define peptide_identification as decoy if at least one of the peptide_hits is decoy
      *    (this semantic is also used by the XQuestResultXMLHandler)
-     *  * Define the cross-link as either inter/or intraprotein
+     *  * Define the crosslink as either inter/or intraprotein
      *  * Set the identifier of the Peptide Identification if there is only one protein identification
      *
      * @param pep_ids vector of PeptideIdentification to be prepared
@@ -307,7 +281,7 @@ class TOPPXFDR :
         }
 
         // Set the minScore and MaxScore attribute depending on the input data
-        double score = getXLScore(pep_id);
+        double score = getCrosslinkScore(pep_id);
         if (score < this->min_score)
         {
           this->min_score = std::floor(score);
@@ -322,11 +296,11 @@ class TOPPXFDR :
         UInt n_hits = pep_hits.size();
         assert(n_hits == 1 || n_hits == 2);
 
-        // Pull xl_type and xl_rank to the peptide_identification if necessary
+        // Pull crosslink_type and crosslink_rank to the peptide_identification if necessary
         // Return false if one of the methods fails
 
-        if ( ! TOPPXFDR::moveToPeptideIdentification(pep_id, TOPPXFDR::xl_type) ||
-             ! TOPPXFDR::moveToPeptideIdentification(pep_id, TOPPXFDR::xl_rank) )
+        if ( ! TOPPXFDR::moveToPeptideIdentification(pep_id, TOPPXFDR::crosslink_type) ||
+             ! TOPPXFDR::moveToPeptideIdentification(pep_id, TOPPXFDR::crosslink_rank) )
         {
           return false;
         }
@@ -342,7 +316,7 @@ class TOPPXFDR :
           pep_id.setMetaValue(TOPPXFDR::target_decoy, DataValue("target"));
         }
 
-        // figure out if cross-link is inter- or intra protein
+        // figure out if crosslink is inter- or intra protein
         if (n_hits == 2)
         {
           vector< PeptideEvidence > alpha_ev = pep_hits[0].getPeptideEvidences();
@@ -373,7 +347,7 @@ class TOPPXFDR :
     /**
      * @brief Inspects PeptideIdentification pep_id and assigns all cross-link types that this identification belongs to
      * @param pep_id Peptide ID to be assigned.
-     * @param types Result vector containing the names of the xl classes
+     * @param types Result vector containing the names of the crosslink classes
      */
     inline static void assignTypes(PeptideIdentification & pep_id, StringList & types)
     {
@@ -383,48 +357,48 @@ class TOPPXFDR :
       // Intradecoys
       if (pep_id.metaValueExists("OpenXQuest:is_intraprotein") && pep_is_decoy)
       {
-        types.push_back(TOPPXFDR::xlclass_intradecoys);
+        types.push_back(TOPPXFDR::crosslink_class_intradecoys);
       }
 
       // Decoys
       if (pep_is_decoy)
       {
-        types.push_back(TOPPXFDR::xlclass_decoys);
+        types.push_back(TOPPXFDR::crosslink_class_decoys);
       }
 
       // intralinks
       if (pep_id.metaValueExists("OpenXQuest:is_intraprotein") && ! pep_is_decoy)
       {
-        types.push_back(TOPPXFDR::xlclass_intralinks);
+        types.push_back(TOPPXFDR::crosslink_class_intralinks);
       }
 
       // interdecoys
       if (pep_id.metaValueExists("OpenXQuest:is_interprotein") && pep_is_decoy)
       {
-        types.push_back(TOPPXFDR::xlclass_interdecoys);
+        types.push_back(TOPPXFDR::crosslink_class_interdecoys);
       }
 
       // interlinks
       if (pep_id.metaValueExists("OpenXQuest:is_interprotein") && ! pep_is_decoy)
       {
-        types.push_back(TOPPXFDR::xlclass_interlinks);
+        types.push_back(TOPPXFDR::crosslink_class_interlinks);
       }
 
-      assert(pep_id.metaValueExists(TOPPXFDR::xl_type));
-      String xl_type = pep_id.getMetaValue(TOPPXFDR::xl_type);
+      assert(pep_id.metaValueExists(TOPPXFDR::crosslink_type));
+      String crosslink_type = pep_id.getMetaValue(TOPPXFDR::crosslink_type);
 
       // monolinks
-      if ( ! pep_is_decoy && (xl_type == "mono-link"
-                              ||  xl_type == "loop-link"))
+      if ( ! pep_is_decoy && (crosslink_type == "mono-link"
+                              ||  crosslink_type == "loop-link"))
       {
-        types.push_back(TOPPXFDR::xlclass_monolinks);
+        types.push_back(TOPPXFDR::crosslink_class_monolinks);
       }
 
       // monodecoys
-      if ( pep_is_decoy && (xl_type == "mono-link"
-                            ||  xl_type == "loop-link"))
+      if ( pep_is_decoy && (crosslink_type == "mono-link"
+                            ||  crosslink_type == "loop-link"))
       {
-        types.push_back(TOPPXFDR::xlclass_monodecoys);
+        types.push_back(TOPPXFDR::crosslink_class_monodecoys);
       }
       const vector< PeptideHit > & pep_hits = pep_id.getHits();
       if (pep_hits.size() == 2)
@@ -440,7 +414,7 @@ class TOPPXFDR :
                && alpha_is_decoy
                && beta_is_decoy)
         {
-          types.push_back(TOPPXFDR::xlclass_fulldecoysintralinks);
+          types.push_back(TOPPXFDR::crosslink_class_fulldecoysintralinks);
         }
 
         // fulldecoysinterlinks
@@ -448,7 +422,7 @@ class TOPPXFDR :
                && alpha_is_decoy
                && beta_is_decoy)
         {
-          types.push_back(TOPPXFDR::xlclass_fulldecoysinterlinks);
+          types.push_back(TOPPXFDR::crosslink_class_fulldecoysinterlinks);
 
         }
 
@@ -459,7 +433,7 @@ class TOPPXFDR :
                        ||     (alpha_is_decoy
                                &&   ! beta_is_decoy)))
         {
-          types.push_back(TOPPXFDR::xlclass_hybriddecoysintralinks);
+          types.push_back(TOPPXFDR::crosslink_class_hybriddecoysintralinks);
         }
 
         // hybriddecoysinterlinks
@@ -469,7 +443,7 @@ class TOPPXFDR :
                        ||     (alpha_is_decoy
                                &&   ! beta_is_decoy)))
         {
-          types.push_back(TOPPXFDR::xlclass_hybriddecoysinterlinks);
+          types.push_back(TOPPXFDR::crosslink_class_hybriddecoysinterlinks);
         }
       }
     }
@@ -528,7 +502,7 @@ class TOPPXFDR :
 
     // the main_ function is called after all parameters are read
     ExitCodes main_(int, const char **)
-    {      
+    {
       //-------------------------------------------------------------
       // Initialize instance variables
       //-------------------------------------------------------------
@@ -655,7 +629,7 @@ class TOPPXFDR :
             PeptideIdentification pep_id = *spectrum_it;
             all_ids.push_back(pep_id);
 
-            if ( static_cast<int>(pep_id.getMetaValue(TOPPXFDR::xl_rank)) == 1)
+            if ( static_cast<int>(pep_id.getMetaValue(TOPPXFDR::crosslink_rank)) == 1)
             {
               rank_one_ids.push_back(rank_counter);
             }
@@ -727,7 +701,7 @@ class TOPPXFDR :
         {
           PeptideIdentification pep_id = *all_ids_it;
 
-          if (static_cast<UInt>(pep_id.getMetaValue(TOPPXFDR::xl_rank)) == 1)
+          if (static_cast<UInt>(pep_id.getMetaValue(TOPPXFDR::crosslink_rank)) == 1)
           {
             rank_one_ids.push_back(rank_counter);
           }
@@ -759,7 +733,7 @@ class TOPPXFDR :
         {
           PeptideIdentification pep_id = *all_ids_it;
           
-          if ( static_cast<UInt>(pep_id.getMetaValue(TOPPXFDR::xl_rank)) == 1)
+          if ( static_cast<UInt>(pep_id.getMetaValue(TOPPXFDR::crosslink_rank)) == 1)
           {
             rank_one_ids.push_back(rank_counter);
           }
@@ -802,10 +776,10 @@ class TOPPXFDR :
           assert(n_hits > 0); // because we initially do not load 'empty' spectra
           // calculate n_min_ions_matched
           PeptideIdentification * pep_id1 = &spectra[i][0];
-          assert( static_cast<int>(pep_id1->getMetaValue(TOPPXFDR::xl_rank)) == 1); // because hits are sorted according to their rank within the spectrum
+          assert( static_cast<int>(pep_id1->getMetaValue(TOPPXFDR::crosslink_rank)) == 1); // because hits are sorted according to their rank within the spectrum
           const vector<PeptideHit> & pep_hits = pep_id1->getHits();
 
-          if ( pep_id1->getMetaValue(TOPPXFDR::xl_type) == "cross-link")
+          if ( pep_id1->getMetaValue(TOPPXFDR::crosslink_type) == "cross-link")
           {
             n_min_ions_matched[i] = std::min( static_cast<int>(pep_hits[0].getMetaValue("OpenXQuest:num_of_matched_ions")),
                 static_cast<int>(pep_hits[1].getMetaValue("OpenXQuest:num_of_matched_ions")));
@@ -852,11 +826,10 @@ class TOPPXFDR :
       greater_than_by_key order_conf = {
         all_ids,
         rank_one_ids,
-        "OpenXQuest:score"
       };
 
       std::sort(order_score.begin(), order_score.end(), order_conf);
-      assert(TOPPXFDR::isSortedDescending(order_score, all_ids, rank_one_ids));
+      assert(std::is_sorted(order_score.begin(), order_score.end(), order_conf));
 
       // For unique IDs
       std::set<String> unique_ids;
@@ -866,7 +839,7 @@ class TOPPXFDR :
       UInt num_flagged = 0;
 
       //-------------------------------------------------------------
-      // Sort peptide ID based on the xl class and apply filters
+      // Sort peptide ID based on the crosslink class and apply filters
       //-------------------------------------------------------------
       for (Size i = 0; i < n_ids; ++i)
       {
@@ -884,7 +857,7 @@ class TOPPXFDR :
           ions_matched = n_min_ions_matched[order_score[i]];
         }
         num_flagged++;
-        double score = getXLScore(pep_id);
+        double score = getCrosslinkScore(pep_id);
 
         // Only consider peptide identifications which  fullfill all filter criteria specified by the user
         if (        (is_xquest_input ? (    (arg_minborder <= error_rel || arg_minborder == -1)
@@ -896,12 +869,13 @@ class TOPPXFDR :
         {
           pep_id.setMetaValue("OpenXQuest:xprophet_f", 1);
           unique_ids.insert(id);
-          StringList xl_types;
-          assignTypes(pep_id, xl_types);
+          StringList crosslink_types;
+          assignTypes(pep_id, crosslink_types);
 
-          for (StringList::const_iterator xl_types_it = xl_types.begin(); xl_types_it != xl_types.end(); ++xl_types_it)
+          for (StringList::const_iterator crosslink_types_it = crosslink_types.begin(); crosslink_types_it != crosslink_types.end();
+               ++crosslink_types_it)
           {
-            scores[*xl_types_it].push_back(score);
+            scores[*crosslink_types_it].push_back(score);
           }
         }
       }
@@ -932,16 +906,16 @@ class TOPPXFDR :
 
       // Calculate FDR for interlinks
       vector< double > fdr_interlinks;
-      this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_interlinks, TOPPXFDR::xlclass_interdecoys, TOPPXFDR::xlclass_fulldecoysinterlinks, fdr_interlinks, false);
+      this->fdr_xprophet(cum_histograms, TOPPXFDR::crosslink_class_interlinks, TOPPXFDR::crosslink_class_interdecoys, TOPPXFDR::crosslink_class_fulldecoysinterlinks, fdr_interlinks, false);
 
       // Calculate FDR for intralinks
       vector< double > fdr_intralinks;
-      this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_intralinks, TOPPXFDR::xlclass_intradecoys, TOPPXFDR::xlclass_fulldecoysintralinks, fdr_intralinks, false);
+      this->fdr_xprophet(cum_histograms, TOPPXFDR::crosslink_class_intralinks, TOPPXFDR::crosslink_class_intradecoys, TOPPXFDR::crosslink_class_fulldecoysintralinks, fdr_intralinks, false);
 
       
       // Calculate FDR for monolinks and looplinks
       vector< double > fdr_monolinks;
-      this->fdr_xprophet(cum_histograms, TOPPXFDR::xlclass_monolinks, TOPPXFDR::xlclass_monodecoys, "", fdr_monolinks, true);
+      this->fdr_xprophet(cum_histograms, TOPPXFDR::crosslink_class_monolinks, TOPPXFDR::crosslink_class_monodecoys, "", fdr_monolinks, true);
 
       // Determine whether qTransform should be performed (and consequently the score type)
       bool arg_no_qvalues = getFlag_(TOPPXFDR::param_no_qvalues);
@@ -975,10 +949,10 @@ class TOPPXFDR :
         {
           pep_id.setMetaValue("OpenXQuest:xprophet_f", 0);
         }
-        double score = getXLScore(pep_id);
+        double score = getCrosslinkScore(pep_id);
         
-        StringList xl_types;
-        assignTypes(pep_id, xl_types);
+        StringList crosslink_types;
+        assignTypes(pep_id, crosslink_types);
 
         pep_id.setMetaValue("OpenXQuest:fdr_type", score_type);
         pep_id.setScoreType(score_type);
@@ -990,31 +964,31 @@ class TOPPXFDR :
         // Assign FDR value as meta value and also set as score
         bool assigned = false;
         double fdr;
-        for (StringList::const_iterator xl_types_it = xl_types.begin();
-             xl_types_it != xl_types.end(); ++xl_types_it)
+        for (StringList::const_iterator crosslink_types_it = crosslink_types.begin();
+             crosslink_types_it != crosslink_types.end(); ++crosslink_types_it)
         {
-          String xl_type = *xl_types_it;
+          String crosslink_type = *crosslink_types_it;
           Size idx = std::floor((score - this->min_score) / TOPPXFDR::fpnum_score_step);
-          if (   xl_type == TOPPXFDR::xlclass_fulldecoysinterlinks
-                 || xl_type == TOPPXFDR::xlclass_hybriddecoysinterlinks
-                 || xl_type == TOPPXFDR::xlclass_interdecoys
-                 || xl_type == TOPPXFDR::xlclass_interlinks)
+          if (   crosslink_type == TOPPXFDR::crosslink_class_fulldecoysinterlinks
+                 || crosslink_type == TOPPXFDR::crosslink_class_hybriddecoysinterlinks
+                 || crosslink_type == TOPPXFDR::crosslink_class_interdecoys
+                 || crosslink_type == TOPPXFDR::crosslink_class_interlinks)
           {
             fdr = fdr_interlinks[idx];
             assigned = true;
             break;
           }
-          else if (   xl_type == TOPPXFDR::xlclass_fulldecoysintralinks
-                      || xl_type == TOPPXFDR::xlclass_hybriddecoysintralinks
-                      || xl_type == TOPPXFDR::xlclass_intradecoys
-                      || xl_type == TOPPXFDR::xlclass_intralinks)
+          else if (   crosslink_type == TOPPXFDR::crosslink_class_fulldecoysintralinks
+                      || crosslink_type == TOPPXFDR::crosslink_class_hybriddecoysintralinks
+                      || crosslink_type == TOPPXFDR::crosslink_class_intradecoys
+                      || crosslink_type == TOPPXFDR::crosslink_class_intralinks)
           {
             fdr = fdr_intralinks[idx];
             assigned = true;
             break;
           }
-          else if (   xl_type == TOPPXFDR::xlclass_monodecoys
-                      || xl_type == TOPPXFDR::xlclass_monolinks)
+          else if (   crosslink_type == TOPPXFDR::crosslink_class_monodecoys
+                      || crosslink_type == TOPPXFDR::crosslink_class_monolinks)
           {
             fdr = fdr_monolinks[idx];
             assigned = true;
@@ -1036,11 +1010,9 @@ class TOPPXFDR :
         }
         else
         {
-           LOG_WARN << "WARNING: Cross-link could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
+           LOG_WARN << "WARNING: Crosslink could not be identified as either interlink, intralink, or monolink, so no FDR will be available." << endl;
         }
       }
-
-
       // Write idXML
       if ( ! arg_out_idXML.empty())
       {
@@ -1076,24 +1048,24 @@ const String TOPPXFDR::param_minscore = "minscore";
 
 const UInt TOPPXFDR::n_rank = 1; //  Number of ranks used
 
-const String TOPPXFDR::xlclass_intradecoys = "intradecoys";
-const String TOPPXFDR::xlclass_fulldecoysintralinks = "fulldecoysintralinks";
-const String TOPPXFDR::xlclass_interdecoys = "interdecoys";
-const String TOPPXFDR::xlclass_fulldecoysinterlinks = "fulldecoysinterlinks";
-const String TOPPXFDR::xlclass_monodecoys = "monodecoys";
-const String TOPPXFDR::xlclass_intralinks = "intralinks";
-const String TOPPXFDR::xlclass_interlinks = "interlinks";
-const String TOPPXFDR::xlclass_monolinks  = "monolinks";
-const String TOPPXFDR::xlclass_decoys = "decoys";
-const String TOPPXFDR::xlclass_hybriddecoysintralinks = "hybriddecoysintralinks";
-const String TOPPXFDR::xlclass_hybriddecoysinterlinks = "hybriddecoysinterlinks";
+const String TOPPXFDR::crosslink_class_intradecoys = "intradecoys";
+const String TOPPXFDR::crosslink_class_fulldecoysintralinks = "fulldecoysintralinks";
+const String TOPPXFDR::crosslink_class_interdecoys = "interdecoys";
+const String TOPPXFDR::crosslink_class_fulldecoysinterlinks = "fulldecoysinterlinks";
+const String TOPPXFDR::crosslink_class_monodecoys = "monodecoys";
+const String TOPPXFDR::crosslink_class_intralinks = "intralinks";
+const String TOPPXFDR::crosslink_class_interlinks = "interlinks";
+const String TOPPXFDR::crosslink_class_monolinks  = "monolinks";
+const String TOPPXFDR::crosslink_class_decoys = "decoys";
+const String TOPPXFDR::crosslink_class_hybriddecoysintralinks = "hybriddecoysintralinks";
+const String TOPPXFDR::crosslink_class_hybriddecoysinterlinks = "hybriddecoysinterlinks";
 
 // Parameters for actually calculating the number of FPs
 const double TOPPXFDR::fpnum_score_step = 0.1;
 
-// meta values for xlink identifications
-const String TOPPXFDR::xl_type = "xl_type";
-const String TOPPXFDR::xl_rank = "xl_rank";
+// meta values for crosslink identifications
+const String TOPPXFDR::crosslink_type = "xl_type";
+const String TOPPXFDR::crosslink_rank = "xl_rank";
 const String TOPPXFDR::target_decoy = "target_decoy";
 
 // the actual main function needed to create an executable
