@@ -240,7 +240,9 @@ protected:
           PeakMap exp, ms2;
           MzMLFile().load(raw_data_path, exp);
           FeatureMap out_map;
-          out_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+          StringList ms_runs;
+          exp.getPrimaryMSRunPath(ms_runs)
+          out_map.setPrimaryMSRunPath(ms_runs);
 
           IntList levels;
           levels.push_back(1);

@@ -327,7 +327,8 @@ protected:
       meta_data.description = MzTabString("Export from featureXML");
 
       MzTabMSRunMetaData ms_run;
-      ms_run.location = feature_map.getPrimaryMSRunPath().empty() ? MzTabString("null") : MzTabString(feature_map.getPrimaryMSRunPath()[0]);
+      feature_map.getPrimaryMSRunPath(ms_run);
+      ms_run.location = ms_run.empty() ? MzTabString("null") : MzTabString(ms_run[0]);
       meta_data.ms_run[1] = ms_run;
       meta_data.uri[1] = MzTabString(filename);
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO: we currently only support psm search engine scores annotated to the identification run
@@ -499,7 +500,9 @@ protected:
           const std::vector<ProteinHit> protein_hits = it->getHits();
 
           MzTabMSRunMetaData ms_run;
-          ms_run.location = it->getPrimaryMSRunPath().empty() ? MzTabString("null") : MzTabString(it->getPrimaryMSRunPath()[0]);
+          StringList ms_run_in_data;
+          it->getPrimaryMSRunPath(ms_run_in_data);
+          ms_run.location = ms_run_in_data.empty() ? MzTabString("null") : MzTabString(ms_run_in_data[0]);
           // TODO: add processing information that this file has been exported from "filename"
           meta_data.ms_run[current_run_index] = ms_run;
 
