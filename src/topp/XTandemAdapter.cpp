@@ -166,7 +166,7 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
-    
+
     registerDoubleOption_("minimum_fragment_mz", "<number>", 150.0, "Minimum fragment mz", false);
 
     vector<String> all_enzymes;
@@ -255,7 +255,7 @@ protected:
     tax_out << "\t</taxon>" << "\n";
     tax_out << "</bioml>" << "\n";
     tax_out.close();
-    
+
     //
     //  Prepare the XML configuration file
     //
@@ -295,7 +295,7 @@ protected:
     double max_evalue = getDoubleOption_("max_valid_expect");
     infile.setMaxValidEValue(max_evalue);
     String enzyme_name = getStringOption_("enzyme");
-    infile.setCleavageSite(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getXTANDEMid());
+    infile.setCleavageSite(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getXTandemID());
     infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
     infile.setSemiCleavage(getFlag_("semi_cleavage"));
     infile.setAllowIsotopeError(!getFlag_("no_isotope_error"));
