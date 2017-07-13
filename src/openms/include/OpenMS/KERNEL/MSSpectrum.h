@@ -380,11 +380,11 @@ public:
       {
         if (reverse)
         {
-          std::sort(ContainerType::begin(), ContainerType::end(), reverseComparator(typename PeakType::IntensityLess()));
+          std::stable_sort(ContainerType::begin(), ContainerType::end(), reverseComparator(typename PeakType::IntensityLess()));
         }
         else
         {
-          std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::IntensityLess());
+          std::stable_sort(ContainerType::begin(), ContainerType::end(), typename PeakType::IntensityLess());
         }
       }
       else
@@ -399,11 +399,11 @@ public:
 
         if (reverse)
         {
-          std::sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >()));
+          std::stable_sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >()));
         }
         else
         {
-          std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >());
+          std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >());
         }
 
         // extract list of indices
@@ -426,7 +426,7 @@ public:
     {
       if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
       {
-        std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
+        std::stable_sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
       }
       else
       {
@@ -437,7 +437,7 @@ public:
         {
           sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
         }
-        std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::PositionType, Size> >());
+        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::PositionType, Size> >());
 
         // extract list of indices
         std::vector<Size> select_indices;
