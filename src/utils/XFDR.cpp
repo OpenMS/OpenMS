@@ -211,31 +211,6 @@ class TOPPXFDR :
     };
 
     /**
-     * @brief Tests for descending ordering of a vector of rank one ids based on the score. Only used for assertions.
-     * @param order vector of ranks
-     * @param all_ids Vector with the actual PeptideIdentifictions which are queried for the score.
-     * @param rank_one_ids Vector of indices pointing to the rank one IDs in all_ids.
-     * @return Whether rank vector order reflects descending ordering of rank_one_ids by score.
-     */
-    static bool isSortedDescending(vector< UInt > & order, vector< PeptideIdentification > & all_ids, vector< UInt > & rank_one_ids )
-    {
-      if (order.empty())
-      {
-        return true;
-      }
-
-      for (Size i = 0; i < order.size() - 1; ++i)
-      {
-        if (   getXLScore(all_ids[rank_one_ids[order[i]]])
-               < getXLScore(all_ids[rank_one_ids[order[i + 1]]]))
-        {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    /**
      * @brief Returns the score of a XL peptide identification.
      * @param pep_id Which peptide identification the score should be taken from
      * @return XL score of that peptide identification
@@ -528,7 +503,7 @@ class TOPPXFDR :
 
     // the main_ function is called after all parameters are read
     ExitCodes main_(int, const char **)
-    {      
+    {
       //-------------------------------------------------------------
       // Initialize instance variables
       //-------------------------------------------------------------
@@ -856,7 +831,7 @@ class TOPPXFDR :
       };
 
       std::sort(order_score.begin(), order_score.end(), order_conf);
-      assert(TOPPXFDR::isSortedDescending(order_score, all_ids, rank_one_ids));
+      assert(std::is_sorted(order_score.begin(), order_score.end(), order_conf));
 
       // For unique IDs
       std::set<String> unique_ids;
