@@ -74,6 +74,11 @@ END_SECTION
 START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap< Feature > &output, OpenSwath::LightTargetedExperiment &transition_exp, TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType &transition_group_map))
 {
   MRMFeatureFinderScoring ff;
+  // Param picker_param = ff.getDefaults();
+  // picker_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "legacy"); // old parameters
+  // picker_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", 40.0); // old parameters
+  // ff.setParameters(picker_param);
+      
   MRMFeature feature;
   FeatureMap featureFile;
   TransformationDescription trafo;
@@ -115,11 +120,11 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   feature = transition_group.getFeatures()[0];
   TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR (feature.getRT(), 3119.092);
-  TEST_REAL_SIMILAR (feature.getIntensity(), 3574.23);
+  TEST_REAL_SIMILAR (feature.getIntensity(), 3615);
 
   // feature attributes
-  TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3096.28);
-  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3147.68);
+  TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3089.42993164062);
+  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3154.53002929688);
   TEST_REAL_SIMILAR(feature.getMetaValue("total_xic"), 3680.16);
 
   // feature scores
@@ -147,15 +152,15 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   feature = transition_group.getFeatures()[0];
   TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(feature.getRT(), 3119.092);
-  TEST_REAL_SIMILAR(feature.getIntensity(), 1034.55);
+  TEST_REAL_SIMILAR(feature.getIntensity(), 1077.92);
 
   // feature attributes
-  TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3099.7);
-  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3147.68);
+  TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3092.85009765625);
+  TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3151.10009765625);
   TEST_REAL_SIMILAR(feature.getMetaValue("total_xic"), 1610.27);
 
   // feature scores
-  TEST_REAL_SIMILAR(feature.getMetaValue("var_xcorr_coelution"), 2.265);
+  TEST_REAL_SIMILAR(feature.getMetaValue("var_xcorr_coelution"), 5.70936);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_xcorr_shape"), 0.7245);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_library_rmsd"), 0.43566);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_library_corr"), -0.784);
@@ -163,6 +168,61 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   TEST_REAL_SIMILAR(feature.getMetaValue("var_intensity_score"), 0.642);
   TEST_REAL_SIMILAR(feature.getMetaValue("sn_ratio"), 30.18);
   TEST_REAL_SIMILAR(feature.getMetaValue("var_log_sn_score"), 3.40718216971789);
+
+  // test legacy parameters
+  {
+    
+    Param picker_param = ff.getDefaults();
+    picker_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "legacy"); // old parameters
+    picker_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", 40.0); // old parameters
+    ff.setParameters(picker_param);
+
+    transition_group_map.clear();
+    featureFile.clear();
+        
+    // Pick features in the experiment
+#ifdef USE_SP_INTERFACE
+    OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+    OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
+    ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_ptr, transition_group_map);
+#else
+    ff.pickExperiment(exp, featureFile, transitions, trafo, *swath_map, transition_group_map);
+#endif
+
+    ///////////////////////////////////////////////////////////////////////////
+    //// Scores for the first group
+    transition_group = transition_group_map["tr_gr1"];
+    TEST_EQUAL(transition_group.size(), 2)
+    TEST_EQUAL(transition_group.getFeatures().size(), 1)
+    // Look closely at the feature we found in the first group
+    feature = transition_group.getFeatures()[0];
+    TOLERANCE_ABSOLUTE(0.1);
+    TEST_REAL_SIMILAR (feature.getRT(), 3119.092);
+    TEST_REAL_SIMILAR (feature.getIntensity(), 3574.23);
+
+    // feature attributes
+    TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3096.28);
+    TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3147.68);
+    TEST_REAL_SIMILAR(feature.getMetaValue("total_xic"), 3680.16);
+
+    ///////////////////////////////////////////////////////////////////////////
+    //// Scores for the second group
+    transition_group = transition_group_map["tr_gr2"];
+    TEST_EQUAL(transition_group.size(), 3)
+    TEST_EQUAL(transition_group.getFeatures().size(), 2)
+    TEST_EQUAL(featureFile.size(), 3)
+    // Look closely at the feature we found in the second group
+    feature = transition_group.getFeatures()[0];
+    TOLERANCE_ABSOLUTE(0.1);
+    TEST_REAL_SIMILAR(feature.getRT(), 3119.092);
+    TEST_REAL_SIMILAR(feature.getIntensity(), 1034.55);
+
+    // feature attributes
+    TEST_REAL_SIMILAR(feature.getMetaValue("leftWidth" ), 3099.7);
+    TEST_REAL_SIMILAR(feature.getMetaValue("rightWidth"), 3147.68);
+    TEST_REAL_SIMILAR(feature.getMetaValue("total_xic"), 1610.27);
+    TEST_REAL_SIMILAR(feature.getMetaValue("var_xcorr_coelution"), 2.265);
+  }
 
 }
 END_SECTION
@@ -175,6 +235,8 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   scores_to_use.setValue("use_uis_scores", "true", "Use UIS scores for peptidoform identification ", ListUtils::create<String>("advanced"));
   scores_to_use.setValidStrings("use_uis_scores", ListUtils::create<String>("true,false"));
   ff_param.insert("Scores:", scores_to_use);
+  ff_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "legacy"); // old parameters
+  ff_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", 40.0); // old parameters
   ff.setParameters(ff_param);
 
   MRMFeature feature;
