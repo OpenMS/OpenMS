@@ -182,16 +182,16 @@ namespace OpenMS
     }
     
     // debug output variables
-    /*int debug_charge = 2;
-    int debug_rt_idx = 12;
-    int debug_mz_idx = 41;
-    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));*/
+    int debug_charge = 2;
+    int debug_rt_idx = 27;
+    int debug_mz_idx = 5;
+    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));
     
     // debug output
-    /*if (debug_now)
+    if (debug_now)
     {
       std::cout << "    Inside the peak position filter.\n";
-    }*/
+    }
     
     // The mass traces of the peptide(s) form a m/z shift pattern. Starting with the mono-isotopic mass trace of each peptide,
     // how long is the series of m/z shifts until the first expected mass trace is missing? We want to see
@@ -249,7 +249,8 @@ namespace OpenMS
     
     // Check that there is no significant peak (aka zeroth peak) to the left of the mono-isotopic peak (aka first peak).
     // Further check that there is no mistaken charge state identity. For example, check that a 2+ pattern isn't really a 4+ or 6+ pattern.
-
+    // Let's use the double m/z tolerance when checking for these peaks.
+    
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
@@ -269,7 +270,7 @@ namespace OpenMS
         
         // Check that there is a zeroth peak.
         mz = peak.getMZ() + 2 * pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_) - pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1);        
-        if (checkForSignificantPeak_(mz, mz_tolerance, it_rt, intensity_first_peak))
+        if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
         {
           return false;
         }
@@ -279,17 +280,17 @@ namespace OpenMS
         // That can lead to mistaken charge state identities. Here we check that this is not the case.
 
         if (pattern.getCharge() == 2)
-        {
+        {          
           // Is the 2+ pattern really a 4+ pattern?
           mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)/2 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/2;
-          if (checkForSignificantPeak_(mz, mz_tolerance, it_rt, intensity_first_peak))
+          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
           {
             return false;
           }
           
           // Is the 2+ pattern really a 6+ pattern?
           mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)*2/3 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/3;
-          if (checkForSignificantPeak_(mz, mz_tolerance, it_rt, intensity_first_peak))
+          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
           {
             return false;
           }
@@ -299,7 +300,7 @@ namespace OpenMS
         {
           // Is the 3+ pattern really a 6+ pattern?
           mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)/2 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/2;
-          if (checkForSignificantPeak_(mz, mz_tolerance, it_rt, intensity_first_peak))
+          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
           {
             return false;
           }
@@ -311,7 +312,7 @@ namespace OpenMS
           {
             // Is the 1+ pattern really a c+ pattern?
             mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)*(c-1)/c + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/c;
-            if (checkForSignificantPeak_(mz, mz_tolerance, it_rt, intensity_first_peak))
+            if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
             {
               return false;
             }
