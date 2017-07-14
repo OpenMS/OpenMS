@@ -106,9 +106,9 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_band_end = exp_picked_white.RTEnd(rt + rt_band_/2);
         
         // debug output variables
-        size_t debug_pattern_idx = 0;
-        size_t debug_rt_idx = 27;
-        size_t debug_mz_idx = 5;
+        /*size_t debug_pattern_idx = 8;
+        size_t debug_rt_idx = 31;
+        size_t debug_mz_idx = 4;*/
         
         // debug output
         /*if (pattern_idx == debug_pattern_idx)
@@ -123,16 +123,16 @@ namespace OpenMS
           MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping[it_rt - exp_picked_white.begin()][it_mz - it_rt->begin()], it_rt - exp_picked_white.begin());
           
           // debug output
-          bool debug_now = (pattern_idx == debug_pattern_idx) && (it_rt - exp_picked_white.begin() == debug_rt_idx) && (it_mz - it_rt->begin() == debug_mz_idx);
+          //bool debug_now = (pattern_idx == debug_pattern_idx) && (it_rt - exp_picked_white.begin() == debug_rt_idx) && (it_mz - it_rt->begin() == debug_mz_idx);
           /*if ((pattern_idx == debug_pattern_idx) && (it_rt - exp_picked_white.begin() == debug_rt_idx))
           {
             std::cout << "RT = " << rt << "    m/z = " << mz << "    m/z idx = " << (it_mz - it_rt->begin()) << "    int = " << it_mz->getIntensity() << "\n";
           }*/
-          if (debug_now)
+          /*if (debug_now)
           {
             std::cout << "\n";
             std::cout << "RT = " << rt << "    m/z = " << mz << "    int = " << it_mz->getIntensity() << "\n";
-          }
+          }*/
 
           if (!(filterPeakPositions_(it_mz, exp_picked_mapping, exp_picked_white.begin(), it_rt_band_begin, it_rt_band_end, pattern, peak)))
           {
@@ -140,10 +140,10 @@ namespace OpenMS
           }
           
           // debug output
-          if (debug_now)
+          /*if (debug_now)
           {
             std::cout << "Passed Peak Position Filter.\n";
-          }
+          }*/
 
           if (!(filterAveragineModel_(pattern, peak)))
           {

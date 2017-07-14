@@ -182,16 +182,16 @@ namespace OpenMS
     }
     
     // debug output variables
-    int debug_charge = 2;
-    int debug_rt_idx = 27;
-    int debug_mz_idx = 5;
-    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));
+    /*int debug_charge = 4;
+    int debug_rt_idx = 35;
+    int debug_mz_idx = 6;
+    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));*/
     
     // debug output
-    if (debug_now)
+    /*if (debug_now)
     {
       std::cout << "    Inside the peak position filter.\n";
-    }
+    }*/
     
     // The mass traces of the peptide(s) form a m/z shift pattern. Starting with the mono-isotopic mass trace of each peptide,
     // how long is the series of m/z shifts until the first expected mass trace is missing? We want to see
@@ -217,12 +217,6 @@ namespace OpenMS
         for (MSExperiment::ConstIterator it_rt = it_rt_band_begin; it_rt < it_rt_band_end; ++it_rt)
         {
           int i = it_rt->findNearest(it_mz->getMZ() + mz_shift, mz_tolerance);
-          
-          // debug output
-          /*if (debug_now && (peptide == 1) && (isotope == 2))
-          {
-            std::cout << "      i = " << i << "    RT = " << it_rt->getRT() << "    m/z = " << (it_mz->getMZ() + mz_shift) << "    m/z (min) = " << (it_mz->getMZ() + mz_shift - mz_tolerance) << "    m/z (max) = " << (it_mz->getMZ() + mz_shift + mz_tolerance) << "\n";
-          }*/
           
           if (i != -1)
           {
@@ -468,16 +462,16 @@ namespace OpenMS
     }
     
     // debug output variables
-    int debug_charge = 2;
+    /*int debug_charge = 2;
     size_t debug_rt_idx = 39;
     size_t debug_mz_idx = 130;
-    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));
+    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));*/
     
     // debug output
-    if (debug_now)
+    /*if (debug_now)
     {
       std::cout << "Inside the Averagine Filter.\n";
-    }
+    }*/
     
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
@@ -536,10 +530,10 @@ namespace OpenMS
       double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
 
       // debug output
-      if (debug_now)
+      /*if (debug_now)
       {
         std::cout << "        Pearson correlation = " << correlation_Pearson << "    rank correlation = " << correlation_Spearman << "\n";
-      }
+      }*/
       
       if ((correlation_Pearson < averagine_similarity_) || (correlation_Spearman < averagine_similarity_))
       {
@@ -559,16 +553,16 @@ namespace OpenMS
     }
     
     // debug output variables
-    int debug_charge = 2;
-    size_t debug_rt_idx = 39;
-    size_t debug_mz_idx = 130;
+    int debug_charge = 4;
+    size_t debug_rt_idx = 35;
+    size_t debug_mz_idx = 6;
     bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));
     
     // debug output
-    if (debug_now)
+    /*if (debug_now)
     {
       std::cout << "Inside the Peptide Correlation Filter.\n";
-    }
+    }*/
     
     // We will calculate the correlations between all possible peptide combinations.
     // For example (light, medium), (light, heavy) and (medium, heavy) in the case of triplets.
@@ -637,12 +631,14 @@ namespace OpenMS
         double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
 
         // debug output
-        if (debug_now)
+        /*if (debug_now)
         {
           std::cout << "        Pearson correlation = " << correlation_Pearson << "    rank correlation = " << correlation_Spearman << "\n";
-        }
+          //std::cout << "        Pearson correlation = " << correlation_Pearson << "\n";
+        }*/
         
         if ((correlation_Pearson < peptide_similarity_) || (correlation_Spearman < peptide_similarity_))
+        //if (correlation_Pearson < peptide_similarity_)
         {
           return false;
         }
