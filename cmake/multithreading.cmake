@@ -37,6 +37,24 @@
 # build system.
 
 #------------------------------------------------------------------------------
+# TBB
+#------------------------------------------------------------------------------
+set(MT_TBB_INCLUDE_DIR CACHE PATH "Intel Threading Building Blocks 'include' directory.")
+set(MT_TBB_LIBRARY_DIR CACHE PATH "Intel Threading Building Blocks libraries directory.")
+message(STATUS "Intel TBB: ${MT_ENABLE_TBB}")
+if (MT_ENABLE_TBB)
+  find_package(TBB)
+  if (NOT TBB_FOUND)
+    message(FATAL_ERROR "TBB not found but requested.")
+  endif()
+endif()
+
+if (TBB_FOUND)
+  INCLUDE_DIRECTORIES(${MT_TBB_INCLUDE_DIR})
+  add_definitions(/DOPENMS_HAS_TBB)
+endif()
+
+#------------------------------------------------------------------------------
 # OpenMP
 #------------------------------------------------------------------------------
 if (MT_ENABLE_OPENMP)
