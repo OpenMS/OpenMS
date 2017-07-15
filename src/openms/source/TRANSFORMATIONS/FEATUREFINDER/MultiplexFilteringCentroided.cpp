@@ -190,51 +190,5 @@ namespace OpenMS
     
     return filter_results;
   }
-
-  int MultiplexFilteringCentroided::nonLocalIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const
-  {
-    MSExperiment::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
-
-    // read out peak intensities
-    for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
-    {
-      int peak_index = mz_shifts_actual_indices[i];
-      if (peak_index != -1)
-      {
-        intensities_actual.push_back((it_rt->begin() + peak_index)->getIntensity());
-      }
-      else
-      {
-        intensities_actual.push_back(std::numeric_limits<double>::quiet_NaN());
-      }
-    }
-
-    for (int isotope = 0; isotope < peaks_found_in_all_peptides; ++isotope)
-    {
-      bool seen_in_all_peptides = true;
-      for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
-      {
-        int peak_index = mz_shifts_actual_indices[peptide * (isotopes_per_peptide_max_ + 1) + isotope + 1];
-        if (peak_index == -1)
-        {
-          // peak not found
-          seen_in_all_peptides = false;
-          break;
-        }
-        else if ((it_rt->begin() + peak_index)->getIntensity() < intensity_cutoff_)
-        {
-          // below intensity threshold
-          seen_in_all_peptides = false;
-          break;
-        }
-      }
-      if (!seen_in_all_peptides)
-      {
-        return isotope;
-      }
-
-    }
-
-    return peaks_found_in_all_peptides;
-  }
+  
 }

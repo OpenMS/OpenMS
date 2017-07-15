@@ -94,25 +94,6 @@ public:
      */
     std::vector<MultiplexFilteredMSExperiment> filter();
 
-private:
-    /**
-     * @brief non-local intensity filter
-     *
-     * Checks if the intensities at the pattern positions are above the intensity cutoff.
-     * We check not only at m/z but at all pattern positions i.e. non-locally.
-     * (In filter 1 we checked that peaks do exist at these positions.
-     *  In filter 2 we checked that the mono-isotopic peak intensities are above the threshold.)
-     *
-     * @param pattern    pattern of isotopic peaks to be searched for
-     * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-     * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
-     * @param intensities_actual    output for the spline-interpolated intensities at the actual m/z shift positions
-     * @param peaks_found_in_all_peptides    number of isotopic peaks seen for each peptide (peaks)
-     *
-     * @return number of isotopic peaks seen for each peptide (profile)
-     */
-    int nonLocalIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const;
-
   };
 
 }
