@@ -1328,9 +1328,8 @@ private:
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 
-    bool missing_peaks_ = false;
     std::vector<MultiplexFilteredMSExperiment> filter_results;
-    if (centroided)
+    /*if (centroided)
     {
       // centroided data
       MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
@@ -1343,12 +1342,12 @@ private:
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
       //filter_results = filtering.filter();
-    }
+    }*/
 
     /**
      * cluster filter results
      */
-    std::vector<std::map<int, GridBasedCluster> > cluster_results;
+    /*std::vector<std::map<int, GridBasedCluster> > cluster_results;
     if (centroided)
     {
       // centroided data
@@ -1356,7 +1355,7 @@ private:
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
     }
-    /*else
+    else
     {
       // profile data
       MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, rt_typical_, rt_min_);
@@ -1367,7 +1366,7 @@ private:
     /**
      * write to output
      */
-    ConsensusMap consensus_map;
+    /*ConsensusMap consensus_map;
     FeatureMap feature_map;
     
     if (centroided)
@@ -1389,7 +1388,7 @@ private:
     if (out_features_ != "")
     {
       writeFeatureMap_(out_features_, feature_map);
-    }
+    }*/
 
     /*if (out_mzq_ != "")
     {

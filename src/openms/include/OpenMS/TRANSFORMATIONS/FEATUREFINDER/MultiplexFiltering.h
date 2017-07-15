@@ -112,7 +112,6 @@ public:
      * @param patterns    patterns of isotopic peaks to be searched for
      * @param isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
      * @param isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
-     * @param missing_peaks    flag for missing peaks
      * @param intensity_cutoff    intensity cutoff
      * @param rt_band    RT range used for filtering
      * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
@@ -121,7 +120,7 @@ public:
      * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p). 
      */
-    MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, bool missing_peaks, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
+    MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
 protected:
     /**
@@ -370,11 +369,6 @@ protected:
      * @brief maximum number of isotopic peaks per peptide
      */
     size_t isotopes_per_peptide_max_;
-
-    /**
-     * @brief flag for missing peaks
-     */
-    bool missing_peaks_;
 
     /**
      * @brief intensity cutoff
