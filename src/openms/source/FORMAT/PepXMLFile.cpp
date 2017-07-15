@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -570,15 +570,15 @@ namespace OpenMS
           else
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
-
-            if ( it->getScoreType() == "Posterior Error Probability")
-            {
-              double probability = 1.0 - h.getScore();
-              f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
-              f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
-              f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
-              f << "\t\t\t</analysis_result>" << "\n";
-            }
+          }
+          if (it->getScoreType() == "Posterior Error Probability")
+          {
+            f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            double probability = 1.0 - h.getScore();
+            f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
+            f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
+            f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
+            f << "\t\t\t</analysis_result>" << "\n";
           }
         }
         f << "\t\t</search_hit>" << "\n";

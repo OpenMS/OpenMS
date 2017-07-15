@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,13 +62,12 @@ namespace OpenMS
 
     @brief The MRMTransitionGroupPicker finds peaks in chromatograms that belong to the same precursors.
 
-      @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
+    @htmlinclude OpenMS_MRMTransitionGroupPicker.parameters
 
     It is called through pickTransitionGroup which will accept an
     MRMTransitionGroup filled with n chromatograms and perform the following steps:
      - Step 1: find features (peaks) in individual chromatograms
      - Step 2: merge these features to consensus features that span multiple chromatograms
-
 
     Step 1 is performed by smoothing the individual chromatogram and applying the
     PeakPickerHiRes.
@@ -313,9 +312,9 @@ public:
           }
         }
 
+        double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
         {
-          double background = 0;
           if (background_subtraction_ == "smoothed")
           {
             throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
@@ -334,27 +333,35 @@ public:
           }
           else if (background_subtraction_ == "original")
           {
-            background = calculateBgEstimation_(used_chromatogram, best_left, best_right);
+            calculateBgEstimation_(used_chromatogram, best_left, best_right, background, avg_noise_level);
           }
           intensity_sum -= background;
-          if (intensity_sum < 0)
-          {
-            std::cerr << "Warning: Intensity was below 0 after background subtraction: " << intensity_sum << ". Setting it to 0." << std::endl;
-            intensity_sum = 0;
-          }
+          peak_apex_int -= avg_noise_level;
+          if (intensity_sum < 0) {intensity_sum = 0;}
+          if (peak_apex_int < 0) {peak_apex_int = 0;}
         }
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
-        f.setMZ(chromatogram.getMetaValue("product_mz"));
         f.setIntensity(intensity_sum);
         ConvexHull2D hull;
         hull.setHullPoints(hull_points);
         f.getConvexHulls().push_back(hull);
-        f.setMetaValue("MZ", chromatogram.getMetaValue("product_mz"));
+        if (chromatogram.metaValueExists("product_mz"))
+        {
+          f.setMetaValue("MZ", chromatogram.getMetaValue("product_mz"));
+          f.setMZ(chromatogram.getMetaValue("product_mz"));
+        }
+        else
+        {
+          LOG_WARN << "Please set meta value 'product_mz' on chromatogram to populate feature m/z value" << std::endl;
+        }
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
-        //f.setMetaValue("leftWidth", best_left);
-        //f.setMetaValue("rightWidth", best_right);
+        if (background_subtraction_ != "none")
+        {
+          f.setMetaValue("area_background_level", background);
+          f.setMetaValue("noise_background_level", avg_noise_level);
+        }
 
         if (transition_group.getTransitions()[k].isDetectingTransition())
         {
@@ -541,7 +548,7 @@ protected:
       // Resample all chromatograms around the current estimated peak and
       // collect the raw intensities. For resampling, use a bit more on either
       // side to correctly identify shoulders etc.
-      double resample_boundary = 15.0; // sample 15 seconds more on each side
+      double resample_boundary = resample_boundary_; // sample 15 seconds more on each side
       SpectrumT master_peak_container;
       const SpectrumT& ref_chromatogram = selectChromHelper_(transition_group, picked_chroms[chr_idx].getNativeID());
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
@@ -854,7 +861,8 @@ protected:
       The background is estimated by averaging the noise on either side of the
       peak and then subtracting that from the total intensity.
     */
-    double calculateBgEstimation_(const MSChromatogram<>& chromatogram, double best_left, double best_right);
+    void calculateBgEstimation_(const MSChromatogram<>& chromatogram, 
+                                  double best_left, double best_right, double & background, double & avg_noise_level);
 
     // Members
     String background_subtraction_;
@@ -867,6 +875,7 @@ protected:
     double stop_after_intensity_ratio_;
     double min_peak_width_;
     double recalculate_peaks_max_z_;
+    double resample_boundary_;
   };
 }
 

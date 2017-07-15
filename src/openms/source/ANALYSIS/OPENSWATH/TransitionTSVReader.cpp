@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -225,7 +225,7 @@ namespace OpenMS
       cnt++;
 
 #ifdef TRANSITIONTSVREADER_TESTING
-      for (int i = 0; i < tmp_line.size(); i++)
+      for (Size i = 0; i < tmp_line.size(); i++)
       {
         std::cout << "line " << i << " " << tmp_line[i] << std::endl;
       }
@@ -641,9 +641,6 @@ namespace OpenMS
 
     resolveMixedSequenceGroups_(transition_list);
 
-    OpenMS::TargetedExperiment::Peptide tramlpeptide;
-    OpenMS::TargetedExperiment::Compound tramlcompound;
-
     Size progress = 0;
     startProgress(0, transition_list.size(), "converting to Transition List Format");
     for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
@@ -681,11 +678,13 @@ namespace OpenMS
         OpenSwath::LightCompound compound;
         if (tr_it->isPeptide())
         {
+          OpenMS::TargetedExperiment::Peptide tramlpeptide;
           createPeptide_(tr_it, tramlpeptide);
           OpenSwathDataAccessHelper::convertTargetedCompound(tramlpeptide, compound);
         }
         else
         {
+          OpenMS::TargetedExperiment::Compound tramlcompound;
           createCompound_(tr_it, tramlcompound);
           OpenSwathDataAccessHelper::convertTargetedCompound(tramlcompound, compound);
         }
@@ -1082,6 +1081,23 @@ namespace OpenMS
       }
     }
 
+    std::vector<String> tmp_proteins;
+    tmp_proteins.push_back(tr_it->ProteinName);
+    peptide.protein_refs = tmp_proteins;
+
+    // check if the naked peptide sequence is equal to the unmodified AASequence
+    if (peptide.sequence != aa_sequence.toUnmodifiedString())
+    {
+      if (force_invalid_mods_)
+      {
+        // something is wrong, return and do not try and add any modifications
+        return;
+      }
+      LOG_WARN << "Warning: The peptide sequence " << peptide.sequence << " and the full peptide name " << aa_sequence << 
+        " are not equal. Please check your input." << std::endl;
+      LOG_WARN << "(use force_invalid_mods to override)" << std::endl;
+    }
+
     // Unfortunately, we cannot store an AASequence here but have to work with
     // the TraML modification object.
     // In TraML, the modification the AA starts with residue 1 but the
@@ -1116,10 +1132,6 @@ namespace OpenMS
     }
 
     peptide.mods = mods;
-
-    std::vector<String> tmp_proteins;
-    tmp_proteins.push_back(tr_it->ProteinName);
-    peptide.protein_refs = tmp_proteins;
 
     OPENMS_POSTCONDITION(aa_sequence.toUnmodifiedString() == peptide.sequence,
                          (String("Internal error: the sequences of the naked and modified peptide sequence are unequal(")
@@ -1189,10 +1201,10 @@ namespace OpenMS
       const OpenMS::TargetedExperiment::Peptide& pep = targeted_exp.getPeptideByRef(it->getPeptideRef());
       mytransition.group_id = it->getPeptideRef();
 
-  #ifdef TRANSITIONTSVREADER_TESTING
-      std::cout << "Peptide rts empty " <<
+#ifdef TRANSITIONTSVREADER_TESTING
+      LOG_DEBUG << "Peptide rts empty " <<
       pep.rts.empty()  << " or no cv term " << pep.rts[0].hasCVTerm("MS:1000896") << std::endl;
-  #endif
+#endif
 
       if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1000896"))
       {

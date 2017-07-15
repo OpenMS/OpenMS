@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,28 +129,11 @@ public:
      *
     */
     void encodeNP(const std::vector<double> & in, String & result,
-        bool zlib_compression, const NumpressConfig & config)
-    {
-      result.clear();
-      encodeNPRaw(in, result, config);
-      if (result.empty())
-      {
-        return;
-      }
-
-      // Encode in base64 and compress
-      std::vector<String> tmp;
-      tmp.push_back(result);
-      base64coder_.encodeStrings(tmp, result, zlib_compression, false);
-    }
+        bool zlib_compression, const NumpressConfig & config);
 
     /// encodeNP from a float (convert first to double)
     void encodeNP(const std::vector<float> & in, String & result,
-        bool zlib_compression, const NumpressConfig & config)
-    {
-      std::vector<double> dvector(in.begin(), in.end());
-      encodeNP(dvector, result, zlib_compression, config);
-    }
+        bool zlib_compression, const NumpressConfig & config);
 
     /**
      * @brief Decodes a Base64 string to a vector of floating point numbers using numpress
@@ -171,21 +154,7 @@ public:
      *
     */
     void decodeNP(const String & in, std::vector<double> & out,
-        bool zlib_compression, const NumpressConfig & config)
-    {
-      QByteArray base64_uncompressed;
-      base64coder_.decodeSingleString(in, base64_uncompressed, zlib_compression);
-
-      // Create a temporary string (*not* null-terminated) to hold the data
-      std::string tmpstring(base64_uncompressed.constData(), base64_uncompressed.size());
-      decodeNPRaw(tmpstring, out, config);
-
-      // NOTE: it is possible (and likely faster) to call directly the const
-      // unsigned char * function but this would make it necessary to deal with
-      // reinterpret_cast ugliness here ... 
-      //
-      // decodeNP_internal_(reinterpret_cast<const unsigned char*>(base64_uncompressed.constData()), base64_uncompressed.size(), out, config);
-    }
+        bool zlib_compression, const NumpressConfig & config);
 
     /**
      * @brief Encode the vector in to the result string using numpress (unsafe)
@@ -238,3 +207,4 @@ private:
 } //namespace OpenMS
 
 #endif /* OPENMS_FORMAT_MSNUMPRESSCODER_H */
+

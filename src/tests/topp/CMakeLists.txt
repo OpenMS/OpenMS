@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -78,9 +78,6 @@ set(DATA_DIR_TOPP ${PROJECT_SOURCE_DIR})
 set(DATA_DIR_TOPP_BIN ${PROJECT_BINARY_DIR})
 set(INDEX_WHITELIST "offset" "indexListOffset")
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
-
-## configure resource files (for TOPPAS/ExecutePipeline) - there is no other way to specify the input
-configure_file(${DATA_DIR_TOPP}/ExecutePipeline_1.trf.in ${DATA_DIR_TOPP_BIN}/ExecutePipeline_1.trf)
 
 #------------------------------------------------------------------------------
 # test if -write_wdsl works
@@ -269,6 +266,9 @@ set_tests_properties("TOPP_FeatureFinderMetabo_1_out" PROPERTIES DEPENDS "TOPP_F
 add_test("TOPP_FeatureFinderMetabo_2" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_input.mzML -out FeatureFinderMetabo_2.tmp)
 add_test("TOPP_FeatureFinderMetabo_2_out" ${DIFF} -whitelist "id=" "completion_time" -in1 FeatureFinderMetabo_2.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD_output.featureXML)
 set_tests_properties("TOPP_FeatureFinderMetabo_2_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_2")
+add_test("TOPP_FeatureFinderMetabo_3" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_3.ini -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_input.mzML -out FeatureFinderMetabo_3.tmp -out_chrom FeatureFinderMetabo_3_chrom.tmp)
+add_test("TOPP_FeatureFinderMetabo_3_chrom_out" ${DIFF} -whitelist "<chromatogram id=" "<offset" "<userParam name=" -in1 FeatureFinderMetabo_3_chrom.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_chrom_output.mzML)
+set_tests_properties("TOPP_FeatureFinderMetabo_3_chrom_out" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_3")
 
 #------------------------------------------------------------------------------
 # FeatureFinderCentroided test
@@ -619,6 +619,10 @@ set_tests_properties("TOPP_FileInfo_15_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileInfo_16" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_16_input.trafoXML -out FileInfo_16_output.tmp)
 add_test("TOPP_FileInfo_16_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_16_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_16_output.txt )
 set_tests_properties("TOPP_FileInfo_16_out1" PROPERTIES DEPENDS "TOPP_FileInfo_16")
+add_test("TOPP_FileInfo_17" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_17_input.fasta -out
+FileInfo_17_output.tmp)
+add_test("TOPP_FileInfo_17_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_17_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_17_output.txt )
+set_tests_properties("TOPP_FileInfo_17_out1" PROPERTIES DEPENDS "TOPP_FileInfo_17")
 
 #------------------------------------------------------------------------------
 # FileMerger tests
@@ -697,15 +701,6 @@ add_test("TOPP_IDRTCalibration_2" ${TOPP_BIN_PATH}/IDRTCalibration -test -in ${D
 add_test("TOPP_IDRTCalibration_2_out1" ${DIFF} -in1 IDRTCalibration_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDRTCalibration_2_output.idXML )
 set_tests_properties("TOPP_IDRTCalibration_2_out1" PROPERTIES DEPENDS "TOPP_IDRTCalibration_2")
 
-#------------------------------------------------------------------------------
-# ITRAQAnalyzer tests
-add_test("TOPP_ITRAQAnalyzer_1" ${TOPP_BIN_PATH}/ITRAQAnalyzer -test -in ${DATA_DIR_TOPP}/ITRAQAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/ITRAQAnalyzer.ini -out ITRAQAnalyzer_output_1.tmp)
-add_test("TOPP_ITRAQAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ITRAQAnalyzer_output_1.tmp -in2 ${DATA_DIR_TOPP}/ITRAQAnalyzer_output_1.consensusXML )
-set_tests_properties("TOPP_ITRAQAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_ITRAQAnalyzer_1")
-# test empty IDs
-add_test("TOPP_ITRAQAnalyzer_2" ${TOPP_BIN_PATH}/ITRAQAnalyzer -test -in ${DATA_DIR_TOPP}/ITRAQAnalyzer_input_2.mzML -ini ${DATA_DIR_TOPP}/ITRAQAnalyzer.ini -out ITRAQAnalyzer_output_2.tmp)
-add_test("TOPP_ITRAQAnalyzer_2_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 ITRAQAnalyzer_output_2.tmp -in2 ${DATA_DIR_TOPP}/ITRAQAnalyzer_output_2.consensusXML )
-set_tests_properties("TOPP_ITRAQAnalyzer_2_out1" PROPERTIES DEPENDS "TOPP_ITRAQAnalyzer_2")
 
 #------------------------------------------------------------------------------
 # IsobaricAnalyzer tests
@@ -799,16 +794,24 @@ add_test("TOPP_IDFileConverter_17_out1" ${DIFF} -in1 IDFileConverter_17_output.t
 set_tests_properties("TOPP_IDFileConverter_17_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_17")
 # Tests nextscore
 add_test("TOPP_IDFileConverter_18" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_18_input.idXML -out IDFileConverter_18_output.tmp -out_type pepXML)
-add_test("TOPP_IDFileConverter_18_out1" ${DIFF} -in1 IDFileConverter_17_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_17_output.pepXML)
+add_test("TOPP_IDFileConverter_18_out1" ${DIFF} -in1 IDFileConverter_18_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_18_output.pepXML)
 set_tests_properties("TOPP_IDFileConverter_18_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_18")
 # Tests Percolator_score
 add_test("TOPP_IDFileConverter_19" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_19_input.idXML -out IDFileConverter_19_output.tmp -out_type pepXML)
-add_test("TOPP_IDFileConverter_19_out1" ${DIFF} -in1 IDFileConverter_17_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_17_output.pepXML)
+add_test("TOPP_IDFileConverter_19_out1" ${DIFF} -in1 IDFileConverter_19_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_19_output.pepXML)
 set_tests_properties("TOPP_IDFileConverter_19_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_19")
 # Tests hyperscore
 add_test("TOPP_IDFileConverter_20" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_20_input.idXML -out IDFileConverter_20_output.tmp -out_type pepXML)
-add_test("TOPP_IDFileConverter_20_out1" ${DIFF} -in1 IDFileConverter_17_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_17_output.pepXML)
+add_test("TOPP_IDFileConverter_20_out1" ${DIFF} -in1 IDFileConverter_20_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_20_output.pepXML)
 set_tests_properties("TOPP_IDFileConverter_20_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_20")
+# Testing spectrum_reference addition
+add_test("TOPP_IDFileConverter_21" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_21_input.idXML -out_type idXML -out IDFileConverter_21_output.tmp -mz_file ${DATA_DIR_TOPP}/IDMapper_4_input.mzML)
+add_test("TOPP_IDFileConverter_21_out1" ${DIFF} -in1 IDFileConverter_21_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_21_output.idXML -whitelist "creationDate" "id" "spectraData_ref" "searchDatabase_ref")
+set_tests_properties("TOPP_IDFileConverter_21_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_21")
+# Testing add_ionmatch_annotation
+add_test("TOPP_IDFileConverter_22" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_22_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -add_ionmatch_annotation 0.01)
+add_test("TOPP_IDFileConverter_22_out1" ${DIFF} -in1 IDFileConverter_22_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_22_output.idXML -whitelist "IdentificationRun date" )
+set_tests_properties("TOPP_IDFileConverter_22_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_22")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -862,6 +865,27 @@ set_tests_properties("TOPP_IDFilter_10_out1" PROPERTIES DEPENDS "TOPP_IDFilter_1
 add_test("TOPP_IDFilter_11" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_11_input.idXML -out IDFilter_11_output.tmp -remove_decoys -delete_unreferenced_peptide_hits)
 add_test("TOPP_IDFilter_11_out1" ${DIFF} -in1 IDFilter_11_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_11_output.idXML )
 set_tests_properties("TOPP_IDFilter_11_out1" PROPERTIES DEPENDS "TOPP_IDFilter_11")
+
+# filters by digestion products 
+# default digestion parameters
+add_test("TOPP_IDFilter_12" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_12_input.idXML -out IDFilter_12_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_12_input.fasta)
+add_test("TOPP_IDFilter_12_out1" ${DIFF} -in1 IDFilter_12_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_12_output.idXML )
+set_tests_properties("TOPP_IDFilter_12_out1" PROPERTIES DEPENDS "TOPP_IDFilter_12")
+# filters by digestion products considering missed cleavages
+add_test("TOPP_IDFilter_13" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_13_input.idXML -out IDFilter_13_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_13_input.fasta -digest:missed_cleavages 1)
+add_test("TOPP_IDFilter_13_out1" ${DIFF} -in1 IDFilter_13_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_13_output.idXML)
+set_tests_properties("TOPP_IDFilter_13_out1" PROPERTIES DEPENDS "TOPP_IDFilter_13")
+# filters by digestion products considering missed cleavages with specific peptide
+add_test("TOPP_IDFilter_14" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_14_input.idXML -out IDFilter_14_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_14_input.fasta -digest:enzyme Trypsin/P -digest:missed_cleavages 1)
+add_test("TOPP_IDFilter_14_out1" ${DIFF} -in1 IDFilter_14_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_14_output.idXML)
+set_tests_properties("TOPP_IDFilter_14_out1" PROPERTIES DEPENDS "TOPP_IDFilter_14")
+# filters by digestion products considering missed cleavages with semi specificity filtering
+add_test("TOPP_IDFilter_15" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_15_input.idXML -out IDFilter_15_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_15_input.fasta -digest:enzyme Trypsin/P -digest:missed_cleavages 1 -digest:specificity semi)
+add_test("TOPP_IDFilter_15_out1" ${DIFF} -in1 IDFilter_15_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_15_output.idXML)
+set_tests_properties("TOPP_IDFilter_15_out1" PROPERTIES DEPENDS "TOPP_IDFilter_15")
+add_test("TOPP_IDFilter_16" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_16_input.idXML -out IDFilter_16_output.tmp -digest:fasta ${DATA_DIR_TOPP}/IDFilter_16_input.fasta -digest:enzyme Trypsin/P -digest:missed_cleavages 1 -digest:methionine_cleavage)
+add_test("TOPP_IDFilter_16_out1" ${DIFF} -in1 IDFilter_16_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_16_output.idXML)
+set_tests_properties("TOPP_IDFilter_16_out1" PROPERTIES DEPENDS "TOPP_IDFilter_16")
 
 #------------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
@@ -1046,9 +1070,9 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_TargetedFileConverter_test_4_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_4")
   set_tests_properties("TOPP_TargetedFileConverter_test_4" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_3")
 
-  add_test("TOPP_MRMMapping_test_1" ${TOPP_BIN_PATH}/MRMMapper -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out MRMMapping_output.chrom.mzML.tmp -test)
-  add_test("TOPP_MRMMapping_test_1_out_1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MRMMapping_output.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML)
-  set_tests_properties("TOPP_MRMMapping_test_1_out_1" PROPERTIES DEPENDS "TOPP_MRMMapping_test_1")
+  add_test("TOPP_MRMMapper_test_1" ${TOPP_BIN_PATH}/MRMMapper -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out MRMMapping_output.chrom.mzML.tmp -test)
+  add_test("TOPP_MRMMapper_test_1_out_1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MRMMapping_output.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML)
+  set_tests_properties("TOPP_MRMMapper_test_1_out_1" PROPERTIES DEPENDS "TOPP_MRMMapper_test_1")
 
   add_test("TOPP_OpenSwathFeatureXMLToTSV_test_1" ${TOPP_BIN_PATH}/OpenSwathFeatureXMLToTSV -in ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.featureXML -tr ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.TraML -out OpenSwathFeatureXMLToTSV_output.short.csv.tmp -short_format -test)
   add_test("TOPP_OpenSwathFeatureXMLToTSV_test_1_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_output.short.csv -in2 OpenSwathFeatureXMLToTSV_output.short.csv.tmp)
@@ -1097,7 +1121,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathRTNormalizer_test_3" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_3_output.trafoXML.tmp -test -estimateBestPeptides -peptideEstimation:NrRTBins 3 -peptideEstimation:MinBinsFilled 3)
   add_test("TOPP_OpenSwathRTNormalizer_test_3_out1" ${DIFF} -in1 OpenSwathRTNormalizer_3_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_3_output.trafoXML)
   set_tests_properties("TOPP_OpenSwathRTNormalizer_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_3")
-  add_test("TOPP_OpenSwathRTNormalizer_test_4" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_4_output.trafoXML.tmp -test -outlierDetection:outlierMethod iter_residual)
+  add_test("TOPP_OpenSwathRTNormalizer_test_4" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_4_output.trafoXML.tmp -test -RTNormalization:outlierMethod iter_residual)
   add_test("TOPP_OpenSwathRTNormalizer_test_4_out1" ${DIFF} -in1 OpenSwathRTNormalizer_4_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_4_output.trafoXML)
   set_tests_properties("TOPP_OpenSwathRTNormalizer_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_4")
 
@@ -1211,14 +1235,14 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   # - use iRT correction (but no outlier removal since only 2 datapoints)
   # - use quadratic fitting for m/z correction
   # - use 550 ppm for extraction (0.05 Da @ 100 m/z)
-  add_test("TOPP_OpenSwathWorkflow_11" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -out_chrom OpenSwathWorkflow_11.chrom.mzML.tmp -out_features OpenSwathWorkflow_11.featureXML.tmp -outlierDetection:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 550 -ppm_irtwindow -test)
+  add_test("TOPP_OpenSwathWorkflow_11" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -out_chrom OpenSwathWorkflow_11.chrom.mzML.tmp -out_features OpenSwathWorkflow_11.featureXML.tmp -RTNormalization:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 550 -ppm_irtwindow -test)
   add_test("TOPP_OpenSwathWorkflow_11_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_11.chrom.mzML.tmp  -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_output.chrom.mzML)
   add_test("TOPP_OpenSwathWorkflow_11_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_11.featureXML.tmp  -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_output.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_11_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11")
   set_tests_properties("TOPP_OpenSwathWorkflow_11_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11")
 
   # 20 ppm is too small for extraction and no iRT peptides are found (thus the tool fails)
-  add_test("TOPP_OpenSwathWorkflow_12" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -out_chrom OpenSwathWorkflow_11.chrom.mzML.tmp -out_features OpenSwathWorkflow_11.featureXML.tmp -outlierDetection:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 20 -ppm_irtwindow -test)
+  add_test("TOPP_OpenSwathWorkflow_12" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -out_chrom OpenSwathWorkflow_11.chrom.mzML.tmp -out_features OpenSwathWorkflow_11.featureXML.tmp -RTNormalization:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 20 -ppm_irtwindow -test)
   set_tests_properties("TOPP_OpenSwathWorkflow_12" PROPERTIES WILL_FAIL 1) # there are no points for iRT regression
 
   # Test whether PQP files can be read and OSW output can be written
@@ -1296,19 +1320,6 @@ set_tests_properties("TOPP_PeakPickerWavelet_1_out1" PROPERTIES DEPENDS "TOPP_Pe
 add_test("TOPP_PeakPickerWavelet_2" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_input.mzML -out PeakPickerWavelet_2.tmp)
 add_test("TOPP_PeakPickerWavelet_2_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_2.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_output.mzML)
 set_tests_properties("TOPP_PeakPickerWavelet_2_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_2")
-add_test("TOPP_PeakPickerWavelet_3" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_input.mzML -out PeakPickerWavelet_3.tmp)
-if(NOT DISABLE_WAVELET2DTEST)
-  #  
-  # See https://github.com/OpenMS/OpenMS/issues/1202
-  # On Ubuntu 14.04 in Release mode only (not Debug mode), the output of this
-  # file is slightly different due to a small numerical error. Since FuzzyDiff is
-  # not able to compare the numbers in base64, we have to "whitelist" the
-  # corresponding base64 string.
-  # See https://github.com/OpenMS/OpenMS/issues/1555
-  # For travis, PPWavelet_3 does not work, so we disable it
-  add_test("TOPP_PeakPickerWavelet_3_out1" ${DIFF} -in1 PeakPickerWavelet_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_2Dopt_output.mzML -whitelist ${INDEX_WHITELIST} "3bAxk01KjUAAAACgmVGNQIvf6JpEWo1Ah")
-  set_tests_properties("TOPP_PeakPickerWavelet_3_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_3")
-endif(NOT DISABLE_WAVELET2DTEST)
 add_test("TOPP_PeakPickerWavelet_4" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_4.tmp -threads 2)
 add_test("TOPP_PeakPickerWavelet_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
 set_tests_properties("TOPP_PeakPickerWavelet_4_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_4")
@@ -1501,19 +1512,14 @@ add_test("TOPP_ExternalCalibration_2_MS2" ${TOPP_BIN_PATH}/ExternalCalibration -
 add_test("TOPP_ExternalCalibration_2_out1" ${DIFF} -in1 ExternalCalibration_2_MS2_out.mzML.tmp -in2 ${DATA_DIR_TOPP}/ExternalCalibration_2_MS2_out.mzML)
 set_tests_properties("TOPP_ExternalCalibration_2_out1" PROPERTIES DEPENDS "TOPP_ExternalCalibration_2_MS2")
 
-#------------------------------------------------------------------------------
-# TMTAnalyzer
-add_test("TOPP_TMTAnalyzer_1" ${TOPP_BIN_PATH}/TMTAnalyzer -test -ini ${DATA_DIR_TOPP}/TMTAnalyzer.ini -in ${DATA_DIR_TOPP}/TMTAnalyzer_input_1.mzML -out TMTAnalyzer_1.tmp)
-add_test("TOPP_TMTAnalyzer_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 TMTAnalyzer_1.tmp -in2 ${DATA_DIR_TOPP}/TMTAnalyzer_output_1.consensusXML )
-set_tests_properties("TOPP_TMTAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_TMTAnalyzer_1")
 
 #------------------------------------------------------------------------------
 # TOFCalibration tests
 add_test("TOPP_TOFCalibration_1" ${TOPP_BIN_PATH}/TOFCalibration -test -in ${DATA_DIR_TOPP}/TOFCalibration_1_input.mzML -out TOFCalibration.tmp -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_1_calibrants.mzML)
 #add_test("TOPP_TOFCalibration_1_out1" ${DIFF} -in1 TOFCalibration.tmp -in2 ${DATA_DIR_TOPP}/TOFCalibration_1_output.mzML )
 #set_tests_properties("TOPP_TOFCalibration_1_out1" PROPERTIES DEPENDS "TOPP_TOFCalibration_1")
-add_test("TOPP_TOFCalibration_2" ${TOPP_BIN_PATH}/TOFCalibration -test -in ${DATA_DIR_TOPP}/TOFCalibration_2_input.mzML -out TOFCalibration.tmp -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_2_calibrants.mzML -peak_data)
-#add_test("TOPP_TOFCalibration_2_out1" ${DIFF} -in1 TOFCalibration.tmp -in2 ${DATA_DIR_TOPP}/TOFCalibration_2_output.mzML )
+add_test("TOPP_TOFCalibration_2" ${TOPP_BIN_PATH}/TOFCalibration -test -in ${DATA_DIR_TOPP}/TOFCalibration_2_input.mzML -out TOFCalibration_2.tmp -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_2_calibrants.mzML -peak_data)
+#add_test("TOPP_TOFCalibration_2_out1" ${DIFF} -in1 TOFCalibration_2.tmp -in2 ${DATA_DIR_TOPP}/TOFCalibration_2_output.mzML )
 #set_tests_properties("TOPP_TOFCalibration_2_out1" PROPERTIES DEPENDS "TOPP_TOFCalibration_2")
 
 #------------------------------------------------------------------------------
@@ -1726,22 +1732,30 @@ set_tests_properties("TOPP_ProteinInference_1_out1" PROPERTIES DEPENDS "TOPP_Pro
 
 #------------------------------------------------------------------------------
 # FalseDiscoveryRate_tests (1: default param, 2: with runs separated, 3: with charge variants individual, 4: with charge variants and no charge 1 decoys -> q_value 0)
-add_test("TOPP_FalseDiscoveryRate_1" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_1.tmp -peptides_only)
+add_test("TOPP_FalseDiscoveryRate_1" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_1.tmp -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_1_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_1.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_1.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_1_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_1")
-add_test("TOPP_FalseDiscoveryRate_2" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_2.tmp -peptides_only -algorithm:treat_runs_separately)
+add_test("TOPP_FalseDiscoveryRate_2" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_2.tmp -algorithm:treat_runs_separately -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_2_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_2.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_2.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_2_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_2")
-add_test("TOPP_FalseDiscoveryRate_3" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_3.tmp -peptides_only -algorithm:split_charge_variants)
+add_test("TOPP_FalseDiscoveryRate_3" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA.idXML -out FalseDiscoveryRate_output_3.tmp -algorithm:split_charge_variants -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_3_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_3.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_3.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_3_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_3")
-add_test("TOPP_FalseDiscoveryRate_4" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA_4.idXML -out FalseDiscoveryRate_output_4.tmp -peptides_only -algorithm:split_charge_variants)
+add_test("TOPP_FalseDiscoveryRate_4" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_OMSSA_4.idXML -out FalseDiscoveryRate_output_4.tmp -algorithm:split_charge_variants -PSM true -protein false)
 add_test("TOPP_FalseDiscoveryRate_4_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_output_4.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_output_4.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_4_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_4")
 # proteins only (input is derived from "THIRDPARTY/FidoAdapter_1_output.idXML"):
-add_test("TOPP_FalseDiscoveryRate_5" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out FalseDiscoveryRate_5_output.tmp -proteins_only)
-add_test("TOPP_FalseDiscoveryRate_5_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_5_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_output.idXML )
+add_test("TOPP_FalseDiscoveryRate_5" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_input.idXML -out FalseDiscoveryRate_5_output.tmp -PSM false -protein true)
+add_test("TOPP_FalseDiscoveryRate_5_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_5_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_5_output.idXML)
 set_tests_properties("TOPP_FalseDiscoveryRate_5_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_5")
+# FDR filtering
+add_test("TOPP_FalseDiscoveryRate_6" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_6_input.idXML -out FalseDiscoveryRate_6_output.tmp -PSM true -protein false -FDR:PSM 0.05)
+add_test("TOPP_FalseDiscoveryRate_6_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_6_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_6_output.idXML)
+set_tests_properties("TOPP_FalseDiscoveryRate_6_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_6")
+add_test("TOPP_FalseDiscoveryRate_7" ${TOPP_BIN_PATH}/FalseDiscoveryRate -test -in ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_input.idXML -out FalseDiscoveryRate_7_output.tmp -PSM false -protein true -FDR:protein 0.05)
+add_test("TOPP_FalseDiscoveryRate_7_out1" ${DIFF} -whitelist "?xml-stylesheet" -in1 FalseDiscoveryRate_7_output.tmp -in2 ${DATA_DIR_TOPP}/FalseDiscoveryRate_7_output.idXML)
+set_tests_properties("TOPP_FalseDiscoveryRate_7_out1" PROPERTIES DEPENDS "TOPP_FalseDiscoveryRate_7")
+
 
 #------------------------------------------------------------------------------
 # IDPosteriorErrorProbability
@@ -1943,12 +1957,7 @@ add_test("TOPP_PeptideIndexer_19" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta $
 add_test("TOPP_PeptideIndexer_19_out" ${DIFF} -in1 PeptideIndexer_19_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_19_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_19_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_19")
 
-if(WITH_GUI)
-  #------------------------------------------------------------------------------
-  # ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in binary tree, as they have been configured from a .in file (see above)!
-  add_test("TOPP_ExecutePipeline_1" ${TOPP_BIN_PATH}/ExecutePipeline -test -in ${DATA_DIR_TOPP}/ExecutePipeline_1.toppas -resource_file ${DATA_DIR_TOPP_BIN}/ExecutePipeline_1.trf -out_dir .)
-  set_tests_properties("TOPP_ExecutePipeline_1" PROPERTIES WILL_FAIL 1)
-endif()
+## Tests for TOPPAS/ExecutePipeline are in ./src/tests/TOPPAS/...
 
 #------------------------------------------------------------------------------
 # search engine tests (might be optional, depending on presence of external binaries, e.g., omssacl.exe)
@@ -1958,6 +1967,12 @@ include(THIRDPARTY/third_party_tests.cmake)
 #------------------------------------------------------------------------------
 # UTILS tests (if this becomes too much, we should create a separate directory)
 #------------------------------------------------------------------------------
+
+# AccurateMassSearch (with default params, which forces lookup of HMDB DB in share/)
+add_test("UTILS_AccurateMassSearch_1" ${TOPP_BIN_PATH}/AccurateMassSearch -test -in ${DATA_DIR_TOPP}/ConsensusMapNormalizer_input.consensusXML -out AccurateMassSearch_1_output.tmp)
+add_test("UTILS_AccurateMassSearch_1_out1" ${DIFF} -in1 AccurateMassSearch_1_output.tmp -in2 ${DATA_DIR_TOPP}/AccurateMassSearch_1_output.csv -whitelist "")
+set_tests_properties("UTILS_AccurateMassSearch_1_out1" PROPERTIES DEPENDS "UTILS_AccurateMassSearch_1")
+
 # ImageCreator:
 if(WITH_GUI)
   add_test("UTILS_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator1.bmp -width 20 -height 15)
@@ -2087,3 +2102,47 @@ add_test("UTILS_TICCalculator_3" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA
 add_test("UTILS_TICCalculator_4" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed)
 add_test("UTILS_TICCalculator_5" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method indexed_parallel)
 
+# OpenPepXL test:
+add_test("UTILS_OpenPepXL_1" ${TOPP_BIN_PATH}/OpenPepXL -test -in ${DATA_DIR_TOPP}/OpenPepXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenPepXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenPepXL_input.fasta -out_xquestxml OpenPepXL_output.xquest.xml.tmp -out_xquest_specxml OpenPepXL_output.spec.xml.tmp -out_mzIdentML OpenPepXL_output.mzid.tmp -out_idXML OpenPepXL_output.idXML.tmp)
+add_test("UTILS_OpenPepXL_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenPepXL_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.xquest.xml )
+add_test("UTILS_OpenPepXL_1_out_2" ${DIFF} -in1 OpenPepXL_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.spec.xml )
+add_test("UTILS_OpenPepXL_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "OpenPepXL_input" -in1 OpenPepXL_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.mzid )
+add_test("UTILS_OpenPepXL_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXL_input" -in1 OpenPepXL_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.idXML )
+set_tests_properties("UTILS_OpenPepXL_1_out_1" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+set_tests_properties("UTILS_OpenPepXL_1_out_2" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+set_tests_properties("UTILS_OpenPepXL_1_out_3" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+set_tests_properties("UTILS_OpenPepXL_1_out_4" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
+
+# OpenPepXLLF test:
+add_test("UTILS_OpenPepXLLF_1" ${TOPP_BIN_PATH}/OpenPepXLLF -test -in ${DATA_DIR_TOPP}/OpenPepXLLF_input.mzML -database ${DATA_DIR_TOPP}/OpenPepXLLF_input.fasta -out_xquestxml OpenPepXLLF_output.xquest.xml.tmp -out_xquest_specxml OpenPepXLLF_output.spec.xml.tmp -out_mzIdentML OpenPepXLLF_output.mzid.tmp -out_idXML OpenPepXLLF_output.idXML.tmp)
+add_test("UTILS_OpenPepXLLF_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenPepXLLF_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.xquest.xml )
+add_test("UTILS_OpenPepXLLF_1_out_2" ${DIFF} -in1 OpenPepXLLF_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.spec.xml )
+add_test("UTILS_OpenPepXLLF_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "input_mzML" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.mzid )
+add_test("UTILS_OpenPepXLLF_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.idXML )
+set_tests_properties("UTILS_OpenPepXLLF_1_out_1" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+set_tests_properties("UTILS_OpenPepXLLF_1_out_2" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+set_tests_properties("UTILS_OpenPepXLLF_1_out_3" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+set_tests_properties("UTILS_OpenPepXLLF_1_out_4" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
+
+#------------------------------------------------------------------------------
+# XFDR tests
+add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -out_idXML XFDR_test_out1_temp.idXML -out_mzIdentML XFDR_test_out1_temp.mzid)
+add_test("UTILS_XFDR_1_out11" ${DIFF} -whitelist "date=" -in1 XFDR_test_out1_temp.idXML  -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.idXML)
+add_test("UTILS_XFDR_1_out12" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out1_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out1.mzid)
+set_tests_properties("UTILS_XFDR_1_out11" PROPERTIES DEPENDS "UTILS_XFDR_1")
+set_tests_properties("UTILS_XFDR_1_out12" PROPERTIES DEPENDS "UTILS_XFDR_1")
+add_test("UTILS_XFDR_2" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in1.xml -uniquexl -no_qvalues -out_idXML XFDR_test_out2_temp.idXML -out_mzIdentML XFDR_test_out2_temp.mzid)
+add_test("UTILS_XFDR_2_out21" ${DIFF} -whitelist "date=" -in1 XFDR_test_out2_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.idXML)
+add_test("UTILS_XFDR_2_out22" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out2_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out2.mzid)
+set_tests_properties("UTILS_XFDR_2_out21" PROPERTIES DEPENDS "UTILS_XFDR_2")
+set_tests_properties("UTILS_XFDR_2_out22" PROPERTIES DEPENDS "UTILS_XFDR_2")
+add_test("UTILS_XFDR_3" ${TOPP_BIN_PATH}/XFDR -test -in ${DATA_DIR_TOPP}/XFDR_test_in2.xml -out_idXML XFDR_test_out3_temp.idXML -out_mzIdentML XFDR_test_out3_temp.mzid)
+add_test("UTILS_XFDR_3_out31" ${DIFF} -whitelist "date=" -in1 XFDR_test_out3_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.idXML)
+add_test("UTILS_XFDR_3_out32" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out3_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out3.mzid)
+set_tests_properties("UTILS_XFDR_3_out31" PROPERTIES DEPENDS "UTILS_XFDR_3")
+set_tests_properties("UTILS_XFDR_3_out32" PROPERTIES DEPENDS "UTILS_XFDR_3")
+add_test("UTILS_XFDR_4" ${TOPP_BIN_PATH}/XFDR -test -minborder -5 -maxborder 5 -in ${DATA_DIR_TOPP}/XFDR_test_in2.xml -out_idXML XFDR_test_out4_temp.idXML -out_mzIdentML XFDR_test_out4_temp.mzid)
+add_test("UTILS_XFDR_4_out41" ${DIFF} -whitelist "date=" -in1 XFDR_test_out4_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.idXML)
+add_test("UTILS_XFDR_4_out42" ${DIFF} -whitelist "creationDate=" "version=" -in1 XFDR_test_out4_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out4.mzid)
+set_tests_properties("UTILS_XFDR_4_out41" PROPERTIES DEPENDS "UTILS_XFDR_4")
+set_tests_properties("UTILS_XFDR_4_out42" PROPERTIES DEPENDS "UTILS_XFDR_4")

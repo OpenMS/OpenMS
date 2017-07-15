@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,19 +42,19 @@ namespace OpenMS
   namespace DataArrays
   {
 
-    ///Float data array class
+    /// Float data array class
     class FloatDataArray :
     public MetaInfoDescription,
     public std::vector<float>
     {};
 
-    ///Integer data array class
+    /// Integer data array class
     class IntegerDataArray :
     public MetaInfoDescription,
     public std::vector<Int>
     {};
 
-    ///String data array class
+    /// String data array class
     class StringDataArray :
     public MetaInfoDescription,
     public std::vector<String>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,9 +66,11 @@ namespace OpenMS
     @endcode
 
   */
-  template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
   class OnDiscMSExperiment
   {
+
+  typedef ChromatogramPeak ChromatogramPeakT;
+  typedef Peak1D PeakT;
 
 public:
 
@@ -247,8 +249,9 @@ public:
     }
 
 private:
+
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLFile
-    OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */) {}
+    OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
 
     void loadMetaData_(const String& filename)
     {
@@ -269,11 +272,12 @@ protected:
     /// The index of the underlying data file
     IndexedMzMLFile indexed_mzml_file_;
     /// The meta-data
-    boost::shared_ptr<PeakMap > meta_ms_experiment_;
+    boost::shared_ptr<PeakMap> meta_ms_experiment_;
   };
 
-typedef OpenMS::OnDiscMSExperiment<> OnDiscPeakMap;
+typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;
 
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
+

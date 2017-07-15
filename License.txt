@@ -2,7 +2,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 -----------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above
@@ -75,7 +75,13 @@ Boost (headers)
   http://www.boost.org/
   - License:
   http://www.boost.org/more/license_info.html
-  
+
+Comet
+  - URL:
+  http://comet-ms.sourceforge.net/
+  - License:
+  http://www.apache.org/licenses/LICENSE-2.0.html
+
 ZLib
   - URL:
   http://www.zlib.net
@@ -88,11 +94,19 @@ BZ2Lib
   - License:
   http://www.bzip.org/1.0.5/bzip2-manual-1.0.5.html
 
-Search engines:
+---------------------   Search engines:  ------------------------
  
 OMSSA
-  - URL: http://pubchem.ncbi.nlm.nih.gov/omssa/
-  - License: Public Domain
+  - URL:
+  http://pubchem.ncbi.nlm.nih.gov/omssa/
+  - License:
+  Public Domain
+
+Percolator:
+  - URL:
+  http://percolator.ms/
+  - License:
+  http://www.apache.org/licenses/LICENSE-2.0.html
 
 X!Tandem:
   - URL and source code:

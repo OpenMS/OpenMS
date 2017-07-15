@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Enzyme.h>" namespace "OpenMS":
                EmpiricalFormula c_term_gain,
                String psi_id,
                String xtandem_id,
+               Uint comet_id,
                UInt omssa_id) nogil except +
 
         # sets the name of the Enzyme
@@ -60,20 +61,26 @@ cdef extern from "<OpenMS/CHEMISTRY/Enzyme.h>" namespace "OpenMS":
         # returns the C-term gain
         EmpiricalFormula getCTermGain() nogil except +
 
-        # sets the PSI id
-        void setPSIid(String value) nogil except +
+        # sets the PSI ID
+        void setPSIID(String value) nogil except +
 
-        # returns the PSI id
-        String getPSIid() nogil except +
+        # returns the PSI ID
+        String getPSIID() nogil except +
 
-        void setXTANDEMid(String value) nogil except +
-        String getXTANDEMid() nogil except +
+        void setXTandemID(String value) nogil except +
+        String getXTandemID() nogil except +
 
-        # sets the OMSSA id
-        void setOMSSAid(int value) nogil except +
+        # sets the Comet ID
+        void setCometID(int value) nogil except +
 
-        # returns the OMSSA id
-        int getOMSSAid() nogil except +
+        # returns the Comet ID
+        int getCometID() nogil except +
+
+        # sets the OMSSA ID
+        void setOMSSAID(int value) nogil except +
+
+        # returns the OMSSA ID
+        int getOMSSAID() nogil except +
 
         # equality operator
         bool operator==(Enzyme & Enzyme) nogil except +

@@ -5,8 +5,8 @@ set(directory source/APPLICATIONS/UTILS)
 set(UTILS_executables
 AccurateMassSearch
 CVInspector
-DecoyDatabase
 DatabaseFilter
+DecoyDatabase
 DeMeanderize
 Digestor
 DigestorMotif
@@ -22,8 +22,8 @@ IDSplitter
 LabeledEval
 LowMemPeakPickerHiRes
 LowMemPeakPickerHiRes_RandomAccess
-MapAlignmentEvaluation
 MassCalculator
+MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
@@ -31,7 +31,10 @@ MSSimulator
 MultiplexResolver
 MzMLSplitter
 OpenMSInfo
+OpenPepXL
+OpenPepXLLF
 PeakPickerIterative
+PSMFeatureExtractor
 QCCalculator
 QCEmbedder
 QCExporter
@@ -51,7 +54,7 @@ SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
-TopPerc
+XFDR
 XMLValidator
 )
 

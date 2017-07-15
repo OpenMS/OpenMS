@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,10 +67,17 @@ namespace OpenMS
     else parsing_success_ = false;
   }
 
-  IndexedMzMLFile::IndexedMzMLFile(String filename) 
+  IndexedMzMLFile::IndexedMzMLFile(String filename) :
+    parsing_success_(false),
+    skip_xml_checks_(false) 
   {
     openFile(filename);
   }
+
+  IndexedMzMLFile::IndexedMzMLFile() :
+    parsing_success_(false),
+    skip_xml_checks_(false) 
+  {}
 
   IndexedMzMLFile::IndexedMzMLFile(const IndexedMzMLFile& source) :
     filename_(source.filename_),
@@ -79,8 +86,10 @@ namespace OpenMS
     index_offset_(source.index_offset_),
     spectra_before_chroms_(source.spectra_before_chroms_),
     // do not copy the filestream itself but open a new filestream using the same file
+    // this is critical for parallel access to the same file!
     filestream_(source.filename_.c_str()),
-    parsing_success_(source.parsing_success_)
+    parsing_success_(source.parsing_success_),
+    skip_xml_checks_(source.skip_xml_checks_)
   {
   }
 

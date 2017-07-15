@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -742,7 +742,7 @@ protected:
       const PeptideHit& hit = (pair.first.empty() ?
                                pair.second.begin()->second->getHits()[0] :
                                pair.first.begin()->second->getHits()[0]);
-      current_accessions = hit.extractProteinAccessions();
+      current_accessions = hit.extractProteinAccessionsSet();
       protein_accessions.insert(current_accessions.begin(),
                                 current_accessions.end());
       // missing protein accession would crash OpenSWATH algorithms:

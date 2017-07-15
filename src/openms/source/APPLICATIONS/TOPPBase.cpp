@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1282,9 +1282,6 @@ namespace OpenMS
         }
         else if (p.type == ParameterInformation::INPUT_FILE)
         {
-          if (!ListUtils::contains(p.tags, "skipexists"))
-            inputFileReadable_(tmp, name);
-
           //create upper case list of valid formats
           StringList formats = p.valid_strings;
           StringListUtils::toUpper(formats);
@@ -1429,7 +1426,7 @@ namespace OpenMS
         //check if files are readable/writable
         if (p.type == ParameterInformation::INPUT_FILE_LIST)
         {
-          inputFileReadable_(tmp, name);
+          if (!ListUtils::contains(p.tags, "skipexists")) inputFileReadable_(tmp, name);
         }
         else if (p.type == ParameterInformation::OUTPUT_FILE_LIST)
         {
@@ -1450,8 +1447,6 @@ namespace OpenMS
           }
           else if (p.type == ParameterInformation::INPUT_FILE_LIST)
           {
-            inputFileReadable_(tmp, name);
-
             //create upper case list of valid formats
             StringList formats = p.valid_strings;
             StringListUtils::toUpper(formats);

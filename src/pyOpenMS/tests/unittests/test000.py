@@ -807,8 +807,8 @@ def testXTandemInfile():
     f.getDefaultParametersFilename is not None
 
 
-    f.setTaxon("testTaxon")
-    assert f.getTaxon() == "testTaxon"
+    f.setTaxon(b"testTaxon")
+    assert f.getTaxon() == b"testTaxon"
 
     assert f.setMaxPrecursorCharge is not None
     assert f.getMaxPrecursorCharge is not None
@@ -1491,47 +1491,7 @@ def testItraqConstants():
     assert constants.translateIsotopeMatrix is not None
 
 @report
-def testItraqChannelExtractor():
-    """
-    @tests:
-     ItraqChannelExtractor.__init__
-    """
-    extractor = pyopenms.ItraqChannelExtractor()
-    p = extractor.getDefaults()
-    _testParam(p)
 
-
-    # Note that using TMT_SIXPLEX will not work here
-    p = extractor.getDefaults()
-    pyopenms.ItraqChannelExtractor(pyopenms.ITRAQ_TYPES.FOURPLEX, p)
-    assert pyopenms.ItraqChannelExtractor().run is not None
-
-    assert extractor.getIsotopeMatrixAsStringList is not None
-    assert extractor.updateIsotopeMatrixFromStringList is not None
-    assert extractor.translateIsotopeMatrix is not None
-
-@report
-def testItraqQuantifier():
-    """
-    @tests:
-     ItraqQuantifier.__init__
-    """
-    ff = pyopenms.ItraqQuantifier()
-    p = ff.getDefaults()
-    _testParam(p)
-
-    assert pyopenms.ItraqQuantifier().run is not None
-
-    # Note that using TMT_SIXPLEX will not work here
-    p = ff.getDefaults()
-    pyopenms.ItraqQuantifier(pyopenms.ITRAQ_TYPES.FOURPLEX, p)
-    assert pyopenms.ItraqChannelExtractor().run is not None
-
-    assert ff.getIsotopeMatrixAsStringList is not None
-    assert ff.updateIsotopeMatrixFromStringList is not None
-    assert ff.translateIsotopeMatrix is not None
-
-@report
 def testLinearResampler():
     """
     @tests:
@@ -2910,8 +2870,8 @@ def testMSSpectrum():
     string_da[1].push_back("other")
     spec.setStringDataArrays( string_da )
     assert len(spec.getStringDataArrays()) == 2
-    assert spec.getStringDataArrays()[0][0] == "hello"
-    assert spec.getStringDataArrays()[1][0] == "other"
+    assert spec.getStringDataArrays()[0][0] == b"hello"
+    assert spec.getStringDataArrays()[1][0] == b"other"
 
     assert len(spec.getIntegerDataArrays()) == 0
     # int_da = [ [5, 6], [8] ]
@@ -2947,10 +2907,10 @@ def testStringDataArray():
     da.push_back("hello")
     da.push_back("world")
     assert da.size() == 2
-    assert da[0] == "hello"
-    assert da[1] == "world"
+    assert da[0] == b"hello"
+    assert da[1] == b"world"
     da[1] = "hello world"
-    assert da[1] == "hello world", da[1]
+    assert da[1] == b"hello world", da[1]
     da.clear()
     assert da.size() == 0
     da.push_back("hello")
@@ -4088,37 +4048,37 @@ def testType():
      Type.XMASS
     """
     for ti in  [
-      pyopenms.Type.CONSENSUSXML
-     ,pyopenms.Type.DTA
-     ,pyopenms.Type.DTA2D
-     ,pyopenms.Type.EDTA
-     ,pyopenms.Type.FASTA
-     ,pyopenms.Type.FEATUREXML
-     ,pyopenms.Type.GELML
-     ,pyopenms.Type.HARDKLOER
-     ,pyopenms.Type.IDXML
-     ,pyopenms.Type.INI
-     ,pyopenms.Type.KROENIK
-     ,pyopenms.Type.MASCOTXML
-     ,pyopenms.Type.MGF
-     ,pyopenms.Type.MS2
-     ,pyopenms.Type.MSP
-     ,pyopenms.Type.MZDATA
-     ,pyopenms.Type.MZIDENTML
-     ,pyopenms.Type.MZML
-     ,pyopenms.Type.MZXML
-     ,pyopenms.Type.OMSSAXML
-     ,pyopenms.Type.PEPLIST
-     ,pyopenms.Type.PEPXML
-     ,pyopenms.Type.PNG
-     ,pyopenms.Type.PROTXML
-     ,pyopenms.Type.SIZE_OF_TYPE
-     ,pyopenms.Type.TOPPAS
-     ,pyopenms.Type.TRAML
-     ,pyopenms.Type.TRANSFORMATIONXML
-     ,pyopenms.Type.TSV
-     ,pyopenms.Type.UNKNOWN
-     ,pyopenms.Type.XMASS]:
+      pyopenms.FileType.CONSENSUSXML
+     ,pyopenms.FileType.DTA
+     ,pyopenms.FileType.DTA2D
+     ,pyopenms.FileType.EDTA
+     ,pyopenms.FileType.FASTA
+     ,pyopenms.FileType.FEATUREXML
+     ,pyopenms.FileType.GELML
+     ,pyopenms.FileType.HARDKLOER
+     ,pyopenms.FileType.IDXML
+     ,pyopenms.FileType.INI
+     ,pyopenms.FileType.KROENIK
+     ,pyopenms.FileType.MASCOTXML
+     ,pyopenms.FileType.MGF
+     ,pyopenms.FileType.MS2
+     ,pyopenms.FileType.MSP
+     ,pyopenms.FileType.MZDATA
+     ,pyopenms.FileType.MZIDENTML
+     ,pyopenms.FileType.MZML
+     ,pyopenms.FileType.MZXML
+     ,pyopenms.FileType.OMSSAXML
+     ,pyopenms.FileType.PEPLIST
+     ,pyopenms.FileType.PEPXML
+     ,pyopenms.FileType.PNG
+     ,pyopenms.FileType.PROTXML
+     ,pyopenms.FileType.SIZE_OF_TYPE
+     ,pyopenms.FileType.TOPPAS
+     ,pyopenms.FileType.TRAML
+     ,pyopenms.FileType.TRANSFORMATIONXML
+     ,pyopenms.FileType.TSV
+     ,pyopenms.FileType.UNKNOWN
+     ,pyopenms.FileType.XMASS]:
         assert isinstance(ti, int)
 
 @report

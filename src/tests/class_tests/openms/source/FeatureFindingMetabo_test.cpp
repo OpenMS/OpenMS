@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 ///////////////////////////
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
@@ -76,6 +76,8 @@ FeatureMap test_fm;
 
 std::vector<MassTrace> output_mt, splitted_mt, filtered_mt;
 
+std::vector<std::vector< OpenMS::MSChromatogram<> > > chromatograms;
+
 MassTraceDetection test_mtd;
 test_mtd.run(input, output_mt);
 
@@ -88,31 +90,28 @@ fsc.setAcceptableAbsolute(1);
 StringList sl;
 sl.push_back("xml-stylesheet");
 sl.push_back("<featureMap");
+sl.push_back("<feature id");
 fsc.setWhitelist(sl);
 
 //std::cout << "\n\n" << fsc.compareStrings("529090", "529091") << "\n\n\n";
 
-
-START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &)))
+START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms &)))
 {
     FeatureFindingMetabo test_ffm;
     // run with non-default setting (C13 isotope distance)
     Param p = test_ffm.getParameters();
     p.setValue("mz_scoring_13C", "true");
     test_ffm.setParameters(p);
-    test_ffm.run(splitted_mt, test_fm);
+    test_ffm.run(splitted_mt, test_fm, chromatograms);
     TEST_EQUAL(test_fm.size(), 93);
 
     // run with default settings (from paper using charge+isotope# dependent distances)
     p.setValue("report_convex_hulls", "true");
     p.setValue("mz_scoring_13C", "false");
     test_ffm.setParameters(p);
-    test_ffm.run(splitted_mt, test_fm);
-    test_fm.sortByMZ();
+    test_ffm.run(splitted_mt, test_fm, chromatograms);
     TEST_EQUAL(test_fm.size(), 91);
     // --> this gives less features, i.e. more isotope clusters (but the input data is simulated and highly weird -- should be replaced at some point)
-
-    test_fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // test annotation of input
     String tmp_file;

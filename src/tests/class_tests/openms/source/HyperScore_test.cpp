@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,7 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,6 +52,12 @@ START_TEST(HyperScore, "$Id$")
 
 HyperScore* ptr = 0;
 HyperScore* null_ptr = 0;
+
+TheoreticalSpectrumGenerator tsg;
+Param param = tsg.getParameters();
+param.setValue("add_metainfo", "true");
+tsg.setParameters(param);
+
 START_SECTION(HyperScore())
 {
   ptr = new HyperScore();
@@ -68,51 +74,35 @@ END_SECTION
 START_SECTION((static double compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum &exp_spectrum, const RichPeakSpectrum &theo_spectrum)))
 {
   PeakSpectrum exp_spectrum;
-  RichPeakSpectrum theo_spectrum;
-  Peak1D p;
-  p.setIntensity(1);
-  RichPeak1D rp;
-  rp.setIntensity(1);
-  
-  // full match, 5 identical masses, identical intensities (=1)
-  for (Size i = 1; i != 6; ++i)
-  {
-    p.setMZ(i);
-    rp.setMZ(i);
-    rp.setMetaValue("IonName", String("y") + String(i));
-    exp_spectrum.push_back(p);
-    theo_spectrum.push_back(rp);
-  }
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 7.39693);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 7.39693);
+  PeakSpectrum theo_spectrum;
 
-  // full match, 10 identical masses, identical intensities (=1)
-  for (Size i = 6; i <= 10; ++i)
-  {
-    p.setMZ(i);
-    rp.setMZ(i);
-    rp.setMetaValue("IonName", String("y") + String(i));
-    exp_spectrum.push_back(p);
-    theo_spectrum.push_back(rp);
-  }
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 18.407);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 18.407);
+  AASequence peptide = AASequence::fromString("PEPTIDE");
+  
+  // full match, 11 identical masses, identical intensities (=1)
+  tsg.getSpectrum(exp_spectrum, peptide, 1, 1);
+  tsg.getSpectrum(theo_spectrum, peptide, 1, 1);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 13.764638);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 13.764638);
 
   exp_spectrum.clear(true);
   theo_spectrum.clear(true);
 
+  // full match, 33 identical masses, identical intensities (=1)
+  tsg.getSpectrum(exp_spectrum, peptide, 1, 3);
+  tsg.getSpectrum(theo_spectrum, peptide, 1, 3);
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 67.791224);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 67.791224);
+
   // full match if ppm tolerance and partial match for Da tolerance
-  for (Size i = 1; i <= 10; ++i)
+  for (Size i = 0; i < theo_spectrum.size(); ++i)
   {
-    double mz = pow(10.0, static_cast<int>(i));
-    p.setMZ(mz);
-    rp.setMZ(mz + 9 * 1e-6 * mz); // +9 ppm error
-    rp.setMetaValue("IonName", String("b") + String(i));
-    exp_spectrum.push_back(p);
-    theo_spectrum.push_back(rp);
+    double mz = pow( theo_spectrum[i].getMZ(), 2);
+    exp_spectrum[i].setMZ(mz);
+    theo_spectrum[i].setMZ(mz + 9 * 1e-6 * mz); // +9 ppm error
   }
-  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 5.5643482);
-  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 18.407);
+
+  TEST_REAL_SIMILAR(HyperScore::compute(0.1, false, exp_spectrum, theo_spectrum), 4.178053);
+  TEST_REAL_SIMILAR(HyperScore::compute(10, true, exp_spectrum, theo_spectrum), 67.791224);
 }
 END_SECTION
 

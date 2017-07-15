@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -4545,8 +4545,9 @@ namespace OpenMS
       }
 
       os << "\t<dataProcessingList count=\"" << (std::max)((Size)1, dps.size() + num_bi_dps) << "\">\n";
-      //default (first spectrum data or fictional data)
-      if (exp.empty())
+
+      // default (if experiment is empty and no actual data processing is here)
+      if (dps.size() + num_bi_dps == 0)
       {
         std::vector< ConstDataProcessingPtr > dummy;
         writeDataProcessing_(os, "dp_sp_0", dummy, validator);

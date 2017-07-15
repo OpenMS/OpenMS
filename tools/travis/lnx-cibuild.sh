@@ -59,6 +59,7 @@ export PATH=${SOURCE_DIRECTORY}/_thirdparty/OMSSA:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/XTandem:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
+export PATH=${SOURCE_DIRECTORY}/_thirdparty/Comet:$PATH
 
 # if we perform style tests, add cppcheck to path
 if [ "$ENABLE_STYLE_TESTING" = "ON" ]; then
