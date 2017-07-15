@@ -312,7 +312,7 @@ protected:
     }
 
     consensus_map_quant.ensureUniqueId();
-    StringList& ms_runs;
+    StringList ms_runs;
     exp.getPrimaryMSRunPath(ms_runs);
     consensus_map_quant.setPrimaryMSRunPath(ms_runs);
     ConsensusXMLFile().store(out, consensus_map_quant);

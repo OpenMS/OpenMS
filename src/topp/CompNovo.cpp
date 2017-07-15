@@ -176,7 +176,7 @@ protected:
     ProteinIdentification prot_id;
     prot_id.setIdentifier(identifier);
     prot_id.setDateTime(now);
-    StringList& ms_runs;
+    StringList ms_runs;
     exp.getPrimaryMSRunPath(ms_runs);
     prot_id.setPrimaryMSRunPath(ms_runs);
 

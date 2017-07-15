@@ -153,7 +153,7 @@ protected:
       output[i].ensureUniqueId();
     }
     StringList ms_runs;
-    input.getPrimaryMSRunPath(ms_runs)
+    input.getPrimaryMSRunPath(ms_runs);
     output.setPrimaryMSRunPath(ms_runs);
     FeatureXMLFile().store(out, output);
 

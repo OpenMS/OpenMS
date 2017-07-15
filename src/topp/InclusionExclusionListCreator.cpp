@@ -241,7 +241,7 @@ protected:
           MzMLFile().load(raw_data_path, exp);
           FeatureMap out_map;
           StringList ms_runs;
-          exp.getPrimaryMSRunPath(ms_runs)
+          exp.getPrimaryMSRunPath(ms_runs);
           out_map.setPrimaryMSRunPath(ms_runs);
 
           IntList levels;

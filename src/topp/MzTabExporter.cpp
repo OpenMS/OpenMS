@@ -327,8 +327,9 @@ protected:
       meta_data.description = MzTabString("Export from featureXML");
 
       MzTabMSRunMetaData ms_run;
-      feature_map.getPrimaryMSRunPath(ms_run);
-      ms_run.location = ms_run.empty() ? MzTabString("null") : MzTabString(ms_run[0]);
+      StringList spectra_data;
+      feature_map.getPrimaryMSRunPath(spectra_data);
+      ms_run.location = spectra_data.empty() ? MzTabString("null") : MzTabString(spectra_data[0]);
       meta_data.ms_run[1] = ms_run;
       meta_data.uri[1] = MzTabString(filename);
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO: we currently only support psm search engine scores annotated to the identification run
