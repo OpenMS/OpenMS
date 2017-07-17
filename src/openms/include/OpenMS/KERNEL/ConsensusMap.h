@@ -257,8 +257,9 @@ public:
     /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
-    /// get the file path to the first MS run
-    OPENMS_DLLAPI StringList getPrimaryMSRunPath() const;
+    /// get the file path to the first MS run (provide a StringList to emphasize that this returns
+    /// different copies everytime). Overrides the contents of the StringList if the spectra_data MetaValue is present!
+    OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
 
     /// Equality operator
     OPENMS_DLLAPI bool operator==(const ConsensusMap& rhs) const;

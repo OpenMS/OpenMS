@@ -370,7 +370,9 @@ protected:
     protein_ids[0].setDateTime(DateTime::now());
     protein_ids[0].setSearchEngine("OpenXQuest");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
-    protein_ids[0].setPrimaryMSRunPath(unprocessed_spectra.getPrimaryMSRunPath());
+    StringList ms_runs;
+    unprocessed_spectra.getPrimaryMSRunPath(ms_runs);
+    protein_ids[0].setPrimaryMSRunPath(ms_runs);
     protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
 
     ProteinIdentification::SearchParameters search_params;

@@ -147,14 +147,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     
-    const String mzid_out(getStringOption_("mzid_out"));
     const String out(getStringOption_("out"));
-    if (mzid_out.empty() && out.empty())
-    {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out')");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
 
     //-------------------------------------------------------------
     // read input
@@ -283,7 +276,9 @@ protected:
     
     // Storing the PeptideHits with calculated q-value, pep and svm score
     FileTypes::Type out_type = FileHandler::getType(out);
+    
     LOG_INFO << "writing output file: " << out << endl;
+    
     if (out_type == FileTypes::IDXML)
     {
       IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
