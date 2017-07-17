@@ -56,7 +56,7 @@ public:
     /// store MS file
     /// @return string (full path to file)
 
-    static String store(const PeakMap &spectra);
+    static void store(const PeakMap & spectra, OpenMS::String & msfile);
 
   };
 

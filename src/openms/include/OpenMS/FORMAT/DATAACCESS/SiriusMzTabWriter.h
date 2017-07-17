@@ -79,7 +79,7 @@ namespace OpenMS
     //Output of Sirius is one directory per spectrum/compound
     //paths: Path to output directories of sirius
     //number: Amount of entries for each file/compound should be written to the mztab file
-    static MzTab store(const std::vector<String> & paths, Size number);
+    static void read(const std::vector<String> & paths, Size number, MzTab & result);
 
   };
 

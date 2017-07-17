@@ -205,9 +205,10 @@ protected:
     std::vector<String> subdirs;
 
     //Write msfile
-    String ms_file = SiriusMSFile::store(spectra);
     String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + String(File::getUniqueName()).toQString();
+    String tmp_ms_file = tmp_dir + "/" + "msfile";
     String out_dir = tmp_dir + "/" + "sirius_out";
+    SiriusMSFile::store(spectra, tmp_ms_file);
 
     //Start Sirius
     QStringList process_params; // the actual process
@@ -238,7 +239,7 @@ protected:
       process_params << "--auto-charge";
     }
 
-    process_params << ms_file.toQString();
+    process_params << tmp_ms_file.toQString();
 
     QProcess qp;
     qp.start(executable, process_params); // does automatic escaping etc... start
@@ -264,18 +265,23 @@ protected:
     //sort vector path list
     std::sort(subdirs.begin(), subdirs.end(), sortByScanIndex);
 
-    //Convert sirius_output to mztab
-    MzTab smztab = SiriusMzTabWriter::store(subdirs, number);
-    MzTab cmztab = CsiFingerIdMzTabWriter::store(subdirs, number);
-
-    //Write output file
+    //Convert sirius_output to mztab and store file
+    MzTab sirius_result;
     MzTabFile siriusfile;
-    MzTabFile csifile;
-    siriusfile.store(out1, smztab);
-    csifile.store(out2, cmztab);
+    SiriusMzTabWriter::read(subdirs, number, sirius_result);
+    siriusfile.store(out1, sirius_result);
+
+    //Convert sirius_output to mztab and store file
+    if (!out2.empty() && fingerid == true)
+    {
+      MzTab csi_result;
+      MzTabFile csifile;
+      CsiFingerIdMzTabWriter::read(subdirs, number, csi_result);
+      csifile.store(out2, csi_result);
+    }
 
     //clean tmp directory
-    removeTempFiles_(tmp_dir, ms_file);
+    removeTempFiles_(tmp_dir, tmp_ms_file);
 
     return EXECUTION_OK;
   }

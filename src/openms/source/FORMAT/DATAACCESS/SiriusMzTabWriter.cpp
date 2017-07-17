@@ -61,10 +61,8 @@ String SiriusMzTabWriter::extract_scan_index(const String &path)
   return scan_index;
 }
 
-MzTab SiriusMzTabWriter::store(const std::vector<String> & paths, Size number)
+void SiriusMzTabWriter::read(const std::vector<String> & paths, Size number, MzTab & result)
 {
-
-  MzTab mztab;
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
 
@@ -129,7 +127,7 @@ MzTab SiriusMzTabWriter::store(const std::vector<String> & paths, Size number)
       smallmolecule_search_engine_score[2].setName("treescore");
       smallmolecule_search_engine_score[3].setName("isoscore");
       md.smallmolecule_search_engine_score = smallmolecule_search_engine_score;
-      mztab.setMetaData(md);
+      result.setMetaData(md);
 
       // write results to mzTab file
       MzTabSmallMoleculeSectionRows smsd;
@@ -178,12 +176,10 @@ MzTab SiriusMzTabWriter::store(const std::vector<String> & paths, Size number)
         }
       }
 
-      mztab.setSmallMoleculeSectionRows(smsd);
+      result.setSmallMoleculeSectionRows(smsd);
 
     }
   }
-  return mztab;
-
 }
 
 /// @endcond

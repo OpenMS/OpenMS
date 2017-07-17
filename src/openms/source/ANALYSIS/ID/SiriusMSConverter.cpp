@@ -76,11 +76,9 @@ namespace OpenMS
     return max_intensity_it - spectrum1.begin();
   }
 
-  String SiriusMSFile::store(const PeakMap &spectra)
+  void SiriusMSFile::store(const PeakMap &spectra, OpenMS::String & msfile)
   {
-    OpenMS::String msfile;
 
-    int count = 0; // internal for compounds in msfile
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
     int count_to_pos = 0; // count if charge 0 -> +1
     int count_to_neg = 0; // count if charge 0 -> -1
@@ -95,8 +93,19 @@ namespace OpenMS
       throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra are needed. Please use PeakPicker to convert the spectra.");
     }
 
-    // loop over all spectra in file
+    // loop over all spectra in file and write data to ofstream
     ofstream os;
+    String unique_name =  String(File::getUniqueName()).toQString(); // generate unique name once
+    String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + ".ms";
+    msfile = tmp_filename;
+
+    // create temporary input file (.ms)
+    os.open(tmp_filename.c_str());
+    if (!os)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
+    }
+    os.precision(12);
 
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
@@ -201,22 +210,6 @@ namespace OpenMS
 
         String query_id = String("unknown") + String(scan_index);
 
-        if (count == 0) // one ms file
-        {
-          // store data
-          String unique_name =  String(File::getUniqueName()).toQString(); // generate unique name once
-          String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + "_" + query_id.toQString() + ".ms";
-          msfile = tmp_filename;
-
-          // create temporary input file (.ms)
-          os.open(tmp_filename.c_str());
-          if (!os)
-          {
-            throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
-          }
-          os.precision(12);
-        }
-
         //write internal unique .ms data as sirius input
         os << fixed;
         os << ">compound " << query_id << "\n";
@@ -285,25 +278,16 @@ namespace OpenMS
         }
         os << "\n";
       }
-
-      count = count + 1; //needed that all spectra written in one ms-file
-
     }
 
-    // close previous (.ms) file
-    if (os.is_open())
-    {
-      os.close();
-    }
+    os.close();
 
     LOG_WARN << "No MS1 spectrum for this precursor. Occurred " << count_no_ms1 << " times." << endl;
     LOG_WARN << count_skipped_spectra << " spectra were skipped due to precursor charge below -1 and above +1." << endl;
     LOG_WARN << "Charge of 0 was set to +1 due to positive polarity " << count_to_pos << " times."<< endl;
     LOG_WARN << "Charge of 0 was set to -1 due to negative polarity " << count_to_neg << " times." << endl;
 
-    return msfile;
   }
-
 }
 
 /// @endcond

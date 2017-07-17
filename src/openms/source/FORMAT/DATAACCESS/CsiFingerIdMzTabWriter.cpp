@@ -51,10 +51,8 @@
 using namespace OpenMS;
 using namespace std;
 
-MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> & paths, Size number)
+void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number, MzTab & result)
 {
-
-  MzTab mztab;
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
 
@@ -110,7 +108,7 @@ MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> & paths, Size numb
       std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
       smallmolecule_search_engine_score[1].setName("score");
       md.smallmolecule_search_engine_score = smallmolecule_search_engine_score;
-      mztab.setMetaData(md);
+      result.setMetaData(md);
 
       // write results to mzTab file
       MzTabSmallMoleculeSectionRows smsd;
@@ -155,13 +153,10 @@ MzTab CsiFingerIdMzTabWriter::store(const std::vector<String> & paths, Size numb
         }
       }
 
-      mztab.setSmallMoleculeSectionRows(smsd);
+      result.setSmallMoleculeSectionRows(smsd);
 
     }
-
   }
-
-  return mztab;
 }
 
 /// @endcond
