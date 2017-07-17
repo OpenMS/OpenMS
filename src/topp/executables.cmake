@@ -5,6 +5,7 @@ set(directory source/APPLICATIONS/TOPP)
 set(TOPP_executables
 AdditiveSeries
 BaselineFilter
+CometAdapter
 CompNovo
 CompNovoCID
 ConsensusID
@@ -71,6 +72,7 @@ PeakPickerHiRes
 PeakPickerWavelet
 PepNovoAdapter
 PeptideIndexer
+PercolatorAdapter
 PhosphoScoring
 PrecursorIonSelector
 PrecursorMassCorrector

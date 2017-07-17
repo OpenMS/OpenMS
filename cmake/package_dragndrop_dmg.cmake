@@ -54,6 +54,7 @@ install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dep
 )
 
 ## Additionally install TOPPShell into root of install folder
+
 ########################################################### TOPPShell
 install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP-shell.command
         DESTINATION .

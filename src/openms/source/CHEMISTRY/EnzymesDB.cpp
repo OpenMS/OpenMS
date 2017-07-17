@@ -107,7 +107,7 @@ namespace OpenMS
     if (r->getRegEx() != "")
     {
       enzyme_regex_[r->getRegEx()] = r;
-    }    
+    }
     return;
   }
 
@@ -120,7 +120,7 @@ namespace OpenMS
   {
     return (enzyme_names_.find(enzy_name) != enzyme_names_.end());
   }
-  
+
   bool EnzymesDB::hasEnzyme(const Enzyme* enzyme) const
   {
     return (const_enzymes_.find(enzyme) != const_enzymes_.end() );
@@ -144,7 +144,7 @@ namespace OpenMS
       vector<String> split;
       param.begin().getName().split(':', split);
       String prefix = split[0] + split[1];
- 
+
       Map<String, String> values;
 
       for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
@@ -214,28 +214,36 @@ namespace OpenMS
         enzy_ptr->setCTermGain(EmpiricalFormula(value));
         continue;
       }
-      if (key.hasSubstring("PSIid"))
+      if (key.hasSubstring("PSIID"))
       {
-        // no PSIid defined?
+        // no PSI ID defined?
         if (!key.hasSuffix(":"))
         {
-          enzy_ptr->setPSIid(value);
+          enzy_ptr->setPSIID(value);
         }
         continue;
       }
-      if (key.hasSubstring("XTANDEMid"))
+      if (key.hasSubstring("XTandemID"))
       {
         if (!key.hasSuffix(":"))
         {
-          enzy_ptr->setXTANDEMid(value);
+          enzy_ptr->setXTandemID(value);
         }
         continue;
       }
-      if (key.hasSubstring("OMSSAid"))
+      if (key.hasSubstring("CometID"))
       {
         if (!key.hasSuffix(":"))
         {
-          enzy_ptr->setOMSSAid(value.toInt());
+          enzy_ptr->setCometID(value.toInt());
+        }
+        continue;
+      }
+      if (key.hasSubstring("OMSSAID"))
+      {
+        if (!key.hasSuffix(":"))
+        {
+          enzy_ptr->setOMSSAID(value.toInt());
         }
         continue;
       }
@@ -267,7 +275,20 @@ namespace OpenMS
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getXTANDEMid() != "")
+      if ((*it)->getXTandemID() != "")
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
+  }
+
+  void EnzymesDB::getAllCometNames(vector<String>& all_names) const
+  {
+    all_names.clear();
+    all_names.push_back("unspecific cleavage");
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      if ((*it)->getCometID() != 0)
       {
         all_names.push_back((*it)->getName());
       }
@@ -280,7 +301,7 @@ namespace OpenMS
     all_names.push_back("Trypsin");
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getOMSSAid() != 0)
+      if ((*it)->getOMSSAID() != 0)
       {
         all_names.push_back((*it)->getName());
       }

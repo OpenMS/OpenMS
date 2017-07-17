@@ -39,7 +39,6 @@
 namespace OpenMS
 {
   class Peak1D;
-  class RichPeak1D;
   class ChromatogramPeak;
 
   template <typename PeakT = Peak1D>

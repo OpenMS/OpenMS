@@ -35,7 +35,6 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
@@ -83,7 +82,7 @@ namespace OpenMS
 
     Map<Size, Map<Size, std::vector<std::pair<double, Peak1D> > > > traces;
 
-    SignalToNoiseEstimatorMeanIterative<RichPeakSpectrum> sne;
+    SignalToNoiseEstimatorMeanIterative<PeakSpectrum> sne;
     LinearResampler resampler;
 
     // Split the whole map into traces (== MRM transitions)
@@ -108,11 +107,11 @@ namespace OpenMS
     for (; first_it != map_->getChromatograms().end(); ++first_it)
     {
       // throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)
-      RichPeakSpectrum chromatogram;
+      PeakSpectrum chromatogram;
       //typename std::vector<std::pair<double, Peak1D> >::const_iterator it3 = it2->second.begin();
       for (MSChromatogram<ChromatogramPeak>::const_iterator it = first_it->begin(); it != first_it->end(); ++it)
       {
-        RichPeak1D peak;
+        Peak1D peak;
         peak.setMZ(it->getRT());
         peak.setIntensity(it->getIntensity());
         chromatogram.push_back(peak);
@@ -129,7 +128,7 @@ namespace OpenMS
       {
         // resample the chromatogram, first find minimal distance and use this as resampling distance
         double min_distance(std::numeric_limits<double>::max()), old_rt(0);
-        for (RichPeakSpectrum::ConstIterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
+        for (PeakSpectrum::ConstIterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
         {
           if (write_debuginfo)
           {
@@ -163,7 +162,7 @@ namespace OpenMS
       filter.setParameters(filter_param);
 
       // calculate signal to noise levels
-      RichPeakSpectrum sn_chrom;
+      PeakSpectrum sn_chrom;
       Param sne_param(sne.getParameters());
       // set window length to whole range, we expect only at most one signal
       if (write_debuginfo)
@@ -183,10 +182,12 @@ namespace OpenMS
       {
         std::cerr << first_it->getPrecursor().getMZ() << " " << first_it->getProduct().getMZ() << " ";
       }
-      for (RichPeakSpectrum::Iterator sit = chromatogram.begin(); sit != chromatogram.end(); ++sit)
+
+      PeakSpectrum::FloatDataArray signal_to_noise;
+      for (PeakSpectrum::Iterator sit = chromatogram.begin(); sit != chromatogram.end(); ++sit)
       {
         double sn(sne.getSignalToNoise(sit));
-        sit->setMetaValue("SN", sn);
+        signal_to_noise.push_back(sn);
         if (write_debuginfo)
         {
           std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
@@ -196,11 +197,12 @@ namespace OpenMS
           sn_chrom.push_back(*sit);
         }
       }
+      chromatogram.getFloatDataArrays().push_back(signal_to_noise);
 
       // now find sections in the chromatogram which have high s/n value
       double last_rt(0);
       std::vector<std::vector<DPosition<2> > > sections;
-      for (RichPeakSpectrum::Iterator sit = sn_chrom.begin(); sit != sn_chrom.end(); ++sit)
+      for (PeakSpectrum::Iterator sit = sn_chrom.begin(); sit != sn_chrom.end(); ++sit)
       {
         if (write_debuginfo)
         {
