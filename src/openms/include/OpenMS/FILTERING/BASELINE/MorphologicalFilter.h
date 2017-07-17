@@ -283,28 +283,20 @@ public:
                 number.
         </ul>
     */
-    template <typename PeakType>
-    void filter(MSSpectrum<PeakType> & spectrum)
+    void filter(MSSpectrum & spectrum)
     {
       //make sure the right peak type is set
       spectrum.setType(SpectrumSettings::RAWDATA);
 
       //Abort if there is nothing to do
-      if (spectrum.size() <= 1) return;
+      if (spectrum.size() <= 1) { return; }
 
       //Determine structuring element size in datapoints (depending on the unit)
       if ((String)(param_.getValue("struc_elem_unit")) == "Thomson")
       {
-        struct_size_in_datapoints_ =
-          UInt(
-            ceil(
-              (double)(param_.getValue("struc_elem_length"))
-              *
-              double(spectrum.size() - 1)
-              /
-              (spectrum.back().getMZ() - spectrum.begin()->getMZ())
-              )
-            );
+        const double struc_elem_length = (double)param_.getValue("struc_elem_length");
+        const double mz_diff = spectrum.back().getMZ() - spectrum.begin()->getMZ();
+        struct_size_in_datapoints_ = (UInt)(ceil(struc_elem_length)*(double)(spectrum.size() - 1)/mz_diff);
       }
       else
       {
@@ -314,7 +306,7 @@ public:
       if (!Math::isOdd(struct_size_in_datapoints_)) ++struct_size_in_datapoints_;
 
       //apply the filtering and overwrite the input data
-      std::vector<typename PeakType::IntensityType> output(spectrum.size());
+      std::vector<Peak1D::IntensityType> output(spectrum.size());
       filterRange(Internal::intensityIteratorWrapper(spectrum.begin()),
                   Internal::intensityIteratorWrapper(spectrum.end()),
                   output.begin()

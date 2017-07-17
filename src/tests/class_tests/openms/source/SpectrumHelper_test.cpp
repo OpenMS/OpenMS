@@ -46,16 +46,16 @@ using namespace std;
 
 START_TEST(SpectrumHelper, "$Id$")
 
-START_SECTION((MSSpectrum<>::FloatDataArrays::iterator getDataArrayByName(MSSpectrum::FloatDataArrays& a, const String& name)))
-	MSSpectrum<> ds;
-	MSSpectrum<>::FloatDataArray float_array;
+START_SECTION((MSSpectrum::FloatDataArrays::iterator getDataArrayByName(MSSpectrum::FloatDataArrays& a, const String& name)))
+	MSSpectrum ds;
+	MSSpectrum::FloatDataArray float_array;
         float_array.push_back(56);  
         float_array.push_back(201); 
         float_array.push_back(31);  
         float_array.push_back(201); 
         float_array.push_back(201);  
 	
-        ds.getFloatDataArrays() = std::vector<MSSpectrum<>::FloatDataArray>(3, float_array);
+        ds.getFloatDataArrays() = std::vector<MSSpectrum::FloatDataArray>(3, float_array);
 	ds.getFloatDataArrays()[0].setName("f1");
 	ds.getFloatDataArrays()[1].setName("f2");
 	ds.getFloatDataArrays()[2].setName("f3");
@@ -68,22 +68,22 @@ START_SECTION((MSSpectrum<>::FloatDataArrays::iterator getDataArrayByName(MSSpec
         TEST_EQUAL(getDataArrayByName(ds.getFloatDataArrays(), "f3") - ds.getFloatDataArrays().begin(), 2);
 
         // test const version
-        const MSSpectrum<>::FloatDataArrays cfa(ds.getFloatDataArrays());
+        const MSSpectrum::FloatDataArrays cfa(ds.getFloatDataArrays());
         TEST_EQUAL(getDataArrayByName(cfa, "f2") == cfa.end(), false);
         TEST_EQUAL(getDataArrayByName(cfa, "f1") - cfa.begin(), 0);
         TEST_EQUAL(getDataArrayByName(cfa, "NOT_THERE") == cfa.end(), true);
 
 END_SECTION
 
-START_SECTION((MSSpectrum<>::StringDataArrays::iterator getDataArrayByName(MSSpectrum::StringDataArrays& a, const String& name)))
-	MSSpectrum<> ds;
-	MSSpectrum<>::StringDataArray string_array;
+START_SECTION((MSSpectrum::StringDataArrays::iterator getDataArrayByName(MSSpectrum::StringDataArrays& a, const String& name)))
+	MSSpectrum ds;
+	MSSpectrum::StringDataArray string_array;
         string_array.push_back("56");  
         string_array.push_back("201"); 
         string_array.push_back("31");  
         string_array.push_back("201"); 
         string_array.push_back("201");  
-	ds.getStringDataArrays() = std::vector<MSSpectrum<>::StringDataArray>(3, string_array);
+	ds.getStringDataArrays() = std::vector<MSSpectrum::StringDataArray>(3, string_array);
 	ds.getStringDataArrays()[0].setName("f1");
 	ds.getStringDataArrays()[1].setName("f2");
 	ds.getStringDataArrays()[2].setName("f3");
@@ -96,16 +96,16 @@ START_SECTION((MSSpectrum<>::StringDataArrays::iterator getDataArrayByName(MSSpe
         TEST_EQUAL(getDataArrayByName(ds.getStringDataArrays(), "f3") - ds.getStringDataArrays().begin(), 2);
 END_SECTION
 
-START_SECTION((MSSpectrum<>::IntegerDataArrays::iterator getDataArrayByName(MSSpectrum::IntegerDataArrays& a, const String& name)))
-	MSSpectrum<> ds;
-	MSSpectrum<>::IntegerDataArray int_array;
+START_SECTION((MSSpectrum::IntegerDataArrays::iterator getDataArrayByName(MSSpectrum::IntegerDataArrays& a, const String& name)))
+	MSSpectrum ds;
+	MSSpectrum::IntegerDataArray int_array;
         int_array.push_back(56);  
         int_array.push_back(201); 
         int_array.push_back(31);  
         int_array.push_back(201); 
         int_array.push_back(201);  
 
-	ds.getIntegerDataArrays() = std::vector<MSSpectrum<>::IntegerDataArray>(3, int_array);
+	ds.getIntegerDataArrays() = std::vector<MSSpectrum::IntegerDataArray>(3, int_array);
 	ds.getIntegerDataArrays()[0].setName("f1");
 	ds.getIntegerDataArrays()[1].setName("f2");
 	ds.getIntegerDataArrays()[2].setName("f3");

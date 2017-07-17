@@ -367,7 +367,7 @@ END_SECTION
 
 START_SECTION((virtual void updateRanges()))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setMSLevel(1);
@@ -460,7 +460,7 @@ START_SECTION((virtual void updateRanges()))
 	//test with only one peak
 
 	PeakMap tmp2;
-	MSSpectrum< Peak1D > s2;
+	MSSpectrum s2;
 	Peak1D p2;
 
 	s2.setRT(30.0);
@@ -489,7 +489,7 @@ END_SECTION
 
 START_SECTION((void updateRanges(Int ms_level)))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setMSLevel(1);
@@ -550,7 +550,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 	//test with only one peak
 
 	PeakMap tmp2;
-	MSSpectrum< Peak1D > s2;
+	MSSpectrum s2;
 	Peak1D p2;
 
 	s2.setRT(30.0);
@@ -657,7 +657,7 @@ END_SECTION
 
 START_SECTION((Iterator RTBegin(CoordinateType rt)))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setRT(30.0);
@@ -682,7 +682,7 @@ END_SECTION
 
 START_SECTION((Iterator RTEnd(CoordinateType rt)))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setRT(30.0);
@@ -707,7 +707,7 @@ END_SECTION
 
 START_SECTION((ConstIterator RTBegin(CoordinateType rt) const))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setRT(30.0);
@@ -732,7 +732,7 @@ END_SECTION
 
 START_SECTION((ConstIterator RTEnd(CoordinateType rt) const))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setRT(30.0);

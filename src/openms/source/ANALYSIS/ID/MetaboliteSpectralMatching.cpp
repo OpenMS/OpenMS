@@ -294,7 +294,7 @@ MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
 
 /// public methods
 
-double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spectrum, MSSpectrum<Peak1D> db_spectrum,
+double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum exp_spectrum, MSSpectrum db_spectrum,
                              const double& fragment_mass_error, const double& mz_lower_bound)
 {
 
@@ -302,7 +302,7 @@ double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spec
   Size matched_ions_count(0);
 
   // scan for matching peaks between observed and DB stored spectra
-  for (MSSpectrum<Peak1D>::iterator frag_it = exp_spectrum.MZBegin(mz_lower_bound); frag_it != exp_spectrum.end(); ++frag_it)
+  for (MSSpectrum::iterator frag_it = exp_spectrum.MZBegin(mz_lower_bound); frag_it != exp_spectrum.end(); ++frag_it)
   {
     double frag_mz = frag_it->getMZ();
 
@@ -313,8 +313,8 @@ double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spec
       mz_offset = frag_mz * 1e-6 * fragment_mass_error;
     }
 
-    MSSpectrum<Peak1D>::iterator db_mass_it = db_spectrum.MZBegin(frag_mz - mz_offset);
-    MSSpectrum<Peak1D>::iterator db_mass_end = db_spectrum.MZEnd(frag_mz + mz_offset);
+    MSSpectrum::iterator db_mass_it = db_spectrum.MZBegin(frag_mz - mz_offset);
+    MSSpectrum::iterator db_mass_end = db_spectrum.MZEnd(frag_mz + mz_offset);
 
     std::pair<double, Peak1D> nearest_peak(mz_offset + 1.0, Peak1D());
 

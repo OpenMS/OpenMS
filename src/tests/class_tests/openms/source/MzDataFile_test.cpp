@@ -696,20 +696,20 @@ START_SECTION([EXTRA] storing / loading of meta data arrays)
   MzDataFile file;
   //init spectrum/experiment/meta data array
   PeakMap exp;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   spec.resize(5);
   spec[0].setIntensity(1.0f); spec[0].setMZ(1.0);
   spec[1].setIntensity(2.0f); spec[1].setMZ(2.0);
   spec[2].setIntensity(3.0f); spec[2].setMZ(3.0);
   spec[3].setIntensity(4.0f); spec[3].setMZ(4.0);
   spec[4].setIntensity(5.0f); spec[4].setMZ(5.0);
-  MSSpectrum<>::FloatDataArray mda1;
+  MSSpectrum::FloatDataArray mda1;
   mda1.push_back(1.1f);
   mda1.push_back(1.2f);
   mda1.push_back(1.3f);
   mda1.push_back(1.4f);
   mda1.push_back(1.5f);
-  MSSpectrum<>::FloatDataArray mda2;
+  MSSpectrum::FloatDataArray mda2;
   mda2.push_back(-2.1f);
   mda2.push_back(-2.2f);
   mda2.push_back(-2.3f);

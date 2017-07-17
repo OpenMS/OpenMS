@@ -316,11 +316,11 @@ namespace OpenMS
 
       for (Size i = 0; i < cl.getPeakData()->size(); ++i)
       {
-        const MSSpectrum<>& current_spec = (*cl.getPeakData())[i];
+        const MSSpectrum& current_spec = (*cl.getPeakData())[i];
 
         if (i > 0)
         {
-          const MSSpectrum<>& prev_spec = (*cl.getPeakData())[i-1];
+          const MSSpectrum& prev_spec = (*cl.getPeakData())[i-1];
           // current MS level = previous MS level + 1 (e.g. current: MS2, previous: MS1)
           if (current_spec.getMSLevel() == prev_spec.getMSLevel() + 1)
           {
@@ -462,7 +462,7 @@ namespace OpenMS
         selected_item = 0;
         for (Size i = 0; i < cl.getPeakData()->size(); ++i)
         {
-          const MSSpectrum<>& current_spec = (*cl.getPeakData())[i];
+          const MSSpectrum& current_spec = (*cl.getPeakData())[i];
           item = new QTreeWidgetItem((QTreeWidget *)0);
           item->setText(0, QString("MS") + QString::number(current_spec.getMSLevel()));
           item->setText(1, QString::number(i));

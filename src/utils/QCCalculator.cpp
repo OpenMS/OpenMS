@@ -149,12 +149,12 @@ protected:
     return error;
   }
 
-//  void calculateSNident (PeptideHit& hit, MSSpectrum<Peak1D>& spec)
+//  void calculateSNident (PeptideHit& hit, MSSpectrum& spec)
 //  {
     // TODO
 //  }
 
-  float calculateSNmedian (MSSpectrum<Peak1D>& spec, bool norm = true)
+  float calculateSNmedian (MSSpectrum& spec, bool norm = true)
   {
     if (spec.size() == 0) return 0;
     float median = 0;
@@ -180,7 +180,7 @@ protected:
     float nois_int = 0;
     size_t sign_cnt= 0;
     size_t nois_cnt = 0;
-    for (MSSpectrum<Peak1D>::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+    for (MSSpectrum::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
     {
       if (pt->getIntensity() <= median)
       {

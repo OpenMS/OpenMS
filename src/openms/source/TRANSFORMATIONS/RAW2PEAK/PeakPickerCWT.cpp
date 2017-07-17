@@ -170,7 +170,7 @@ namespace OpenMS
     defaults_.setMinInt("deconvolution:fitting:max_iteration", 1);
 
     //this->subsections_.push_back("SignalToNoiseEstimationParameter");
-    SignalToNoiseEstimatorMeanIterative<MSSpectrum<> > sne;      // make sure this is the same as in pick()!
+    SignalToNoiseEstimatorMeanIterative<MSSpectrum> sne;      // make sure this is the same as in pick()!
     Param param_sne_defaults =  sne.getDefaults();
     Param::ParamIterator param_it = param_sne_defaults.begin();
     for (; param_it != param_sne_defaults.end(); ++param_it)
@@ -593,7 +593,7 @@ namespace OpenMS
     // positions -scale and +scale the peak value should correspond to the noise_level_
     //double lambda = sqrt((-noise_level_*(-peak_bound_+noise_level_)))/(noise_level_*scale_);
 
-    MSSpectrum<> lorentz_peak;
+    MSSpectrum lorentz_peak;
     lorentz_peak.reserve(n);
 
     // TODO: switch the type of the transform
@@ -605,7 +605,7 @@ namespace OpenMS
     for (Int i = 0; i < n; ++i)
     {
       double p = i * spacing + start;
-      MSSpectrum<>::value_type peak(p, lorentz_(peak_bound_in, lambda, 0, p));
+      MSSpectrum::value_type peak(p, lorentz_(peak_bound_in, lambda, 0, p));
       lorentz_peak.push_back(peak);
     }
 
@@ -1093,7 +1093,7 @@ namespace OpenMS
 
   }
 
-  void PeakPickerCWT::pick(const MSSpectrum<> & input, MSSpectrum<> & output) const
+  void PeakPickerCWT::pick(const MSSpectrum & input, MSSpectrum & output) const
   {
     // copy the spectrum meta data
     output.clear(true);
@@ -1140,9 +1140,9 @@ namespace OpenMS
     // std::vector<double> peak_endpoints;
 
     // copy the raw data into a std::vector<Peak1D>
-    MSSpectrum<> raw_peak_array;
+    MSSpectrum raw_peak_array;
     // signal to noise estimator
-    SignalToNoiseEstimatorMeanIterative<MSSpectrum<> > sne;
+    SignalToNoiseEstimatorMeanIterative<MSSpectrum> sne;
     Param sne_param(param_.copy("SignalToNoiseEstimationParameter:", true));
     sne.setParameters(sne_param);
 
@@ -1492,7 +1492,7 @@ namespace OpenMS
       // ... for different peak widths
       for (Size w = 0; w < test_widths.size(); ++w)
       {
-        MSSpectrum<> spec;
+        MSSpectrum spec;
         param_.setValue("peak_width", test_widths[w]);
         updateMembers_();
 #ifdef DEBUG_PEAK_PICKING2

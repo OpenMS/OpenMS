@@ -20,7 +20,6 @@ from SpectrumAccessOpenMSCached cimport *
 ### # from SpectrumAccessQuadMZTransforming cimport *
 
 # typedef OpenSwath::LightTransition TransitionType;
-# typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType;
 # typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespace "OpenMS":

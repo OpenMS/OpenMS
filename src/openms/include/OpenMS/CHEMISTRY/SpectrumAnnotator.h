@@ -109,7 +109,7 @@ namespace OpenMS
       See the parameter section of this class for the available statistics.
       @htmlinclude OpenMS_SpectrumAnnotator.parameters
     */
-    void addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum<Peak1D> &spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
+    void addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum &spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
 
     /// overwrite
     void updateMembers_();

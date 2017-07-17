@@ -59,7 +59,7 @@ namespace OpenMS
     */
 
 	typedef PeakMap MapType;
-	typedef MSSpectrum<> SpectrumType;
+	typedef MSSpectrum SpectrumType;
 	typedef MSChromatogram<> ChromatogramType;
 
     class OPENMS_DLLAPI MzDataHandler :
@@ -108,7 +108,7 @@ protected:
       /// Peak type
       typedef MapType::PeakType PeakType;
       /// Spectrum type
-      typedef MSSpectrum<PeakType> SpectrumType;
+      typedef MSSpectrum SpectrumType;
 
       /// map pointer for reading
       MapType * exp_;

@@ -333,7 +333,7 @@ START_SECTION(( template < typename SpectrumT > void extract_value_tophat(const 
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
 
   // convert the data into a spectrum
-  MSSpectrum<Peak1D> spectrum;
+  MSSpectrum spectrum;
   for(Size i=0; i<mz.size(); ++i)
   {
     Peak1D peak;
@@ -406,7 +406,7 @@ START_SECTION( ( template < typename SpectrumT > void extract_value_bartlett(con
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
 
   // convert the data into a spectrum
-  MSSpectrum<Peak1D> spectrum;
+  MSSpectrum spectrum;
   for(Size i=0; i<mz.size(); ++i)
   {
     Peak1D peak;

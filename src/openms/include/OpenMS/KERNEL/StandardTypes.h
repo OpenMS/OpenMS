@@ -37,6 +37,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
@@ -49,7 +50,7 @@ namespace OpenMS
       @ingroup Kernel
   */
 
-  typedef MSSpectrum<Peak1D> PeakSpectrum;
+  typedef MSSpectrum PeakSpectrum;
   /**
       @brief Two-dimensional map of raw data points or peaks.
 

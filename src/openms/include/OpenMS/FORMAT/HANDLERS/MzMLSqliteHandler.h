@@ -87,11 +87,11 @@ protected:
 
       void populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms);
 
-      void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra);
+      void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum>& spectra);
 
       void prepareChroms_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms);
 
-      void prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra);
+      void prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra);
       //@}
 
 public:
@@ -124,7 +124,7 @@ public:
 
           @param spectra The spectra to write
       */
-      void writeSpectra(const std::vector<MSSpectrum<> >& spectra);
+      void writeSpectra(const std::vector<MSSpectrum>& spectra);
 
       /**
           @brief Writes a set of chromatograms to disk

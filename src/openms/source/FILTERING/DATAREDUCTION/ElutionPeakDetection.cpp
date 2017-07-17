@@ -569,7 +569,7 @@ namespace OpenMS
     // looking at the unit test, this method gives better fits than lowess smoothing
     // reference paper uses lowess smoothing
 
-    MSSpectrum<PeakType> spectrum;
+    MSSpectrum spectrum;
     spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
     SavitzkyGolayFilter sg;
     Param param;
@@ -577,7 +577,7 @@ namespace OpenMS
     param.setValue("frame_length", std::max(3, win_size)); // frame length must be at least polynomial_order+1, otherwise SG will fail
     sg.setParameters(param);
     sg.filter(spectrum);
-    MSSpectrum<PeakType>::iterator iter = spectrum.begin();
+    MSSpectrum::iterator iter = spectrum.begin();
     std::vector<double> smoothed_intensities;
     for (; iter != spectrum.end(); ++iter)
     {

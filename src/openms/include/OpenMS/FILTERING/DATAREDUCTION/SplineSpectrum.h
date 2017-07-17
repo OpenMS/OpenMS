@@ -53,7 +53,7 @@ namespace OpenMS
  * Between these splines no raw data points exist and the spectrum intensity is identical to zero.
  *
  * @see SplinePackage
- * @see MSSpectrum<Peak1D>
+ * @see MSSpectrum
  */
 class OPENMS_DLLAPI SplineSpectrum
 {
@@ -71,8 +71,8 @@ class OPENMS_DLLAPI SplineSpectrum
      * @brief constructor taking an MSSpectrum
      * (and an optional scaling factor for the m/z step width)
      */
-    SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum);
-    SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling);
+    SplineSpectrum(MSSpectrum& raw_spectrum);
+    SplineSpectrum(MSSpectrum& raw_spectrum, double scaling);
 
     /**
      * @brief destructor

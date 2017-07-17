@@ -178,21 +178,21 @@ START_SECTION((boost::shared_ptr<const ExperimentalSettings> getExperimentalSett
 }
 END_SECTION
 
-START_SECTION((MSSpectrum<PeakT> operator[] (Size n) const))
+START_SECTION((MSSpectrum operator[] (Size n) const))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
-  MSSpectrum<> s = tmp[0];
+  MSSpectrum s = tmp[0];
   TEST_EQUAL(s.empty(), false);
   TEST_EQUAL(s.size(), 19914);
 }
 END_SECTION
 
-START_SECTION((MSSpectrum<PeakT> getSpectrum(Size id)))
+START_SECTION((MSSpectrum getSpectrum(Size id)))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
-  MSSpectrum<> s = tmp.getSpectrum(0);
+  MSSpectrum s = tmp.getSpectrum(0);
   TEST_EQUAL(s.empty(), false);
   TEST_EQUAL(s.size(), 19914);
 }

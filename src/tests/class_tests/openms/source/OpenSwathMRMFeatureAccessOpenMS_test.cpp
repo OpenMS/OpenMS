@@ -117,13 +117,13 @@ END_SECTION
 
 //SignalToNoiseOpenMS
 {
-SignalToNoiseOpenMS<MSSpectrum<> >* ptr = 0;
-SignalToNoiseOpenMS<MSSpectrum<> >* nullPointer = 0;
+SignalToNoiseOpenMS<MSSpectrum>* ptr = 0;
+SignalToNoiseOpenMS<MSSpectrum>* nullPointer = 0;
 
 START_SECTION(SignalToNoiseOpenMS())
 {
-  OpenMS::MSSpectrum<> chromat;
-  ptr = new SignalToNoiseOpenMS<MSSpectrum<> >(chromat, 1.0, 3.0, true);
+  OpenMS::MSSpectrum chromat;
+  ptr = new SignalToNoiseOpenMS<MSSpectrum>(chromat, 1.0, 3.0, true);
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -152,7 +152,7 @@ START_SECTION(double getValueAtRT(double RT))
   };
   std::vector<double> intensity (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
-  MSSpectrum<> s;
+  MSSpectrum s;
   for (Size i = 0; i < mz.size(); i++)
   {
     Peak1D p;
@@ -160,7 +160,7 @@ START_SECTION(double getValueAtRT(double RT))
     p.setIntensity(intensity[i]);
     s.push_back(p);
   }
-  SignalToNoiseOpenMS<MSSpectrum<> > ff(s, 200, 50, true);
+  SignalToNoiseOpenMS<MSSpectrum> ff(s, 200, 50, true);
 
   double value200 = 0.987854524;
   double value210 = 1.02162;

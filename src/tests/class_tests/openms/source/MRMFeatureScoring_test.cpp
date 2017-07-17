@@ -152,11 +152,11 @@ START_SECTION((virtual void test_dia_scores()))
   int by_charge_state = 1;
 
   // find spectrum that is closest to the apex of the peak (set to 3120) using binary search
-  MSSpectrum<Peak1D> OpenMSspectrum = (*swath_map.RTBegin( 3120 ));
+  MSSpectrum OpenMSspectrum = (*swath_map.RTBegin( 3120 ));
 
   OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-  for(MSSpectrum<>::iterator it = OpenMSspectrum.begin(); it != OpenMSspectrum.end(); it++)
+  for(MSSpectrum::iterator it = OpenMSspectrum.begin(); it != OpenMSspectrum.end(); it++)
   {
     mz_array->data.push_back(it->getMZ());
     intensity_array->data.push_back(it->getIntensity());

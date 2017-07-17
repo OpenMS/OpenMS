@@ -81,8 +81,7 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be read
     */
-    template <class PeakType>
-    void load(const String & filename, MSSpectrum<PeakType> & spectrum)
+    void load(const String & filename, MSSpectrum & spectrum)
     {
       Internal::AcqusHandler acqus(filename.prefix(filename.length() - 3) + String("acqus"));
 
@@ -96,13 +95,13 @@ public:
       spectrum.clear(true);
 
       //temporary variables
-      PeakType p;
+      Peak1D p;
 
       while (spectrum.size() < acqus.getSize())
       {
         //fill peak
-        p.setPosition((typename PeakType::PositionType)acqus.getPosition(fid.getIndex()));
-        p.setIntensity((typename PeakType::IntensityType)fid.getIntensity());
+        p.setPosition((Peak1D::PositionType)acqus.getPosition(fid.getIndex()));
+        p.setIntensity((Peak1D::IntensityType)fid.getIntensity());
         spectrum.push_back(p);
       }
       fid.close();
@@ -239,8 +238,7 @@ public:
 
         @exception Exception::FileNotWritable is thrown
     */
-    template <typename SpectrumType>
-    void store(const String & /*filename*/, const SpectrumType & /*spectrum*/)
+    void store(const String & /*filename*/, const MSSpectrum & /*spectrum*/)
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }

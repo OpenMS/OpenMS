@@ -61,11 +61,11 @@ START_SECTION((virtual ~GaussFilter()))
     delete dgauss_ptr;
 END_SECTION
 
-START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& spectrum)))
-  MSSpectrum<Peak1D> spectrum;
+START_SECTION((template <typename PeakType> void filter(MSSpectrum& spectrum)))
+  MSSpectrum spectrum;
   spectrum.resize(5);
 
-  MSSpectrum<Peak1D>::Iterator it = spectrum.begin();
+  MSSpectrum::Iterator it = spectrum.begin();
   for (Size i=0; i<5; ++i, ++it)
   {
     it->setIntensity(1.0f);

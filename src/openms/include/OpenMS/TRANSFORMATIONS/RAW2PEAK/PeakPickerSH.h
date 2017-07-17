@@ -59,7 +59,7 @@ public:
      @brief Picks peaks in one spectrum.
     */
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, float fWindowWidth)
+    void pick(const MSSpectrum & input, MSSpectrum & output, float fWindowWidth)
     {
       int i, hw, j;
       double cm, toti, min_dh;

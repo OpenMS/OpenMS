@@ -99,8 +99,7 @@ public:
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
      */
-    template <typename PeakType>
-    void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output) const
+    void pick(const MSSpectrum& input, MSSpectrum& output) const
     {
       std::vector<PeakBoundary> boundaries;
       pick(input, output, boundaries);
@@ -117,7 +116,7 @@ public:
      * @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
     template <typename PeakType>
-      void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const
+      void pick(const MSSpectrum& input, MSSpectrum& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const
     {
       // copy meta data of the input spectrum
       output.clear(true);
@@ -144,7 +143,7 @@ public:
       }
 
       // signal-to-noise estimation
-      SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
+      SignalToNoiseEstimatorMedian<MSSpectrum > snt;
       snt.setParameters(param_.copy("SignalToNoise:", true));
 
       if (signal_to_noise_ > 0.0)
@@ -461,8 +460,8 @@ public:
       output.MetaInfoInterface::operator=(input);
       output.setName(input.getName());
 
-      MSSpectrum<PeakType> input_spectrum;
-      MSSpectrum<PeakType> output_spectrum;
+      MSSpectrum input_spectrum;
+      MSSpectrum output_spectrum;
       for (typename MSChromatogram<PeakType>::const_iterator it = input.begin(); it != input.end(); ++it)
       {
         input_spectrum.push_back(*it);
@@ -593,7 +592,7 @@ public:
           }
           else
           {
-            MSSpectrum<> s = input[scan_idx];
+            MSSpectrum s = input[scan_idx];
             s.sortByPosition();
 
             // determine type of spectral data (profile or centroided)

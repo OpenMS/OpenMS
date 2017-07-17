@@ -203,7 +203,7 @@ protected:
       TextFile tf;
       for (Size i = 0; i < mw->getPoints().size(); ++i)
       {
-        MSSpectrum<> s = mw->getPoints()[i];
+        MSSpectrum s = mw->getPoints()[i];
         StringList sl1;
         StringList sl2;
         for (Size j = 0; j < s.size(); ++j)

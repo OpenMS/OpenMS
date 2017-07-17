@@ -130,7 +130,7 @@ protected:
     PeakMap experiment;
     MzMLFile().load(in, experiment);
 
-    vector<MSSpectrum<Peak1D> > spectra;
+    vector<MSSpectrum > spectra;
     vector<MSChromatogram<ChromatogramPeak> > chromatograms;
 
     if (no_spec)

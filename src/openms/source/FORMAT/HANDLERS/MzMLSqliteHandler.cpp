@@ -78,7 +78,7 @@ namespace OpenMS
 
       // creates the chromatograms but does not fill them with data (provides option to return meta-data only)
       std::vector<MSChromatogram<> > chromatograms;
-      std::vector<MSSpectrum<> > spectra;
+      std::vector<MSSpectrum> spectra;
       prepareChroms_(db, chromatograms);
       prepareSpectra_(db, spectra);
       if (meta_only) 
@@ -214,7 +214,7 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra)
+    void MzMLSqliteHandler::populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum>& spectra)
     {
       sqlite3_stmt * stmt;
       int rc;
@@ -295,7 +295,7 @@ namespace OpenMS
           // intensity
           if (spectra[spec_id].empty()) spectra[spec_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (MSSpectrum<>::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); ++it, ++data_it)
+          for (MSSpectrum::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); ++it, ++data_it)
           {
             it->setIntensity(*data_it);
           }
@@ -306,7 +306,7 @@ namespace OpenMS
           // mz
           if (spectra[spec_id].empty()) spectra[spec_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (MSSpectrum<>::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); ++it, ++data_it)
+          for (MSSpectrum::iterator it = spectra[spec_id].begin(); it != spectra[spec_id].end(); ++it, ++data_it)
           {
             it->setMZ(*data_it);
           }
@@ -419,7 +419,7 @@ namespace OpenMS
       sqlite3_finalize(stmt);
   }
 
-    void MzMLSqliteHandler::prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra)
+    void MzMLSqliteHandler::prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra)
     {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -459,7 +459,7 @@ namespace OpenMS
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
-        MSSpectrum<> spec;
+        MSSpectrum spec;
 
         const unsigned char * native_id = sqlite3_column_text(stmt, 1);
         spec.setNativeID( std::string(reinterpret_cast<const char*>(native_id), sqlite3_column_bytes(stmt, 1)));
@@ -601,7 +601,7 @@ namespace OpenMS
       sqlite3_close(db);
     }
 
-    void MzMLSqliteHandler::writeSpectra(const std::vector<MSSpectrum<> >& spectra)
+    void MzMLSqliteHandler::writeSpectra(const std::vector<MSSpectrum>& spectra)
     {
       // prevent writing of empty data which would throw an SQL exception
       if (spectra.empty()) return;
@@ -644,7 +644,7 @@ namespace OpenMS
       int nr_products = 0;
       for (Size k = 0; k < spectra.size(); k++)
       {
-        const MSSpectrum<>& spec = spectra[k];
+        const MSSpectrum& spec = spectra[k];
         int polarity = (spec.getInstrumentSettings().getPolarity() == IonSource::POSITIVE); // 1 = positive
         insert_spectra_sql << "INSERT INTO SPECTRUM(ID, NATIVE_ID, MSLEVEL, RETENTION_TIME, SCAN_POLARITY) VALUES (" << 
           spec_id_ << ",'" << spec.getNativeID() << 

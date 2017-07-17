@@ -52,7 +52,7 @@ namespace OpenMS
          it_rt < exp_picked.end() && it_rt_boundaries < boundaries.end();
          ++it_rt, ++it_rt_boundaries)
     {
-      MSSpectrum<Peak1D>::ConstIterator it_mz;
+      MSSpectrum::ConstIterator it_mz;
       std::vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
       for (it_mz = it_rt->begin(), it_mz_boundary = it_rt_boundaries->begin();
            it_mz < it_rt->end() && it_mz_boundary < it_rt_boundaries->end();

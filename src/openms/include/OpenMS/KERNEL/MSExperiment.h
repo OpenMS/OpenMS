@@ -103,7 +103,7 @@ public:
     /// RangeManager type
     typedef RangeManager<2> RangeManagerType;
     /// Spectrum Type
-    typedef MSSpectrum<PeakType> SpectrumType;
+    typedef MSSpectrum SpectrumType;
     /// Chromatogram type
     typedef MSChromatogram<ChromatogramPeakType> ChromatogramType;
     /// STL base class type
@@ -824,25 +824,25 @@ public:
     }
 
     /// sets the spectrum list
-    void setSpectra(const std::vector<MSSpectrum<PeakT> > & spectra)
+    void setSpectra(const std::vector<MSSpectrum> & spectra)
     {
       spectra_ = spectra;
     }
 
     /// adds a spectrum to the list
-    void addSpectrum(const MSSpectrum<PeakT> & spectrum)
+    void addSpectrum(const MSSpectrum & spectrum)
     {
       spectra_.push_back(spectrum);
     }
 
     /// returns the spectrum list
-    const std::vector<MSSpectrum<PeakT> > & getSpectra() const
+    const std::vector<MSSpectrum> & getSpectra() const
     {
       return spectra_;
     }
 
     /// returns the spectrum list (mutable)
-    std::vector<MSSpectrum<PeakT> > & getSpectra()
+    std::vector<MSSpectrum> & getSpectra()
     {
       return spectra_;
     }
@@ -880,7 +880,7 @@ public:
     }
 
     /// returns a single spectrum 
-    MSSpectrum<PeakT> & getSpectrum(Size id) 
+    MSSpectrum & getSpectrum(Size id)
     {
       return spectra_[id];
     }
@@ -1048,7 +1048,7 @@ private:
       StringList::const_iterator itm = metadata_names.begin();
       for (; itm != metadata_names.end(); ++itm)
       {
-        spectrum->getFloatDataArrays().push_back(MSSpectrum<>::FloatDataArray());
+        spectrum->getFloatDataArrays().push_back(MSSpectrum::FloatDataArray());
         spectrum->getFloatDataArrays().back().setName(*itm);
       }
       return spectrum;
@@ -1065,7 +1065,7 @@ private:
     os << static_cast<const ExperimentalSettings &>(exp);
 
     //spectra
-    for (std::vector<MSSpectrum<> >::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
+    for (std::vector<MSSpectrum>::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
     {
       os << *it;
     }

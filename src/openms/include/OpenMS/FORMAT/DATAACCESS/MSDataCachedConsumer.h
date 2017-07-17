@@ -56,7 +56,7 @@ namespace OpenMS
       public CachedmzML,
       public Interfaces::IMSDataConsumer
     {
-      typedef MSSpectrum<> SpectrumType;
+      typedef MSSpectrum SpectrumType;
       typedef MSChromatogram<> ChromatogramType;
 
     public:

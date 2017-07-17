@@ -99,7 +99,7 @@ START_SECTION((PeakShape(const PeakShape& rhs)))
     TEST_REAL_SIMILAR(peakshape.area, 8329832.141)
     TEST_EQUAL(peakshape.type, PeakShape::LORENTZ_PEAK)
 END_SECTION
-MSSpectrum<> spec;
+MSSpectrum spec;
 spec.resize(100);
 for(Int i = 0; i<100;++i)
 {

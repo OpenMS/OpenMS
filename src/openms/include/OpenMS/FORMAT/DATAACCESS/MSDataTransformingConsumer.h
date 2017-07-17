@@ -49,7 +49,7 @@ namespace OpenMS
     /**
       @brief Empty (NOP) function
     */
-    OPENMS_DLLAPI extern void FunctionSpectrumNOP (MSSpectrum<Peak1D> & /* s */);
+    OPENMS_DLLAPI extern void FunctionSpectrumNOP (MSSpectrum & /* s */);
 
     /**
       @brief Empty (NOP) function

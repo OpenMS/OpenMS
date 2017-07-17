@@ -182,7 +182,7 @@ namespace OpenMS
         // peak not found
         return true;
       }
-      MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin() + peak_index;
+      MSSpectrum::ConstIterator it_mz = it_rt->begin() + peak_index;
       if (it_mz->getIntensity() < intensity_cutoff_)
       {
         // below intensity threshold

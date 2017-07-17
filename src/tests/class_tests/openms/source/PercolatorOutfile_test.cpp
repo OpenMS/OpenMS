@@ -86,9 +86,9 @@ START_SECTION(void load(const String& filename, ProteinIdentification& proteins,
                         enum ScoreType output_score))
 {
   // mock-up raw data like those used for the search:
-  vector<MSSpectrum<> > spectra(3);
+  vector<MSSpectrum> spectra(3);
   double rt = 2.0;
-  for (vector<MSSpectrum<> >::iterator it = spectra.begin();
+  for (vector<MSSpectrum>::iterator it = spectra.begin();
        it != spectra.end(); ++it, rt += 1.0)
   {
     it->setMSLevel(2);

@@ -68,7 +68,7 @@ namespace Interfaces
     class OPENMS_DLLAPI IMSDataConsumer
     {
     public:
-      typedef MSSpectrum<> SpectrumType;
+      typedef MSSpectrum SpectrumType;
       typedef MSChromatogram<> ChromatogramType;
 
       virtual ~IMSDataConsumer() {}

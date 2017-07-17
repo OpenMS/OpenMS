@@ -70,7 +70,7 @@ namespace OpenMS
 public:
 
     typedef PeakMap MapType;
-    typedef MSSpectrum<Peak1D> SpectrumType;
+    typedef MSSpectrum SpectrumType;
     typedef MSChromatogram<ChromatogramPeak> ChromatogramType;
 
     // using double precision to store all data (has to agree with type of BinaryDataArrayPtr)

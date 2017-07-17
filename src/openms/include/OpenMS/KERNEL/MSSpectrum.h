@@ -35,6 +35,7 @@
 #ifndef OPENMS_KERNEL_MSSPECTRUM_H
 #define OPENMS_KERNEL_MSSPECTRUM_H
 
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
@@ -44,6 +45,7 @@
 
 namespace OpenMS
 {
+  class Peak1D;
   /**
     @brief The representation of a 1D spectrum.
 
@@ -62,9 +64,8 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  template <typename PeakT>
   class MSSpectrum :
-    private std::vector<PeakT>,
+    private std::vector<Peak1D>,
     public RangeManager<1>,
     public SpectrumSettings
   {
@@ -84,7 +85,7 @@ public:
     ///@name Base type definitions
     //@{
     /// Peak type
-    typedef PeakT PeakType;
+    typedef OpenMS::Peak1D PeakType;
     /// Coordinate (m/z) type
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Spectrum base type
@@ -112,7 +113,7 @@ public:
     typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
-    ///@name Export methods from std::vector<PeakT>
+    ///@name Export methods from std::vector<Peak1D>
     //@{
     using ContainerType::operator[];
     using ContainerType::begin;
@@ -380,17 +381,17 @@ public:
       {
         if (reverse)
         {
-          std::stable_sort(ContainerType::begin(), ContainerType::end(), reverseComparator(typename PeakType::IntensityLess()));
+          std::stable_sort(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()));
         }
         else
         {
-          std::stable_sort(ContainerType::begin(), ContainerType::end(), typename PeakType::IntensityLess());
+          std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess());
         }
       }
       else
       {
         // sort index list
-        std::vector<std::pair<typename PeakType::IntensityType, Size> > sorted_indices;
+        std::vector<std::pair<PeakType::IntensityType, Size> > sorted_indices;
         sorted_indices.reserve(ContainerType::size());
         for (Size i = 0; i < ContainerType::size(); ++i)
         {
@@ -399,11 +400,11 @@ public:
 
         if (reverse)
         {
-          std::stable_sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >()));
+          std::stable_sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >()));
         }
         else
         {
-          std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >());
+          std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >());
         }
 
         // extract list of indices
@@ -426,18 +427,18 @@ public:
     {
       if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
       {
-        std::stable_sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
+        std::stable_sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
       }
       else
       {
         //sort index list
-        std::vector<std::pair<typename PeakType::PositionType, Size> > sorted_indices;
+        std::vector<std::pair<PeakType::PositionType, Size> > sorted_indices;
         sorted_indices.reserve(ContainerType::size());
         for (Size i = 0; i < ContainerType::size(); ++i)
         {
           sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
         }
-        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::PositionType, Size> >());
+        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
 
         // extract list of indices
         std::vector<Size> select_indices;
@@ -593,7 +594,7 @@ public:
     {
       PeakType p;
       p.setPosition(mz);
-      return lower_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
+      return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
     }
 
     /**
@@ -605,7 +606,7 @@ public:
     {
       PeakType p;
       p.setPosition(mz);
-      return lower_bound(begin, end, p, typename PeakType::PositionLess());
+      return lower_bound(begin, end, p, PeakType::PositionLess());
     }
 
     /**
@@ -617,7 +618,7 @@ public:
     {
       PeakType p;
       p.setPosition(mz);
-      return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
+      return upper_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
     }
 
     /**
@@ -629,7 +630,7 @@ public:
     {
       PeakType p;
       p.setPosition(mz);
-      return upper_bound(begin, end, p, typename PeakType::PositionLess());
+      return upper_bound(begin, end, p, PeakType::PositionLess());
     }
 
     /**
@@ -641,7 +642,7 @@ public:
     {
       PeakType p;
       p.setPosition(mz);
-      return lower_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
+      return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
     }
 
     /**
@@ -653,7 +654,7 @@ public:
     {
       PeakType p;
       p.setPosition(mz);
-      return lower_bound(begin, end, p, typename PeakType::PositionLess());
+      return lower_bound(begin, end, p, PeakType::PositionLess());
     }
 
     /**
@@ -665,7 +666,7 @@ public:
     {
       PeakType p;
       p.setPosition(mz);
-      return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
+      return upper_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
     }
 
     /**
@@ -677,7 +678,7 @@ public:
     {
       PeakType p;
       p.setPosition(mz);
-      return upper_bound(begin, end, p, typename PeakType::PositionLess());
+      return upper_bound(begin, end, p, PeakType::PositionLess());
     }
 
     //@}
@@ -804,8 +805,7 @@ protected:
   };
 
   /// Print the contents to a stream.
-  template <typename PeakT>
-  std::ostream& operator<<(std::ostream& os, const MSSpectrum<PeakT>& spec)
+  std::ostream& operator<<(std::ostream& os, const MSSpectrum& spec)
   {
     os << "-- MSSPECTRUM BEGIN --" << std::endl;
 
@@ -813,7 +813,7 @@ protected:
     os << static_cast<const SpectrumSettings&>(spec);
 
     //peaklist
-    for (typename MSSpectrum<PeakT>::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+    for (MSSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
     {
       os << *it << std::endl;
     }

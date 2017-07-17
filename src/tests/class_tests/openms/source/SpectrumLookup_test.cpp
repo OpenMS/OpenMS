@@ -64,8 +64,8 @@ START_SECTION((~SpectrumLookup()))
 }
 END_SECTION
 
-vector<MSSpectrum<> > spectra;
-MSSpectrum<> spectrum;
+vector<MSSpectrum> spectra;
+MSSpectrum spectrum;
 spectrum.setNativeID("spectrum=0");
 spectrum.setRT(1.0);
 spectra.push_back(spectrum);

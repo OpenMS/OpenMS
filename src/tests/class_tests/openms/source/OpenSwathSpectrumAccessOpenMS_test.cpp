@@ -81,7 +81,7 @@ START_SECTION( size_t getNrSpectra() const)
 
   {
     PeakMap* new_exp = new PeakMap;
-    MSSpectrum<Peak1D> s;
+    MSSpectrum s;
     MSChromatogram<ChromatogramPeak> c;
     new_exp->addSpectrum(s);
     new_exp->addSpectrum(s);
@@ -98,7 +98,7 @@ END_SECTION
 START_SECTION ( boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const)
 {
   PeakMap* new_exp = new PeakMap;
-  MSSpectrum<Peak1D> s;
+  MSSpectrum s;
   MSChromatogram<ChromatogramPeak> c;
   new_exp->addSpectrum(s);
   new_exp->addSpectrum(s);
@@ -127,7 +127,7 @@ START_SECTION ( OpenSwath::SpectrumPtr getSpectrumById(int id);)
 
   {
     PeakMap* new_exp = new PeakMap;
-    MSSpectrum<Peak1D> s;
+    MSSpectrum s;
 
     s.setRT(20);
     Peak1D p;
@@ -149,7 +149,7 @@ START_SECTION ( OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const)
 {
   {
     PeakMap* new_exp = new PeakMap;
-    MSSpectrum<Peak1D> s;
+    MSSpectrum s;
     s.setRT(20);
     new_exp->addSpectrum(s);
     boost::shared_ptr< PeakMap > exp (new_exp);
@@ -166,7 +166,7 @@ START_SECTION ( SpectrumSettings getSpectraMetaInfo(int id) const)
 {
   {
     PeakMap* new_exp = new PeakMap;
-    MSSpectrum<Peak1D> s;
+    MSSpectrum s;
     s.setComment("remember me");
     new_exp->addSpectrum(s);
     boost::shared_ptr< PeakMap > exp (new_exp);
@@ -183,7 +183,7 @@ START_SECTION ( std::vector<std::size_t> SpectrumAccessOpenMS::getSpectraByRT(do
 {
   {
     PeakMap* new_exp = new PeakMap;
-    MSSpectrum<Peak1D> s;
+    MSSpectrum s;
     MSChromatogram<ChromatogramPeak> c;
     s.setRT(20);
     new_exp->addSpectrum(s);
@@ -224,7 +224,7 @@ START_SECTION(OpenSwath::ChromatogramPtr getChromatogramById(int id))
 
   {
     PeakMap* new_exp = new PeakMap;
-    MSSpectrum<Peak1D> s;
+    MSSpectrum s;
     MSChromatogram<ChromatogramPeak> c;
 
     c.setName("chrom_nr_1");
@@ -251,7 +251,7 @@ END_SECTION
 START_SECTION(std::string getChromatogramNativeID(int id) const)
 {
   PeakMap* new_exp = new PeakMap;
-  MSSpectrum<Peak1D> s;
+  MSSpectrum s;
   MSChromatogram<ChromatogramPeak> c;
 
   c.setName("chrom_nr_1");

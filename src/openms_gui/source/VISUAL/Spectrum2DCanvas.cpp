@@ -1763,7 +1763,7 @@ namespace OpenMS
     case LayerData::DT_PEAK:
     {
       const Peak1D & p = peak.getPeak(*getCurrentLayer().getPeakData());
-      const MSSpectrum<> & s = peak.getSpectrum(*getCurrentLayer().getPeakData());
+      const MSSpectrum & s = peak.getSpectrum(*getCurrentLayer().getPeakData());
       mz = p.getMZ();
       rt = s.getRT();
       it = p.getIntensity();
