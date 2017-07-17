@@ -34,9 +34,12 @@
 
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
+#define INVERSE true
+
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <kiss_fft.h>
 #include <utility>
 #include <deque>
 #include <vector>
@@ -397,9 +400,10 @@ protected:
     ContainerType distribution_;
   };
 
-  class OPENMS_DLLAPI MIDAsPolynomialID : public IsotopeDistribution
+  class MIDAs : public IsotopeDistribution
   {
  public:
+    
     struct PMember
     {
       double power;
@@ -407,8 +411,22 @@ protected:
       PMember():power(0), probability(0) {}
     };
     typedef std::deque<struct PMember> Polynomial;
+  
+    MIDAs(EmpiricalFormula&, double, UInt);
+    virtual void run() = 0;
+    void merge(Polynomial&, double);
+ protected:
+    EmpiricalFormula& formula_;
+    double resolution_;
+    UInt N;
 
-    MIDAsPolynomialID(double,EmpiricalFormula&);
+  };
+
+  class OPENMS_DLLAPI MIDAsPolynomialID : public MIDAs
+  {
+ public:
+
+    MIDAsPolynomialID(EmpiricalFormula&, double);
     void run();
     
  private:
@@ -418,11 +436,8 @@ protected:
     void merge_polynomial(Polynomial&);
     void dumpID(Polynomial&);
     double fact_ln(UInt);
-    void merge(Polynomial&, double);
     
-    EmpiricalFormula& formula_;
     //Polynomial fgid;
-    UInt N;
     double fine_resolution;
     double min_prob;
     double lighter_isotope;
@@ -432,6 +447,29 @@ protected:
     double min_resolution;
     
   };
+
+  class OPENMS_DLLAPI MIDAsFFTID : public MIDAs
+  {
+ public:
+    typedef kiss_fft_cpx fft_complex;
+    typedef std::vector<fft_complex> FFT_Spectrum;
+    typedef struct {double mean; double variance;} Stats;
+    MIDAsFFTID(EmpiricalFormula&, double);
+    void init();
+    void run();
+ private:
+    FFT_Spectrum input_, output_;
+   
+    double formula_variance;
+    double average_mass_;
+    double resolution_;
+    double formula_sigma_;
+    double delta_;
+    //void (double);
+    Stats formulaMeanAndVariance(double resolution = 1.0);
+   
+  };
+
 
 
 } // namespace OpenMS

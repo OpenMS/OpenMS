@@ -708,7 +708,7 @@ START_SECTION(MIDAsDistributionID(double,EmpiricalFormula&))
 
   EmpiricalFormula f("C2023H3208N524O619S20");
 
-  MIDAsPolynomialID *midas = new MIDAsPolynomialID(0.000001, f);
+  MIDAsPolynomialID *midas = new MIDAsPolynomialID(f, 0.000001);
 
   midas->run();
   delete midas;

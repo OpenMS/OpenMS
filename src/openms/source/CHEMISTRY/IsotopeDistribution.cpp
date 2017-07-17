@@ -40,10 +40,16 @@
 #include <functional>
 #include <numeric>
 
+//#include <bzlib.h>
+
 #include <boost/utility.hpp>
 #include <boost/math/special_functions/gamma.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/accumulators/accumulators.hpp>
+
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
@@ -276,11 +282,11 @@ namespace OpenMS
     for (ContainerType::const_iterator it = id.begin(); it < id.end(); ++mass) // go through all masses
     {
       //round atomic mass to the mass_number
-      if (round(it->first) != mass) 
+      if (round(it->first) != mass)
       { // missing an entry
         id_gapless.push_back(make_pair(mass, 0.0));
       }
-      else 
+      else
       { // mass is registered already
         id_gapless.push_back(*it); // copy
         ++it;  // ... and advance
@@ -297,8 +303,8 @@ namespace OpenMS
       return;
     }
 
-    
-    // ensure the isotope cluster has no gaps 
+
+    // ensure the isotope cluster has no gaps
     // (e.g. from Bromine there is only Bromine-79 & Bromine-81, so we need to insert Bromine-80 with zero probability)
     ContainerType left_l = fillGaps_(left);
     ContainerType right_l = fillGaps_(right);
@@ -538,12 +544,12 @@ namespace OpenMS
 
   inline bool desc_prob(const struct MIDAsPolynomialID::PMember& p0, const struct MIDAsPolynomialID::PMember& p)
   {
-    return p0.probability > p.probability; 
+    return p0.probability > p.probability;
   }
 
   inline bool by_power(const struct MIDAsPolynomialID::PMember& p0, const struct MIDAsPolynomialID::PMember& p)
   {
-    return p0.power < p.power; 
+    return p0.power < p.power;
   }
 
   inline bool zero_prob(const MIDAsPolynomialID::PMember& m)
@@ -555,10 +561,10 @@ namespace OpenMS
   {
     return m.power == 0;
   }
-  
+
   inline bool lightest(const IsotopeDistribution::MassAbundance& a, const IsotopeDistribution::MassAbundance& b)
   {
-    return a.first < b.first;  
+    return a.first < b.first;
   }
 
   double lightest_element(const Element& el)
@@ -566,33 +572,74 @@ namespace OpenMS
     return min_element(el.getIsotopeDistribution().begin(), el.getIsotopeDistribution().end(), lightest)->first;
   }
 
+  double variance(IsotopeDistribution::ContainerType& element)
+  {
+
+  }
+
+
+  /* Start of the midas interface */
+  MIDAs::MIDAs(EmpiricalFormula& formula, double resolution, UInt N_):
+    IsotopeDistribution(),
+    formula_(formula),
+    resolution_(resolution),
+    N(N_)
+  {
+    
+  }
+
+  void MIDAs::merge(Polynomial& raw, double resolution)
+  {
+
+    UInt output_size = ceil((raw.back().power - raw.front().power)/resolution);
+    LOG_INFO << "output size " << output_size << endl;
+    LOG_INFO << "raw size " << raw.size() <<endl;
+
+    distribution_.clear();
+    distribution_.resize(output_size, make_pair<double, double>(0, 0));
+
+    for(Polynomial::const_iterator it = raw.begin(); it != raw.end(); ++it)
+    {
+      // Is this the case?
+      UInt index = round((it->power - raw.front().power)/resolution);
+      if(index >= distribution_.size()){
+
+        LOG_INFO << index <<endl;
+        break;
+      }
+      distribution_[index].first = distribution_[index].first == 0 ?
+                                   raw.front().power * index :
+                                   distribution_[index].first;
+      distribution_[index].second += it->probability;
+    }
+
+  }
+
+
 
 
   /* Start of the midas polynomial method */
 
 
-  MIDAsPolynomialID::MIDAsPolynomialID(double fine_resolution_, EmpiricalFormula& formula): 
-    IsotopeDistribution(), 
-    formula_(formula),
-    N(10),
-    fine_resolution(fine_resolution_),
+  MIDAsPolynomialID::MIDAsPolynomialID(EmpiricalFormula& formula, double resolution):
+    MIDAs(formula, resolution, 10),
     lighter_isotope(0)
   {
     for(EmpiricalFormula::const_iterator el = formula_.begin(); el != formula_.end(); ++el)
     {
-      lighter_isotope += lightest_element(*(el->first))*(el->second);
+      lighter_isotope += lightest_element(*(el->first)) * (el->second);
     }
 
-    LOG_INFO << "Fine resolution: " << fine_resolution << endl;
+    LOG_INFO << "Fine resolution: " << resolution_ << endl;
 
     mw_resolution = 1e-12;
     min_prob = 1e-16;
 
-    
+
   }
 
   inline double MIDAsPolynomialID::fact_ln(UInt x)
-  {    
+  {
     return boost::math::lgamma(x+1);
   }
 
@@ -610,10 +657,10 @@ namespace OpenMS
     {
       multiplyPolynomials(T, *pol);
     }
-    
+
     LOG_INFO << "T after multiplication has " << T.size() <<" elements" << endl;
 
-
+    //BZ2_bzWrite ( NULL, NULL, (void*)NULL, NULL );
 
     LOG_INFO << "RESULTS---------------" << endl;
     double probability = 0;
@@ -639,7 +686,7 @@ namespace OpenMS
     LOG_INFO << "Final distribution has " << distribution_.size() <<endl;
     for(ContainerType::const_iterator it = distribution_.begin(); it != distribution_.end(); ++it)
     {
-      
+
     }
 
 
@@ -648,32 +695,7 @@ namespace OpenMS
 
   }
 
-  void MIDAsPolynomialID::merge(Polynomial& raw, double resolution)
-  {
-    
-    UInt output_size = ceil((raw.back().power - raw.front().power)/resolution);
-    LOG_INFO << "output size " << output_size << endl;
-    LOG_INFO << "raw size " << raw.size() <<endl;
-    
-    distribution_.clear();
-    distribution_.resize(output_size, make_pair<double, double>(0, 0));
-    
-    for(Polynomial::const_iterator it = raw.begin(); it != raw.end(); ++it)
-    {
-      // Is this the case?
-      UInt index = round((it->power - raw.front().power)/resolution);
-      if(index >= distribution_.size()){
-
-        LOG_INFO << index <<endl;
-        break;
-      }
-      distribution_[index].first = distribution_[index].first == 0 ? 
-                                   raw.front().power * index : 
-                                   distribution_[index].first;
-      distribution_[index].second += it->probability;
-    }
-    
-  }
+  
 
   void addCounter(CounterSet& c, const double& abundance, const UInt& size, const UInt& N)
   {
@@ -693,7 +715,7 @@ namespace OpenMS
     const IsotopeDistribution::ContainerType& isotope = p.getIsotopeDistribution().getContainer();
     CounterSet c(size);
     Polynomial pol;
-    
+
     for(IsotopeDistribution::ConstIterator iso_it = isotope.begin(); iso_it != isotope.end(); ++iso_it)
     {
       if(iso_it->second == 0)
@@ -704,7 +726,7 @@ namespace OpenMS
       base_power.push_back(round(iso_it->first / mw_resolution));
       log_prob.push_back(log(iso_it->second));
     }
-    
+
     for(const CounterSet::ContainerType& counters = c.getCounters(); c.hasNext(); ++c)
     {
       MIDAsPolynomialID::PMember member;
@@ -716,9 +738,9 @@ namespace OpenMS
       {
         member.probability += ((*iso_count) * log_prob[index]) - fact_ln((*iso_count));
       }
-      
+
       member.probability = exp(member.probability);
-      
+
       if(member.probability < min_prob)
       {
         continue;
@@ -731,28 +753,28 @@ namespace OpenMS
         member.power += (*iso_count)*base_power[index];
       }
 //      LOG_INFO << member.power <<" "<<member.probability<<endl;
-      
+
       pol.push_back(member);
-      
+
     }
-    
+
     return pol;
   }
 
 
   void MIDAsPolynomialID::multiplyPolynomials(Polynomial& f, Polynomial& g)
   {
-    
+
     LOG_INFO << "Sorting polynomial" << f.size() << " and " << g.size() <<endl;
     sort(f.begin(), f.end(), desc_prob);
     sort(g.begin(), g.end(), desc_prob);
 
     LOG_INFO << "Multiplying polynomial" << f.size() << " and " << g.size() <<endl;
-    double min_mass = min_element(g.begin(), g.end(), by_power)->power 
+    double min_mass = min_element(g.begin(), g.end(), by_power)->power
                       + min_element(f.begin(), f.end(), by_power)->power;
-    double max_mass = max_element(g.begin(), g.end(), by_power)->power 
+    double max_mass = max_element(g.begin(), g.end(), by_power)->power
                       + max_element(f.begin(), f.end(), by_power)->power;
-    double delta_mass = fine_resolution/mw_resolution;
+    double delta_mass = resolution_/mw_resolution;
     UInt size = round((max_mass-min_mass)/delta_mass);
     Polynomial fgid(size, PMember());
 
@@ -775,7 +797,7 @@ namespace OpenMS
         }
       }
     }
-    
+
     fgid.erase(remove_if(fgid.begin(), fgid.end(), zero_prob), fgid.end());
     for(Polynomial::iterator f_it = fgid.begin(); f_it != fgid.end(); ++f_it)
     {
@@ -783,5 +805,144 @@ namespace OpenMS
     }
     f = fgid ;
   }
+
+  MIDAsFFTID::MIDAsFFTID(EmpiricalFormula& formula, double resolution):
+    MIDAs(formula, resolution, 15),
+    formula_variance(0)
+  {
+    UInt k = 0, sample_size;
+    double sigma, mass_range;
+    while(resolution_ < resolution)
+    {
+      resolution_ = resolution/pow(2.0, k);
+      sigma = formulaMeanAndVariance().variance;
+      mass_range = ceil(log2((N * sqrt(1 + sigma))));
+      sample_size = pow(2, mass_range / resolution_);
+      delta_ = 1.0 / sample_size;
+      resolution_ = mass_range/N;
+    }
+
+    //fft_vector s = {0,0};
+    input_.resize(sample_size);
+    output_.resize(sample_size);
+
+    LOG_INFO << "Sample size" << sample_size << endl;
+
+  }
+
+  void MIDAsFFTID::init()
+  {
+    UInt i = 0;
+    for(auto& sample : input_)
+    {
+      double phi = 0, angle = 0, radius = 1, freq = i * delta_;
+      for(const auto& element : formula_)
+      {
+        //Perform temporary calculations on sample data structure
+        auto& atoms = element.second;
+        //Is sample zero?
+        //LOG_INGO << "Sample " << sample.r <<" " << sample.i << endl;
+        for(const auto& iso : element.first->getIsotopeDistribution())
+        {
+          auto& mass = iso.first;
+          auto& prob = iso.second;
+          phi = 2 * Constants::PI * mass * freq;
+          sample.r += prob * cos(phi);
+          sample.i += prob * sin(phi);
+        }
+
+        radius *= pow(hypot(sample.r, sample.i), atoms);
+        angle += atoms * atan2(sample.i, sample.r);
+      }
+      
+      //After looping assign the real value
+      sample.r = radius * cos(angle - (2 * Constants::PI * average_mass_ * freq));
+      sample.i = radius * sin(angle - (2 * Constants::PI * average_mass_ * freq));
+    }
+
+  }
+
+  void MIDAsFFTID::run()
+  {
+    
+    //auto cfg = kiss_fft_alloc(input_.size(), INVERSE, NULL, NULL);
+    //kiss_fft(cfg, &input_[0], &output_[0]);
+
+    Stats coarse(formulaMeanAndVariance()), fine(formulaMeanAndVariance(resolution_));
+    double ratio = coarse.variance/fine.variance;
+
+    output_.resize(output_.size()/2);
+
+    double min_prob = (-2.0 * min_element(output_.begin(), output_.end(), 
+                                          [](fft_complex& item1, fft_complex& item2 ){
+                                            return item1.i < item2.i;
+                                          })->i);
+
+    // double avg_prob= 0;
+    // int k = 0;
+    // for(auto& sample : output_)
+    // {
+    //   double smp = sample.i / output_.size();
+    //   if(smp > min_prob)
+    //   {
+    //     avg_prob+= smp;
+    //     k++;
+    //   }
+    // }
+    // if(k!=0){
+    //   avg_prob/=k;
+    // }
+    double k = 0;
+    
+    for(auto& sample : output_)
+    {
+      if(min_prob > sample.r)
+      {
+        continue;
+      }
+      
+      k++;
+    }
+
+
+  }
+
+
+
+  MIDAsFFTID::Stats MIDAsFFTID::formulaMeanAndVariance(double resolution)
+  {
+    Stats result;
+
+    //throw exception for zero resolution_
+
+    // calculate average
+    for(const auto& element : formula_)
+    {
+      double ave_mw = 0, var_mw = 0;
+      for(const auto& iso : element.first->getIsotopeDistribution())
+      {
+        //round in resolution grid and weight on probability
+        ave_mw += round(iso.first / resolution) * resolution * iso.second;
+      }
+
+      //calculate variance
+
+      for(const auto& iso : element.first->getIsotopeDistribution())
+      {
+        //round in resolution grid
+        var_mw += iso.second * pow(ave_mw - (round(iso.first / resolution)* resolution_), 2);
+      }
+      
+      // find the real variance and mean by scaling with the molecule number in the empirical formula
+      result.variance += element.second * var_mw;
+      result.mean += element.second * ave_mw;
+    }
+
+    return result;
+
+  }
+
+
+
 
 }
