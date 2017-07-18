@@ -127,6 +127,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${SQLITE_INCLUDE_DIR}
                                      ${LIBSVM_INCLUDE_DIRS}
                                      ${GLPK_INCLUDE_DIRS}
+				     ${KISSFFT_INCLUDE_DIRS}
                                      ${ZLIB_INCLUDE_DIRS}
                                      ${BZIP2_INCLUDE_DIR}
                                      ${EIGEN3_INCLUDE_DIR}
