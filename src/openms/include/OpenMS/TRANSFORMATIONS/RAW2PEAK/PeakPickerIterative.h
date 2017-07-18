@@ -165,10 +165,9 @@ private:
      * This function implements a single iteration of this algorithm.
      *
     */
-    template <typename PeakType>
     void pickRecenterPeaks_(const MSSpectrum& input,
                               std::vector<PeakCandidate>& PeakCandidates,
-                              SignalToNoiseEstimatorMedian<MSSpectrum >& snt)
+                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt)
     {
       for (Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
       {
@@ -298,7 +297,6 @@ public:
      *
      * The output are the remaining peaks.
     */
-    template <typename PeakType>
     void pick(const MSSpectrum& input, MSSpectrum& output)
     {
       // don't pick a spectrum with less than 3 data points
@@ -384,7 +382,7 @@ public:
           }
         }
 
-        PeakType peak;
+        Peak1D peak;
         peak.setMZ(PeakCandidates[peak_it].mz);
         peak.setIntensity(PeakCandidates[peak_it].integrated_intensity);
         output.push_back(peak);

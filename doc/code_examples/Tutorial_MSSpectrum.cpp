@@ -36,7 +36,7 @@ using namespace std;
 
 Int main()
 {
-  MSSpectrum<> spectrum;
+  MSSpectrum spectrum;
   Peak1D peak;
 
   for (float mz = 1500.0; mz >= 500; mz -= 100.0)
@@ -47,7 +47,8 @@ Int main()
 
   spectrum.sortByPosition();
 
-  MSSpectrum<>::Iterator it;
+  // iterate between range
+  MSSpectrum::Iterator it;
   for (it = spectrum.MZBegin(800.0); it != spectrum.MZEnd(1000.0); ++it)
   {
     cout << it->getMZ() << endl;

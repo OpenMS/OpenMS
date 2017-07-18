@@ -105,6 +105,20 @@ public:
       pick(input, output, boundaries);
     }
 
+     /**
+     * @brief Applies the peak-picking algorithm to a single chromatogram
+     * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
+     *
+     * @param input  input chromatogram in profile mode
+     * @param output  output chromatogram with picked peaks
+     */
+    template <typename PeakType>
+    void pick(const MSChromatogram<PeakType>& input, MSChromatogram<PeakType>& output) const
+    {
+      std::vector<PeakBoundary> boundaries;
+      pick(input, output, boundaries);
+    }
+
     /**
      * @brief Applies the peak-picking algorithm to a single spectrum
      * (MSSpectrum). The resulting picked peaks are written to the output
@@ -115,8 +129,7 @@ public:
      * @param boundaries  boundaries of the picked peaks
      * @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
-    template <typename PeakType>
-      void pick(const MSSpectrum& input, MSSpectrum& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const
+    void pick(const MSSpectrum& input, MSSpectrum& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const
     {
       // copy meta data of the input spectrum
       output.clear(true);
@@ -411,7 +424,7 @@ public:
           } // FWHM
 
           // save picked peak into output spectrum
-          PeakType peak;
+          Peak1D peak;
           PeakBoundary peak_boundary;
           peak.setMZ(max_peak_mz);
           peak.setIntensity(max_peak_int);
@@ -429,19 +442,6 @@ public:
       return;
     }
 
-     /**
-     * @brief Applies the peak-picking algorithm to a single chromatogram
-     * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
-     *
-     * @param input  input chromatogram in profile mode
-     * @param output  output chromatogram with picked peaks
-     */
-    template <typename PeakType>
-    void pick(const MSChromatogram<PeakType>& input, MSChromatogram<PeakType>& output) const
-    {
-      std::vector<PeakBoundary> boundaries;
-      pick(input, output, boundaries);
-    }
 
     /**
      * @brief Applies the peak-picking algorithm to a single chromatogram
@@ -464,10 +464,22 @@ public:
       MSSpectrum output_spectrum;
       for (typename MSChromatogram<PeakType>::const_iterator it = input.begin(); it != input.end(); ++it)
       {
-        input_spectrum.push_back(*it);
+        Peak1D p;
+        p.setMZ(it->getRT());
+        p.setIntensity(it->getIntensity());
+        input_spectrum.push_back(p);
       }
+
       pick(input_spectrum, output_spectrum, boundaries, false); // no spacing checks!
-      output.insert(output.begin(), output_spectrum.begin(), output_spectrum.end());
+
+      for (MSSpectrum::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
+      {
+        ChromatogramPeak p;
+        p.setRT(it->getMZ());
+        p.setIntensity(it->getIntensity());
+        output.push_back(p);
+      }
+
       // copy float data arrays (for FWHM)
       output.getFloatDataArrays().resize(output_spectrum.getFloatDataArrays().size());
       for (Size i = 0; i < output_spectrum.getFloatDataArrays().size(); ++i)

@@ -58,7 +58,6 @@ public:
     /**
      @brief Picks peaks in one spectrum.
     */
-    template <typename PeakType>
     void pick(const MSSpectrum & input, MSSpectrum & output, float fWindowWidth)
     {
       int i, hw, j;
@@ -104,7 +103,7 @@ public:
           }
           cm = cm / toti;           // Centre of gravity = centroid
 
-          PeakType peak;
+          Peak1D peak;
           peak.setMZ(cm);
           peak.setIntensity(intens[i]);
           output.push_back(peak);

@@ -570,7 +570,11 @@ namespace OpenMS
     // reference paper uses lowess smoothing
 
     MSSpectrum spectrum;
-    spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
+    for (Size i = 0; i != mt.getSize(); ++i)
+    {
+      spectrum.push_back(Peak1D(mt[i].getRT(), mt[i].getIntensity()));
+    }
+
     SavitzkyGolayFilter sg;
     Param param;
     param.setValue("polynomial_order", 2);
