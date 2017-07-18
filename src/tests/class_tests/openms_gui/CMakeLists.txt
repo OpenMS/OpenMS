@@ -40,7 +40,8 @@ set(visual_executables_list
   MultiGradient_test
 )
 
-# As moc files are generated in the binary dir, tell CMake to always look for includes there:
+
+set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #------------------------------------------------------------------------------
@@ -99,10 +100,12 @@ if(HAS_XSERVER)
   #------------------------------------------------------------------------------
   # Add GUI tests
   foreach(_gui_test ${GUI_executables_list})
-    # add the executable
-    add_executable(${_gui_test} source/GUI/${_gui_test}.cpp)
+    # add the executable (Note: The header needs to be added as source file, too. Otherwise automoc will not find it.
+    add_executable(${_gui_test} source/GUI/${_gui_test}.cpp ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI/${_gui_test}.h)
+    # add headers
+    target_include_directories(${_gui_test} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/GUI)
     # link against openms_gui and qt
-    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES})
+    target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt5::Test)
     # add the test
     add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
     # only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
