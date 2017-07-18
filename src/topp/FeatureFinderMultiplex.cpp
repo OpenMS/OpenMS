@@ -707,22 +707,33 @@ public:
         GridBasedCluster cluster = cluster_it->second;
         std::vector<int> points = cluster.getPoints();
 
-        // construct a satellite set for the complete peptide multiplet
-        // By constructing an intermediate <set> we ensure the final <multimap> to be unique.
+        // Construct a satellite set for the complete peptide multiplet
+        // Make sure there are no duplicates, i.e. the same satellite from different filtered peaks.
         std::multimap<size_t, std::pair<size_t, size_t> > satellites;
-        std::set<std::pair<size_t, std::pair<size_t, size_t> > > satellites_temp;
         // loop over points in cluster
         for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
         {
           MultiplexFilteredPeak peak = filter_results[pattern].getPeak(*point_it);
+          // loop over satellites of the peak
           for (std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator satellite_it = peak.getSatellites().begin(); satellite_it != peak.getSatellites().end(); ++satellite_it)
           {
-            satellites_temp.insert(std::make_pair(satellite_it->first, std::make_pair(satellite_it->second.first, satellite_it->second.second)));
+            // check if this satellite (i.e. these indices) are already in the set
+            bool satellite_in_set = false;
+            for (std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator satellite_it_2 = satellites.begin(); satellite_it_2 != satellites.end(); ++satellite_it_2)
+            {
+              if ((satellite_it_2->second.first == satellite_it->second.first) && (satellite_it_2->second.second == satellite_it->second.second))
+              {
+                satellite_in_set = true;
+                continue;
+              }
+            }      
+            if (satellite_in_set)
+            {
+              continue;
+            }
+            
+            satellites.insert(std::make_pair(satellite_it->first, std::make_pair(satellite_it->second.first, satellite_it->second.second)));
           }
-        }
-        for (std::set<std::pair<size_t, std::pair<size_t, size_t> > >::const_iterator satellite_it = satellites_temp.begin(); satellite_it != satellites_temp.end(); ++satellite_it)
-        {
-          satellites.insert(std::make_pair(satellite_it->first, std::make_pair(satellite_it->second.first, satellite_it->second.second)));
         }
         
         // determine peptide intensities
@@ -1329,25 +1340,25 @@ private:
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 
     std::vector<MultiplexFilteredMSExperiment> filter_results;
-    /*if (centroided)
+    if (centroided)
     {
       // centroided data
-      MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
+      MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
     }
     else
     {
       // profile data
-      MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
+      MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
       //filter_results = filtering.filter();
-    }*/
+    }
 
     /**
      * cluster filter results
      */
-    /*std::vector<std::map<int, GridBasedCluster> > cluster_results;
+    std::vector<std::map<int, GridBasedCluster> > cluster_results;
     if (centroided)
     {
       // centroided data
@@ -1355,7 +1366,7 @@ private:
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
     }
-    else
+    /*else
     {
       // profile data
       MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, rt_typical_, rt_min_);
@@ -1366,7 +1377,7 @@ private:
     /**
      * write to output
      */
-    /*ConsensusMap consensus_map;
+    ConsensusMap consensus_map;
     FeatureMap feature_map;
     
     if (centroided)
@@ -1388,7 +1399,7 @@ private:
     if (out_features_ != "")
     {
       writeFeatureMap_(out_features_, feature_map);
-    }*/
+    }
 
     /*if (out_mzq_ != "")
     {

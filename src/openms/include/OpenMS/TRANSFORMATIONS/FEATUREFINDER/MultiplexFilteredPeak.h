@@ -36,6 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTEREDPEAK_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatellite.h>
 
 #include <map>
 #include <vector>
@@ -135,6 +136,8 @@ namespace OpenMS
      * <exp_picked_> experiment is permanent.
      */
     std::multimap<size_t, std::pair<size_t, size_t> > satellites_;
+ 
+    std::multimap<size_t, MultiplexSatellite > satellites_2_;
  
   };
   
