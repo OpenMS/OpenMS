@@ -36,5 +36,6 @@
 
 namespace OpenMS
 {
+
 }
 

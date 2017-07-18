@@ -68,6 +68,27 @@ public:
       defaultsToParam_();
     }
 
+    /// specialized version
+    void raster(MSSpectrum& container)
+    {
+      //return if nothing to do
+      if (container.empty()) return;
+
+      MSSpectrum::iterator first = container.begin();
+      MSSpectrum::iterator last = container.end();
+
+      double end_pos = (last - 1)->getMZ();
+      double start_pos = first->getMZ();
+      int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
+
+      std::vector<Peak1D> resampled_peak_container;
+      populate_raster_(resampled_peak_container, start_pos, end_pos, number_resampled_points);
+
+      raster(container.begin(), container.end(), resampled_peak_container.begin(), resampled_peak_container.end());
+
+      container.swap(resampled_peak_container);
+    }
+
     /**
         @brief Applies the resampling algorithm to a container (MSSpectrum or MSChromatogram).
 
@@ -94,6 +115,36 @@ public:
       populate_raster_(resampled_peak_container, start_pos, end_pos, number_resampled_points);
 
       raster(container.begin(), container.end(), resampled_peak_container.begin(), resampled_peak_container.end());
+
+      container.swap(resampled_peak_container);
+    }
+
+    // specialized version
+    void raster_align(MSSpectrum& container, double start_pos, double end_pos)
+    {
+      //return if nothing to do
+      if (container.empty()) return;
+
+      if (end_pos < start_pos)
+      {
+        typename std::vector<Peak1D> empty;
+        container.swap(empty);
+        return;
+      }
+
+      MSSpectrum::iterator first = container.begin();
+      MSSpectrum::iterator last = container.end();
+
+      // get the iterators just before / after the two points start_pos / end_pos
+      while (first != container.end() && (first)->getMZ() < start_pos) {++first;}
+      while (last != first && (last - 1)->getMZ() > end_pos) {--last;}
+
+      int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
+
+      std::vector<Peak1D> resampled_peak_container;
+      populate_raster_(resampled_peak_container, start_pos, end_pos, number_resampled_points);
+
+      raster(first, last, resampled_peak_container.begin(), resampled_peak_container.end());
 
       container.swap(resampled_peak_container);
     }
@@ -171,6 +222,50 @@ public:
       // OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical")
 
       PeakTypeIterator resample_start = resample_it;
+
+      // need to get the raw iterator between two resampled iterators of the raw data
+      while (raw_it != raw_end && raw_it->getMZ() < resample_it->getMZ())
+      {
+        resample_it->setIntensity(resample_it->getIntensity() + raw_it->getIntensity());
+        raw_it++;
+      }
+
+      while (raw_it != raw_end)
+      {
+        //advance the resample iterator until our raw point is between two resampled iterators
+        while (resample_it != resample_end && resample_it->getMZ() < raw_it->getMZ()) {resample_it++;}
+        if (resample_it != resample_start) {resample_it--;}
+
+        // if we have the last datapoint we break
+        if ((resample_it + 1) == resample_end) {break;}
+
+        double dist_left =  fabs(raw_it->getMZ() - resample_it->getMZ());
+        double dist_right = fabs(raw_it->getMZ() - (resample_it + 1)->getMZ());
+
+        // distribute the intensity of the raw point according to the distance to resample_it and resample_it+1
+        resample_it->setIntensity(resample_it->getIntensity() + raw_it->getIntensity() * dist_right / (dist_left + dist_right));
+        (resample_it + 1)->setIntensity((resample_it + 1)->getIntensity() + raw_it->getIntensity() * dist_left / (dist_left + dist_right));
+
+        raw_it++;
+      }
+
+      // add the final intensity to the right
+      while (raw_it != raw_end)
+      {
+        resample_it->setIntensity(resample_it->getIntensity() + raw_it->getIntensity());
+        raw_it++;
+      }
+    }
+
+    void raster(MSSpectrum::ConstIterator raw_it,
+                MSSpectrum::ConstIterator raw_end,
+                MSSpectrum::Iterator resample_it,
+                MSSpectrum::Iterator resample_end)
+    {
+      OPENMS_PRECONDITION(resample_it != resample_end, "Output iterators cannot be identical") // as we use +1
+      // OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical")
+
+      MSSpectrum::Iterator resample_start = resample_it;
 
       // need to get the raw iterator between two resampled iterators of the raw data
       while (raw_it != raw_end && raw_it->getMZ() < resample_it->getMZ())
