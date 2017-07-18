@@ -65,39 +65,66 @@ namespace OpenMS
     params.clear();
   }
   
+  void TransformationModel::weightData(TransformationModel::DataPoints& data, const Param& params)
+  {
+    // get x datum ranges
+    x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : -1e15;
+    x_datum_max_ = params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15;
+    // weight x values 
+    std::vector<std::string> valid_weights;
+    valid_weights = getValidXWeights();
+    x_weight_ = params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "";
+    if (!x_weight_.empty() && checkValidWeight(x_weight_, valid_weights) && !data.empty())
+    {
+      for (size_t i = 0; i < data.size(); ++i)
+      {
+        // check x datum ranges
+        data[i].first = checkDatumRange(data[i].first,x_datum_min_,x_datum_max_);
+        // weight x datum
+        data[i].first = weightDatum(data[i].first,x_weight_);
+      }
+    }
+    // get y datum ranges
+    y_datum_min_ = params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : -1e15;
+    y_datum_max_ = params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15;
+    // weight y values
+    valid_weights = getValidYWeights();
+    y_weight_ = params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "";
+    if (!y_weight_.empty() && checkValidWeight(y_weight_, valid_weights) && !data.empty())
+    {
+      for (size_t i = 0; i < data.size(); ++i)
+      {
+        // check y datum ranges
+        data[i].second = checkDatumRange(data[i].second,y_datum_min_,y_datum_max_);
+        // weight y datum
+        data[i].second = weightDatum(data[i].second,y_weight_);
+      }
+    } 
+  }
+  
   void TransformationModel::unWeightData(TransformationModel::DataPoints& data, const Param& params)
   {
     // unweight x values 
     std::vector<std::string> valid_weights;
     valid_weights = getValidXWeights();
-    const std::string x_weight = params.exists("x_weight") ? params.getValue("x_weight") : "";
-    if (!x_weight.empty() && checkValidWeight(x_weight, valid_weights) && !data.empty())
+    x_weight_ = params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "";
+    if (!x_weight_.empty() && checkValidWeight(x_weight_, valid_weights) && !data.empty())
     {
-      x_weight_ = x_weight;
       for (size_t i = 0; i < data.size(); ++i)
       {
         data[i].first = unWeightDatum(data[i].first,x_weight_);
       }
     }
-    else
-    {
-      x_weight_ = x_weight;
-    }
     // unweight y values
     valid_weights = getValidYWeights();
-    const std::string y_weight = params.exists("y_weight") ? params.getValue("y_weight") : "";
-    if (!y_weight.empty() && checkValidWeight(y_weight, valid_weights) && !data.empty())
+    y_weight_ = params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "";
+    if (!y_weight_.empty() && checkValidWeight(y_weight_, valid_weights) && !data.empty())
     {
-      y_weight_ = y_weight;
       for (size_t i = 0; i < data.size(); ++i)
       {
         data[i].second = unWeightDatum(data[i].second,y_weight_);
       }
-    }   
-    else
-    {
-      y_weight_ = y_weight;
-    }
+    }  
   }
 
   bool TransformationModel::checkValidWeight(const std::string& weight, const std::vector<std::string>& valid_weights) const
@@ -159,69 +186,27 @@ namespace OpenMS
     double datum_weighted = 0;   
     if (weight == "ln(x)")
     {
-      if (datum < 10e-5)
-      {
-        datum_weighted = std::log(10e-5);
-      }
-      else
-      {
-        datum_weighted = std::log(datum);
-      }
+      datum_weighted = std::log(datum);
     }
     else if (weight == "ln(y)")
     {
-      if (datum < 10e-8)
-      {
-        datum_weighted = std::log(10e-8);
-      }
-      else
-      {
-        datum_weighted = std::log(datum);
-      }
+      datum_weighted = std::log(datum);
     }
     else if (weight == "1/x")
     {
-      if (datum < 10e-5)
-      {
-        datum_weighted = 1/10e-5;
-      }
-      else
-      {
-        datum_weighted = 1/std::abs(datum);
-      }
+      datum_weighted = 1/std::abs(datum);
     }
     else if (weight == "1/y")
     {
-      if (datum < 10e-8)
-      {
-        datum_weighted = 1/10e-8;
-      }
-      else
-      {
-        datum_weighted = 1/std::abs(datum);
-      }
+      datum_weighted = 1/std::abs(datum);
     }
     else if (weight == "1/x2")
     {
-      if (datum < 10e-5)
-      {
-        datum_weighted = 1/std::pow(10e-5,2);
-      }
-      else
-      {
-        datum_weighted = 1/std::pow(datum,2);
-      }
+      datum_weighted = 1/std::pow(datum,2);
     }
     else if (weight == "1/y2")
     {
-      if (datum < 10e-8)
-      {
-        datum_weighted = 1/std::pow(10e-8,2);
-      }
-      else
-      {
-        datum_weighted = 1/std::pow(datum,2);
-      }
+      datum_weighted = 1/std::pow(datum,2);
     }
     else if (weight == "")
     {
@@ -241,69 +226,27 @@ namespace OpenMS
     double datum_weighted = 0;   
     if (weight == "ln(x)")
     {
-      if (datum > std::log(10e5))
-      {
-        datum_weighted = 10e5;
-      }
-      else
-      {
-        datum_weighted = std::abs(std::exp(datum));
-      }
+      datum_weighted = std::exp(datum);
     }
     else if (weight == "ln(y)")
     {
-      if (datum > std::log(10e8))
-      {
-        datum_weighted = 10e8;
-      }
-      else
-      {
-        datum_weighted = std::exp(datum);
-      }
+      datum_weighted = std::exp(datum);
     }
     else if (weight == "1/x")
     {
-      if (datum > 1/std::abs(10e-5))
-      {
-        datum_weighted = 10e-5;
-      }
-      else
-      {
-        datum_weighted = 1/std::abs(datum);
-      }
+      datum_weighted = 1/std::abs(datum);
     }
     else if (weight == "1/y")
     {
-      if (datum > 1/std::abs(10e-8))
-      {
-        datum_weighted = 10e-8;
-      }
-      else
-      {
-        datum_weighted = 1/std::abs(datum);
-      }
+      datum_weighted = 1/std::abs(datum);
     }
     else if (weight == "1/x2")
     {
-      if (datum > 1/std::pow(10e-5,2))
-      {
-        datum_weighted = 10e-5;
-      }
-      else
-      {
-        datum_weighted = std::sqrt(1/std::abs(datum));
-      }
+      datum_weighted = std::sqrt(1/std::abs(datum));
     }
     else if (weight == "1/y2")
     {
-      if (datum >  1/std::pow(10e-8,2))
-      {
-        datum_weighted = 10e-8;
-      }
-      else
-      {
-        datum_weighted = std::sqrt(1/std::abs(datum));
-      }
+      datum_weighted = std::sqrt(1/std::abs(datum));
     }
     else if (weight == "")
     {

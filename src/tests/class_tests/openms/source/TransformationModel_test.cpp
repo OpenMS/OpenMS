@@ -156,17 +156,55 @@ START_SECTION((double weightDatum(double& datum, const string& weight) const))
 }
 END_SECTION
 
-START_SECTION((double checkDatumRange(const double& datum, const double& datum_min, const double& datum_max)))
+START_SECTION((double checkDatumRange(const double& datum, const double& datum_min, const double& datum_max))) //new
 {
   Param param;
   TransformationModel dw(data, param);
-  double dmin;
-  dmin = 10e-6;
-  double dmax;
-  dmax = 10e9;
+  double dmin = 10e-6;
+  double dmax = 10e9;
   TEST_REAL_SIMILAR(dw.checkDatumRange(10e-7, dmin, dmax), dmin);
   TEST_REAL_SIMILAR(dw.checkDatumRange(10e12, dmin, dmax), dmax);
   TEST_REAL_SIMILAR(dw.checkDatumRange(100, dmin, dmax), 100);
+}
+END_SECTION
+
+START_SECTION((double weightDatum(double& datum, const string& weight) const))
+{
+  Param param;
+  TransformationModel dw(data, param);
+  string test;
+  test = "";
+  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 0.0);
+  TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 2.0);
+  TEST_REAL_SIMILAR(dw.weightDatum(10e13,test), 10e13);
+  double xmin = 10e-5;
+  double xmax = 10e12;
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(0.0, xmin, xmax),test), xmin);
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(2.0, xmin, xmax),test), 2.0);
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(10e13, xmin, xmax),test), xmax);
+  test = "none";
+  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 0.0);
+  TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 2.0);
+  test = "ln(x)";
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(0.0, xmin, xmax),test), std::log(xmin));
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(2.0, xmin, xmax),test), std::log(2.0));
+  test = "1/x";
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(0.0, xmin, xmax),test), 1/xmin);
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(2.0, xmin, xmax),test), 1/std::abs(2.0));
+  test = "1/x2";
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(0.0, xmin, xmax),test), 1/std::pow(xmin,2));
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(2.0, xmin, xmax),test), 1/std::abs(std::pow(2.0,2)));
+  test = "ln(y)";
+  double ymin = 10e-8;
+  double ymax = 10e12;
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(0.0, ymin, ymax),test), std::log(ymin));
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(2.0, ymin, ymax),test), std::log(2.0));
+  test = "1/y";
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(0.0, ymin, ymax),test), 1/ymin);
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(2.0, ymin, ymax),test), 1/std::abs(2.0));
+  test = "1/y2";
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(0.0, ymin, ymax),test), 1/std::pow(ymin,2));
+  TEST_REAL_SIMILAR(dw.weightDatum(dw.checkDatumRange(2.0, ymin, ymax),test), 1/std::abs(std::pow(2.0,2)));
 }
 END_SECTION
 
@@ -177,17 +215,21 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   Param param;
   TransformationModel::getDefaultParameters(param);
   TransformationModel dw(data, param);
+  double xmin = 10e-5;
+  double xmax = 10e12; 
+  double ymin = 10e-8;
+  double ymax = 10e12;
 
   param.setValue("x_weight", "ln(x)");
   param.setValue("y_weight", "");
   test1.clear();
-  test1.push_back(make_pair(std::log(10e-5), 1.0));
+  test1.push_back(make_pair(std::log(xmin), 1.0));
   test1.push_back(make_pair(std::log(1.0), 2.0));
-  test1.push_back(make_pair(std::log(2.0), 4.0));  
+  test1.push_back(make_pair(std::log(2.0), 4.0)); 
   data1.clear();
-  data1.push_back(make_pair(0.0, 1.0));
-  data1.push_back(make_pair(1.0, 2.0));
-  data1.push_back(make_pair(2.0, 4.0));
+  data1.push_back(make_pair(dw.checkDatumRange(0.0, xmin, xmax), dw.checkDatumRange(1.0, ymin, ymax)));
+  data1.push_back(make_pair(dw.checkDatumRange(1.0, xmin, xmax), dw.checkDatumRange(2.0, ymin, ymax)));
+  data1.push_back(make_pair(dw.checkDatumRange(2.0, xmin, xmax), dw.checkDatumRange(4.0, ymin, ymax)));
   dw.weightData(data1,param);
   for (size_t i = 0; i < data1.size(); ++i)
   {
