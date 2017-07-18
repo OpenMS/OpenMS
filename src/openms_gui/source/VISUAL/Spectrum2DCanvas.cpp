@@ -2302,8 +2302,7 @@ namespace OpenMS
       double rt_max = max(p1[1], p2[1]);
       double mz_min = min(p1[0], p2[0]);
       double mz_max = max(p1[0], p2[0]);
-      bool item_added = false;
-      item_added = collectFragmentScansInArea(rt_min, rt_max, mz_min, mz_max, a, msn_scans, msn_meta);
+      bool item_added = collectFragmentScansInArea(rt_min, rt_max, mz_min, mz_max, a, msn_scans, msn_meta);
       if (!item_added)
       {
         // Now simply go for the 5 closest points in RT and check whether there
