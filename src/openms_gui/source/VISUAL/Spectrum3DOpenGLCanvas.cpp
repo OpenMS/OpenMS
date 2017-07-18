@@ -98,27 +98,29 @@ namespace OpenMS
     AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.min_[0], canvas_3d_.visible_area_.max_[0], grid_mz_);
   }
 
-  // void Spectrum3DOpenGLCanvas::renderText(double x, double y, double z, const QString & text, const QFont & font = QFont()) {
-  //   // Identify x and y locations to render text within widget
-  //   int height = this->height();
-  //   //GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
-  //   //project(x, y, z, &textPosX, &textPosY, &textPosZ);
+  void Spectrum3DOpenGLCanvas::renderText(double x, double y, double z, const QString & text, const QFont & font = QFont()) 
+  {
+    // Identify x and y locations to render text within widget
+    int height = this->height();
 
-  //   //TODO implement/figure out project function. Use identity for testing
-  //   GLdouble textPosX = x, textPosY = y, textPosZ = z;
-  //   //textPosY = height - textPosY; // y is inverted
+   //GLdouble textPosX = 0, textPosY = 0, textPosZ = 0;
+   //project(x, y, z, &textPosX, &textPosY, &textPosZ);
 
-  //   // Retrieve last OpenGL color to use as a font color
-  //   GLdouble glColor[4];
-  //   glGetDoublev(GL_CURRENT_COLOR, glColor);
-  //   QColor fontColor = QColor(glColor[0], glColor[1], glColor[2], glColor[3]);
+    //TODO implement/figure out project function. Use identity for testing
+    GLdouble textPosX = x, textPosY = y, textPosZ = z;
+    //textPosY = height - textPosY; // y is inverted
 
-  //   // Render text
-  //   // TODO not sure where to start the painter. Here? In paintGL?
-  //   //painter.setPen(fontColor);
-  //   //painter.setFont(font);
-  //   //painter.drawText(textPosX, textPosY, text);
-  // }
+    // Retrieve last OpenGL color to use as a font color
+    GLdouble glColor[4];
+    glGetDoublev(GL_CURRENT_COLOR, glColor);
+    QColor fontColor = QColor(glColor[0], glColor[1], glColor[2], glColor[3]);
+
+    // Render text
+    // TODO not sure where to start the painter. Here? In paintGL?
+    //painter.setPen(fontColor);
+    //painter.setFont(font);
+    //painter.drawText(textPosX, textPosY, text);
+  }
 
   void Spectrum3DOpenGLCanvas::qglColor(QColor color) {
     glColor4f(color.redF(), color.greenF(), color.blueF(), color.alphaF());
@@ -240,10 +242,9 @@ namespace OpenMS
 
   void Spectrum3DOpenGLCanvas::paintGL()
   {
-    // Start a painter for renderText here? If you add this you will
-    // get errors and nothing but axes will be painted.
-    //QPainter painter(this);
-    //painter.begin(this);
+    QPainter painter(this);
+    painter.begin(this);
+    painter.beginNativePainting();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
@@ -266,14 +267,17 @@ namespace OpenMS
       }
       glCallList(axes_);
       glCallList(axes_ticks_);
-      drawAxesLegend();
       if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM || canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
       {
         glCallList(stickdata_);
       }
     }
-    //Close painter
-    //painter.end();
+    painter.endNativePainting();
+
+    if (canvas_3d_.getLayerCount() != 0) { drawAxesLegend(); }
+
+    // Start a painter for renderText here? If you add this you will
+    painter.end();
     update();
   }
 
