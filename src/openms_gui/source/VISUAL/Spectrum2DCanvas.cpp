@@ -150,7 +150,7 @@ namespace OpenMS
       const ExperimentSharedPtrType exp = layer.getPeakData();
 
       // create iterator on chromatogram spectrum passed by PeakIndex
-      vector<MSChromatogram<> >::const_iterator chrom_it = exp->getChromatograms().begin();
+      vector<MSChromatogram >::const_iterator chrom_it = exp->getChromatograms().begin();
       chrom_it += peak.spectrum;
       dataToWidget_(chrom_it->getPrecursor().getMZ(), chrom_it->front().getRT(), pos);
     }
@@ -168,7 +168,7 @@ namespace OpenMS
       const LayerData & layer = getCurrentLayer();
       const ExperimentSharedPtrType exp = layer.getPeakData();
 
-      vector<MSChromatogram<> >::const_iterator iter = exp->getChromatograms().begin();
+      vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin();
       iter += peak.spectrum;
 
       painter.drawRect(pos.x() - 5, pos.y() - 5, (int((iter->back().getRT() - iter->front().getRT()) / visible_area_.height() * width())) + 10, 10);
@@ -259,12 +259,12 @@ namespace OpenMS
       exp = *layer.getPeakData();
       float mz_origin = 0.0;
 
-      for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+      for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
         if (iter->empty()) {continue;} // ensure that empty chromatograms are not examined (iter->front = segfault)
-        MSChromatogram<>::ConstIterator cit = iter->begin();
+        MSChromatogram::ConstIterator cit = iter->begin();
 
-        // for (MSChromatogram<>::ConstIterator cit = iter->begin(); cit != iter->end(); ++cit)
+        // for (MSChromatogram::ConstIterator cit = iter->begin(); cit != iter->end(); ++cit)
         // {
         //   cout << "Chrom Values RT/INT: " << cit->getRT() << "/" << " " << cit->getIntensity() << endl;
         //  }
@@ -486,7 +486,7 @@ namespace OpenMS
       float min_rt = 0;
       float max_rt = 0;
 
-      for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+      for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
         if (mz_origin != iter->getPrecursor().getMZ())
         {
@@ -1791,7 +1791,7 @@ namespace OpenMS
       PeakMap exp;
       exp = *layer.getPeakData();
 
-      vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin();
+      vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin();
       iter += peak.spectrum;
 
       mz = iter->getPrecursor().getMZ();
@@ -2451,7 +2451,7 @@ namespace OpenMS
       // collect all precursor that fall into the mz rt window
       typedef std::set<Precursor, Precursor::MZLess> PCSetType;
       PCSetType precursor_in_rt_mz_window;
-      for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+      for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
         if (mz + CHROMATOGRAM_SHOW_MZ_RANGE >= iter->getPrecursor().getMZ() &&
             mz - CHROMATOGRAM_SHOW_MZ_RANGE <= iter->getPrecursor().getMZ() &&
@@ -2466,7 +2466,7 @@ namespace OpenMS
       map<Precursor, vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
       for (PCSetType::const_iterator pit = precursor_in_rt_mz_window.begin(); pit != precursor_in_rt_mz_window.end(); ++pit)
       {
-        for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+        for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
         {
           if (iter->getPrecursor() == *pit)
           {

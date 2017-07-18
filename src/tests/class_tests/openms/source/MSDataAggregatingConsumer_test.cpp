@@ -217,7 +217,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
   MSDataStoringConsumer * storage = new MSDataStoringConsumer();
   MSDataAggregatingConsumer * agg_consumer = new MSDataAggregatingConsumer(storage);
 
-  MSChromatogram<> c;
+  MSChromatogram c;
   c.setNativeID("testid");
   agg_consumer->consumeChromatogram(c);
 

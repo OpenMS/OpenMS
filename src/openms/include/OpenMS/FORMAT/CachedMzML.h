@@ -71,7 +71,7 @@ public:
 
     typedef PeakMap MapType;
     typedef MSSpectrum SpectrumType;
-    typedef MSChromatogram<ChromatogramPeak> ChromatogramType;
+    typedef MSChromatogram ChromatogramType;
 
     // using double precision to store all data (has to agree with type of BinaryDataArrayPtr)
     typedef double DatumSingleton;

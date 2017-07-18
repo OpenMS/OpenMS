@@ -47,11 +47,11 @@ START_TEST(MSChromatogram, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MSChromatogram<ChromatogramPeak>* ptr = 0;
-MSChromatogram<ChromatogramPeak>* nullPointer = 0;
+MSChromatogram* ptr = 0;
+MSChromatogram* nullPointer = 0;
 START_SECTION(MSChromatogram())
 {
-	ptr = new MSChromatogram<ChromatogramPeak>();
+	ptr = new MSChromatogram();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -62,7 +62,7 @@ START_SECTION(virtual ~MSChromatogram())
 }
 END_SECTION
 
-ptr = new MSChromatogram<ChromatogramPeak>();
+ptr = new MSChromatogram();
 ChromatogramPeak p1;
 p1.setIntensity(1.0f);
 p1.setRT(2.0);
@@ -92,14 +92,14 @@ END_SECTION
 
 START_SECTION((const FloatDataArrays& getFloatDataArrays() const ))
 {
-  MSChromatogram<> chrom;
+  MSChromatogram chrom;
 	TEST_EQUAL(chrom.getFloatDataArrays().size(),0)
 }
 END_SECTION
 
 START_SECTION((FloatDataArrays& getFloatDataArrays()))
 {
-	MSChromatogram<> chrom;
+	MSChromatogram chrom;
 	chrom.getFloatDataArrays().resize(2);
 	TEST_EQUAL(chrom.getFloatDataArrays().size(), 2)
 }
@@ -107,14 +107,14 @@ END_SECTION
 
 START_SECTION((const StringDataArrays& getStringDataArrays() const ))
 {
-  MSChromatogram<> chrom;
+  MSChromatogram chrom;
   TEST_EQUAL(chrom.getStringDataArrays().size(),0)
 }
 END_SECTION
 
 START_SECTION((StringDataArrays& getStringDataArrays()))
 {
-  MSChromatogram<> chrom;
+  MSChromatogram chrom;
   chrom.getStringDataArrays().resize(2);
   TEST_EQUAL(chrom.getStringDataArrays().size(), 2)
 }
@@ -122,14 +122,14 @@ END_SECTION
 
 START_SECTION((const IntegerDataArrays& getIntegerDataArrays() const ))
 {
-	MSChromatogram<> chrom;
+	MSChromatogram chrom;
   TEST_EQUAL(chrom.getIntegerDataArrays().size(), 0)
 }
 END_SECTION
 
 START_SECTION((IntegerDataArrays& getIntegerDataArrays()))
 {
-	MSChromatogram<> chrom;
+	MSChromatogram chrom;
   chrom.getIntegerDataArrays().resize(2);
   TEST_EQUAL(chrom.getIntegerDataArrays().size(), 2)
 }
@@ -137,13 +137,13 @@ END_SECTION
 
 START_SECTION((void sortByIntensity(bool reverse=false)))
 {
-  MSChromatogram<> ds;
+  MSChromatogram ds;
   ChromatogramPeak p;
-  MSChromatogram<>::FloatDataArray float_array;
-  MSChromatogram<>::StringDataArray string_array;
-  MSChromatogram<>::IntegerDataArray int_array;
+  MSChromatogram::FloatDataArray float_array;
+  MSChromatogram::StringDataArray string_array;
+  MSChromatogram::IntegerDataArray int_array;
   std::vector<double> rts, intensities;
-  MSChromatogram<>::IntegerDataArray in_array;
+  MSChromatogram::IntegerDataArray in_array;
   intensities.push_back(201); rts.push_back(420.130); float_array.push_back(420.130f); string_array.push_back("420.13"); int_array.push_back(420);
   intensities.push_back(60);  rts.push_back(412.824); float_array.push_back(412.824f); string_array.push_back("412.82"); int_array.push_back(412);
   intensities.push_back(56);  rts.push_back(423.269); float_array.push_back(423.269f); string_array.push_back("423.27"); int_array.push_back(423);
@@ -164,7 +164,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   ds.sortByIntensity();
   std::vector<double> intensities_copy(intensities);
   std::sort(intensities_copy.begin(),intensities_copy.end());
-  MSChromatogram<>::iterator it_ds = ds.begin();
+  MSChromatogram::iterator it_ds = ds.begin();
   for(std::vector<double>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
   {
     if(it_ds == ds.end())
@@ -185,16 +185,16 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   intensities_copy = intensities;
   std::sort(intensities_copy.begin(),intensities_copy.end());
 
-  ds.getFloatDataArrays() = std::vector<MSChromatogram<>::FloatDataArray>(3,float_array);
+  ds.getFloatDataArrays() = std::vector<MSChromatogram::FloatDataArray>(3,float_array);
   ds.getFloatDataArrays()[0].setName("f1");
   ds.getFloatDataArrays()[1].setName("f2");
   ds.getFloatDataArrays()[2].setName("f3");
 
-  ds.getStringDataArrays() = std::vector<MSChromatogram<>::StringDataArray>(2, string_array);
+  ds.getStringDataArrays() = std::vector<MSChromatogram::StringDataArray>(2, string_array);
   ds.getStringDataArrays()[0].setName("s1");
   ds.getStringDataArrays()[1].setName("s2");
 
-  ds.getIntegerDataArrays() = std::vector<MSChromatogram<>::IntegerDataArray>(1, int_array);
+  ds.getIntegerDataArrays() = std::vector<MSChromatogram::IntegerDataArray>(1, int_array);
   ds.getIntegerDataArrays()[0].setName("i1");
 
   ds.sortByIntensity();
@@ -208,10 +208,10 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 
   TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
 
-  MSChromatogram<>::iterator it1 = ds.begin();
-  MSChromatogram<>::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
-  MSChromatogram<>::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
-  MSChromatogram<>::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
+  MSChromatogram::iterator it1 = ds.begin();
+  MSChromatogram::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
+  MSChromatogram::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
+  MSChromatogram::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
   TOLERANCE_ABSOLUTE(0.0001)
   for(std::vector<double>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
   {
@@ -237,11 +237,11 @@ END_SECTION
 
 START_SECTION((void sortByPosition()))
 {
-  MSChromatogram<> ds;
+  MSChromatogram ds;
   ChromatogramPeak p;
-  MSChromatogram<>::FloatDataArray float_array;
-  MSChromatogram<>::StringDataArray string_array;
-  MSChromatogram<>::IntegerDataArray int_array;
+  MSChromatogram::FloatDataArray float_array;
+  MSChromatogram::StringDataArray string_array;
+  MSChromatogram::IntegerDataArray int_array;
   std::vector<double> rts, intensities;
   intensities.push_back(56);  rts.push_back(423.269); float_array.push_back(56);  string_array.push_back("56");  int_array.push_back(56);
   intensities.push_back(201); rts.push_back(420.130); float_array.push_back(201); string_array.push_back("201"); int_array.push_back(201);
@@ -260,7 +260,7 @@ START_SECTION((void sortByPosition()))
     ds.push_back(p);
   }
   ds.sortByPosition();
-  MSChromatogram<>::iterator it = ds.begin();
+  MSChromatogram::iterator it = ds.begin();
   for(std::vector<double>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
   {
     if(it == ds.end())
@@ -276,16 +276,16 @@ START_SECTION((void sortByPosition()))
     p.setIntensity(intensities[i]); p.setRT(rts[i]);
     ds.push_back(p);
   }
-  ds.getFloatDataArrays() = std::vector<MSChromatogram<>::FloatDataArray>(3,float_array);
+  ds.getFloatDataArrays() = std::vector<MSChromatogram::FloatDataArray>(3,float_array);
   ds.getFloatDataArrays()[0].setName("f1");
   ds.getFloatDataArrays()[1].setName("f2");
   ds.getFloatDataArrays()[2].setName("f3");
 
-  ds.getStringDataArrays() = std::vector<MSChromatogram<>::StringDataArray>(2, string_array);
+  ds.getStringDataArrays() = std::vector<MSChromatogram::StringDataArray>(2, string_array);
   ds.getStringDataArrays()[0].setName("s1");
   ds.getStringDataArrays()[1].setName("s2");
 
-  ds.getIntegerDataArrays() = std::vector<MSChromatogram<>::IntegerDataArray>(2, int_array);
+  ds.getIntegerDataArrays() = std::vector<MSChromatogram::IntegerDataArray>(2, int_array);
   ds.getIntegerDataArrays()[0].setName("i1");
 
   ds.sortByPosition();
@@ -299,10 +299,10 @@ START_SECTION((void sortByPosition()))
 
   TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
 
-  MSChromatogram<>::iterator it1 = ds.begin();
-  MSChromatogram<>::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
-  MSChromatogram<>::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
-  MSChromatogram<>::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
+  MSChromatogram::iterator it1 = ds.begin();
+  MSChromatogram::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
+  MSChromatogram::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
+  MSChromatogram::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
   for(std::vector<double>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
   {
     if(it1 != ds.end() && it2 != ds.getFloatDataArrays()[1].end() && it3 != ds.getStringDataArrays()[0].end())
@@ -329,7 +329,7 @@ END_SECTION
 START_SECTION((bool isSorted() const ))
 {
   //make test dataset
-  MSChromatogram<> spec;
+  MSChromatogram spec;
   ChromatogramPeak p;
   p.setIntensity(1.0);
   p.setRT(1000.0);
@@ -353,7 +353,7 @@ END_SECTION
 
 START_SECTION((Size findNearest(CoordinateType rt) const ))
 {
-  MSChromatogram<> tmp;
+  MSChromatogram tmp;
   ChromatogramPeak p;
   p.setIntensity(29.0f); p.setRT(412.321); tmp.push_back(p); //0
   p.setIntensity(60.0f); p.setRT(412.824); tmp.push_back(p); //1
@@ -390,7 +390,7 @@ START_SECTION((Size findNearest(CoordinateType rt) const ))
   TEST_EQUAL(tmp.findNearest(427.3),11);
 
   //empty spectrum
-  MSChromatogram<> tmp2;
+  MSChromatogram tmp2;
   TEST_PRECONDITION_VIOLATED(tmp2.findNearest(427.3));
 }
 END_SECTION
@@ -398,8 +398,8 @@ END_SECTION
 
 START_SECTION((Iterator RTBegin(CoordinateType rt)))
 {
-  MSChromatogram<> tmp;
-  MSChromatogram<>::PeakType rdp;
+  MSChromatogram tmp;
+  MSChromatogram::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -415,7 +415,7 @@ START_SECTION((Iterator RTBegin(CoordinateType rt)))
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSChromatogram<>::Iterator it;
+  MSChromatogram::Iterator it;
 
   it = tmp.RTBegin(4.5);
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -428,8 +428,8 @@ END_SECTION
 
 START_SECTION((Iterator RTBegin(Iterator begin, CoordinateType rt, Iterator end)))
 {
-  MSChromatogram<> tmp;
-  MSChromatogram<>::PeakType rdp;
+  MSChromatogram tmp;
+  MSChromatogram::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -445,7 +445,7 @@ START_SECTION((Iterator RTBegin(Iterator begin, CoordinateType rt, Iterator end)
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSChromatogram<>::Iterator it;
+  MSChromatogram::Iterator it;
 
   it = tmp.RTBegin(tmp.begin(), 4.5, tmp.end());
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -459,8 +459,8 @@ END_SECTION
 
 START_SECTION((Iterator RTEnd(CoordinateType rt)))
 {
-  MSChromatogram<> tmp;
-  MSChromatogram<>::PeakType rdp;
+  MSChromatogram tmp;
+  MSChromatogram::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -476,7 +476,7 @@ START_SECTION((Iterator RTEnd(CoordinateType rt)))
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSChromatogram<>::Iterator it;
+  MSChromatogram::Iterator it;
 
   it = tmp.RTBegin(4.5);
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -489,8 +489,8 @@ END_SECTION
 
 START_SECTION((Iterator RTEnd(Iterator begin, CoordinateType rt, Iterator end)))
 {
-  MSChromatogram<> tmp;
-  MSChromatogram<>::PeakType rdp;
+  MSChromatogram tmp;
+  MSChromatogram::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -506,7 +506,7 @@ START_SECTION((Iterator RTEnd(Iterator begin, CoordinateType rt, Iterator end)))
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSChromatogram<>::Iterator it;
+  MSChromatogram::Iterator it;
 
   it = tmp.RTBegin(tmp.begin(), 4.5, tmp.end());
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -519,8 +519,8 @@ END_SECTION
 
 START_SECTION((ConstIterator RTBegin(CoordinateType rt) const ))
 {
-  MSChromatogram<> tmp;
-  MSChromatogram<>::PeakType rdp;
+  MSChromatogram tmp;
+  MSChromatogram::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -536,7 +536,7 @@ START_SECTION((ConstIterator RTBegin(CoordinateType rt) const ))
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSChromatogram<>::ConstIterator it;
+  MSChromatogram::ConstIterator it;
 
   it = tmp.RTEnd(4.5);
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -550,8 +550,8 @@ END_SECTION
 
 START_SECTION((ConstIterator RTBegin(ConstIterator begin, CoordinateType rt, ConstIterator end) const ))
 {
-  MSChromatogram<> tmp;
-  MSChromatogram<>::PeakType rdp;
+  MSChromatogram tmp;
+  MSChromatogram::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -567,7 +567,7 @@ START_SECTION((ConstIterator RTBegin(ConstIterator begin, CoordinateType rt, Con
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSChromatogram<>::ConstIterator it;
+  MSChromatogram::ConstIterator it;
 
   it = tmp.RTBegin(tmp.begin(), 4.5, tmp.end());
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -580,8 +580,8 @@ END_SECTION
 
 START_SECTION((ConstIterator RTEnd(CoordinateType rt) const ))
 {
-  MSChromatogram<> tmp;
-  MSChromatogram<>::PeakType rdp;
+  MSChromatogram tmp;
+  MSChromatogram::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -597,7 +597,7 @@ START_SECTION((ConstIterator RTEnd(CoordinateType rt) const ))
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSChromatogram<>::ConstIterator it;
+  MSChromatogram::ConstIterator it;
 
   it = tmp.RTBegin(4.5);
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -611,8 +611,8 @@ END_SECTION
 
 START_SECTION((ConstIterator RTEnd(ConstIterator begin, CoordinateType rt, ConstIterator end) const ))
 {
-  MSChromatogram<> tmp;
-  MSChromatogram<>::PeakType rdp;
+  MSChromatogram tmp;
+  MSChromatogram::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -628,7 +628,7 @@ START_SECTION((ConstIterator RTEnd(ConstIterator begin, CoordinateType rt, Const
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSChromatogram<>::ConstIterator it;
+  MSChromatogram::ConstIterator it;
 
   it = tmp.RTEnd(tmp.begin(), 4.5, tmp.end());
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -641,7 +641,7 @@ END_SECTION
 
 START_SECTION((MSChromatogram(const MSChromatogram &source)))
 {
-  MSChromatogram<> tmp;
+  MSChromatogram tmp;
   tmp.getInstrumentSettings().getScanWindows().resize(1);
   tmp.setMetaValue("label",5.0);
 	Product prod;
@@ -649,11 +649,11 @@ START_SECTION((MSChromatogram(const MSChromatogram &source)))
 	tmp.setProduct(prod);
   tmp.setName("bla");
   //peaks
-  MSChromatogram<>::PeakType peak;
+  MSChromatogram::PeakType peak;
   peak.getPosition()[0] = 47.11;
   tmp.push_back(peak);
 
-  MSChromatogram<> tmp2(tmp);
+  MSChromatogram tmp2(tmp);
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),1);
   TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
   TEST_REAL_SIMILAR(tmp2.getMZ(), 7.0)
@@ -667,19 +667,19 @@ END_SECTION
 
 START_SECTION((MSChromatogram& operator=(const MSChromatogram &source)))
 {
-  MSChromatogram<> tmp;
+  MSChromatogram tmp;
   tmp.setMetaValue("label",5.0);
 	Product prod;
 	prod.setMZ(7.0);
 	tmp.setProduct(prod);
   tmp.setName("bla");
   //peaks
-  MSChromatogram<>::PeakType peak;
+  MSChromatogram::PeakType peak;
   peak.getPosition()[0] = 47.11;
   tmp.push_back(peak);
 
   //normal assignment
-  MSChromatogram<> tmp2;
+  MSChromatogram tmp2;
   tmp2 = tmp;
   TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
   TEST_REAL_SIMILAR(tmp2.getMZ(), 7.0)
@@ -689,7 +689,7 @@ START_SECTION((MSChromatogram& operator=(const MSChromatogram &source)))
 
   //Assignment of empty object
   //normal assignment
-  tmp2 = MSChromatogram<>();
+  tmp2 = MSChromatogram();
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),0);
   TEST_EQUAL(tmp2.metaValueExists("label"), false)
   TEST_REAL_SIMILAR(tmp2.getMZ(), 0.0)
@@ -700,7 +700,7 @@ END_SECTION
 
 START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
 {
-  MSChromatogram<> edit, empty;
+  MSChromatogram edit, empty;
 
   TEST_EQUAL(edit==empty,true);
 
@@ -746,7 +746,7 @@ END_SECTION
 
 START_SECTION((bool operator!=(const MSChromatogram &rhs) const ))
 {
-  MSChromatogram<> edit, empty;
+  MSChromatogram edit, empty;
 
   TEST_EQUAL(edit!=empty,false);
 
@@ -795,7 +795,7 @@ END_SECTION
 
 START_SECTION((virtual void updateRanges()))
 {
-  MSChromatogram<> s;
+  MSChromatogram s;
   s.push_back(p1);
   s.push_back(p2);
   s.push_back(p1);
@@ -821,7 +821,7 @@ START_SECTION((virtual void updateRanges()))
 END_SECTION
 
 START_SECTION(void clear(bool clear_meta_data))
-  MSChromatogram<> edit;
+  MSChromatogram edit;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   edit.resize(1);
   edit.setMetaValue("label",String("bla"));
@@ -832,14 +832,14 @@ START_SECTION(void clear(bool clear_meta_data))
 
   edit.clear(false);
   TEST_EQUAL(edit.size(),0)
-  TEST_EQUAL(edit==MSChromatogram<>(),false)
+  TEST_EQUAL(edit==MSChromatogram(),false)
 
   edit.clear(true);
-  TEST_EQUAL(edit==MSChromatogram<>(),true)
+  TEST_EQUAL(edit==MSChromatogram(),true)
 END_SECTION
 
 START_SECTION((double getMZ() const))
-	MSChromatogram<> tmp;
+	MSChromatogram tmp;
 	Product prod;
 	prod.setMZ(0.1);
 	TEST_REAL_SIMILAR(tmp.getMZ(), 0.0)
@@ -849,20 +849,20 @@ END_SECTION
 
 START_SECTION(([MSChromatogram::MZLess] bool operator()(const MSChromatogram &a, const MSChromatogram &b) const))
 {
-    MSChromatogram<> a;
+    MSChromatogram a;
     Product pa;
     pa.setMZ(1000.0);
     a.setProduct(pa);
 
-    MSChromatogram<> b;
+    MSChromatogram b;
     Product pb;
     pb.setMZ(1000.1);
     b.setProduct(pb);
 
-    TEST_EQUAL(MSChromatogram<>::MZLess().operator ()(a,b), true)
-    TEST_EQUAL(MSChromatogram<>::MZLess().operator ()(b,a), false)
+    TEST_EQUAL(MSChromatogram::MZLess().operator ()(a,b), true)
+    TEST_EQUAL(MSChromatogram::MZLess().operator ()(b,a), false)
 
-    TEST_EQUAL(MSChromatogram<>::MZLess().operator ()(a,a), false)
+    TEST_EQUAL(MSChromatogram::MZLess().operator ()(a,a), false)
 }
 END_SECTION
 

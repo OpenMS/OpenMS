@@ -373,7 +373,7 @@ END_SECTION
 START_SECTION(([EXTRA] void consumeChromatogram(MapType::ChromatogramType &) )) 
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSChromatogram<> c;
+  MSChromatogram c;
   regular_sfc_ptr->consumeChromatogram(c);
   TEST_EQUAL(true, true)
   delete regular_sfc_ptr;

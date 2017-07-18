@@ -1212,13 +1212,13 @@ protected:
           Size output_count(0);
           Size unsupported_chromatogram_count(0);
 
-          for (vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+          for (vector<MSChromatogram >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
           {
             if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
             {
               ++output_count;
               output << "MRM Q1=" << it->getPrecursor().getMZ() << " Q3=" << it->getProduct().getMZ() << nl;
-              for (MSChromatogram<>::ConstIterator cit = it->begin(); cit != it->end(); ++cit)
+              for (MSChromatogram::ConstIterator cit = it->begin(); cit != it->end(); ++cit)
               {
                 output << cit->getRT() << " " << cit->getIntensity() << nl;
               }

@@ -107,7 +107,7 @@ namespace OpenMS
       }
       for (Size i = 0; i < exp.getNrChromatograms(); i++)
       {
-        MSChromatogram<> c = exp.getChromatogram(i);
+        MSChromatogram c = exp.getChromatogram(i);
         consumer.consumeChromatogram(c);
       }
     }

@@ -96,10 +96,10 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum& spectrum)))
 END_SECTION 
 
 START_SECTION((template <typename PeakType> void filter(MSChromatogram<PeakType>& chromatogram)))
-  MSChromatogram<ChromatogramPeak> chromatogram;
+  MSChromatogram chromatogram;
   chromatogram.resize(5);
 
-  MSChromatogram<ChromatogramPeak>::Iterator it = chromatogram.begin();
+  MSChromatogram::Iterator it = chromatogram.begin();
   for (Size i=0; i<5; ++i, ++it)
   {
     it->setIntensity(1.0f);

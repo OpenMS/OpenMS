@@ -214,10 +214,10 @@ public:
 
       TODO: make this more efficient by reducing the copying
     */
-    MSChromatogram<ChromatogramPeakT> getChromatogram(Size id)
+    MSChromatogram getChromatogram(Size id)
     {
       OpenMS::Interfaces::ChromatogramPtr cptr = indexed_mzml_file_.getChromatogramById(static_cast<int>(id));
-      MSChromatogram<ChromatogramPeakT> chromatogram(meta_ms_experiment_->getChromatogram(id));
+      MSChromatogram chromatogram(meta_ms_experiment_->getChromatogram(id));
 
       // recreate a chromatogram from the data arrays!
       OpenMS::Interfaces::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();

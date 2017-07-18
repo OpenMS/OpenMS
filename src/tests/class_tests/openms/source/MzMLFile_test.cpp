@@ -793,7 +793,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     //Testing automated sorting of files
     PeakMap exp_inverse;
     MSSpectrum spec;
-    MSChromatogram<> chrom;
+    MSChromatogram chrom;
     Peak1D sp;
     ChromatogramPeak cp;
     // create spectrum and chromatogram in inversed order

@@ -109,7 +109,7 @@ namespace OpenMS
 
 	typedef PeakMap MapType;
 	typedef MSSpectrum SpectrumType;
-	typedef MSChromatogram<> ChromatogramType;
+	typedef MSChromatogram ChromatogramType;
 
     class OPENMS_DLLAPI MzMLHandler :
       public XMLHandler
@@ -194,7 +194,7 @@ protected:
       /// Spectrum type
       typedef MSSpectrum SpectrumType;
       /// Spectrum type
-      typedef MSChromatogram<ChromatogramPeakType> ChromatogramType;
+      typedef MSChromatogram ChromatogramType;
 
       typedef MzMLHandlerHelper::BinaryData BinaryData;
 

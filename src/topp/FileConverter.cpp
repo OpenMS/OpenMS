@@ -333,7 +333,7 @@ protected:
           exp[i].push_back(tmp_exp[i][j]);
         }
       }
-      std::vector<MSChromatogram<ChromatogramPeak> > old_chromatograms = exp.getChromatograms();
+      std::vector<MSChromatogram > old_chromatograms = exp.getChromatograms();
       for (Size i=0; i < tmp_exp.getChromatograms().size(); ++i)
       {
         for (Size j = 0; j < tmp_exp.getChromatograms()[i].size(); j++)

@@ -444,7 +444,7 @@ protected:
           out.addSpectrum(*spec_it);
         }
         // also add the chromatograms
-        for (vector<MSChromatogram<ChromatogramPeak> >::const_iterator
+        for (vector<MSChromatogram >::const_iterator
                chrom_it = in.getChromatograms().begin(); chrom_it != 
                in.getChromatograms().end(); ++chrom_it)
         {

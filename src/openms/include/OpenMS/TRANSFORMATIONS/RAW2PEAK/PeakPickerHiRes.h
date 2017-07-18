@@ -112,8 +112,7 @@ public:
      * @param input  input chromatogram in profile mode
      * @param output  output chromatogram with picked peaks
      */
-    template <typename PeakType>
-    void pick(const MSChromatogram<PeakType>& input, MSChromatogram<PeakType>& output) const
+    void pick(const MSChromatogram& input, MSChromatogram& output) const
     {
       std::vector<PeakBoundary> boundaries;
       pick(input, output, boundaries);
@@ -451,8 +450,7 @@ public:
      * @param output  output chromatogram with picked peaks
      * @param boundaries  boundaries of the picked peaks
      */
-    template <typename PeakType>
-    void pick(const MSChromatogram<PeakType>& input, MSChromatogram<PeakType>& output, std::vector<PeakBoundary>& boundaries) const
+    void pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries) const
     {
       // copy meta data of the input chromatogram
       output.clear(true);
@@ -462,7 +460,7 @@ public:
 
       MSSpectrum input_spectrum;
       MSSpectrum output_spectrum;
-      for (typename MSChromatogram<PeakType>::const_iterator it = input.begin(); it != input.end(); ++it)
+      for (MSChromatogram::const_iterator it = input.begin(); it != input.end(); ++it)
       {
         Peak1D p;
         p.setMZ(it->getRT());
@@ -560,7 +558,7 @@ public:
 
       for (Size i = 0; i < input.getChromatograms().size(); ++i)
       {
-        MSChromatogram<> chromatogram;
+        MSChromatogram chromatogram;
         std::vector<PeakBoundary> boundaries_c; // peak boundaries of a single chromatogram
         pick(input.getChromatograms()[i], chromatogram, boundaries_c);
         output.addChromatogram(chromatogram);
@@ -623,7 +621,7 @@ public:
 
       for (Size i = 0; i < input.getNrChromatograms(); ++i)
       {
-        MSChromatogram<> chromatogram;
+        MSChromatogram chromatogram;
         pick(input.getChromatogram(i), chromatogram);
         output.addChromatogram(chromatogram);
         setProgress(++progress);

@@ -98,20 +98,19 @@ public:
 
         @param container The container to be resampled
     */
-    template <template <typename> class SpecT, typename PeakType>
-    void raster(SpecT<PeakType>& container)
+    void raster(MSChromatogram& container)
     {
       //return if nothing to do
       if (container.empty()) return;
 
-      typename SpecT<PeakType>::iterator first = container.begin();
-      typename SpecT<PeakType>::iterator last = container.end();
+      MSChromatogram::iterator first = container.begin();
+      MSChromatogram::iterator last = container.end();
 
       double end_pos = (last - 1)->getMZ();
       double start_pos = first->getMZ();
       int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
 
-      typename std::vector<PeakType> resampled_peak_container;
+      std::vector<ChromatogramPeak> resampled_peak_container;
       populate_raster_(resampled_peak_container, start_pos, end_pos, number_resampled_points);
 
       raster(container.begin(), container.end(), resampled_peak_container.begin(), resampled_peak_container.end());
@@ -164,21 +163,20 @@ public:
         @param start_pos The start position to be used for resampling
         @param end_pos The end position to be used for resampling
     */
-    template <template <typename> class SpecT, typename PeakType>
-    void raster_align(SpecT<PeakType>& container, double start_pos, double end_pos)
+    void raster_align(MSChromatogram& container, double start_pos, double end_pos)
     {
       //return if nothing to do
       if (container.empty()) return;
 
       if (end_pos < start_pos)
       {
-        typename std::vector<PeakType> empty;
+        typename std::vector<ChromatogramPeak> empty;
         container.swap(empty);
         return;
       }
 
-      typename SpecT<PeakType>::iterator first = container.begin();
-      typename SpecT<PeakType>::iterator last = container.end();
+      MSChromatogram::iterator first = container.begin();
+      MSChromatogram::iterator last = container.end();
 
       // get the iterators just before / after the two points start_pos / end_pos
       while (first != container.end() && (first)->getMZ() < start_pos) {++first;}
@@ -186,7 +184,7 @@ public:
 
       int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
 
-      typename std::vector<PeakType> resampled_peak_container;
+      std::vector<ChromatogramPeak> resampled_peak_container;
       populate_raster_(resampled_peak_container, start_pos, end_pos, number_resampled_points);
 
       raster(first, last, resampled_peak_container.begin(), resampled_peak_container.end());
@@ -215,13 +213,15 @@ public:
         @param resample_it Iterator pointing to end of the output spectrum range (m/z need to be populated, intensities should be zero)
 
     */
-    template <typename PeakTypeIterator, typename ConstPeakTypeIterator>
-    void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator raw_end, PeakTypeIterator resample_it, PeakTypeIterator resample_end)
+    void raster(MSChromatogram::ConstIterator raw_it,
+                MSChromatogram::ConstIterator raw_end,
+                MSChromatogram::Iterator resample_it,
+                MSChromatogram::Iterator resample_end)
     {
       OPENMS_PRECONDITION(resample_it != resample_end, "Output iterators cannot be identical") // as we use +1
       // OPENMS_PRECONDITION(raw_it != raw_end, "Input iterators cannot be identical")
 
-      PeakTypeIterator resample_start = resample_it;
+      MSChromatogram::Iterator resample_start = resample_it;
 
       // need to get the raw iterator between two resampled iterators of the raw data
       while (raw_it != raw_end && raw_it->getMZ() < resample_it->getMZ())

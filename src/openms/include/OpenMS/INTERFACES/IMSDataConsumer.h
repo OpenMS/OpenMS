@@ -69,7 +69,7 @@ namespace Interfaces
     {
     public:
       typedef MSSpectrum SpectrumType;
-      typedef MSChromatogram<> ChromatogramType;
+      typedef MSChromatogram ChromatogramType;
 
       virtual ~IMSDataConsumer() {}
 

@@ -34,6 +34,22 @@
 
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
-namespace OpenMS
+using namespace OpenMS;
+
+std::ostream& OpenMS::operator<<(std::ostream& os, const MSChromatogram& chrom)
 {
+  os << "-- MSCHROMATOGRAM BEGIN --" << std::endl;
+
+  //chromatogram settings
+  os << static_cast<const ChromatogramSettings&>(chrom);
+
+  //data list
+  for (MSChromatogram::ConstIterator it = chrom.begin(); it != chrom.end(); ++it)
+  {
+    os << *it << std::endl;
+  }
+
+  os << "-- MSCHROMATOGRAM END --" << std::endl;
+
+  return os;
 }

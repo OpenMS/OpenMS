@@ -47,7 +47,7 @@ using namespace OpenMS;
 using namespace std;
 
 typedef OpenMS::ReactionMonitoringTransition TransitionType;
-typedef MRMTransitionGroup<MSChromatogram<>, TransitionType> MRMTransitionGroupType;
+typedef MRMTransitionGroup<MSChromatogram, TransitionType> MRMTransitionGroupType;
 
 ///////////////////////////
 
@@ -72,8 +72,8 @@ START_SECTION(~MRMTransitionGroup())
 END_SECTION
 
 
-MSChromatogram<> chrom1;
-MSChromatogram<> chrom2;
+MSChromatogram chrom1;
+MSChromatogram chrom2;
 TransitionType trans1;
 TransitionType trans2;
 MRMFeature feature1;

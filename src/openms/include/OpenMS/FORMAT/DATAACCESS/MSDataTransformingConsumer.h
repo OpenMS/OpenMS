@@ -54,7 +54,7 @@ namespace OpenMS
     /**
       @brief Empty (NOP) function
     */
-    OPENMS_DLLAPI extern void FunctionChromatogramNOP (MSChromatogram<ChromatogramPeak> & /* c */);
+    OPENMS_DLLAPI extern void FunctionChromatogramNOP (MSChromatogram & /* c */);
 
     /**
       @brief Transforming consumer of MS data

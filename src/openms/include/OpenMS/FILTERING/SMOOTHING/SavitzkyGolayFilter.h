@@ -199,10 +199,10 @@ public:
     /**
       @brief Removed the noise from an MSChromatogram
     */
-    void filter(MSChromatogram<> & chromatogram)
+    void filter(MSChromatogram & chromatogram)
     {
       // copy the data AND META DATA to the output container
-      MSChromatogram<> output = chromatogram;
+      MSChromatogram output = chromatogram;
       // filter
       filter(chromatogram.begin(), chromatogram.end(), output.begin());
       // swap back

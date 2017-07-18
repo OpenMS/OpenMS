@@ -97,13 +97,13 @@ END_SECTION
 
 //TransitionGroupOpenMS
 {
-TransitionGroupOpenMS <MSChromatogram<>, ReactionMonitoringTransition>* ptr = 0;
-TransitionGroupOpenMS <MSChromatogram<>, ReactionMonitoringTransition>* nullPointer = 0;
+TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* ptr = 0;
+TransitionGroupOpenMS <MSChromatogram, ReactionMonitoringTransition>* nullPointer = 0;
 
 START_SECTION(TransitionGroupOpenMS())
 {
-  MRMTransitionGroup <MSChromatogram<>, ReactionMonitoringTransition> trgroup;
-  ptr = new TransitionGroupOpenMS < MSChromatogram<>, ReactionMonitoringTransition> (trgroup);
+  MRMTransitionGroup <MSChromatogram, ReactionMonitoringTransition> trgroup;
+  ptr = new TransitionGroupOpenMS < MSChromatogram, ReactionMonitoringTransition> (trgroup);
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION

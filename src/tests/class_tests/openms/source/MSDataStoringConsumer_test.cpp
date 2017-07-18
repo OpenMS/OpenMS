@@ -101,7 +101,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
 {
   MSDataStoringConsumer * storing_consumer = new MSDataStoringConsumer();
 
-  MSChromatogram<> c;
+  MSChromatogram c;
   c.setNativeID("testid");
   storing_consumer->consumeChromatogram(c);
 
@@ -122,7 +122,7 @@ START_SECTION((void setExperimentalSettings(const ExperimentalSettings&)))
   MSDataStoringConsumer * storing_consumer = new MSDataStoringConsumer();
   storing_consumer->setExpectedSize(1,1);
 
-  MSChromatogram<> c;
+  MSChromatogram c;
   c.setNativeID("testid");
   storing_consumer->consumeChromatogram(c);
 

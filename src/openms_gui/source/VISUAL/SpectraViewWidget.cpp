@@ -606,7 +606,7 @@ namespace OpenMS
 
         // collect all precursor that fall into the mz rt window
         PCSetType precursor_in_rt_mz_window;
-        for (std::vector<MSChromatogram<> >::const_iterator iter = exp->getChromatograms().begin(); iter != exp->getChromatograms().end(); ++iter)
+        for (std::vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin(); iter != exp->getChromatograms().end(); ++iter)
         {
           precursor_in_rt_mz_window.insert(iter->getPrecursor());
         }
@@ -614,7 +614,7 @@ namespace OpenMS
         // determine product chromatograms for each precursor
         for (PCSetType::const_iterator pit = precursor_in_rt_mz_window.begin(); pit != precursor_in_rt_mz_window.end(); ++pit)
         {
-          for (std::vector<MSChromatogram<> >::const_iterator iter = exp->getChromatograms().begin(); iter != exp->getChromatograms().end(); ++iter)
+          for (std::vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin(); iter != exp->getChromatograms().end(); ++iter)
           {
             if (iter->getPrecursor() == *pit)
             {
@@ -666,7 +666,7 @@ namespace OpenMS
           // Show single chromatogram: iterate over all chromatograms corresponding to the current precursor and add action for the single chromatogram
           for (std::vector<Size>::iterator vit = mit->second.begin(); vit != mit->second.end(); ++vit)
           {
-            const MSChromatogram<> & current_chromatogram = exp->getChromatograms()[*vit];
+            const MSChromatogram & current_chromatogram = exp->getChromatograms()[*vit];
 
             // Children chromatogram entry
             QTreeWidgetItem * sub_item = new QTreeWidgetItem(item);

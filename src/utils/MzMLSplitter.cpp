@@ -131,7 +131,7 @@ protected:
     MzMLFile().load(in, experiment);
 
     vector<MSSpectrum > spectra;
-    vector<MSChromatogram<ChromatogramPeak> > chromatograms;
+    vector<MSChromatogram > chromatograms;
 
     if (no_spec)
     {

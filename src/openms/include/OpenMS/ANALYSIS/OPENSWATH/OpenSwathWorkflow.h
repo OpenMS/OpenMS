@@ -153,7 +153,7 @@ namespace OpenMS
      *
     */
      TransformationDescription RTNormalization(const TargetedExperiment& transition_exp_,
-     const std::vector< OpenMS::MSChromatogram<> >& chromatograms,
+     const std::vector< OpenMS::MSChromatogram >& chromatograms,
      double min_rsq,
      double min_coverage,
      const Param& default_ffparam,
@@ -166,10 +166,10 @@ namespace OpenMS
     /// Simple method to extract chromatograms (for the RT-normalization peptides)
     void simpleExtractChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
                                     const OpenMS::TargetedExperiment & irt_transitions,
-                                    std::vector< OpenMS::MSChromatogram<> > & chromatograms,
+                                    std::vector< OpenMS::MSChromatogram > & chromatograms,
                                     const ChromExtractParams & cp, bool sonar);
 
-    static void addChromatograms(MSChromatogram<>& base_chrom, const MSChromatogram<>& newchrom);
+    static void addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom);
   };
 
   /**
@@ -184,7 +184,7 @@ namespace OpenMS
     public ProgressLogger
   {
     typedef OpenSwath::LightTransition TransitionType;
-    typedef MRMTransitionGroup< MSChromatogram<>, TransitionType> MRMTransitionGroupType;
+    typedef MRMTransitionGroup< MSChromatogram, TransitionType> MRMTransitionGroupType;
 
   public:
 
@@ -235,7 +235,7 @@ namespace OpenMS
     /** @brief Write output features and chromatograms to disk 
      *
     */
-    void writeOutFeaturesAndChroms_(std::vector< OpenMS::MSChromatogram<> > & chromatograms,
+    void writeOutFeaturesAndChroms_(std::vector< OpenMS::MSChromatogram > & chromatograms,
                                     const FeatureMap & featureFile,
                                     FeatureMap& out_featureFile,
                                     bool store_features,

@@ -199,9 +199,9 @@ public:
     setValidFormats_("out", ListUtils::create<String>("csv"));
   }
 
-  MSChromatogram<> toChromatogram(const MSSpectrum& in)
+  MSChromatogram toChromatogram(const MSSpectrum& in)
   {
-    MSChromatogram<> out;
+    MSChromatogram out;
     for (Size ic = 0; ic < in.size(); ++ic)
     {
       ChromatogramPeak peak;
@@ -288,7 +288,7 @@ public:
         cm.clear(false); // reset global list (about to be filled)
 
         // compute TIC
-        MSChromatogram<> tic = exp.getTIC();
+        MSChromatogram tic = exp.getTIC();
         MSSpectrum tics, tic_gf, tics_pp, tics_sn;
         for (Size ic = 0; ic < tic.size(); ++ic)
         { // rewrite Chromatogram to MSSpectrum (GaussFilter requires it)

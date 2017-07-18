@@ -45,8 +45,8 @@
 using namespace OpenMS;
 using namespace std;
 
-template <template <typename> class SpectrumT, typename PeakT>
-void check_results(SpectrumT<PeakT> spec)
+template <typename ContainerT>
+void check_results(const ContainerT& spec)
 {
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -96,7 +96,7 @@ START_SECTION(( template < template< typename > class SpecT, typename PeakType >
   Param param;
   param.setValue("spacing", default_spacing);
   lr.setParameters(param);
-	lr.raster(spec);
+  lr.raster(spec);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -115,7 +115,7 @@ END_SECTION
 // it should also work with chromatograms
 START_SECTION([EXTRA] test_linear_res_chromat)
 {
-  MSChromatogram< Peak1D > spec;
+  MSChromatogram spec;
   spec.resize(5);
   spec[0].setMZ(0);
   spec[0].setIntensity(3.0f);
@@ -132,7 +132,7 @@ START_SECTION([EXTRA] test_linear_res_chromat)
   Param param;
   param.setValue("spacing",default_spacing);
   lr.setParameters(param);
-	lr.raster(spec);
+  lr.raster(spec);
 
   check_results(spec);
 }
@@ -157,7 +157,7 @@ START_SECTION(( void raster(ConstPeakTypeIterator raw_it, ConstPeakTypeIterator 
   Param param;
   param.setValue("spacing", default_spacing);
   lr.setParameters(param);
-	lr.raster(spec.begin(), spec.end(), output_spectrum.begin(), output_spectrum.end());
+  lr.raster(spec.begin(), spec.end(), output_spectrum.begin(), output_spectrum.end());
 
   check_results(output_spectrum);
 }
@@ -173,7 +173,7 @@ START_SECTION( ( template <typename PeakTypeIterator, typename ConstPeakTypeIter
        )
     ))
 {
-  MSChromatogram< Peak1D > spec;
+  MSChromatogram spec;
 
   std::vector<double> mz_data(5);
   std::vector<double> int_data(5);
@@ -202,7 +202,7 @@ START_SECTION( ( template <typename PeakTypeIterator, typename ConstPeakTypeIter
   param.setValue("spacing", default_spacing);
   lr.setParameters(param);
 
-	lr.raster(mz_data.begin(), mz_data.end(), int_data.begin(), int_data.end(),
+  lr.raster(mz_data.begin(), mz_data.end(), int_data.begin(), int_data.end(),
       mz_res_data.begin(), mz_res_data.end(), int_res_data.begin(), int_res_data.end());
 
   // check_results(spec);
@@ -229,8 +229,7 @@ START_SECTION((template < template< typename > class SpecT, typename PeakType > 
   Param param;
   param.setValue("spacing",0.75);
   lr.setParameters(param);
-
-	lr.raster_align(spec, 0, 1.8);
+  lr.raster_align(spec, 0, 1.8);
   check_results(spec);
 }
 END_SECTION
@@ -244,7 +243,7 @@ START_SECTION([EXTRA] test_linear_res_align_3)
   Param param;
   param.setValue("spacing",0.5);
   lr.setParameters(param);
-	lr.raster_align(spec, -0.25, 1.8);
+  lr.raster_align(spec, -0.25, 1.8);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -271,7 +270,7 @@ START_SECTION([EXTRA] test_linear_res_align_4)
   Param param;
   param.setValue("spacing",0.75);
   lr.setParameters(param);
-	lr.raster_align(spec, -2.25, 1.8);
+  lr.raster_align(spec, -2.25, 1.8);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -299,7 +298,7 @@ START_SECTION([EXTRA] test_linear_res_align_5)
   Param param;
   param.setValue("spacing",0.5);
   lr.setParameters(param);
-	lr.raster_align(spec, -0.25, 1.25);
+  lr.raster_align(spec, -0.25, 1.25);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -324,7 +323,7 @@ START_SECTION([EXTRA] test_linear_res_align_6)
   Param param;
   param.setValue("spacing",0.5);
   lr.setParameters(param);
-	lr.raster_align(spec, 0.25, 1.8);
+  lr.raster_align(spec, 0.25, 1.8);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -353,7 +352,7 @@ START_SECTION([EXTRA] test_linear_res_align_scaling)
   Param param;
   param.setValue("spacing", 5.0);
   lr.setParameters(param);
-	lr.raster_align(spec, -2.5, 12.5);
+  lr.raster_align(spec, -2.5, 12.5);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -388,7 +387,7 @@ START_SECTION([EXTRA] test_linear_res_align_7)
   param.setValue("spacing", 10000.0);
   param.setValue("ppm", "true");
   lr.setParameters(param);
-	lr.raster_align(spec, 99, 105);
+  lr.raster_align(spec, 99, 105);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -422,7 +421,7 @@ START_SECTION([EXTRA] test_linear_res_align_8)
   param.setValue("spacing", 10000.0);
   param.setValue("ppm", "true");
   lr.setParameters(param);
-	lr.raster_align(spec, 99, 105);
+  lr.raster_align(spec, 99, 105);
 
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
@@ -464,7 +463,7 @@ START_SECTION((template < typename PeakTypeIterator > void raster_interpolate(Pe
   Param param;
   param.setValue("spacing",0.5);
   lr.setParameters(param);
-	lr.raster_interpolate(spec.begin(), spec.end(), resampled.begin(), resampled.end() );
+  lr.raster_interpolate(spec.begin(), spec.end(), resampled.begin(), resampled.end() );
 
   spec = resampled;
 
@@ -507,7 +506,7 @@ START_SECTION(( template < typename PeakTypeIterator, typename ConstPeakTypeIter
   Param param;
   param.setValue("spacing",0.75);
   lr.setParameters(param);
-	lr.raster(spec.begin(), spec.end(), resampled.begin(), resampled.end() );
+  lr.raster(spec.begin(), spec.end(), resampled.begin(), resampled.end() );
 
   spec = resampled;
 
@@ -535,7 +534,7 @@ START_SECTION([EXTRA] test_linear_res_align_input)
   param.setValue("spacing",0.5);
   lr.setParameters(param);
 
-	lr.raster_align(spec, 2.25, 1.8);
+  lr.raster_align(spec, 2.25, 1.8);
   double sum = 0.0;
   for (Size i=0; i<spec.size(); ++i)
   {

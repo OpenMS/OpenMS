@@ -82,7 +82,7 @@ START_SECTION( size_t getNrSpectra() const)
   {
     PeakMap* new_exp = new PeakMap;
     MSSpectrum s;
-    MSChromatogram<ChromatogramPeak> c;
+    MSChromatogram c;
     new_exp->addSpectrum(s);
     new_exp->addSpectrum(s);
     new_exp->addChromatogram(c);
@@ -99,7 +99,7 @@ START_SECTION ( boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const
 {
   PeakMap* new_exp = new PeakMap;
   MSSpectrum s;
-  MSChromatogram<ChromatogramPeak> c;
+  MSChromatogram c;
   new_exp->addSpectrum(s);
   new_exp->addSpectrum(s);
   new_exp->addChromatogram(c);
@@ -184,7 +184,7 @@ START_SECTION ( std::vector<std::size_t> SpectrumAccessOpenMS::getSpectraByRT(do
   {
     PeakMap* new_exp = new PeakMap;
     MSSpectrum s;
-    MSChromatogram<ChromatogramPeak> c;
+    MSChromatogram c;
     s.setRT(20);
     new_exp->addSpectrum(s);
     s.setRT(40);
@@ -225,7 +225,7 @@ START_SECTION(OpenSwath::ChromatogramPtr getChromatogramById(int id))
   {
     PeakMap* new_exp = new PeakMap;
     MSSpectrum s;
-    MSChromatogram<ChromatogramPeak> c;
+    MSChromatogram c;
 
     c.setName("chrom_nr_1");
     c.setNativeID("native_id_nr_1");
@@ -252,7 +252,7 @@ START_SECTION(std::string getChromatogramNativeID(int id) const)
 {
   PeakMap* new_exp = new PeakMap;
   MSSpectrum s;
-  MSChromatogram<ChromatogramPeak> c;
+  MSChromatogram c;
 
   c.setName("chrom_nr_1");
   c.setNativeID("native_id_nr_1");
@@ -274,7 +274,7 @@ END_SECTION
 START_SECTION (ChromatogramSettings getChromatogramMetaInfo(int id) const)
 {
   PeakMap* new_exp = new PeakMap;
-  MSChromatogram<ChromatogramPeak> c;
+  MSChromatogram c;
   c.setComment("remember me");
   new_exp->addChromatogram(c);
   boost::shared_ptr< PeakMap > exp (new_exp);

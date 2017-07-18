@@ -210,12 +210,12 @@ START_SECTION(OpenMS::Interfaces::SpectrumPtr getSpectrumById(Size id))
 }
 END_SECTION
 
-START_SECTION((MSChromatogram<ChromatogramPeakT> getChromatogram(Size id)))
+START_SECTION((MSChromatogram getChromatogram(Size id)))
 {
   OnDiscPeakMap tmp; tmp.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.getNrChromatograms(), 1);
   TEST_EQUAL(tmp.empty(), false);
-  MSChromatogram<> c = tmp.getChromatogram(0);
+  MSChromatogram c = tmp.getChromatogram(0);
   TEST_EQUAL(c.empty(), false);
   TEST_EQUAL(c.size(), 48);
 }

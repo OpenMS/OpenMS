@@ -804,9 +804,23 @@ protected:
     IntegerDataArrays integer_data_arrays_;
   };
 
-  /// Print the contents to a stream.
-  std::ostream& operator<<(std::ostream& os, const MSSpectrum& spec);
-  
+  inline std::ostream& operator<<(std::ostream& os, const MSSpectrum& spec)
+  {
+    os << "-- MSSPECTRUM BEGIN --" << std::endl;
+
+    // spectrum settings
+    os << static_cast<const SpectrumSettings&>(spec);
+
+    // peaklist
+    for (MSSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+    {
+      os << *it << std::endl;
+    }
+
+    os << "-- MSSPECTRUM END --" << std::endl;
+    return os;
+  }
+
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_MSSPECTRUM_H

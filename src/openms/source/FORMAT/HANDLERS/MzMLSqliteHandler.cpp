@@ -77,7 +77,7 @@ namespace OpenMS
       }
 
       // creates the chromatograms but does not fill them with data (provides option to return meta-data only)
-      std::vector<MSChromatogram<> > chromatograms;
+      std::vector<MSChromatogram > chromatograms;
       std::vector<MSSpectrum> spectra;
       prepareChroms_(db, chromatograms);
       prepareSpectra_(db, spectra);
@@ -95,7 +95,7 @@ namespace OpenMS
       exp.setSpectra(spectra);
     }
 
-    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms)
+    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram >& chromatograms)
     {
       int rc;
       sqlite3_stmt * stmt;
@@ -176,7 +176,7 @@ namespace OpenMS
           // intensity
           if (chromatograms[chrom_id].empty()) chromatograms[chrom_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (MSChromatogram<>::iterator it = chromatograms[chrom_id].begin(); it != chromatograms[chrom_id].end(); ++it, ++data_it)
+          for (MSChromatogram::iterator it = chromatograms[chrom_id].begin(); it != chromatograms[chrom_id].end(); ++it, ++data_it)
           {
             it->setIntensity(*data_it);
           }
@@ -187,7 +187,7 @@ namespace OpenMS
           // rt
           if (chromatograms[chrom_id].empty()) chromatograms[chrom_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (MSChromatogram<>::iterator it = chromatograms[chrom_id].begin(); it != chromatograms[chrom_id].end(); ++it, ++data_it)
+          for (MSChromatogram::iterator it = chromatograms[chrom_id].begin(); it != chromatograms[chrom_id].end(); ++it, ++data_it)
           {
             it->setRT(*data_it);
           }
@@ -333,7 +333,7 @@ namespace OpenMS
       sqlite3_finalize(stmt);
     }
 
-    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms)
+    void MzMLSqliteHandler::prepareChroms_(sqlite3 *db, std::vector<MSChromatogram >& chromatograms)
     {
       sqlite3_stmt * stmt;
       std::string select_sql;
@@ -361,7 +361,7 @@ namespace OpenMS
       ///   readChromatograms_(db, stmt, chromatograms);
       /// }
 
-      /// void readChromatograms_(sqlite3 *db, sqlite3_stmt* stmt, std::vector<MSChromatogram<> >& chromatograms)
+      /// void readChromatograms_(sqlite3 *db, sqlite3_stmt* stmt, std::vector<MSChromatogram >& chromatograms)
       /// {
 
       // See https://www.sqlite.org/c3ref/column_blob.html
@@ -377,7 +377,7 @@ namespace OpenMS
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
-        MSChromatogram<> chrom;
+        MSChromatogram chrom;
 
         // int chrom_id = sqlite3_column_int(stmt, 0);
         const unsigned char * native_id = sqlite3_column_text(stmt, 1);
@@ -768,7 +768,7 @@ namespace OpenMS
       sqlite3_close(db);
     }
 
-    void MzMLSqliteHandler::writeChromatograms(const std::vector<MSChromatogram<> >& chroms)
+    void MzMLSqliteHandler::writeChromatograms(const std::vector<MSChromatogram >& chroms)
     {
       // prevent writing of empty data which would throw an SQL exception
       if (chroms.empty()) return;
@@ -809,7 +809,7 @@ namespace OpenMS
       int sql_it = 1;
       for (Size k = 0; k < chroms.size(); k++)
       {
-        const MSChromatogram<>& chrom = chroms[k];
+        const MSChromatogram& chrom = chroms[k];
         insert_chrom_sql << "INSERT INTO CHROMATOGRAM (ID, NATIVE_ID) VALUES (" << chrom_id_ << ",'" << chrom.getNativeID() << "'); ";
 
         OpenMS::Precursor prec = chrom.getPrecursor();

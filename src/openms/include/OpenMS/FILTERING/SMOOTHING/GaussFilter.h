@@ -136,8 +136,7 @@ public:
       }
     }
 
-    template <typename PeakType>
-    void filter(MSChromatogram<PeakType> & chromatogram)
+    void filter(MSChromatogram & chromatogram)
     {
       typedef std::vector<double> ContainerT;
 

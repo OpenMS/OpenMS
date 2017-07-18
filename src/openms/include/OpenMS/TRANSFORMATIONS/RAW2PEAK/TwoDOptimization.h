@@ -301,7 +301,6 @@ protected:
       }
     }
     real_2D_ = real2D;
-    typedef typename InputSpectrumIterator::value_type InputSpectrumType;
     typedef MSSpectrum SpectrumType;
 
     typename PeakMap::Iterator ms_exp_it = ms_exp.begin();

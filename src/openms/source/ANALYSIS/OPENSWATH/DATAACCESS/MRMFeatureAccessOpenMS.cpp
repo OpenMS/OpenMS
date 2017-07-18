@@ -154,9 +154,9 @@ namespace OpenMS
 
   // default instances
   MSSpectrum spec;
-  MSChromatogram<> chrom;
+  MSChromatogram chrom;
   SignalToNoiseOpenMS< MSSpectrum> spec_signal_to_noise_openms(spec, 1.0, 3, true);
-  SignalToNoiseOpenMS< MSChromatogram<> > chrom_signal_to_noise_openms(chrom, 1.0, 3, true);
+  SignalToNoiseOpenMS< MSChromatogram > chrom_signal_to_noise_openms(chrom, 1.0, 3, true);
 
   MRMTransitionGroup<MSSpectrum, ReactionMonitoringTransition> trgroup;
   TransitionGroupOpenMS<MSSpectrum, ReactionMonitoringTransition> default_transition_group_openms(trgroup);

@@ -74,7 +74,7 @@ END_SECTION
 START_SECTION(template <typename ExperimentType> void convertChromatogramsToSpectra(ExperimentType& exp))
 {
   PeakMap exp;
-	MSChromatogram<> chrom1, chrom2;
+	MSChromatogram chrom1, chrom2;
 	chrom1.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
 	Precursor pre1, pre2;
 	pre1.setMZ(100.1);

@@ -44,7 +44,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef MSChromatogram<> RichPeakChromatogram;
+typedef MSChromatogram RichPeakChromatogram;
 
 RichPeakChromatogram get_chrom(int i)
 {

@@ -309,7 +309,7 @@ namespace OpenMS
 
     for (Size i = 0; i < trgr_ident.size(); i++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram<> >(
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
             trgr_ident.getChromatogram(trgr_ident.getTransitions()[i].getNativeID()),
             sn_win_len_, sn_bin_count_, write_log_messages));
       if (  (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) 
@@ -428,7 +428,7 @@ namespace OpenMS
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
     for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram<> >(
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
             transition_group_detection.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
       signal_noise_estimators.push_back(snptr);
     }
@@ -439,7 +439,7 @@ namespace OpenMS
     {
       for (Size k = 0; k < transition_group_detection.getPrecursorChromatograms().size(); k++)
       {
-        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram<> >(
+        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
               transition_group_detection.getPrecursorChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
         ms1_signal_noise_estimators.push_back(snptr);
       }
@@ -907,7 +907,7 @@ namespace OpenMS
       // Retrieve chromatogram and filter it by the desired RT
       //-----------------------------------
       OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-      MSChromatogram<> chromatogram;
+      MSChromatogram chromatogram;
 
       // Get the expected retention time, apply the RT-transformation
       // (which describes the normalization) and then take the difference.

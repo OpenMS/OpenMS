@@ -57,7 +57,7 @@ namespace OpenMS
       public Interfaces::IMSDataConsumer
     {
       typedef MSSpectrum SpectrumType;
-      typedef MSChromatogram<> ChromatogramType;
+      typedef MSChromatogram ChromatogramType;
 
     public:
 

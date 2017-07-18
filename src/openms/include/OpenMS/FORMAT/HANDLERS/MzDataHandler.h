@@ -60,7 +60,7 @@ namespace OpenMS
 
 	typedef PeakMap MapType;
 	typedef MSSpectrum SpectrumType;
-	typedef MSChromatogram<> ChromatogramType;
+	typedef MSChromatogram ChromatogramType;
 
     class OPENMS_DLLAPI MzDataHandler :
       public XMLHandler

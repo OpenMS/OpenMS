@@ -51,9 +51,9 @@ namespace OpenMS
     @brief The representation of a chromatogram.
     @ingroup Kernel
   */
-  template <typename PeakT>
+
   class MSChromatogram :
-    private std::vector<PeakT>,
+    private std::vector<ChromatogramPeak>,
     public RangeManager<1>,
     public ChromatogramSettings
   {
@@ -74,7 +74,7 @@ public:
     ///@name Base type definitions
     ///@{
     /// Peak type
-    typedef PeakT PeakType;
+    typedef ChromatogramPeak PeakType;
     /// Coordinate (RT) type
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Chromatogram base type
@@ -102,7 +102,7 @@ public:
     typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
-    ///@name Export methods from std::vector<PeakT>
+    ///@name Export methods from std::vector
     //@{
     using ContainerType::operator[];
     using ContainerType::begin;
@@ -303,17 +303,17 @@ public:
       {
         if (reverse)
         {
-          std::sort(ContainerType::begin(), ContainerType::end(), reverseComparator(typename PeakType::IntensityLess()));
+          std::sort(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()));
         }
         else
         {
-          std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::IntensityLess());
+          std::sort(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess());
         }
       }
       else
       {
         //sort index list
-        std::vector<std::pair<typename PeakType::IntensityType, Size> > sorted_indices;
+        std::vector<std::pair<PeakType::IntensityType, Size> > sorted_indices;
         sorted_indices.reserve(ContainerType::size());
         for (Size i = 0; i < ContainerType::size(); ++i)
         {
@@ -322,11 +322,11 @@ public:
 
         if (reverse)
         {
-          std::sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >()));
+          std::sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >()));
         }
         else
         {
-          std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >());
+          std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >());
         }
 
         //apply sorting to ContainerType and to meta data arrays
@@ -379,18 +379,18 @@ public:
     {
       if (float_data_arrays_.empty())
       {
-        std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
+        std::sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
       }
       else
       {
         //sort index list
-        std::vector<std::pair<typename PeakType::PositionType, Size> > sorted_indices;
+        std::vector<std::pair<PeakType::PositionType, Size> > sorted_indices;
         sorted_indices.reserve(ContainerType::size());
         for (Size i = 0; i < ContainerType::size(); ++i)
         {
           sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
         }
-        std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::PositionType, Size> >());
+        std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
 
         //apply sorting to ContainerType and to metadataarrays
         ContainerType tmp;
@@ -491,7 +491,7 @@ public:
     {
       PeakType p;
       p.setPosition(rt);
-      return lower_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
+      return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
     }
 
     /**
@@ -504,7 +504,7 @@ public:
     {
       PeakType p;
       p.setPosition(rt);
-      return lower_bound(begin, end, p, typename PeakType::PositionLess());
+      return lower_bound(begin, end, p, PeakType::PositionLess());
     }
 
     /**
@@ -517,7 +517,7 @@ public:
     {
       PeakType p;
       p.setPosition(rt);
-      return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
+      return upper_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
     }
 
     /**
@@ -530,7 +530,7 @@ public:
     {
       PeakType p;
       p.setPosition(rt);
-      return upper_bound(begin, end, p, typename PeakType::PositionLess());
+      return upper_bound(begin, end, p, PeakType::PositionLess());
     }
 
     /**
@@ -543,7 +543,7 @@ public:
     {
       PeakType p;
       p.setPosition(rt);
-      return lower_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
+      return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
     }
 
     /**
@@ -556,7 +556,7 @@ public:
     {
       PeakType p;
       p.setPosition(rt);
-      return lower_bound(begin, end, p, typename PeakType::PositionLess());
+      return lower_bound(begin, end, p, PeakType::PositionLess());
     }
 
     /**
@@ -569,7 +569,7 @@ public:
     {
       PeakType p;
       p.setPosition(rt);
-      return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
+      return upper_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
     }
 
     ConstIterator MZEnd(CoordinateType rt) const {return RTEnd(rt);}
@@ -584,7 +584,7 @@ public:
     {
       PeakType p;
       p.setPosition(rt);
-      return upper_bound(begin, end, p, typename PeakType::PositionLess());
+      return upper_bound(begin, end, p, PeakType::PositionLess());
     }
 
     /**
@@ -625,24 +625,7 @@ protected:
   };
 
   /// Print the contents to a stream.
-  template <typename PeakT>
-  std::ostream& operator<<(std::ostream& os, const MSChromatogram<PeakT>& chrom)
-  {
-    os << "-- MSCHROMATOGRAM BEGIN --" << std::endl;
-
-    //chromatogram settings
-    os << static_cast<const ChromatogramSettings&>(chrom);
-
-    //data list
-    for (typename MSChromatogram<PeakT>::ConstIterator it = chrom.begin(); it != chrom.end(); ++it)
-    {
-      os << *it << std::endl;
-    }
-
-    os << "-- MSCHROMATOGRAM END --" << std::endl;
-
-    return os;
-  }
+  std::ostream& operator<<(std::ostream& os, const MSChromatogram& chrom);
 
 } // namespace OpenMS
 
