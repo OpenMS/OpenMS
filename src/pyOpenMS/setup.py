@@ -107,6 +107,10 @@ extra_link_args = []
 extra_compile_args = []
 
 if iswin:
+    # /EHs is important. It sets _CPPUNWIND which causes boost to
+    # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
+    # such that  boost::throw_excption() is declared but not implemented.
+    # The linker does not like that very much ...
     extra_compile_args = ["/EHs", "/bigobj"]
 elif sys.platform.startswith("linux"):
     extra_link_args = ["-Wl,-s"]
@@ -117,6 +121,10 @@ elif sys.platform == "darwin":
 if IS_DEBUG:
     extra_compile_args.append("-g2")
 
+# Note: we use -std=gnu++11 in Linux by default
+extra_link_args.append("-std=c++11")
+extra_compile_args.append("-std=c++11")
+
 ext = Extension(
     "pyopenms",
     sources=["pyopenms/pyopenms.cpp"],
@@ -124,11 +132,6 @@ ext = Extension(
     library_dirs=library_dirs,
     libraries=libraries,
     include_dirs=include_dirs + autowrap_include_dirs,
-
-    # /EHs is important. It sets _CPPUNWIND which causes boost to
-    # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
-    # such that  boost::throw_excption() is declared but not implemented.
-    # The linker does not like that very much ...
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args
 )

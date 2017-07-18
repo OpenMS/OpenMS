@@ -619,6 +619,10 @@ set_tests_properties("TOPP_FileInfo_15_out1" PROPERTIES DEPENDS "TOPP_FileInfo_1
 add_test("TOPP_FileInfo_16" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_16_input.trafoXML -out FileInfo_16_output.tmp)
 add_test("TOPP_FileInfo_16_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_16_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_16_output.txt )
 set_tests_properties("TOPP_FileInfo_16_out1" PROPERTIES DEPENDS "TOPP_FileInfo_16")
+add_test("TOPP_FileInfo_17" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}/FileInfo_17_input.fasta -out
+FileInfo_17_output.tmp)
+add_test("TOPP_FileInfo_17_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_17_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_17_output.txt )
+set_tests_properties("TOPP_FileInfo_17_out1" PROPERTIES DEPENDS "TOPP_FileInfo_17")
 
 #------------------------------------------------------------------------------
 # FileMerger tests
@@ -1066,9 +1070,9 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_TargetedFileConverter_test_4_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_4")
   set_tests_properties("TOPP_TargetedFileConverter_test_4" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_3")
 
-  add_test("TOPP_MRMMapping_test_1" ${TOPP_BIN_PATH}/MRMMapper -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out MRMMapping_output.chrom.mzML.tmp -test)
-  add_test("TOPP_MRMMapping_test_1_out_1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MRMMapping_output.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML)
-  set_tests_properties("TOPP_MRMMapping_test_1_out_1" PROPERTIES DEPENDS "TOPP_MRMMapping_test_1")
+  add_test("TOPP_MRMMapper_test_1" ${TOPP_BIN_PATH}/MRMMapper -in ${DATA_DIR_TOPP}/MRMMapping_input.chrom.mzML -tr ${DATA_DIR_TOPP}/MRMMapping_input.TraML -out MRMMapping_output.chrom.mzML.tmp -test)
+  add_test("TOPP_MRMMapper_test_1_out_1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MRMMapping_output.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/MRMMapping_output.chrom.mzML)
+  set_tests_properties("TOPP_MRMMapper_test_1_out_1" PROPERTIES DEPENDS "TOPP_MRMMapper_test_1")
 
   add_test("TOPP_OpenSwathFeatureXMLToTSV_test_1" ${TOPP_BIN_PATH}/OpenSwathFeatureXMLToTSV -in ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.featureXML -tr ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.TraML -out OpenSwathFeatureXMLToTSV_output.short.csv.tmp -short_format -test)
   add_test("TOPP_OpenSwathFeatureXMLToTSV_test_1_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_output.short.csv -in2 OpenSwathFeatureXMLToTSV_output.short.csv.tmp)
@@ -1117,7 +1121,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathRTNormalizer_test_3" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_3_output.trafoXML.tmp -test -estimateBestPeptides -peptideEstimation:NrRTBins 3 -peptideEstimation:MinBinsFilled 3)
   add_test("TOPP_OpenSwathRTNormalizer_test_3_out1" ${DIFF} -in1 OpenSwathRTNormalizer_3_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_3_output.trafoXML)
   set_tests_properties("TOPP_OpenSwathRTNormalizer_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_3")
-  add_test("TOPP_OpenSwathRTNormalizer_test_4" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_4_output.trafoXML.tmp -test -outlierDetection:outlierMethod iter_residual)
+  add_test("TOPP_OpenSwathRTNormalizer_test_4" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_4_output.trafoXML.tmp -test -RTNormalization:outlierMethod iter_residual)
   add_test("TOPP_OpenSwathRTNormalizer_test_4_out1" ${DIFF} -in1 OpenSwathRTNormalizer_4_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_4_output.trafoXML)
   set_tests_properties("TOPP_OpenSwathRTNormalizer_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_4")
 
@@ -1231,14 +1235,14 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   # - use iRT correction (but no outlier removal since only 2 datapoints)
   # - use quadratic fitting for m/z correction
   # - use 550 ppm for extraction (0.05 Da @ 100 m/z)
-  add_test("TOPP_OpenSwathWorkflow_11" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -out_chrom OpenSwathWorkflow_11.chrom.mzML.tmp -out_features OpenSwathWorkflow_11.featureXML.tmp -outlierDetection:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 550 -ppm_irtwindow -test)
+  add_test("TOPP_OpenSwathWorkflow_11" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -out_chrom OpenSwathWorkflow_11.chrom.mzML.tmp -out_features OpenSwathWorkflow_11.featureXML.tmp -RTNormalization:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 550 -ppm_irtwindow -test)
   add_test("TOPP_OpenSwathWorkflow_11_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_11.chrom.mzML.tmp  -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_output.chrom.mzML)
   add_test("TOPP_OpenSwathWorkflow_11_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_11.featureXML.tmp  -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_output.featureXML)
   set_tests_properties("TOPP_OpenSwathWorkflow_11_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11")
   set_tests_properties("TOPP_OpenSwathWorkflow_11_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_11")
 
   # 20 ppm is too small for extraction and no iRT peptides are found (thus the tool fails)
-  add_test("TOPP_OpenSwathWorkflow_12" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -out_chrom OpenSwathWorkflow_11.chrom.mzML.tmp -out_features OpenSwathWorkflow_11.featureXML.tmp -outlierDetection:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 20 -ppm_irtwindow -test)
+  add_test("TOPP_OpenSwathWorkflow_12" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.mzML -tr_irt ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_11_input.TraML -mz_extraction_window 0.2 -rt_extraction_window -1 -Scoring:Scores:use_sonar_scores -sonar -out_chrom OpenSwathWorkflow_11.chrom.mzML.tmp -out_features OpenSwathWorkflow_11.featureXML.tmp -RTNormalization:outlierMethod none -mz_correction_function quadratic_regression_delta_ppm -irt_mz_extraction_window 20 -ppm_irtwindow -test)
   set_tests_properties("TOPP_OpenSwathWorkflow_12" PROPERTIES WILL_FAIL 1) # there are no points for iRT regression
 
   # Test whether PQP files can be read and OSW output can be written

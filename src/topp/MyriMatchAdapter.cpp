@@ -515,7 +515,9 @@ protected:
 
     if (!protein_identifications.empty())
     {
-      protein_identifications[0].setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+      StringList ms_runs;
+      exp.getPrimaryMSRunPath(ms_runs);
+      protein_identifications[0].setPrimaryMSRunPath(ms_runs);
     }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;

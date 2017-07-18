@@ -40,7 +40,6 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
@@ -60,24 +59,24 @@ FFSH* ptr = 0;
 FFSH* nullPtr = 0;
 
 START_SECTION((FeatureFinderAlgorithmSH()))
-	ptr = new FFSH;
-	TEST_NOT_EQUAL(ptr,nullPtr)
+  ptr = new FFSH;
+  TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
 START_SECTION((~FeatureFinderAlgorithmSH()))
-	delete ptr;
+  delete ptr;
 END_SECTION
 
 ptr = new FeatureFinderAlgorithmSH();
 
 START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
   FeatureFinderAlgorithm* ptr2 = FFSH::create();
-	TEST_NOT_EQUAL(ptr2,nullPtr)
-	delete ptr2;
+  TEST_NOT_EQUAL(ptr2,nullPtr)
+  delete ptr2;
 END_SECTION
 
 START_SECTION((static const String getProductName()))
-	TEST_EQUAL(FFSH::getProductName(),"superhirn")
+  TEST_EQUAL(FFSH::getProductName(),"superhirn")
 END_SECTION
 
 START_SECTION((virtual void run()))
@@ -104,18 +103,18 @@ START_SECTION((virtual void run()))
 
   TEST_EQUAL(output.size(), 384);
 
-	//TOLERANCE_ABSOLUTE(0.001);
-	//TEST_REAL_SIMILAR(output[0].getOverallQuality(),0.8819);
+  //TOLERANCE_ABSOLUTE(0.001);
+  //TEST_REAL_SIMILAR(output[0].getOverallQuality(),0.8819);
   //TEST_REAL_SIMILAR(output[1].getOverallQuality(),0.8673);
   // ...
 
-	//TOLERANCE_ABSOLUTE(20.0);
-	TEST_REAL_SIMILAR(output[0].getIntensity(),20829);
-	TEST_REAL_SIMILAR(output[1].getIntensity(),56818.6);
+  //TOLERANCE_ABSOLUTE(20.0);
+  TEST_REAL_SIMILAR(output[0].getIntensity(),20829);
+  TEST_REAL_SIMILAR(output[1].getIntensity(),56818.6);
   // ...
 
-	TEST_REAL_SIMILAR(output[0].getMZ(),300.060882568359);
-	TEST_REAL_SIMILAR(output[1].getMZ(),300.060882568359);
+  TEST_REAL_SIMILAR(output[0].getMZ(),300.060882568359);
+  TEST_REAL_SIMILAR(output[1].getMZ(),300.060882568359);
 
   TEST_REAL_SIMILAR(output[0].getRT(),35.1000317866759);
   TEST_REAL_SIMILAR(output[1].getRT(),134.37407934271);

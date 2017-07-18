@@ -252,12 +252,14 @@ namespace OpenMS
     SwathMapMassCorrection::correctMZ(trgrmap_final, swath_maps,
         mz_correction_function, mz_extraction_window, ppm);
 
-    // 7. store transformation, using a linear model as default
+    // 7. store transformation, using the selected model
     TransformationDescription trafo_out;
     trafo_out.setDataPoints(pairs_corrected);
     Param model_params;
     model_params.setValue("symmetric_regression", "false");
-    String model_type = "linear";
+    model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
+    model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
+    String model_type = irt_detection_param.getValue("alignmentMethod");
     trafo_out.fitModel(model_type, model_params);
 
     LOG_DEBUG << "Final RT mapping:" << std::endl;

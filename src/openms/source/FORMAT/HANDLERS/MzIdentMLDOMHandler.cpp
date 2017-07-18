@@ -2059,7 +2059,7 @@ namespace OpenMS
           hit.setMetaValue(up->first, up->second);
         }
         hit.setMetaValue("calcMZ", calculatedMassToCharge);
-        spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
+        spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths for next PSI meeting: why is this not in SpectrumIdentificationResult in the schema? exp. m/z for one spec should not change from one id for it to the next!
         hit.setMetaValue("pass_threshold", pass); //TODO @ mths do not write metavalue pass_threshold
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)

@@ -40,7 +40,6 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
