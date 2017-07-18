@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <iostream>     // std::cout
 #include <algorithm>    // std::find
 #include <math.h>    // std::log
@@ -64,92 +65,37 @@ namespace OpenMS
     params.clear();
   }
   
-  void TransformationModel::weightData(TransformationModel::DataPoints& data, const Param& params)
-  {
-    // weight x values 
-    std::vector<std::string> valid_weights;
-    valid_weights = getValidXWeights();
-    if (params.exists("x_weight") && checkValidWeight(params.getValue("x_weight"), valid_weights) && !data.empty())
-    {
-      std::string x_weight = params.getValue("x_weight");
-      x_weight_ = x_weight;
-      for (size_t i = 0; i < data.size(); ++i)
-      {
-        data[i].first = weightDatum(data[i].first,x_weight_);
-      }
-    }
-    else if (params.exists("x_weight") && checkValidWeight(params.getValue("x_weight"), valid_weights))
-    {
-      std::string x_weight = params.getValue("x_weight");
-      x_weight_ = x_weight;
-    }
-    else{
-      std::string x_weight = "";
-      x_weight_ = x_weight;
-    }
-    // weight y values
-    valid_weights = getValidYWeights();
-    if (params.exists("y_weight") && checkValidWeight(params.getValue("y_weight"), valid_weights) && !data.empty())
-    {
-      std::string y_weight = params.getValue("y_weight");
-      y_weight_ = y_weight;
-      for (size_t i = 0; i < data.size(); ++i)
-      {
-        data[i].second = weightDatum(data[i].second,y_weight_);
-      }
-    }    
-    else if (params.exists("y_weight") && checkValidWeight(params.getValue("y_weight"), valid_weights))
-    {
-      std::string y_weight = params.getValue("y_weight");
-      y_weight_ = y_weight;
-    }
-    else{
-      std::string y_weight = "";
-      y_weight_ = y_weight;
-    }
-  }
-  
   void TransformationModel::unWeightData(TransformationModel::DataPoints& data, const Param& params)
   {
     // unweight x values 
     std::vector<std::string> valid_weights;
     valid_weights = getValidXWeights();
-    if (params.exists("x_weight") && checkValidWeight(params.getValue("x_weight"), valid_weights) && !data.empty())
+    const std::string x_weight = params.exists("x_weight") ? params.getValue("x_weight") : "";
+    if (!x_weight.empty() && checkValidWeight(x_weight, valid_weights) && !data.empty())
     {
-      std::string x_weight = params.getValue("x_weight");
       x_weight_ = x_weight;
       for (size_t i = 0; i < data.size(); ++i)
       {
         data[i].first = unWeightDatum(data[i].first,x_weight_);
       }
     }
-    else if (params.exists("x_weight") && checkValidWeight(params.getValue("x_weight"), valid_weights))
+    else
     {
-      std::string x_weight = params.getValue("x_weight");
-      x_weight_ = x_weight;
-    }
-    else{
-      std::string x_weight = "";
       x_weight_ = x_weight;
     }
     // unweight y values
     valid_weights = getValidYWeights();
-    if (params.exists("y_weight") && checkValidWeight(params.getValue("y_weight"), valid_weights) && !data.empty())
+    const std::string y_weight = params.exists("y_weight") ? params.getValue("y_weight") : "";
+    if (!y_weight.empty() && checkValidWeight(y_weight, valid_weights) && !data.empty())
     {
-      std::string y_weight = params.getValue("y_weight");
       y_weight_ = y_weight;
       for (size_t i = 0; i < data.size(); ++i)
       {
         data[i].second = unWeightDatum(data[i].second,y_weight_);
       }
-    }    
-    else if (params.exists("y_weight") && checkValidWeight(params.getValue("y_weight"), valid_weights))
+    }   
+    else
     {
-      std::string y_weight = params.getValue("y_weight");
-      y_weight_ = y_weight;
-    }
-    else{
-      std::string y_weight = "";
       y_weight_ = y_weight;
     }
   }
@@ -163,9 +109,27 @@ namespace OpenMS
     }
     else
     {
-      std::cout << "weight " + weight + " is not supported" << std::endl;
+      LOG_INFO << "weight " + weight + " is not supported.";
     }
     return valid;
+  }
+
+  double TransformationModel::checkDatumRange(const double& datum, const double& datum_min, const double& datum_max)
+  {    
+    double datum_checked = datum;
+    if (datum >= datum_max)
+    {
+      LOG_INFO << "datum " << datum << " is not out of range.";
+      LOG_INFO << "datum will be truncated to " << datum_max << ".";
+      datum_checked = datum_max;
+    }
+    else if (datum <= datum_min)
+    {
+      LOG_INFO << "datum " << datum << " is not out of range.";
+      LOG_INFO << "datum will be truncated to " << datum_min << ".";
+      datum_checked = datum_min;
+    }
+    return datum_checked;
   }
   
   std::vector<std::string> TransformationModel::getValidXWeights() const
@@ -266,8 +230,8 @@ namespace OpenMS
     else
     {
       datum_weighted = datum;
-      std::cout << "weight " + weight + " not supported." << std::endl;
-      std::cout << "no weighting will be applied." << std::endl;
+      LOG_INFO << "weight " + weight + " not supported.";
+      LOG_INFO << "no weighting will be applied.";
     }
     return datum_weighted;
   } 
@@ -348,8 +312,8 @@ namespace OpenMS
     else
     {
       datum_weighted = datum;
-      std::cout << "weight " + weight + " not supported." << std::endl;
-      std::cout << "no weighting will be applied." << std::endl;
+      LOG_INFO << "weight " + weight + " not supported.";
+      LOG_INFO << "no weighting will be applied.";
     }
     return datum_weighted;
   }

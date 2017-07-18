@@ -88,6 +88,9 @@ namespace OpenMS
     bool checkValidWeight(const std::string& weight, const std::vector<std::string>& valid_weights) const;
 
     ///
+    double checkDatumRange(const double& datum, const double& datum_min, const double& datum_max);
+
+    ///
     double weightDatum(const double& datum, const std::string& weight) const;
 
     ///
@@ -110,8 +113,12 @@ namespace OpenMS
     Param params_;
     /// x weighting
     std::string x_weight_;
+    double x_datum_min_;
+    double x_datum_max_;
     /// y weighting
     std::string y_weight_;
+    double y_datum_min_;
+    double y_datum_max_;
 
   private:
     /// do not allow copy
