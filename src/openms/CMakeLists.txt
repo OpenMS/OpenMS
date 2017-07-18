@@ -82,6 +82,7 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${LIBSVM_LIBRARIES}
                           ${XercesC_LIBRARY}
                           ${Boost_LIBRARIES}
+                          ${KISSFFT_LIBRARY}
                           ${WM5_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
@@ -127,7 +128,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${SQLITE_INCLUDE_DIR}
                                      ${LIBSVM_INCLUDE_DIRS}
                                      ${GLPK_INCLUDE_DIRS}
-				     ${KISSFFT_INCLUDE_DIRS}
+				     ${KISSFFT_INCLUDE_DIR}
                                      ${ZLIB_INCLUDE_DIRS}
                                      ${BZIP2_INCLUDE_DIR}
                                      ${EIGEN3_INCLUDE_DIR}
