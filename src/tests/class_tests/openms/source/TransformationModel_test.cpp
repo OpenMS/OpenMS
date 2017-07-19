@@ -268,22 +268,22 @@ START_SECTION((double unWeightDatum(double& datum, const string& weight) const))
   TEST_REAL_SIMILAR(dw.unWeightDatum(0.0,test), 0.0);
   TEST_REAL_SIMILAR(dw.unWeightDatum(2.0,test), 2.0);
   test = "ln(x)";
-  TEST_REAL_SIMILAR(dw.unWeightDatum(std::log(11.0e5),test), 10e5);
+  TEST_REAL_SIMILAR(dw.unWeightDatum(std::log(11.0e5),test), 11e5);
   TEST_REAL_SIMILAR(dw.unWeightDatum(2.0,test), std::exp(2.0));
   test = "1/x";
-  TEST_REAL_SIMILAR(dw.unWeightDatum(1/std::abs(9.0e-5),test), 10e-5);
+  TEST_REAL_SIMILAR(dw.unWeightDatum(1/std::abs(9.0e-5),test), 9.0e-5);
   TEST_REAL_SIMILAR(dw.unWeightDatum(2.0,test), 1/std::abs(2.0));
   test = "1/x2";
-  TEST_REAL_SIMILAR(dw.unWeightDatum(1/std::pow(9.0e-5,2),test), 10e-5);
+  TEST_REAL_SIMILAR(dw.unWeightDatum(1/std::pow(9.0e-5,2),test), 9.0e-5);
   TEST_REAL_SIMILAR(dw.unWeightDatum(2.0,test), std::sqrt(1/std::abs(2.0)));
   test = "ln(y)";
-  TEST_REAL_SIMILAR(dw.unWeightDatum(std::log(11.0e8),test), 10e8);
+  TEST_REAL_SIMILAR(dw.unWeightDatum(std::log(11.0e8),test), 11.0e8);
   TEST_REAL_SIMILAR(dw.unWeightDatum(2.0,test), std::abs(std::exp(2.0)));
   test = "1/y";
-  TEST_REAL_SIMILAR(dw.unWeightDatum(1/std::abs(9.0e-8),test), 10e-8);
+  TEST_REAL_SIMILAR(dw.unWeightDatum(1/std::abs(9.0e-8),test), 9e-8);
   TEST_REAL_SIMILAR(dw.unWeightDatum(2.0,test), 1/std::abs(2.0));
   test = "1/y2";
-  TEST_REAL_SIMILAR(dw.unWeightDatum(1/std::pow(9.0e-8,2),test), 10e-8);
+  TEST_REAL_SIMILAR(dw.unWeightDatum(1/std::pow(9.0e-8,2),test), 9e-8);
   TEST_REAL_SIMILAR(dw.unWeightDatum(2.0,test), std::sqrt(1/std::abs(2.0)));
 }
 END_SECTION

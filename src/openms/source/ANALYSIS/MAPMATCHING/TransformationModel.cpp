@@ -68,7 +68,7 @@ namespace OpenMS
   void TransformationModel::weightData(TransformationModel::DataPoints& data, const Param& params)
   {
     // get x datum ranges
-    x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : -1e15;
+    x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15;
     x_datum_max_ = params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15;
     // weight x values 
     std::vector<std::string> valid_weights;
@@ -85,7 +85,7 @@ namespace OpenMS
       }
     }
     // get y datum ranges
-    y_datum_min_ = params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : -1e15;
+    y_datum_min_ = params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15;
     y_datum_max_ = params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15;
     // weight y values
     valid_weights = getValidYWeights();
@@ -146,13 +146,13 @@ namespace OpenMS
     double datum_checked = datum;
     if (datum >= datum_max)
     {
-      LOG_INFO << "datum " << datum << " is not out of range.";
+      LOG_INFO << "datum " << datum << " is out of range.";
       LOG_INFO << "datum will be truncated to " << datum_max << ".";
       datum_checked = datum_max;
     }
     else if (datum <= datum_min)
     {
-      LOG_INFO << "datum " << datum << " is not out of range.";
+      LOG_INFO << "datum " << datum << " is out of range.";
       LOG_INFO << "datum will be truncated to " << datum_min << ".";
       datum_checked = datum_min;
     }

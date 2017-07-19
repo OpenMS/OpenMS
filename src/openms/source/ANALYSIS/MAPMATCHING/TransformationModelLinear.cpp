@@ -44,8 +44,20 @@ namespace OpenMS
   {
     params_ = params;
     data_given_ = !data.empty();
-    TransformationModel::DataPoints data_weighted = data;
-    weightData(data_weighted, params); // weight the data
+    // set x_weight
+    params_.setValue("x_weight",params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "");
+    params_.setValue("x_datum_min",params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15);
+    params_.setValue("x_datum_max",params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15);
+    x_weight_ = params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "";
+    x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15;
+    x_datum_max_ = params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15;
+    // set y_weight
+    params_.setValue("y_weight",params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "");
+    params_.setValue("y_datum_min",params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15);
+    params_.setValue("y_datum_max",params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15);
+    y_weight_ = params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "";
+    y_datum_min_ = params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15;
+    y_datum_max_ = params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15;
 
     if (!data_given_ && params.exists("slope") && (params.exists("intercept")))
     {
@@ -59,14 +71,11 @@ namespace OpenMS
       getDefaultParameters(defaults);
       params_.setDefaults(defaults);
       symmetric_ = params_.getValue("symmetric_regression") == "true";
-      if (params.exists("x_weight"))
-      {// set x_weight
-        params_.setValue("x_weight",params.getValue("x_weight"));
+      // weight the data (if weighting is specified)
+      TransformationModel::DataPoints data_weighted = data;
+      if (params_.getValue("x_weight") != "" || params_.getValue("y_weight") != ""){
+        weightData(data_weighted, params);
       }
-      else if (params.exists("y_weight"))
-      {// set y_weight
-        params_.setValue("y_weight",params.getValue("y_weight"));
-      }      
 
       size_t size = data.size();
       std::vector<Wm5::Vector2d> points;
@@ -96,6 +105,10 @@ namespace OpenMS
       params_.setValue("intercept", intercept_);
       params_.setValue("x_weight", x_weight_);
       params_.setValue("y_weight", y_weight_);
+      params_.setValue("x_datum_min", x_datum_min_);
+      params_.setValue("x_datum_max", x_datum_max_);
+      params_.setValue("y_datum_min", y_datum_min_);
+      params_.setValue("y_datum_max", y_datum_max_);
     }
   }
 
@@ -127,12 +140,16 @@ namespace OpenMS
     params_.setValue("intercept", intercept_);
   }
 
-  void TransformationModelLinear::getParameters(double& slope, double& intercept, std::string& x_weight, std::string& y_weight) const
+  void TransformationModelLinear::getParameters(double& slope, double& intercept, std::string& x_weight, std::string& y_weight, double& x_datum_min, double& x_datum_max, double& y_datum_min, double& y_datum_max) const
   {
     slope = slope_;
     intercept = intercept_;
     x_weight = x_weight_;
     y_weight = y_weight_;
+    x_datum_min = x_datum_min_;
+    x_datum_max = x_datum_max_;
+    y_datum_min = y_datum_min_;
+    y_datum_max = y_datum_max_;
   }
 
   void TransformationModelLinear::getDefaultParameters(Param& params)
@@ -148,6 +165,10 @@ namespace OpenMS
     params.setValue("y_weight", "", "Weight y values");
     params.setValidStrings("y_weight",
                            ListUtils::create<String>("1/y,1/y2,ln(y),"));
+    params.setValue("x_datum_min", 1e-15, "Minimum x value");
+    params.setValue("x_datum_max", 1e15, "Maximum x value");
+    params.setValue("y_datum_min", 1e-15, "Minimum y value");
+    params.setValue("y_datum_max", 1e15, "Maximum y value");
   }
 
 } // namespace

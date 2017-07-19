@@ -21,6 +21,6 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" nam
         void getDefaultParameters(Param &)
         
         double evaluate(double value) nogil except +
-        void getParameters(double & slope, double & intercept, libcpp_string& x_weight, libcpp_string& y_weight) nogil except +
+        void getParameters(double & slope, double & intercept, libcpp_string& x_weight, libcpp_string& y_weight, double& x_datum_min, double& x_datum_max, double& y_datum_min, double& y_datum_max) nogil except +
         void invert() nogil except +
 
