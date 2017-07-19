@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS:
     ###   TODO: Missing optional parameters:
     ###   boost::regex& scan_regexp 
     ###   std::map<Size, double>& precursor_rts 
-    void getSpectrumMetaData(MSSpectrum[Peak1D] spectrum,
+    void getSpectrumMetaData(MSSpectrum spectrum,
                              SpectrumMetaData& meta) nogil except + # wrap-attach:SpectrumMetaDataLookup
 
     bool addMissingRTsToPeptideIDs(libcpp_vector[PeptideIdentification], 

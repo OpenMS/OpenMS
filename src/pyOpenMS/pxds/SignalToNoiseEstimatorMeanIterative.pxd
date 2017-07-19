@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIt
         #  DefaultParamHandler
         #  ProgressLogger
         # wrap-instances:
-        #   SignalToNoiseEstimator := SignalToNoiseEstimator[ MSSpectrum[Peak1D] ]
+        #   SignalToNoiseEstimator := SignalToNoiseEstimator[ MSSpectrum ]
 
         SignalToNoiseEstimatorMeanIterative() nogil except +
         SignalToNoiseEstimatorMeanIterative(SignalToNoiseEstimatorMeanIterative) nogil except +

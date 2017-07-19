@@ -42,7 +42,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
         ##                     LightTargetedExperiment& transition_exp,
         ##                     TransformationDescription trafo,
         ##                     SwathMap swath_map,
-        ##                     libcpp_map[String, MRMTransitionGroup[MSChromatogram[ChromatogramPeak], LightTransition] ] & transition_group_map)
+        ##                     libcpp_map[String, MRMTransitionGroup[MSChromatogram, LightTransition] ] & transition_group_map)
 
         void setStrictFlag(bool flag) nogil except +
 
@@ -52,7 +52,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
         ### # void setMS1Map( shared_ptr[ SpectrumAccessOpenMSInMemory ] ms1_map) nogil except +
         ### # void setMS1Map( shared_ptr[ SpectrumAccessQuadMZTransforming ] ms1_map) nogil except +
 
-        void scorePeakgroups(MRMTransitionGroup[MSChromatogram[ChromatogramPeak], LightTransition] transition_group,
+        void scorePeakgroups(MRMTransitionGroup[MSChromatogram, LightTransition] transition_group,
                              TransformationDescription trafo,
                              libcpp_vector[ SwathMap ] swath_maps,
                              FeatureMap& output,

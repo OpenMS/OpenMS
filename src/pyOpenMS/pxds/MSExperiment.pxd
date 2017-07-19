@@ -32,22 +32,22 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         void swap(MSExperiment) nogil except +
 
         # Spectra functions
-        void addSpectrum(MSSpectrum[Peak1D] spec) nogil except +
-        MSSpectrum[Peak1D] operator[](int)      nogil except + # wrap-upper-limit:size()
-        MSSpectrum[Peak1D] getSpectrum(Size id_) nogil except +
-        void setSpectra(libcpp_vector[ MSSpectrum[ Peak1D ] ] & spectra) nogil except +
-        libcpp_vector[MSSpectrum[Peak1D]] getSpectra() nogil except + 
+        void addSpectrum(MSSpectrum spec) nogil except +
+        MSSpectrum operator[](int)      nogil except + # wrap-upper-limit:size()
+        MSSpectrum getSpectrum(Size id_) nogil except +
+        void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) nogil except +
+        libcpp_vector[MSSpectrum] getSpectra() nogil except +
 
-        libcpp_vector[MSSpectrum[Peak1D]].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum[Peak1D])
-        libcpp_vector[MSSpectrum[Peak1D]].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum[Peak1D])
+        libcpp_vector[MSSpectrum].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
+        libcpp_vector[MSSpectrum].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
 
         # Chromatogram functions
-        MSChromatogram[ ChromatogramPeak ]  getChromatogram(Size id_) nogil except +
-        void addChromatogram(MSChromatogram[ChromatogramPeak] chromatogram) nogil except +
-        void setChromatograms(libcpp_vector[MSChromatogram[ChromatogramPeak]] chromatograms) nogil except +
-        libcpp_vector[MSChromatogram[ChromatogramPeak]] getChromatograms() nogil except +
+        MSChromatogram getChromatogram(Size id_) nogil except +
+        void addChromatogram(MSChromatogram chromatogram) nogil except +
+        void setChromatograms(libcpp_vector[MSChromatogram] chromatograms) nogil except +
+        libcpp_vector[MSChromatogram] getChromatograms() nogil except +
 
-        MSChromatogram[ChromatogramPeak] getTIC() nogil except +
+        MSChromatogram getTIC() nogil except +
         void clear(bool clear_meta_data) nogil except +
 
         void updateRanges() nogil except +

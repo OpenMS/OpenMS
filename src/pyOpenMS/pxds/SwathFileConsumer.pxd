@@ -21,8 +21,8 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
 
         void retrieveSwathMaps(libcpp_vector[SwathMap]& maps) nogil except +
 
-        void consumeSpectrum(MSSpectrum[Peak1D] & s) nogil except + 
-        void consumeChromatogram(MSChromatogram[ChromatogramPeak] & c) nogil except + 
+        void consumeSpectrum(MSSpectrum & s) nogil except +
+        void consumeChromatogram(MSChromatogram & c) nogil except +
 
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "OpenMS":
 

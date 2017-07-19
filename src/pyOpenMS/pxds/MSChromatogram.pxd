@@ -11,14 +11,14 @@ from DataArrays cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
-    cdef cppclass MSChromatogram[ChromatogramPeakT] (ChromatogramSettings, MetaInfoInterface, RangeManager1):
+    cdef cppclass MSChromatogram (ChromatogramSettings, MetaInfoInterface, RangeManager1):
         # wrap-inherits:
         #  ChromatogramSettings
         #  MetaInfoInterface
         #  RangeManager1
 
         # wrap-instances:
-        #   MSChromatogram := MSChromatogram[ChromatogramPeak]
+        #   MSChromatogram := MSChromatogram
 
         # COMMENT: get raw data through get_peaks or by iterating through peaks
         # COMMENT: set raw data through set_peaks

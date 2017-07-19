@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/KERNEL/PeakIndex.h>" namespace "OpenMS":
         void clear() nogil except +
         Feature getFeature(FeatureMap & map_) nogil except +
         Peak1D getPeak(MSExperiment & map_) nogil except +
-        MSSpectrum[Peak1D] getSpectrum(MSExperiment & map_) nogil except +
+        MSSpectrum getSpectrum(MSExperiment & map_) nogil except +
         bool operator==(PeakIndex & rhs) nogil except +
         bool operator!=(PeakIndex & rhs) nogil except +
 

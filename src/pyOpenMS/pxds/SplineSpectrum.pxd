@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>" namespace "
         SplineSpectrum(libcpp_vector[double] mz, libcpp_vector[double] intensity) nogil except +
         SplineSpectrum(libcpp_vector[double] mz, libcpp_vector[double] intensity, double scaling) nogil except +
 
-        SplineSpectrum(MSSpectrum[Peak1D] raw_spectrum) nogil except +
-        SplineSpectrum(MSSpectrum[Peak1D] raw_spectrum, double scaling) nogil except +
+        SplineSpectrum(MSSpectrum raw_spectrum) nogil except +
+        SplineSpectrum(MSSpectrum raw_spectrum, double scaling) nogil except +
 
         double getMzMin() nogil except +
 

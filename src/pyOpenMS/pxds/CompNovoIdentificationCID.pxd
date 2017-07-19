@@ -16,5 +16,5 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>" namespac
         CompNovoIdentificationCID(CompNovoIdentificationCID)      nogil except + #private
 
         void getIdentifications(libcpp_vector[PeptideIdentification] & ids, MSExperiment)      nogil except +
-        void getIdentification(PeptideIdentification & id, MSSpectrum[Peak1D] cid_spec)      nogil except +
+        void getIdentification(PeptideIdentification & id, MSSpectrum cid_spec)      nogil except +
 
