@@ -52,7 +52,7 @@ namespace OpenMS
     @ingroup Kernel
   */
 
-  class MSChromatogram :
+  class OPENMS_DLLAPI MSChromatogram :
     private std::vector<ChromatogramPeak>,
     public RangeManager<1>,
     public ChromatogramSettings
@@ -64,10 +64,7 @@ public:
     struct MZLess :
       public std::binary_function<MSChromatogram, MSChromatogram, bool>
     {
-      inline bool operator()(const MSChromatogram& a, const MSChromatogram& b) const
-      {
-        return a.getMZ() < b.getMZ();
-      }
+      bool operator()(const MSChromatogram& a, const MSChromatogram& b) const;
 
     };
 
@@ -158,33 +155,10 @@ public:
     {}
 
     /// Assignment operator
-    MSChromatogram& operator=(const MSChromatogram& source)
-    {
-      if (&source == this) return *this;
-
-      ContainerType::operator=(source);
-      RangeManager<1>::operator=(source);
-      ChromatogramSettings::operator=(source);
-
-      name_ = source.name_;
-      float_data_arrays_ = source.float_data_arrays_;
-      string_data_arrays_ = source.string_data_arrays_;
-      integer_data_arrays_ = source.integer_data_arrays_;
-
-      return *this;
-    }
+    MSChromatogram& operator=(const MSChromatogram& source);
 
     /// Equality operator
-    bool operator==(const MSChromatogram& rhs) const
-    {
-      //name_ can differ => it is not checked
-      return std::operator==(*this, rhs) &&
-             RangeManager<1>::operator==(rhs) &&
-             ChromatogramSettings::operator==(rhs)  &&
-             float_data_arrays_ == rhs.float_data_arrays_ &&
-             string_data_arrays_ == rhs.string_data_arrays_ &&
-             integer_data_arrays_ == rhs.integer_data_arrays_;
-    }
+    bool operator==(const MSChromatogram& rhs) const;
 
     /// Equality operator
     bool operator!=(const MSChromatogram& rhs) const
@@ -202,24 +176,15 @@ public:
     ///@name Accessors for meta information
     ///@{
     /// Returns the name
-    inline const String& getName() const
-    {
-      return name_;
-    }
+    const String& getName() const;
 
     /// Sets the name
-    inline void setName(const String& name)
-    {
-      name_ = name;
-    }
+    void setName(const String& name);
 
     ///@}
 
     /// returns the mz of the product entry, makes sense especially for MRM scans
-    inline double getMZ() const
-    {
-      return getProduct().getMZ();
-    }
+    double getMZ() const;
 
     /**
       @name Peak data array methods
@@ -235,55 +200,37 @@ public:
     */
     ///@{
     /// Returns a const reference to the float meta data arrays
-    inline const FloatDataArrays& getFloatDataArrays() const
-    {
-      return float_data_arrays_;
-    }
+    const FloatDataArrays& getFloatDataArrays() const;
 
     /// Returns a mutable reference to the float meta data arrays
-    inline FloatDataArrays& getFloatDataArrays()
-    {
-      return float_data_arrays_;
-    }
+    FloatDataArrays& getFloatDataArrays();
 
     /// Sets the float meta data arrays
-    inline void setFloatDataArrays(const FloatDataArrays& fda)
+    void setFloatDataArrays(const FloatDataArrays& fda)
     {
       float_data_arrays_ = fda;
     }
 
     /// Returns a const reference to the string meta data arrays
-    inline const StringDataArrays& getStringDataArrays() const
-    {
-      return string_data_arrays_;
-    }
+    const StringDataArrays& getStringDataArrays() const;
 
     /// Returns a mutable reference to the string meta data arrays
-    inline StringDataArrays& getStringDataArrays()
-    {
-      return string_data_arrays_;
-    }
+    StringDataArrays& getStringDataArrays();
 
     /// Sets the string meta data arrays
-    inline void setStringDataArrays(const StringDataArrays& sda)
+    void setStringDataArrays(const StringDataArrays& sda)
     {
       string_data_arrays_ = sda;
     }
 
     /// Returns a const reference to the integer meta data arrays
-    inline const IntegerDataArrays& getIntegerDataArrays() const
-    {
-      return integer_data_arrays_;
-    }
+    const IntegerDataArrays& getIntegerDataArrays() const;
 
     /// Returns a mutable reference to the integer meta data arrays
-    inline IntegerDataArrays& getIntegerDataArrays()
-    {
-      return integer_data_arrays_;
-    }
+    IntegerDataArrays& getIntegerDataArrays();
 
     /// Sets the integer meta data arrays
-    inline void setIntegerDataArrays(const IntegerDataArrays& ida)
+    void setIntegerDataArrays(const IntegerDataArrays& ida)
     {
       integer_data_arrays_ = ida;
     }
@@ -297,77 +244,7 @@ public:
 
       Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly.
     */
-    void sortByIntensity(bool reverse = false)
-    {
-      if (float_data_arrays_.empty() && string_data_arrays_.size() && integer_data_arrays_.size())
-      {
-        if (reverse)
-        {
-          std::sort(ContainerType::begin(), ContainerType::end(), reverseComparator(PeakType::IntensityLess()));
-        }
-        else
-        {
-          std::sort(ContainerType::begin(), ContainerType::end(), PeakType::IntensityLess());
-        }
-      }
-      else
-      {
-        //sort index list
-        std::vector<std::pair<PeakType::IntensityType, Size> > sorted_indices;
-        sorted_indices.reserve(ContainerType::size());
-        for (Size i = 0; i < ContainerType::size(); ++i)
-        {
-          sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getIntensity(), i));
-        }
-
-        if (reverse)
-        {
-          std::sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >()));
-        }
-        else
-        {
-          std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::IntensityType, Size> >());
-        }
-
-        //apply sorting to ContainerType and to meta data arrays
-        ContainerType tmp;
-        for (Size i = 0; i < sorted_indices.size(); ++i)
-        {
-          tmp.push_back(*(ContainerType::begin() + (sorted_indices[i].second)));
-        }
-        ContainerType::swap(tmp);
-
-        for (Size i = 0; i < float_data_arrays_.size(); ++i)
-        {
-          std::vector<float> mda_tmp;
-          for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          float_data_arrays_[i].swap(mda_tmp);
-        }
-
-        for (Size i = 0; i < string_data_arrays_.size(); ++i)
-        {
-          std::vector<String> mda_tmp;
-          for (Size j = 0; j < string_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(string_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          string_data_arrays_[i].swap(mda_tmp);
-        }
-
-        for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-        {
-          std::vector<Int> mda_tmp;
-          for (Size j = 0; j < integer_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(integer_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          integer_data_arrays_[i].swap(mda_tmp);
-        }
-      }
-    }
+    void sortByIntensity(bool reverse = false);
 
     /**
       @brief Lexicographically sorts the peaks by their position.
@@ -375,72 +252,10 @@ public:
       The chromatogram is sorted with respect to position. Meta data arrays will be sorted
       accordingly.
     */
-    void sortByPosition()
-    {
-      if (float_data_arrays_.empty())
-      {
-        std::sort(ContainerType::begin(), ContainerType::end(), PeakType::PositionLess());
-      }
-      else
-      {
-        //sort index list
-        std::vector<std::pair<PeakType::PositionType, Size> > sorted_indices;
-        sorted_indices.reserve(ContainerType::size());
-        for (Size i = 0; i < ContainerType::size(); ++i)
-        {
-          sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
-        }
-        std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<PeakType::PositionType, Size> >());
-
-        //apply sorting to ContainerType and to metadataarrays
-        ContainerType tmp;
-        for (Size i = 0; i < sorted_indices.size(); ++i)
-        {
-          tmp.push_back(*(ContainerType::begin() + (sorted_indices[i].second)));
-        }
-        ContainerType::swap(tmp);
-
-        for (Size i = 0; i < float_data_arrays_.size(); ++i)
-        {
-          std::vector<float> mda_tmp;
-          for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          std::swap(float_data_arrays_[i], mda_tmp);
-        }
-
-        for (Size i = 0; i < string_data_arrays_.size(); ++i)
-        {
-          std::vector<String> mda_tmp;
-          for (Size j = 0; j < string_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(string_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          std::swap(string_data_arrays_[i], mda_tmp);
-        }
-
-        for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-        {
-          std::vector<Int> mda_tmp;
-          for (Size j = 0; j < integer_data_arrays_[i].size(); ++j)
-          {
-            mda_tmp.push_back(*(integer_data_arrays_[i].begin() + (sorted_indices[j].second)));
-          }
-          std::swap(integer_data_arrays_[i], mda_tmp);
-        }
-      }
-    }
+    void sortByPosition();
 
     ///Checks if all peaks are sorted with respect to ascending RT
-    bool isSorted() const
-    {
-      for (Size i = 1; i < this->size(); ++i)
-      {
-        if (this->operator[](i - 1).getRT() > this->operator[](i).getRT()) return false;
-      }
-      return true;
-    }
+    bool isSorted() const;
 
     ///@}
 
@@ -456,30 +271,7 @@ public:
 
       @exception Exception::Precondition is thrown if the chromatogram is empty (not only in debug mode)
     */
-    Size findNearest(CoordinateType rt) const
-    {
-      //no peak => no search
-      if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
-
-      //search for position for inserting
-      ConstIterator it = RTBegin(rt);
-      //border cases
-      if (it == ContainerType::begin()) return 0;
-
-      if (it == ContainerType::end()) return ContainerType::size() - 1;
-
-      //the peak before or the current peak are closest
-      ConstIterator it2 = it;
-      --it2;
-      if (std::fabs(it->getRT() - rt) < std::fabs(it2->getRT() - rt))
-      {
-        return Size(it - ContainerType::begin());
-      }
-      else
-      {
-        return Size(it2 - ContainerType::begin());
-      }
-    }
+    Size findNearest(CoordinateType rt) const;
 
     /**
       @brief Binary search for peak range begin
@@ -487,12 +279,7 @@ public:
       @note Make sure the chromatogram is sorted with respect to retention time! Otherwise the
       result is undefined.
     */
-    Iterator RTBegin(CoordinateType rt)
-    {
-      PeakType p;
-      p.setPosition(rt);
-      return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
-    }
+    Iterator RTBegin(CoordinateType rt);
 
     /**
       @brief Binary search for peak range begin
@@ -500,12 +287,7 @@ public:
       @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is
       undefined.
     */
-    Iterator RTBegin(Iterator begin, CoordinateType rt, Iterator end)
-    {
-      PeakType p;
-      p.setPosition(rt);
-      return lower_bound(begin, end, p, PeakType::PositionLess());
-    }
+    Iterator RTBegin(Iterator begin, CoordinateType rt, Iterator end);
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
@@ -513,12 +295,7 @@ public:
       @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is
       undefined.
     */
-    Iterator RTEnd(CoordinateType rt)
-    {
-      PeakType p;
-      p.setPosition(rt);
-      return upper_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
-    }
+    Iterator RTEnd(CoordinateType rt);
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
@@ -526,12 +303,7 @@ public:
       @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is
       undefined.
     */
-    Iterator RTEnd(Iterator begin, CoordinateType rt, Iterator end)
-    {
-      PeakType p;
-      p.setPosition(rt);
-      return upper_bound(begin, end, p, PeakType::PositionLess());
-    }
+    Iterator RTEnd(Iterator begin, CoordinateType rt, Iterator end);
 
     /**
       @brief Binary search for peak range begin
@@ -539,12 +311,7 @@ public:
       @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is
       undefined.
     */
-    ConstIterator RTBegin(CoordinateType rt) const
-    {
-      PeakType p;
-      p.setPosition(rt);
-      return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
-    }
+    ConstIterator RTBegin(CoordinateType rt) const;
 
     /**
       @brief Binary search for peak range begin
@@ -552,12 +319,7 @@ public:
       @note Make sure the chromatogram is sorted with respect to RT! Otherwise the result is
       undefined.
     */
-    ConstIterator RTBegin(ConstIterator begin, CoordinateType rt, ConstIterator end) const
-    {
-      PeakType p;
-      p.setPosition(rt);
-      return lower_bound(begin, end, p, PeakType::PositionLess());
-    }
+    ConstIterator RTBegin(ConstIterator begin, CoordinateType rt, ConstIterator end) const;
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
@@ -565,14 +327,9 @@ public:
       @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is
       undefined.
     */
-    ConstIterator RTEnd(CoordinateType rt) const
-    {
-      PeakType p;
-      p.setPosition(rt);
-      return upper_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
-    }
+    ConstIterator RTEnd(CoordinateType rt) const;
 
-    ConstIterator MZEnd(CoordinateType rt) const {return RTEnd(rt);}
+    ConstIterator MZEnd(CoordinateType rt) const;
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
@@ -580,32 +337,14 @@ public:
       @note Make sure the chromatogram is sorted with respect to RT. Otherwise the result is
       undefined.
     */
-    ConstIterator RTEnd(ConstIterator begin, CoordinateType rt, ConstIterator end) const
-    {
-      PeakType p;
-      p.setPosition(rt);
-      return upper_bound(begin, end, p, PeakType::PositionLess());
-    }
+    ConstIterator RTEnd(ConstIterator begin, CoordinateType rt, ConstIterator end) const;
 
     /**
       @brief Clears all data and meta data
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
-    void clear(bool clear_meta_data)
-    {
-      ContainerType::clear();
-
-      if (clear_meta_data)
-      {
-        clearRanges();
-        this->ChromatogramSettings::operator=(ChromatogramSettings()); // no "clear" method
-        name_.clear();
-        float_data_arrays_.clear();
-        string_data_arrays_.clear();
-        integer_data_arrays_.clear();
-      }
-    }
+    void clear(bool clear_meta_data);
 
     ///@}
 
