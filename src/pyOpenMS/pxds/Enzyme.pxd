@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Enzyme.h>" namespace "OpenMS":
                EmpiricalFormula c_term_gain,
                String psi_id,
                String xtandem_id,
-               Uint comet_id,
+               UInt comet_id,
                UInt omssa_id) nogil except +
 
         # sets the name of the Enzyme
