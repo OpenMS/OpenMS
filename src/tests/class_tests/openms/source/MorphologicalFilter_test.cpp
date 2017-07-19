@@ -620,7 +620,7 @@ END_SECTION
 
 START_SECTION((template <typename PeakType> void filter(MSSpectrum& spectrum)))
 {
-   MSSpectrum raw;
+  MSSpectrum raw;
   Peak1D peak;
   double spacing = 0.25;
   for ( UInt i = 0; i < data_size; ++i )
@@ -656,7 +656,7 @@ END_SECTION
 
 START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment< PeakType > &exp)))
 {
-   MSSpectrum raw;
+  MSSpectrum raw;
   raw.setComment("Let's see if this comment is copied by the filter.");
   Peak1D peak;
   double spacing = 0.25;

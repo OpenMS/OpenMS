@@ -295,8 +295,8 @@ public:
       if ((String)(param_.getValue("struc_elem_unit")) == "Thomson")
       {
         const double struc_elem_length = (double)param_.getValue("struc_elem_length");
-        const double mz_diff = spectrum.back().getMZ() - spectrum.begin()->getMZ();
-        struct_size_in_datapoints_ = (UInt)(ceil(struc_elem_length)*(double)(spectrum.size() - 1)/mz_diff);
+        const double mz_diff = spectrum.back().getMZ() - spectrum.begin()->getMZ();        
+        struct_size_in_datapoints_ = (UInt)(ceil(struc_elem_length*(double)(spectrum.size() - 1)/mz_diff));
       }
       else
       {
