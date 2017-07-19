@@ -120,6 +120,7 @@ EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) c
     base_to_formula['T']=EmpiricalFormula("C5H6N2O2"); //
     base_to_formula['U']=EmpiricalFormula("C4H4N2O2"); //("C9H11N2O8P");
     base_to_formula['J']=EmpiricalFormula("C5H6N2O2"); //2'-O-methyl U
+    base_to_formula['p']=EmpiricalFormula("HPO3"); //Placeholder for terminal phosphate
     //C5H7O6P= PO4
     EmpiricalFormula mono_formula;
 
@@ -135,7 +136,10 @@ EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) c
         else
         {
             for (size_t i=0;i<s_.size();i++){
-                mono_formula+=base_to_formula[s_[i]]+abasicform;
+                if (s_[i]=='p')
+                    mono_formula+=base_to_formula[s_[i]]; //special case to handle terminal phosphates
+                else
+                    mono_formula+=base_to_formula[s_[i]]+abasicform;
             }
             //            for (ConstIterator it = s_->begin(); it != s_->end(); ++it)
             //            {

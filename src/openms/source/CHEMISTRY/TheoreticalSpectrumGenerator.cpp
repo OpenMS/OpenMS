@@ -637,7 +637,7 @@ void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, const NA
       {
         Size i = add_first_prefix_ion_ ? 0 : 1;
         //if (i == 1) mono_weight += nucleotide[0].getMonoWeight(Residue::Internal);
-        for (; i < nucleotide.size() - 1 && i <= (uint)abs(charge); ++i)
+        for (; i < nucleotide.size(); ++i)
         {
           //mono_weight += nucleotide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
           NASequence ion= nucleotide.getPrefix(i);
