@@ -55,7 +55,7 @@ TOFCalibration* ptr = 0;
 TOFCalibration* nullPointer = 0;
 START_SECTION((TOFCalibration()))
   ptr = new TOFCalibration;
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~TOFCalibration()))
@@ -129,9 +129,9 @@ START_SECTION((template<typename PeakType> void pickAndCalibrate(PeakMap &calib_
   ref_file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrant_masses.txt"),true);
 
   for(TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
-	{
-		ref_masses.push_back(String(iter->c_str()).toDouble());
-	}
+  {
+    ref_masses.push_back(String(iter->c_str()).toDouble());
+  }
 
   std::vector<double> ml1;
 
@@ -157,16 +157,16 @@ START_SECTION((template<typename PeakType> void pickAndCalibrate(PeakMap &calib_
   tc.setParameters(param);
   tc.pickAndCalibrate(calib_exp,exp,ref_masses);
   TOLERANCE_ABSOLUTE(0.01)
-  TOLERANCE_RELATIVE(1.0)
+  TOLERANCE_RELATIVE(1.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
-	for (Size i=0; i<exp.size(); ++i)
-	{
-		for (Size j=0; j<exp[i].size(); ++j)
-		{
-			TEST_REAL_SIMILAR(exp[i][j].getPos(),res_exp[i][j].getPos())
-			TEST_REAL_SIMILAR(exp[i][j].getIntensity(),res_exp[i][j].getIntensity())
-		}
-	}
+  for (Size i=0; i<exp.size(); ++i)
+  {
+    for (Size j=0; j<exp[i].size(); ++j)
+    {
+      TEST_REAL_SIMILAR(exp[i][j].getPos(),res_exp[i][j].getPos())
+      TEST_REAL_SIMILAR(exp[i][j].getIntensity(),res_exp[i][j].getIntensity())
+    }
+  }
 END_SECTION
 
 tc = TOFCalibration();
@@ -210,17 +210,17 @@ START_SECTION((template<typename PeakType> void calibrate(PeakMap &calib_spectra
 
   tc.calibrate(calib_exp,exp,ref_masses);
 
-	TOLERANCE_ABSOLUTE(0.01)
-  TOLERANCE_RELATIVE(1.0)
+  TOLERANCE_ABSOLUTE(0.01)
+  TOLERANCE_RELATIVE(1.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
-	for (Size i=0; i<exp.size(); ++i)
-	{
-		for (Size j=0; j<exp[i].size(); ++j)
-		{
-			TEST_REAL_SIMILAR(res_exp[i][j].getPos(),exp[i][j].getPos())
-			TEST_REAL_SIMILAR(res_exp[i][j].getIntensity(),exp[i][j].getIntensity())
-		}
-	}
+  for (Size i=0; i<exp.size(); ++i)
+  {
+    for (Size j=0; j<exp[i].size(); ++j)
+    {
+      TEST_REAL_SIMILAR(res_exp[i][j].getPos(),exp[i][j].getPos())
+      TEST_REAL_SIMILAR(res_exp[i][j].getIntensity(),exp[i][j].getIntensity())
+    }
+  }
 
 END_SECTION
 
