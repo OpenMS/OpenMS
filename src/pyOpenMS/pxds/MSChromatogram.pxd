@@ -17,9 +17,6 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         #  MetaInfoInterface
         #  RangeManager1
 
-        # wrap-instances:
-        #   MSChromatogram := MSChromatogram
-
         # COMMENT: get raw data through get_peaks or by iterating through peaks
         # COMMENT: set raw data through set_peaks
 
@@ -32,11 +29,11 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         void setName(libcpp_string) nogil except +
 
         Size size() nogil except +
-        ChromatogramPeakT operator[](int) nogil except +
+        ChromatogramPeak operator[](int) nogil except +
 
         void updateRanges() nogil except +
         void clear(int) nogil except +
-        void push_back(ChromatogramPeakT)  nogil except +
+        void push_back(ChromatogramPeak)  nogil except +
 
         bool isSorted() nogil except +
 
@@ -46,8 +43,8 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         int findNearest(double) nogil except+
 
         void assign(libcpp_vector[ChromatogramPeak].iterator, libcpp_vector[ChromatogramPeak].iterator) nogil except + # wrap-ignore
-        libcpp_vector[ChromatogramPeakT].iterator begin() nogil except +  # wrap-iter-begin:__iter__(ChromatogramPeakT)
-        libcpp_vector[ChromatogramPeakT].iterator end()   nogil except +  # wrap-iter-end:__iter__(ChromatogramPeakT)
+        libcpp_vector[ChromatogramPeak].iterator begin() nogil except +  # wrap-iter-begin:__iter__(ChromatogramPeak)
+        libcpp_vector[ChromatogramPeak].iterator end()   nogil except +  # wrap-iter-end:__iter__(ChromatogramPeak)
 
         libcpp_vector[FloatDataArray] getFloatDataArrays() nogil except +
         libcpp_vector[IntegerDataArray] getIntegerDataArrays() nogil except +
