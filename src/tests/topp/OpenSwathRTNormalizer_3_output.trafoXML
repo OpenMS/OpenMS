@@ -4,6 +4,10 @@
 		<Param  type="string" name="symmetric_regression" value="false"/>
 		<Param  type="string" name="x_weight" value=""/>
 		<Param  type="string" name="y_weight" value=""/>
+		<Param  type="float" name="x_datum_min" value=1e-15/>
+		<Param  type="float" name="x_datum_max" value=1e15/>
+		<Param  type="float" name="y_datum_min" value=1e-15/>
+		<Param  type="float" name="y_datum_max" value=1e15/>
 		<Param  type="float" name="slope" value="0.984288241320521"/>
 		<Param  type="float" name="intercept" value="396.375778384148"/>
 		<Pairs count="8">
