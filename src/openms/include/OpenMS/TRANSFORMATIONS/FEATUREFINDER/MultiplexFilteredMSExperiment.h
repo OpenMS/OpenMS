@@ -36,6 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTEREDMSEXPERIMENT_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatellite.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
 
 #include <vector>

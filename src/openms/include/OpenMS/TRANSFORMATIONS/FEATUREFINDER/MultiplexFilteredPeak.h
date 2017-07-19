@@ -96,7 +96,7 @@ namespace OpenMS
     /**
      * @brief add a satellite peak
      */
-    const std::multimap<size_t, std::pair<size_t, size_t> >& getSatellites() const;
+    const std::multimap<size_t, MultiplexSatellite >& getSatellites() const;
           
     /**
      * @brief return number of satellite peaks
@@ -135,9 +135,7 @@ namespace OpenMS
      * White experiments are temporary (for each pattern), but the original
      * <exp_picked_> experiment is permanent.
      */
-    std::multimap<size_t, std::pair<size_t, size_t> > satellites_;
- 
-    std::multimap<size_t, MultiplexSatellite > satellites_2_;
+    std::multimap<size_t, MultiplexSatellite > satellites_;
  
   };
   

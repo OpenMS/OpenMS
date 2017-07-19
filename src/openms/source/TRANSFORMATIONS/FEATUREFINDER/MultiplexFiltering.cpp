@@ -325,17 +325,17 @@ namespace OpenMS
   {
     // blacklist satellite peaks
     // Note that the primary peak is one of them.
-    std::multimap<size_t, std::pair<size_t, size_t> > satellites = peak.getSatellites();
-    for (std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator it = satellites.begin(); it != satellites.end(); ++it)
+    std::multimap<size_t, MultiplexSatellite > satellites = peak.getSatellites();
+    for (std::multimap<size_t, MultiplexSatellite >::const_iterator it = satellites.begin(); it != satellites.end(); ++it)
     {
       if (it->first == 0)    // first = m/z shift index in <MultiplexIsotopicPeakPattern>
       {
         // Any mono-isotopic peaks of the lightest peptide can pass the filter in this pattern.
-        blacklist_[(it->second).first][(it->second).second] = grey;    // first = RT index in original <MSExperiment>, second = m/z index in spectrum
+        blacklist_[(it->second).getRTidx()][(it->second).getMZidx()] = grey;    // first = RT index in original <MSExperiment>, second = m/z index in spectrum
       }
       else
       {
-        blacklist_[(it->second).first][(it->second).second] = black;
+        blacklist_[(it->second).getRTidx()][(it->second).getMZidx()] = black;
       }
     }
   }
@@ -358,23 +358,23 @@ namespace OpenMS
     }    
 
     // Determine the boundaries for each of the mass traces.
-    std::multimap<size_t, std::pair<size_t, size_t> > satellites = peak.getSatellites();    
+    std::multimap<size_t, MultiplexSatellite > satellites = peak.getSatellites();    
     // <rt_boundaries> is a map from the mass trace index to the spectrum indices for beginning and end of the mass trace.
     std::map<size_t, std::pair<size_t, size_t> > rt_boundaries;
     // loop over satellites
-    for (std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator it = satellites.begin(); it != satellites.end(); ++it)
+    for (std::multimap<size_t, MultiplexSatellite >::const_iterator it = satellites.begin(); it != satellites.end(); ++it)
     {
       size_t idx_masstrace = it->first;    // mass trace index i.e. the index within the peptide multiplet pattern
       if (rt_boundaries.find(idx_masstrace) == rt_boundaries.end())
       {
         // That's the first satellite within this mass trace.
-        rt_boundaries[idx_masstrace] = std::make_pair((it->second).first, (it->second).first);
+        rt_boundaries[idx_masstrace] = std::make_pair((it->second).getRTidx(), (it->second).getRTidx());
       }
       else
       {
         // We have seen a satellite of this mass trace before.
-        size_t idx_min = std::min((it->second).first, rt_boundaries[idx_masstrace].first);
-        size_t idx_max = std::max((it->second).first, rt_boundaries[idx_masstrace].second);
+        size_t idx_min = std::min((it->second).getRTidx(), rt_boundaries[idx_masstrace].first);
+        size_t idx_max = std::max((it->second).getRTidx(), rt_boundaries[idx_masstrace].second);
         
         rt_boundaries[idx_masstrace] = std::make_pair(idx_min, idx_max);
       }      
@@ -484,18 +484,18 @@ namespace OpenMS
       for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
       {
         size_t idx = peptide * isotopes_per_peptide_max_ + isotope;
-        std::pair<std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator, std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator> satellites;
+        std::pair<std::multimap<size_t, MultiplexSatellite >::const_iterator, std::multimap<size_t, MultiplexSatellite >::const_iterator> satellites;
         satellites = peak.getSatellites().equal_range(idx);
               
         int count = 0;
         double sum_intensities = 0;
         
         // loop over satellites in mass trace
-        for (std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator satellite_it = satellites.first; satellite_it != satellites.second; ++satellite_it)
+        for (std::multimap<size_t, MultiplexSatellite >::const_iterator satellite_it = satellites.first; satellite_it != satellites.second; ++satellite_it)
         {
           // find indices of the peak
-          size_t rt_idx = (satellite_it->second).first;
-          size_t mz_idx = (satellite_it->second).second;
+          size_t rt_idx = (satellite_it->second).getRTidx();
+          size_t mz_idx = (satellite_it->second).getMZidx();
           
           // find peak itself
           MSExperiment::ConstIterator it_rt = exp_picked_.begin();
@@ -583,25 +583,25 @@ namespace OpenMS
           size_t idx_1 = peptide_1 * isotopes_per_peptide_max_ + isotope;
           size_t idx_2 = peptide_2 * isotopes_per_peptide_max_ + isotope;
           
-          std::pair<std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator, std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator> satellites_1;
-          std::pair<std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator, std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator> satellites_2;
+          std::pair<std::multimap<size_t, MultiplexSatellite >::const_iterator, std::multimap<size_t, MultiplexSatellite >::const_iterator> satellites_1;
+          std::pair<std::multimap<size_t, MultiplexSatellite >::const_iterator, std::multimap<size_t, MultiplexSatellite >::const_iterator> satellites_2;
           satellites_1 = peak.getSatellites().equal_range(idx_1);
           satellites_2 = peak.getSatellites().equal_range(idx_2);
           
           // loop over satellites in mass trace 1
-          for (std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
+          for (std::multimap<size_t, MultiplexSatellite >::const_iterator satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
           {
-            size_t rt_idx_1 = (satellite_it_1->second).first;
+            size_t rt_idx_1 = (satellite_it_1->second).getRTidx();
   
             // loop over satellites in mass trace 2
-            for (std::multimap<size_t, std::pair<size_t, size_t> >::const_iterator satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
+            for (std::multimap<size_t, MultiplexSatellite >::const_iterator satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
             {
-              size_t rt_idx_2 = (satellite_it_2->second).first;
+              size_t rt_idx_2 = (satellite_it_2->second).getRTidx();
   
               if (rt_idx_1 == rt_idx_2)
               {
-                size_t mz_idx_1 = (satellite_it_1->second).second;
-                size_t mz_idx_2 = (satellite_it_2->second).second;
+                size_t mz_idx_1 = (satellite_it_1->second).getMZidx();
+                size_t mz_idx_2 = (satellite_it_2->second).getMZidx();
                 
                 // find peak itself
                 MSExperiment::ConstIterator it_rt_1 = exp_picked_.begin();
