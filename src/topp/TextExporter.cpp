@@ -1031,6 +1031,8 @@ protected:
           if (!no_ids)
           {
             writePeptideHeader(output, "PEPTIDE");
+	    writeMetaValuesHeader(output, peptide_id_meta_keys);
+ 	    writeMetaValuesHeader(output, peptide_hit_meta_keys);
             output << nl;
           }
           output.modifyStrings(true);
@@ -1068,7 +1070,7 @@ protected:
             // unassigned peptides
             for (vector<PeptideIdentification>::const_iterator pit = consensus_map.getUnassignedPeptideIdentifications().begin(); pit != consensus_map.getUnassignedPeptideIdentifications().end(); ++pit)
             {
-              writePeptideId(output, *pit, "UNASSIGNEDPEPTIDE");
+              writePeptideId(output, *pit, "UNASSIGNEDPEPTIDE", false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
               // first_dim_... stuff not supported for now
             }
           }
@@ -1098,7 +1100,7 @@ protected:
                      cmit->getPeptideIdentifications().begin(); pit !=
                    cmit->getPeptideIdentifications().end(); ++pit)
               {
-                writePeptideId(output, *pit);
+                writePeptideId(output, *pit, false, false, false, peptide_id_meta_keys, peptide_hit_meta_keys);
               }
             }
           }
