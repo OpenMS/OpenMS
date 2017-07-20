@@ -178,6 +178,7 @@ protected:
               " -> " + String(chromatogram.getProduct().getMZ()) +  \
                 "! Maybe try to decrease your mapping tolerance.");
           }
+
           mapped_already = true;
 
           // Create precursor and set the peptide sequence

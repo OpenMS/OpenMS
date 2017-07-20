@@ -127,7 +127,6 @@ set(kernel_executables_list
   ConversionHelper_test
   ConstRefVector_test
   DPeak_test
-  DRichPeak_test
   FeatureMap_test
   Feature_test
   MassTrace_test
@@ -141,7 +140,6 @@ set(kernel_executables_list
   Peak2D_test
   PeakIndex_test
   RangeUtils_test
-  RichPeak1D_test
   RichPeak2D_test
   StandardTypes_test
   SpectrumHelper_test
@@ -492,6 +490,7 @@ set(analysis_executables_list
   SimpleSVM_test
   StablePairFinder_test
   #TargetedExperimentHelper_test
+  PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
   TransformationModelBSpline_test

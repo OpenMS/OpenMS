@@ -261,7 +261,7 @@ protected:
   OPXLDataStructs::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
   {
     OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra(spectrum_pairs.size());
- 
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -285,6 +285,9 @@ protected:
         spectrum_heavy_charges = spectrum_heavy.getIntegerDataArrays()[0];
       }
       xlink_peaks.getIntegerDataArrays().resize(1);
+
+      // keep track of matched peaks
+      vector<Size> used_peaks;
 
       // transform all peaks in the heavy spectrum by shifting them, considering all expected charge states
       for (Size charge = 1; charge <= max_charge_xlink; ++charge)
@@ -329,8 +332,14 @@ protected:
           // fill xlink_peaks spectrum with matched peaks from the light spectrum and add the currently considered charge
           for (Size i = 0; i != matched_fragments_with_shift.size(); ++i)
           {
-            xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
-            xlink_peaks.getIntegerDataArrays()[0].push_back(charge);
+            // test whether this peak was matched with a lower charge before (biased towards lower charge matches, if one light peak matches to multiple heavy peaks with different charges)
+            vector<Size>::iterator it = find(used_peaks.begin(), used_peaks.end(), matched_fragments_with_shift[i].first);
+            if (it == used_peaks.end())
+            {
+              xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
+              xlink_peaks.getIntegerDataArrays()[0].push_back(charge);
+              used_peaks.push_back(matched_fragments_with_shift[i].first);
+            }
           }
         }
       }
@@ -459,7 +468,7 @@ protected:
     vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames);
     vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
-    
+
     // load MS2 map
     PeakMap unprocessed_spectra;
     MzMLFile f;
@@ -479,9 +488,9 @@ protected:
     // load linked features
     ConsensusMap cfeatures;
     ConsensusXMLFile cf;
-    cf.load(in_consensus, cfeatures); 
+    cf.load(in_consensus, cfeatures);
 
-    // load fasta database    
+    // load fasta database
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
     FASTAFile fastaFile;
     vector<FASTAFile::FASTAEntry> fasta_db;
@@ -496,13 +505,13 @@ protected:
     }
 
     progresslogger.endProgress();
-    
+
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
     EnzymaticDigestion digestor;
     String enzyme_name = getStringOption_("peptide:enzyme");
     digestor.setEnzyme(enzyme_name);
     digestor.setMissedCleavages(missed_cleavages);
-    
+
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
 
@@ -571,7 +580,9 @@ protected:
     protein_ids[0].setDateTime(DateTime::now());
     protein_ids[0].setSearchEngine("OpenXQuest");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
-    protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
+    StringList ms_runs;
+    spectra.getPrimaryMSRunPath(ms_runs);
+    protein_ids[0].setPrimaryMSRunPath(ms_runs);
     protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
 
     ProteinIdentification::SearchParameters search_params;
@@ -1066,31 +1077,14 @@ protected:
         }
       } // candidates for peak finished, determine best matching candidate
 
-      Int top = 0;
-
       // collect top n matches to spectrum
-      while (!all_csms_spectrum.empty() && top < number_top_hits)
+      sort(all_csms_spectrum.rbegin(), all_csms_spectrum.rend());
+      Size max_hit = min(all_csms_spectrum.size(), static_cast<Size>(number_top_hits));
+
+      for (Size top = 0; top < max_hit; top++)
       {
-        top++;
-
-        //double max_score = *max_element(candidate_score.begin(), candidate_score.end());
-        Int max_position = distance(all_csms_spectrum.begin(), max_element(all_csms_spectrum.begin(), all_csms_spectrum.end()));
-        all_csms_spectrum[max_position].rank = top;
-        top_csms_spectrum.push_back(all_csms_spectrum[max_position]);
-        all_csms_spectrum.erase(all_csms_spectrum.begin() + max_position);
-
-        LOG_DEBUG << "Score: " << all_csms_spectrum[max_position].score << "\t wTIC: " << all_csms_spectrum[max_position].wTIC << "\t xcorrx: " << all_csms_spectrum[max_position].xcorrx_max
-                << "\t xcorrc: " << all_csms_spectrum[max_position].xcorrc_max << "\t match-odds: " << all_csms_spectrum[max_position].match_odds << "\t Intsum: " << all_csms_spectrum[max_position].int_sum << endl;
-
-        if (all_csms_spectrum[max_position].cross_link.getType() == OPXLDataStructs::CROSS)
-        {
-          LOG_DEBUG << "Matched ions calpha , cbeta , xalpha , xbeta" << "\t" << all_csms_spectrum[max_position].matched_common_alpha << "\t" << all_csms_spectrum[max_position].matched_common_beta
-                  << "\t" << all_csms_spectrum[max_position].matched_xlink_alpha <<  "\t" << all_csms_spectrum[max_position].matched_xlink_beta << endl;
-        }
-        else
-        {
-          LOG_DEBUG << "Matched ions common, cross-links " << all_csms_spectrum[max_position].matched_common_alpha << "\t" << all_csms_spectrum[max_position].matched_xlink_alpha << endl;
-        }
+        all_csms_spectrum[top].rank = top+1;
+        top_csms_spectrum.push_back(all_csms_spectrum[top]);
       }
 
       Size all_top_csms_current_index = 0;
@@ -1098,12 +1092,18 @@ protected:
 #pragma omp critical (all_top_csms_access)
 #endif
       {
-        all_top_csms.push_back(top_csms_spectrum);
-        all_top_csms_current_index = all_top_csms.size()-1;
+        if (!top_csms_spectrum.empty())
+        {
+          all_top_csms.push_back(top_csms_spectrum);
+          all_top_csms_current_index = all_top_csms.size()-1;
+        }
       }
 
-      // Write PeptideIdentifications and PeptideHits for n top hits
-      OPXLHelper::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index_heavy);
+      // Write PeptideIdentifications and PeptideHits for n top hits of this spectrum
+      if (!top_csms_spectrum.empty())
+      {
+        OPXLHelper::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index_heavy);
+      }
 
       LOG_DEBUG << "Next Spectrum #############################################" << endl;
     }
@@ -1168,7 +1168,6 @@ int main(int argc, const char** argv)
 {
 
   TOPPOpenPepXL tool;
-  
+
   return tool.main(argc, argv);
 }
-

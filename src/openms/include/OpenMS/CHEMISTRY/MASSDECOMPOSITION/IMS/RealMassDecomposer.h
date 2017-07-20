@@ -126,7 +126,7 @@ private:
         Decomposer to be used for exact decomposing using
         integer arithmetic.
       */
-      std::auto_ptr<integer_decomposer_type> decomposer_;
+      std::shared_ptr<integer_decomposer_type> decomposer_;
     };
 
   } // namespace ims

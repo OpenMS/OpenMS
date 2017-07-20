@@ -118,6 +118,10 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MSGFPlusAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # LuciPhorAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=LuciphorAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  # CometAdapter
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=CometAdapter -DPARAM=comet_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  # PercolatorAdapter
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=PercolatorAdapter -DPARAM=percolator_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # FidoAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fido_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fidocp_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
@@ -185,15 +189,12 @@ if (APPLE)
 elseif(WIN32)
   # assemble required libraries for win32
   # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces, sqlite
-  get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
-  get_filename_component(WIN32_DLLPATH "${WIN32_DLLLOCATION}" PATH)
-
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS.dll ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS_GUI.dll ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenSwathAlgo.dll ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/SuperHirn.dll ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenMS> ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenMS_GUI> ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenSwathAlgo> ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:SuperHirn> ${PAYLOAD_LIB_PATH}
   )
 
   function(copy_library lib target_path)
@@ -277,6 +278,8 @@ elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Fido)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Fido is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/LuciPHOr2)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (LuciPHOr2 is missing). ${FOLDER_STRUCTURE_MESSAGE}")
+elseif(NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/Percolator)
+  message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (Percolator is missing). Please check use the one from the SVN.")
 elseif(NOT APPLE AND NOT EXISTS ${SEARCH_ENGINES_DIRECTORY}/MyriMatch)
   message(FATAL_ERROR "The given search engine directory seems to have an invalid layout (MyriMatch is missing). ${FOLDER_STRUCTURE_MESSAGE}")
 endif()

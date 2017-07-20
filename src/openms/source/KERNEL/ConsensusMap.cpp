@@ -150,6 +150,14 @@ namespace OpenMS
     DocumentIdentifier::operator=(empty_map);
     UniqueIdInterface::operator=(empty_map);
 
+    // append spectra_data information
+    StringList thisRuns_;
+    this->getPrimaryMSRunPath(thisRuns_);
+    StringList rhsRuns_;
+    rhs.getPrimaryMSRunPath(rhsRuns_);
+    thisRuns_.insert(thisRuns_.end(), rhsRuns_.begin(), rhsRuns_.end());
+    this->setPrimaryMSRunPath(thisRuns_);
+
     // append dataProcessing
     data_processing_.insert(data_processing_.end(),
                             rhs.data_processing_.begin(),
@@ -311,6 +319,37 @@ namespace OpenMS
     std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::MapsLess());
   }
 
+  void ConsensusMap::sortPeptideIdentificationsByMapIndex()
+  {
+    // lambda predicate
+    auto mapIndexLess = [] (const PeptideIdentification & a, const PeptideIdentification & b) -> bool
+    {
+      const bool has_a = a.metaValueExists("map_index");
+      const bool has_b = b.metaValueExists("map_index");
+
+      // moves IDs without meta value to end
+      if (has_a && !has_b) { return true; }
+      if (!has_a && has_b) { return false; }
+
+      // both have map index annotated
+      if (has_a && has_b)
+      {
+        return a.getMetaValue("map_index") < b.getMetaValue("map_index");
+      }
+
+      // no map index annotated in both
+      return false;
+    };
+
+    std::transform(begin(), end(), begin(),
+      [mapIndexLess](ConsensusFeature& c) 
+      { 
+        vector<PeptideIdentification> & pids = c.getPeptideIdentifications();
+        stable_sort(pids.begin(), pids.end(), mapIndexLess);
+        return c;
+      });
+  }
+
   void ConsensusMap::swap(ConsensusMap& from)
   {
     ConsensusMap tmp;
@@ -404,14 +443,12 @@ namespace OpenMS
   }
 
   /// get the file path to the first MS run
-  StringList ConsensusMap::getPrimaryMSRunPath() const
+  void ConsensusMap::getPrimaryMSRunPath(StringList& toFill) const
   {
-    StringList ret;
     if (this->metaValueExists("spectra_data"))
     {
-      ret = this->getMetaValue("spectra_data");
+      toFill = this->getMetaValue("spectra_data");
     }
-    return ret;
   }
 
   /// Equality operator

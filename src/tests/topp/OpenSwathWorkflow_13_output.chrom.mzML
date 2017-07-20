@@ -90,12 +90,6 @@
 	</instrumentConfigurationList>
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000592" name="smoothing" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
@@ -854,32 +848,32 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="0_Precursor_i0">7205</offset>
-		<offset idRef="2_Precursor_i0">9030</offset>
-		<offset idRef="3_Precursor_i0">10855</offset>
-		<offset idRef="4_Precursor_i0">12680</offset>
-		<offset idRef="6_Precursor_i0">14505</offset>
-		<offset idRef="5_Precursor_i0">16387</offset>
-		<offset idRef="0">18269</offset>
-		<offset idRef="1">20162</offset>
-		<offset idRef="2">22055</offset>
-		<offset idRef="3">23948</offset>
-		<offset idRef="4">25841</offset>
-		<offset idRef="5">27731</offset>
-		<offset idRef="6">29625</offset>
-		<offset idRef="7">31519</offset>
-		<offset idRef="8">33409</offset>
-		<offset idRef="9">35303</offset>
-		<offset idRef="10">37197</offset>
-		<offset idRef="11">39088</offset>
-		<offset idRef="15">40983</offset>
-		<offset idRef="12">42879</offset>
-		<offset idRef="16">44775</offset>
-		<offset idRef="13">46667</offset>
-		<offset idRef="17">48559</offset>
-		<offset idRef="14">50455</offset>
+		<offset idRef="0_Precursor_i0">6874</offset>
+		<offset idRef="2_Precursor_i0">8699</offset>
+		<offset idRef="3_Precursor_i0">10524</offset>
+		<offset idRef="4_Precursor_i0">12349</offset>
+		<offset idRef="6_Precursor_i0">14174</offset>
+		<offset idRef="5_Precursor_i0">16056</offset>
+		<offset idRef="0">17938</offset>
+		<offset idRef="1">19831</offset>
+		<offset idRef="2">21724</offset>
+		<offset idRef="3">23617</offset>
+		<offset idRef="4">25510</offset>
+		<offset idRef="5">27400</offset>
+		<offset idRef="6">29294</offset>
+		<offset idRef="7">31188</offset>
+		<offset idRef="8">33078</offset>
+		<offset idRef="9">34972</offset>
+		<offset idRef="10">36866</offset>
+		<offset idRef="11">38757</offset>
+		<offset idRef="15">40652</offset>
+		<offset idRef="12">42548</offset>
+		<offset idRef="16">44444</offset>
+		<offset idRef="13">46336</offset>
+		<offset idRef="17">48228</offset>
+		<offset idRef="14">50124</offset>
 	</index>
 </indexList>
-<indexListOffset>52385</indexListOffset>
+<indexListOffset>52054</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

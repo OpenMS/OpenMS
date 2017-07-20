@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <fstream>
 
 namespace OpenMS
@@ -267,6 +268,7 @@ namespace OpenMS
     return;
   }
 
+  // version for labeled linkers
   void XQuestResultXMLFile::writeXQuestXMLSpec(String out_file, String base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
   {
     //String spec_xml_filename = base_name + "_matched.spec.xml";
@@ -277,17 +279,32 @@ namespace OpenMS
     // TODO write actual data
     spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << std::endl;
 
-    for (Size i = 0; i < spectrum_pairs.size(); ++i)
+    // collect indices of spectra, that need to be written out
+    std::vector <std::pair <Size, Size> > spectrum_indices;
+
+    for (Size i = 0; i < all_top_csms.size(); ++i)
     {
       if (!all_top_csms[i].empty())
       {
-        Size scan_index_light = spectrum_pairs[i].first;
-        Size scan_index_heavy = spectrum_pairs[i].second;
-        // TODO more correct alternative
-        String spectrum_light_name = base_name + ".light." + scan_index_light;
-        String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
-        String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
+        if (all_top_csms[i][0].scan_index_light < spectra.size() && all_top_csms[i][0].scan_index_heavy < spectra.size())
+        {
+          spectrum_indices.push_back( std::make_pair(all_top_csms[i][0].scan_index_light, all_top_csms[i][0].scan_index_heavy) );
+        }
+      }
+    }
 
+    // loop over list of indices and write out spectra
+    for (Size i = 0; i < spectrum_indices.size(); ++i)
+    {
+      Size scan_index_light = spectrum_indices[i].first;
+      Size scan_index_heavy = spectrum_indices[i].second;
+      // TODO more correct alternative
+      String spectrum_light_name = base_name + ".light." + scan_index_light;
+      String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
+      String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
+
+      if (scan_index_light < spectra.size() && scan_index_heavy < spectra.size() && i < preprocessed_pair_spectra.spectra_common_peaks.size() && i < preprocessed_pair_spectra.spectra_xlink_peaks.size())
+      {
         // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
         spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << std::endl;
         spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_light], String(""));
@@ -297,14 +314,20 @@ namespace OpenMS
         spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[scan_index_heavy], String(""));
         spec_xml_file << "</spectrum>" << std::endl;
 
+        // the preprocessed pair spectra are sorted by another index
+        // because some pairs do not yield any resonable hits, the index from the spectrum matches or spectrum_indices does not address the right pair anymore
+        // use find with the pair of spectrum indices to find the correct index for the preprocessed common and cross-linked ion spectra
+        std::vector<std::pair <Size, Size> >::const_iterator pair_it = std::find(spectrum_pairs.begin(), spectrum_pairs.end(), spectrum_indices[i]);
+        Size pair_index = std::distance(spectrum_pairs.begin(), pair_it);
+
         String spectrum_common_name = spectrum_name + String("_common.txt");
         spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_common_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_common_peaks[pair_index], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
         spec_xml_file << "</spectrum>" << std::endl;
 
         String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
         spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_xlink_peaks[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_xlink_peaks[pair_index], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
         spec_xml_file << "</spectrum>" << std::endl;
       }
     }
@@ -315,6 +338,7 @@ namespace OpenMS
     return;
   }
 
+  // version for label-free linkers
   void XQuestResultXMLFile::writeXQuestXMLSpec(String out_file, String base_name, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
   {
     // String spec_xml_filename = base_name + "_matched.spec.xml";
@@ -325,34 +349,46 @@ namespace OpenMS
     // TODO write actual data
     spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << std::endl;
 
-    for (Size i = 0; i < spectra.size(); ++i)
+    // collect indices of spectra, that need to be written out
+    std::vector <Size> spectrum_indices;
+
+    for (Size i = 0; i < all_top_csms.size(); ++i)
     {
       if (!all_top_csms[i].empty())
       {
-        String spectrum_light_name = base_name + ".light." + i;
-        String spectrum_heavy_name = base_name + ".heavy." + i;
-
-        String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
-
-        // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
-        spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[i], String(""));
-        spec_xml_file << "</spectrum>" << std::endl;
-
-        spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[i], String(""));
-        spec_xml_file << "</spectrum>" << std::endl;
-
-        String spectrum_common_name = spectrum_name + String("_common.txt");
-        spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
-        spec_xml_file << "</spectrum>" << std::endl;
-
-        String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
-        spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[i], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
-        spec_xml_file << "</spectrum>" << std::endl;
+        if (all_top_csms[i][0].scan_index_light < spectra.size())
+        {
+          spectrum_indices.push_back(all_top_csms[i][0].scan_index_light);
+        }
       }
+    }
+
+    // loop over list of indices and write out spectra
+    for (Size i = 0; i < spectrum_indices.size(); ++i)
+    {
+      String spectrum_light_name = base_name + ".light." + spectrum_indices[i];
+      String spectrum_heavy_name = base_name + ".heavy." + spectrum_indices[i];
+
+      String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
+
+      // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
+      spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << std::endl;
+      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], String(""));
+      spec_xml_file << "</spectrum>" << std::endl;
+
+      spec_xml_file << "<spectrum filename=\"" << spectrum_heavy_name << ".dta" << "\" type=\"heavy\">" << std::endl;
+      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], String(""));
+      spec_xml_file << "</spectrum>" << std::endl;
+
+      String spectrum_common_name = spectrum_name + String("_common.txt");
+      spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << std::endl;
+      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+      spec_xml_file << "</spectrum>" << std::endl;
+
+      String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");
+      spec_xml_file << "<spectrum filename=\"" << spectrum_xlink_name << "\" type=\"xlinker\">" << std::endl;
+      spec_xml_file << getxQuestBase64EncodedSpectrum_(spectra[spectrum_indices[i]], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+      spec_xml_file << "</spectrum>" << std::endl;
     }
 
     spec_xml_file << "</xquest_spectra>" << std::endl;
@@ -366,8 +402,13 @@ namespace OpenMS
     std::vector<String> in_strings;
     StringList sl;
 
-    double precursor_mz = spec.getPrecursors()[0].getMZ();
-    double precursor_z = spec.getPrecursors()[0].getCharge();
+    double precursor_mz = 0;
+    double precursor_z = 0;
+    if (spec.getPrecursors().size() > 0)
+    {
+      precursor_mz = Math::roundDecimal(spec.getPrecursors()[0].getMZ(), -9);
+      precursor_z = spec.getPrecursors()[0].getCharge();
+    }
 
     // header lines
     if (!header.empty()) // common or xlinker spectrum will be reported
@@ -381,20 +422,27 @@ namespace OpenMS
       sl.push_back(String(precursor_mz) + "\t" + String(precursor_z) + "\n");
     }
 
+    PeakSpectrum::IntegerDataArray charges;
+    if (spec.getIntegerDataArrays().size() > 0)
+    {
+      charges = spec.getIntegerDataArrays()[0];
+    }
+
     // write peaks
     for (Size i = 0; i != spec.size(); ++i)
     {
       String s;
-      s += String(spec[i].getMZ()) + "\t";
+      s += String(Math::roundDecimal(spec[i].getMZ(), -9)) + "\t";
       s += String(spec[i].getIntensity()) + "\t";
 
-      // TODO adapt to DataArrays
-      // add fragment charge if meta value exists (must be present for 'common' and 'xlinker'.
-//      if (spec[i].metaValueExists("z"))
-//      {
-//        s += String(spec[i].getMetaValue("z"));
-//      }
-      s += "0";
+      if (charges.size() > 0)
+      {
+        s += String(charges[i]);
+      }
+      else
+      {
+        s += "0";
+      }
 
       s += "\n";
 

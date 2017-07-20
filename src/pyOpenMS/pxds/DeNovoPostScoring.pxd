@@ -3,7 +3,6 @@ from DefaultParamHandler cimport *
 from PeptideIdentification cimport *
 from MSExperiment cimport *
 from MSSpectrum cimport *
-from RichPeak1D cimport *
 from ChromatogramPeak cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/DENOVO/DeNovoPostScoring.h>" namespace "OpenMS":
@@ -13,5 +12,5 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/DeNovoPostScoring.h>" namespace "OpenM
         DeNovoPostScoring() nogil except +
         DeNovoPostScoring(DeNovoPostScoring) nogil except +
         void apply(libcpp_vector[ PeptideIdentification ] &identifications, MSExperiment &exp) nogil except +
-        void apply(PeptideIdentification &identification, MSSpectrum[RichPeak1D] &spec) nogil except +
+        void apply(PeptideIdentification &identification, MSSpectrum[Peak1D] &spec) nogil except +
 

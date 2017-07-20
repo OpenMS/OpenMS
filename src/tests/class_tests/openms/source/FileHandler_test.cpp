@@ -43,7 +43,6 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 START_TEST(FileHandler, "$Id$")
 
@@ -89,6 +88,21 @@ TEST_EQUAL(tmp.getTypeByFileName("test.fasta"), FileTypes::FASTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.EDTA"), FileTypes::EDTA)
 TEST_EQUAL(tmp.getTypeByFileName("test.csv"), FileTypes::CSV)
 TEST_EQUAL(tmp.getTypeByFileName("test.txt"), FileTypes::TXT)
+END_SECTION
+
+START_SECTION((static bool hasValidExtension(const String& filename, const FileTypes::Type type)))
+TEST_EQUAL(FileHandler::hasValidExtension("test.bla", FileTypes::UNKNOWN), true)
+TEST_EQUAL(FileHandler::hasValidExtension("test.idXML", FileTypes::IDXML), true)
+TEST_EQUAL(FileHandler::hasValidExtension("test.consensusXML", FileTypes::CONSENSUSXML), true)
+
+// tmp (UNKNOWN)
+TEST_EQUAL(FileHandler::hasValidExtension("test.tmp", FileTypes::UNKNOWN), true)
+TEST_EQUAL(FileHandler::hasValidExtension("test.tmp", FileTypes::IDXML), true)
+TEST_EQUAL(FileHandler::hasValidExtension("test.tmp", FileTypes::CONSENSUSXML), true)
+
+// known other file type
+TEST_EQUAL(FileHandler::hasValidExtension("test.consensusXML", FileTypes::IDXML), false)
+TEST_EQUAL(FileHandler::hasValidExtension("test.idXML", FileTypes::CONSENSUSXML), false)
 END_SECTION
 
 START_SECTION((static FileTypes::Type getTypeByContent(const String &filename)))

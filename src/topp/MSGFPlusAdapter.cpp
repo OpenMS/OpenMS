@@ -300,7 +300,7 @@ protected:
       MzMLFile f;
       f.getOptions().addMSLevel(2);
       f.load(exp_name, exp);
-      primary_ms_run_path_ = exp.getPrimaryMSRunPath();
+      exp.getPrimaryMSRunPath(primary_ms_run_path_);
 
       if (exp.getSpectra().empty())
       {

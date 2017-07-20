@@ -357,7 +357,7 @@ namespace OpenMS
         if (cv_ref == "UNIMOD")
         {
           set<const ResidueModification*> mods;
-          Int loc = numeric_limits<Size>::max();
+          Int loc = numeric_limits<Int>::max();
           if (optionalAttributeAsInt_(loc, attributes, "location"))
           {
             String uni_mod_id = accession.suffix(':');

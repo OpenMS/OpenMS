@@ -33,7 +33,10 @@
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="628.435"/>
 					<UserParam type="string" name="native_id" value="tr1"/>
-					<UserParam type="float" name="peak_apex_int" value="169.79216003418"/>
+					<UserParam type="float" name="peak_apex_int" value="166.190365195274"/>
+					<UserParam type="float" name="area_background_level" value="50.4251277446747"/>
+					<UserParam type="float" name="noise_background_level" value="3.60179483890533"/>
+					<UserParam type="float" name="logSN" value="4.45869633337531"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_5233264595117471314_17749660155506638460">
@@ -46,7 +49,10 @@
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="654.38"/>
 					<UserParam type="string" name="native_id" value="tr2"/>
-					<UserParam type="float" name="peak_apex_int" value="577.326416015625"/>
+					<UserParam type="float" name="peak_apex_int" value="564.07653427124"/>
+					<UserParam type="float" name="area_background_level" value="185.498344421387"/>
+					<UserParam type="float" name="noise_background_level" value="13.2498817443848"/>
+					<UserParam type="float" name="logSN" value="4.45007591150298"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
@@ -58,7 +64,7 @@
 			<UserParam type="float" name="leftWidth" value="3096.28002929688"/>
 			<UserParam type="float" name="rightWidth" value="3147.67993164062"/>
 			<UserParam type="float" name="total_xic" value="3680.16062933207"/>
-			<UserParam type="float" name="peak_apices_sum" value="747.118576049805"/>
+			<UserParam type="float" name="peak_apices_sum" value="730.266899466515"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.998183460545928"/>
@@ -101,7 +107,10 @@
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="618.31"/>
 					<UserParam type="string" name="native_id" value="tr3"/>
-					<UserParam type="float" name="peak_apex_int" value="35.5928192138672"/>
+					<UserParam type="float" name="peak_apex_int" value="28.2829468250275"/>
+					<UserParam type="float" name="area_background_level" value="43.8592343330383"/>
+					<UserParam type="float" name="noise_background_level" value="7.30987238883972"/>
+					<UserParam type="float" name="logSN" value="1.86739581779823"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15004869347769368353_6408859317243173796">
@@ -115,6 +124,9 @@
 					<UserParam type="float" name="MZ" value="628.435"/>
 					<UserParam type="string" name="native_id" value="tr4"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
+					<UserParam type="float" name="area_background_level" value="0"/>
+					<UserParam type="float" name="noise_background_level" value="0"/>
+					<UserParam type="float" name="logSN" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15004869347769368353_474525871221756682">
@@ -127,7 +139,10 @@
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="651.3"/>
 					<UserParam type="string" name="native_id" value="tr5"/>
-					<UserParam type="float" name="peak_apex_int" value="17.0996685028076"/>
+					<UserParam type="float" name="peak_apex_int" value="11.7028806209564"/>
+					<UserParam type="float" name="area_background_level" value="32.3807272911072"/>
+					<UserParam type="float" name="noise_background_level" value="5.3967878818512"/>
+					<UserParam type="float" name="logSN" value="1.33498168074371"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
@@ -139,7 +154,7 @@
 			<UserParam type="float" name="leftWidth" value="3044.8798828125"/>
 			<UserParam type="float" name="rightWidth" value="3065.43994140625"/>
 			<UserParam type="float" name="total_xic" value="1610.27396595478"/>
-			<UserParam type="float" name="peak_apices_sum" value="52.6924877166748"/>
+			<UserParam type="float" name="peak_apices_sum" value="39.9858274459839"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="1.69946222565531"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.430576988219353"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.801773648038466"/>
@@ -182,7 +197,10 @@
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="618.31"/>
 					<UserParam type="string" name="native_id" value="tr3"/>
-					<UserParam type="float" name="peak_apex_int" value="5.24326848983765"/>
+					<UserParam type="float" name="peak_apex_int" value="0"/>
+					<UserParam type="float" name="area_background_level" value="116.225790977478"/>
+					<UserParam type="float" name="noise_background_level" value="8.301842212677"/>
+					<UserParam type="float" name="logSN" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_7804704400743266335_13440783915218733453">
@@ -195,7 +213,10 @@
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="628.435"/>
 					<UserParam type="string" name="native_id" value="tr4"/>
-					<UserParam type="float" name="peak_apex_int" value="169.79216003418"/>
+					<UserParam type="float" name="peak_apex_int" value="166.190365195274"/>
+					<UserParam type="float" name="area_background_level" value="50.4251277446747"/>
+					<UserParam type="float" name="noise_background_level" value="3.60179483890533"/>
+					<UserParam type="float" name="logSN" value="4.45869633337531"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_7804704400743266335_15916652588957785155">
@@ -208,7 +229,10 @@
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="651.3"/>
 					<UserParam type="string" name="native_id" value="tr5"/>
-					<UserParam type="float" name="peak_apex_int" value="14.4544172286987"/>
+					<UserParam type="float" name="peak_apex_int" value="10.2975915670395"/>
+					<UserParam type="float" name="area_background_level" value="58.1955592632294"/>
+					<UserParam type="float" name="noise_background_level" value="4.15682566165924"/>
+					<UserParam type="float" name="logSN" value="1.16692266163571"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
@@ -220,7 +244,7 @@
 			<UserParam type="float" name="leftWidth" value="3099.69995117188"/>
 			<UserParam type="float" name="rightWidth" value="3147.67993164062"/>
 			<UserParam type="float" name="total_xic" value="1610.27396595478"/>
-			<UserParam type="float" name="peak_apices_sum" value="189.489845752716"/>
+			<UserParam type="float" name="peak_apices_sum" value="176.487956762314"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="2.26491106406735"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0.904813880838571"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.724571355831169"/>

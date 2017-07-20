@@ -42,12 +42,6 @@
 	</instrumentConfigurationList>
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
 				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements"/>
@@ -216,13 +210,13 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tr1">4008</offset>
-		<offset idRef="tr3">6555</offset>
-		<offset idRef="tr2">9102</offset>
-		<offset idRef="tr4">11649</offset>
-		<offset idRef="tr5">14196</offset>
+		<offset idRef="tr1">3674</offset>
+		<offset idRef="tr3">6221</offset>
+		<offset idRef="tr2">8768</offset>
+		<offset idRef="tr4">11315</offset>
+		<offset idRef="tr5">13862</offset>
 	</index>
 </indexList>
-<indexListOffset>16773</indexListOffset>
+<indexListOffset>16442</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
