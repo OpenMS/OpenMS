@@ -267,7 +267,6 @@ set(math_executables_list
   RANSACModelQuadratic_test
   ROCCurve_test
   StatisticFunctions_test
-  #Spline2d_test
 )
 
 set(filtering_executables_list
