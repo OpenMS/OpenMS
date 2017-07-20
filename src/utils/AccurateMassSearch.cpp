@@ -89,7 +89,7 @@ class TOPPAccurateMassSearch :
 {
 public:
     TOPPAccurateMassSearch() :
-        TOPPBase("AccurateMassSearch", "Find potential HMDB ids within the given mass error window.", false)
+        TOPPBase("AccurateMassSearch", "Match MS signals to molecules from a database by mass.", false)
     {
     }
 
@@ -113,10 +113,10 @@ protected:
         setValidFormats_("db:mapping", ListUtils::create<String>("tsv"));
         registerInputFileList_("db:struct", "<file(s)>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, ListUtils::create<String>("skipexists"));
         setValidFormats_("db:struct", ListUtils::create<String>("tsv"));
-        registerInputFile_("positive_adducts_file", "<file>", p.getValue("positive_adducts_file"), p.getDescription("positive_adducts_file"), true, false, ListUtils::create<String>("skipexists"));
-        setValidFormats_("positive_adducts_file", ListUtils::create<String>("tsv"));
-        registerInputFile_("negative_adducts_file", "<file>", p.getValue("negative_adducts_file"), p.getDescription("negative_adducts_file"), true, false, ListUtils::create<String>("skipexists"));
-        setValidFormats_("negative_adducts_file", ListUtils::create<String>("tsv"));
+        registerInputFile_("positive_adducts", "<file>", p.getValue("positive_adducts"), p.getDescription("positive_adducts"), true, false, ListUtils::create<String>("skipexists"));
+        setValidFormats_("positive_adducts", ListUtils::create<String>("tsv"));
+        registerInputFile_("negative_adducts", "<file>", p.getValue("negative_adducts"), p.getDescription("negative_adducts"), true, false, ListUtils::create<String>("skipexists"));
+        setValidFormats_("negative_adducts", ListUtils::create<String>("tsv"));
         // addEmptyLine_();
         // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
         registerSubsection_("algorithm", "Algorithm parameters section");
@@ -128,8 +128,8 @@ protected:
       // remove params which are already registered at top level (see registerOptionsAndFlags_())
       p.remove("db:mapping");
       p.remove("db:struct");
-      p.remove("positive_adducts_file");
-      p.remove("negative_adducts_file");
+      p.remove("positive_adducts");
+      p.remove("negative_adducts");
       return p;
     }
 
@@ -147,8 +147,8 @@ protected:
         // copy top-level params to algorithm
         ams_param.setValue("db:mapping", getStringList_("db:mapping"));
         ams_param.setValue("db:struct", getStringList_("db:struct"));
-        ams_param.setValue("positive_adducts_file", getStringOption_("positive_adducts_file"));
-        ams_param.setValue("negative_adducts_file", getStringOption_("negative_adducts_file"));
+        ams_param.setValue("positive_adducts", getStringOption_("positive_adducts"));
+        ams_param.setValue("negative_adducts", getStringOption_("negative_adducts"));
 
         writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
 
