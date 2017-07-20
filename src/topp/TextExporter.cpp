@@ -570,7 +570,7 @@ protected:
         {
                 const vector<PeptideIdentification>& uapids = feature_map.getUnassignedPeptideIdentifications();
                 pids.insert(pids.end(), uapids.begin(), uapids.end());
-                for (ConsensusMap::const_iterator cmit = feature_map.begin(); cmit != feature_map.end(); ++cmit)
+                for (FeatureMap::const_iterator cmit = feature_map.begin(); cmit != feature_map.end(); ++cmit)
                 {
                         const vector<PeptideIdentification>& cpids = cmit->getPeptideIdentifications();
                         pids.insert(pids.end(), cpids.begin(), cpids.end());
