@@ -162,7 +162,7 @@ protected:
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
-    registerFlag_("fingerid", "If this option is set, SIRIUS will search for a molecular structure using CSI:FingerId after determining the sum formula", false);
+    registerFlag_("fingerid", "If this option is set, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
   }
 
   ExitCodes main_(int, const char **)
@@ -189,6 +189,8 @@ protected:
     QString ppm_max = QString::number(getIntOption_("ppm_max"));
     QString candidates = QString::number(getIntOption_("candidates"));
 
+    QString path_to_executable = File::path(getStringOption_("executable")).toQString();
+
     bool auto_charge = getFlag_("auto_charge");
     bool no_recalibration = getFlag_("no_recalibration");
     bool fingerid = getFlag_("fingerid");
@@ -209,6 +211,17 @@ protected:
     String tmp_ms_file = tmp_dir + "/" + "msfile";
     String out_dir = tmp_dir + "/" + "sirius_out";
     SiriusMSFile::store(spectra, tmp_ms_file);
+
+
+    //Knime hack
+    QProcessEnvironment env;
+    String siriuspath = "SIRIUS_PATH";
+    QString qsiriuspath = env.systemEnvironment().value(siriuspath.toQString());
+
+    if (!qsiriuspath.isEmpty())
+    {
+      executable = qsiriuspath;
+    }
 
     //Start Sirius
     QStringList process_params; // the actual process
@@ -242,12 +255,14 @@ protected:
     process_params << tmp_ms_file.toQString();
 
     QProcess qp;
+    qp.workingDirectory();
+    qp.setWorkingDirectory(path_to_executable); //since library paths are relative to sirius executable path
     qp.start(executable, process_params); // does automatic escaping etc... start
     bool success = qp.waitForFinished(-1); // wait till job is finished
+    qp.close();
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      qp.close();
       writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input" );
     }
 

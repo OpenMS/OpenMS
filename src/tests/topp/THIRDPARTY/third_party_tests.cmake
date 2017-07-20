@@ -62,6 +62,10 @@ OPENMS_FINDBINARY(FIDO_BINARY "Fido" "Fido")
 OPENMS_FINDBINARY(FIDOCHOOSEPARAMS_BINARY "FidoChooseParameters" "FidoChooseParameters")
 
 #------------------------------------------------------------------------------
+# Sirius
+OPENMS_FINDBINARY(SIRIUS_BINARY "sirius" "sirius" "sirius-console-64.exe")
+
+#------------------------------------------------------------------------------
 ## optional tests
 if (NOT (${OMSSA_BINARY} STREQUAL "OMSSA_BINARY-NOTFOUND"))
   add_test("TOPP_OMSSAAdapter_1" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}")
@@ -152,3 +156,12 @@ endif()
 #add_test("TOPP_PepNovoAdapter_2_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/PepNovo_PTMs_.txt -in2 ${DATA_DIR_TOPP}/PepNovo_PTMs.txt)
 #add_test("TOPP_PepNovoAdapter_3" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_5_parameters.ini -in ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp -pepnovo_out -dta_list ${DATA_DIR_TOPP}/tmp/dta_list.txt -model_directory ${DATA_DIR_TOPP}/tmp/ -temp_data_directory ${DATA_DIR_TOPP}/tmp/ -modifications_xml_file ${DATA_DIR_TOPP}/PepNovo_PTMs.xml -mz_files ${DATA_DIR_TOPP}/PepNovo.mzXML)
 #add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "date_group_1" -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
+
+#------------------------------------------------------------------------------
+if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
+  add_test("TOPP_SiriusAdapter_1" ${TOPP_BIN_PATH}/SiriusAdaper -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -out_sirius SiriusAdapter_1_output.tmp -auto_charge -profile qtof -database all)
+  add_test("TOPP_SiriusAdapter_1_out" ${DIFF} -in1 SiriusAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_output.mzTab -whitelist "MTD")
+  set_tests_properties("TOPP_SiriusAdapter_1_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_1")
+endif()
+
+
