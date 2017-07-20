@@ -136,7 +136,14 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("executable", "<file>", "", "sirius file e.g. /bin/sirius", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<executable>",
+    #if  defined(__APPLE__)
+      "sirius",
+    #else
+      "sirius-console-64.exe",
+    #endif
+      "sirius executable e.g. sirius", true, false, ListUtils::create<String>("skipexists"));
+
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
@@ -211,7 +218,6 @@ protected:
     String tmp_ms_file = tmp_dir + "/" + "msfile";
     String out_dir = tmp_dir + "/" + "sirius_out";
     SiriusMSFile::store(spectra, tmp_ms_file);
-
 
     //Knime hack
     QProcessEnvironment env;
