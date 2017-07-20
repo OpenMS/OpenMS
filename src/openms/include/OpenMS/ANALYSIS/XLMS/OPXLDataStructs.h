@@ -127,6 +127,7 @@ namespace OpenMS
         double pre_score;
         double percTIC;
         double wTIC;
+        double wTICold;
         double int_sum;
         double match_odds;
         std::vector< double > xcorrx;

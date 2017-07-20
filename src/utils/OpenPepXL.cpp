@@ -923,6 +923,7 @@ protected:
 
           // compute wTIC
           double wTIC = XQuestScores::weightedTICScore(cross_link_candidate.alpha.size(), cross_link_candidate.beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
+          double wTICold = XQuestScores::weightedTICScoreXQuest(cross_link_candidate.alpha.size(), cross_link_candidate.beta.size(), intsum_alpha, intsum_beta, total_current, type_is_cross_link);
 
           // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
           Size n_xlink_charges = (precursor_charge - 1) - 2;
@@ -1036,12 +1037,13 @@ protected:
           double wTIC_weight = 12.829;
           double intsum_weight = 1.8;
 
-          double score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTIC + intsum_weight * intsum;
+          double score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
 
           csm.score = score;
           csm.pre_score = pre_score;
           csm.percTIC = TIC;
           csm.wTIC = wTIC;
+          csm.wTICold = wTICold;
           csm.int_sum = intsum;
           csm.match_odds = match_odds;
           csm.xcorrx_max = xcorrx_max;
