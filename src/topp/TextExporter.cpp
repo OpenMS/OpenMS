@@ -749,7 +749,7 @@ protected:
             // siehe oben / analog machen
               peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
           }
-  }
+        }
 
         if (sorting_method == "none")
         {
