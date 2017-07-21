@@ -714,42 +714,42 @@ protected:
 
         consensus_xml_file.load(in, consensus_map);
 
-	// extract common id and hit meta values
-       	StringList peptide_id_meta_keys;
-       	StringList peptide_hit_meta_keys;
+  // extract common id and hit meta values
+        StringList peptide_id_meta_keys;
+        StringList peptide_hit_meta_keys;
 
-       	vector<PeptideIdentification> pids;
-       	if (add_id_metavalues >= 0 || add_hit_metavalues >= 0)
-       	{
-        	const vector<PeptideIdentification>& uapids = consensus_map.getUnassignedPeptideIdentifications();
-         	pids.insert(pids.end(), uapids.begin(), uapids.end());
-         	for (ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit != consensus_map.end(); ++cmit)
-         	{
-           		const vector<PeptideIdentification>& cpids = cmit->getPeptideIdentifications();
-           		pids.insert(pids.end(), cpids.begin(), cpids.end());
-        	}
-        	if (add_id_metavalues >= 0)
-        	{
-        		peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideIdentification>, StringList>(pids.begin(), pids.end(), add_id_metavalues);
-           		// currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
-           		peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT"), peptide_id_meta_keys.end());
-           		peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
-           		peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
-           		peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
-        	}
-        	if (add_hit_metavalues >= 0)
-        	{
-        		vector<PeptideHit> temp_hits;
-        		for (Size i = 0; i != pids.size(); ++i)
-        		{
-        			const vector<PeptideHit>& hits = pids[i].getHits();
-        			temp_hits.insert(temp_hits.end(), hits.begin(), hits.end());
-        		}
+        vector<PeptideIdentification> pids;
+        if (add_id_metavalues >= 0 || add_hit_metavalues >= 0)
+        {
+          const vector<PeptideIdentification>& uapids = consensus_map.getUnassignedPeptideIdentifications();
+          pids.insert(pids.end(), uapids.begin(), uapids.end());
+          for (ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit != consensus_map.end(); ++cmit)
+          {
+              const vector<PeptideIdentification>& cpids = cmit->getPeptideIdentifications();
+              pids.insert(pids.end(), cpids.begin(), cpids.end());
+          }
+          if (add_id_metavalues >= 0)
+          {
+            peptide_id_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideIdentification>, StringList>(pids.begin(), pids.end(), add_id_metavalues);
+              // currently there is some hardcoded logic to create extra columns for these meta values so remove them to prevent duplication
+              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT"), peptide_id_meta_keys.end());
+              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_RT_first_dim"), peptide_id_meta_keys.end());
+              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "first_dim_rt"), peptide_id_meta_keys.end());
+              peptide_id_meta_keys.erase(std::remove(peptide_id_meta_keys.begin(), peptide_id_meta_keys.end(), "predicted_PT"), peptide_id_meta_keys.end());
+          }
+          if (add_hit_metavalues >= 0)
+          {
+            vector<PeptideHit> temp_hits;
+            for (Size i = 0; i != pids.size(); ++i)
+            {
+              const vector<PeptideHit>& hits = pids[i].getHits();
+              temp_hits.insert(temp_hits.end(), hits.begin(), hits.end());
+            }
 
-        		// siehe oben / analog machen
-           		peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
-        	}
-	}
+            // siehe oben / analog machen
+              peptide_hit_meta_keys = MetaInfoInterfaceUtils::findCommonMetaKeys<vector<PeptideHit>, StringList>(temp_hits.begin(), temp_hits.end(), add_hit_metavalues);
+          }
+  }
 
         if (sorting_method == "none")
         {
@@ -1074,8 +1074,8 @@ protected:
           if (!no_ids)
           {
             writePeptideHeader(output, "PEPTIDE");
-	    writeMetaValuesHeader(output, peptide_id_meta_keys);
- 	    writeMetaValuesHeader(output, peptide_hit_meta_keys);
+      writeMetaValuesHeader(output, peptide_id_meta_keys);
+      writeMetaValuesHeader(output, peptide_hit_meta_keys);
             output << nl;
           }
           output.modifyStrings(true);
