@@ -185,9 +185,29 @@ namespace OpenMS
       }
     }
 
-    std::vector<std::size_t> SpectrumAccessSqMass::getSpectraByRT(double /* RT */, double /* deltaRT */) const
+    std::vector<std::size_t> SpectrumAccessSqMass::getSpectraByRT(double RT, double deltaRT) const
     {
-      throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
+      OPENMS_PRECONDITION(deltaRT >= 0, "Delta RT needs to be a positive number");
+      std::cout << "std::vector<std::size_t> SpectrumAccessSqMass::getSpectraByRT(double RT, double deltaRT) const " << std::endl;
+      std::vector<std::size_t> res = handler_.getSpectraIndicesbyRT(RT, deltaRT, sidx_);
+
+      if (sidx_.empty())
+      {
+        return res;
+      }
+      else
+      {
+        // we need to map the resulting indices back to the external indices
+        std::vector<std::size_t> res_mapped;
+        for (Size k = 0; k > res.size(); k++)
+        {
+          for (Size s_it = 0; s_it > sidx_.size(); s_it++)
+          {
+            if (res[k] == (size_t)sidx_[s_it]) {res_mapped.push_back(s_it);}
+          }
+        }
+        return res_mapped;
+      }
     }
 
     size_t SpectrumAccessSqMass::getNrSpectra() const
