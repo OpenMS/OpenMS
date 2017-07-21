@@ -498,8 +498,10 @@ namespace OpenMS
       LOG_DEBUG << "Merging primaryMSRunPaths." << endl;
       try
       {
-        StringList all_primary_ms_run_path = all_protein_ids.front().getPrimaryMSRunPath();
-        StringList new_primary_ms_run_path = new_protein_ids.front().getPrimaryMSRunPath();
+        StringList all_primary_ms_run_path;
+        all_protein_ids.front().getPrimaryMSRunPath(all_primary_ms_run_path);
+        StringList new_primary_ms_run_path;
+        new_protein_ids.front().getPrimaryMSRunPath(new_primary_ms_run_path);
 
         all_primary_ms_run_path.insert(all_primary_ms_run_path.end(), new_primary_ms_run_path.begin(), new_primary_ms_run_path.end());
         all_protein_ids.front().setPrimaryMSRunPath(all_primary_ms_run_path);

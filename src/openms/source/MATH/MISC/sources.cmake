@@ -14,7 +14,6 @@ RANSAC.cpp
 RANSACModel.cpp
 RANSACModelLinear.cpp
 RANSACModelQuadratic.cpp
-Spline2d.cpp
 )
 
 ### add path to the filenames

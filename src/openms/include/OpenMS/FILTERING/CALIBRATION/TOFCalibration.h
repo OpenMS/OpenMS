@@ -42,7 +42,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
 #include <map>
@@ -166,7 +166,11 @@ private:
     void applyTOFConversion_(PeakMap & calib_spectra);
 
     /// determine the monoisotopic masses that have matching expected masses
-    void matchMasses_(PeakMap & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks, std::vector<unsigned int> & obs_masses, std::vector<double> & exp_masses, unsigned int idx);
+    void matchMasses_(PeakMap & calib_peaks, 
+                      std::vector<std::vector<unsigned int> > & monoiso_peaks, 
+                      std::vector<unsigned int> & obs_masses, 
+                      std::vector<double> & exp_masses, 
+                      unsigned int idx);
 
     /// Calculate the mass value for a given flight time using the coefficients of the quadratic fit in a specific spectrum.
     inline double mQ_(double ft, unsigned int spec)
