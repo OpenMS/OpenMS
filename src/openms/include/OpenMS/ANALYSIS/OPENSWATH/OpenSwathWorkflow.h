@@ -122,18 +122,17 @@ namespace OpenMS
      * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      *
     */
-       TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions, 
-       std::vector< OpenSwath::SwathMap > & swath_maps,
-       double min_rsq,
-       double min_coverage, 
-       const Param & feature_finder_param,
-       const ChromExtractParams & cp_irt,
-       const Param & irt_detection_param, 
-       const String & mz_correction_function,
-       Size debug_level, 
-       bool sonar = false);
-    /*
-       */
+    TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions, 
+      std::vector< OpenSwath::SwathMap > & swath_maps,
+      double min_rsq,
+      double min_coverage, 
+      const Param & feature_finder_param,
+      const ChromExtractParams & cp_irt,
+      const Param & irt_detection_param, 
+      const String & mz_correction_function,
+      Size debug_level, 
+      bool sonar = false,
+      bool load_into_memory = false);
 
   private:
 
@@ -152,22 +151,22 @@ namespace OpenMS
      * @note: This function is based on the algorithm inside the OpenSwathRTNormalizer tool
      *
     */
-     TransformationDescription RTNormalization(const TargetedExperiment& transition_exp_,
-     const std::vector< OpenMS::MSChromatogram<> >& chromatograms,
-     double min_rsq,
-     double min_coverage,
-     const Param& default_ffparam,
-     const Param& irt_detection_param,
-     std::vector< OpenSwath::SwathMap > & swath_maps,
-     const String & mz_correction_function, 
-     double mz_extraction_window, 
-     bool ppm);
+    TransformationDescription RTNormalization(const TargetedExperiment& transition_exp_,
+      const std::vector< OpenMS::MSChromatogram<> >& chromatograms,
+      double min_rsq,
+      double min_coverage,
+      const Param& default_ffparam,
+      const Param& irt_detection_param,
+      std::vector< OpenSwath::SwathMap > & swath_maps,
+      const String & mz_correction_function, 
+      double mz_extraction_window, 
+      bool ppm);
 
     /// Simple method to extract chromatograms (for the RT-normalization peptides)
     void simpleExtractChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
                                     const OpenMS::TargetedExperiment & irt_transitions,
                                     std::vector< OpenMS::MSChromatogram<> > & chromatograms,
-                                    const ChromExtractParams & cp, bool sonar);
+                                    const ChromExtractParams & cp, bool sonar, bool load_into_memory);
 
     static void addChromatograms(MSChromatogram<>& base_chrom, const MSChromatogram<>& newchrom);
   };
