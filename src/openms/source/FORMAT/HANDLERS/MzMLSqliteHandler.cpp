@@ -46,6 +46,10 @@
 // #include <type_traits> // for template arg detection
 #include <boost/type_traits.hpp>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS
 {
   namespace Internal
@@ -1129,8 +1133,81 @@ namespace OpenMS
       npconfig_int.setCompression("slof");
 
       String prepare_statement = "INSERT INTO DATA (CHROMATOGRAM_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
-      std::vector<String> data;
       int sql_it = 1;
+
+      // Perform encoding in parallel
+      std::vector<String> encoded_strings_rt(chroms.size());
+      std::vector<String> encoded_strings_int(chroms.size());
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+      for (Size k = 0; k < chroms.size(); k++)
+      {
+        const MSChromatogram<>& chrom = chroms[k];
+        // encode retention time data (zlib or np-linear + zlib)
+        {
+          std::vector<double> data_to_encode;
+          data_to_encode.resize(chrom.size());
+          for (Size p = 0; p < chrom.size(); ++p)
+          {
+            data_to_encode[p] = chrom[p].getRT();
+          }
+
+          String uncompressed_str;
+          String encoded_string;
+          if (use_lossy_compression_)
+          {
+            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
+            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
+#ifdef _OPENMP
+#pragma omp critical (sqlitehandler_encoded_str)
+#endif
+            encoded_strings_rt[k] = encoded_string;
+          }
+          else
+          {
+            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
+#ifdef _OPENMP
+#pragma omp critical (sqlitehandler_encoded_str)
+#endif
+            encoded_strings_rt[k] = encoded_string;
+          }
+        }
+
+        // encode intensity data (zlib or np-slof + zlib)
+        {
+          std::vector<double> data_to_encode;
+          data_to_encode.resize(chrom.size());
+          for (Size p = 0; p < chrom.size(); ++p)
+          {
+            data_to_encode[p] = chrom[p].getIntensity();
+          }
+
+          String uncompressed_str;
+          String encoded_string;
+          if (use_lossy_compression_)
+          {
+            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
+            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
+#ifdef _OPENMP
+#pragma omp critical (sqlitehandler_encoded_str)
+#endif
+            encoded_strings_int[k] = encoded_string;
+          }
+          else
+          {
+            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
+#ifdef _OPENMP
+#pragma omp critical (sqlitehandler_encoded_str)
+#endif
+            encoded_strings_int[k] = encoded_string;
+          }
+        }
+      }
+
+      std::vector<String> data;
       for (Size k = 0; k < chroms.size(); k++)
       {
         const MSChromatogram<>& chrom = chroms[k];
@@ -1174,54 +1251,26 @@ namespace OpenMS
 
         // encode retention time data (zlib or np-linear + zlib)
         {
-          std::vector<double> data_to_encode;
-          data_to_encode.resize(chrom.size());
-          for (Size p = 0; p < chrom.size(); ++p)
-          {
-            data_to_encode[p] = chrom[p].getRT();
-          }
-
-          String uncompressed_str;
-          String encoded_string;
+          data.push_back(encoded_strings_rt[k]);
           if (use_lossy_compression_)
           {
-            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
-            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-            data.push_back(encoded_string);
             prepare_statement += String("(") + chrom_id_ + ", 2, 5, ?" + sql_it++ + " ),";
           }
           else
           {
-            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
-            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
-            data.push_back(encoded_string);
             prepare_statement += String("(") + chrom_id_ + ", 2, 1, ?" + sql_it++ + " ),";
           }
         }
 
         // encode intensity data (zlib or np-slof + zlib)
         {
-          std::vector<double> data_to_encode;
-          data_to_encode.resize(chrom.size());
-          for (Size p = 0; p < chrom.size(); ++p)
-          {
-            data_to_encode[p] = chrom[p].getIntensity();
-          }
-
-          String uncompressed_str;
-          String encoded_string;
+          data.push_back(encoded_strings_int[k]);
           if (use_lossy_compression_)
           {
-            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
-            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-            data.push_back( encoded_string );
             prepare_statement += String("(") + chrom_id_ + ", 1, 6, ?" + sql_it++ + " ),";
           }
           else
           {
-            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
-            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
-            data.push_back(encoded_string);
             prepare_statement += String("(") + chrom_id_ + ", 1, 1, ?" + sql_it++ + " ),";
           }
         }
