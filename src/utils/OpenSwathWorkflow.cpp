@@ -614,7 +614,7 @@ protected:
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
     std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
     const Param& feature_finder_param, const ChromExtractParams& cp_irt,
-    const Param& irt_detection_param, const String & mz_correction_function, Size debug_level, bool sonar)
+    const Param& irt_detection_param, const String & mz_correction_function, Size debug_level, bool sonar, bool load_into_memory)
   {
     TransformationDescription trafo_rtnorm;
     if (!trafo_in.empty())
@@ -639,7 +639,7 @@ protected:
       OpenSwathRetentionTimeNormalization wf;
       wf.setLogType(log_type_);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar);
+          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar, load_into_memory);
     }
     return trafo_rtnorm;
   }
@@ -893,10 +893,11 @@ protected:
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
+    // bool is_sqmass_input  = (in_file_type == FileTypes::SQMASS || file_list[0].suffix(6).toLower() == "sqmass");
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in,
         irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
         cp_irt, irt_detection_param, mz_correction_function, debug_level,
-        sonar);
+        sonar, load_into_memory);
 
     ///////////////////////////////////
     // Set up chromatogram output
