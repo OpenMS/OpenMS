@@ -97,6 +97,16 @@ public:
         linear_abs_mass_acc_ = linear_abs_mass_acc; 
       }
 
+      /**
+          @brief Get spectral indices around a specific retention time
+
+          @param RT The retention time
+          @param deltaRT Tolerance window around RT (if zero, the first spectrum *after* RT is returned)
+          @param indices Spectra to consider (if empty, all spectra are considered)
+          @return The indices of the spectra within RT +/- deltaRT
+      */
+      std::vector<size_t> getSpectraIndicesbyRT(double RT, double deltaRT, const std::vector<int> & indices) const;
+
 protected:
 
       void populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms) const;

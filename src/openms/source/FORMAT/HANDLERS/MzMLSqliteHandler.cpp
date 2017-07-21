@@ -371,6 +371,59 @@ namespace OpenMS
       return ret;
     }
 
+    std::vector<size_t> MzMLSqliteHandler::getSpectraIndicesbyRT(double RT, double deltaRT, const std::vector<int> & indices) const
+    {
+      // this is necessary for some applications such as the m/z correction
+      sqlite3 *db = openDB();
+
+      std::vector<size_t> result;
+      sqlite3_stmt * stmt;
+      std::string select_sql;
+
+      select_sql = "SELECT " \
+                   "SPECTRUM.ID as spec_id " \
+                   "FROM SPECTRUM ";
+
+			if (deltaRT > 0.0)
+			{
+				select_sql += "WHERE RETENTION_TIME BETWEEN ";
+				select_sql += String(RT - deltaRT) + " AND " + String(RT + deltaRT) + " ";
+			}
+      else
+			{
+				select_sql += "WHERE RETENTION_TIME >= ";
+				select_sql += String(RT) + " ";
+			}
+
+      if (!indices.empty())
+      {
+        select_sql += String(" AND SPECTRUM.ID IN (");
+        for (Size k = 0; k < indices.size()-1; k++)
+        {
+          select_sql += String(indices[k]) + ",";
+        }
+        select_sql += String(indices[indices.size()-1]) + ") ";
+      }
+
+			if (deltaRT <= 0.0) {select_sql += " LIMIT 1";} // only take the first spectrum larger than RT
+      select_sql += ";";
+
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_step(stmt);
+
+      while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
+      {
+        MSSpectrum<> spec;
+        result.push_back( sqlite3_column_int(stmt, 0) );
+        sqlite3_step( stmt );
+      }
+
+      // free memory and free up connection
+      sqlite3_finalize(stmt);
+      sqlite3_close(db);
+      return result;
+    }
+
     Size MzMLSqliteHandler::getNrChromatograms() const
     {
       sqlite3 *db = openDB();
