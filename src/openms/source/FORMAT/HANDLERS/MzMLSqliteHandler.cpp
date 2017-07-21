@@ -53,7 +53,9 @@ namespace OpenMS
 
     /*
      *
-     * This function parses all rows produced by an sql statement with the following columns:
+     * This function populates an empty data container (MSSpectrum or
+     * MSChromatogram with data). It is used when reading sqMass files.  It
+     * parses all rows produced by an sql statement with the following columns:
      *
      * id (integer)
      * native_id (string)
@@ -258,7 +260,7 @@ namespace OpenMS
         sqlite3_stmt * stmt;
         std::string select_sql;
         select_sql = "SELECT " \
-                      "RUN.ID as chrom_id," \
+                      "RUN.ID as run_id," \
                       "RUN.NATIVE_ID as native_id," \
                       "RUN.FILENAME as filename," \
                       "RUN_EXTRA.DATA as data " \
