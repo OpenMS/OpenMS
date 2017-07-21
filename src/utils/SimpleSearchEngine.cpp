@@ -628,8 +628,9 @@ class SimpleSearchEngine :
       progresslogger.startProgress(0, 1, "Post-processing PSMs...");
       postProcessHits_(spectra, peptide_hits, protein_ids, peptide_ids, report_top_hits);
       progresslogger.endProgress();
-
-      protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
+      StringList ms_runs;
+      spectra.getPrimaryMSRunPath(ms_runs);
+      protein_ids[0].setPrimaryMSRunPath(ms_runs);
 
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);

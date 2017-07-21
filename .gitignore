@@ -18,3 +18,6 @@ OpenMS.config
 OpenMS.creator
 OpenMS.files
 OpenMS.includes
+.DS_Store
+src/.DS_Store
+src/openms/.DS_Store
