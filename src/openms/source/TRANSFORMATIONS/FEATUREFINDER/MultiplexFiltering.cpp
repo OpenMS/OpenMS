@@ -582,24 +582,32 @@ namespace OpenMS
         {
           size_t idx_1 = peptide_1 * isotopes_per_peptide_max_ + isotope;
           size_t idx_2 = peptide_2 * isotopes_per_peptide_max_ + isotope;
-          
+                    
           std::pair<std::multimap<size_t, MultiplexSatellite >::const_iterator, std::multimap<size_t, MultiplexSatellite >::const_iterator> satellites_1;
           std::pair<std::multimap<size_t, MultiplexSatellite >::const_iterator, std::multimap<size_t, MultiplexSatellite >::const_iterator> satellites_2;
           satellites_1 = peak.getSatellites().equal_range(idx_1);
           satellites_2 = peak.getSatellites().equal_range(idx_2);
+          
+          //std::cout << "isotope = " << isotope << "    idx_1 = " << idx_1 << "    idx_2 = " << idx_2 << "\n";
           
           // loop over satellites in mass trace 1
           for (std::multimap<size_t, MultiplexSatellite >::const_iterator satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
           {
             size_t rt_idx_1 = (satellite_it_1->second).getRTidx();
   
+            //std::cout << "    Inside Loop.    rt_idx_1 = " << rt_idx_1 << "\n";
+            
             // loop over satellites in mass trace 2
             for (std::multimap<size_t, MultiplexSatellite >::const_iterator satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
             {
               size_t rt_idx_2 = (satellite_it_2->second).getRTidx();
   
+              //std::cout << "        Inside Second Loop.    rt_idx_2 = " << rt_idx_2 << "\n";
+
               if (rt_idx_1 == rt_idx_2)
               {
+                std::cout << "        Both rt_idx equal.\n";
+                
                 size_t mz_idx_1 = (satellite_it_1->second).getMZidx();
                 size_t mz_idx_2 = (satellite_it_2->second).getMZidx();
                 
