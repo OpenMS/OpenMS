@@ -144,6 +144,7 @@ public:
                 data to disk, otherwise the tables will not be set up!
       */
       void createTables();
+      void createIndices();
 
       /**
           @brief Writes a set of spectra to disk

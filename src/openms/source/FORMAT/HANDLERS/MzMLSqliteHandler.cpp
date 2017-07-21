@@ -878,6 +878,44 @@ namespace OpenMS
       sqlite3_close(db);
     }
 
+    void MzMLSqliteHandler::createIndices()
+    {
+      sqlite3 *db = openDB();
+
+      // Create SQL structure
+      char const *create_sql =
+
+        // data table
+        "CREATE INDEX data_chr_idx ON DATA(CHROMATOGRAM_ID);" \
+        "CREATE INDEX data_sp_idx ON DATA(SPECTRUM_ID);" \
+
+        "CREATE INDEX spec_rt_idx ON SPECTRUM(RETENTION_TIME);" \
+        "CREATE INDEX spec_mslevel ON SPECTRUM(MSLEVEL);" \
+        "CREATE INDEX spec_run ON SPECTRUM(RUN_ID);" \
+
+        "CREATE INDEX run_extra ON RUN_EXTRA(RUN_ID);" \
+
+        "CREATE INDEX chrom_run ON CHROMATOGRAM(RUN_ID);" \
+
+        "CREATE INDEX product_chr_idx ON DATA(CHROMATOGRAM_ID);" \
+        "CREATE INDEX product_sp_idx ON DATA(SPECTRUM_ID);" \
+
+        "CREATE INDEX precursor_chr_idx ON DATA(CHROMATOGRAM_ID);" \
+        "CREATE INDEX precursor_sp_idx ON DATA(SPECTRUM_ID);";
+
+      // Execute SQL statement
+      char *zErrMsg = 0;
+      int rc;
+      rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
+      if (rc != SQLITE_OK)
+      {
+        sqlite3_free(zErrMsg);
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+            zErrMsg);
+      }
+      sqlite3_close(db);
+    }
+
     void MzMLSqliteHandler::writeSpectra(const std::vector<MSSpectrum<> >& spectra)
     {
       // prevent writing of empty data which would throw an SQL exception
