@@ -1255,18 +1255,12 @@ namespace OpenMS
           {
             MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
             OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-#ifdef _OPENMP
-#pragma omp critical (sqlitehandler_encoded_str)
-#endif
             encoded_strings_rt[k] = encoded_string;
           }
           else
           {
             std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
             OpenMS::ZlibCompression::compressString(str_data, encoded_string);
-#ifdef _OPENMP
-#pragma omp critical (sqlitehandler_encoded_str)
-#endif
             encoded_strings_rt[k] = encoded_string;
           }
         }
@@ -1286,18 +1280,12 @@ namespace OpenMS
           {
             MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
             OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-#ifdef _OPENMP
-#pragma omp critical (sqlitehandler_encoded_str)
-#endif
             encoded_strings_int[k] = encoded_string;
           }
           else
           {
             std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
             OpenMS::ZlibCompression::compressString(str_data, encoded_string);
-#ifdef _OPENMP
-#pragma omp critical (sqlitehandler_encoded_str)
-#endif
             encoded_strings_int[k] = encoded_string;
           }
         }
