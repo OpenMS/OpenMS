@@ -43,6 +43,9 @@
 
 #include <fstream>
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -76,8 +79,6 @@ using namespace std;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-
-#include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
 class TOPPOpenSwathMzMLFileCacher
   : public TOPPBase,
@@ -115,7 +116,7 @@ class TOPPOpenSwathMzMLFileCacher
 
     registerStringOption_("lossy_compression", "<type>", "true", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data).", false);
     setValidStrings_("lossy_compression", ListUtils::create<String>("true,false"));
-    registerStringOption_("full_meta", "<type>", "true", "Write full meta information into sqMass file", false);
+    registerStringOption_("full_meta", "<type>", "true", "Write full meta information into sqMass file (may require large amounts of memory)", false);
     setValidStrings_("full_meta", ListUtils::create<String>("true,false"));
 
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
@@ -182,8 +183,20 @@ class TOPPOpenSwathMzMLFileCacher
     }
     else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS && process_lowmemory)
     {
-      MSDataSqlConsumer consumer(out, batchSize, lossy_compression, mass_acc);
-      MzMLFile().transform(in, &consumer, true, true);
+      MSDataSqlConsumer consumer(out, batchSize, full_meta, lossy_compression, mass_acc);
+      MzMLFile f;
+      PeakFileOptions opt = f.getOptions();
+      opt.setMaxDataPoolSize(batchSize); 
+      f.setOptions(opt);
+      f.transform(in, &consumer, true, true);
+      return EXECUTION_OK;
+    }
+    else if (in_type == FileTypes::SQMASS && in_type == FileTypes::SQMASS && process_lowmemory)
+    {
+      PlainMSDataWritingConsumer consumer(out);
+      consumer.getOptions().setWriteIndex(true);
+      SqMassFile f;
+      f.transform(in, &consumer, true, true);
       return EXECUTION_OK;
     }
     else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS)
