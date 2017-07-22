@@ -102,6 +102,11 @@ elseif (MSVC)
 	## use multiple CPU cores (if available)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 
+  option(DISABLE_INCREMENTAL_LINKING "Disable incremental linking on Windows (/INCREMENTAL:NO) " OFF)
+  if (DISABLE_INCREMENTAL_LINKING)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /INCREMENTAL:NO")
+  endif()
+
   if (NOT OPENMS_64BIT_ARCHITECTURE)
     ## enable SSE1 on 32bit, on 64bit the compiler flag does not exist
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
