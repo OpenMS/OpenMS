@@ -86,6 +86,8 @@ public:
 
       void readSpectra(std::vector<MSSpectrum<> > & exp, const std::vector<int> & indices, bool meta_only = false) const;
 
+      void readChromatograms(std::vector<MSChromatogram<> > & exp, const std::vector<int> & indices, bool meta_only = false) const;
+
       Size getNrSpectra() const;
 
       Size getNrChromatograms() const;
@@ -110,6 +112,8 @@ public:
 protected:
 
       void populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms) const;
+
+      void populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms, const std::vector<int> & indices) const;
 
       void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum<> >& spectra) const;
 

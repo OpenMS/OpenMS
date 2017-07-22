@@ -358,6 +358,27 @@ namespace OpenMS
       sqlite3_close(db);
     }
 
+    void MzMLSqliteHandler::readChromatograms(std::vector<MSChromatogram<> > & exp, const std::vector<int> & indices, bool meta_only) const
+    {
+      OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index")
+      sqlite3 *db = openDB();
+
+      // creates the spectra but does not fill them with data (provides option to return meta-data only)
+      std::vector<MSChromatogram<> > chroms;
+      prepareChroms_(db, chroms);
+
+      for (Size k = 0; k < indices.size(); k++)
+      {
+        exp.push_back(chroms[indices[k]]); // TODO make more efficient
+      }
+      if (meta_only) {return;}
+
+      populateChromatogramsWithData_(db, exp, indices);
+
+      // free up connection
+      sqlite3_close(db);
+    }
+
     Size MzMLSqliteHandler::getNrSpectra() const
     {
       sqlite3 *db = openDB();
@@ -465,6 +486,46 @@ namespace OpenMS
                     "INNER JOIN DATA ON CHROMATOGRAM.ID = DATA.CHROMATOGRAM_ID " \
                     ";";
 
+
+      // Execute SQL statement
+      rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      if (rc != SQLITE_OK)
+      {
+        std::cerr << "SQL error after sqlite3_prepare" << std::endl;
+        std::cerr << "Prepared statement " << select_sql << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+      }
+
+      populateContainer_sub_< MSChromatogram<> > (stmt, chromatograms);
+
+      sqlite3_finalize(stmt);
+    }
+
+    void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms, const std::vector<int> & indices) const
+    {
+      OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
+      OPENMS_PRECONDITION(indices.size() == spectra.size(), "Spectra and indices need to have the same length.")
+
+      int rc;
+      sqlite3_stmt * stmt;
+      std::string select_sql;
+
+      select_sql = "SELECT " \
+                    "CHROMATOGRAM.ID as chrom_id," \
+                    "CHROMATOGRAM.NATIVE_ID as chrom_native_id," \
+                    "DATA.COMPRESSION as data_compression," \
+                    "DATA.DATA_TYPE as data_type," \
+                    "DATA.DATA as binary_data " \
+                    "FROM CHROMATOGRAM " \
+                    "INNER JOIN DATA ON CHROMATOGRAM.ID = DATA.CHROMATOGRAM_ID " \
+                    "WHERE CHROMATOGRAM.ID IN (";
+
+      for (Size k = 0; k < indices.size()-1; k++)
+      {
+        select_sql += String(indices[k]) + ",";
+      }
+
+      select_sql += String(indices[indices.size()-1]) + ");";
 
       // Execute SQL statement
       rc = sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
