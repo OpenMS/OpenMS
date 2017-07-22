@@ -941,6 +941,8 @@ namespace OpenMS
             zErrMsg);
       }
       sqlite3_close(db);
+
+      createIndices();
     }
 
     void MzMLSqliteHandler::createIndices()
@@ -955,12 +957,12 @@ namespace OpenMS
         "CREATE INDEX data_sp_idx ON DATA(SPECTRUM_ID);" \
 
         "CREATE INDEX spec_rt_idx ON SPECTRUM(RETENTION_TIME);" \
-        "CREATE INDEX spec_mslevel ON SPECTRUM(MSLEVEL);" \
-        "CREATE INDEX spec_run ON SPECTRUM(RUN_ID);" \
+        "CREATE INDEX spec_mslevel_idx ON SPECTRUM(MSLEVEL);" \
+        "CREATE INDEX spec_run_idx ON SPECTRUM(RUN_ID);" \
 
-        "CREATE INDEX run_extra ON RUN_EXTRA(RUN_ID);" \
+        "CREATE INDEX run_extra_idx ON RUN_EXTRA(RUN_ID);" \
 
-        "CREATE INDEX chrom_run ON CHROMATOGRAM(RUN_ID);" \
+        "CREATE INDEX chrom_run_idx ON CHROMATOGRAM(RUN_ID);" \
 
         "CREATE INDEX product_chr_idx ON DATA(CHROMATOGRAM_ID);" \
         "CREATE INDEX product_sp_idx ON DATA(SPECTRUM_ID);" \
