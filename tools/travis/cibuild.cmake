@@ -45,7 +45,7 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
     )
 
 # try to speed up the builds so we don't get killed
-set(CTEST_BUILD_FLAGS -j5)
+set(CTEST_BUILD_FLAGS -j2)
 
 ## speed up compile time on GCC
 if (CMAKE_COMPILER_IS_GNUCXX)
@@ -61,13 +61,13 @@ ctest_start     (Continuous)
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE _configure_ret)
 # we only build when we do non-style testing
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
-	ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors PARALLEL_LEVEL 2)
 else()
 	set(_build_errors 0)
 endif()
 
-## build lib&executables, run tests
-ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3)
+## build lib&executables, run tests in parallel
+ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 2)
 ## send to CDash
 ctest_submit()
 
