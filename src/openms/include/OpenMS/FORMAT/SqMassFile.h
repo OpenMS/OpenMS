@@ -37,6 +37,8 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
+
 namespace OpenMS
 {
 
@@ -88,6 +90,8 @@ public:
     void load(const String& filename, MapType& map);
 
     void store(const String& filename, MapType& map);
+
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
 
     void setConfig(SqMassConfig config) 
     {
