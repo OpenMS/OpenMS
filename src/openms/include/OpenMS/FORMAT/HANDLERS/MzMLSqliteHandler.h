@@ -92,11 +92,12 @@ public:
 
       Size getNrChromatograms() const;
 
-      void setConfig(bool write_full_meta, bool use_lossy_compression, double linear_abs_mass_acc) 
+      void setConfig(bool write_full_meta, bool use_lossy_compression, double linear_abs_mass_acc, int sql_batch_size = 500) 
       {
         write_full_meta_ = write_full_meta;
         use_lossy_compression_ = use_lossy_compression;
         linear_abs_mass_acc_ = linear_abs_mass_acc; 
+        sql_batch_size_ = sql_batch_size; 
       }
 
       /**
@@ -200,6 +201,7 @@ protected:
       bool use_lossy_compression_;
       double linear_abs_mass_acc_; 
       double write_full_meta_; 
+      int sql_batch_size_; 
     };
 
 
