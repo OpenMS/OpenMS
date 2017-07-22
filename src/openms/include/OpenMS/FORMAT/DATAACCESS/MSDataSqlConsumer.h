@@ -110,6 +110,7 @@ namespace OpenMS
       OpenMS::Internal::MzMLSqliteHandler * handler_;
 
       size_t flush_after_;
+      bool full_meta_;
       std::vector<SpectrumType> spectra_;
       std::vector<ChromatogramType> chromatograms_;
 

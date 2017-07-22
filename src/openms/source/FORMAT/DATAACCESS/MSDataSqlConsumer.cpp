@@ -42,12 +42,13 @@ namespace OpenMS
   MSDataSqlConsumer::MSDataSqlConsumer(String filename, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
         filename_(filename),
         handler_(new OpenMS::Internal::MzMLSqliteHandler(filename) ),
-        flush_after_(flush_after)
+        flush_after_(flush_after),
+        full_meta_(full_meta)
   {
     spectra_.reserve(flush_after_);
     chromatograms_.reserve(flush_after_);
 
-    handler_->setConfig(full_meta, lossy_compression, linear_mass_acc);
+    handler_->setConfig(full_meta, lossy_compression, linear_mass_acc, flush_after_);
     handler_->createTables();
   }
 
@@ -56,7 +57,7 @@ namespace OpenMS
     flush();
 
     // Write run level information into the file (e.g. run id, run name and mzML structure)
-    bool write_full_meta = true;
+    bool write_full_meta = full_meta_;
     int run_id = 0;
 		peak_meta_.setLoadedFilePath(filename_);
     handler_->writeRunLevelInformation(peak_meta_, write_full_meta, run_id);
@@ -85,7 +86,7 @@ namespace OpenMS
   {
     spectra_.push_back(s);
     s.clear(false);
-    peak_meta_.addSpectrum(s);
+    if (full_meta_) peak_meta_.addSpectrum(s);
 
     if (spectra_.size() >= flush_after_) {flush();}
   }
@@ -94,7 +95,7 @@ namespace OpenMS
   {
     chromatograms_.push_back(c);
     c.clear(false);
-    peak_meta_.addChromatogram(c);
+    if (full_meta_) peak_meta_.addChromatogram(c);
 
     if (chromatograms_.size() >= flush_after_) {flush();}
   }
