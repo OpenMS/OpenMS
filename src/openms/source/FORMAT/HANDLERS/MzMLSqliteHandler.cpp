@@ -1337,7 +1337,7 @@ namespace OpenMS
         }
         chrom_id_++;
 
-        if (sql_it > 500) // flush after 500 chromatograms as sqlite can only handle so many bind_blob statments
+        if (sql_it > sql_batch_size_) // flush as sqlite can only handle so many bind_blob statments
         {
           // prevent writing of empty data which would throw an SQL exception
           if (!data.empty())
