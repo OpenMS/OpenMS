@@ -1015,6 +1015,67 @@ namespace OpenMS
       String prepare_statement = "INSERT INTO DATA (SPECTRUM_ID, DATA_TYPE, COMPRESSION, DATA) VALUES ";
       std::vector<String> data;
       int sql_it = 1;
+
+      std::vector<String> encoded_strings_mz(spectra.size());
+      std::vector<String> encoded_strings_int(spectra.size());
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+      for (Size k = 0; k < spectra.size(); k++)
+      {
+        const MSSpectrum<>& spec = spectra[k];
+
+        // encode mz data (zlib or np-linear + zlib)
+        {
+          std::vector<double> data_to_encode;
+          data_to_encode.resize(spec.size());
+          for (Size p = 0; p < spec.size(); ++p)
+          {
+            data_to_encode[p] = spec[p].getMZ();
+          }
+
+          String uncompressed_str;
+          String encoded_string;
+          if (use_lossy_compression_)
+          {
+            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
+            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
+            encoded_strings_mz[k] = encoded_string;
+          }
+          else
+          {
+            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
+            encoded_strings_mz[k] = encoded_string;
+          }
+        }
+
+        // encode intensity data (zlib or np-slof + zlib)
+        {
+          std::vector<double> data_to_encode;
+          data_to_encode.resize(spec.size());
+          for (Size p = 0; p < spec.size(); ++p)
+          {
+            data_to_encode[p] = spec[p].getIntensity();
+          }
+
+          String uncompressed_str;
+          String encoded_string;
+          if (use_lossy_compression_)
+          {
+            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
+            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
+            encoded_strings_int[k] = encoded_string;
+          }
+          else
+          {
+            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
+            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
+            encoded_strings_int[k] = encoded_string;
+          }
+        }
+      }
+
       int nr_precursors = 0;
       int nr_products = 0;
       for (Size k = 0; k < spectra.size(); k++)
@@ -1079,54 +1140,26 @@ namespace OpenMS
 
         // encode mz data (zlib or np-linear + zlib)
         {
-          std::vector<double> data_to_encode;
-          data_to_encode.resize(spec.size());
-          for (Size p = 0; p < spec.size(); ++p)
-          {
-            data_to_encode[p] = spec[p].getMZ();
-          }
-
-          String uncompressed_str;
-          String encoded_string;
+          data.push_back(encoded_strings_mz[k]);
           if (use_lossy_compression_)
           {
-            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_mz);
-            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-            data.push_back(encoded_string);
             prepare_statement += String("(") + spec_id_ + ", 0, 5, ?" + sql_it++ + " ),";
           }
           else
           {
-            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
-            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
-            data.push_back(encoded_string);
             prepare_statement += String("(") + spec_id_ + ", 0, 1, ?" + sql_it++ + " ),";
           }
         }
 
         // encode intensity data (zlib or np-slof + zlib)
         {
-          std::vector<double> data_to_encode;
-          data_to_encode.resize(spec.size());
-          for (Size p = 0; p < spec.size(); ++p)
-          {
-            data_to_encode[p] = spec[p].getIntensity();
-          }
-
-          String uncompressed_str;
-          String encoded_string;
+          data.push_back(encoded_strings_int[k]);
           if (use_lossy_compression_)
           {
-            MSNumpressCoder().encodeNPRaw(data_to_encode, uncompressed_str, npconfig_int);
-            OpenMS::ZlibCompression::compressString(uncompressed_str, encoded_string);
-            data.push_back( encoded_string );
             prepare_statement += String("(") + spec_id_ + ", 1, 6, ?" + sql_it++ + " ),";
           }
           else
           {
-            std::string str_data = std::string((const char*) (&data_to_encode[0]), data_to_encode.size() * sizeof(double));
-            OpenMS::ZlibCompression::compressString(str_data, encoded_string);
-            data.push_back(encoded_string);
             prepare_statement += String("(") + spec_id_ + ", 1, 1, ?" + sql_it++ + " ),";
           }
         }
