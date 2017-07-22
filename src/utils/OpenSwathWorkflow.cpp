@@ -709,6 +709,7 @@ protected:
     ///////////////////////////////////
 
     bool load_into_memory = false;
+    bool is_sqmass_input  = (in_file_type == FileTypes::SQMASS || file_list[0].suffix(6).toLower() == "sqmass");
     if (readoptions == "cacheWorkingInMemory")
     {
       readoptions = "cache";
@@ -718,6 +719,11 @@ protected:
     {
       readoptions = "normal";
       load_into_memory = true;
+    }
+
+    if (is_sqmass_input && !load_into_memory)
+    {
+      std::cout << "When using sqMass input files, it is highly recommended to use the workingInMemory option as otherwise data access will be very slow." << std::endl;
     }
 
     if (trafo_in.empty() && irt_tr_file.empty())
@@ -893,7 +899,6 @@ protected:
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
-    // bool is_sqmass_input  = (in_file_type == FileTypes::SQMASS || file_list[0].suffix(6).toLower() == "sqmass");
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in,
         irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
         cp_irt, irt_detection_param, mz_correction_function, debug_level,
