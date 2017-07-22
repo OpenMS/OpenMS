@@ -908,7 +908,9 @@ protected:
     {
       if (out_chrom.hasSuffix(".sqMass"))
       {
-        chromatogramConsumer = new MSDataSqlConsumer(out_chrom);
+        bool full_meta = false; // can lead to very large files in memory
+        bool lossy_compression = true;
+        chromatogramConsumer = new MSDataSqlConsumer(out_chrom, 500, full_meta, lossy_compression);
       }
       else
       {
