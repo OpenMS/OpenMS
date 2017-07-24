@@ -378,6 +378,46 @@ class FragmentAnnotationHelper
     return fas;
   }
 
+  // conversion of RNPxl annotations to PeptideHit::FragmentAnnotation
+  static std::vector<PeptideHit::FragmentAnnotation> fragmentAnnotationDetailsToPHFA(const String& ion_type, map<Size, vector<FragmentAnnotationDetail_> > ion_annotation_details)
+  {
+    std::vector<PeptideHit::FragmentAnnotation> fas;
+    for (auto ait : ion_annotation_details)
+    {
+      for (auto sit : ait.second)
+      {
+        PeptideHit::FragmentAnnotation fa;
+        fa.charge = sit.charge;
+        fa.mz = sit.mz;
+        fa.intensity = sit.intensity;
+        const String annotation_text = ion_type + String(ait.first) + "+" + sit.shift; 
+        fa.annotation = annotation_text;
+        fas.push_back(fa);
+      }
+    }
+    return fas;
+  }
+
+  static std::vector<PeptideHit::FragmentAnnotation> shiftedToPHFA(const map<String, set<pair<String, double > > >& shifted_ions)
+  {
+    std::vector<PeptideHit::FragmentAnnotation> fas;
+    for (auto ait : shifted_ions)
+    {
+      for (auto sit : ait.second)
+      {
+        PeptideHit::FragmentAnnotation fa;
+        fa.charge = 1;
+        fa.mz = sit.second;
+        fa.intensity = 1;
+        const String annotation_text = sit.first;
+        fa.annotation = annotation_text;
+        fas.push_back(fa); 
+      }
+    }
+    return fas;
+  }
+
+
   static String shiftedImmoniumIonsToString(const map<String, set<pair<String, double > > >& shifted_immonium_ions)
   {
     String fas;
@@ -587,6 +627,7 @@ protected:
     String localization_scores;
     String best_localization;  
     String fragment_annotation_string;
+    std::vector<PeptideHit::FragmentAnnotation> fragment_annotations;
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
     {
       return a.score > b.score;
@@ -1274,14 +1315,29 @@ protected:
           }
 
           // generate fragment annotation strings for unshifted ions
-          StringList fragment_annotations;
+          StringList fa_strings;
+          vector<PeptideHit::FragmentAnnotation> fas;
           String ub = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions);
-          if (!ub.empty()) fragment_annotations.push_back(ub);
+          if (!ub.empty()) 
+          {
+            fa_strings.push_back(ub);
+            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);;
+            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+          }
           String uy = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions);
-          if (!uy.empty()) fragment_annotations.push_back(uy);
+          if (!uy.empty()) 
+          {
+            fa_strings.push_back(uy);
+            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);;
+            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+          }
           String ua = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions);
-          if (!ua.empty()) fragment_annotations.push_back(ua);
-
+          if (!ua.empty()) 
+          {
+            fa_strings.push_back(ua);
+            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);;
+            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+          }
           vector<double> sites_sum_score(aas.size(), 0);
 
           // loss spectrum to the experimental measured one
@@ -1294,7 +1350,8 @@ protected:
 
           if (alignment.empty()) 
           {
-            a_it->fragment_annotation_string = ListUtils::concatenate(fragment_annotations, "|");
+            a_it->fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
+            a_it->fragment_annotations = fas;
             continue;
           }
 
@@ -1577,19 +1634,57 @@ protected:
           a_it->best_localization_score = best_localization_score;
 
           String sb = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions);
-          if (!sb.empty()) fragment_annotations.push_back(sb);
-          String sy = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions);
-          if (!sy.empty()) fragment_annotations.push_back(sy);
-          String sa = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions);
-          if (!sa.empty()) fragment_annotations.push_back(sa);
-          String sii = FragmentAnnotationHelper::shiftedImmoniumIonsToString(shifted_immonium_ions);
-          if (!sii.empty()) fragment_annotations.push_back(sii);
-          String smi = FragmentAnnotationHelper::shiftedMarkerIonsToString(annotated_marker_ions);
-          if (!smi.empty()) fragment_annotations.push_back(smi);
-          String spi = FragmentAnnotationHelper::shiftedPrecursorIonsToString(annotated_precursor_ions);
-          if (!spi.empty()) fragment_annotations.push_back(spi);
+          if (!sb.empty()) 
+          {
+            fa_strings.push_back(sb);
+            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", shifted_b_ions);;
+            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+          }
 
-          a_it->fragment_annotation_string = ListUtils::concatenate(fragment_annotations, "|");
+          String sy = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions);
+          if (!sy.empty()) 
+          {
+            fa_strings.push_back(sy);
+            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", shifted_y_ions);;
+            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+          }
+
+          String sa = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions);
+          if (!sa.empty()) 
+          {
+            fa_strings.push_back(sa);
+            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", shifted_a_ions);;
+            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+          }
+
+          String sii = FragmentAnnotationHelper::shiftedImmoniumIonsToString(shifted_immonium_ions);
+          if (!sii.empty()) 
+          {
+            fa_strings.push_back(sii);
+            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::shiftedToPHFA(shifted_immonium_ions);;
+            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+          }
+
+          String smi = FragmentAnnotationHelper::shiftedMarkerIonsToString(annotated_marker_ions);
+          if (!smi.empty())
+          {
+            fa_strings.push_back(smi);
+// TODO: add for marker ions
+//            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::shiftedToPHFA(annotated_marker_ions);
+//            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+          }
+
+          String spi = FragmentAnnotationHelper::shiftedPrecursorIonsToString(annotated_precursor_ions);
+          if (!spi.empty()) 
+          {
+            fa_strings.push_back(spi);
+            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::shiftedToPHFA(annotated_precursor_ions);
+            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+          }
+
+          // build PD string and native fragment annotation
+          a_it->fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
+          a_it->fragment_annotations = fas;
 
           #ifdef DEBUG_RNPXLSEARCH
             LOG_DEBUG << "Ion centric annotation: " << endl;
@@ -1681,6 +1776,7 @@ protected:
           ph.setMetaValue(String("RNPxl:localization_scores"), a_it->localization_scores);
           ph.setMetaValue(String("RNPxl:best_localization"), a_it->best_localization);
           ph.setMetaValue(String("RNPxl:fragment_annotation"), a_it->fragment_annotation_string);
+          ph.setFragmentAnnotations(a_it->fragment_annotations);
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
           phs.push_back(ph);

@@ -347,6 +347,7 @@ namespace OpenMS
           }
 
           os << " >\n";
+          writeFragmentAnnotations_("UserParam", os, peptide_ids[l].getHits()[j].getFragmentAnnotations(), 4);
           writeUserParam_("UserParam", os, peptide_ids[l].getHits()[j], 4);
           os << "\t\t\t</PeptideHit>\n";
         }
@@ -987,5 +988,17 @@ namespace OpenMS
     return aa_string;
   }
 
+  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
+                                            const std::vector<PeptideHit::FragmentAnnotation> & annotations, UInt indent)
+  {
+    if (annotations.empty()) { return; } 
+    String val;
+    for (auto& a : annotations)
+    {
+      val += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + a.annotation;
+      if (&a != &annotations.back()) { val += "|"; }     
+    }
+    os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+  } 
 
 } // namespace OpenMS
