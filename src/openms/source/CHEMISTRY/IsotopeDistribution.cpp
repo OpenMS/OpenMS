@@ -39,14 +39,13 @@
 #include <limits>
 #include <functional>
 #include <numeric>
-
-//#include <bzlib.h>
+#include <fstream>
 
 #include <boost/utility.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
 #include <boost/accumulators/accumulators.hpp>
-
+#include <boost/range/adaptor/reversed.hpp>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -572,11 +571,6 @@ namespace OpenMS
     return min_element(el.getIsotopeDistribution().begin(), el.getIsotopeDistribution().end(), lightest)->first;
   }
 
-  double variance(IsotopeDistribution::ContainerType& element)
-  {
-
-  }
-
 
   /* Start of the midas interface */
   MIDAs::MIDAs(EmpiricalFormula& formula, double resolution, UInt N_):
@@ -590,6 +584,7 @@ namespace OpenMS
 
   void MIDAs::merge(Polynomial& raw, double resolution)
   {
+    //raw must be ordered to work correctly ascending order on power field
 
     UInt output_size = ceil((raw.back().power - raw.front().power)/resolution);
     LOG_INFO << "output size " << output_size << endl;
@@ -598,24 +593,34 @@ namespace OpenMS
     distribution_.clear();
     distribution_.resize(output_size, make_pair<double, double>(0, 0));
 
-    for(Polynomial::const_iterator it = raw.begin(); it != raw.end(); ++it)
+    for(auto& p : raw)
     {
       // Is this the case?
-      UInt index = round((it->power - raw.front().power)/resolution);
+      
+      UInt index = round((p.power - raw.front().power)/resolution);
       if(index >= distribution_.size()){
 
         LOG_INFO << index <<endl;
-        break;
+        
       }
       distribution_[index].first = distribution_[index].first == 0 ?
-                                   raw.front().power * index :
-                                   distribution_[index].first;
-      distribution_[index].second += it->probability;
+                                    raw.front().power * index :
+                                    distribution_[index].first;
+      distribution_[index].second += p.probability;
     }
 
   }
 
+  void MIDAs::dumpIDToFile(String file)
+  {
+    ofstream out(file.c_str());
+    for(auto& sample : distribution_)
+    {
+      out << sample.first << sample.second << endl;
+    }
 
+    out.close();
+  }
 
 
   /* Start of the midas polynomial method */
@@ -812,21 +817,25 @@ namespace OpenMS
   {
     UInt k = 0, sample_size;
     double sigma, mass_range;
-    while(resolution_ < resolution)
-    {
-      resolution_ = resolution/pow(2.0, k);
+    // do
+    // {
+      resolution_ = resolution;
       sigma = formulaMeanAndVariance().variance;
-      mass_range = ceil(log2((N * sqrt(1 + sigma))));
-      sample_size = pow(2, mass_range / resolution_);
+      mass_range = ceil(log2((N * sqrt(1 + sigma)) / resolution_));
+      LOG_INFO <<"Mass Range " << mass_range <<endl;
+      sample_size = pow(2, mass_range);
       delta_ = 1.0 / sample_size;
-      resolution_ = mass_range/N;
-    }
+      resolution_ = mass_range / sample_size;
+      average_mass_ = formulaMeanAndVariance(resolution_).mean;
+    // }while(resolution_ < resolution);
 
-    //fft_vector s = {0,0};
-    input_.resize(sample_size);
-    output_.resize(sample_size);
 
-    LOG_INFO << "Sample size" << sample_size << endl;
+    fft_complex s = {0,0};
+    input_.resize(sample_size, s);
+    output_.resize(sample_size, s);
+
+    LOG_INFO << "Sample size " << input_.size() << "   " << output_.size() << endl;
+    init();
 
   }
 
@@ -835,13 +844,13 @@ namespace OpenMS
     UInt i = 0;
     for(auto& sample : input_)
     {
-      double phi = 0, angle = 0, radius = 1, freq = i * delta_;
+      double phi = 0, angle = 0, radius = 1, freq = i++ * delta_;
       for(const auto& element : formula_)
       {
         //Perform temporary calculations on sample data structure
         auto& atoms = element.second;
-        //Is sample zero?
-        //LOG_INGO << "Sample " << sample.r <<" " << sample.i << endl;
+        
+        sample.r = sample.i = 0;
         for(const auto& iso : element.first->getIsotopeDistribution())
         {
           auto& mass = iso.first;
@@ -850,33 +859,71 @@ namespace OpenMS
           sample.r += prob * cos(phi);
           sample.i += prob * sin(phi);
         }
-
         radius *= pow(hypot(sample.r, sample.i), atoms);
         angle += atoms * atan2(sample.i, sample.r);
       }
       
-      //After looping assign the real value
-      sample.r = radius * cos(angle - (2 * Constants::PI * average_mass_ * freq));
-      sample.i = radius * sin(angle - (2 * Constants::PI * average_mass_ * freq));
+      //After looping assign the value
+      double phase = (2 * Constants::PI * average_mass_ * freq);
+      //LOG_INFO << " radius " << radius << " angle "<< angle << endl;
+      sample.r = radius * cos(angle - phase);
+      sample.i = radius * sin(angle - phase);
     }
-
+    LOG_INFO << "End of initialization" << endl;
+    
   }
 
   void MIDAsFFTID::run()
   {
     
-    //auto cfg = kiss_fft_alloc(input_.size(), INVERSE, NULL, NULL);
-    //kiss_fft(cfg, &input_[0], &output_[0]);
+    kiss_fft_cfg cfg = kiss_fft_alloc(input_.size(), INVERSE, NULL, NULL);
+    UInt64 len = input_.size();
+    fft_complex *input = new kiss_fft_cpx[len], 
+               *output = new kiss_fft_cpx[len];
+    //copy(&(*input_.begin()), &(*input_.end()), input);
+    //copy(&(*output_.begin()), &(*output_.end()), output);
+    
 
-    Stats coarse(formulaMeanAndVariance()), fine(formulaMeanAndVariance(resolution_));
-    double ratio = coarse.variance/fine.variance;
+    for(int i = 0; i < len; i++)
+    {
+      input[i].r = input_[i].r;
+      input[i].i = input_[i].i;
+      output[i].r = output_[i].r;
+      output[i].i = output_[i].i;
+      LOG_INFO << input[i].r << " " << input[i].i << endl;
+    }
 
-    output_.resize(output_.size()/2);
+    
+    //kiss_fft(cfg, &(*input_.begin()), &(*output_.begin()));
+    kiss_fft(cfg, input, output);
+    
+
+    kiss_fft_cleanup();
+
+    //input_.assign(input, input + len);
+    //output_.assign(output, output + len);
+    
+    //Stats coarse(formulaMeanAndVariance()), fine(formulaMeanAndVariance(resolution_));
+    
+    //LOG_INFO << "Coarse mean: " << coarse.mean << ", Coarse variance: " << coarse.variance << endl;
+    //LOG_INFO << "Fine mean: " << fine.mean << ", fine variance: " << coarse.variance << endl;
+
+    //std::ofstream file_stream("/tmp/Midas.debug");
+    for(auto& f_sample : output_)
+    {
+      LOG_INFO << f_sample.r << " " << f_sample.i << endl;
+    }
+    //file_stream.close();
+
+    //double ratio = coarse.variance/fine.variance;
+
+    output_.resize(output_.size()/2 + 1);
 
     double min_prob = (-2.0 * min_element(output_.begin(), output_.end(), 
                                           [](fft_complex& item1, fft_complex& item2 ){
                                             return item1.i < item2.i;
                                           })->i);
+    
 
     // double avg_prob= 0;
     // int k = 0;
@@ -892,18 +939,42 @@ namespace OpenMS
     // if(k!=0){
     //   avg_prob/=k;
     // }
-    double k = 0;
     
-    for(auto& sample : output_)
+    unsigned int k = 0;
+    unsigned int half_n = output_.size()/2;
+    //unsigned int average_mass = ceil(fine.mean);
+    //Polynomial pol(output_.size(), PMember());
+    double p_sum = 0;
+    for(auto& sample : boost::adaptors::reverse(output_))
     {
-      if(min_prob > sample.r)
+      double probability;
+      probability = sample.r / output_.size();
+      if(probability < min_prob)
       {
         continue;
       }
       
-      k++;
+      // Sum probability for normalization
+      p_sum += probability;
+
+      //double power = ratio*((half_n + k) * resolution_ + (average_mass * resolution_) - coarse.mean) + fine.mean;
+      //pol[k].probability = probability;
+      // insert to polynomial or else data grid
+      
+       k++;
     }
 
+    
+    // // LOG_INFO << "Probability sum " << p_sum << endl;
+
+    // // //normalize
+    // // for(auto& point : pol)
+    // // {
+    // //   point.probability /= p_sum;
+      
+    // // }
+    // // sort(pol.begin(), pol.end(), by_power);
+    //merge(pol, resolution_);
 
   }
 
@@ -911,7 +982,7 @@ namespace OpenMS
 
   MIDAsFFTID::Stats MIDAsFFTID::formulaMeanAndVariance(double resolution)
   {
-    Stats result;
+    Stats stat;
 
     //throw exception for zero resolution_
 
@@ -934,15 +1005,15 @@ namespace OpenMS
       }
       
       // find the real variance and mean by scaling with the molecule number in the empirical formula
-      result.variance += element.second * var_mw;
-      result.mean += element.second * ave_mw;
+      stat.variance += element.second * var_mw;
+      stat.mean += element.second * ave_mw;
     }
 
-    return result;
+    return stat;
 
   }
 
-
+  
 
 
 }

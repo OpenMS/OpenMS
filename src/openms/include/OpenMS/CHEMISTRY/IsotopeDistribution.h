@@ -400,7 +400,7 @@ protected:
     ContainerType distribution_;
   };
 
-  class MIDAs : public IsotopeDistribution
+  class OPENMS_DLLAPI MIDAs : public IsotopeDistribution
   {
  public:
     
@@ -415,6 +415,7 @@ protected:
     MIDAs(EmpiricalFormula&, double, UInt);
     virtual void run() = 0;
     void merge(Polynomial&, double);
+    void dumpIDToFile(String file);
  protected:
     EmpiricalFormula& formula_;
     double resolution_;

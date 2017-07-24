@@ -704,16 +704,22 @@ END_SECTION
 
 delete iso;
 
-START_SECTION(MIDAsDistributionID(double,EmpiricalFormula&))
 
-  EmpiricalFormula f("C2023H3208N524O619S20");
+EmpiricalFormula f("C202H320N54O19S20");
 
-  MIDAsPolynomialID *midas = new MIDAsPolynomialID(f, 0.000001);
+START_SECTION(MIDAs(double,EmpiricalFormula&))
 
-  midas->run();
-  delete midas;
+  //MIDAs *midas_pol = new MIDAsPolynomialID(f, 0.000001);
+  //midas_pol->run();
+  //delete midas_pol;
+
+  MIDAs *midas_fft = new MIDAsFFTID(f,1);
+  midas_fft->run();
+  //midas_fft->dumpIDToFile("/tmp/MIDAS.raw");
+  //delete midas_fft;
 
 END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
