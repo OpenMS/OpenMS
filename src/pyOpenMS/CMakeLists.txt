@@ -62,12 +62,20 @@ execute_process(
 message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
 #------------------------------------------------------------------------------
-# Windows support restricted to Python 2.7 at the moment!
-#  * we also require VC 2008 and the corresponding vcredist to be installed
+# Windows support restricted to Python 2.[67] and Python 3.[34] at the moment!
+#  * we also require VC 2008 / 2010 and the corresponding vcredist to be installed
 if(WIN32)
-    if(NOT MSVC90)
+    if(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
+        message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
+    elseif(MSVC10 AND (${PY_VERSION} STREQUAL "3.3" OR ${PY_VERSION} STREQUAL "3.4" ))
+        message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
+    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" ))
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions -- ok")
+    else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
-        message(FATAL_ERROR "Either reconfigure with Visual Studio 9 2008 generator or disable pyOpenMS.")
+        message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions")
+        message(FATAL_ERROR "Either reconfigure with Visual Studio 2008, 2010 or 2015 generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 
     include(InstallRequiredSystemLibraries)
