@@ -346,8 +346,11 @@ foreach(pyfile ${_sub_pyopenms_files})
 endforeach()
 
 if(WIN32)
-    file(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-    file(COPY ${MSVCP90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+    # copy all runtime files (dont preserve permissions, due to issues when deleting them from tmp folders)
+    foreach (_runtime ${MSVS_RTLIBS})
+      file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
+    endforeach()
+    
     set(FOUND_XERCES FALSE)
     foreach(CONTRIB_PATH ${CMAKE_PREFIX_PATH})
         if(EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
