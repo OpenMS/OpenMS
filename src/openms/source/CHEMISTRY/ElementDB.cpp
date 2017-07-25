@@ -164,7 +164,7 @@ namespace OpenMS
     }
     //cout << "first element prefix=" << prefix << endl;
 
-    Map<UInt, double> Z_to_abundancy;
+    Map<UInt, double> Z_to_abundance;
     Map<UInt, double> Z_to_mass;
 
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
@@ -182,8 +182,8 @@ namespace OpenMS
         // cout << "new element prefix=" << prefix << endl;
 
         // Parsing of previous element is finished. Now store data in Element object
-        IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundancy, Z_to_mass);
-        double avg_weight = calculateAvgWeight_(Z_to_abundancy, Z_to_mass);
+        IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundance, Z_to_mass);
+        double avg_weight = calculateAvgWeight_(Z_to_abundance, Z_to_mass);
         double mono_weight = calculateMonoWeight_(Z_to_mass);
 
         /*
@@ -200,8 +200,8 @@ namespace OpenMS
         // add all the individual isotopes as separate elements
         for (IsotopeDistribution::ConstIterator iit = isotopes.begin(); iit != isotopes.end(); ++iit)
         {
-          UInt mass_number = round(iit->first);
           double atomic_mass = iit->first;
+          UInt mass_number = round(atomic_mass);
           String iso_name = "(" + String(mass_number) + ")" + name;
           String iso_symbol = "(" + String(mass_number) + ")" + symbol;
 
@@ -223,7 +223,7 @@ namespace OpenMS
           names_[iso_symbol] = iso_e;
         }
 
-        Z_to_abundancy.clear();
+        Z_to_abundance.clear();
         Z_to_mass.clear();
       }
 
@@ -247,7 +247,7 @@ namespace OpenMS
           String item = split[4];
           if (item == "RelativeAbundance")
           {
-            Z_to_abundancy[Z] = double(value.toDouble() / 100.0);
+            Z_to_abundance[Z] = double(value.toDouble() / 100.0);
           }
           else if (item == "AtomicMass")
           {
@@ -281,7 +281,7 @@ namespace OpenMS
 
     // build last element
     double avg_weight(0), mono_weight(0);
-    IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundancy,Z_to_mass);
+    IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundance, Z_to_mass);
     Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
     names_[name] = e;
     symbols_[symbol] = e;
