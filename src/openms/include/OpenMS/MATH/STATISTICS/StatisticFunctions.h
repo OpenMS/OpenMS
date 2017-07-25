@@ -47,6 +47,7 @@
 #include <boost/function/function_base.hpp>
 #include <boost/lambda/casts.hpp>
 #include <boost/lambda/lambda.hpp>
+#include <boost/serialization/array_wrapper.hpp>
 
 #include <iterator>
 #include <algorithm>
