@@ -638,7 +638,7 @@ public:
       public BaseException
     {
 public:
-      UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename) noexcept;
+      UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename, const std::string& message = "") noexcept;
     };
 
     /**

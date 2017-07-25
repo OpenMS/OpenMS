@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,66 +28,56 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: Oliver Alka $
+// $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
-#include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-#include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/VALIDATORS/MzQuantMLValidator.h>
+#ifndef OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
+#define OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
 
 namespace OpenMS
 {
+  class OPENMS_DLLAPI CsiFingerIdMzTabWriter
+      {
+          public:
 
-  MzQuantMLFile::MzQuantMLFile() :
-    XMLFile("/SCHEMAS/mzQuantML_1_0_0-rc2", "1.0.0")
-  {
-  }
+          /**
+          @brief Internal structure used in @ref SiriusAdapter that is used
+           for the conversion of the Csi:FingerID output to an mzTab.
+           @ingroup DATAACCESS
+          */
 
-  MzQuantMLFile::~MzQuantMLFile()
-  {
-  }
+          struct CsiAdapterHit
+          {
+            OpenMS::String inchikey2D;
+            OpenMS::String inchi;
+            unsigned int rank;
+            OpenMS::String molecular_formula;
+            double score;
+            OpenMS::String name;
+            OpenMS::String smiles;
+            std::vector<String> pubchemids;
+            std::vector<String> links;
 
-  void MzQuantMLFile::load(const String & filename, MSQuantifications & msq)
-  {
-    Internal::MzQuantMLHandler handler(msq, filename, schema_version_, *this);
-    parse_(filename, &handler);
-  }
+          };
 
-  void MzQuantMLFile::store(const String & filename, const MSQuantifications & cmsq) const
-  {
-    if (!FileHandler::hasValidExtension(filename, FileTypes::MZQUANTML))
-    {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MZIDENTML) + "'");
-    }
+          struct CsiAdapterIdentification
+          {
+            OpenMS::String scan_index;
+            std::vector<CsiAdapterHit> hits;
+          };
 
-    Internal::MzQuantMLHandler handler(cmsq, filename, schema_version_, *this);
-    save_(filename, &handler);
-  }
+          struct CsiAdapterRun
+          {
+            std::vector <CsiAdapterIdentification> identifications;
+          };
 
-  bool MzQuantMLFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
-  {
-    //load mapping
-    CVMappings mapping;
-    CVMappingFile().load(File::find("/MAPPING/mzQuantML-mapping_1.0.0-rc2-general.xml"), mapping);
+          //Output of Sirius is one directory per spectrum/compound
+          //paths: Path to output directories of sirius
+          //number: Amount of entries for each file/compound should be written to the mztab file
+          static void read(const std::vector<String> & paths, Size number, MzTab & result);
 
-    //load cvs
-    ControlledVocabulary cv;
-    cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-    cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-    cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
-    cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-    cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
+      };
+}
 
-    //validate TODO
-    Internal::MzQuantMLValidator v(mapping, cv);
-    bool result = v.validate(filename, errors, warnings);
-
-    return result;
-  }
-
-} // namespace OpenMS
+#endif //OPENMS_HOST_CSIFINGERIDMZTABWRITER_H

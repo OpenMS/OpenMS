@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,66 +28,61 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Mathias Walzer $
+// $Maintainer: Oliver Alka $
+// $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzQuantMLFile.h>
-#include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-#include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/VALIDATORS/MzQuantMLValidator.h>
+#ifndef OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
+#define OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
 
 namespace OpenMS
 {
-
-  MzQuantMLFile::MzQuantMLFile() :
-    XMLFile("/SCHEMAS/mzQuantML_1_0_0-rc2", "1.0.0")
+  class OPENMS_DLLAPI SiriusMzTabWriter
   {
-  }
+  public:
 
-  MzQuantMLFile::~MzQuantMLFile()
-  {
-  }
+    /**
+    @brief Internal structure used in @ref SiriusAdapter that is used
+    for the conversion of the sirius output to an mzTab.
+    @ingroup ID
+    */
 
-  void MzQuantMLFile::load(const String & filename, MSQuantifications & msq)
-  {
-    Internal::MzQuantMLHandler handler(msq, filename, schema_version_, *this);
-    parse_(filename, &handler);
-  }
+     /// store a specific @param number of lines from sirius output
+     /// @return mzTab
 
-  void MzQuantMLFile::store(const String & filename, const MSQuantifications & cmsq) const
-  {
-    if (!FileHandler::hasValidExtension(filename, FileTypes::MZQUANTML))
+    struct SiriusAdapterHit
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MZIDENTML) + "'");
-    }
+      OpenMS::String formula;
+      OpenMS::String adduct;
+      int rank;
+      double score;
+      double treescore;
+      double isoscore;
+      int explainedpeaks;
+      double explainedintensity;
+    };
 
-    Internal::MzQuantMLHandler handler(cmsq, filename, schema_version_, *this);
-    save_(filename, &handler);
-  }
+    struct SiriusAdapterIdentification
+    {
+      OpenMS::String scan_index;
+      std::vector<SiriusAdapterHit> hits;
+    };
 
-  bool MzQuantMLFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
-  {
-    //load mapping
-    CVMappings mapping;
-    CVMappingFile().load(File::find("/MAPPING/mzQuantML-mapping_1.0.0-rc2-general.xml"), mapping);
+    struct SiriusAdapterRun
+    {
+      std::vector<SiriusAdapterIdentification> identifications;
+    };
 
-    //load cvs
-    ControlledVocabulary cv;
-    cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-    cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-    cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
-    cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-    cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
+    // extract scan_index from filepath
+    static String extract_scan_index(const String & path);
 
-    //validate TODO
-    Internal::MzQuantMLValidator v(mapping, cv);
-    bool result = v.validate(filename, errors, warnings);
+    //Output of Sirius is one directory per spectrum/compound
+    //paths: Path to output directories of sirius
+    //number: Amount of entries for each file/compound should be written to the mztab file
+    static void read(const std::vector<String> & paths, Size number, MzTab & result);
 
-    return result;
-  }
+  };
 
-} // namespace OpenMS
+}
+
+#endif //OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
