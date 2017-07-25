@@ -26,6 +26,15 @@ import time
 
 j = os.path.join
 
+if iswin:
+  # copy stuff
+  try:
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "src", "openswathalgo", "OpenSwathAlgo.lib"), j(OPEN_MS_BUILD_DIR, "bin"))
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "src", "openms", "OpenMS.lib"), j(OPEN_MS_BUILD_DIR, "bin"))
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "src", "superhirn", "SuperHirn.lib"), j(OPEN_MS_BUILD_DIR, "bin"))
+  except IOError:
+    pass
+	
 src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
 pxd_files = glob.glob(src_pyopenms + "/pxds/*.pxd")
 addons = glob.glob(src_pyopenms + "/addons/*.pyx")
