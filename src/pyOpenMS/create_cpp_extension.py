@@ -115,15 +115,25 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 
 
 if iswin:
-    # fix for broken library names in release 1.11:
-    for p in glob.glob(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR,
-                                    "lib",
-                                    "libboost_math_*mt.lib")):
+    for libname in ["math", "regex"]:
+        # fix for broken library names on Windows
+        for p in glob.glob(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR,
+                                        "lib",
+                                        "libboost_%s_*mt.lib" % libname)):
 
-        if "vc90" in p:
-            continue
-        new_p = p.replace("-mt.lib", "-vc90-mt-1_52.lib")
-        shutil.copy(p, new_p)
+            # Copy for MSVS 2008 (vc90), MSVS 2010 (vc100) and MSVS 2015 (vc140)
+            if "vc90" in p:
+                continue
+            if "vc100" in p:
+                continue
+            if "vc140" in p:
+                continue
+            new_p = p.replace("-mt.lib", "-vc90-mt-%s_%s.lib" % (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
+            shutil.copy(p, new_p)
+            new_p = p.replace("-mt.lib", "-vc100-mt-%s_%s.lib"% (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
+            shutil.copy(p, new_p)			
+            new_p = p.replace("-mt.lib", "-vc140-mt-%s_%s.lib"% (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
+            shutil.copy(p, new_p)	
 
 
 # Package data expected to be installed. On Linux the debian package
