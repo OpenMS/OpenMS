@@ -13,14 +13,14 @@
 namespace OpenMS
 {
 
-NASequence::NASequence(){
+NASequence::NASequence(){ //Default to RNA since that was the original behaviour
     s_="";
-    type_=Residue::Undefined;
+    type_=Residue::RNA;
 }
 
-NASequence::NASequence(const String & rhs){
+NASequence::NASequence(const String & rhs){ //Default to RNA since that was the original behaviour
     s_=rhs;
-    type_=Residue::Undefined;
+    type_=Residue::RNA;
 }
 
 NASequence::NASequence(const String & rhs, const Residue::NucleicAcidType & type){
