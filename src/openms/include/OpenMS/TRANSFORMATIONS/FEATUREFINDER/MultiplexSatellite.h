@@ -56,7 +56,7 @@ namespace OpenMS
     /**
      * @brief constructor
      */
-    MultiplexSatellite(size_t mz_idx, size_t rt_idx);
+    MultiplexSatellite(size_t rt_idx, size_t mz_idx);
     
     /**
      * @brief returns the m/z index of the satellite peak

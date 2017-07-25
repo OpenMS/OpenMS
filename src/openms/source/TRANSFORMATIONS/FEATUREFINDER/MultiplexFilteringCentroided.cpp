@@ -150,8 +150,6 @@ namespace OpenMS
             continue;
           }
           
-          std::cout << "Passed averagine filter.\n";
-          
           // debug output
           /*if (debug_now)
           {
@@ -163,24 +161,17 @@ namespace OpenMS
             continue;
           }
           
-          std::cout << "Passed peptide correlation filter.\n";
-
-                    
           // debug output
           /*if (debug_now)
           {
             std::cout << "Passed peptide similarity filter.\n\n\n";
           }*/
-          
-          std::cout << "Passed all filters.\n";
 
           result.addPeak(peak);
           //blacklistPeak_(peak);
           blacklistPeak2_(peak, pattern_idx);
         }
       }
-      
-      std::cout << "pattern = " << pattern_idx << "    final filtered peaks = " << result.size() << "\n";
       
       // write filtered peaks to debug output
       std::stringstream debug_out;

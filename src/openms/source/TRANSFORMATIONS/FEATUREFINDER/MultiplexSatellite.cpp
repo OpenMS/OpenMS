@@ -44,8 +44,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  MultiplexSatellite::MultiplexSatellite(size_t mz_idx, size_t rt_idx) :
-    mz_idx_(mz_idx), rt_idx_(rt_idx)
+  MultiplexSatellite::MultiplexSatellite(size_t rt_idx, size_t mz_idx) :
+    rt_idx_(rt_idx), mz_idx_(mz_idx)
   {
   }
 

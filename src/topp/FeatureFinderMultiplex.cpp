@@ -1347,14 +1347,6 @@ private:
       MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
-      
-      std::cout << "\nFiltering of Centroided Data finished.\n";
-      std::cout << "filter results, size = " << filter_results.size() << "\n";
-      std::cout << "filter results, size [0] = " << filter_results[0].size() << "\n";
-      std::cout << "filter results, size [1] = " << filter_results[1].size() << "\n";
-      std::cout << "filter results, size [2] = " << filter_results[2].size() << "\n";
-      std::cout << "filter results, size [3] = " << filter_results[3].size() << "\n";
-      std::cout << "filter results, size [4] = " << filter_results[4].size() << "\n\n";
     }
     else
     {
