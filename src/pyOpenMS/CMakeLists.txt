@@ -78,17 +78,19 @@ if(WIN32)
         message(FATAL_ERROR "Either reconfigure with Visual Studio 2008, 2010 or 2015 generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 
+    # Try to find MSVS runtime libs
     include(InstallRequiredSystemLibraries)
-    set(MSVCR90DLL ${MSVC90_CRT_DIR}/msvcr90.dll)
-    if(NOT EXISTS ${MSVCR90DLL})
-        message(STATUS "Missing msvcr90.dll - Visual C++ 2008 Runtime (called vcredist)")
-        message(FATAL_ERROR "Please install VC 2008 runtime package or disable pyOpenMS.")
+
+    if("${MSVS_RTLIBS}" STREQUAL "")
+        set(MSVS_RTLIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}")
     endif()
-    set(MSVCP90DLL ${MSVC90_CRT_DIR}/msvcp90.dll)
-    if(NOT EXISTS ${MSVCP90DLL})
-        message(STATUS "Missing msvcp90.dll - Visual C++ 2008 Runtime (called vcredist)")
-        message(FATAL_ERROR "Please install VC 2008 runtime package or disable pyOpenMS.")
+     
+    if("${MSVS_RTLIBS}" STREQUAL "")
+        message(FATAL_ERROR "Did not find MSVS runtime, either provide with -DMSVS_RTLIBS='lib1;lib2' or disable pyOpenMS.")
+    else()
+    message(STATUS "Found MSVS runtime: ${MSVS_RTLIBS}")
     endif()
+
 endif(WIN32)
 
 #------------------------------------------------------------------------------
