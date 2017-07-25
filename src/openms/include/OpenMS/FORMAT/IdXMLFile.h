@@ -136,6 +136,12 @@ protected:
     static void writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
                                           const std::vector<PeptideHit::FragmentAnnotation> & annotations, UInt indent); 
 
+    /**
+      * Helper function to parse fragment annotations from string
+      */  
+    static void parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::FragmentAnnotation> & annotations);
+    
+
     /// @name members for loading data
     //@{
     /// Pointer to fill in protein identifications
