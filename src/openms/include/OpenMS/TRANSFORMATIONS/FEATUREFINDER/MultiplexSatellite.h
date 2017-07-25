@@ -77,6 +77,16 @@ namespace OpenMS
      */
     size_t rt_idx_;
     size_t mz_idx_;
+    
+    /**
+     * @brief m/z shift and corresponding intensity of a datapoint in the profile experiment
+     * 
+     * (mz_shift, intensity)
+     * 
+     * (rt_idx_, mz_idx_) specify a point (rt, mz) in the centroided experiment.
+     * (rt, mz + mz_shift) is the filtered datapoint in the profile experiment together with its intensity.
+     */
+    std::vector<std::pair<double, double> > profile_data_;
      
   };
   

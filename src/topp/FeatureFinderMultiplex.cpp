@@ -1353,7 +1353,7 @@ private:
       // profile data
       MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, intensity_cutoff_, rt_band_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, averagine_type_);
       filtering.setLogType(log_type_);
-      //filter_results = filtering.filter();
+      filter_results = filtering.filter();
     }
 
     /**
@@ -1381,7 +1381,7 @@ private:
     ConsensusMap consensus_map;
     FeatureMap feature_map;
     
-    if (centroided)
+    /*if (centroided)
     {
       consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
@@ -1390,9 +1390,9 @@ private:
     {
       consensus_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
       feature_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
-    }
+    }*/
 
-    generateMaps_(centroided, patterns, filter_results, cluster_results, consensus_map, feature_map);
+    /*generateMaps_(centroided, patterns, filter_results, cluster_results, consensus_map, feature_map);
     if (out_ != "")
     {
       writeConsensusMap_(out_, consensus_map);
@@ -1400,7 +1400,7 @@ private:
     if (out_features_ != "")
     {
       writeFeatureMap_(out_features_, feature_map);
-    }
+    }*/
 
     /*if (out_mzq_ != "")
     {

@@ -41,7 +41,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
@@ -98,9 +98,9 @@ public:
      * @throw Exception::IllegalArgument if number of peaks and number of peak boundaries differ
      *
      * @see MultiplexIsotopicPeakPattern
-     * @see MultiplexFilterResult
+     * @see MultiplexFilteredMSExperiment
      */
-    std::vector<MultiplexFilterResult> filter();
+    std::vector<MultiplexFilteredMSExperiment> filter();
 
 private:
     /**

@@ -39,6 +39,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
@@ -60,6 +61,7 @@ namespace OpenMS
   MultiplexFilteringProfile::MultiplexFilteringProfile(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
     MultiplexFiltering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), exp_profile_(exp_profile), boundaries_(boundaries)
   {
+    
     if (exp_profile_.size() != exp_picked_.size())
     {
       stringstream stream;
@@ -82,68 +84,25 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
     }
 
-    /*blacklist_.reserve(exp_picked_.getNrSpectra());
-    registry_.reserve(exp_picked_.getNrSpectra());
-
-    // fill peak registry and initialise blacklist
-    MSExperiment::Iterator it_rt;
-    for (it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
-    {
-      int index = it_rt - exp_picked_.begin();
-
-      vector<PeakReference> registry_spec;
-      vector<BlackListEntry> blacklist_spec;
-      for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
-      {
-        // peak registry
-        PeakReference reference;
-        if (index > 0)
-        {
-          reference.index_in_previous_spectrum = findNearest_(index - 1, it_mz->getMZ(), 1.0);
-        }
-        else
-        {
-          reference.index_in_previous_spectrum = -1;
-        }
-        if (index + 1 < (int) exp_picked_.size())
-        {
-          reference.index_in_next_spectrum = findNearest_(index + 1, it_mz->getMZ(), 1.0);
-        }
-        else
-        {
-          reference.index_in_next_spectrum = -1;
-        }
-        registry_spec.push_back(reference);
-
-        // blacklist
-        BlackListEntry entry;
-        entry.black = false;
-        entry.black_exception_mass_shift_index = -1;
-        entry.black_exception_charge = -1;
-        entry.black_exception_mz_position = -1;
-        blacklist_spec.push_back(entry);
-      }
-      registry_.push_back(registry_spec);
-      blacklist_.push_back(blacklist_spec);
-    }*/
-
   }
 
-  vector<MultiplexFilterResult> MultiplexFilteringProfile::filter()
+  vector<MultiplexFilteredMSExperiment> MultiplexFilteringProfile::filter()
   {
+    std::cout << "\nStarting filtering.    " << exp_profile_.size() << "    " << exp_picked_.size() << "\n\n";
+    
     // progress logger
     //unsigned progress = 0;
     startProgress(0, patterns_.size() * exp_profile_.size(), "filtering LC-MS data");
 
     // list of filter results for each peak pattern
-    vector<MultiplexFilterResult> filter_results;
+    vector<MultiplexFilteredMSExperiment> filter_results;
 
 
 
 
     // NEW FILTERING (start)
     
-    std::cout << "\n";
+    /*std::cout << "\n";
     std::cout << "Start filtering.\n\n";
 
     double rt_band = 50;    // width of the entire RT band in seconds (more realistically 10 s)
@@ -210,7 +169,7 @@ namespace OpenMS
         
     std::cout << "That took me " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n";
     std::cout << "Finished filtering.\n";
-    std::cout << "\n";
+    std::cout << "\n";*/
     
     // NEW FILTERING (end)
 
