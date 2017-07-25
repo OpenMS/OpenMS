@@ -88,54 +88,63 @@ namespace OpenMS
 
   vector<MultiplexFilteredMSExperiment> MultiplexFilteringProfile::filter()
   {
-    std::cout << "\nStarting filtering.    " << exp_profile_.size() << "    " << exp_picked_.size() << "\n\n";
-    
     // progress logger
-    //unsigned progress = 0;
+    unsigned progress = 0;
     startProgress(0, patterns_.size() * exp_profile_.size(), "filtering LC-MS data");
 
     // list of filter results for each peak pattern
-    vector<MultiplexFilteredMSExperiment> filter_results;
-
-
-
-
-    // NEW FILTERING (start)
+    std::vector<MultiplexFilteredMSExperiment> filter_results;
     
-    /*std::cout << "\n";
-    std::cout << "Start filtering.\n\n";
-
-    double rt_band = 50;    // width of the entire RT band in seconds (more realistically 10 s)
-    double mz_tol = 0.05;    // m/z tolerance in Th
+    std::cout << "\nStart filtering.\n\n";
       
     unsigned int start = clock();
     
     // loop over all patterns
     for (unsigned pattern_idx = 0; pattern_idx < patterns_.size(); ++pattern_idx)
     {
+      std::cout << "\npattern = " << pattern_idx << "\n";
+      
       // current pattern
       MultiplexIsotopicPeakPattern pattern = patterns_[pattern_idx];
       
       // data structure storing peaks which pass all filters
-      MultiplexFilterResult result;
+      MultiplexFilteredMSExperiment result;
   
-      // loop over RT
-      for (MSExperiment::ConstIterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
+      // loop over spectra
+      MSExperiment::ConstIterator it_rt_picked;
+      MSExperiment::ConstIterator it_rt_profile;
+      std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
+      for (it_rt_picked = exp_picked_.begin(), it_rt_profile = exp_profile_.begin(), it_rt_boundaries = boundaries_.begin();
+           it_rt_picked < exp_picked_.end() && it_rt_profile < exp_profile_.end() && it_rt_boundaries < boundaries_.end();
+           ++it_rt_picked, ++it_rt_profile, ++it_rt_boundaries)
       {
-        double rt = it_rt->getRT();
-        double rt_min = rt - rt_band/2;
-        double rt_max = rt + rt_band/2;
+        // skip empty spectra
+        if ((*it_rt_profile).size() == 0 || (*it_rt_picked).size() == 0 || (*it_rt_boundaries).size() == 0)
+        {
+          continue;
+        }
         
-        std::cout << "RT = " << rt << "    RT band (min) = " << rt_min << "    RT band (max) = " << rt_max << "\n";
+        if ((*it_rt_picked).size() != (*it_rt_boundaries).size())
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Number of peaks and number of peak boundaries differ.");
+        }
+
+        setProgress(++progress);
+        
+        double rt = it_rt_picked->getRT();
+        double rt_min = rt - rt_band_/2;
+        double rt_max = rt + rt_band_/2;
+        
+        std::cout << "    RT = " << rt << "    RT band (min) = " << rt_min << "    RT band (max) = " << rt_max << "\n";
         
         // loop over mz
-        for (MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+        for (MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt_picked->begin(); it_mz < it_rt_picked->end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
-          //std::cout << "    mz = " << mz << "\n";
+          std::cout << "        mz = " << mz << "\n";
           
           // loop over peaks in pattern
-          for (size_t mz_position = 1; mz_position < pattern.getMZShiftCount(); ++mz_position)
+          /*for (size_t mz_position = 1; mz_position < pattern.getMZShiftCount(); ++mz_position)
           {
             double mz_shift = pattern.getMZShiftAt(mz_position);
           
@@ -159,7 +168,7 @@ namespace OpenMS
             
             intensity = intensity/count;
             
-          }         
+          }*/
         }
       }
      
@@ -167,191 +176,8 @@ namespace OpenMS
       filter_results.push_back(result);
     }
         
-    std::cout << "That took me " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n";
-    std::cout << "Finished filtering.\n";
-    std::cout << "\n";*/
-    
-    // NEW FILTERING (end)
-
-
-
-
-
-
-
-
-    // loop over patterns
-    /*for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
-    {
-      // data structure storing peaks which pass all filters
-      MultiplexFilterResult result;
-
-      // iterate over spectra
-      MSExperiment::Iterator it_rt_profile;
-      MSExperiment::ConstIterator it_rt_picked;
-      vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
-      for (it_rt_profile = exp_profile_.begin(), it_rt_picked = exp_picked_.begin(), it_rt_boundaries = boundaries_.begin();
-           it_rt_profile < exp_profile_.end() && it_rt_picked < exp_picked_.end() && it_rt_boundaries < boundaries_.end();
-           ++it_rt_profile, ++it_rt_picked, ++it_rt_boundaries)
-      {
-        // skip empty spectra
-        if ((*it_rt_profile).size() == 0 || (*it_rt_picked).size() == 0 || (*it_rt_boundaries).size() == 0)
-        {
-          continue;
-        }
-        
-        if ((*it_rt_picked).size() != (*it_rt_boundaries).size())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Number of peaks and number of peak boundaries differ.");
-        }
-
-        setProgress(++progress);
-
-        int spectrum = it_rt_profile - exp_profile_.begin(); // index of the spectrum in exp_profile_, exp_picked_ and boundaries_
-        double rt_picked = it_rt_picked->getRT();
-
-        // spline fit profile data
-        SplineSpectrum spline(*it_rt_profile);
-        SplineSpectrum::Navigator nav = spline.getNavigator();
-
-        // vectors of peak details
-        vector<double> peak_position;
-        vector<double> peak_min;
-        vector<double> peak_max;
-        vector<double> peak_intensity;
-        MSSpectrum<Peak1D>::ConstIterator it_mz;
-        vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
-        for (it_mz = it_rt_picked->begin(), it_mz_boundary = it_rt_boundaries->begin();
-             it_mz < it_rt_picked->end() && it_mz_boundary < it_rt_boundaries->end();
-             ++it_mz, ++it_mz_boundary)
-        {
-          peak_position.push_back(it_mz->getMZ());
-          peak_min.push_back((*it_mz_boundary).mz_min);
-          peak_max.push_back((*it_mz_boundary).mz_max);
-          peak_intensity.push_back(it_mz->getIntensity());
-        }
-
-        // iterate over peaks in spectrum (mz)
-        for (unsigned peak = 0; peak < peak_position.size(); ++peak)
-        {*/
-
-          /**
-           * Filter (1): m/z position and blacklist filter
-           * Are there non-black peaks with the expected relative m/z shifts?
-           */
-          /*vector<double> mz_shifts_actual; // actual m/z shifts (differ slightly from expected m/z shifts)
-          vector<int> mz_shifts_actual_indices; // peak indices in the spectrum corresponding to the actual m/z shifts
-          
-          mz_shifts_actual.reserve(patterns_[pattern].getMZShiftCount());
-          mz_shifts_actual_indices.reserve(patterns_[pattern].getMZShiftCount());
-          
-          int peaks_found_in_all_peptides = positionsAndBlacklistFilter_(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
-          if (peaks_found_in_all_peptides < isotopes_per_peptide_min_)
-          {
-            continue;
-          }*/
-
-          /**
-           * Filter (2): blunt intensity filter
-           * Are the mono-isotopic peak intensities of all peptides above the cutoff?
-           */
-          /*bool bluntVeto = monoIsotopicPeakIntensityFilter_(patterns_[pattern], spectrum, mz_shifts_actual_indices);
-          if (bluntVeto)
-          {
-            continue;
-          }
-
-          // Arrangement of peaks looks promising. Now scan through the spline fitted data.
-          vector<MultiplexFilterResultRaw> results_raw; // raw data points of this peak that will pass the remaining filters
-          bool blacklisted = false; // Has this peak already been blacklisted?
-          for (double mz = peak_min[peak]; mz < peak_max[peak]; mz = nav.getNextMz(mz))
-          {*/
-            /**
-             * Filter (3): non-local intensity filter
-             * Are the spline interpolated intensities at m/z above the threshold?
-             */
-            /*vector<double> intensities_actual; // spline interpolated intensities @ m/z + actual m/z shift
-            int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter_(patterns_[pattern], mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
-            if (peaks_found_in_all_peptides_spline < isotopes_per_peptide_min_)
-            {
-              continue;
-            }*/
-
-            /**
-             * Filter (4): zeroth peak filter
-             * There should not be a significant peak to the left of the mono-isotopic
-             * (i.e. first) peak.
-             */
-            /*bool zero_peak = zerothPeakFilter_(patterns_[pattern], intensities_actual);
-            if (zero_peak)
-            {
-              continue;
-            }*/
-
-            /**
-             * Filter (5): peptide similarity filter
-             * How similar are the isotope patterns of the peptides?
-             */
-            /*bool peptide_similarity = peptideSimilarityFilter_(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline);
-            if (!peptide_similarity)
-            {
-              continue;
-            }*/
-
-            /**
-             * Filter (6): averagine similarity filter
-             * Does each individual isotope pattern resemble a peptide?
-             */
-            /*bool averagine_similarity = averagineSimilarityFilter_(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
-            if (!averagine_similarity)
-            {
-              continue;
-            }*/
-
-            /**
-             * All filters passed.
-             */
-            // add raw data point to list that passed all filters
-            /*MultiplexFilterResultRaw result_raw(mz, mz_shifts_actual, intensities_actual);
-            results_raw.push_back(result_raw);
-            
-            // blacklist peaks in the current spectrum and the two neighbouring ones
-            if (!blacklisted)
-            {
-              blacklistPeaks_(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_spline);
-              blacklisted = true;
-            }
-
-          }
-
-          // add the peak with its corresponding raw data to the result
-          if (results_raw.size() > 2)
-          {
-            // Scanning over the profile of the peak, we want at least three raw data points to pass all filters.
-            vector<double> intensities_actual;
-            for (unsigned i = 0; i < mz_shifts_actual_indices.size(); ++i)
-            {
-              int index = mz_shifts_actual_indices[i];
-              if (index == -1)
-              {
-                // no peak found
-                intensities_actual.push_back(std::numeric_limits<double>::quiet_NaN());
-              }
-              else
-              {
-                intensities_actual.push_back(peak_intensity[mz_shifts_actual_indices[i]]);
-              }
-            }
-            result.addFilterResultPeak(peak_position[peak], rt_picked, mz_shifts_actual, intensities_actual, results_raw);
-          }
-
-        }
-
-      }
-
-      // add results of this pattern to list
-      filter_results.push_back(result);
-    }*/
+    std::cout << "\nThat took me " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n";
+    std::cout << "\nFinished filtering.\n\n";
 
     endProgress();
 
