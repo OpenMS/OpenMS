@@ -364,6 +364,7 @@ if(WIN32)
     endif()
 endif()
 
+find_boost()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 
