@@ -17,10 +17,6 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #  MetaInfoInterface
         #  RangeManager1
 
-        # wrap-instances:
-        #   MSSpectrum := MSSpectrum
-        #   ChromatogramSpectrum := MSSpectrum[ChromatogramPeak]
-
         # COMMENT: get raw data through get_peaks or by iterating through peaks
         # COMMENT: set raw data through set_peaks
 
@@ -38,11 +34,11 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         Size size() nogil except +
 
-        PeakT operator[](int) nogil except + # wrap-upper-limit:size()
+        Peak1D operator[](int) nogil except + # wrap-upper-limit:size()
 
         void updateRanges() nogil except +
         void clear(int) nogil except +
-        void push_back(PeakT)  nogil except +
+        void push_back(Peak1D)  nogil except +
 
         bool isSorted() nogil except +
 
@@ -53,8 +49,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         MSSpectrum select(libcpp_vector[ size_t ] & indices) nogil except +
 
         void assign(libcpp_vector[Peak1D].iterator, libcpp_vector[Peak1D].iterator) nogil except + # wrap-ignore
-        libcpp_vector[PeakT].iterator begin() nogil except +  # wrap-iter-begin:__iter__(PeakT)
-        libcpp_vector[PeakT].iterator end()   nogil except +  # wrap-iter-end:__iter__(PeakT)
+        libcpp_vector[Peak1D].iterator begin() nogil except +  # wrap-iter-begin:__iter__(Peak1D)
+        libcpp_vector[Peak1D].iterator end()   nogil except +  # wrap-iter-end:__iter__(Peak1D)
 
         bool operator==(MSSpectrum) nogil except +
         bool operator!=(MSSpectrum) nogil except +
