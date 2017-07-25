@@ -362,11 +362,11 @@ protected:
 
         if (!compatible_(feature, pc_mz, mz_tolerance_da, max_trace))
         {
-          scan_idx_to_feature_idx.erase(it++); //FIXME check on this when off plane.
+          scan_idx_to_feature_idx.erase(it++);
         }
         else
         {
-            ++it; //FIXME see above
+            ++it;
         }
       }
 
@@ -550,6 +550,8 @@ protected:
                 {
                     LOG_INFO << "Skipping empty feature" << endl;
                 }
+                //TODO remove empty features here
+
                 continue;
             }
 
