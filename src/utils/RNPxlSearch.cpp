@@ -452,19 +452,13 @@ class FragmentAnnotationHelper
     return fas;
   }
 
-  static String shiftedMarkerIonsToString(const map<String, set<String> >& annotated_marker_ions)
+  static String shiftedMarkerIonsToString(const vector<PeptideHit::FragmentAnnotation>& annotated_marker_ions)
   {
     String fas;
-    for (map<String, set<String> >::const_iterator ait = annotated_marker_ions.begin(); ait != annotated_marker_ions.end(); ++ait)
+    for (auto&  a : annotated_marker_ions)
     {
-      for (set<String>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
-      {
-        if (ait != annotated_marker_ions.begin() || sit != ait->second.begin())
-        {
-          fas += "|";
-        }
-        fas += *sit;
-      }
+      fas += String("(") + String::number(a.mz, 3) + "," + String::number(100.0 * a.intensity, 1) + ",\"" + a.annotation + "\")";    
+      if (&a != &annotated_marker_ions.back()) { fas += "|"; }     
     }
     return fas;
   }
@@ -1206,7 +1200,7 @@ protected:
           // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
           map<Size, vector<FragmentAnnotationDetail_> > unshifted_b_ions, unshifted_y_ions, unshifted_a_ions, shifted_b_ions, shifted_y_ions, shifted_a_ions;
           map<String, set<pair<String, double> > > shifted_immonium_ions;
-          map<String, set<String> > annotated_marker_ions;
+          vector<PeptideHit::FragmentAnnotation> annotated_marker_ions;
           map<String, set<pair<String, double> > > annotated_precursor_ions;
 
 
@@ -1461,7 +1455,12 @@ protected:
               #endif
               if (fragment_charge <= 1)
               {
-                annotated_marker_ions[ion_name].insert("(" + String::number(fragment_mz, 3) + "," + String::number(100.0 * fragment_intensity, 1) + ",\"" + ion_name + "\")");
+                PeptideHit::FragmentAnnotation fa;
+                fa.mz = fragment_mz;
+                fa.intensity = fragment_intensity;
+                fa.charge = 1;
+                fa.annotation = ion_name;
+                annotated_marker_ions.push_back(fa);
               }
               #ifdef DEBUG_RNPXLSEARCH
               else
@@ -1669,9 +1668,7 @@ protected:
           if (!smi.empty())
           {
             fa_strings.push_back(smi);
-// TODO: add for marker ions
-//            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::shiftedToPHFA(annotated_marker_ions);
-//            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+            fas.insert(fas.end(), annotated_marker_ions.begin(), annotated_marker_ions.end());
           }
 
           String spi = FragmentAnnotationHelper::shiftedPrecursorIonsToString(annotated_precursor_ions);

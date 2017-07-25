@@ -129,6 +129,10 @@ protected:
       */
     static String createPositionXMLString_(const std::vector<PeptideEvidence> & pes);
 
+
+    /**
+      * Helper function to write out fragment annotations as user param fragment_annotation
+      */  
     static void writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
                                           const std::vector<PeptideHit::FragmentAnnotation> & annotations, UInt indent); 
 
