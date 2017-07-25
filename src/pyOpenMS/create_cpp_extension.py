@@ -34,7 +34,7 @@ if iswin:
     shutil.copy(j(OPEN_MS_BUILD_DIR, "src", "superhirn", "SuperHirn.lib"), j(OPEN_MS_BUILD_DIR, "bin"))
   except IOError:
     pass
-	
+
 src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
 pxd_files = glob.glob(src_pyopenms + "/pxds/*.pxd")
 addons = glob.glob(src_pyopenms + "/addons/*.pyx")
@@ -131,9 +131,9 @@ if iswin:
             new_p = p.replace("-mt.lib", "-vc90-mt-%s_%s.lib" % (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
             shutil.copy(p, new_p)
             new_p = p.replace("-mt.lib", "-vc100-mt-%s_%s.lib"% (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
-            shutil.copy(p, new_p)			
+            shutil.copy(p, new_p)
             new_p = p.replace("-mt.lib", "-vc140-mt-%s_%s.lib"% (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
-            shutil.copy(p, new_p)	
+            shutil.copy(p, new_p)
 
 
 # Package data expected to be installed. On Linux the debian package
