@@ -149,7 +149,9 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
-    features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
+    features.setPrimaryMSRunPath(ms_runs);
 
     // Apply the feature finder
     ff.run(FeatureFinderAlgorithmMRM::getProductName(), exp, features, feafi_param, seeds);

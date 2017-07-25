@@ -285,7 +285,9 @@ protected:
     ffm_param.setValue("report_chromatograms", report_chromatograms);
 
     FeatureMap feat_map;
-    feat_map.setPrimaryMSRunPath(ms_peakmap.getPrimaryMSRunPath());
+    StringList ms_runs;
+    ms_peakmap.getPrimaryMSRunPath(ms_runs);
+    feat_map.setPrimaryMSRunPath(ms_runs);
 
     std::vector< std::vector< OpenMS::MSChromatogram > > feat_chromatograms;
 

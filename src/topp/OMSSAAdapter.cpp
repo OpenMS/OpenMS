@@ -772,16 +772,16 @@ protected:
     //-------------------------------------------------------------
 
     // names of temporary files for data chunks
-    StringList file_spectra_chunks_in, file_spectra_chunks_out;
+    StringList file_spectra_chunks_in, file_spectra_chunks_out, primary_ms_runs;
     Size ms2_spec_count(0);
-    StringList primary_ms_runs;
     { // local scope to free memory after conversion to MGF format is done
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(inputfile_name);
       PeakMap peak_map;
       fh.getOptions().addMSLevel(2);
       fh.loadExperiment(inputfile_name, peak_map, in_type, log_type_, false, false);
-      primary_ms_runs = peak_map.getPrimaryMSRunPath();
+
+      peak_map.getPrimaryMSRunPath(primary_ms_runs);
       ms2_spec_count = peak_map.size();
       writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
 

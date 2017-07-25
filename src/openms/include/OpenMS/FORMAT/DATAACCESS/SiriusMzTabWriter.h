@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,61 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Christian Ehrlich $
+// $Maintainer: Oliver Alka $
+// $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/Spline2d.h>
+#ifndef OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
+#define OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
 
 namespace OpenMS
 {
+  class OPENMS_DLLAPI SiriusMzTabWriter
+  {
+  public:
 
-  // dummy cpp for better navigation in IDE
+    /**
+    @brief Internal structure used in @ref SiriusAdapter that is used
+    for the conversion of the sirius output to an mzTab.
+    @ingroup ID
+    */
+
+     /// store a specific @param number of lines from sirius output
+     /// @return mzTab
+
+    struct SiriusAdapterHit
+    {
+      OpenMS::String formula;
+      OpenMS::String adduct;
+      int rank;
+      double score;
+      double treescore;
+      double isoscore;
+      int explainedpeaks;
+      double explainedintensity;
+    };
+
+    struct SiriusAdapterIdentification
+    {
+      OpenMS::String scan_index;
+      std::vector<SiriusAdapterHit> hits;
+    };
+
+    struct SiriusAdapterRun
+    {
+      std::vector<SiriusAdapterIdentification> identifications;
+    };
+
+    // extract scan_index from filepath
+    static String extract_scan_index(const String & path);
+
+    //Output of Sirius is one directory per spectrum/compound
+    //paths: Path to output directories of sirius
+    //number: Amount of entries for each file/compound should be written to the mztab file
+    static void read(const std::vector<String> & paths, Size number, MzTab & result);
+
+  };
 
 }
+
+#endif //OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H

@@ -167,6 +167,10 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
   setup_transition_group(transition_group);
 
   MRMTransitionGroupPicker trgroup_picker;
+  Param picker_param = trgroup_picker.getDefaults();
+  picker_param.setValue("PeakPickerMRM:method", "legacy"); // old parameters
+  picker_param.setValue("PeakPickerMRM:peak_width", 40.0); // old parameters
+  trgroup_picker.setParameters(picker_param);
   trgroup_picker.pickTransitionGroup(transition_group);
 
   TEST_EQUAL(transition_group.getFeatures().size(), 1)
@@ -256,6 +260,12 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
   // create the corresponding first mrm feature
   int chr_idx = 1, peak_idx = 0;
   MRMTransitionGroupPicker picker;
+
+  Param picker_param = picker.getDefaults();
+  picker_param.setValue("PeakPickerMRM::method", "legacy"); // old parameters
+  picker_param.setValue("PeakPickerMRM::peak_width", 40.0); // old parameters
+  picker.setParameters(picker_param);
+
   MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, chr_idx, peak_idx);
   TEST_REAL_SIMILAR(mrmfeature.getRT(), 1490.0)
 

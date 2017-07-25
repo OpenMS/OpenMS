@@ -37,7 +37,6 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 
 #include <vector>

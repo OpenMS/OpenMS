@@ -286,7 +286,9 @@ protected:
     run_(input, output, transition_exp, force);
 
     output.ensureUniqueId();
-    output.setPrimaryMSRunPath(exp->getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp->getPrimaryMSRunPath(ms_runs);
+    output.setPrimaryMSRunPath(ms_runs);
     FeatureXMLFile().store(out, output);
 
     return EXECUTION_OK;

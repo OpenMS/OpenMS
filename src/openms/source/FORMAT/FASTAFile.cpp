@@ -142,8 +142,7 @@ namespace OpenMS
 
     if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::FASTA) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension; expected '" + FileTypes::typeToName(FileTypes::FASTA) + "'");
     }
 
     outfile_.open(filename.c_str(), ofstream::out);

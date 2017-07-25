@@ -150,6 +150,14 @@ namespace OpenMS
     DocumentIdentifier::operator=(empty_map);
     UniqueIdInterface::operator=(empty_map);
 
+    // append spectra_data information
+    StringList thisRuns_;
+    this->getPrimaryMSRunPath(thisRuns_);
+    StringList rhsRuns_;
+    rhs.getPrimaryMSRunPath(rhsRuns_);
+    thisRuns_.insert(thisRuns_.end(), rhsRuns_.begin(), rhsRuns_.end());
+    this->setPrimaryMSRunPath(thisRuns_);
+
     // append dataProcessing
     data_processing_.insert(data_processing_.end(),
                             rhs.data_processing_.begin(),
@@ -435,14 +443,12 @@ namespace OpenMS
   }
 
   /// get the file path to the first MS run
-  StringList ConsensusMap::getPrimaryMSRunPath() const
+  void ConsensusMap::getPrimaryMSRunPath(StringList& toFill) const
   {
-    StringList ret;
     if (this->metaValueExists("spectra_data"))
     {
-      ret = this->getMetaValue("spectra_data");
+      toFill = this->getMetaValue("spectra_data");
     }
-    return ret;
   }
 
   /// Equality operator
