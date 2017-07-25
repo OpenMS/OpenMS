@@ -7,7 +7,7 @@ iswin = sys.platform == "win32"
 
 # import config
 from env import  (OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
-                  QT_LIBRARY_DIR, MSVCR90DLL, MSVCP90DLL,
+                  QT_LIBRARY_DIR, MSVS_RTLIBS,
                   QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS)
 
@@ -136,7 +136,7 @@ ext = Extension(
 
 share_data = []
 if iswin:
-    share_data += [MSVCR90DLL, "xerces-c_3_1.dll"]
+    share_data += MSVS_RTLIBS.split(";") + ["xerces-c_3_1.dll", "sqlite3.dll"]
 
 share_data.append("License.txt")
 
