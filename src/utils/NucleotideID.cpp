@@ -286,7 +286,7 @@ protected:
             exp[exp_index].sortByPosition();
 
             // deisotope
-            deisotopeAndSingleChargeMSSpectrum_(exp[exp_index], 1, 20, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, true);
+            //deisotopeAndSingleChargeMSSpectrum_(exp[exp_index], 1, 20, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, true);
 
             // remove noise
             window_mower_filter.filterPeakSpectrum(exp[exp_index]);
@@ -300,11 +300,23 @@ protected:
 
     // This code is based on a function in HiResPrecursorMassCorrector, it returns a set of the indexes of peaks that overlap with the feature in question
     //  SPW NB: The comments below are misleading and will be updated when I clean up this tool
-    set<Size> correctToNearestFeature(const Feature& feature, PeakMap & exp, double rt_tolerance_s = 30.0, double mz_tolerance = 20.0, bool ppm = true, bool believe_charge = false, bool all_matching_features = false, int max_trace = 2)
+    set<Size> correctToNearestFeature(const Feature& feature, PeakMap & exp, double rt_tolerance_s = 30.0, double mz_tolerance = 20.0, bool ppm = true, bool believe_charge = false, bool all_matching_features = false, int max_trace = 5)
     {
       // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
       // if believe_charge is set, only add features that match the precursor charge
       set<Size> scan_idx_to_feature_idx;
+
+      // get bounding box and extend by retention time tolerance
+      if (feature.getConvexHulls().empty())
+      {
+        LOG_WARN << "HighResPrecursorMassCorrector warning: at least one feature has no convex hull - omitting feature for matching" << std::endl;
+        return scan_idx_to_feature_idx; // std::set constructor used above gives us an empty set
+      }
+      DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();
+      box.setMinX(box.minX() - rt_tolerance_s);
+      box.setMaxX(box.maxX() + rt_tolerance_s);
+      //box.setMinY(box.minY() - mz_tolerance_da);
+      //box.setMaxY(box.maxY() + mz_tolerance_da);
 
       for (Size scan = 0; scan != exp.size(); ++scan)
       {
@@ -320,7 +332,7 @@ protected:
           if (believe_charge && feature.getCharge() != pc_charge) continue;
 
           // check if precursor/MS2 position overlap with feature
-          if (overlaps_(feature, rt, pc_mz, rt_tolerance_s))
+          if (overlaps_(box, rt, pc_mz))
           {
               scan_idx_to_feature_idx.insert(scan);
           }
@@ -332,6 +344,10 @@ protected:
       // if there are no candidates just return the empty set
       if (scan_idx_to_feature_idx.empty())
       {
+          if (debug_level_ > 2)
+          {
+            LOG_INFO << "No MS2s for this feature: " << endl;
+          }
           return scan_idx_to_feature_idx;
       }
       // if precursor_mz = feature_mz + n * feature_charge (+/- mz_tolerance) a feature is compatible, if not, it is removed from the set
@@ -342,6 +358,7 @@ protected:
         const Size scan = *it;
         const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
         const double mz_tolerance_da = ppm ? pc_mz * mz_tolerance * 1e-6  : mz_tolerance;
+
 
         if (!compatible_(feature, pc_mz, mz_tolerance_da, max_trace))
         {
@@ -404,18 +421,9 @@ protected:
       return scan_idx_to_feature_idx;
     }
 
-    bool overlaps_(const Feature& feature, const double rt, const double pc_mz, const double rt_tolerance) const
+    bool overlaps_(const DBoundingBox<2> box, const double rt, const double pc_mz) const
     {
-      if (feature.getConvexHulls().empty())
-      {
-        LOG_WARN << "HighResPrecursorMassCorrector warning: at least one feature has no convex hull - omitting feature for matching" << std::endl;
-      }
 
-      // get bounding box and extend by retention time tolerance
-      DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();
-      DPosition<2> extend_rt(rt_tolerance, 0.01);
-      box.setMin(box.minPosition() - extend_rt);
-      box.setMax(box.maxPosition() + extend_rt);
 
       DPosition<2> pc_pos(rt, pc_mz);
       if (box.encloses(pc_pos))
@@ -478,7 +486,7 @@ protected:
         spectra.sortSpectra(true);
 
         progresslogger.startProgress(0, 1, "Filtering spectra...");
-//        preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm); //Disabled for now
+        //preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm); //Disabled for now
         progresslogger.endProgress();
 
         // copy meta information
@@ -488,6 +496,8 @@ protected:
         TheoreticalSpectrumGenerator test_generator;
         Param gen_params= test_generator.getParameters();
         gen_params.setValue("add_w_ions","true");
+        gen_params.setValue("add_b_ions","false");
+        gen_params.setValue("add_a_ions","true");
         gen_params.setValue("add_a-B_ions","true");
         gen_params.setValue("add_y_ions","true");
         gen_params.setValue("add_d_ions","true");
@@ -529,7 +539,9 @@ protected:
             what_type = Residue::DNA;
         else
             what_type = Residue::RNA;
-        bool do_all= false;
+
+        bool do_all= true;
+
         for (FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
         {
 
