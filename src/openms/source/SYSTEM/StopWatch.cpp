@@ -296,7 +296,7 @@ namespace OpenMS
   //is the accumulated time plus the time since the stop_watch was last started.
   double StopWatch::getUserTime() const
   {
-	double temp_value(0.0);
+    double temp_value(0.0);
     if (is_running_ == false)
     {
       /* stop_watch is off, just return accumulated time */
@@ -306,7 +306,7 @@ namespace OpenMS
     {
       /* stop_watch is on, add current running time to accumulated time */
 #ifdef OPENMS_WINDOWSPLATFORM
-	  FILETIME kt, ut, ct, et;
+      FILETIME kt, ut, ct, et;
       HANDLE my_id = GetCurrentProcess();
       GetProcessTimes(my_id, &ct, &et, &kt, &ut);
 
@@ -319,7 +319,7 @@ namespace OpenMS
 
       temp_value = (double)(current_user_time_ - start_user_time_ + user_time.QuadPart / 10.0);
 #else
-	  struct tms tms_buffer;
+      struct tms tms_buffer;
       times(&tms_buffer);
       temp_value = (double)(current_user_time_ - start_user_time_ + tms_buffer.tms_utime);
 #endif
@@ -349,34 +349,34 @@ namespace OpenMS
       /* stop_watch is off, just return accumulated time */
       temp_value = (double)current_system_time_;
     }
-	else
-	{
-		/* stop_watch is on, return accumulated plus current */
+    else
+    {
+        /* stop_watch is on, return accumulated plus current */
 #ifdef OPENMS_WINDOWSPLATFORM
-		FILETIME kt, ut, ct, et;
-		
-		HANDLE my_id = GetCurrentProcess();
-		GetProcessTimes(my_id, &ct, &et, &kt, &ut);
+        FILETIME kt, ut, ct, et;
+        
+        HANDLE my_id = GetCurrentProcess();
+        GetProcessTimes(my_id, &ct, &et, &kt, &ut);
 
-		ULARGE_INTEGER kernel_time;
-		kernel_time.HighPart = kt.dwHighDateTime;
-		kernel_time.LowPart = kt.dwLowDateTime;
-		ULARGE_INTEGER user_time;
-		user_time.HighPart = ut.dwHighDateTime;
-		user_time.LowPart = ut.dwLowDateTime;
-		temp_value = (double)((double)(current_system_time_ - start_system_time_) + kernel_time.QuadPart / 10.0);
+        ULARGE_INTEGER kernel_time;
+        kernel_time.HighPart = kt.dwHighDateTime;
+        kernel_time.LowPart = kt.dwLowDateTime;
+        ULARGE_INTEGER user_time;
+        user_time.HighPart = ut.dwHighDateTime;
+        user_time.LowPart = ut.dwLowDateTime;
+        temp_value = (double)((double)(current_system_time_ - start_system_time_) + kernel_time.QuadPart / 10.0);
 #else
-		struct tms tms_buffer;
-		times(&tms_buffer);
-		temp_value = (double)(current_system_time_ - start_system_time_ + tms_buffer.tms_stime);
+        struct tms tms_buffer;
+        times(&tms_buffer);
+        temp_value = (double)(current_system_time_ - start_system_time_ + tms_buffer.tms_stime);
 #endif
-	}
+    }
 #ifdef OPENMS_WINDOWSPLATFORM
-	  return (double)(temp_value / 1000000.0);
+      return (double)(temp_value / 1000000.0);
 #else
-	  /* convert from clock ticks to seconds using the */
-	  /* cpu-speed value obtained in the constructor   */
-	  return (double)(temp_value / (double)cpu_speed_);
+      /* convert from clock ticks to seconds using the */
+      /* cpu-speed value obtained in the constructor   */
+      return (double)(temp_value / (double)cpu_speed_);
 #endif
   }
 
