@@ -146,7 +146,7 @@ if iswin:
     shutil.copy(SUPERHIRN_LIB, "pyopenms")
 
     if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
-        shutil.copy(j(QT_LIBRARY_DIR, "QtCored4.dll"), "pyopenms")       
+        shutil.copy(j(QT_LIBRARY_DIR, "QtCored4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtNetworkd4.dll"), "pyopenms")
         shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1D.dll"), "pyopenms")
     else:
