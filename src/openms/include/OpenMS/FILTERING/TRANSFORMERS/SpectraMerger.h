@@ -559,7 +559,10 @@ protected:
               consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
                                                                         pit->getIntensity());
               ++align_index; // this aligned peak was explained, wait for next aligned peak ...
-              if (align_index == alignment.size()) alignment.clear();  // end reached -> avoid going into this block again
+              if (align_index == alignment.size())
+              {
+                  alignment.clear();  // end reached -> avoid going into this block again
+              }
             }
             else // ... or add unaligned peak
             {
@@ -568,7 +571,10 @@ protected:
             ++spec_b_index;
           }
           consensus_spec.sortByPosition(); // sort, otherwise next alignment will fail
-          if (spec_a + spec_b - align_size != consensus_spec.size()) std::cerr << "\n\n ERRROR \n\n";
+          if (spec_a + spec_b - align_size != consensus_spec.size())
+          {
+              //std::cerr << "\n\n ERRROR \n\n";
+          }
         }
         rt_average /= it->second.size() + 1;
         consensus_spec.setRT(rt_average);

@@ -51,6 +51,8 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+
 
 #include <iostream>
 #include <fstream>
@@ -286,7 +288,7 @@ protected:
             exp[exp_index].sortByPosition();
 
             // deisotope
-            //deisotopeAndSingleChargeMSSpectrum_(exp[exp_index], 1, 20, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, true);
+            deisotopeAndSingleChargeMSSpectrum_(exp[exp_index], 1, 20, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, true);
 
             // remove noise
             window_mower_filter.filterPeakSpectrum(exp[exp_index]);
@@ -485,9 +487,9 @@ protected:
         f.load(mzml_filepath, spectra);
         spectra.sortSpectra(true);
 
-        progresslogger.startProgress(0, 1, "Filtering spectra...");
-        //preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm); //Disabled for now
-        progresslogger.endProgress();
+        //progresslogger.startProgress(0, 1, "Filtering spectra...");
+        //preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm); //moved to per feature
+        //progresslogger.endProgress();
 
         // copy meta information
         //MSExperiment debug_exp = spectra;
@@ -540,7 +542,8 @@ protected:
         else
             what_type = Residue::RNA;
 
-        bool do_all= true;
+        bool do_all = true;
+        bool average_all = true;
 
         for (FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
         {
@@ -551,7 +554,7 @@ protected:
                     LOG_INFO << "Skipping empty feature" << endl;
                 }
                 //TODO remove empty features here
-
+                fm_it->setPeptideIdentifications(vector<PeptideIdentification>() );
                 continue;
             }
 
@@ -568,8 +571,37 @@ protected:
                 {
                     LOG_INFO << "Skipping feature with no valid ms2s" << endl;
                 }
+                fm_it->setPeptideIdentifications(vector<PeptideIdentification>() );
                 continue;
             }
+            //Create a new vector containing only spectra which correspond to this feature (makes the merging much cleaner)
+            PeakMap selected_map;
+            std::vector<MSSpectrum<Peak1D> > selected_spectra;
+            for (set<Size>::iterator siter = nearest.begin(); siter != nearest.end(); ++siter)
+            {
+                selected_spectra.push_back(spectra.getSpectra()[*siter]);
+            }
+
+            selected_map.setSpectra(selected_spectra);
+
+
+            //if the user wants to average mutliple compatible ms2s
+            if (nearest.size()>1 && average_all)
+            {
+                //merge ms2s
+                SpectraMerger fm_merger;
+                Param merge_params = fm_merger.getParameters();
+                merge_params.setValue("block_method:ms_levels",ListUtils::create<Int>("2"));
+                merge_params.setValue("block_method:rt_block_size",100);//same as correctToNearestFeature's selection
+                merge_params.setValue("block_method:rt_max_length",0.0);//no limit
+                //merge_params.setValue("mass_error_unit",fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); //convert from bool to string
+                fm_merger.setParameters(merge_params);
+                fm_merger.mergeSpectraPrecursors(selected_map);
+
+            }
+
+            preprocessSpectra_(selected_map, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+
             // for each MS2 matching to the feature score candidates
                 // for each peptideIdentification:
                     // Get map of theoretical spectra, to identifier
@@ -596,9 +628,9 @@ protected:
                    double score=0, tmpscore = 0;
                    //iterate through all of the matching ms2s since we may have many
                    if (do_all){
-                       for (set<Size>::iterator n_it=nearest.begin(); n_it != nearest.end(); ++n_it){
-                           tmprevscore=  metmatch.computeHyperScore(spectra.getSpectra()[*n_it], rev_spec, fragment_mass_tolerance, 100.0);
-                           tmpscore =  metmatch.computeHyperScore(spectra.getSpectra()[*n_it], spec, fragment_mass_tolerance, 100.0);
+                       for (std::vector<MSSpectrum<Peak1D> >::iterator n_it=selected_map.getSpectra().begin(); n_it != selected_map.getSpectra().end(); ++n_it){
+                           tmprevscore=  metmatch.computeHyperScore(*n_it, rev_spec, fragment_mass_tolerance, 100.0);
+                           tmpscore =  metmatch.computeHyperScore(*n_it, spec, fragment_mass_tolerance, 100.0);
                            if (tmpscore>score){
                                score=tmpscore;
                                revscore=tmprevscore; // We take decoy score for the same spectrum as the forward score
@@ -606,8 +638,8 @@ protected:
                        }
                    }
                    else{
-                       revscore=  metmatch.computeHyperScore(spectra.getSpectra()[*nearest.begin()], rev_spec, fragment_mass_tolerance, 100.0);
-                       score =  metmatch.computeHyperScore(spectra.getSpectra()[*nearest.begin()], spec, fragment_mass_tolerance, 100.0);
+                       revscore=  metmatch.computeHyperScore(selected_map.getSpectra()[0], rev_spec, fragment_mass_tolerance, 100.0);
+                       score =  metmatch.computeHyperScore(selected_map.getSpectra()[0], spec, fragment_mass_tolerance, 100.0);
                    }
                    if (debug_level_ > 0)
                    {
@@ -635,7 +667,7 @@ protected:
                 }
                 v_it->setHits(peptide_hits);
             }
-
+            //clear putative IDs for which we have no evidence
             fm_it->setPeptideIdentifications(peptide_ids);
 
 
@@ -655,6 +687,9 @@ protected:
 
 
         }
+        //Remove empty features
+        //feature_map.erase(std::remove_if(feature_map.begin(), feature_map.end(),[](Feature i) {return i.getPeptideIdentifications().size()==0;}), feature_map.end()); //Someday when we have Lambda expressions...
+
         FeatureXMLFile().store(out_features_filepath,feature_map);
         progresslogger.endProgress();
 
