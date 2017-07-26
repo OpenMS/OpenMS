@@ -116,7 +116,7 @@ namespace OpenMS
 
       // loop over spectra
       // loop simultaneously over RT in the profile and (white) centroided experiment (including peak boundaries) 
-      MSExperiment::ConstIterator it_rt_profile;
+      MSExperiment::Iterator it_rt_profile;
       MSExperiment::ConstIterator it_rt_picked;
       std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
       for (it_rt_profile = exp_profile_.begin(), it_rt_picked = exp_picked_white.begin(), it_rt_boundaries = boundaries_.begin();
@@ -132,43 +132,41 @@ namespace OpenMS
         setProgress(++progress);
         
         double rt = it_rt_picked->getRT();
-        double rt_min = rt - rt_band_/2;
-        double rt_max = rt + rt_band_/2;
+        MSExperiment::ConstIterator it_rt_picked_band_begin = exp_picked_white.RTBegin(rt - rt_band_/2);
+        MSExperiment::ConstIterator it_rt_picked_band_end = exp_picked_white.RTEnd(rt + rt_band_/2);
         
-        std::cout << "    RT = " << rt << "    RT band (min) = " << rt_min << "    RT band (max) = " << rt_max << "\n";
+        // spline fit profile data
+        SplineSpectrum spline(*it_rt_profile);
+        SplineSpectrum::Navigator nav = spline.getNavigator();
+
+        std::cout << "    RT = " << rt << "\n";
         
         // loop over mz
         for (MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt_picked->begin(); it_mz < it_rt_picked->end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
-          std::cout << "        mz = " << mz << "\n";
+          MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()], it_rt_picked - exp_picked_white.begin());
           
-          // loop over peaks in pattern
-          /*for (size_t mz_position = 1; mz_position < pattern.getMZShiftCount(); ++mz_position)
+          //std::cout << "        mz = " << mz << "  mz (white) = " << (it_mz - it_rt_picked->begin()) << "  mz (original) = " << exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()] << "\n";
+          
+          if (!(filterPeakPositions_(it_mz, exp_picked_mapping, exp_picked_white.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
           {
-            double mz_shift = pattern.getMZShiftAt(mz_position);
+            continue;
+          }
           
-            // loop over RT band
-            int count = 0;
-            double intensity = 0;
-            for (MSExperiment::ConstIterator it_rt_band = exp_picked_.RTBegin(rt_min); it_rt_band < exp_picked_.RTEnd(rt_max); ++it_rt_band)
-            {
-              int i = it_rt_band->findNearest(mz + mz_shift, mz_tol);
-              
-              if (i == -1)
-              {
-                continue;
-              }
-              
-              ++count;
-              //intensity += it_rt[i].getMZ();
-              
-              std::cout << "        RT = " << it_rt_band->getRT() << "        i = " << i << "\n";
-            }
-            
-            intensity = intensity/count;
-            
-          }*/
+          size_t mz_idx = exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()];
+          double peak_min = (*it_rt_boundaries)[mz_idx].mz_min;
+          double peak_max = (*it_rt_boundaries)[mz_idx].mz_max;
+
+          std::cout << "        mz = " << mz << " (" << peak_min << ", " << peak_max << ")\n";
+          
+          // Arrangement of peaks looks promising. Now scan through the spline fitted profile data.
+          for (double mz2 = peak_min; mz2 < peak_max; mz2 = nav.getNextMz(mz2))
+          {
+            std::cout << mz2 << " ";
+          }
+          std::cout << "\n";
+          
         }
       }
      
