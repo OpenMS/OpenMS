@@ -168,8 +168,7 @@ namespace OpenMS
           }*/
 
           result.addPeak(peak);
-          //blacklistPeak_(peak);
-          blacklistPeak2_(peak, pattern_idx);
+          blacklistPeak_(peak, pattern_idx);
         }
       }
       

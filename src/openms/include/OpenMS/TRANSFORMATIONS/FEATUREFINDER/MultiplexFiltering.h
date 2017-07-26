@@ -179,7 +179,7 @@ protected:
      * @param peak    peak to be blacklisted
      * @param pattern_idx    index of the pattern in <patterns_>
      */
-    void blacklistPeak2_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
+    void blacklistPeak_(const MultiplexFilteredPeak& peak, unsigned pattern_idx);
 
     /**
      * @brief turn grey blacklist_ entries into black ones
@@ -215,135 +215,6 @@ protected:
      * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <peptide_similarity_>
      */
     bool filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak) const;
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    /**
-     * @brief mono-isotopic peak intensity filter
-     *
-     * Quick check if the intensities of the mono-isotopic peaks are
-     * above the intensity cutoff.
-     *
-     * @param pattern    pattern of isotopic peaks to be searched for
-     * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-     * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
-     *
-     * @return true if all intensities above threshold
-     */
-    bool monoIsotopicPeakIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices) const;
-
-    /**
-     * @brief zeroth peak filter
-     *
-     * The mono-isotopic peak is the first peak of each peptide. A peak one m/z shift to the left (e.g. 0.5Th for 2+)
-     * is called zeroth peak. High-intensity zeroth peaks indicate incorrect pattern matches. A different pattern is
-     * likely to be a better fit.
-     *
-     * @param pattern    pattern of isotopic peaks to be searched for
-     * @param intensities_actual    spline-interpolated intensities at the actual m/z shift positions
-     *
-     * @return true if there are high-intensity zeroth peaks
-     */
-    bool zerothPeakFilter_(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& intensities_actual) const;
-
-    /**
-     * @brief peptide similarity filter
-     *
-     * The algorithm takes only MS1 spectra into account i.e. we have no knowledge of the peptide sequences.
-     * But we do know that peptides in a pair should have the same sequence and hence the same isotopic distributions.
-     * The filter checks the similarity of the lightest peptide with all of the other peptides of the pattern.
-     * (In high-complexity samples two peptides can have the correct mass shift by chance. Such accidental pairs
-     * show different isotopic distributions and are therefore filtered out.)
-     *
-     * @param pattern    pattern of isotopic peaks to be searched for
-     * @param intensities_actual    spline-interpolated intensities at the actual m/z shift positions
-     * @param peaks_found_in_all_peptides_spline    number of isotopic peaks seen for each peptide (profile)
-     *
-     * @return true if peptide isotope patterns are similar
-     */
-    bool peptideSimilarityFilter_(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline) const;
-
-    /**
-     * @brief averagine similarity filter
-     *
-     * Checks similarity of the isotopic distribution with the expected averagine distribution.
-     * Does the isotope distribution look like a peptide?
-     *
-     * @param pattern    pattern of isotopic peaks to be searched for
-     * @param intensities_actual    spline-interpolated intensities at the actual m/z shift positions
-     * @param peaks_found_in_all_peptides_spline    number of isotopic peaks seen for each peptide (profile)
-     * @param mz    m/z at which the averagine distribution is calculated
-     *
-     * @return true if isotope distribution looks like an average peptide
-     */
-    bool averagineSimilarityFilter_(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const;
-
-    /**
-     * @brief blacklist peaks
-     *
-     * If a datapoint passes all filters, the corresponding peak in this and the two neighbouring spectra is blacklisted.
-     *
-     * @param pattern    pattern of isotopic peaks to be searched for
-     * @param spectrum    index of the spectrum in exp_picked_ and boundaries_
-     * @param peaks_found_in_all_peptides_spline    number of isotopic peaks seen for each peptide (profile)
-     */
-    //void blacklistPeaks_(const MultiplexIsotopicPeakPattern& pattern, int spectrum, const std::vector<int>& mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline);
-
-    /**
-     * @brief returns the index of a peak at m/z
-     * (finds not only a valid peak, i.e. within certain m/z deviation, but the best of the valid peaks)
-     *
-     * @param peak_position    m/z position of the peaks
-     * @param start    index in peak_position for starting the search
-     * @param mz    m/z position of the peak
-     * @param scaling    rescaling of limits
-     *
-     * @return index of the peak in spectrum
-     */
-    int getPeakIndex_(const std::vector<double>& peak_position, int start, double mz, double scaling) const;
-
-    /**
-     * @brief returns similarity of two isotope patterns
-     * (simple Pearson correlation coefficient)
-     *
-     * @param pattern1   isotope pattern 1
-     * @param pattern2   isotope pattern 2
-     *
-     * @return similarity (+1 best, -1 worst)
-     */
-    double getPatternSimilarity_(const std::vector<double>& pattern1, const std::vector<double>& pattern2) const;
-
-    /**
-     * @brief returns similarity of an isotope pattern and an averagine pattern at mass m
-     *
-     * @param pattern   isotope pattern
-     * @param m    mass at which the averagine distribution is calculated
-     *
-     * @return similarity (+1 best, -1 worst)
-     */
-
-    double getAveragineSimilarity_(const std::vector<double>& pattern, double m) const;
 
     /**
     * @brief centroided experimental data
