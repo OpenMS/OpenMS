@@ -109,14 +109,19 @@ namespace OpenMS
       
       // data structure storing peaks which pass all filters
       MultiplexFilteredMSExperiment result;
-  
+
+      // construct new white experiment
+      White2Original exp_picked_mapping;
+      MSExperiment exp_picked_white = getWhiteMSExperiment_(exp_picked_mapping);
+
       // loop over spectra
-      MSExperiment::ConstIterator it_rt_picked;
+      // loop simultaneously over RT in the profile and (white) centroided experiment (including peak boundaries) 
       MSExperiment::ConstIterator it_rt_profile;
+      MSExperiment::ConstIterator it_rt_picked;
       std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
-      for (it_rt_picked = exp_picked_.begin(), it_rt_profile = exp_profile_.begin(), it_rt_boundaries = boundaries_.begin();
-           it_rt_picked < exp_picked_.end() && it_rt_profile < exp_profile_.end() && it_rt_boundaries < boundaries_.end();
-           ++it_rt_picked, ++it_rt_profile, ++it_rt_boundaries)
+      for (it_rt_profile = exp_profile_.begin(), it_rt_picked = exp_picked_white.begin(), it_rt_boundaries = boundaries_.begin();
+           it_rt_profile < exp_profile_.end() && it_rt_picked < exp_picked_white.end() && it_rt_boundaries < boundaries_.end();
+           ++it_rt_profile, ++it_rt_picked, ++it_rt_boundaries)
       {
         // skip empty spectra
         if ((*it_rt_profile).size() == 0 || (*it_rt_picked).size() == 0 || (*it_rt_boundaries).size() == 0)
@@ -124,11 +129,6 @@ namespace OpenMS
           continue;
         }
         
-        if ((*it_rt_picked).size() != (*it_rt_boundaries).size())
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Number of peaks and number of peak boundaries differ.");
-        }
-
         setProgress(++progress);
         
         double rt = it_rt_picked->getRT();
