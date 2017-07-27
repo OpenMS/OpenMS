@@ -18,6 +18,7 @@ PeptideAndProteinQuant.h
 ProteinInference.h
 ProteinResolver.h
 QuantitativeExperimentalDesign.h
+TMTElevenPlexQuantitationMethod.h
 TMTSixPlexQuantitationMethod.h
 TMTTenPlexQuantitationMethod.h
 )
