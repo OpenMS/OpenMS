@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function build_contrib {
-  cmake . -DBUILD_TYPE=$1
+  cmake . -DBUILD_TYPE=$1 -j2
 
   if [ $? -ne 0 ]; then
     # we give it another try
@@ -39,7 +39,7 @@ if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
   pushd cppcheck
   git checkout 1.65
-  CXX=clang++ make SRCDIR=build CFGDIR=`pwd`/cfg HAVE_RULES=yes -j4
+  CXX=clang++ make SRCDIR=build CFGDIR=`pwd`/cfg HAVE_RULES=yes -j2
   popd
 else
   # regular builds .. get the search engine executables via githubs SVN interface (as git doesn't allow single folder checkouts)
