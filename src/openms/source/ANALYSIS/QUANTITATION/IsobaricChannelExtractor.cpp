@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
@@ -213,9 +214,10 @@ namespace OpenMS
     interpolate_precursor_purity_ = getParameters().getValue("purity_interpolation") == "true";
 
     /* check for sensible parameters */
-    if (dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL && reporter_mass_shift_ > TMT_10PLEX_CHANNEL_TOLERANCE)
+    if (((dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL) || (dynamic_cast<const TMTElevenPlexQuantitationMethod*>(quant_method_) != NULL))
+        && reporter_mass_shift_ > TMT_10PLEX_CHANNEL_TOLERANCE)
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: TMT-10plex requires reporter mass shifts <= 0.003 to avoid channel ambiguity!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Both TMT-10plex and TMT-11plex require reporter mass shifts <= 0.003 to avoid channel ambiguity!");
     }
   }
 
