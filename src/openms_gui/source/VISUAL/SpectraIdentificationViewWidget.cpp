@@ -587,27 +587,39 @@ namespace OpenMS
               item->setTextColor(Qt::blue);
               // table_widget_->setItem(table_widget_->rowCount() - 1, 3, item); // precursor version
 //              addDoubleItemToBottomRow_(5.0, 15, c);
-              double exp_precursor = (*layer_->getPeakData())[i].getPrecursors()[0].getMZ();
-              int charge = (*layer_->getPeakData())[i].getPrecursors()[0].getCharge();
 
-              // different theoretical precursors for XL-MS and other data
-              double theo_mass = 0;
-              //vector<PeptideHit> xl_hits = pi[pi_idx].getHits();
-              if (pi[pi_idx].getHits()[0].metaValueExists("xl_chain")) // XL-MS data
+              double ppm_error(0);
+
+              // Protein:RNA cross-link
+              if (pi[pi_idx].getHits()[0].metaValueExists("RNPxl:ppm difference"))
               {
-                vector<PeptideHit> xl_hits = pi[pi_idx].getHits();
-                theo_mass = xl_hits[0].getSequence().getMonoWeight();
-                if (xl_hits.size() > 1) // both peptide masses for cross-links
-                {
-                  theo_mass += xl_hits[1].getSequence().getMonoWeight();
-                }
-              } else // general case
-              {
-                theo_mass = ph.getSequence().getMonoWeight();
+                ppm_error = fabs((double)pi[pi_idx].getHits()[0].getMetaValue("RNPxl:ppm difference"));
               }
+              else
+              {
+                double exp_precursor = (*layer_->getPeakData())[i].getPrecursors()[0].getMZ();
+                int charge = (*layer_->getPeakData())[i].getPrecursors()[0].getCharge();
 
-              double theo_precursor= (theo_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
-              double ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
+                // different theoretical precursors for XL-MS and other data
+                double theo_mass = 0;
+                //vector<PeptideHit> xl_hits = pi[pi_idx].getHits();
+                if (pi[pi_idx].getHits()[0].metaValueExists("xl_chain")) // XL-MS data
+                {
+                  vector<PeptideHit> xl_hits = pi[pi_idx].getHits();
+                  theo_mass = xl_hits[0].getSequence().getMonoWeight();
+                  if (xl_hits.size() > 1) // both peptide masses for cross-links
+                  {
+                    theo_mass += xl_hits[1].getSequence().getMonoWeight();
+                  }
+                } else // general case
+                {
+                  theo_mass = ph.getSequence().getMonoWeight();
+                }
+
+                double theo_precursor= (theo_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
+                ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
+              }
+              //  add ppm entry
               addDoubleItemToBottomRow_(ppm_error, 15, c);
             }
 

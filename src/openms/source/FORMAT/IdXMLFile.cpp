@@ -1004,7 +1004,7 @@ namespace OpenMS
     String val;
     for (auto& a : annotations)
     {
-      val += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + a.annotation;
+      val += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
       if (&a != &annotations.back()) { val += "|"; }     
     }
     os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
@@ -1030,7 +1030,7 @@ namespace OpenMS
       fa.mz = fields[0].toDouble();
       fa.intensity = fields[1].toDouble();
       fa.charge = fields[2].toInt();
-      fa.annotation = fields[3];
+      fa.annotation = fields[3].unquote();
       annotations.push_back(fa);
     }
   }
