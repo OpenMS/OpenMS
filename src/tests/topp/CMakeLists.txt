@@ -712,6 +712,10 @@ add_test("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAna
 add_test("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 TMTTenPlexMethod_ouput.tmp -in2 ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.consensusXML )
 set_tests_properties("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1")
 
+add_test("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -ini ${DATA_DIR_TOPP}/TMTElevenPlexMethod_test.ini -out TMTElevenPlexMethod_ouput.tmp)
+add_test("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 TMTElevenPlexMethod_ouput.tmp -in2 ${DATA_DIR_TOPP}/TMTElevenPlexMethod_test.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1")
+
 #------------------------------------------------------------------------------
 # IDConflictResolver tests
 add_test("TOPP_IDConflictResolver_1" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_1_input.featureXML -out IDConflictResolver_1_output.tmp)
