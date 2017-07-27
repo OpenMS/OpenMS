@@ -42,6 +42,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
@@ -85,7 +86,7 @@ using namespace std;
 
   The input MSn spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
 
-  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex and 10-plex as labeling methods.
+  This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex, 10-plex, and 11-plex as labeling methods.
   It extracts the isobaric reporter ion intensities from centroided MS2 or MS3 data (MSn), then performs isotope correction and stores the resulting quantitation in a consensus map,
   in which each consensus feature represents one relevant MSn scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
   The MS level for quantification is chosen automatically, i.e. if MS3 is present, MS2 will be ignored.
@@ -97,7 +98,7 @@ using namespace std;
   Usually, Orbitraps deliver precision of about 0.0001 Th at this low mass range. Low intensity reporters might have a slightly higher deviation.
   By default, the mass range is set to ~0.002 Th, which should be sufficient for all instruments (~15 ppm).
   The tool will throw an Exception if you set it below 0.0001 Th (~0.7ppm).
-  The tool will also throw an Exception if you set @p reporter_mass_shift > 0.003 Th for TMT-10plex, since this could
+  The tool will also throw an Exception if you set @p reporter_mass_shift > 0.003 Th for TMT-10plex and TMT-11plex, since this could
   lead to ambiguities with neighbouring channels (which are ~0.006 Th apart in most cases).
   
   For quality control purposes, the tool reports the median distance between the theoretical vs. observed reporter ion peaks in each channel.
@@ -173,14 +174,17 @@ public:
     ItraqEightPlexQuantitationMethod* itraq8plex = new ItraqEightPlexQuantitationMethod();
     TMTSixPlexQuantitationMethod* tmt6plex = new TMTSixPlexQuantitationMethod();
     TMTTenPlexQuantitationMethod* tmt10plex = new TMTTenPlexQuantitationMethod();
+    TMTElevenPlexQuantitationMethod* tmt11plex = new TMTElevenPlexQuantitationMethod();
     quant_methods_[itraq4plex->getName()] = itraq4plex;
     quant_methods_[itraq8plex->getName()] = itraq8plex;
     quant_methods_[tmt6plex->getName()] = tmt6plex;
     quant_methods_[tmt10plex->getName()] = tmt10plex;
+    quant_methods_[tmt11plex->getName()] = tmt11plex;
     quant_method_names_[itraq4plex->getName()] = "iTRAQ 4-plex";
     quant_method_names_[itraq8plex->getName()] = "iTRAQ 8-plex";
     quant_method_names_[tmt6plex->getName()] = "TMT 6-plex";
     quant_method_names_[tmt10plex->getName()] = "TMT 10-plex";
+    quant_method_names_[tmt11plex->getName()] = "TMT 11-plex";
   }
 
   ~TOPPIsobaricAnalyzer()
