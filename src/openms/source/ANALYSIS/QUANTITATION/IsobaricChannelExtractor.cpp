@@ -53,6 +53,7 @@ namespace OpenMS
 
   // Maximum allowed search window for TMT-10 reporter ions. The channels are only 0.006 Th apart.
   // Allowing anything larger will result in wrong quantifications for empty channels.
+  // Also used for TMT_11PLEX
   double TMT_10PLEX_CHANNEL_TOLERANCE = 0.003; 
 
   /// small quality control class, holding temporary data for reporting
@@ -518,6 +519,7 @@ namespace OpenMS
     const double qc_dist_mz = 0.5; // fixed! Do not change!
 
     bool is_TMT10plex = (dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL);
+    bool is_TMT11plex = (dynamic_cast<const TMTElevenPlexQuantitationMethod*>(quant_method_) != NULL);
     PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
 
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
@@ -692,8 +694,8 @@ namespace OpenMS
       {
         // sort
         double median = Math::median(channel_mz_delta[cl_it->name].mz_deltas.begin(), channel_mz_delta[cl_it->name].mz_deltas.end(), false);
-        if (is_TMT10plex && 
-            (fabs(median) > TMT_10PLEX_CHANNEL_TOLERANCE) && 
+        if ( (is_TMT10plex || is_TMT11plex) &&
+            (fabs(median) > TMT_10PLEX_CHANNEL_TOLERANCE) &&
             (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
         { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
           LOG_INFO << "<invalid data (>" << TMT_10PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
