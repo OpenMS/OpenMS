@@ -34,17 +34,24 @@
 
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_H
+
+// defines required for kissfft
+#define kiss_fft_scalar double
 #define INVERSE true
+
 
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <kiss_fft.h>
+
+
 #include <utility>
 #include <deque>
 #include <vector>
 #include <set>
 #include <map>
+
 
 namespace OpenMS
 {
@@ -417,6 +424,7 @@ protected:
     void merge(Polynomial&, double);
     void dumpIDToFile(String file);
  protected:
+    double min_prob;
     EmpiricalFormula& formula_;
     double resolution_;
     UInt N;
@@ -440,7 +448,7 @@ protected:
     
     //Polynomial fgid;
     double fine_resolution;
-    double min_prob;
+
     double lighter_isotope;
     
     double mw_resolution;
@@ -461,11 +469,12 @@ protected:
  private:
     FFT_Spectrum input_, output_;
    
-    double formula_variance;
+    double cutoff_amplitude_factor_;
     double average_mass_;
     double resolution_;
-    double formula_sigma_;
+
     double delta_;
+    double mass_range_;
     //void (double);
     Stats formulaMeanAndVariance(double resolution = 1.0);
    

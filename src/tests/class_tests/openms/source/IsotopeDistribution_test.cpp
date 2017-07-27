@@ -705,7 +705,7 @@ END_SECTION
 delete iso;
 
 
-EmpiricalFormula f("C202H320N54O19S20");
+EmpiricalFormula f("C20");
 
 START_SECTION(MIDAs(double,EmpiricalFormula&))
 
@@ -713,10 +713,9 @@ START_SECTION(MIDAs(double,EmpiricalFormula&))
   //midas_pol->run();
   //delete midas_pol;
 
-  MIDAs *midas_fft = new MIDAsFFTID(f,1);
+  MIDAs *midas_fft = new MIDAsFFTID(f,0.01);
   midas_fft->run();
-  //midas_fft->dumpIDToFile("/tmp/MIDAS.raw");
-  //delete midas_fft;
+  delete midas_fft;
 
 END_SECTION
 
