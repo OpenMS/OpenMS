@@ -577,6 +577,7 @@ protected:
             //Create a new vector containing only spectra which correspond to this feature (makes the merging much cleaner)
             PeakMap selected_map;
             std::vector<MSSpectrum<Peak1D> > selected_spectra;
+            selected_spectra.reserve(nearest.size());//reserve enough elements so we dont have to reallocate
             for (set<Size>::iterator siter = nearest.begin(); siter != nearest.end(); ++siter)
             {
                 selected_spectra.push_back(spectra.getSpectra()[*siter]);

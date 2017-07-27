@@ -551,7 +551,7 @@ protected:
 
           // sanity check for number of peaks
           Size spec_a = consensus_spec.size(), spec_b = exp[*sit].size(), align_size = alignment.size();
-          for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
+          for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit) //This goes out of control when one peak in second aligns to two in first
           {
             // either add aligned peak height to existing peak
             if (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
@@ -563,18 +563,29 @@ protected:
               {
                   alignment.clear();  // end reached -> avoid going into this block again
               }
+            }else if (alignment[align_index].second<spec_b_index) {
+                LOG_INFO << "witchcraft at spectrum " << spec_b_index <<"\n";
             }
             else // ... or add unaligned peak
             {
               consensus_spec.push_back(*pit);
             }
-            ++spec_b_index;
+            if (alignment[align_index].second>spec_b_index && alignment[align_index+1].second>spec_b_index) //only increment spec_b_index if the next alignment twople.second isn't the same as this one (ie allow 1 to many mapping of second to first
+            {
+                ++spec_b_index;
+            }
+//            else
+//            {
+//                  LOG_INFO << "doublepeak at spectrum " << spec_b_index <<"\n";
+//            }
           }
           consensus_spec.sortByPosition(); // sort, otherwise next alignment will fail
           if (spec_a + spec_b - align_size != consensus_spec.size())
           {
-              //std::cerr << "\n\n ERRROR \n\n";
+
+               LOG_INFO << "wrong number of features after merge. Expected: " << spec_a + spec_b - align_size << " got: " << consensus_spec.size() << "\n";
           }
+          alignment.clear(); //not sure if necessary
         }
         rt_average /= it->second.size() + 1;
         consensus_spec.setRT(rt_average);
