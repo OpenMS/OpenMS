@@ -117,6 +117,7 @@ void TMTElevenPlexQuantitationMethod::setDefaultParams_()
                                                                       "0.0/0.0/0.0/0.0,"
                                                                       "0.0/0.0/0.0/0.0,"
                                                                       "0.0/0.0/0.0/0.0,"
+                                                                      "0.0/0.0/0.0/0.0,"
                                                                       "0.0/0.0/0.0/0.0"),
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
