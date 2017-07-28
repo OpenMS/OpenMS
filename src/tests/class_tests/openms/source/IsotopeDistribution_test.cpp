@@ -705,7 +705,7 @@ END_SECTION
 delete iso;
 
 
-EmpiricalFormula f("C20");
+EmpiricalFormula f("C200");
 
 START_SECTION(MIDAs(double,EmpiricalFormula&))
 
@@ -713,7 +713,7 @@ START_SECTION(MIDAs(double,EmpiricalFormula&))
   //midas_pol->run();
   //delete midas_pol;
 
-  MIDAs *midas_fft = new MIDAsFFTID(f,0.01);
+  MIDAs *midas_fft = new MIDAsFFTID(f,0.005);
   midas_fft->run();
   delete midas_fft;
 

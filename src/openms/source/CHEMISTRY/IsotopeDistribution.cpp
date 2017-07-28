@@ -819,20 +819,24 @@ namespace OpenMS
     MIDAs(formula, resolution, 15),
     cutoff_amplitude_factor_(2)
   {
-    UInt sample_size;
-    double sigma;
-    // do
-    // {
-      resolution_ = resolution;
-      sigma = formulaMeanAndVariance().variance;
-      mass_range_ = (N * sqrt(1 + sigma)) / resolution_;
-      LOG_INFO <<"Mass Range " << mass_range_ <<endl;
-      sample_size = pow(2, ceil(log2(mass_range_)));
+    UInt sample_size,k=0;
+    double sigma,used_resolution = resolution;
+    
+    sigma = formulaMeanAndVariance().variance;
+    mass_range_ = pow(2, ceil(log2(ceil(N * sqrt(1 + sigma)))));
+    do
+    {
+      resolution_ = resolution/pow(2,k);  
+      LOG_INFO << "Mass range " << mass_range_ << endl;
+      sample_size = pow(2, ceil(log2(mass_range_ / resolution_)));
       delta_ = 1.0 / sample_size;
-      //resolution_ = mass_range / sample_size;
-      average_mass_ = formulaMeanAndVariance(resolution_).mean/resolution_;
-    // }while(resolution_ < resolution);
-
+      resolution_ = mass_range_/sample_size;
+      LOG_INFO << "-Resolution " << resolution << endl;
+      k++;
+    }while(resolution_ > resolution);
+    
+    average_mass_ = round(formulaMeanAndVariance(resolution_).mean)/resolution_;
+    LOG_INFO <<"Mass Range " << mass_range_ <<endl;
 
     fft_complex s = {0,0};
     input_.resize(sample_size, s);
@@ -848,10 +852,11 @@ namespace OpenMS
   {
 
     LOG_INFO <<"Average mass "<< average_mass_ <<endl;
+    LOG_INFO << "Resolution " << resolution_ << endl;
     UInt k = 0;
     for(auto& sample : input_)
     {
-      Int j = ++k > input_.size() / 2?  k - input_.size() : k;
+      Int j = k > input_.size() / 2?  k++ - input_.size() : k++;
       
       double phi = 0, angle = 0, radius = 1, freq = j * delta_;
       double phase = (2 * Constants::PI * average_mass_ * freq);
@@ -867,12 +872,20 @@ namespace OpenMS
         {
           auto mass = round(iso.first / resolution_);
           auto& prob = iso.second;
+          if(!(prob > 0))
+          {
+            continue;
+          }
           phi = 2 * Constants::PI * mass * freq;
           sample.r += prob * cos(phi);
           sample.i += prob * sin(phi);
+          
         }
+        //LOG_INFO<<"x,y " << sample.r << " " <<sample.i << endl;
         radius *= pow(hypot(sample.r, sample.i), atoms);
         angle += atoms * atan2(sample.i, sample.r);
+        //LOG_INFO<<"radius,angle " << radius << " " << angle << endl;
+        
       }
       
       //After looping assign the value
@@ -880,77 +893,15 @@ namespace OpenMS
       //LOG_INFO << " radius " << radius << " angle "<< angle << endl;
       sample.r = radius * cos(angle - phase);
       sample.i = radius * sin(angle - phase);
+      //LOG_INFO << sample.r << " " << sample.i << endl;
     }
 
-    input_[0].r = input_[0].i = 0;
+    //input_[0].r = input_[0].i = 0;
     LOG_INFO << "End of initialization" << endl;
     
   }
 
-void  four1(double *Data, int nn, int isign)
-{
-   unsigned long i, j, m, n, mmax, istep;
-   double wr, wpr, wpi, wi, theta;
-   double wtemp, tempr, tempi;
-   double one_pi = acos(-1);
-   double two_pi= 2*one_pi;
-  
-   /* Perform bit reversal of Data[] */
-   n = nn << 1;
-   j=1;
-   for (i=1; i<n; i+=2)
-     {
-       if (j > i)
-	 {
-	   wtemp = Data[i];
-	   Data[i] = Data[j];
-	   Data[j] = wtemp;
-	   wtemp = Data[i+1];
-	   Data[i+1] = Data[j+1];
-	   Data[j+1] = wtemp;
-	 }
-       m = n >> 1;
-       while (m >= 2 && j > m)
-	 {
-	   j -= m;
-	   m >>= 1;
-	 }
-       j += m;
-     }
- 
-   /* Perform Danielson-Lanczos section of FFT */
-    n = nn << 1;
-    mmax = 2;
-    while (n > mmax)  /* Loop executed log(2)nn times */
-      {
-	istep = mmax << 1;
-	theta = isign * (two_pi/mmax);  
-	wtemp = sin(0.5*theta);
-	wpr = -2.0*wtemp*wtemp;
-	wpi = sin(theta);
-	wr = 1.0;
-	wi = 0.0;
-	for (m=1; m<mmax; m+=2)
-	  {
-	    for (i=m; i<=n; i+=istep)
-	      {
-		j = i+mmax;                      
 
-		tempr = wr*Data[j]-wi*Data[j+1];
-		tempi = wr*Data[j+1]+wi*Data[j];
-		Data[j] = Data[i]-tempr;
-		Data[j+1] = Data[i+1]-tempi;
-		Data[i] += tempr;
-		Data[i+1] += tempi;
-	      }
-	    wr = (wtemp=wr)*wpr-wi*wpi+wr;
-	    wi = wi*wpr+wtemp*wpi+wi;
-	  }
-	mmax = istep;
-      }
-
-   
-}
 
   void MIDAsFFTID::run()
   {
@@ -960,36 +911,19 @@ void  four1(double *Data, int nn, int isign)
     kiss_fft_cleanup();
 
     output_.resize(output_.size()/2);
-    
-    double *test_buf = new double [input_.size()*2];
-    UInt c = 1;
-    for(auto& sample : input_)
-    {
-      if(2*c >= input_.size()*2)
-        continue;
-      test_buf[2*c-1] = sample.r;
-      test_buf[2*c] = sample.i;
-      c++;
-    }
-    four1(test_buf, input_.size(), -1);
-    
 
     LOG_INFO << "IFFT done " <<" Sample size: "<< output_.size() <<endl;
     
     double min_prob = -cutoff_amplitude_factor_ * 
                        min_element(output_.begin(), output_.end(), 
-                                   [](const fft_complex& item1, const fft_complex& item2 ){
+                                   [](const fft_complex& item1, const fft_complex& item2 )
+                                   {
                                      return item1.r < item2.r;
                                    })->r;
     
     for(auto& sample : output_)
     {
       LOG_INFO << sample.r << " "<< sample.i << endl; 
-    }
-
-    for(UInt i = 1; i < input_.size()/2; i++)
-    {
-      LOG_INFO << "MIDAS fourier " << test_buf[2*i-1] <<" "<< test_buf[2*i]<<endl;
     }
 
     // double avg_prob= 0;
@@ -1010,12 +944,12 @@ void  four1(double *Data, int nn, int isign)
 
     Stats coarse(formulaMeanAndVariance()), fine(formulaMeanAndVariance(resolution_));
     double ratio = coarse.variance/fine.variance;
-
+    LOG_INFO << "Delta " << delta_ <<endl;
     LOG_INFO << "Coarse mean: " << coarse.mean << ", Coarse variance: " << coarse.variance << endl;
     LOG_INFO << "Fine mean: " << fine.mean << ", fine variance: " << coarse.variance << endl;
     LOG_INFO << "Probability cutoff: " << min_prob << " Ratio: " << ratio <<endl;
     
-    UInt k = 0;
+    Int k = 0;
     //unsigned int average_mass = ceil(fine.mean);
     Polynomial pol;
     double p_sum = 0;
@@ -1024,18 +958,15 @@ void  four1(double *Data, int nn, int isign)
     {
       PMember member;
       member.probability = sample.r;
-      Int j = ++k; //> output_.size()/2 ?  k - output_.size() : k;
+      Int j = k > output_.size()/2 ?  k++ - output_.size() : k++;
       
-      if( 1==1 || member.probability > min_prob)
+      if(member.probability > min_prob)
       {
       
         p_sum += member.probability;
         member.power = ratio*
-                       ((output_.size()/2 + j) * resolution_ + 
-                        average_mass_ - coarse.mean) + fine.mean;
+                       ( (j*delta_  + average_mass_) * resolution_ - coarse.mean) + fine.mean;
         
-        //member.power = (average_mass_ - (mass_range_/2) + (j*delta_*2))*resolution_;
-
         pol.push_back(member);
         LOG_INFO << member.power << " " << member.probability << endl;
       }
