@@ -264,13 +264,12 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
 
 void MapAlignmentAlgorithmKD::updateMembers_()
 {
+  if (param_ == Param()) return;
+
   rt_tol_secs_ = (double)(param_.getValue("warp:rt_tol"));
   mz_tol_ = (double)(param_.getValue("warp:mz_tol"));
   mz_ppm_ = (param_.getValue("mz_unit").toString() == "ppm");
-  if (param_.exists("warp:max_pairwise_log_fc"))
-  {
-    max_pairwise_log_fc_ = param_.getValue("warp:max_pairwise_log_fc");
-  }
+  max_pairwise_log_fc_ = param_.getValue("warp:max_pairwise_log_fc");
 }
 
 }
