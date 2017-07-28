@@ -1299,6 +1299,38 @@ namespace OpenMS
       {
         if (result->text() == "Delete")
         {
+          // Remove peak annotation also from fragment annotations
+          Annotation1DPeakItem * pa = dynamic_cast<Annotation1DPeakItem *>(annot_item);
+          if (pa != nullptr)
+          {
+            // check if present in current fragment annotation vector and also delete from there
+            MSSpectrum<> & spectrum = getCurrentLayer_().getCurrentSpectrum();
+
+            // store user fragment annotations
+            vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();
+
+            if (!pep_id.empty())
+            {
+              // TODO: pass PeptideIdentification index to deactivate1DSpectrum (e.g., by storing in LayerData)
+              vector<PeptideHit>& hits = pep_id[0].getHits();
+
+              // TODO: pass PeptideHit index to deactivate1DSpectrum (e.g., by storing in LayerData)
+              if (!hits.empty())
+              {
+                PeptideHit& hit = hits[0];
+
+                vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();         
+
+                // erase fragment annotations that match the visual peak annotation
+                fas.erase(std::remove_if(fas.begin(), fas.end(),
+                  [pa](const PeptideHit::PeakAnnotation& p) 
+                  { 
+                   return (fabs(p.mz - pa->getPeakPosition()[0]) < 1e-6); 
+                  }), fas.end());
+                hit.setPeakAnnotations(fas);
+              }
+            }
+          }
           annots_1d.removeSelectedItems();
         }
         else if (result->text() == "Edit")

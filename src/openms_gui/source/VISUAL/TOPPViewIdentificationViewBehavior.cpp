@@ -177,7 +177,9 @@ namespace OpenMS
 
       const double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
       DPosition<2> position = DPosition<2>(it->mz, peak_int);
-      String annotation = it->annotation + "+" + it->charge;
+      String annotation = it->annotation;
+      if (it->charge > 0) { annotation += "+" + it->charge; }
+
       Annotation1DItem * item;
       if (annotation.hasSubstring("|ci$"))
       {
@@ -901,6 +903,13 @@ namespace OpenMS
           if (annotations_changed) { hit.setPeakAnnotations(fas); }
         } 
       }
+
+      // remove all graphical peak annotations as these will be recreated from the stored peak annotations
+      Annotations1DContainer & las = current_layer.getAnnotations(spectrum_index);
+      auto new_end = std::remove_if(las.begin(), las.end(),
+                              [](const Annotation1DItem* a)
+                              { return dynamic_cast<const Annotation1DPeakItem*>(a) != nullptr; });
+      las.erase(new_end, las.end());
 
       removeTheoreticalSpectrumLayer_();    
     }
