@@ -54,7 +54,7 @@ namespace OpenMS
   // Maximum allowed search window for TMT-10 reporter ions. The channels are only 0.006 Th apart.
   // Allowing anything larger will result in wrong quantifications for empty channels.
   // Also used for TMT_11PLEX
-  double TMT_10PLEX_CHANNEL_TOLERANCE = 0.003; 
+  double TMT_10AND11PLEX_CHANNEL_TOLERANCE = 0.003;
 
   /// small quality control class, holding temporary data for reporting
   struct ChannelQC
@@ -216,7 +216,7 @@ namespace OpenMS
 
     /* check for sensible parameters */
     if (((dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL) || (dynamic_cast<const TMTElevenPlexQuantitationMethod*>(quant_method_) != NULL))
-        && reporter_mass_shift_ > TMT_10PLEX_CHANNEL_TOLERANCE)
+        && reporter_mass_shift_ > TMT_10AND11PLEX_CHANNEL_TOLERANCE)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Both TMT-10plex and TMT-11plex require reporter mass shifts <= 0.003 to avoid channel ambiguity!");
     }
@@ -695,10 +695,10 @@ namespace OpenMS
         // sort
         double median = Math::median(channel_mz_delta[cl_it->name].mz_deltas.begin(), channel_mz_delta[cl_it->name].mz_deltas.end(), false);
         if ( (is_TMT10plex || is_TMT11plex) &&
-            (fabs(median) > TMT_10PLEX_CHANNEL_TOLERANCE) &&
+            (fabs(median) > TMT_10AND11PLEX_CHANNEL_TOLERANCE) &&
             (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
         { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
-          LOG_INFO << "<invalid data (>" << TMT_10PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
+          LOG_INFO << "<invalid data (>" << TMT_10AND11PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
         }
         else
         {
