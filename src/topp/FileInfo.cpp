@@ -60,8 +60,6 @@
 
 #include <QtCore/QString>
 
-
-
 using namespace OpenMS;
 using namespace std;
 
@@ -657,7 +655,10 @@ protected:
           proteins.insert(temp_hits[j].getAccession());
         }
       }
-      if (peptide_length.empty()) peptide_length.push_back(0); // avoid invalid-range exception when computing mean()
+      if (peptide_length.empty())
+      { // avoid invalid-range exception when computing mean()
+        peptide_length.push_back(0); 
+      }
 
       os << "Number of:"
          << "\n";
