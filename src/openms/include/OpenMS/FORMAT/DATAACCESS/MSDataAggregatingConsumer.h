@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,11 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+
 namespace OpenMS
 {
 
@@ -45,26 +50,23 @@ namespace OpenMS
 
     */
     class OPENMS_DLLAPI MSDataAggregatingConsumer :
-      public Interfaces::IMSDataConsumer<>
+      public Interfaces::IMSDataConsumer
     {
 
-      Interfaces::IMSDataConsumer<>* next_consumer_;
+      Interfaces::IMSDataConsumer* next_consumer_;
       double previous_rt_;
       bool rt_initialized_;
       SpectrumType s_tmp;
       std::vector<SpectrumType> s_list;
 
     public:
-      typedef MSExperiment<> MapType;
-      typedef MapType::SpectrumType SpectrumType;
-      typedef MapType::ChromatogramType ChromatogramType;
 
       /**
         @brief Constructor
 
         @note This does not transfer ownership of the consumer
       */
-      MSDataAggregatingConsumer(Interfaces::IMSDataConsumer<>* next_consumer) :
+      MSDataAggregatingConsumer(Interfaces::IMSDataConsumer* next_consumer) :
         next_consumer_(next_consumer),
         previous_rt_(0.0),
         rt_initialized_(false)

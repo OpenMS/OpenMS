@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Petra Gutenbrunner $
+// $Maintainer: Petra Gutenbrunner, Oliver Alka $
 // $Authors: Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -134,7 +135,7 @@ protected:
 
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    
+
     registerInputFile_("executable", "<file>", "luciphor2.jar", "LuciPHOr2 .jar file, e.g. 'c:\\program files\\luciphor2.jar'", true, false, ListUtils::create<String>("skipexists"));
 
     registerStringOption_("fragment_method", "<choice>", fragment_methods_[0], "Fragmentation method", false);
@@ -513,9 +514,20 @@ protected:
     
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(id);
-    
+
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
+
+    PeakMap exp;
+    MzMLFile file;
+    file.setLogType(log_type_);
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+
+    file.load(in, exp);
+    exp.sortSpectra(true);
+
     // convert input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
@@ -523,8 +535,8 @@ protected:
       IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
       
       // create a temporary pepXML file for LuciPHOR2 input
-      String in_file_name = File::removeExtension(File::basename(id));
-      id = temp_dir + in_file_name + ".pepXML";
+      String id_file_name = File::removeExtension(File::basename(id));
+      id = temp_dir + id_file_name + ".pepXML";
       
       PepXMLFile().store(id, prot_ids, pep_ids, in, "", false);
     }
@@ -586,18 +598,7 @@ protected:
       writeLog_("Fatal error: Running LuciPHOr2 returned an error code. Does the LuciPHOr2 executable (.jar file) exist?");
       return EXTERNAL_PROGRAM_ERROR;
     }
-    
-    MSExperiment<> exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
 
-    PeakFileOptions options;
-    options.clearMSLevels();
-    options.addMSLevel(2);
-    f.getOptions() = options;
-    f.load(in, exp);
-    exp.sortSpectra(true);
-    
     SpectrumLookup lookup;
     lookup.rt_tolerance = 0.05;
     lookup.readSpectra(exp.getSpectra());
@@ -673,7 +674,7 @@ protected:
     IdXMLFile().store(out, prot_ids, pep_out);
 
     removeTempDir_(temp_dir);
-    
+
     return EXECUTION_OK;
   }
 };

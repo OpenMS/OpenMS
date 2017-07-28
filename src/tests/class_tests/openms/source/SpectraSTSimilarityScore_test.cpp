@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -84,7 +84,7 @@ START_SECTION(SpectraSTSimilarityScore& operator = (const SpectraSTSimilaritySco
 END_SECTION
 
 START_SECTION(double operator () (const PeakSpectrum& spec) const)
-	RichPeakMap exp;
+	PeakMap exp;
 	PeakSpectrum s1;
 	MSPFile msp;
 	std::vector< PeptideIdentification > ids;
@@ -104,7 +104,7 @@ END_SECTION
 
 START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
   PeakSpectrum s1, s2, s3;
-	RichPeakMap exp;
+	PeakMap exp;
 	MSPFile msp;
 	std::vector< PeptideIdentification > ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
@@ -144,7 +144,7 @@ END_SECTION
 
 START_SECTION((double operator()(const BinnedSpectrum &bin1, const BinnedSpectrum &bin2) const))
   PeakSpectrum s1, s2, s3;
-	RichPeakMap exp;
+	PeakMap exp;
 	MSPFile msp;
 	std::vector< PeptideIdentification > ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));
@@ -184,7 +184,7 @@ END_SECTION
 
 START_SECTION(bool preprocess(PeakSpectrum &spec, float remove_peak_intensity_threshold=2.01, UInt cut_peaks_below=1000, Size min_peak_number=5, Size max_peak_number=150))
 	PeakSpectrum s1, s2, s3;
-	RichPeakMap exp;
+	PeakMap exp;
 	MSPFile msp;
 	std::vector< PeptideIdentification > ids;
   const String filename(OPENMS_GET_TEST_DATA_PATH("SpectraSTSimilarityScore_1.msp"));

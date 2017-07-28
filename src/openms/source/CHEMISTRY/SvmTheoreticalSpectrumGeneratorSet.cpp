@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ namespace OpenMS
   }
 
   // Generate the MS/MS according to the given probabilistic model
-  void SvmTheoreticalSpectrumGeneratorSet::simulate(RichPeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
+  void SvmTheoreticalSpectrumGeneratorSet::simulate(PeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
   {
     std::map<Size, SvmTheoreticalSpectrumGenerator>::iterator it = simulators_.find(precursor_charge);
     if (it != simulators_.end())

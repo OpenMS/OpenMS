@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,7 +62,7 @@ namespace OpenMS
     return tmp;
   }
 
-  void FeatureFinder::run(const String& algorithm_name, MSExperiment<>& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
+  void FeatureFinder::run(const String& algorithm_name, PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
   {
     // Nothing to do if there is no data
     if ((algorithm_name != "mrm" && input_map.empty()) || (algorithm_name == "mrm" && input_map.getChromatograms().empty()))

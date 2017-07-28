@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,11 @@
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
@@ -326,7 +327,9 @@ protected:
       meta_data.description = MzTabString("Export from featureXML");
 
       MzTabMSRunMetaData ms_run;
-      ms_run.location = feature_map.getPrimaryMSRunPath().empty() ? MzTabString("null") : MzTabString(feature_map.getPrimaryMSRunPath()[0]);
+      StringList spectra_data;
+      feature_map.getPrimaryMSRunPath(spectra_data);
+      ms_run.location = spectra_data.empty() ? MzTabString("null") : MzTabString(spectra_data[0]);
       meta_data.ms_run[1] = ms_run;
       meta_data.uri[1] = MzTabString(filename);
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO: we currently only support psm search engine scores annotated to the identification run
@@ -396,7 +399,7 @@ protected:
         // create and fill opt_ columns for feature (peptide) user values
         addMetaInfoToOptionalColumns(feature_user_value_keys, row.opt_, String("global"), f);
 
-        vector<PeptideIdentification> pep_ids = f.getPeptideIdentifications();
+        const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
         if (pep_ids.empty())
         {
           rows.push_back(row);
@@ -427,7 +430,7 @@ protected:
 
         row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
 
-        const set<String>& accessions = best_ph.extractProteinAccessions();
+        const set<String>& accessions = best_ph.extractProteinAccessionsSet();
         const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
 
         row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
@@ -498,7 +501,9 @@ protected:
           const std::vector<ProteinHit> protein_hits = it->getHits();
 
           MzTabMSRunMetaData ms_run;
-          ms_run.location = it->getPrimaryMSRunPath().empty() ? MzTabString("null") : MzTabString(it->getPrimaryMSRunPath()[0]);
+          StringList ms_run_in_data;
+          it->getPrimaryMSRunPath(ms_run_in_data);
+          ms_run.location = ms_run_in_data.empty() ? MzTabString("null") : MzTabString(ms_run_in_data[0]);
           // TODO: add processing information that this file has been exported from "filename"
           meta_data.ms_run[current_run_index] = ms_run;
 
@@ -686,7 +691,7 @@ protected:
 
         // TODO Think about if the uniqueness can be determined by # of peptide evidences
         // b/c this would only differ when evidences come from different DBs
-        const set<String>& accessions = best_ph.extractProteinAccessions();
+        const set<String>& accessions = best_ph.extractProteinAccessionsSet();
         row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
 
         // create row for every PeptideEvidence entry (mapping to a protein)
@@ -798,7 +803,8 @@ protected:
       meta_data.peptide_search_engine_score[1] = MzTabParameter();
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
       MzTabMSRunMetaData ms_run;
-      StringList ms_runs = consensus_map.getPrimaryMSRunPath();
+      StringList ms_runs;
+      consensus_map.getPrimaryMSRunPath(ms_runs);
       for (Size i = 0; i != ms_runs.size(); ++i)
       {
         ms_run.location = MzTabString(ms_runs[i]);
@@ -807,7 +813,7 @@ protected:
 
       mztab.setMetaData(meta_data);
 
-      // pre-analyze data for occuring meta values at consensus feature and peptide hit level
+      // pre-analyze data for occurring meta values at consensus feature and peptide hit level
       // these are used to build optional columns containing the meta values in internal data structures
       set<String> consensus_feature_user_value_keys;
       set<String> peptide_hit_user_value_keys;
@@ -913,7 +919,7 @@ protected:
 
           row.modifications = extractModificationListFromAASequence(aas, fixed_mods);
 
-          const set<String>& accessions = best_ph.extractProteinAccessions();
+          const set<String>& accessions = best_ph.extractProteinAccessionsSet();
           const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
 
           row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);

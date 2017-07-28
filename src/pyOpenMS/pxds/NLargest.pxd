@@ -16,5 +16,5 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NLargest.h>" namespace "OpenMS"
 
         void filterSpectrum(MSSpectrum[Peak1D] & spec) nogil except +
         void filterPeakSpectrum(MSSpectrum[Peak1D] & spec) nogil except +
-        void filterPeakMap(MSExperiment[Peak1D, ChromatogramPeak] & exp) nogil except +
+        void filterPeakMap(MSExperiment & exp) nogil except +
 

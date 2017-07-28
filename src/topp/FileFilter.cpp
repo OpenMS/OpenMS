@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -210,7 +210,7 @@ private:
           }
 
           //loop over all accessions of the peptideHits
-          set<String> protein_accessions = pep_hit_it->extractProteinAccessions();
+          set<String> protein_accessions = pep_hit_it->extractProteinAccessionsSet();
           for (set<String>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
           {
             //loop over all accessions entries of the StringList
@@ -242,7 +242,7 @@ private:
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
 
   void registerOptionsAndFlags_()
   {
@@ -282,13 +282,16 @@ protected:
     registerStringOption_("peak_options:indexed_file", "true or false", "false", "Whether to add an index to the file when writing", false);
     setValidStrings_("peak_options:indexed_file", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("peak_options:zlib_compression", "true or false", "false", "Whether to store data with zlib compression (lossless compression)", false);
+    setValidStrings_("peak_options:zlib_compression", ListUtils::create<String>("true,false"));
+
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
     setValidStrings_("peak_options:numpress:masstime", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
-    registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (set to 0.5 for pic)", false);
+    registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (default 10 ppm at 100 m/z; set to 0.5 for pic or negative to disable check and speed up conversion)", false);
     registerStringOption_("peak_options:numpress:intensity", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in intensity dimension (recommended: slof or pic)", false);
     setValidStrings_("peak_options:numpress:intensity", MSNumpressCoder::NamesOfNumpressCompression, (int)MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION);
-    registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic)", false);
+    registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic or negative to disable check and speed up conversion)", false);
 
     registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties");
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
@@ -483,6 +486,10 @@ protected:
     bool indexed_file;
     if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true; }
     else {indexed_file = false; }
+    bool zlib_compression;
+    if (getStringOption_("peak_options:zlib_compression") == "true") {zlib_compression = true; }
+    else {zlib_compression = false; }
+
 
     MSNumpressCoder::NumpressConfig npconfig_mz;
     MSNumpressCoder::NumpressConfig npconfig_int;
@@ -492,7 +499,10 @@ protected:
     npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
     npconfig_mz.setCompression(getStringOption_("peak_options:numpress:masstime"));
     npconfig_int.setCompression(getStringOption_("peak_options:numpress:intensity"));
-    
+    if (getStringOption_("peak_options:numpress:masstime") == "linear")
+    {
+      npconfig_mz.linear_fp_mass_acc = getDoubleOption_("peak_options:numpress:masstime_error"); // set the desired mass accuracy
+    }
 
     //id-filtering parameters
     bool remove_annotated_features = getFlag_("id:remove_annotated_features");
@@ -575,6 +585,7 @@ protected:
 
       // set writing index (e.g. indexedmzML)
       f.getOptions().setWriteIndex(indexed_file);
+      f.getOptions().setCompression(zlib_compression);
       // numpress compression
       f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
       f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
@@ -718,24 +729,24 @@ protected:
       if (remove_collision_l != -1 * numeric_limits<double>::max() || remove_collision_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Removing collision energy scans in the range: ") + remove_collision_l + ":" + remove_collision_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(remove_collision_l, remove_collision_u)), exp.end());
       }
       if (select_collision_l != -1 * numeric_limits<double>::max() || select_collision_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Selecting collision energy scans in the range: ") + select_collision_l + ":" + select_collision_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<MSExperiment<>::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInCollisionEnergyRange<PeakMap::SpectrumType>(select_collision_l, select_collision_u, true)), exp.end());
       }
 
       //remove based on isolation window size
       if (remove_isolation_width_l != -1 * numeric_limits<double>::max() || remove_isolation_width_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Removing isolation windows with width in the range: ") + remove_isolation_width_l + ":" + remove_isolation_width_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(remove_isolation_width_l, remove_isolation_width_u)), exp.end());
       }
       if (select_isolation_width_l != -1 * numeric_limits<double>::max() || select_isolation_width_u != numeric_limits<double>::max())
       {
         writeDebug_(String("Selecting isolation windows with width in the range: ") + select_isolation_width_l + ":" + select_isolation_width_u, 3);
-        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<MSExperiment<>::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
       }
 
       //remove empty scans
@@ -1128,7 +1139,7 @@ protected:
     }
 
 
-    MSExperiment<> exp2 = exp;
+    PeakMap exp2 = exp;
     exp2.clear(false);
 
     for (Size i = 0; i != exp.size(); ++i)
@@ -1200,7 +1211,7 @@ protected:
     }
 
     // create new experiment
-    MSExperiment<> exp2 = exp; // copy meta data
+    PeakMap exp2 = exp; // copy meta data
     exp2.clear(false); // clear spectra
 
     for (Size i = 0; i != exp.size(); ++i)

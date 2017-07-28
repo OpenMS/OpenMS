@@ -15,6 +15,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>" namesp
     cdef cppclass IMSAlphabet "OpenMS::ims::IMSAlphabet":
         IMSAlphabet() nogil except +
         IMSAlphabet(IMSAlphabet) nogil except +
+
         element_type  getElement(name_type & name) nogil except +
         name_type  getName(size_type index) nogil except +
         mass_type getMass(name_type & name) nogil except +

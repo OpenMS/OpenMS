@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -250,7 +250,7 @@ START_SECTION((template < typename TransitionExpT > static void return_chromatog
   TargetedExperiment transitions;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions);
 
-  boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+  boost::shared_ptr<PeakMap > exp(new PeakMap);
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), *exp);
   OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 

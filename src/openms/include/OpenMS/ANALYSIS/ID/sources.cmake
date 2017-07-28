@@ -24,6 +24,8 @@ MetaboliteSpectralMatching.h
 PeptideProteinResolution.h
 ProtonDistributionModel.h
 PeptideIndexing.h
+PercolatorFeatureSetHelper.h
+SiriusMSConverter.h
 )
 
 ### add path to the filenames

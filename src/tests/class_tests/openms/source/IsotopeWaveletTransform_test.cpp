@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@ using namespace std;
 
 START_TEST(IsotopeWaveletTransform, "$Id$")
 
-MSExperiment<> map;
+PeakMap map;
 MzDataFile file; file.load (OPENMS_GET_TEST_DATA_PATH("IsotopeWaveletTransform_test.mzData"), map);
 map.updateRanges();
 IsotopeWaveletTransform<Peak1D>* iw = 0;

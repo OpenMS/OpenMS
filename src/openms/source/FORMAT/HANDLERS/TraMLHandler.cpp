@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -875,7 +875,7 @@ namespace OpenMS
 
           // Output transition type (only write if non-default, otherwise assume default)
           // Default is: true, false, true
-          // NOTE: do not change that, the same default is implicitely assumed in ReactionMonitoringTransition
+          // NOTE: do not change that, the same default is implicitly assumed in ReactionMonitoringTransition
           if (!it->isDetectingTransition())
           {
               os << "      <userParam name=\"detecting_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";

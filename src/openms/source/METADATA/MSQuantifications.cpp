@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -184,7 +184,7 @@ namespace OpenMS
     }
   }
 
-  void MSQuantifications::registerExperiment(MSExperiment<Peak1D> & exp, std::vector<std::vector<std::pair<String, double> > > label)
+  void MSQuantifications::registerExperiment(PeakMap & exp, std::vector<std::vector<std::pair<String, double> > > label)
   {
     for (std::vector<std::vector<std::pair<String, double> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
     {

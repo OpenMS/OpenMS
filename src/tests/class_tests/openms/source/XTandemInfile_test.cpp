@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,13 +37,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/XTandemInfile.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-
-#include <vector>
 
 ///////////////////////////
 
@@ -55,15 +49,8 @@ START_TEST(XTandemInfile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-XTandemInfile xml_file;
 XTandemInfile* ptr;
 XTandemInfile* nullPointer = 0;
-ProteinIdentification protein_identification;
-vector<PeptideIdentification> peptide_identifications;
-vector<PeptideIdentification> peptide_identifications2;
-String date_string_1;
-String date_string_2;
-PeptideHit peptide_hit;
 
 START_SECTION((XTandemInfile()))
 	ptr = new XTandemInfile();
@@ -74,235 +61,174 @@ START_SECTION(~XTandemInfile())
 	delete ptr;
 END_SECTION
 
-ptr = new XTandemInfile();
+XTandemInfile xml_file;
 
 START_SECTION(void setFragmentMassTolerance(double tolerance))
-	ptr->setFragmentMassTolerance(13.0);
-	TEST_REAL_SIMILAR(ptr->getFragmentMassTolerance(), 13.0)
+	xml_file.setFragmentMassTolerance(13.0);
+	TEST_REAL_SIMILAR(xml_file.getFragmentMassTolerance(), 13.0)
 END_SECTION
 
 START_SECTION(double getFragmentMassTolerance() const)
-  // will be filled by load -> see load test
-  NOT_TESTABLE
+  NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setPrecursorMassTolerancePlus(double tol))
-	ptr->setPrecursorMassTolerancePlus(14.0);
-	TEST_REAL_SIMILAR(ptr->getPrecursorMassTolerancePlus(), 14.0)
+	xml_file.setPrecursorMassTolerancePlus(14.0);
+	TEST_REAL_SIMILAR(xml_file.getPrecursorMassTolerancePlus(), 14.0)
 END_SECTION
 
 START_SECTION(double getPrecursorMassTolerancePlus() const)
-  // will be filled by load -> see load test
-  NOT_TESTABLE
+  NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setPrecursorMassToleranceMinus(double tol))
-	ptr->setPrecursorMassToleranceMinus(15.0);
-	TEST_REAL_SIMILAR(ptr->getPrecursorMassToleranceMinus(), 15.0)
+	xml_file.setPrecursorMassToleranceMinus(15.0);
+	TEST_REAL_SIMILAR(xml_file.getPrecursorMassToleranceMinus(), 15.0)
 END_SECTION
 
 START_SECTION(double getPrecursorMassToleranceMinus() const)
-  // will be filled by load -> see load test
-  NOT_TESTABLE
+  NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setPrecursorMassErrorUnit(ErrorUnit unit))
-	ptr->setPrecursorMassErrorUnit(XTandemInfile::DALTONS);
-	TEST_EQUAL(ptr->getPrecursorMassErrorUnit(), XTandemInfile::DALTONS)
-	ptr->setPrecursorMassErrorUnit(XTandemInfile::PPM);
-	TEST_EQUAL(ptr->getPrecursorMassErrorUnit(), XTandemInfile::PPM)
+	xml_file.setPrecursorMassErrorUnit(XTandemInfile::DALTONS);
+	TEST_EQUAL(xml_file.getPrecursorMassErrorUnit(), XTandemInfile::DALTONS)
+	xml_file.setPrecursorMassErrorUnit(XTandemInfile::PPM);
+	TEST_EQUAL(xml_file.getPrecursorMassErrorUnit(), XTandemInfile::PPM)
 END_SECTION
 
 START_SECTION(ErrorUnit getPrecursorMassErrorUnit() const)
-	NOT_TESTABLE
+	NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setNumberOfThreads(UInt threads))
-	ptr->setNumberOfThreads(16);
-	TEST_EQUAL(ptr->getNumberOfThreads(), 16)
+	xml_file.setNumberOfThreads(16);
+	TEST_EQUAL(xml_file.getNumberOfThreads(), 16)
 END_SECTION
 
 START_SECTION(UInt getNumberOfThreads() const)
-  // will be filled by load -> see load test
-  NOT_TESTABLE
+  NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setModifications(const ModificationDefinitionsSet &mods))
+START_SECTION(void setModifications(const ModificationDefinitionsSet& mods))
 	ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M)"), ListUtils::create<String>("Carboxymethyl (C)"));
-	ptr->setModifications(sets);
-	TEST_EQUAL(ptr->getModifications() == sets, true)
+	xml_file.setModifications(sets);
+	TEST_EQUAL(xml_file.getModifications() == sets, true)
 END_SECTION
 
-START_SECTION(void setOutputFilename(const String &output))
-	ptr->setOutputFilename("blubb_new_outputfilename");
-	TEST_STRING_EQUAL(ptr->getOutputFilename(), "blubb_new_outputfilename")
+START_SECTION(const ModificationDefinitionsSet& getModifications() const)
+  NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION(void setOutputFilename(const String& output))
+	xml_file.setOutputFilename("blubb_new_outputfilename");
+	TEST_STRING_EQUAL(xml_file.getOutputFilename(), "blubb_new_outputfilename")
 END_SECTION
 
 START_SECTION(const String& getOutputFilename() const)
-  // will be filled by load -> see load test
-	NOT_TESTABLE
+  NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setInputFilename(const String &input_file))
-	ptr->setInputFilename("blubb_new_inputfilename");
-	TEST_STRING_EQUAL(ptr->getInputFilename(), "blubb_new_inputfilename")
+START_SECTION(void setInputFilename(const String& input_file))
+	xml_file.setInputFilename("blubb_new_inputfilename");
+	TEST_STRING_EQUAL(xml_file.getInputFilename(), "blubb_new_inputfilename")
 END_SECTION
 
 START_SECTION(const String& getInputFilename() const)
-  // will be filled by load -> see load test
-	NOT_TESTABLE
+	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setTaxonomyFilename(const String &filename))
-	ptr->setTaxonomyFilename("blubb_new_taxonomy_file");
-	TEST_STRING_EQUAL(ptr->getTaxonomyFilename(), "blubb_new_taxonomy_file")
+START_SECTION(void setTaxonomyFilename(const String& filename))
+	xml_file.setTaxonomyFilename("blubb_new_taxonomy_file");
+	TEST_STRING_EQUAL(xml_file.getTaxonomyFilename(), "blubb_new_taxonomy_file")
 END_SECTION
 
 START_SECTION(const String& getTaxonomyFilename() const)
-  // will be filled by load -> see load test
-	NOT_TESTABLE
+	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setDefaultParametersFilename(const String &filename))
-	ptr->setDefaultParametersFilename("blubb_new_default_parameters_file");
-	TEST_STRING_EQUAL(ptr->getDefaultParametersFilename(), "blubb_new_default_parameters_file")
+START_SECTION(void setDefaultParametersFilename(const String& filename))
+	xml_file.setDefaultParametersFilename("blubb_new_default_parameters_file");
+	TEST_STRING_EQUAL(xml_file.getDefaultParametersFilename(), "blubb_new_default_parameters_file")
 END_SECTION
 
 START_SECTION(const String& getDefaultParametersFilename() const)
-  // will be filled by load -> see load test
-	NOT_TESTABLE
+	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(void setTaxon(const String &taxon))
-	ptr->setTaxon("blubb_taxon");
-	TEST_STRING_EQUAL(ptr->getTaxon(), "blubb_taxon")
+START_SECTION(void setTaxon(const String& taxon))
+	xml_file.setTaxon("blubb_taxon");
+	TEST_STRING_EQUAL(xml_file.getTaxon(), "blubb_taxon")
 END_SECTION
 
 START_SECTION(const String& getTaxon() const)
-  // will be filled by load -> see load test
-	NOT_TESTABLE
+	NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setMaxPrecursorCharge(Int max_charge))
-	ptr->setMaxPrecursorCharge(17);
-	TEST_EQUAL(ptr->getMaxPrecursorCharge(), 17)
+	xml_file.setMaxPrecursorCharge(17);
+	TEST_EQUAL(xml_file.getMaxPrecursorCharge(), 17)
 END_SECTION
 
 START_SECTION(Int getMaxPrecursorCharge() const)
-  // will be filled by load -> see load test
-	NOT_TESTABLE
+	NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setNumberOfMissedCleavages(UInt missed_cleavages))
-	ptr->setNumberOfMissedCleavages(18);
-	TEST_EQUAL(ptr->getNumberOfMissedCleavages(), 18)
+	xml_file.setNumberOfMissedCleavages(18);
+	TEST_EQUAL(xml_file.getNumberOfMissedCleavages(), 18)
 END_SECTION
 
 START_SECTION(UInt getNumberOfMissedCleavages() const)
-  // will be filled by load -> see load test
-	NOT_TESTABLE
+	NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setMaxValidEValue(double value))
-	ptr->setMaxValidEValue(19.0);
-	TEST_REAL_SIMILAR(ptr->getMaxValidEValue(), 19.0)
+	xml_file.setMaxValidEValue(19.0);
+	TEST_REAL_SIMILAR(xml_file.getMaxValidEValue(), 19.0)
 END_SECTION
 
 START_SECTION(double getMaxValidEValue() const)
-  // will be filled by load -> see load test
-	NOT_TESTABLE
+	NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setPrecursorErrorType(MassType mono_isotopic))
 	XTandemInfile::MassType mono = XTandemInfile::MONOISOTOPIC;
 	XTandemInfile::MassType average = XTandemInfile::AVERAGE;
-	ptr->setPrecursorErrorType(mono);
-	TEST_EQUAL(ptr->getPrecursorErrorType(), mono)
-	ptr->setPrecursorErrorType(average);
-	TEST_EQUAL(ptr->getPrecursorErrorType(), average)
+	xml_file.setPrecursorErrorType(mono);
+	TEST_EQUAL(xml_file.getPrecursorErrorType(), mono)
+	xml_file.setPrecursorErrorType(average);
+	TEST_EQUAL(xml_file.getPrecursorErrorType(), average)
 END_SECTION
 
 START_SECTION(MassType getPrecursorErrorType() const)
-  // will be filled by load -> see load test
-	NOT_TESTABLE
+  NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setFragmentMassErrorUnit(ErrorUnit unit))
 	XTandemInfile::ErrorUnit daltons = XTandemInfile::DALTONS;
 	XTandemInfile::ErrorUnit ppm = XTandemInfile::PPM;
-	ptr->setFragmentMassErrorUnit(daltons);
-	TEST_EQUAL(ptr->getFragmentMassErrorUnit(), daltons)
-	ptr->setFragmentMassErrorUnit(ppm);
-	TEST_EQUAL(ptr->getFragmentMassErrorUnit(), ppm)
+	xml_file.setFragmentMassErrorUnit(daltons);
+	TEST_EQUAL(xml_file.getFragmentMassErrorUnit(), daltons)
+	xml_file.setFragmentMassErrorUnit(ppm);
+	TEST_EQUAL(xml_file.getFragmentMassErrorUnit(), ppm)
 END_SECTION
 
 START_SECTION(ErrorUnit getFragmentMassErrorUnit() const)
-  // will be filled by load -> see load test
-	NOT_TESTABLE
+  NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION(const ModificationDefinitionsSet& getModifications() const)
-  ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M)"), ListUtils::create<String>("Carboxymethyl (C)"));
-  ptr->setModifications(sets);
-  TEST_EQUAL(ptr->getModifications() == sets, true)
-END_SECTION
-
-START_SECTION(void write(const String &filename, bool ignore_member_parameters = false))
+  START_SECTION(void write(const String& filename, bool ignore_member_parameters = false, bool force_default_mods = false))
 	String filename("XTandemInfile_test.tmp");
 	NEW_TMP_FILE(filename);
   ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M),Dimethyl (N-term),Carboxymethyl (C)"), ListUtils::create<String>("Ammonium (C-term),ICDID (C)"));
-  ptr->setModifications(sets);
-	ptr->write(filename);
-	XTandemInfile file;
-	file.load(filename);
+  xml_file.setModifications(sets);
+  xml_file.setAllowIsotopeError(true);
+  xml_file.setSemiCleavage(true);
+  xml_file.setOutputResults("all");
+	xml_file.write(filename);
   TEST_FILE_SIMILAR(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("XTandemInfile_test_write.xml"))
-  // test writing of a minimal set
-  String filename_minimal("XTandemInfile_test_minimal.tmp");
-  NEW_TMP_FILE(filename_minimal);
-  XTandemInfile file2;
-  file2.write(filename_minimal, true);
-  XTandemInfile file3;
-  file3.load(filename_minimal);
-  TEST_EQUAL(file3.getNoteCount(), 3) // only three notes are written: input, output, taxonomy/database file
-
-
 END_SECTION
-
-START_SECTION(void load(const String &filename))
-  XTandemInfile file;
-	file.load(OPENMS_GET_TEST_DATA_PATH("XTandemInfile_test.xml"));
-  TEST_EQUAL(file.getNoteCount(), 74)
-  // real testing of values is hard, since they are never
-  // exposed (just overwritten by class members during write())
-END_SECTION
-
-START_SECTION(Size getNoteCount() const)
-  NOT_TESTABLE // tested in load()
-END_SECTION
-
-
-START_SECTION(bool isRefining() const )
-  XTandemInfile file;
-  TEST_EQUAL(file.isRefining()==true, true)
-END_SECTION
-
-START_SECTION(void setRefine(const bool refine))
-  XTandemInfile file;
-  file.setRefine(false);
-  TEST_EQUAL(file.isRefining()==false, true)
-END_SECTION
-
-START_SECTION(bool getNoiseSuppression() const )
-  XTandemInfile file;
-  TEST_EQUAL(file.getNoiseSuppression()==false, true)
-END_SECTION
-
-START_SECTION(void setNoiseSuppression(const bool noise_suppression))
-  XTandemInfile file;
-  file.setNoiseSuppression(false);
-  TEST_EQUAL(file.getNoiseSuppression()==false, true)
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

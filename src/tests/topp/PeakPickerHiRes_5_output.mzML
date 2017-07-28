@@ -39,12 +39,6 @@
 	</instrumentConfigurationList>
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000035" name="peak picking" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
@@ -54,31 +48,20 @@
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<chromatogramList count="3" defaultDataProcessingRef="dp_sp_0">
-      <chromatogram id="YLYEIAR/2_i0" index="0" defaultArrayLength="1">
-						<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
+			<chromatogram id="YLYEIAR/2_i0" index="0" defaultArrayLength="1">
+				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="464.250362519471" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="464.250362519471" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						<userParam name="peptide_sequence" type="xsd:string" value="YLYEIAR"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="YLYEIAR"/>
 						</activation>
 					</precursor>
 					<product>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="464.250362519471" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -96,31 +79,20 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-      <chromatogram id="YLYEIAR/2_i1" index="1" defaultArrayLength="1">
-						<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
+			<chromatogram id="YLYEIAR/2_i1" index="1" defaultArrayLength="1">
+				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="464.250362519471" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="464.250362519471" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						<userParam name="peptide_sequence" type="xsd:string" value="YLYEIAR"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="YLYEIAR"/>
 						</activation>
 					</precursor>
 					<product>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="464.752039938371" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -138,31 +110,20 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-      <chromatogram id="YLYEIAR/2_i2" index="2" defaultArrayLength="1">
-						<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
+			<chromatogram id="YLYEIAR/2_i2" index="2" defaultArrayLength="1">
+				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="464.250362519471" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="464.250362519471" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-						<userParam name="peptide_sequence" type="xsd:string" value="YLYEIAR"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="YLYEIAR"/>
 						</activation>
 					</precursor>
 					<product>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="465.253717357271" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -185,11 +146,11 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="YLYEIAR/2_i0">3567</offset>
-		<offset idRef="YLYEIAR/2_i1">6430</offset>
-		<offset idRef="YLYEIAR/2_i2">9293</offset>
+		<offset idRef="YLYEIAR/2_i0">3233</offset>
+		<offset idRef="YLYEIAR/2_i1">4958</offset>
+		<offset idRef="YLYEIAR/2_i2">6683</offset>
 	</index>
 </indexList>
-<indexListOffset>12187</indexListOffset>
+<indexListOffset>8442</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

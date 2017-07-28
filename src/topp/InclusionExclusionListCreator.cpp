@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,9 @@
 
 //#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -235,10 +237,12 @@ protected:
         {
 
           String raw_data_path = getStringOption_("raw_data");
-          MSExperiment<> exp, ms2;
+          PeakMap exp, ms2;
           MzMLFile().load(raw_data_path, exp);
           FeatureMap out_map;
-          out_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+          StringList ms_runs;
+          exp.getPrimaryMSRunPath(ms_runs);
+          out_map.setPrimaryMSRunPath(ms_runs);
 
           IntList levels;
           levels.push_back(1);

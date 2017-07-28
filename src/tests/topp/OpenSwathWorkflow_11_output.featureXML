@@ -26,6 +26,7 @@
 					<UserParam type="float" name="MZ" value="100.01"/>
 					<UserParam type="string" name="native_id" value="tr1"/>
 					<UserParam type="float" name="peak_apex_int" value="945"/>
+					<UserParam type="float" name="logSN" value="0.658809291883646"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15157403601844400700_474525871221756682">
@@ -39,6 +40,7 @@
 					<UserParam type="float" name="MZ" value="101.01"/>
 					<UserParam type="string" name="native_id" value="tr2"/>
 					<UserParam type="float" name="peak_apex_int" value="1845"/>
+					<UserParam type="float" name="logSN" value="0.743478723066541"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15157403601844400700_12999979801269632061">
@@ -52,6 +54,7 @@
 					<UserParam type="float" name="MZ" value="102.02"/>
 					<UserParam type="string" name="native_id" value="3"/>
 					<UserParam type="float" name="peak_apex_int" value="2745"/>
+					<UserParam type="float" name="logSN" value="0.741318220818877"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
@@ -94,9 +97,9 @@
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.58769183215118"/>
 			<UserParam type="float" name="var_sonar_lag" value="0"/>
 			<UserParam type="float" name="var_sonar_shape" value="0.999910678869981"/>
-			<UserParam type="float" name="var_sonar_sn" value="6.18333349164327"/>
-			<UserParam type="float" name="var_sonar_diff" value="0.00589351560962917"/>
-			<UserParam type="float" name="var_sonar_trend" value="0.959740097293211"/>
+			<UserParam type="float" name="var_sonar_log_sn" value="1.82185752598802"/>
+			<UserParam type="float" name="var_sonar_log_diff" value="0"/>
+			<UserParam type="float" name="var_sonar_log_trend" value="0"/>
 			<UserParam type="float" name="var_sonar_rsq" value="1"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
@@ -120,6 +123,7 @@
 					<UserParam type="float" name="MZ" value="300.01"/>
 					<UserParam type="string" name="native_id" value="7"/>
 					<UserParam type="float" name="peak_apex_int" value="900"/>
+					<UserParam type="float" name="logSN" value="0.491108057716722"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_17413765565443951891_16907355690727166316">
@@ -133,6 +137,7 @@
 					<UserParam type="float" name="MZ" value="301.01"/>
 					<UserParam type="string" name="native_id" value="8"/>
 					<UserParam type="float" name="peak_apex_int" value="1800"/>
+					<UserParam type="float" name="logSN" value="0.491108057716722"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_17413765565443951891_10306100746905639127">
@@ -146,6 +151,7 @@
 					<UserParam type="float" name="MZ" value="302.01"/>
 					<UserParam type="string" name="native_id" value="9"/>
 					<UserParam type="float" name="peak_apex_int" value="2700"/>
+					<UserParam type="float" name="logSN" value="0.491108057716722"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
@@ -188,9 +194,9 @@
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-0.714893183335581"/>
 			<UserParam type="float" name="var_sonar_lag" value="0"/>
 			<UserParam type="float" name="var_sonar_shape" value="1"/>
-			<UserParam type="float" name="var_sonar_sn" value="6.0000001525879"/>
-			<UserParam type="float" name="var_sonar_diff" value="0"/>
-			<UserParam type="float" name="var_sonar_trend" value="1"/>
+			<UserParam type="float" name="var_sonar_log_sn" value="1.79175949465937"/>
+			<UserParam type="float" name="var_sonar_log_diff" value="0"/>
+			<UserParam type="float" name="var_sonar_log_trend" value="0"/>
 			<UserParam type="float" name="var_sonar_rsq" value="0"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
