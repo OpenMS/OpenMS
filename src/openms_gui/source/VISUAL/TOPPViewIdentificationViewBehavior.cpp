@@ -325,7 +325,9 @@ namespace OpenMS
     if (widget_1D == 0) return;
 
     widget_1D->canvas()->activateSpectrum(spectrum_index);
-    const LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
+    LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
+    current_layer.peptide_id_index = peptide_id_index;
+    current_layer.peptide_hit_index = peptide_hit_index;   
 
     if (current_layer.type == LayerData::DT_PEAK)
     {
@@ -843,15 +845,16 @@ namespace OpenMS
       // store user fragment annotations
       vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();
 
-      if (!pep_id.empty())
-      {
-        // TODO: pass PeptideIdentification index to deactivate1DSpectrum (e.g., by storing in LayerData)
-        vector<PeptideHit>& hits = pep_id[0].getHits();
+      int pep_id_index = current_layer.peptide_id_index;
+      int pep_hit_index = current_layer.peptide_hit_index;
 
-        // TODO: pass PeptideHit index to deactivate1DSpectrum (e.g., by storing in LayerData)
-        if (!hits.empty())
+      if (!pep_id.empty() && pep_id_index != -1)
+      {
+        vector<PeptideHit>& hits = pep_id[pep_id_index].getHits();
+
+        if (!hits.empty() && pep_hit_index != -1)
         {
-          PeptideHit& hit = hits[0];
+          PeptideHit& hit = hits[pep_hit_index];
 
           // copy user annotations to fragment annotation vector
           Annotations1DContainer & las = current_layer.getAnnotations(spectrum_index);
@@ -913,6 +916,10 @@ namespace OpenMS
 
       removeTheoreticalSpectrumLayer_();    
     }
+
+    // reset selected id indices
+    current_layer.peptide_id_index = -1;
+    current_layer.peptide_hit_index = -1;
 
     widget_1D->canvas()->setTextBox(QString());
   }
@@ -976,11 +983,15 @@ namespace OpenMS
     // return if no active 1D widget is present
     if (widget_1D == 0) return;
 
+    // clear textbox
     widget_1D->canvas()->setTextBox(QString());
 
     // remove precusor labels, theoretical spectra and trigger repaint
-    removeTemporaryAnnotations_(tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrumIndex());
+    LayerData& cl = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    removeTemporaryAnnotations_(cl.getCurrentSpectrumIndex());
     removeTheoreticalSpectrumLayer_();
+    cl.peptide_id_index = -1;
+    cl.peptide_hit_index = -1;
     tv_->getActive1DWidget()->canvas()->repaint();
   }
 

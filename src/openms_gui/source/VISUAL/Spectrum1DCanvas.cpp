@@ -1308,16 +1308,16 @@ namespace OpenMS
 
             // store user fragment annotations
             vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();
+            int pep_id_index = getCurrentLayer_().peptide_id_index;
+            int pep_hit_index = getCurrentLayer_().peptide_hit_index;
 
-            if (!pep_id.empty())
+            if (!pep_id.empty() && pep_id_index != -1)
             {
-              // TODO: pass PeptideIdentification index to deactivate1DSpectrum (e.g., by storing in LayerData)
-              vector<PeptideHit>& hits = pep_id[0].getHits();
+              vector<PeptideHit>& hits = pep_id[pep_id_index].getHits();
 
-              // TODO: pass PeptideHit index to deactivate1DSpectrum (e.g., by storing in LayerData)
-              if (!hits.empty())
+              if (!hits.empty() && pep_hit_index != -1)
               {
-                PeptideHit& hit = hits[0];
+                PeptideHit& hit = hits[pep_hit_index];
 
                 vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();         
 
