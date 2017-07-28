@@ -346,7 +346,7 @@ namespace OpenMS
           }
 
           os << " >\n";
-          writeFragmentAnnotations_("UserParam", os, peptide_ids[l].getHits()[j].getFragmentAnnotations(), 4);
+          writeFragmentAnnotations_("UserParam", os, peptide_ids[l].getHits()[j].getPeakAnnotations(), 4);
           writeUserParam_("UserParam", os, peptide_ids[l].getHits()[j], 4);
           os << "\t\t\t</PeptideHit>\n";
         }
@@ -737,9 +737,9 @@ namespace OpenMS
         // TODO: check if we are parsing a peptide hit
         if (name == "fragment_annotation")
         {
-          std::vector<PeptideHit::FragmentAnnotation> annotations;
+          std::vector<PeptideHit::PeakAnnotation> annotations;
           parseFragmentAnnotation_(value, annotations);
-          pep_hit_.setFragmentAnnotations(annotations);
+          pep_hit_.setPeakAnnotations(annotations);
           return;
         }
         last_meta_->setMetaValue(name, value);
@@ -998,7 +998,7 @@ namespace OpenMS
   }
 
   void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
-                                            const std::vector<PeptideHit::FragmentAnnotation> & annotations, UInt indent)
+                                            const std::vector<PeptideHit::PeakAnnotation> & annotations, UInt indent)
   {
     if (annotations.empty()) { return; } 
     String val;
@@ -1010,7 +1010,7 @@ namespace OpenMS
     os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
   }
  
-  void IdXMLFile::parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::FragmentAnnotation> & annotations)
+  void IdXMLFile::parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::PeakAnnotation> & annotations)
   {
     if (s.empty()) { return; }
     StringList as;
@@ -1026,7 +1026,7 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "Invalid fragment annotation. Four comma-separated fields required. String is: '" + pa + "'");
       }
-      PeptideHit::FragmentAnnotation fa;
+      PeptideHit::PeakAnnotation fa;
       fa.mz = fields[0].toDouble();
       fa.intensity = fields[1].toDouble();
       fa.charge = fields[2].toInt();
