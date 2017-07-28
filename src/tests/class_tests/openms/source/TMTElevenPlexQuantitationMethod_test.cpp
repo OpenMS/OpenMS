@@ -53,14 +53,14 @@ TMTElevenPlexQuantitationMethod* ptr = 0;
 TMTElevenPlexQuantitationMethod* null_ptr = 0;
 START_SECTION(TMTElevenPlexQuantitationMethod())
 {
-	ptr = new TMTElevenPlexQuantitationMethod();
-	TEST_NOT_EQUAL(ptr, null_ptr)
+    ptr = new TMTElevenPlexQuantitationMethod();
+    TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(~TMTElevenPlexQuantitationMethod())
 {
-	delete ptr;
+    delete ptr;
 }
 END_SECTION
 
@@ -203,12 +203,12 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   ABORT_IF(m.rows() != 11)
   ABORT_IF(m.cols() != 11)
 
-  for(Matrix<double>::SizeType i = 0; i < m.rows(); ++i)
+  for (Matrix<double>::SizeType i = 0; i < m.rows(); ++i)
   {
-    for(Matrix<double>::SizeType j = 0; j < m.cols(); ++j)
+    for (Matrix<double>::SizeType j = 0; j < m.cols(); ++j)
     {
-      if (i == j) TEST_REAL_SIMILAR(m(i,j), 1.0)
-      else TEST_REAL_SIMILAR(m(i,j), 0.0)
+      if (i == j) { TEST_REAL_SIMILAR(m(i,j), 1.0) }
+      else { TEST_REAL_SIMILAR(m(i,j), 0.0) }
     }
   }
 }
