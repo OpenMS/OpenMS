@@ -107,7 +107,10 @@ public:
         double d_rt = fabs(first.getRT() - second.getRT());
         double d_mz = fabs(first.getMZ() - second.getMZ());
 
-        if (d_rt > rt_max_ || d_mz > mz_max_) {return 0; }
+        if (d_rt > rt_max_ || d_mz > mz_max_)
+        {
+            return 0;
+        }
 
         // calculate similarity (0-1):
         double sim = getSimilarity(d_rt, d_mz);
@@ -217,7 +220,10 @@ public:
 
         for (Size i = 0; i < exp.size(); ++i)
         {
-          if (exp[i].getMSLevel() != 2) continue;
+          if (exp[i].getMSLevel() != 2)
+          {
+              continue;
+          }
 
           // remember which index in distance data ==> experiment index
           index_mapping[data.size()] = i;
@@ -226,8 +232,14 @@ public:
           BaseFeature bf;
           bf.setRT(exp[i].getRT());
           std::vector<Precursor> pcs = exp[i].getPrecursors();
-          if (pcs.empty()) throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
-          if (pcs.size() > 1) LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
+          if (pcs.empty())
+          {
+              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
+          }
+          if (pcs.size() > 1)
+          {
+              LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
+          }
           bf.setMZ(pcs[0].getMZ());
           data.push_back(bf);
         }
@@ -251,8 +263,14 @@ public:
       Size node_count = 0;
       for (Size ii = 0; ii < tree.size(); ++ii)
       {
-        if (tree[ii].distance >= 1) tree[ii].distance = -1;  // manually set to disconnect, as SingleLinkage does not support it
-        if (tree[ii].distance != -1) ++node_count;
+        if (tree[ii].distance >= 1)
+        {
+            tree[ii].distance = -1;  // manually set to disconnect, as SingleLinkage does not support it
+        }
+        if (tree[ii].distance != -1)
+        {
+            ++node_count;
+        }
       }
       ca.cut(data_size - node_count, tree, clusters);
 
@@ -264,7 +282,10 @@ public:
 
       for (Size i_outer = 0; i_outer < clusters.size(); ++i_outer)
       {
-        if (clusters[i_outer].size() <= 1) continue;
+        if (clusters[i_outer].size() <= 1)
+        {
+            continue;
+        }
         // init block with first cluster element
         Size cl_index0 = clusters[i_outer][0];
         spectra_to_merge[index_mapping[cl_index0]] = std::vector<Size>();
@@ -494,7 +515,10 @@ protected:
       SpectrumAlignment sas;
       Param p;
       p.setValue("tolerance", mz_binning_width);
-      if (!(mz_binning_unit == "Da" || mz_binning_unit == "ppm")) throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);  // sanity check
+      if (!(mz_binning_unit == "Da" || mz_binning_unit == "ppm"))
+      {
+          throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);  // sanity check
+      }
       // TODO : SpectrumAlignment does not implement is_relative_tolerance
       p.setValue("is_relative_tolerance", mz_binning_unit == "Da" ? "false" : "true");
       sas.setParameters(p);
@@ -559,32 +583,50 @@ protected:
               consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
                                                                         pit->getIntensity());
               ++align_index; // this aligned peak was explained, wait for next aligned peak ...
-              if (align_index == alignment.size()) alignment.clear();  // end reached -> avoid going into this block again
+              if (align_index == alignment.size())
+              {
+                  alignment.clear();  // end reached -> avoid going into this block again
+              }
             }
             else // ... or add unaligned peak
             {
               consensus_spec.push_back(*pit);
             }
-            ++spec_b_index;
+            if (alignment[align_index].second>spec_b_index)// only increment spec_b_index if the next alignment twople isn't the same as this one (ie allow 1 to many mappings of second to first)
+            {
+                ++spec_b_index;
+            }
           }
           consensus_spec.sortByPosition(); // sort, otherwise next alignment will fail
-          if (spec_a + spec_b - align_size != consensus_spec.size()) std::cerr << "\n\n ERRROR \n\n";
+          if (spec_a + spec_b - align_size != consensus_spec.size())
+          {
+              LOG_INFO << "wrong number of features after merge. Expected: " << spec_a + spec_b - align_size << " got: " << consensus_spec.size() << "\n";
+          }
         }
         rt_average /= it->second.size() + 1;
         consensus_spec.setRT(rt_average);
 
         if (ms_level >= 2)
         {
-          if (precursor_count) precursor_mz_average /= precursor_count;
-          std::vector<Precursor> pcs = consensus_spec.getPrecursors();
-          //if (pcs.size()>1) LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
-          pcs.resize(1);
-          pcs[0].setMZ(precursor_mz_average);
-          consensus_spec.setPrecursors(pcs);
+            if (precursor_count)
+            {
+                precursor_mz_average /= precursor_count;
+            }
+            std::vector<Precursor> pcs = consensus_spec.getPrecursors();
+            //if (pcs.size()>1) LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
+            pcs.resize(1);
+            pcs[0].setMZ(precursor_mz_average);
+            consensus_spec.setPrecursors(pcs);
         }
 
-        if (consensus_spec.empty()) continue;
-        else merged_spectra.addSpectrum(consensus_spec);
+        if (consensus_spec.empty())
+        {
+            continue;
+        }
+        else
+        {
+            merged_spectra.addSpectrum(consensus_spec);
+        }
       }
 
       LOG_INFO << "Cluster sizes:\n";
