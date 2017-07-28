@@ -213,9 +213,10 @@ namespace OpenMS
     min_precursor_purity_ = getParameters().getValue("min_precursor_purity");
     max_precursor_isotope_deviation_ = getParameters().getValue("precursor_isotope_deviation");
     interpolate_precursor_purity_ = getParameters().getValue("purity_interpolation") == "true";
+    Size number_of_channels = quant_method_->getNumberOfChannels();
 
     /* check for sensible parameters */
-    if (((dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL) || (dynamic_cast<const TMTElevenPlexQuantitationMethod*>(quant_method_) != NULL))
+    if ((( number_of_channels == 10) || (number_of_channels == 11))
         && reporter_mass_shift_ > TMT_10AND11PLEX_CHANNEL_TOLERANCE)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Both TMT-10plex and TMT-11plex require reporter mass shifts <= 0.003 to avoid channel ambiguity!");
@@ -518,8 +519,8 @@ namespace OpenMS
     ChannelQCSet channel_mz_delta;
     const double qc_dist_mz = 0.5; // fixed! Do not change!
 
-    bool is_TMT10plex = (dynamic_cast<const TMTTenPlexQuantitationMethod*>(quant_method_) != NULL);
-    bool is_TMT11plex = (dynamic_cast<const TMTElevenPlexQuantitationMethod*>(quant_method_) != NULL);
+    Size number_of_channels = quant_method_->getNumberOfChannels();
+
     PeakMap::ConstIterator it_last_MS2 = ms_exp_data.end(); // remember last MS2 spec, to get precursor in MS1 (also if quant is in MS3)
 
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
@@ -694,7 +695,7 @@ namespace OpenMS
       {
         // sort
         double median = Math::median(channel_mz_delta[cl_it->name].mz_deltas.begin(), channel_mz_delta[cl_it->name].mz_deltas.end(), false);
-        if ( (is_TMT10plex || is_TMT11plex) &&
+        if (((number_of_channels == 10) || (number_of_channels == 11)) &&
             (fabs(median) > TMT_10AND11PLEX_CHANNEL_TOLERANCE) &&
             (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
         { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
