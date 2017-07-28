@@ -31,6 +31,7 @@ MetaProSIP
 MRMPairFinder
 MSFraggerAdapter
 MSSimulator
+MSstatsConverter
 MultiplexResolver
 MzMLSplitter
 NovorAdapter
