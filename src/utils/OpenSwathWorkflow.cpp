@@ -709,7 +709,7 @@ protected:
     ///////////////////////////////////
 
     bool load_into_memory = false;
-    bool is_sqmass_input  = (in_file_type == FileTypes::SQMASS || file_list[0].suffix(6).toLower() == "sqmass");
+    bool is_sqmass_input  = (file_list[0].suffix(6).toLower() == "sqmass");
     if (readoptions == "cacheWorkingInMemory")
     {
       readoptions = "cache";
