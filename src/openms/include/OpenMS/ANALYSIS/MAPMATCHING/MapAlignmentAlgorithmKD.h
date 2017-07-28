@@ -80,6 +80,8 @@ public:
 
 protected:
 
+  virtual void updateMembers_();
+
   /// Compute connected components, store CC indices in member cc_index. Return number of CCs.
   Size computeCCs_(const KDTreeFeatureMaps& kd_data, std::vector<Size>& cc_index) const;
 
@@ -105,6 +107,15 @@ private:
 
   /// Maximum absolute log10 fold change threshold between compatible features
   double max_pairwise_log_fc_;
+
+  /// RT tolerance
+  double rt_tol_secs_;
+
+  /// m/z tolerance
+  double mz_tol_;
+
+  /// m/z unit ppm?
+  bool mz_ppm_;
 
 };
 

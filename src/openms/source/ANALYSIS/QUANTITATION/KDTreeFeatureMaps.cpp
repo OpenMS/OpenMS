@@ -96,21 +96,6 @@ Size KDTreeFeatureMaps::numMaps() const
   return num_maps_;
 }
 
-double KDTreeFeatureMaps::rtTolerance() const
-{
-  return rt_tol_secs_;
-}
-
-double KDTreeFeatureMaps::mzTolerance() const
-{
-  return mz_tol_;
-}
-
-bool KDTreeFeatureMaps::mzPPM() const
-{
-  return mz_ppm_;
-}
-
 void KDTreeFeatureMaps::clear()
 {
   features_.clear();
@@ -123,10 +108,10 @@ void KDTreeFeatureMaps::optimizeTree()
   kd_tree_.optimize();
 }
 
-void KDTreeFeatureMaps::getNeighborhood(Size index, vector<Size>& result_indices, bool include_features_from_same_map, double max_pairwise_log_fc) const
+void KDTreeFeatureMaps::getNeighborhood(Size index, vector<Size>& result_indices, double rt_tol, double mz_tol, bool mz_ppm, bool include_features_from_same_map, double max_pairwise_log_fc) const
 {
-  pair<double, double> rt_win = Math::getTolWindow(rt(index), rt_tol_secs_, false);
-  pair<double, double> mz_win = Math::getTolWindow(mz(index), mz_tol_, mz_ppm_);
+  pair<double, double> rt_win = Math::getTolWindow(rt(index), rt_tol, false);
+  pair<double, double> mz_win = Math::getTolWindow(mz(index), mz_tol, mz_ppm);
 
   vector<Size> tmp_result;
   Size ignored_map_index = include_features_from_same_map ? numeric_limits<Size>::max() : map_index_[index];
@@ -192,9 +177,6 @@ void KDTreeFeatureMaps::applyTransformations(const vector<TransformationModelLow
 
 void KDTreeFeatureMaps::updateMembers_()
 {
-  rt_tol_secs_ = (double)(param_.getValue("rt_tol"));
-  mz_tol_ = (double)(param_.getValue("mz_tol"));
-  mz_ppm_ = (param_.getValue("mz_unit").toString() == "ppm");
 }
 
 }
