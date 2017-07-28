@@ -311,7 +311,8 @@ namespace OpenMS
         if (nr_results == 0) {LOG_WARN << "Warning: no meta data found, fall back to inference from SQL data structures." << std::endl;}
       }
 
-      if (!write_full_meta_ || nr_results == 0)
+      bool exp_empty = (exp.getNrChromatograms() == 0 && exp.getNrSpectra() == 0);
+      if (!write_full_meta_ || nr_results == 0 || exp_empty)
       {
         // creates the spectra and chromatograms but does not fill them with data (provides option to return meta-data only)
         std::vector<MSChromatogram<> > chromatograms;
