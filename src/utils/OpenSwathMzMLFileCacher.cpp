@@ -191,7 +191,7 @@ class TOPPOpenSwathMzMLFileCacher
       f.transform(in, &consumer, true, true);
       return EXECUTION_OK;
     }
-    else if (in_type == FileTypes::SQMASS && in_type == FileTypes::SQMASS && process_lowmemory)
+    else if (in_type == FileTypes::SQMASS && out_type == FileTypes::SQMASS && process_lowmemory)
     {
       PlainMSDataWritingConsumer consumer(out);
       consumer.getOptions().setWriteIndex(true);
