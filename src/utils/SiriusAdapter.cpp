@@ -92,7 +92,7 @@ using namespace std;
   @verbinclude UTILS_SiriusAdapter.cli
   <B>INI file documentation of this tool:</B>
   @htmlinclude UTILS_SiriusAdapter.html
-*/
+ */
 
 /// @cond TOPPCLASSES
 
@@ -101,7 +101,7 @@ class TOPPSiriusAdapter :
 {
 public:
   TOPPSiriusAdapter() :
-      TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false)
+    TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false)
   {
   }
 
@@ -110,9 +110,9 @@ protected:
   void removeTempFiles_(const String& tmp_dir, const String& ms_file)
   {
     if (tmp_dir.empty() && ms_file.empty())
-     {
-     return;
-     }
+    {
+      return;
+    }
 
     if (debug_level_ >= 2)
     {
@@ -137,12 +137,12 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("executable", "<executable>",
-    #if  defined(__APPLE__)
-      "sirius",
-    #else
-      "sirius-console-64.exe",
-    #endif
-      "sirius executable e.g. sirius", true, false, ListUtils::create<String>("skipexists"));
+#if  defined(__APPLE__)
+                       "sirius",
+#else
+                       "sirius-console-64.exe",
+#endif
+                       "sirius executable e.g. sirius", true, false, ListUtils::create<String>("skipexists"));
 
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
