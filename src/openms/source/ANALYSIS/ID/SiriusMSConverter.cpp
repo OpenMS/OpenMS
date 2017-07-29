@@ -295,7 +295,7 @@ namespace OpenMS
             os << mz << " " << intensity << "\n";
           }
         }
-        os << "\n";
+        os << endl;
       }
     }
     os.close();
