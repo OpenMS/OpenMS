@@ -190,8 +190,11 @@ protected:
     f.load(in, spectra);
     std::vector<String> subdirs;
 
-    QString tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName()).toQString());
-    String tmp_ms_file = QDir(tmp_dir).filePath("msfile");
+
+    QString tmp_base_dir = File::getTempDirectory().toQString();
+    QString tmp_dir = QDir(tmp_base_dir).filePath(File::getUniqueName().toQString());
+
+    String tmp_ms_file = QDir(tmp_base_dir).filePath((File::getUniqueName() + ".ms").toQString());
     String out_dir = QDir(tmp_dir).filePath("sirius_out");
 
     //Write msfile

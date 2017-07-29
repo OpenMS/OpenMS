@@ -76,7 +76,7 @@ namespace OpenMS
     return max_intensity_it - spectrum1.begin();
   }
 
-  void SiriusMSFile::store(const PeakMap &spectra, OpenMS::String & msfile)
+  void SiriusMSFile::store(const PeakMap &spectra, const OpenMS::String & msfile)
   {
 
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
@@ -95,15 +95,12 @@ namespace OpenMS
 
     // loop over all spectra in file and write data to ofstream
     ofstream os;
-    String unique_name =  String(File::getUniqueName()).toQString(); // generate unique name once
-    String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + ".ms";
-    msfile = tmp_filename;
 
     // create temporary input file (.ms)
-    os.open(tmp_filename.c_str());
+    os.open(msfile.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msfile);
     }
     os.precision(12);
 
