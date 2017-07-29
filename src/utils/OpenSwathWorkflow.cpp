@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -467,7 +467,7 @@ protected:
     registerSubsection_("Scoring", "Scoring parameters section");
     registerSubsection_("Library", "Library parameters section");
 
-    registerSubsection_("outlierDetection", "Parameters for the outlierDetection for iRT petides. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
+    registerSubsection_("RTNormalization", "Parameters for the RTNormalization for iRT petides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
   }
 
   Param getSubsectionDefaults_(const String& name) const
@@ -519,9 +519,18 @@ protected:
       feature_finder_param.remove("EMGScoring:statistics:variance");
       return feature_finder_param;
     }
-    else if (name == "outlierDetection")
+    else if (name == "RTNormalization")
     {
       Param p;
+
+      p.setValue("alignmentMethod", "linear", "How to perform the alignment to the normalized RT space using anchor points. 'linear': perform linear regression (for few anchor points). 'interpolated': Interpolate between anchor points (for few, noise-free anchor points). 'lowess' Use local regression (for many, noisy anchor points). 'b_spline' use b splines for smoothing.");
+      p.setValidStrings("alignmentMethod", ListUtils::create<String>("linear,interpolated,lowess,b_spline"));
+      p.setValue("lowess:span", 2.0/3, "Span parameter for lowess");
+      p.setMinFloat("lowess:span", 0.0);
+      p.setMaxFloat("lowess:span", 1.0);
+      p.setValue("b_spline:num_nodes", 5, "Number of nodes for b spline");
+      p.setMinInt("b_spline:num_nodes", 0);
+
       p.setValue("outlierMethod", "iter_residual", "Which outlier detection method to use (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
       p.setValidStrings("outlierMethod", ListUtils::create<String>("iter_residual,iter_jackknife,ransac,none"));
 
@@ -620,7 +629,9 @@ protected:
       trafoxml.load(trafo_in, trafo_rtnorm, false);
       Param model_params = getParam_().copy("model:", true);
       model_params.setValue("symmetric_regression", "false");
-      String model_type = "linear";
+      model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
+      model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
+      String model_type = irt_detection_param.getValue("alignmentMethod");
       trafo_rtnorm.fitModel(model_type, model_params);
     }
     else if (!irt_tr_file.empty())
@@ -648,7 +659,7 @@ protected:
     StringList file_list = getStringList_("in");
     String tr_file = getStringOption_("tr");
 
-    Param irt_detection_param = getParam_().copy("outlierDetection:", true);
+    Param irt_detection_param = getParam_().copy("RTNormalization:", true);
 
     //tr_file input file type
     FileHandler fh_tr_type;
@@ -786,16 +797,19 @@ protected:
     OpenSwath::LightTargetedExperiment transition_exp;
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, 1, "Load TraML file");
     if (tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
     {
+      progresslogger.startProgress(0, 1, "Load TraML file");
       TargetedExperiment targeted_exp;
       TraMLFile().load(tr_file, targeted_exp);
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+      progresslogger.endProgress();
     }
     else if (tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
     {
+      progresslogger.startProgress(0, 1, "Load PQP file");
       TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
+      progresslogger.endProgress();
 
       remove(out_osw.c_str());
       if (!out_osw.empty())
@@ -808,17 +822,20 @@ protected:
     }
     else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
     {
+      progresslogger.startProgress(0, 1, "Load TSV file");
       TransitionTSVReader tsv_reader;
       tsv_reader.setParameters(tsv_reader_param);
       tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
-
+      progresslogger.endProgress();
     }
     else
     {
       LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
       return PARSE_ERROR;
     }
-    progresslogger.endProgress();
+    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " << 
+      transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
+
 
     ///////////////////////////////////
     // Load the SWATH files
@@ -837,8 +854,10 @@ protected:
 
     for (Size i = 0; i < swath_maps.size(); i++)
     {
-      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower
-        << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra()
+      LOG_DEBUG << "Found swath map " << i 
+        << " with lower " << swath_maps[i].lower
+        << " and upper " << swath_maps[i].upper 
+        << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
     }
 
@@ -927,7 +946,7 @@ protected:
 
         chromConsumer->getOptions().setNumpressConfigurationMassTime(npconfig_mz);
         chromConsumer->getOptions().setNumpressConfigurationIntensity(npconfig_int);
-        // chromConsumer->getOptions().setCompression(true); // need to wait for new obo
+        chromConsumer->getOptions().setCompression(true);
 
         chromatogramConsumer = chromConsumer;
       }

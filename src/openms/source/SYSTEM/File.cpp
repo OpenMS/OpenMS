@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,7 +55,6 @@
 #include <cstdio>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#  define NOMINMAX
 #  include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #else
 #  include <unistd.h> // for 'getpid()'
@@ -135,6 +134,33 @@ namespace OpenMS
       return false;
 
     return true;
+  }
+
+  bool File::removeDir(const QString& dir_name)
+  {
+    bool result = true;
+    QDir dir(dir_name);
+
+    if (dir.exists(dir_name))
+    {
+      Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
+        {
+          if (info.isDir())
+          {
+            result = removeDir(info.absoluteFilePath());
+          }
+          else
+          {
+            result = QFile::remove(info.absoluteFilePath());
+          }
+          if (!result)
+          {
+            return result;
+          }
+        }
+      result = dir.rmdir(dir_name);
+    }
+    return result;
   }
 
   bool File::removeDirRecursively(const String& dir_name)

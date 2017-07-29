@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -125,7 +125,7 @@ namespace OpenMS
     tmp.split(' ', parts);
     SignedSize size = parts.size();
     if (size < 2)
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid filter format.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid filter format", tmp);
     //field
     tmp = parts[0];
     tmp.toLower();
@@ -144,7 +144,7 @@ namespace OpenMS
       meta_name = tmp.suffix(tmp.size() - 6);
     }
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid field name.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid field name", tmp);
     //operation
     tmp = parts[1];
     if (tmp == ">=")
@@ -159,7 +159,7 @@ namespace OpenMS
       return;
     }
     else
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid operator.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid operator", tmp);
     //value
     if (size > 3)     // string values may contain spaces, implode to a single string
     {
@@ -171,7 +171,7 @@ namespace OpenMS
     }
     else     // size < 3 && operation is binary (only "exists" is unary) --> invalid
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid filter format.", tmp);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid filter format", tmp);
     }
     try
     {
@@ -183,7 +183,7 @@ namespace OpenMS
       value_is_numerical = false;
       if (!(tmp.hasPrefix("\"") && tmp.hasSuffix("\"")))
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid value.", tmp);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid value", tmp);
       }
       else
       {
@@ -191,7 +191,7 @@ namespace OpenMS
       }
       if (!meta)       // non meta values must be numerical
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid value.", tmp);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid value", tmp);
       }
       else
       {

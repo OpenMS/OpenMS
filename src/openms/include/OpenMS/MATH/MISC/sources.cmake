@@ -14,7 +14,6 @@ RANSAC.h
 RANSACModel.h
 RANSACModelLinear.h
 RANSACModelQuadratic.h
-Spline2d.h
 )
 
 ### add path to the filenames

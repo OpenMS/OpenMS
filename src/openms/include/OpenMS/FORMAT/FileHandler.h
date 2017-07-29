@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,6 +75,13 @@ public:
 
     /// Determines the file type from a file name
     static FileTypes::Type getTypeByFileName(const String& filename);
+
+    /**
+       @brief Check if the file extension of @param type matches no other known FileType
+               
+       This means that may match the extension of @type or any other unknown extension (e.g., '.tmp')
+    */
+    static bool hasValidExtension(const String& filename, const FileTypes::Type type);
 
     /**
       @brief Determines the file type of a file by parsing the first few lines

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -185,7 +185,7 @@ namespace OpenMS
         double ppm_difference =  Math::getPPM(mz, theo_mz);
 
         String protein_accessions;
-        std::set<String> accs = ph.extractProteinAccessions();
+        std::set<String> accs = ph.extractProteinAccessionsSet();
 
         // concatenate set into String
         for (std::set<String>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)

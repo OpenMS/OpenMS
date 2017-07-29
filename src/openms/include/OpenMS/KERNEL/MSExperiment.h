@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -747,9 +747,8 @@ public:
     }
 
     /// get the file path to the first MS run
-    StringList getPrimaryMSRunPath() const
+    void getPrimaryMSRunPath(StringList& toFill) const
     {
-      StringList ms_run_paths;
       std::vector<SourceFile> sfs(this->getSourceFiles());
       for (std::vector<SourceFile>::const_iterator it = sfs.begin(); it != sfs.end(); ++it)
       {
@@ -762,14 +761,13 @@ public:
           LOG_WARN << "Path or file name of primary MS run is empty. "
                    << "This might be the result of incomplete conversion. "
                    << "Not that tracing back e.g. identification results to the original file might more difficult." << std::endl;
-	}
-	else
+	      }
+	      else
         {
           String ms_run_location = path + "/" + filename;
-          ms_run_paths.push_back(ms_run_location);
+          toFill.push_back(ms_run_location);
         }
       }
-      return ms_run_paths;
     }
 
     /**

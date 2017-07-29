@@ -23,6 +23,8 @@ MetaboliteSpectralMatching.cpp
 PeptideProteinResolution.cpp
 ProtonDistributionModel.cpp
 PeptideIndexing.cpp
+PercolatorFeatureSetHelper.cpp
+SiriusMSConverter.cpp
 )
 
 ### add path to the filenames

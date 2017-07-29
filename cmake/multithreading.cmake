@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,24 @@
 #------------------------------------------------------------------------------
 # This cmake files bundles all the multithreading related stuff of the OpenMS
 # build system.
+
+#------------------------------------------------------------------------------
+# TBB
+#------------------------------------------------------------------------------
+set(MT_TBB_INCLUDE_DIR CACHE PATH "Intel Threading Building Blocks 'include' directory.")
+set(MT_TBB_LIBRARY_DIR CACHE PATH "Intel Threading Building Blocks libraries directory.")
+message(STATUS "Intel TBB: ${MT_ENABLE_TBB}")
+if (MT_ENABLE_TBB)
+  find_package(TBB)
+  if (NOT TBB_FOUND)
+    message(FATAL_ERROR "TBB not found but requested.")
+  endif()
+endif()
+
+if (TBB_FOUND)
+  INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS})
+  add_definitions(/DOPENMS_HAS_TBB)
+endif()
 
 #------------------------------------------------------------------------------
 # OpenMP

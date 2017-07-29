@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,7 @@ namespace OpenMS
 
       @ingroup Kernel
   */
+
   typedef MSSpectrum<Peak1D> PeakSpectrum;
   /**
       @brief Two-dimensional map of raw data points or peaks.
@@ -55,13 +56,6 @@ namespace OpenMS
       @ingroup Kernel
   */
   typedef MSExperiment PeakMap;
-
-  /**
-      @brief Spectrum consisting of raw data points or peaks with meta information.
-
-      @ingroup Kernel
-  */
-  typedef MSSpectrum<RichPeak1D> RichPeakSpectrum;
 
   /**
       @brief Chromatogram consisting of raw data points or peaks

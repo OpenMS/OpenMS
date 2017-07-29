@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ START_SECTION(ModificationDefinitionsSet())
 }
 END_SECTION
 
-START_SECTION((ModificationDefinitionsSet(const ModificationDefinitionsSet &rhs)))
+START_SECTION((ModificationDefinitionsSet(const ModificationDefinitionsSet& rhs)))
 {
   ModificationDefinitionsSet mod_set;
   mod_set.setMaxModifications(2);
@@ -65,7 +65,7 @@ START_SECTION((ModificationDefinitionsSet(const ModificationDefinitionsSet &rhs)
   mod_def.setFixedModification(true);
   mod_def2.setModification("Phospho (T)");
   mod_def2.setFixedModification(false);
-  mod_def2.setMaxOccurences(10);
+  mod_def2.setMaxOccurrences(10);
   ModificationDefinitionsSet mod_set2(mod_set);
 
   TEST_EQUAL(mod_set == mod_set2, true)
@@ -88,14 +88,14 @@ START_SECTION((void setMaxModifications(Size max_mod)))
 }
 END_SECTION
 
-START_SECTION((Size getMaxModifications() const ))
+START_SECTION((Size getMaxModifications() const))
 {
   // tested above
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((Size getNumberOfModifications() const ))
+START_SECTION((Size getNumberOfModifications() const))
 {
   ModificationDefinitionsSet mod_set(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
   TEST_EQUAL(mod_set.getNumberOfModifications(), 4)
@@ -107,7 +107,7 @@ START_SECTION((Size getNumberOfModifications() const ))
 }
 END_SECTION
 
-START_SECTION((Size getNumberOfFixedModifications() const ))
+START_SECTION((Size getNumberOfFixedModifications() const))
 {
   ModificationDefinitionsSet mod_set(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
   TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 3)
@@ -119,7 +119,7 @@ START_SECTION((Size getNumberOfFixedModifications() const ))
 }
 END_SECTION
 
-START_SECTION((Size getNumberOfVariableModifications() const ))
+START_SECTION((Size getNumberOfVariableModifications() const))
 {
   ModificationDefinitionsSet mod_set(ListUtils::create<String>("Phospho (S),Phospho (T)"), ListUtils::create<String>("Carbamidomethyl (C),Phospho (Y)"));
   TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 2)
@@ -199,7 +199,7 @@ START_SECTION((void setModifications(const String& fixed_modifications, const St
 }
 END_SECTION
 
-START_SECTION((std::set<ModificationDefinition> getModifications() const ))
+START_SECTION((std::set<ModificationDefinition> getModifications() const))
 {
   ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
   set<String> fixed_mods, var_mods;
@@ -259,7 +259,7 @@ START_SECTION(const std::set<ModificationDefinition>& getVariableModifications()
 }
 END_SECTION
 
-START_SECTION((std::set<String> getModificationNames() const ))
+START_SECTION((std::set<String> getModificationNames() const))
 {
   ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
   set<String> mods;
@@ -272,7 +272,23 @@ START_SECTION((std::set<String> getModificationNames() const ))
 }
 END_SECTION
 
-START_SECTION((std::set<String> getFixedModificationNames() const ))
+START_SECTION((void getModificationNames(StringList& fixed_modifications, StringList& variable_modifications) const ))
+{
+  StringList fixed_mods = ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)");
+  StringList var_mods = ListUtils::create<String>("Carbamidomethyl (C)");
+  ModificationDefinitionsSet mod_set(fixed_mods, var_mods);
+
+  StringList fixed_mods_out, var_mods_out;
+  mod_set.getModificationNames(fixed_mods_out, var_mods_out);
+
+  TEST_STRING_EQUAL(ListUtils::concatenate<String>(fixed_mods, ","), 
+                    ListUtils::concatenate<String>(fixed_mods_out, ","));
+  TEST_STRING_EQUAL(ListUtils::concatenate<String>(var_mods, ","), 
+                    ListUtils::concatenate<String>(var_mods_out, ","));
+}
+END_SECTION
+
+START_SECTION((std::set<String> getFixedModificationNames() const))
 {
   ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
   set<String> mods;
@@ -283,7 +299,7 @@ START_SECTION((std::set<String> getFixedModificationNames() const ))
 }
 END_SECTION
 
-START_SECTION((std::set<String> getVariableModificationNames() const ))
+START_SECTION((std::set<String> getVariableModificationNames() const))
 {
   ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T)"), ListUtils::create<String>("Phospho (Y),Carbamidomethyl (C)"));
   set<String> mods;
@@ -430,6 +446,32 @@ START_SECTION((void findMatches(multimap<double, ModificationDefinition>& matche
   TEST_EQUAL(matches.size(), 2);
   TEST_EQUAL(matches.begin()->second.getModificationName(), "Glu->pyro-Glu (N-term E)");
   TEST_EQUAL((++matches.begin())->second.getModificationName(), "Gln->pyro-Glu (N-term Q)");
+}
+END_SECTION
+
+START_SECTION(void inferFromPeptides(const vector<PeptideIdentification>& peptides))
+{
+  vector<PeptideIdentification> peptides(2);
+  PeptideHit hit;
+  hit.setSequence(AASequence::fromString("AC(Carbamidomethyl)M"));
+  peptides[0].insertHit(hit);
+  hit.setSequence(AASequence::fromString("(Acetyl)AEM"));
+  peptides[0].insertHit(hit);
+  hit.setSequence(AASequence::fromString("AC(Carbamidomethyl)M(Oxidation)"));
+  peptides[1].insertHit(hit);
+
+  ModificationDefinitionsSet mod_defs;
+  mod_defs.inferFromPeptides(peptides);
+  set<String> mods = mod_defs.getFixedModificationNames();
+  TEST_EQUAL(mods.size(), 1);
+  set<String>::const_iterator it = mods.begin();
+  TEST_STRING_EQUAL(*it, "Carbamidomethyl (C)");
+  mods = mod_defs.getVariableModificationNames();
+  TEST_EQUAL(mods.size(), 2);
+  it = mods.begin();
+  TEST_STRING_EQUAL(*it, "Acetyl (N-term)");
+  ++it;
+  TEST_STRING_EQUAL(*it, "Oxidation (M)");
 }
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -455,7 +455,7 @@ namespace OpenMS
 
     // OpenSWATH: Prepare transition inserts
     progress = 0;
-    startProgress(0, transitions.size(), "Prepare transitions and mapping");
+    startProgress(0, transitions.size(), String("Prepare ") +  transitions.size() + " transitions and mapping");
     for (Size i = 0; i < transitions.size(); i++)
     {
       setProgress(progress++);
@@ -485,7 +485,7 @@ namespace OpenMS
     std::stringstream insert_protein_sql;
 
     progress = 0;
-    startProgress(0, targeted_exp.getProteins().size(), "Prepare proteins");
+    startProgress(0, targeted_exp.getProteins().size(), String("Prepare ") + targeted_exp.getProteins().size() + " proteins");
     for (Size i = 0; i < targeted_exp.getProteins().size(); i++)
     {
       setProgress(progress++);
@@ -563,7 +563,7 @@ namespace OpenMS
     // OpenSWATH: Prepare peptide inserts
     std::stringstream insert_peptide_sql;
     progress = 0;
-    startProgress(0, peptide_set.size(), "Prepare peptides");
+    startProgress(0, peptide_set.size(), String("Prepare ") + peptide_set.size() + " peptides");
     for (std::vector<std::string>::iterator it = peptide_set.begin(); it != peptide_set.end(); ++it)
     {
       setProgress(progress++);
@@ -574,7 +574,7 @@ namespace OpenMS
     // OpenSWATH: Prepare compound inserts
     std::stringstream insert_compound_sql;
     progress = 0;
-    startProgress(0, compound_set.size(), "Prepare compounds");
+    startProgress(0, compound_set.size(), String("Prepare ") + compound_set.size() + " compounds");
     for (std::vector<std::string>::iterator it = compound_set.begin(); it != compound_set.end(); ++it)
     {
       setProgress(progress++);

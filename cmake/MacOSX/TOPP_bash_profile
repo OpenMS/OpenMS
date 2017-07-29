@@ -2,7 +2,7 @@
 ##                   OpenMS -- Open-Source Mass Spectrometry               
 ## --------------------------------------------------------------------------
 ## Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-## ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+## ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 ## 
 ## This software is released under a three-clause BSD license:
 ##  * Redistributions of source code must retain the above copyright
@@ -57,8 +57,9 @@ else
   export PATH=${OPENMS_TOPP_PATH}/INIFileEditor.app/Contents/MacOS/:${PATH}
   export PATH=${OPENMS_TOPP_PATH}/TOPPAS.app/Contents/MacOS/:${PATH}
   ## also the search engines
-  export PATH=${OPENMS_TOPP_PATH}/TOPP/SEARCHENGINES/XTandem:$PATH
-  export PATH=${OPENMS_TOPP_PATH}/TOPP/SEARCHENGINES/OMSSA:$PATH
+  for folder in ${OPENMS_TOPP_PATH}/TOPP/SEARCHENGINES/*/ ; do
+    export PATH=$folder:$PATH
+  done
   ## and finally topp
   export PATH=${OPENMS_TOPP_PATH}/TOPP:${PATH}
 fi

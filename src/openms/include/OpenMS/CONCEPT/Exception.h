@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,19 +97,19 @@ public:
       //@{
 
       /// Default constructor
-      BaseException() throw();
+      BaseException() noexcept;
 
       /// Constructor
-      BaseException(const char* file, int line, const char* function) throw();
+      BaseException(const char* file, int line, const char* function) noexcept;
 
       /// Constructor
-      BaseException(const char* file, int line, const char* function, const std::string& name, const std::string& message) throw();
+      BaseException(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept;
 
       /// Copy constructor
-      BaseException(const BaseException& exception) throw();
+      BaseException(const BaseException& exception) noexcept;
 
       /// Destructor
-      virtual ~BaseException() throw();
+      virtual ~BaseException() noexcept;
       //@}
 
       /**	@name	Accessors
@@ -117,25 +117,25 @@ public:
       //@{
 
       /// Returns the name of the exception
-      const char* getName() const throw();
+      const char* getName() const noexcept;
 
       /// Returns the error message of the exception
-      virtual const char* what() const throw();
+      virtual const char* what() const noexcept;
 
       /// Returns the line number where it occurred
-      int getLine() const throw();
+      int getLine() const noexcept;
 
       /// Returns the file where it occurred
-      const char* getFile() const throw();
+      const char* getFile() const noexcept;
 
       /// Returns the function where it occurred
-      const char* getFunction() const throw();
+      const char* getFunction() const noexcept;
 
       /// Returns the message
-      const char* getMessage() const throw();
+      const char* getMessage() const noexcept;
 
       /// Modify the exception's error message
-      void setMessage(const std::string& message) throw();
+      void setMessage(const std::string& message) noexcept;
 
       //@}
 
@@ -168,7 +168,7 @@ protected:
       public BaseException
     {
 public:
-      Precondition(const char* file, int line, const char* function, const std::string& condition)  throw();
+      Precondition(const char* file, int line, const char* function, const std::string& condition)  noexcept;
     };
 
     /**
@@ -182,7 +182,7 @@ public:
       public BaseException
     {
 public:
-      Postcondition(const char* file, int line, const char* function, const std::string& condition) throw();
+      Postcondition(const char* file, int line, const char* function, const std::string& condition) noexcept;
     };
 
     /**
@@ -197,7 +197,7 @@ public:
       public BaseException
     {
 public:
-      MissingInformation(const char* file, int line, const char* function, const std::string& error_message) throw();
+      MissingInformation(const char* file, int line, const char* function, const std::string& error_message) noexcept;
     };
 
 
@@ -218,7 +218,7 @@ public:
       public BaseException
     {
 public:
-      IndexUnderflow(const char* file, int line, const char* function, SignedSize index = 0, Size size = 0) throw();
+      IndexUnderflow(const char* file, int line, const char* function, SignedSize index = 0, Size size = 0) noexcept;
     };
 
     /**
@@ -237,7 +237,7 @@ public:
       public BaseException
     {
 public:
-      SizeUnderflow(const char* file, int line, const char* function, Size size = 0) throw();
+      SizeUnderflow(const char* file, int line, const char* function, Size size = 0) noexcept;
     };
 
     /**
@@ -256,7 +256,7 @@ public:
       public BaseException
     {
 public:
-      IndexOverflow(const char* file, int line, const char* function, SignedSize index = 0, Size size = 0) throw();
+      IndexOverflow(const char* file, int line, const char* function, SignedSize index = 0, Size size = 0) noexcept;
     };
 
     /**
@@ -273,7 +273,7 @@ public:
       public BaseException
     {
 public:
-      FailedAPICall(const char* file, int line, const char* function, const std::string& message) throw();
+      FailedAPICall(const char* file, int line, const char* function, const std::string& message) noexcept;
     };
 
     /**
@@ -287,7 +287,7 @@ public:
       public BaseException
     {
 public:
-      InvalidRange(const char* file, int line, const char* function) throw();
+      InvalidRange(const char* file, int line, const char* function) noexcept;
     };
 
 
@@ -305,7 +305,7 @@ public:
       public BaseException
     {
 public:
-      InvalidSize(const char* file, int line, const char* function, Size size = 0) throw();
+      InvalidSize(const char* file, int line, const char* function, Size size = 0) noexcept;
     };
 
 
@@ -321,7 +321,7 @@ public:
       public BaseException
     {
 public:
-      OutOfRange(const char* file, int line, const char* function) throw();
+      OutOfRange(const char* file, int line, const char* function) noexcept;
     };
 
     /**
@@ -337,7 +337,7 @@ public:
       public BaseException
     {
 public:
-      InvalidValue(const char* file, int line, const char* function, const std::string& message, const std::string& value) throw();
+      InvalidValue(const char* file, int line, const char* function, const std::string& message, const std::string& value) noexcept;
     };
 
     /**
@@ -349,7 +349,7 @@ public:
       public BaseException
     {
 public:
-      InvalidParameter(const char* file, int line, const char* function, const std::string& message) throw();
+      InvalidParameter(const char* file, int line, const char* function, const std::string& message) noexcept;
     };
 
     /**
@@ -364,7 +364,7 @@ public:
       public BaseException
     {
 public:
-      ConversionError(const char* file, int line, const char* function, const std::string& error) throw();
+      ConversionError(const char* file, int line, const char* function, const std::string& error) noexcept;
     };
 
     /**
@@ -380,7 +380,7 @@ public:
       public BaseException
     {
 public:
-      IllegalSelfOperation(const char* file, int line, const char* function) throw();
+      IllegalSelfOperation(const char* file, int line, const char* function) noexcept;
     };
 
     /**
@@ -395,7 +395,7 @@ public:
       public BaseException
     {
 public:
-      NullPointer(const char* file, int line, const char* function) throw();
+      NullPointer(const char* file, int line, const char* function) noexcept;
     };
 
     /**
@@ -409,7 +409,7 @@ public:
       public BaseException
     {
 public:
-      InvalidIterator(const char* file, int line, const char* function) throw();
+      InvalidIterator(const char* file, int line, const char* function) noexcept;
     };
 
     /**
@@ -424,7 +424,7 @@ public:
       public BaseException
     {
 public:
-      IncompatibleIterators(const char* file, int line, const char* function) throw();
+      IncompatibleIterators(const char* file, int line, const char* function) noexcept;
     };
 
     /**
@@ -438,7 +438,7 @@ public:
       public BaseException
     {
 public:
-      NotImplemented(const char* file, int line, const char* function) throw();
+      NotImplemented(const char* file, int line, const char* function) noexcept;
     };
 
     /**
@@ -452,7 +452,7 @@ public:
       public BaseException
     {
 public:
-      IllegalTreeOperation(const char* file, int line, const char* function) throw();
+      IllegalTreeOperation(const char* file, int line, const char* function) noexcept;
     };
 
     /**
@@ -473,7 +473,7 @@ public:
       public BaseException, public std::bad_alloc
     {
 public:
-      OutOfMemory(const char* file, int line, const char* function, Size size = 0) throw();
+      OutOfMemory(const char* file, int line, const char* function, Size size = 0) noexcept;
     };
 #ifdef _MSC_VER
 #   pragma warning( pop ) // restore old warning state
@@ -487,7 +487,7 @@ public:
       public BaseException
     {
 public:
-      BufferOverflow(const char* file, int line, const char* function) throw();
+      BufferOverflow(const char* file, int line, const char* function) noexcept;
     };
 
     /**
@@ -499,7 +499,7 @@ public:
       public BaseException
     {
 public:
-      DivisionByZero(const char* file, int line, const char* function) throw();
+      DivisionByZero(const char* file, int line, const char* function) noexcept;
     };
 
     /**
@@ -511,7 +511,7 @@ public:
       public BaseException
     {
 public:
-      OutOfGrid(const char* file, int line, const char* function) throw();
+      OutOfGrid(const char* file, int line, const char* function) noexcept;
     };
 
     /**
@@ -525,7 +525,7 @@ public:
       public BaseException
     {
 public:
-      FileNotFound(const char* file, int line, const char* function, const std::string& filename) throw();
+      FileNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
     /**
@@ -539,7 +539,7 @@ public:
       public BaseException
     {
 public:
-      FileNotReadable(const char* file, int line, const char* function, const std::string& filename) throw();
+      FileNotReadable(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
     /**
@@ -553,7 +553,7 @@ public:
       public BaseException
     {
 public:
-      FileNotWritable(const char* file, int line, const char* function, const std::string& filename) throw();
+      FileNotWritable(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
     /**
@@ -568,7 +568,7 @@ public:
       public BaseException
     {
     public:
-      FileNameTooLong(const char* file, int line, const char* function, const std::string& filename, int max_length) throw();
+      FileNameTooLong(const char* file, int line, const char* function, const std::string& filename, int max_length) noexcept;
     };
 
     /**
@@ -582,7 +582,7 @@ public:
       public BaseException
     {
 public:
-      IOException(const char* file, int line, const char* function, const std::string& filename) throw();
+      IOException(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
     /**
@@ -596,7 +596,7 @@ public:
       public BaseException
     {
 public:
-      FileEmpty(const char* file, int line, const char* function, const std::string& filename) throw();
+      FileEmpty(const char* file, int line, const char* function, const std::string& filename) noexcept;
     };
 
     /**
@@ -610,7 +610,7 @@ public:
       public BaseException
     {
 public:
-      IllegalPosition(const char* file, int line, const char* function, float x, float y, float z) throw();
+      IllegalPosition(const char* file, int line, const char* function, float x, float y, float z) noexcept;
     };
 
     /**
@@ -624,7 +624,7 @@ public:
       public BaseException
     {
 public:
-      ParseError(const char* file, int line, const char* function, const std::string& expression, const std::string& message) throw();
+      ParseError(const char* file, int line, const char* function, const std::string& expression, const std::string& message) noexcept;
     };
 
     /**
@@ -638,7 +638,7 @@ public:
       public BaseException
     {
 public:
-      UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename) throw();
+      UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename, const std::string& message = "") noexcept;
     };
 
     /**
@@ -650,7 +650,7 @@ public:
       public BaseException
     {
 public:
-      IllegalArgument(const char* file, int line, const char* function, const std::string& error_message) throw();
+      IllegalArgument(const char* file, int line, const char* function, const std::string& error_message) noexcept;
     };
 
     /**
@@ -664,7 +664,7 @@ public:
       public BaseException
     {
 public:
-      ElementNotFound(const char* file, int line, const char* function, const std::string& element)   throw();
+      ElementNotFound(const char* file, int line, const char* function, const std::string& element) noexcept;
     };
 
     /**
@@ -678,7 +678,7 @@ public:
       public BaseException
     {
 public:
-      UnableToFit(const char* file, int line, const char* function, const std::string& name, const std::string& message) throw();
+      UnableToFit(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept;
     };
 
     /**
@@ -693,7 +693,7 @@ public:
       public BaseException
     {
 public:
-      UnableToCalibrate(const char* file, int line, const char* function, const std::string& name, const std::string& message) throw();
+      UnableToCalibrate(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept;
     };
 
     /**
@@ -707,7 +707,7 @@ public:
       public BaseException
     {
 public:
-      DepletedIDPool(const char* file, int line, const char* function, const std::string& name, const std::string& message) throw();
+      DepletedIDPool(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept;
     };
 
   } // namespace Exception

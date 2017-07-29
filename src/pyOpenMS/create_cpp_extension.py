@@ -8,7 +8,7 @@ iswin = sys.platform == "win32"
 # import config
 from env import (QT_QMAKE_VERSION_INFO, QT_LIBRARY_DIR, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
                  OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, SUPERHIRN_LIB,
-                 OPEN_MS_BUILD_DIR, MSVCR90DLL, MSVCP90DLL, OPEN_MS_VERSION)
+                 OPEN_MS_BUILD_DIR, MSVS_RTLIBS, OPEN_MS_VERSION, Boost_MAJOR_VERSION, Boost_MINOR_VERSION)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -25,6 +25,15 @@ import shutil
 import time
 
 j = os.path.join
+
+if iswin:
+  # copy stuff
+  try:
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "src", "openswathalgo", "OpenSwathAlgo.lib"), j(OPEN_MS_BUILD_DIR, "bin"))
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "src", "openms", "OpenMS.lib"), j(OPEN_MS_BUILD_DIR, "bin"))
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "src", "superhirn", "SuperHirn.lib"), j(OPEN_MS_BUILD_DIR, "bin"))
+  except IOError:
+    pass
 
 src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
 pxd_files = glob.glob(src_pyopenms + "/pxds/*.pxd")
@@ -106,15 +115,25 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 
 
 if iswin:
-    # fix for broken library names in release 1.11:
-    for p in glob.glob(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR,
-                                    "lib",
-                                    "libboost_math_*mt.lib")):
+    for libname in ["math", "regex"]:
+        # fix for broken library names on Windows
+        for p in glob.glob(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR,
+                                        "lib",
+                                        "libboost_%s_*mt.lib" % libname)):
 
-        if "vc90" in p:
-            continue
-        new_p = p.replace("-mt.lib", "-vc90-mt-1_52.lib")
-        shutil.copy(p, new_p)
+            # Copy for MSVS 2008 (vc90), MSVS 2010 (vc100) and MSVS 2015 (vc140)
+            if "vc90" in p:
+                continue
+            if "vc100" in p:
+                continue
+            if "vc140" in p:
+                continue
+            new_p = p.replace("-mt.lib", "-vc90-mt-%s_%s.lib" % (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
+            shutil.copy(p, new_p)
+            new_p = p.replace("-mt.lib", "-vc100-mt-%s_%s.lib"% (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
+            shutil.copy(p, new_p)
+            new_p = p.replace("-mt.lib", "-vc140-mt-%s_%s.lib"% (Boost_MAJOR_VERSION, Boost_MINOR_VERSION))
+            shutil.copy(p, new_p)
 
 
 # Package data expected to be installed. On Linux the debian package
@@ -126,23 +145,15 @@ if iswin:
     shutil.copy(OPEN_SWATH_ALGO_LIB, "pyopenms")
     shutil.copy(SUPERHIRN_LIB, "pyopenms")
 
-    shutil.copy(MSVCR90DLL, "pyopenms")
-    shutil.copy(MSVCP90DLL, "pyopenms")
-
     if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
         shutil.copy(j(QT_LIBRARY_DIR, "QtCored4.dll"), "pyopenms")
-        shutil.copy(j(QT_LIBRARY_DIR, "QtGuid4.dll"), "pyopenms")
-        shutil.copy(j(QT_LIBRARY_DIR, "QtSqld4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtNetworkd4.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1D.dll"),
-                    "pyopenms")
+        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1D.dll"), "pyopenms")
     else:
         shutil.copy(j(QT_LIBRARY_DIR, "QtCore4.dll"), "pyopenms")
-        shutil.copy(j(QT_LIBRARY_DIR, "QtGui4.dll"), "pyopenms")
-        shutil.copy(j(QT_LIBRARY_DIR, "QtSql4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork4.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1.dll"),
-                    "pyopenms")
+        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1.dll"), "pyopenms")
+        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "sqlite3.dll"), "pyopenms")
 
 elif sys.platform.startswith("linux"):
 

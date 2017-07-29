@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -154,9 +154,10 @@ namespace OpenMS
     */
     void domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr & cptr);
 
-    ///whether to skip some XML checks and be fast instead
+    /// Whether to skip some XML checks (e.g. removing whitespace inside base64 arrays) and be fast instead
     void setSkipXMLChecks(bool only);
   };
 }
 
-#endif
+#endif // OPENMS_FORMAT_HANDLERS_MZMLSPECTRUMDECODER_H
+
