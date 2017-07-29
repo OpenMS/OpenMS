@@ -39,10 +39,10 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/Element.h>
 
 namespace OpenMS
 {
+  class Element;
 
   /** @ingroup Chemistry
 
@@ -122,7 +122,6 @@ protected:
             @throw throws exception ParseError
      */
     IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass);
-    //IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double> & distribution);
     /*_ calculates the average weight based on isotope abundance and mass
      */
     double calculateAvgWeight_(const Map<UInt, double> & Z_to_abundance, const Map<UInt, double> & Z_to_mass);
