@@ -183,7 +183,7 @@ namespace OpenMS
     save_(filename, &handler);
   }
 
-  void MzMLFile::storeString(std::string & output, const PeakMap& map) const
+  void MzMLFile::storeBuffer(std::string & output, const PeakMap& map) const
   {
     Internal::MzMLHandler handler(map, "dummy", getVersion(), *this);
     handler.setOptions(options_);

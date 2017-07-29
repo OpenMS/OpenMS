@@ -1000,7 +1000,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 
 END_SECTION
 
-START_SECTION((void storeString(std::string & output, const PeakMap& map) const))
+START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const))
 {
   MzMLFile file;
 
@@ -1011,7 +1011,7 @@ START_SECTION((void storeString(std::string & output, const PeakMap& map) const)
     file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
     //store map
     std::string out;
-    file.storeString(out,exp_original);
+    file.storeBuffer(out,exp_original);
     TEST_EQUAL(out.size(), 36007)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
     TEST_EQUAL(out.substr(36007-99, 36007-1), "</indexList>\n<indexListOffset>35559</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
@@ -1026,7 +1026,7 @@ START_SECTION((void storeString(std::string & output, const PeakMap& map) const)
 
     //store map
     std::string out;
-    file.storeString(out,empty);
+    file.storeBuffer(out,empty);
     TEST_EQUAL(out.size(), 3167)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
     TEST_EQUAL(out.substr(3167-98, 3167-1), "</indexList>\n<indexListOffset>2978</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")

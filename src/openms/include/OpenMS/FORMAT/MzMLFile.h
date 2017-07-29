@@ -107,7 +107,13 @@ public:
     */
     void store(const String& filename, const PeakMap& map) const;
 
-    void storeString(std::string & output, const PeakMap& map) const;
+    /**
+      @brief Stores a map in an output string.
+
+      @p output An empty string to store the result
+      @p map has to be an MSExperiment
+    */
+    void storeBuffer(std::string & output, const PeakMap& map) const;
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer.
