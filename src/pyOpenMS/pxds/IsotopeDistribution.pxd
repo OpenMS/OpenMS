@@ -16,10 +16,10 @@ cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
         Size getMaxIsotope() nogil except +
 
         # overwrites the container which holds the distribution using @p distribution
-        void set(libcpp_vector[ libcpp_pair[ size_t, double] ] & distribution) nogil except +
+        void set(libcpp_vector[ libcpp_pair[ double, double] ] & distribution) nogil except +
 
         # returns the container which holds the distribution
-        libcpp_vector[ libcpp_pair[ size_t, double] ] getContainer() nogil except +
+        libcpp_vector[ libcpp_pair[ double, double] ] getContainer() nogil except +
 
         # returns the maximal weight isotope which is stored in the distribution
         Size getMax() nogil except +
