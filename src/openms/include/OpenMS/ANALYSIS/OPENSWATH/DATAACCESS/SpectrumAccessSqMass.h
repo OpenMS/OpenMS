@@ -71,6 +71,18 @@ namespace OpenMS
    * sqlite3 supports multiple parallel read threads as long as they use a
    * different db connection.
    *
+   * Sample usage:
+   *
+   *
+   * @code
+   *   // Obtain swath_map with boundaries first
+   *   std::vector<int> indices = sql_mass_reader.readSpectraForWindow(swath_map);
+   *   OpenMS::Internal::MzMLSqliteHandler handler(file);
+   *   OpenSwath::SpectrumAccessPtr sptr(new OpenMS::SpectrumAccessSqMass(handler, indices));
+   *   swath_maps[k].sptr = sptr;
+   * @endcode
+   *
+   *
   */
   class OPENMS_DLLAPI SpectrumAccessSqMass :
     public OpenSwath::ISpectrumAccess

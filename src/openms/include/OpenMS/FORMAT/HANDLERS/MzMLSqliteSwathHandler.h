@@ -35,20 +35,14 @@
 #ifndef OPENMS_FORMAT_HANDLERS_MZMLSQLITESWATHHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MZMLSQLITESWATHHANDLER_H
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 
-#include <sqlite3.h>
-#include <OpenMS/FORMAT/ZlibCompression.h>
-#include <QtCore/QFileInfo>
-
-// // forward declarations
-// struct sqlite3;
+// forward declarations
+struct sqlite3;
 
 namespace OpenMS
 {
@@ -60,132 +54,52 @@ namespace OpenMS
     /**
         @brief Sqlite handler for SWATH data sets
 
+        This class represents a single sqMass file acquired in SWATH / DIA mode
+        and provides some useful access to the indices of the individual SWATH
+        windows.
+
     */
     class OPENMS_DLLAPI MzMLSqliteSwathHandler
     {
 
 public:
 
+      /**
+          @brief Constructor
+
+          @param filename The sqMass filename
+      */
       MzMLSqliteSwathHandler(String filename) :
         filename_(filename)
       {}
 
+      /**
+          @brief Read SWATH windows boundaries from file
 
-    std::vector<OpenSwath::SwathMap> readSwathWindows()
-    {
-      std::vector<OpenSwath::SwathMap> swath_maps;
-      sqlite3 *db = openDB();
-      sqlite3_stmt * stmt;
+          @return A vector populated with SwathMap, with the following attributes initialized: center, lower and upper
 
-      std::string select_sql;
-      select_sql = "SELECT " \
-                    "DISTINCT(ISOLATION_TARGET)," \
-                    "ISOLATION_TARGET - ISOLATION_LOWER," \
-                    "ISOLATION_TARGET + ISOLATION_UPPER " \
-                    "FROM PRECURSOR " \
-                    "INNER JOIN SPECTRUM ON SPECTRUM_ID = SPECTRUM.ID " \
-                    "WHERE MSLEVEL == 2 "\
-                    ";";
+      */
+      std::vector<OpenSwath::SwathMap> readSwathWindows();
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
-      sqlite3_step( stmt );
+      /**
+          @brief Read indices of MS1 spectra from file
 
-      while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
-      {
-        OpenSwath::SwathMap map;
+          @return A list of spectral indices for the MS1 spectra
+      */
+      std::vector<int> readMS1Spectra();
 
-        if (sqlite3_column_type(stmt, 0) != SQLITE_NULL) map.center = sqlite3_column_double(stmt, 0);
-        if (sqlite3_column_type(stmt, 1) != SQLITE_NULL) map.lower = sqlite3_column_double(stmt, 1);
-        if (sqlite3_column_type(stmt, 2) != SQLITE_NULL) map.upper = sqlite3_column_double(stmt, 2);
+      /**
+          @brief Read indices of spectra belonging to specified SWATH window from file
 
-        swath_maps.push_back(map);
-        sqlite3_step( stmt );
-      }
+          @param swath_map Contains the upper/lower boundaries of the SWATH window
+          @return A list of spectral indices for the provided SWATH window
 
-      // free memory and close connection
-      sqlite3_finalize(stmt);
-      sqlite3_close(db);
-
-      return swath_maps;
-    }
-
-    std::vector<int> readMS1Spectra()
-    {
-      std::vector< int > indices;
-      sqlite3 *db = openDB();
-      sqlite3_stmt * stmt;
-
-      std::string select_sql;
-      select_sql = "SELECT ID " \
-                   "FROM SPECTRUM " \
-                   "WHERE MSLEVEL == 1;";
-
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
-      sqlite3_step(stmt);
-
-      while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
-      {
-        indices.push_back(sqlite3_column_int(stmt, 0));
-        sqlite3_step(stmt);
-      }
-
-      // free memory and close connection
-      sqlite3_finalize(stmt);
-      sqlite3_close(db);
-
-      return indices;
-    }
-
-    std::vector<int> readSpectraForWindow(OpenSwath::SwathMap swath_map)
-    {
-      std::vector< int > indices;
-      double center = swath_map.center;
-
-      sqlite3 *db = openDB();
-      sqlite3_stmt * stmt;
-
-      std::string select_sql;
-      select_sql = "SELECT " \
-                    "SPECTRUM_ID " \
-                    "FROM PRECURSOR " \
-                    "WHERE ISOLATION_TARGET BETWEEN "; 
-
-      select_sql += String(center - 0.01); 
-      select_sql += " AND ";
-      select_sql += String(center + 0.01); 
-      select_sql += ";";
-
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
-      sqlite3_step(stmt);
-
-      while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
-      {
-        indices.push_back(sqlite3_column_int(stmt, 0));
-        sqlite3_step(stmt);
-      }
-
-      // free memory and close connection
-      sqlite3_finalize(stmt);
-      sqlite3_close(db);
-
-      return indices;
-    }
+      */
+      std::vector<int> readSpectraForWindow(OpenSwath::SwathMap swath_map);
 
 protected:
 
-      sqlite3* openDB()
-      {
-        sqlite3 *db;
-        int rc;
-
-        // Open database
-        rc = sqlite3_open(filename_.c_str(), &db);
-        if (rc)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Can't open database: ") + sqlite3_errmsg(db));
-        }
-        return db;
-      }
+      sqlite3* openDB();
 
       String filename_;
 

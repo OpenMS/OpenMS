@@ -15,6 +15,7 @@ set(sources_list
   MzMLHandlerHelper.cpp
   MzMLSpectrumDecoder.cpp
   MzMLSqliteHandler.cpp
+  MzMLSqliteSwathHandler.cpp
 	MzXMLHandler.cpp
 	PTMXMLHandler.cpp
 	ParamXMLHandler.cpp

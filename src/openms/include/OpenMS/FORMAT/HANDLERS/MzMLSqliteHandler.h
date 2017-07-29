@@ -60,12 +60,18 @@ namespace OpenMS
         writing substantially faster. It is thus recommended to provide many
         spectra / chromatograms together to the writing function or else
         performance suffers.
+
     */
     class OPENMS_DLLAPI MzMLSqliteHandler
     {
 
 public:
 
+      /**
+          @brief Constructor of sqmass file
+
+          @param filename The sqMass filename
+      */
       MzMLSqliteHandler(String filename);
 
       /**@name Functions for reading files 
@@ -84,14 +90,46 @@ public:
       */
       void readExperiment(MSExperiment & exp, bool meta_only = false) const;
 
+      /**
+          @brief Read an set of spectra (potentially restricted to a subset)
+
+          @param exp The result
+          @param indices A list of indices restricting the resulting spectra only to those specified here
+          @param meta_only Only read the meta data
+      */
       void readSpectra(std::vector<MSSpectrum<> > & exp, const std::vector<int> & indices, bool meta_only = false) const;
 
+      /**
+          @brief Read an set of chromatograms (potentially restricted to a subset)
+
+          @param exp The result
+          @param indices A list of indices restricting the resulting chromatograms only to those specified here
+          @param meta_only Only read the meta data
+      */
       void readChromatograms(std::vector<MSChromatogram<> > & exp, const std::vector<int> & indices, bool meta_only = false) const;
 
+      /**
+          @brief Get number of spectra in the file
+
+          @return The number of spectra
+      */
       Size getNrSpectra() const;
 
+      /**
+          @brief Get number of chromatograms in the file
+
+          @return The number of chromatograms
+      */
       Size getNrChromatograms() const;
 
+      /**
+          @brief Set file configuration
+
+          @param write_full_meta Whether to write a complete mzML meta datastructure into the RUN_EXTRA field (allows complete recovery of the input file)
+          @param use_lossy_compression Whether to use lossy compression (ms numpress)
+          @param linear_abs_mass_acc Accepted loss in mass accuracy (absolute m/z, in Th)
+          @param sql_batch_size Batch size of SQL insert statements
+      */
       void setConfig(bool write_full_meta, bool use_lossy_compression, double linear_abs_mass_acc, int sql_batch_size = 500) 
       {
         write_full_meta_ = write_full_meta;
