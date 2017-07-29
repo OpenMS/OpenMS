@@ -35,32 +35,15 @@
 //not sure if more #include directives are needed
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/JavaInfo.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
-
-#include <QtCore/QFile>
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDebug>
-#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
-
 #include <QDirIterator>
-#include <regex>
 
 using namespace OpenMS;
 using namespace std;
