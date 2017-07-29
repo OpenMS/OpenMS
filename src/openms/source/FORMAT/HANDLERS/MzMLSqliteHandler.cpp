@@ -412,16 +412,16 @@ namespace OpenMS
                    "SPECTRUM.ID as spec_id " \
                    "FROM SPECTRUM ";
 
-			if (deltaRT > 0.0)
-			{
-				select_sql += "WHERE RETENTION_TIME BETWEEN ";
-				select_sql += String(RT - deltaRT) + " AND " + String(RT + deltaRT) + " ";
-			}
+      if (deltaRT > 0.0)
+      {
+        select_sql += "WHERE RETENTION_TIME BETWEEN ";
+        select_sql += String(RT - deltaRT) + " AND " + String(RT + deltaRT) + " ";
+      }
       else
-			{
-				select_sql += "WHERE RETENTION_TIME >= ";
-				select_sql += String(RT) + " ";
-			}
+      {
+        select_sql += "WHERE RETENTION_TIME >= ";
+        select_sql += String(RT) + " ";
+      }
 
       if (!indices.empty())
       {
@@ -433,7 +433,7 @@ namespace OpenMS
         select_sql += String(indices[indices.size()-1]) + ") ";
       }
 
-			if (deltaRT <= 0.0) {select_sql += " LIMIT 1";} // only take the first spectrum larger than RT
+      if (deltaRT <= 0.0) {select_sql += " LIMIT 1";} // only take the first spectrum larger than RT
       select_sql += ";";
 
       sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);

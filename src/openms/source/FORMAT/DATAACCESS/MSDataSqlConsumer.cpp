@@ -59,10 +59,10 @@ namespace OpenMS
     // Write run level information into the file (e.g. run id, run name and mzML structure)
     bool write_full_meta = full_meta_;
     int run_id = 0;
-		peak_meta_.setLoadedFilePath(filename_);
+    peak_meta_.setLoadedFilePath(filename_);
     handler_->writeRunLevelInformation(peak_meta_, write_full_meta, run_id);
 
-		delete handler_;
+    delete handler_;
   }
 
   void MSDataSqlConsumer::flush()

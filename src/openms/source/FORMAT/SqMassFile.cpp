@@ -71,10 +71,11 @@ namespace OpenMS
     consumer->setExperimentalSettings(experimental_settings);
 
     {
-      int batch_size = 500, idx_start, idx_end;
+      int batch_size = 500;
       std::vector<int> indices;
       for (size_t batch_idx = 0; batch_idx <= (sql_mass.getNrSpectra() / batch_size); batch_idx++)
       {
+        int idx_start, idx_end;
         idx_start = batch_idx * batch_size;
         idx_end = std::max(batch_idx * (batch_size+1), sql_mass.getNrSpectra());
 
@@ -93,10 +94,11 @@ namespace OpenMS
     }
 
     {
-      int batch_size = 500, idx_start, idx_end;
+      int batch_size = 500;
       std::vector<int> indices;
       for (size_t batch_idx = 0; batch_idx <= (sql_mass.getNrChromatograms() / batch_size); batch_idx++)
       {
+        int idx_start, idx_end;
         idx_start = batch_idx * batch_size;
         idx_end = std::max(batch_idx * (batch_size+1), sql_mass.getNrChromatograms());
 
