@@ -505,7 +505,7 @@ namespace OpenMS
     void MzMLSqliteHandler::populateChromatogramsWithData_(sqlite3 *db, std::vector<MSChromatogram<> >& chromatograms, const std::vector<int> & indices) const
     {
       OPENMS_PRECONDITION(!indices.empty(), "Need to select at least one index.")
-      OPENMS_PRECONDITION(indices.size() == spectra.size(), "Spectra and indices need to have the same length.")
+      OPENMS_PRECONDITION(indices.size() == chromatograms.size(), "Chromatograms and indices need to have the same length.")
 
       int rc;
       sqlite3_stmt * stmt;
