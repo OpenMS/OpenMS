@@ -577,30 +577,34 @@ protected:
           Size spec_a = consensus_spec.size(), spec_b = exp[*sit].size(), align_size = alignment.size();
           for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
           {
-            // either add aligned peak height to existing peak
-            if (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
-            {
-              consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
-                                                                        pit->getIntensity());
-              ++align_index; // this aligned peak was explained, wait for next aligned peak ...
-              if (align_index == alignment.size())
+              if (alignment.size() == 0 || alignment[align_index].second != spec_b_index)
+                  // ... add unaligned peak
               {
-                  alignment.clear();  // end reached -> avoid going into this block again
+                  consensus_spec.push_back(*pit);
               }
-            }
-            else // ... or add unaligned peak
-            {
-              consensus_spec.push_back(*pit);
-            }
-            if (alignment[align_index].second>spec_b_index)// only increment spec_b_index if the next alignment twople isn't the same as this one (ie allow 1 to many mappings of second to first)
-            {
-                ++spec_b_index;
-            }
+              // or add aligned peak height to ALL corresponding existing peaks
+              else
+              {
+                  Size counter = 0;
+                  while (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
+                  {
+                      consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
+                              pit->getIntensity());
+                      ++align_index; // this aligned peak was explained, wait for next aligned peak ...
+                      if (align_index == alignment.size())
+                      {
+                          alignment.clear();  // end reached -> avoid going into this block again
+                      }
+                      ++counter;
+                  }
+                  align_size=align_size+1-counter; //Decrease align_size by number of
+              }
+              ++spec_b_index;
           }
           consensus_spec.sortByPosition(); // sort, otherwise next alignment will fail
           if (spec_a + spec_b - align_size != consensus_spec.size())
           {
-              LOG_INFO << "wrong number of features after merge. Expected: " << spec_a + spec_b - align_size << " got: " << consensus_spec.size() << "\n";
+              LOG_WARN << "wrong number of features after merge. Expected: " << spec_a + spec_b - align_size << " got: " << consensus_spec.size() << "\n";
           }
         }
         rt_average /= it->second.size() + 1;
