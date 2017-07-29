@@ -190,10 +190,11 @@ protected:
     f.load(in, spectra);
     std::vector<String> subdirs;
 
+    QString tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName()).toQString());
+    String tmp_ms_file = QDir(tmp_dir).filePath("msfile");
+    String out_dir = QDir(tmp_dir).filePath("sirius_out");
+
     //Write msfile
-    String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + String(File::getUniqueName()).toQString();
-    String tmp_ms_file = tmp_dir + "/" + "msfile";
-    String out_dir = tmp_dir + "/" + "sirius_out";
     SiriusMSFile::store(spectra, tmp_ms_file);
 
     //Knime hack
@@ -201,6 +202,7 @@ protected:
     String siriuspath = "SIRIUS_PATH";
     QString qsiriuspath = env.systemEnvironment().value(siriuspath.toQString());
 
+    // TODO Is it correct that the executable argument is ignored if the SIRIUS_PATH is not empty?
     if (!qsiriuspath.isEmpty())
     {
       executable = qsiriuspath;
@@ -281,14 +283,14 @@ protected:
     //clean tmp directory if debug level < 2
     if (debug_level_ >= 2)
     {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
+      writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
     }
     else
     {
-      if ( ! tmp_dir.empty())
+      if ( ! tmp_dir.isEmpty())
       {
-        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::removeDir(tmp_dir.toQString());
+        writeDebug_("Deleting temporary directory '" + String(tmp_dir) + "'. Set debug level to 2 or higher to keep it.", 0);
+        File::removeDir(tmp_dir);
       }
       if ( ! tmp_ms_file.empty() )
       {
