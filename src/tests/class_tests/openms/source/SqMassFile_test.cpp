@@ -49,11 +49,19 @@ using namespace std;
 
 ///////////////////////////
 
+double getFileSize(std::string filename)
+{
+    QFile qfile (filename.c_str());
+    qfile.open(QFile::ReadOnly);
+    double size = qfile.size();
+    qfile.close();
+    return size;
+}
+
 START_TEST(SqMassFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -156,6 +164,7 @@ START_SECTION(void store(const String& filename, MapType& map))
   SqMassFile::SqMassConfig config;
   config.use_lossy_numpress = false;
   config.linear_fp_mass_acc = -1;
+  config.write_full_meta = false;
 
   SqMassFile file;
   file.setConfig(config);
@@ -164,12 +173,22 @@ START_SECTION(void store(const String& filename, MapType& map))
   std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename, exp_orig);
 
+  double size1 = getFileSize(tmp_filename);
+  TEST_EQUAL(size1 < 339968+100 && size1 > 339968-100, true);
+
+  // store larger file with full meta data
   {
-    QFile* file = new QFile(tmp_filename.c_str());
-    file->open(QFile::ReadOnly);
-    double size1 = file->size();
-    file->close();
-    TEST_EQUAL(size1 < 323584+100 && size1 > 323584-100, true);
+    config.write_full_meta = true;
+
+    SqMassFile file;
+    file.setConfig(config);
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    file.store(tmp_filename, exp_orig);
+
+    double size2 = getFileSize(tmp_filename);
+
+    TEST_EQUAL(size2 < 343040+100 && size2 > 343040-100, true);
   }
 
   MSExperiment exp;
@@ -253,6 +272,7 @@ START_SECTION([EXTRA] void store(const String& filename, MapType& map))
   SqMassFile::SqMassConfig config;
   config.use_lossy_numpress = true;
   config.linear_fp_mass_acc = 0.0001;
+  config.write_full_meta = true;
 
   SqMassFile file;
   file.setConfig(config);
@@ -261,13 +281,8 @@ START_SECTION([EXTRA] void store(const String& filename, MapType& map))
   std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename, exp_orig);
 
-  {
-    QFile* file = new QFile(tmp_filename.c_str());
-    file->open(QFile::ReadOnly);
-    double size1 = file->size();
-    file->close();
-    TEST_EQUAL(size1 < 65536+100 && size1 > 65536-100, true);
-  }
+  double size1 = getFileSize(tmp_filename);
+  TEST_EQUAL(size1 < 84992+100 && size1 > 84992-100, true);
 
   MSExperiment exp;
   file.load(tmp_filename, exp);
@@ -279,6 +294,9 @@ START_SECTION([EXTRA] void store(const String& filename, MapType& map))
   TEST_EQUAL(exp.getSpectrum(0) == exp_orig.getSpectra()[0], false) // no exact duplicate
 
   MSExperiment exp2 = exp_orig;
+
+  // using full meta should give 1:1 mapping of experimental settings ...
+  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
 
   // Logic of comparison: if the absolute difference criterion is fulfilled,
   // the relative one does not matter. If the absolute difference is larger
@@ -330,9 +348,6 @@ START_SECTION([EXTRA] void store(const String& filename, MapType& map))
       TEST_REAL_SIMILAR(exp.getChromatogram(i)[k].getRT(), exp2.getChromatograms()[i][k].getRT())
     }
   }
-
-  // no 1:1 mapping of experimental settings ...
-  TEST_EQUAL(exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, false)
 }
 END_SECTION
 
