@@ -1,7 +1,6 @@
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
-from RichPeak2D cimport *
 from MSSpectrum cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/CalibrationData.h>" namespace "OpenMS":
@@ -13,8 +12,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/CalibrationData.h>" namespace "OpenMS":
         double getMZ(Size) nogil except +
         double getRT(Size) nogil except +
         double getIntensity(Size) nogil except +
-        # libcpp_vector[RichPeak2D].iterator begin() nogil except + # wrap-iter-begin:__iter__(RichPeak2D)
-        # libcpp_vector[RichPeak2D].iterator end() nogil except + # wrap-iter-end:__iter__(RichPeak2D)
         Size size() nogil except +
         bool empty() nogil except +
         void clear() nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,16 +28,56 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: $
+// $Maintainer: Oliver Alka $
+// $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/DRichPeak.h>
+#ifndef OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
+#define OPENMS_HOST_CSIFINGERIDMZTABWRITER_H
 
 namespace OpenMS
 {
-  DRichPeak<1> default_drichpeak_1;
-  DRichPeak<1>::Type default_drichpeak_1_type;
-  DRichPeak<2> default_drichpeak_2;
-  DRichPeak<2>::Type default_drichpeak_2_type;
+  class OPENMS_DLLAPI CsiFingerIdMzTabWriter
+      {
+          public:
+
+          /**
+          @brief Internal structure used in @ref SiriusAdapter that is used
+           for the conversion of the Csi:FingerID output to an mzTab.
+           @ingroup DATAACCESS
+          */
+
+          struct CsiAdapterHit
+          {
+            OpenMS::String inchikey2D;
+            OpenMS::String inchi;
+            unsigned int rank;
+            OpenMS::String molecular_formula;
+            double score;
+            OpenMS::String name;
+            OpenMS::String smiles;
+            std::vector<String> pubchemids;
+            std::vector<String> links;
+
+          };
+
+          struct CsiAdapterIdentification
+          {
+            OpenMS::String scan_index;
+            std::vector<CsiAdapterHit> hits;
+          };
+
+          struct CsiAdapterRun
+          {
+            std::vector <CsiAdapterIdentification> identifications;
+          };
+
+          //Output of Sirius is one directory per spectrum/compound
+          //paths: Path to output directories of sirius
+          //number: Amount of entries for each file/compound should be written to the mztab file
+          static void read(const std::vector<String> & paths, Size number, MzTab & result);
+
+      };
 }
+
+#endif //OPENMS_HOST_CSIFINGERIDMZTABWRITER_H

@@ -197,7 +197,8 @@ protected:
         f_fxml_tmp.load(ins[i], tmp_map);
 
         // copy over information on the primary MS run
-        const StringList& ms_runs = tmp_map.getPrimaryMSRunPath();
+        StringList ms_runs;
+        tmp_map.getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
 
         if (i != reference_index)
@@ -279,7 +280,8 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.load(ins[i], maps[i]);
-        const StringList& ms_runs = maps[i].getPrimaryMSRunPath();
+        StringList ms_runs;
+        maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
       }
       // group

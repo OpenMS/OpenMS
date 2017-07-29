@@ -97,6 +97,9 @@ if(APPLE)
                            ${CoreServices_LIBRARY})
 endif()
 
+if (TBB_FOUND)
+ list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
+endif()
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
@@ -107,8 +110,6 @@ if (WITH_CRAWDAD)
     HINTS ${Crawdad_DIR})
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
-
-list(REMOVE_DUPLICATES OPENMS_DEP_LIBRARIES)
 
 set (OPENMS_CONTRIB_INCLUDE_DIRS "")
 if (OPENMS_CONTRIB_LIBS)
@@ -121,7 +122,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-		   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
+		               PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS}
                                      ${QT_INCLUDES}
                                      ${Boost_INCLUDE_DIRS}

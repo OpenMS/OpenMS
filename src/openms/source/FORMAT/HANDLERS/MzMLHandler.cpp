@@ -4550,8 +4550,9 @@ namespace OpenMS
       }
 
       os << "\t<dataProcessingList count=\"" << (std::max)((Size)1, dps.size() + num_bi_dps) << "\">\n";
-      //default (first spectrum data or fictional data)
-      if (exp.empty())
+
+      // default (if experiment is empty and no actual data processing is here)
+      if (dps.size() + num_bi_dps == 0)
       {
         std::vector< ConstDataProcessingPtr > dummy;
         writeDataProcessing_(os, "dp_sp_0", dummy, validator);

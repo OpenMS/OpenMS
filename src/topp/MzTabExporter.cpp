@@ -327,7 +327,9 @@ protected:
       meta_data.description = MzTabString("Export from featureXML");
 
       MzTabMSRunMetaData ms_run;
-      ms_run.location = feature_map.getPrimaryMSRunPath().empty() ? MzTabString("null") : MzTabString(feature_map.getPrimaryMSRunPath()[0]);
+      StringList spectra_data;
+      feature_map.getPrimaryMSRunPath(spectra_data);
+      ms_run.location = spectra_data.empty() ? MzTabString("null") : MzTabString(spectra_data[0]);
       meta_data.ms_run[1] = ms_run;
       meta_data.uri[1] = MzTabString(filename);
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO: we currently only support psm search engine scores annotated to the identification run
@@ -499,7 +501,9 @@ protected:
           const std::vector<ProteinHit> protein_hits = it->getHits();
 
           MzTabMSRunMetaData ms_run;
-          ms_run.location = it->getPrimaryMSRunPath().empty() ? MzTabString("null") : MzTabString(it->getPrimaryMSRunPath()[0]);
+          StringList ms_run_in_data;
+          it->getPrimaryMSRunPath(ms_run_in_data);
+          ms_run.location = ms_run_in_data.empty() ? MzTabString("null") : MzTabString(ms_run_in_data[0]);
           // TODO: add processing information that this file has been exported from "filename"
           meta_data.ms_run[current_run_index] = ms_run;
 
@@ -799,7 +803,8 @@ protected:
       meta_data.peptide_search_engine_score[1] = MzTabParameter();
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
       MzTabMSRunMetaData ms_run;
-      StringList ms_runs = consensus_map.getPrimaryMSRunPath();
+      StringList ms_runs;
+      consensus_map.getPrimaryMSRunPath(ms_runs);
       for (Size i = 0; i != ms_runs.size(); ++i)
       {
         ms_run.location = MzTabString(ms_runs[i]);
@@ -808,7 +813,7 @@ protected:
 
       mztab.setMetaData(meta_data);
 
-      // pre-analyze data for occuring meta values at consensus feature and peptide hit level
+      // pre-analyze data for occurring meta values at consensus feature and peptide hit level
       // these are used to build optional columns containing the meta values in internal data structures
       set<String> consensus_feature_user_value_keys;
       set<String> peptide_hit_user_value_keys;

@@ -21,16 +21,16 @@ OpenMS offers analyses for various quantitation protocols, including label-free
 quantitation, SILAC, iTRAQ, SRM, SWATH, etc.
 
 It provides built-in algorithms for de-novo identification and database search,
-as well as adapters to other state-of-the art tools like XTandem, Mascot,
+as well as adapters to other state-of-the art tools like X!Tandem, Mascot,
 OMSSA, etc. It supports easy integration of OpenMS built tools into workflow
-engines like Knime, Galaxy, WS-Pgrade, and TOPPAS via the TOPPtools concept and
+engines like KNIME, Galaxy, WS-Pgrade, and TOPPAS via the TOPPtools concept and
 a unified parameter handling via a 'common tool description' (CTD) scheme.
 
 With PyOpenMS, OpenMS offers Python bindings to a large part of the OpenMS API
 to enable rapid algorithm development. OpenMS supports the Proteomics Standard
 Initiative (PSI) formats for MS data. The main contributors of OpenMS are
 currently the Eberhard-Karls Universität in Tübingen, the Freie Universität
-Berlin and the ETH Zurich.
+Berlin and the ETH Zürich.
 
 Features
 --------

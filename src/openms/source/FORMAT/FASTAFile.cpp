@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Nico PFeifer $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -38,8 +38,6 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-
-#include <fstream>
 
 #include <seqan/basic.h>
 #include <seqan/stream.h>
@@ -50,21 +48,21 @@
 namespace OpenMS
 {
   using namespace std;
+  typedef seqan::RecordReader<std::fstream, seqan::SinglePass<> > FASTARecordReader;
 
   FASTAFile::FASTAFile()
+    : reader_(std::nullptr_t()), // point to nothing
+      entries_read_(0)
   {
-
   }
 
   FASTAFile::~FASTAFile()
   {
-
+    // infile_ and outfile_ will close automatically when going out of scope. No need to do it explicitly here.
   }
 
-  void FASTAFile::load(const String& filename, vector<FASTAEntry>& data)
+  void FASTAFile::readStart(const String& filename)
   {
-    data.clear();
-
     if (!File::exists(filename))
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
@@ -75,90 +73,121 @@ namespace OpenMS
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
+    if (infile_.is_open()) infile_.close(); // precaution
 
-    std::fstream in(filename.c_str(), std::ios::binary | std::ios::in);
-    seqan::RecordReader<std::fstream, seqan::SinglePass<> > reader(in);
+    infile_.open(filename.c_str(), std::ios::binary | std::ios::in);
+    
+    // automatically deletes old handles
+    reader_ = std::unique_ptr<void, std::function<void(void*) > >(new FASTARecordReader(infile_),
+      [](void* ptr)
+      { // lambda with custom cast
+        delete static_cast<FASTARecordReader*>(ptr);
+      });
 
-    String id, seq;
-    String::size_type position = String::npos;
-    Size size_read(0);
+    entries_read_ = 0;
+  }
 
-    while (!atEnd(reader))
+  bool FASTAFile::readNext(FASTAEntry& protein)
+  {
+    String id;
+    if (atEnd(*static_cast<FASTARecordReader*>(reader_.get())))
+    { 
+      infile_.close();
+      return false;
+    }
+    
+    if (readRecord(id, protein.sequence, *static_cast<FASTARecordReader*>(reader_.get()), seqan::Fasta()) != 0)
     {
-      if (readRecord(id, seq, reader, seqan::Fasta()) != 0)
-      {
-        String msg;
-        if (data.empty()) msg = "The first entry could not be read!";
-        else msg = "The last successful FASTA record was: '>" + data.back().identifier + "'. The record after failed.";
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTA file '" + filename + "'! " + msg +  " Please check the file!");
-      }
+      String msg;
+      if (entries_read_ == 0) msg = "The first entry could not be read!";
+      else msg = "Only " + String(entries_read_) + " proteins could be read. The record after failed.";
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTA file! " + msg + " Please check the file!");
+    }
+    ++entries_read_;
 
-      FASTAEntry newEntry;
-      newEntry.sequence = seq;
-      newEntry.sequence.removeWhitespaces();
+    protein.sequence.removeWhitespaces();
 
-      // handle id
-      id = id.trim();
-      position = id.find_first_of(" \v\t");
-      if (position == String::npos)
-      {
-        newEntry.identifier = id;
-        newEntry.description = "";
-      }
-      else
-      {
-        newEntry.identifier = id.substr(0, position);
-        newEntry.description = id.suffix(id.size() - position - 1);
-      }
-      id.clear();
-      seq.clear();
-      data.push_back(newEntry);
-      size_read += newEntry.sequence.length();
+    // handle id
+    id = id.trim();
+    String::size_type position = id.find_first_of(" \v\t");
+    if (position == String::npos)
+    {
+      protein.identifier = id;
+      protein.description = "";
+    }
+    else
+    {
+      protein.identifier = id.substr(0, position);
+      protein.description = id.suffix(id.size() - position - 1);
     }
 
-    in.close();
+    return true;
+  }
 
-    if (size_read > 0 && data.empty())
-      LOG_WARN << "No entries from FASTA file read. Does the file have MacOS "
-               << "line endings? Convert to Unix or Windows line endings to"
-               << " fix!" << std::endl;
-
+  void FASTAFile::load(const String& filename, vector<FASTAEntry>& data)
+  {
+    data.clear();
+    FASTAEntry p;
+    FASTAFile f;
+    f.readStart(filename);
+    while (f.readNext(p))
+    {
+      data.push_back(p);
+    }
     return;
   }
 
-  void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data) const
+  void FASTAFile::writeStart(const String& filename)
   {
+
     if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::FASTA) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension; expected '" + FileTypes::typeToName(FileTypes::FASTA) + "'");
     }
 
-    ofstream outfile;
-    outfile.open(filename.c_str(), ofstream::out);
+    outfile_.open(filename.c_str(), ofstream::out);
 
-    if (!outfile.good())
+    if (!outfile_.good())
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
+  }
 
+  void FASTAFile::writeNext(const FASTAEntry& protein)
+  {
+    outfile_ << ">" << protein.identifier << " " << protein.description << "\n";
+    const String& tmp(protein.sequence);
+
+    int chunks( tmp.size()/80 ); // number of complete chunks
+    Size chunk_pos(0);
+    while (--chunks >= 0)
+    {
+      outfile_.write(&tmp[chunk_pos], 80);
+      outfile_ << "\n";
+      chunk_pos += 80;
+    }
+
+    if (tmp.size() > chunk_pos)
+    {
+      outfile_.write(&tmp[chunk_pos], tmp.size() - chunk_pos);
+      outfile_ << "\n";
+    }
+  }
+
+  void FASTAFile::writeEnd()
+  {
+    outfile_.close();
+  }
+
+  void FASTAFile::store(const String& filename, const vector<FASTAEntry>& data)
+  {
+    FASTAFile f;
+    f.writeStart(filename);
     for (vector<FASTAEntry>::const_iterator it = data.begin(); it != data.end(); ++it)
     {
-      outfile << ">" << it->identifier << " " << it->description << "\n";
-
-      String tmp(it->sequence);
-      while (tmp.size() > 80) // surprisingly fast, even though its using erase(). For-loop with substr() is much SLOWER!
-      {
-        outfile << tmp.prefix(80) << "\n";
-        tmp.erase(0, 80);
-      }
-
-      if (tmp.size() > 0)
-      {
-        outfile << tmp << "\n";
-      }
+      f.writeNext(*it);
     }
-    outfile.close();
+    f.writeEnd(); // close file
   }
 
 } // namespace OpenMS

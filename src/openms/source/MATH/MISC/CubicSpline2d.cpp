@@ -146,7 +146,7 @@ namespace OpenMS
     std::vector<double> h;
     h.reserve(n);
     a_.reserve(n);
-    x_.reserve(n+1);
+    x_.reserve(n + 1);
     // do the 0'th element manually, since the loop below only starts at 1
     h.push_back(x[1] - x[0]);
     x_.push_back(x[0]);

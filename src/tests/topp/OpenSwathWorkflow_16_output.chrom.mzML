@@ -39,12 +39,6 @@
 	</instrumentConfigurationList>
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000592" name="smoothing" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
@@ -803,32 +797,32 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="PEPTIDEA_Precursor_i0">3599</offset>
-		<offset idRef="PEPTIDEB_Precursor_i0">5431</offset>
-		<offset idRef="PEPTIDEC_Precursor_i0">7263</offset>
-		<offset idRef="PEPTIDED_Precursor_i0">9095</offset>
-		<offset idRef="PEPTIDEF_Precursor_i0">10927</offset>
-		<offset idRef="PEPTIDEE_Precursor_i0">12816</offset>
-		<offset idRef="1">14705</offset>
-		<offset idRef="2">16598</offset>
-		<offset idRef="3">18491</offset>
-		<offset idRef="4">20384</offset>
-		<offset idRef="5">22277</offset>
-		<offset idRef="6">24167</offset>
-		<offset idRef="7">26061</offset>
-		<offset idRef="8">27955</offset>
-		<offset idRef="9">29845</offset>
-		<offset idRef="10">31739</offset>
-		<offset idRef="11">33634</offset>
-		<offset idRef="12">35525</offset>
-		<offset idRef="13">37420</offset>
-		<offset idRef="16">39316</offset>
-		<offset idRef="14">41212</offset>
-		<offset idRef="17">43104</offset>
-		<offset idRef="15">44996</offset>
-		<offset idRef="18">46892</offset>
+		<offset idRef="PEPTIDEA_Precursor_i0">3268</offset>
+		<offset idRef="PEPTIDEB_Precursor_i0">5100</offset>
+		<offset idRef="PEPTIDEC_Precursor_i0">6932</offset>
+		<offset idRef="PEPTIDED_Precursor_i0">8764</offset>
+		<offset idRef="PEPTIDEF_Precursor_i0">10596</offset>
+		<offset idRef="PEPTIDEE_Precursor_i0">12485</offset>
+		<offset idRef="1">14374</offset>
+		<offset idRef="2">16267</offset>
+		<offset idRef="3">18160</offset>
+		<offset idRef="4">20053</offset>
+		<offset idRef="5">21946</offset>
+		<offset idRef="6">23836</offset>
+		<offset idRef="7">25730</offset>
+		<offset idRef="8">27624</offset>
+		<offset idRef="9">29514</offset>
+		<offset idRef="10">31408</offset>
+		<offset idRef="11">33303</offset>
+		<offset idRef="12">35194</offset>
+		<offset idRef="13">37089</offset>
+		<offset idRef="16">38985</offset>
+		<offset idRef="14">40881</offset>
+		<offset idRef="17">42773</offset>
+		<offset idRef="15">44665</offset>
+		<offset idRef="18">46561</offset>
 	</index>
 </indexList>
-<indexListOffset>48822</indexListOffset>
+<indexListOffset>48491</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
