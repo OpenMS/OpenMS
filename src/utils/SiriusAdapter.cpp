@@ -180,8 +180,8 @@ protected:
     String out_csifingerid = getStringOption_("out_CSIFingerID");
 
     // needed for counting
-    int number = getIntOption_("number");
-    number = number + 1; //needed to write the correct number of compounds
+    int number_compounds = getIntOption_("number");
+    number_compounds = number_compounds + 1; //needed to write the correct number of compounds
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
@@ -286,7 +286,7 @@ protected:
     //Convert sirius_output to mztab and store file
     MzTab sirius_result;
     MzTabFile siriusfile;
-    SiriusMzTabWriter::read(subdirs, number, sirius_result);
+    SiriusMzTabWriter::read(subdirs, number_compounds, sirius_result);
     siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
@@ -294,7 +294,7 @@ protected:
     {
       MzTab csi_result;
       MzTabFile csifile;
-      CsiFingerIdMzTabWriter::read(subdirs, number, csi_result);
+      CsiFingerIdMzTabWriter::read(subdirs, number_compounds, csi_result);
       csifile.store(out_csifingerid, csi_result);
     }
 
