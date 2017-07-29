@@ -176,8 +176,8 @@ protected:
     //-------------------------------------------------------------
 
     String in = getStringOption_("in");
-    String out1 = getStringOption_("out_sirius");
-    String out2 = getStringOption_("out_CSIFingerID");
+    String out_sirius = getStringOption_("out_sirius");
+    String out_csifingerid = getStringOption_("out_CSIFingerID");
 
     // needed for counting
     int number = getIntOption_("number");
@@ -287,15 +287,15 @@ protected:
     MzTab sirius_result;
     MzTabFile siriusfile;
     SiriusMzTabWriter::read(subdirs, number, sirius_result);
-    siriusfile.store(out1, sirius_result);
+    siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
-    if (!out2.empty() && fingerid == true)
+    if (!out_csifingerid.empty() && fingerid == true)
     {
       MzTab csi_result;
       MzTabFile csifile;
       CsiFingerIdMzTabWriter::read(subdirs, number, csi_result);
-      csifile.store(out2, csi_result);
+      csifile.store(out_csifingerid, csi_result);
     }
 
     //clean tmp directory
