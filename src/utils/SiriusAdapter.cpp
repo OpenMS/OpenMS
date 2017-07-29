@@ -120,12 +120,9 @@ protected:
     }
     else
     {
-      if (debug_level_ == 0)
-      {
-        writeDebug_("Deleting temporary directory '" + tmp_dir +" and msfile " + ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::removeDir(tmp_dir.toQString()); // remove directory & subdirectories
-        File::remove(ms_file); // remove msfile
-      }
+      writeDebug_("Deleting temporary directory '" + tmp_dir +" and msfile " + ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
+      File::removeDir(tmp_dir.toQString()); // remove directory & subdirectories
+      File::remove(ms_file); // remove msfile
     }
   }
 
