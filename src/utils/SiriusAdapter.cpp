@@ -107,25 +107,6 @@ public:
 
 protected:
 
-  void removeTempFiles_(const String& tmp_dir, const String& ms_file)
-  {
-    if (tmp_dir.empty() && ms_file.empty())
-    {
-      return;
-    }
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ ms_file + ". Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      writeDebug_("Deleting temporary directory '" + tmp_dir +" and msfile " + ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
-      File::removeDir(tmp_dir.toQString()); // remove directory & subdirectories
-      File::remove(ms_file); // remove msfile
-    }
-  }
-
   static bool sortByScanIndex(const String & i, const String & j)
   {
     return (atoi(SiriusMzTabWriter::extract_scan_index(i).c_str()) < atoi(SiriusMzTabWriter::extract_scan_index(j).c_str()));
@@ -180,8 +161,7 @@ protected:
     String out_csifingerid = getStringOption_("out_CSIFingerID");
 
     // needed for counting
-    int number_compounds = getIntOption_("number");
-    number_compounds = number_compounds + 1; //needed to write the correct number of compounds
+    int number_compounds = getIntOption_("number") + 1;  // +1 needed to write the correct number of compounds
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
@@ -264,7 +244,7 @@ protected:
     bool success = qp.waitForFinished(-1); // wait till job is finished
     qp.close();
 
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    if ( ! success || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input" );
     }
@@ -290,7 +270,7 @@ protected:
     siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
-    if (!out_csifingerid.empty() && fingerid == true)
+    if (!out_csifingerid.empty() && fingerid)
     {
       MzTab csi_result;
       MzTabFile csifile;
@@ -298,8 +278,24 @@ protected:
       csifile.store(out_csifingerid, csi_result);
     }
 
-    //clean tmp directory
-    removeTempFiles_(tmp_dir, tmp_ms_file);
+    //clean tmp directory if debug level < 2
+    if (debug_level_ >= 2)
+    {
+      writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
+    }
+    else
+    {
+      if ( ! tmp_dir.empty())
+      {
+        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 0);
+        File::removeDir(tmp_dir.toQString());
+      }
+      if ( ! tmp_ms_file.empty() )
+      {
+        writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
+        File::remove(tmp_ms_file); // remove msfile
+      }
+    }
 
     return EXECUTION_OK;
   }
