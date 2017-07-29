@@ -842,7 +842,7 @@ namespace OpenMS
         std::vector<String> data;
 
         std::string output;
-        MzMLFile().storeString(output, meta);
+        MzMLFile().storeBuffer(output, meta);
 
         // write the full metadata into the sql file (compress with zlib before)
         std::string encoded_string;
