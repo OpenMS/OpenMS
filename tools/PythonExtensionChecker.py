@@ -592,18 +592,18 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("operator[", "operator<")
         cpp_def = cpp_def.replace("operator__[]", "operator[]")
         cpp_def = cpp_def.replace("const ", "")
+
+        # Note that template arguments cannot be typedefs but need to be basic types
         cpp_def = cpp_def.replace("[ DoubleReal ]", "[ double ]")
         cpp_def = cpp_def.replace("[ Size ]", "[ size_t ]")
+        cpp_def = cpp_def.replace("[Size,Size]", "[size_t,size_t]")
         cpp_def = cpp_def.replace("[ Int ]", "[ int ]")
-        cpp_def = cpp_def.replace("RichPeakSpectrum", "MSSpectrum[RichPeak1D]")
-        cpp_def = cpp_def.replace("RichPeakMap", "MSExperiment[RichPeak1D, ChromatogramPeak]")
+
         cpp_def = cpp_def.replace("FeatureMap[]", "FeatureMap[Feature]")
         cpp_def = cpp_def.replace("MSSpectrum[]", "MSSpectrum[Peak1D]")
-        cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment[Peak1D, ChromatogramPeak]")
-        # cpp_def = cpp_def.replace("Chromatogram", "MSChromatogram[ChromatogramPeak]")
-        #
+        cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment")
         cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum[Peak1D]")
-        cpp_def = cpp_def.replace("PeakMap", "MSExperiment[Peak1D, ChromatogramPeak]")
+        cpp_def = cpp_def.replace("PeakMap", "MSExperiment")
 
         # Alert the user to potential problems and comment out potential
         # dangerous things (raw pointers, iterators)
