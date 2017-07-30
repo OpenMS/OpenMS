@@ -125,17 +125,20 @@ if IS_DEBUG:
 extra_link_args.append("-std=c++11")
 extra_compile_args.append("-std=c++11")
 
-ext = Extension(
-    "pyopenms",
-    sources=["pyopenms/pyopenms.cpp"],
-    language="c++",
-    library_dirs=library_dirs,
-    libraries=libraries,
-    include_dirs=include_dirs + autowrap_include_dirs,
-    extra_compile_args=extra_compile_args,
-    extra_link_args=extra_link_args
-)
+mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
+ext = []
+for module in mnames:
 
+    ext.append(Extension(
+        module,
+        sources=["pyopenms/%s.cpp" % module],
+        language="c++",
+        library_dirs=library_dirs,
+        libraries=libraries,
+        include_dirs=include_dirs + autowrap_include_dirs,
+        extra_compile_args=extra_compile_args,
+        extra_link_args=extra_link_args
+    ))
 
 share_data = []
 if iswin:
@@ -175,6 +178,6 @@ setup(
     author="Uwe Schmitt",
     author_email="uschmitt@mineway.de",
 
-    ext_modules=[ext],
+    ext_modules=ext,
     include_package_data=True  # see MANIFEST.in
 )

@@ -25,6 +25,17 @@ import os
 import shutil
 import time
 
+def chunkIt(seq, num):
+  avg = len(seq) / float(num)
+  out = []
+  last = 0.0
+
+  while last < len(seq):
+    out.append(seq[int(last):int(last + avg)])
+    last += avg
+
+  return out
+
 j = os.path.join
 
 if iswin:
@@ -41,17 +52,21 @@ pxd_files = glob.glob(src_pyopenms + "/pxds/*.pxd")
 addons = glob.glob(src_pyopenms + "/addons/*.pyx")
 converters = [j(src_pyopenms, "converters")]
 
-
 persisted_data_path = "include_dir.bin"
 
-extra_cimports = [  # "from libc.stdint cimport *",
-    #"from libc.stddef cimport *",
-    #"from UniqueIdInterface cimport setUniqueId as _setUniqueId",
-    #"from Map cimport Map as _Map",
-    #"cimport numpy as np"
-]
+extra_cimports = []
 
+# We need to parse them all together but keep the association about which class
+# we found in which file (as they often need to be analyzed together)
 decls, instance_map = autowrap.parse(pxd_files, ".", num_processes=int(PY_NUM_THREADS))
+
+# Perform mapping
+pxd_decl_mapping = {}
+for de in decls:
+    tmp = pxd_decl_mapping.get(de.cpp_decl.pxd_path, [])
+    tmp.append(de)
+    pxd_decl_mapping[ de.cpp_decl.pxd_path] = tmp
+
 # add __str__ if toString() method is declared:
 for d in decls:
     # enums, free functions, .. do not have a methods attribute
@@ -70,34 +85,111 @@ for d in decls:
             print("ADDED __str__ method to", d.name)
             break
 
-autowrap_include_dirs = autowrap.Main.create_wrapper_code(decls, instance_map, addons,
-                                                          converters, out="pyopenms/pyopenms.pyx",
-                                                          extra_inc_dirs=extra_cimports,
-                                                          extra_opts=None, include_boost=False)
+# Split into chunks based on pxd files and store the mapping to decls, addons
+# and actual pxd files in a hash
+pxd_files_chunk = chunkIt(list(pxd_decl_mapping.keys()), PY_NUM_MODULES)
+mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
+allDecl_mapping = {}
+for pxd_f, m in zip(pxd_files_chunk, mnames):
+    tmp_decls = []
+    for f in pxd_f:
+        tmp_decls.extend( pxd_decl_mapping[f] )
+ 
+    allDecl_mapping[m] =  {"decls" : tmp_decls, "addons" : [] , "files" : pxd_f}
+
+# Deal with addons, make sure the addons are added to the correct compilation
+# unit (e.g. where the name corresponds to the pxd file).
+# Note that there are some special cases, e.g. addons that go into the first
+# unit or all *but* the first unit.
+is_added = [False for k in addons]
+for modname in mnames:
+
+    for k,a in enumerate(addons):
+        # Deal with special code that needs to go into all modules, only the
+        # first or only all other modules...
+        if modname == mnames[0]:
+            if os.path.basename(a) == "ADD_TO_FIRST" + ".pyx":
+                allDecl_mapping[modname]["addons"].append(a)
+                is_added[k] = True
+        else:
+            if os.path.basename(a) == "ADD_TO_ALL_OTHER" + ".pyx":
+                allDecl_mapping[modname]["addons"].append(a)
+                is_added[k] = True
+        if os.path.basename(a) == "ADD_TO_ALL" + ".pyx":
+            allDecl_mapping[modname]["addons"].append(a)
+            is_added[k] = True
+
+        # Match addon basename to pxd basename
+        for pfile in allDecl_mapping[modname]["files"]:
+            if os.path.basename(a).split(".")[0] == os.path.basename(pfile).split(".")[0]:
+                allDecl_mapping[modname]["addons"].append(a)
+                is_added[k] = True
+
+        if is_added[k]:
+            continue
+
+        # Also match by class name (sometimes one pxd contains multiple classes
+        # and the addon is named after one of them)
+        for dclass in allDecl_mapping[modname]["decls"]:
+            if os.path.basename(a) == dclass.name + ".pyx":
+                allDecl_mapping[modname]["addons"].append(a)
+                is_added[k] = True
+
+# add any addons that did not get added anywhere else
+for k, got_added in enumerate(is_added):
+    if not got_added:
+        # add to all modules
+        for m in mnames:
+            allDecl_mapping[m]["addons"].append( addons[k] )
+
+if True:
+    for modname in mnames:
+
+        m_filename = "pyopenms/%s.pyx" % modname
+        cimports, manual_code = autowrap.Main.collect_manual_code(allDecl_mapping[modname]["addons"])
+        autowrap.Main.register_converters(converters) 
+        autowrap_include_dirs = autowrap.generate_code(allDecl_mapping[modname]["decls"], instance_map, 
+                                                            target=m_filename, debug=False, manual_code=manual_code,
+                                                            extra_cimports=cimports,
+                                                            include_boost=False, allDecl=allDecl_mapping)
+        allDecl_mapping[modname]["inc_dirs"] = autowrap_include_dirs
+
+    for modname in mnames:
+        m_filename = "pyopenms/%s.pyx" % modname
+        autowrap_include_dirs = allDecl_mapping[modname]["inc_dirs"] 
+        autowrap.Main.run_cython(inc_dirs=autowrap_include_dirs, extra_opts=None, out=m_filename)
+
+        if False:
+            #
+            # Fix two bugs in the cpp code generated by Cython to allow error-free
+            # compilation (see OpenMS issues on github #527 and #745).
+            #
+            import re
+            f = open(m_filename)
+            fout = open(m_filename + "tmp", "w")
+            expr_fix = re.compile(r"(.*).std::vector<(.*)>::iterator::~iterator\(\)")
+            for line in f:
+                # Fix for Issue #527
+                res = expr_fix.sub('typedef std::vector<\\2>::iterator _it;\n\\1.~_it()', line)
+                # Fix for Issue #745
+                res = res.replace("__Pyx_PyUnicode_FromString(char", "__Pyx_PyUnicode_FromString(const char")
+                fout.write(res)
+
+            fout.close()
+            f.close()
+            shutil.copy(m_filename + "tmp", m_filename)
+            os.remove(m_filename + "tmp")
+
 
 pickle.dump(autowrap_include_dirs, open(persisted_data_path, "wb"))
 
-#
-# Fix two bugs in the cpp code generated by Cython to allow error-free
-# compilation (see OpenMS issues on github #527 and #745).
-#
-import re
-f = open("pyopenms/pyopenms.cpp")
-fout = open("pyopenms/pyopenms_out.cpp", "w")
-expr_fix = re.compile(r"(.*).std::vector<(.*)>::iterator::~iterator\(\)")
-for line in f:
-    # Fix for Issue #527
-    res = expr_fix.sub('typedef std::vector<\\2>::iterator _it;\n\\1.~_it()', line)
-    # Fix for Issue #745
-    res = res.replace("__Pyx_PyUnicode_FromString(char", "__Pyx_PyUnicode_FromString(const char")
-    fout.write(res)
-
-fout.close()
-f.close()
-shutil.copy("pyopenms/pyopenms_out.cpp", "pyopenms/pyopenms.cpp")
-os.remove("pyopenms/pyopenms_out.cpp")
-
 print("created pyopenms.cpp")
+
+
+with open("pyopenms/all_modules.py", "w") as fp:
+    for modname in mnames:
+        fp.write("from .%s import *" % modname)
+
 
 # create version information
 version = OPEN_MS_VERSION
