@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
 
     cdef cppclass FullSwathFileConsumer:
         #wrap-ignore
+        #no-pxd-import
 
         FullSwathFileConsumer() nogil except + #wrap-ignore
         FullSwathFileConsumer(FullSwathFileConsumer) nogil except + #wrap-ignore
