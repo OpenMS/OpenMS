@@ -232,7 +232,7 @@ protected:
     bool success = qp.waitForFinished(-1); // wait till job is finished
     qp.close();
 
-    if ( ! success || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input" );
     }
@@ -258,7 +258,7 @@ protected:
     siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
-    if (!out_csifingerid.empty() && fingerid)
+    if (out_csifingerid.empty() == false && fingerid)
     {
       MzTab csi_result;
       MzTabFile csifile;
@@ -273,12 +273,12 @@ protected:
     }
     else
     {
-      if ( ! tmp_dir.isEmpty())
+      if (tmp_dir.isEmpty() == false)
       {
         writeDebug_("Deleting temporary directory '" + String(tmp_dir) + "'. Set debug level to 2 or higher to keep it.", 0);
         File::removeDir(tmp_dir);
       }
-      if ( ! tmp_ms_file.empty() )
+      if (tmp_ms_file.empty() == false)
       {
         writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
         File::remove(tmp_ms_file); // remove msfile

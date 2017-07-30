@@ -210,7 +210,7 @@ namespace OpenMS
         //write internal unique .ms data as sirius input
         os << fixed;
         os << ">compound " << query_id << "\n";
-        if ( ! isotopes.empty())
+        if (isotopes.empty() == false)
         {
           os << ">parentmass " << isotopes[0].getMZ() << fixed << "\n";
         }
