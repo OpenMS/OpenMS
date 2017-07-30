@@ -46,3 +46,21 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
         CachedSwathFileConsumer(String cachedir, String basename, 
                                 Size nr_ms1_spectra, libcpp_vector[int] nr_ms2_spectra)
 
+cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "OpenMS":
+    
+    cdef cppclass MzMLSwathFileConsumer(FullSwathFileConsumer) :
+        # wrap-inherits:
+        #  FullSwathFileConsumer
+
+        MzMLSwathFileConsumer() nogil except + # wrap-ignore
+        MzMLSwathFileConsumer(MzMLSwathFileConsumer) nogil except + #wrap-ignore
+        MzMLSwathFileConsumer(String cachedir,
+                              String basename, 
+                              Size nr_ms1_spectra, 
+                              libcpp_vector[ int ] nr_ms2_spectra) nogil except +
+        MzMLSwathFileConsumer(libcpp_vector[ SwathMap ] known_window_boundaries, 
+                              String cachedir,
+                              String basename,
+                              Size nr_ms1_spectra, 
+                              libcpp_vector[ int ] nr_ms2_spectra) nogil except +
+
