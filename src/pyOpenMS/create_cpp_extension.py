@@ -188,7 +188,7 @@ print("created pyopenms.cpp")
 
 with open("pyopenms/all_modules.py", "w") as fp:
     for modname in mnames:
-        fp.write("from .%s import *" % modname)
+        fp.write("from .%s import *\n" % modname)
 
 
 # create version information
