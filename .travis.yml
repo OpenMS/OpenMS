@@ -3,7 +3,7 @@ sudo: false
 language: cpp
 os:
  - linux
-cache: apt
+cache: ccache
 addons:
    apt:
       sources:
