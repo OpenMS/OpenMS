@@ -442,7 +442,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         DEPENDS pyopenms_create_cpp
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
-    add_custom_target(pyopenms
+    add_custom_target(pyopenms 
         COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel

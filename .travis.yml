@@ -14,6 +14,7 @@ addons:
          - cmake
          - cmake-data
          - g++-4.8
+         - python-dev
          - libboost-chrono1.55-dev
          - libboost-date-time1.55-dev
          - libboost-filesystem1.55-dev
@@ -66,6 +67,11 @@ matrix:
     - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release
       os: linux
       compiler: gcc
+
+## pyopenms test
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=OFF ENABLE_CLASS_TESTING=OFF ADDRESS_SANITIZER=Off BUILD_TYPE=Release PYOPENMS=ON
+      os: linux
+      compiler: clang
 
 ## clang tests class and TOPP tests: without gui and without address sanitizer (debug build)
     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Debug

@@ -15,6 +15,24 @@ function build_contrib {
   fi
 }
 
+if [ "${PYOPENMS}" = "ON" ]; then
+  # Note: ensure that cmake uses the same python!
+  which pip
+  which python
+
+  pip install -U setuptools
+  pip install -U pip
+  pip install -U nose
+  pip install -U numpy
+  pip install -U wheel
+  pip install -U Cython
+
+  git clone -b feature/pxd_files https://git@github.com/hroest/autowrap.git
+  pushd autowrap
+  python setup.py install
+  popd
+fi
+
 # fetch contrib and build seqan
 git clone git://github.com/OpenMS/contrib/
 pushd contrib
