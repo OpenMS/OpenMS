@@ -595,7 +595,9 @@ protected:
                 merge_params.setValue("block_method:ms_levels",ListUtils::create<Int>("2"));
                 merge_params.setValue("block_method:rt_block_size",100);//same as correctToNearestFeature's selection
                 merge_params.setValue("block_method:rt_max_length",0.0);//no limit
-                //merge_params.setValue("mass_error_unit",fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); //convert from bool to string
+		merge_params.setValue("mz_binning_width",2.0);
+		merge_params.setValue("mz_binning_width_unit","ppm");
+	        //merge_params.setValue("mass_error_unit",fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); //convert from bool to string
                 fm_merger.setParameters(merge_params);
                 fm_merger.mergeSpectraPrecursors(selected_map);
 
@@ -690,8 +692,18 @@ protected:
         }
         //Remove empty features
         //feature_map.erase(std::remove_if(feature_map.begin(), feature_map.end(),[](Feature i) {return i.getPeptideIdentifications().size()==0;}), feature_map.end()); //Someday when we have Lambda expressions...
-
-        FeatureXMLFile().store(out_features_filepath,feature_map);
+        FeatureMap parsed_feature_map=feature_map;
+        parsed_feature_map.erase(parsed_feature_map.begin(),parsed_feature_map.end()); //clear features leave metadata
+        for(FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
+        {
+            if (fm_it->getPeptideIdentifications().size()!=0)
+            {
+                //fm_it=feature_map.erase(fm_it,fm_it+1);
+                //--fm_it;
+                parsed_feature_map.push_back(*fm_it);
+            }
+        }
+        FeatureXMLFile().store(out_features_filepath,parsed_feature_map);
         progresslogger.endProgress();
 
         return EXECUTION_OK;

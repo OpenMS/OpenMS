@@ -551,33 +551,37 @@ protected:
 
           // sanity check for number of peaks
           Size spec_a = consensus_spec.size(), spec_b = exp[*sit].size(), align_size = alignment.size();
-          for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit) //This goes out of control when one peak in second aligns to two in first
+          for(typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit) //This goes out of control when one peak in second aligns to two in first
           {
-            // either add aligned peak height to existing peak
-            if (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
-            {
-              consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
-                                                                        pit->getIntensity());
-              ++align_index; // this aligned peak was explained, wait for next aligned peak ...
-              if (align_index == alignment.size())
-              {
-                  alignment.clear();  // end reached -> avoid going into this block again
-              }
-            }else if (alignment[align_index].second<spec_b_index) {
-                LOG_INFO << "witchcraft at spectrum " << spec_b_index <<"\n";
-            }
-            else // ... or add unaligned peak
+            if (alignment.size() == 0 || alignment[align_index].second > spec_b_index)// ... add unaligned peak
             {
               consensus_spec.push_back(*pit);
             }
-            if (alignment[align_index].second>spec_b_index && alignment[align_index+1].second>spec_b_index) //only increment spec_b_index if the next alignment twople.second isn't the same as this one (ie allow 1 to many mapping of second to first
-            {
-                ++spec_b_index;
-            }
-//            else
-//            {
-//                  LOG_INFO << "doublepeak at spectrum " << spec_b_index <<"\n";
-//            }
+	    else
+	      {
+		// else add aligned peak height to ALL corresponding existing peaks
+		Size counter = 0;
+		Size align_copy_index= align_index;
+		while ( alignment[align_copy_index].second == spec_b_index)
+		  {
+		    ++counter;
+		    ++align_copy_index;
+		  }
+		  
+		while (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
+		  {
+		    consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
+									      pit->getIntensity()/(double) counter); //when we have multiple alignments divide the intensity into them
+		    ++align_index; // this aligned peak was explained, wait for next aligned peak ...
+		    if (align_index == alignment.size())
+		      {
+			alignment.clear();  // end reached -> avoid going into this block again
+		      }
+		  }
+		align_size=align_size+1-counter; //correct align_size
+	      }
+            
+	    ++spec_b_index;
           }
           consensus_spec.sortByPosition(); // sort, otherwise next alignment will fail
           if (spec_a + spec_b - align_size != consensus_spec.size())
