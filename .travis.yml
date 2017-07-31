@@ -3,7 +3,13 @@ sudo: false
 language: cpp
 os:
  - linux
-cache: ccache
+
+cache:
+  - apt
+  - ccache
+  - directories:
+    - contrib/
+
 env:
   globale:
     - CCACHE_TEMPDIR=/tmp/.ccache-temp
