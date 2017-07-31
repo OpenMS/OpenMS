@@ -77,7 +77,6 @@ matrix:
       os: linux
       compiler: clang
 
-
 ### OS X tests
 #    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=OFF ADDRESS_SANITIZER=Off BUILD_TYPE=Release
 #      os: osx
