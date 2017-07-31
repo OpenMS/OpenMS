@@ -151,7 +151,7 @@ if True:
         autowrap_include_dirs = autowrap.generate_code(allDecl_mapping[modname]["decls"], instance_map, 
                                                             target=m_filename, debug=False, manual_code=manual_code,
                                                             extra_cimports=cimports,
-                                                            include_boost=False, allDecl=allDecl_mapping)
+                                                            include_boost=False, include_numpy=True, allDecl=allDecl_mapping)
         allDecl_mapping[modname]["inc_dirs"] = autowrap_include_dirs
 
     for modname in mnames:
