@@ -15,7 +15,7 @@ function build_contrib {
   fi
 }
 
-if [ -d "contrib" ]; then
+if [ ! -d "contrib" ]; then
   # fetch contrib and build seqan
   git clone git://github.com/OpenMS/contrib/
   pushd contrib
