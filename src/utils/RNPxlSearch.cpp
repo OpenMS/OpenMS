@@ -1437,6 +1437,50 @@ protected:
             }
           }
 
+          // track shifts in n- and c-term ladders (in AAs coordinates)
+          vector<double> n_shifts(sites_sum_score.size(), 0);
+          vector<double> c_shifts(sites_sum_score.size(), 0);
+          for (Size i = 0; i != sites_sum_score.size(); ++i)
+          {
+            if (shifted_b_ions.find(i + 1) == shifted_b_ions.end()) { continue; }
+            for (auto& k : shifted_b_ions[i + 1]) { n_shifts[i] += k.intensity; }
+          }
+
+          for (Size i = 0; i != sites_sum_score.size(); ++i)
+          {
+            if (shifted_a_ions.find(i + 1) == shifted_a_ions.end()) { continue; }
+            for (auto& k : shifted_a_ions[i + 1]) { n_shifts[i] += k.intensity; }
+          }
+          
+          for (Size i = 0; i != sites_sum_score.size(); ++i)
+          {           
+            const Size position = sites_sum_score.size() - i - 1;
+            if (shifted_y_ions.find(i + 1) == shifted_y_ions.end()) { continue; }
+            for (auto& k : shifted_y_ions[i + 1]) { c_shifts[position] += k.intensity; }
+          }
+
+          for (Size i = 0; i != sites_sum_score.size(); ++i) 
+          {            
+            sites_sum_score[i] = 0.0;
+            if (n_shifts[i] == 0 && c_shifts[i] == 0) { continue; } // no shifts? no cross-link at this AA 
+            
+            if (n_shifts[i] > 0)
+            {
+              if (i >= 1 && n_shifts[i - 1] > 0) continue; // AA before already shifted. So ignore this one.
+              if (i < sites_sum_score.size()/2  && n_shifts[i + 1] == 0) continue; // AA after should be shifted, too (at least in lower mass range)
+
+              sites_sum_score[i] += n_shifts[i]; 
+            }
+
+            if (c_shifts[i] > 0)
+            {
+              if (i < sites_sum_score.size()-1  && c_shifts[i + 1] > 0) continue; // AA after already shifted. So ignore this one.
+              if (i > sites_sum_score.size()/2  && c_shifts[i - 1] == 0) continue; // AA before should be shifted, too (at least in lower mass range)
+              sites_sum_score[i] += c_shifts[i]; 
+            }
+
+          }
+/*
           for (Size i = 0; i != sites_sum_score.size(); ++i) 
           {            
             sites_sum_score[i] = 0.0;
@@ -1461,7 +1505,7 @@ protected:
                 {  
                   for (auto& k : shifted_b_ions[bi])
                   {
-                    sites_sum_score[i] += k.intensity; // weight by distance
+                    sites_sum_score[i] += k.intensity; 
                   }
                 }
               } 
@@ -1518,7 +1562,7 @@ protected:
               }              
             }
           }
-
+*/
           #ifdef DEBUG_RNPXLSEARCH
             LOG_DEBUG << "Localisation based on immonium ions: ";
           #endif
