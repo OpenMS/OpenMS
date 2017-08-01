@@ -7,8 +7,6 @@ os:
 cache:
   - apt
   - ccache
-  - directories:
-    - contrib/
 
 env:
   globale:
