@@ -632,8 +632,8 @@ protected:
                    //iterate through all of the matching ms2s since we may have many
                    if (do_all){
                        for (std::vector<MSSpectrum<Peak1D> >::iterator n_it=selected_map.getSpectra().begin(); n_it != selected_map.getSpectra().end(); ++n_it){
-                           tmprevscore=  metmatch.computeHyperScore(*n_it, rev_spec, fragment_mass_tolerance, 100.0);
-                           tmpscore =  metmatch.computeHyperScore(*n_it, spec, fragment_mass_tolerance, 100.0);
+                           tmprevscore = metmatch.computeHyperScore(*n_it, rev_spec, fragment_mass_tolerance, 100.0);
+                           tmpscore = metmatch.computeHyperScore(*n_it, spec, fragment_mass_tolerance, 100.0);
                            if (tmpscore>score){
                                score=tmpscore;
                                revscore=tmprevscore; // We take decoy score for the same spectrum as the forward score
@@ -646,8 +646,8 @@ protected:
                    }
                    if (debug_level_ > 0)
                    {
-                       LOG_INFO << "Decoy Score: " << revscore << endl;
                        LOG_INFO << "Score: " << score << endl;
+                       LOG_INFO << "Decoy Score: " << revscore << endl;
 
                    }
                    if (score>=revscore)
@@ -701,6 +701,33 @@ protected:
                 //fm_it=feature_map.erase(fm_it,fm_it+1);
                 //--fm_it;
                 parsed_feature_map.push_back(*fm_it);
+            }
+            else
+            {
+                vector<PeptideIdentification> copy_of_pep_ids; //remove score 0;
+                for (vector<PeptideIdentification>::iterator v_it = fm_it->getPeptideIdentifications().begin(); v_it != fm_it->getPeptideIdentifications().end(); ++v_it)
+                {
+                    vector<PeptideHit> peptide_hits = v_it->getHits(), copy_of_pep_hits;
+                    for (vector<PeptideHit>::iterator h_it=peptide_hits.begin(); h_it != peptide_hits.end(); ++h_it)
+                    {
+                        if (h_it->getScore()!=0)
+                        {
+                            copy_of_pep_hits.push_back(*h_it);
+                        }
+                    }
+                    if (copy_of_pep_hits.size()>0)
+                    {
+                        PeptideIdentification temp_pepid=*v_it;
+                        temp_pepid.setHits(copy_of_pep_hits);
+                        copy_of_pep_ids.push_back(temp_pepid);
+                    }
+
+                }
+                if (copy_of_pep_ids.size()>0)
+                {
+                    fm_it->setPeptideIdentifications(copy_of_pep_ids);
+                    parsed_feature_map.push_back(*fm_it);
+                }
             }
         }
         FeatureXMLFile().store(out_features_filepath,parsed_feature_map);
