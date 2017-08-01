@@ -714,7 +714,7 @@ protected:
     #endif
     }
 
-    MzMLFile().store(String("RNPxlSearch_a_") + String((int)annotate_charge) + ".mzML", exp);
+//    MzMLFile().store(String("RNPxlSearch_a_") + String((int)annotate_charge) + ".mzML", exp);
   }
 
 
@@ -1445,14 +1445,13 @@ protected:
             // b-ions
             for (Size bi = 1; bi <= sites_sum_score.size(); ++bi) 
             {      
-              double distance = fabs((static_cast<double>(bi - 1) - static_cast<double>(i)) / static_cast<double>(sites_sum_score.size() - 1.0));
               if ((bi - 1) < i) // penalize contradicting observations
               {
                 if (shifted_b_ions.find(bi) != shifted_b_ions.end())
                 {
-                  for (vector<FragmentAnnotationDetail_>::const_iterator k = shifted_b_ions[bi].begin(); k != shifted_b_ions[bi].end(); ++k)
+                  for (auto& k : shifted_b_ions[bi])
                   {
-                    sites_sum_score[i] -= 2.0 * (1.0 - distance) * k->intensity;
+                    sites_sum_score[i] -= k.intensity;
                   }
                 }
               } 
@@ -1460,9 +1459,9 @@ protected:
               {                            
                 if (shifted_b_ions.find(bi) != shifted_b_ions.end())
                 {  
-                  for (vector<FragmentAnnotationDetail_>::const_iterator k = shifted_b_ions[bi].begin(); k != shifted_b_ions[bi].end(); ++k)
+                  for (auto& k : shifted_b_ions[bi])
                   {
-                    sites_sum_score[i] += (1.0 - distance) * k->intensity; // weight by distance
+                    sites_sum_score[i] += k.intensity; // weight by distance
                   }
                 }
               } 
@@ -1471,14 +1470,13 @@ protected:
             // a-ions
             for (Size ai = 1; ai <= sites_sum_score.size(); ++ai) 
             {            
-              double distance = fabs((static_cast<double>(ai - 1) - static_cast<double>(i)) / static_cast<double>(sites_sum_score.size() - 1.0));
               if ((ai - 1) < i) // penalize contradicting observations
               {
                 if (shifted_a_ions.find(ai) != shifted_a_ions.end())
                 {
-                  for (vector<FragmentAnnotationDetail_>::const_iterator k = shifted_a_ions[ai].begin(); k != shifted_a_ions[ai].end(); ++k)
+                  for (auto& k : shifted_a_ions[ai])
                   {
-                    sites_sum_score[i] -= 2.0 * (1.0 - distance) * k->intensity;
+                    sites_sum_score[i] -= k.intensity;
                   }
                 }
               } 
@@ -1486,9 +1484,9 @@ protected:
               {                            
                 if (shifted_a_ions.find(ai) != shifted_a_ions.end())
                 {  
-                  for (vector<FragmentAnnotationDetail_>::const_iterator k = shifted_a_ions[ai].begin(); k != shifted_a_ions[ai].end(); ++k)
+                  for (auto& k : shifted_a_ions[ai])
                   {
-                    sites_sum_score[i] += (1.0 - distance) * k->intensity;
+                    sites_sum_score[i] += k.intensity;
                   }
                 }
               } 
@@ -1498,14 +1496,13 @@ protected:
             for (Size yi = 1; yi <= sites_sum_score.size(); ++yi) 
             {
               Size position = sites_sum_score.size() - yi;
-              double distance = fabs((static_cast<double>(i) - static_cast<double>(position)) / static_cast<double>(sites_sum_score.size() - 1.0));
               if (position > i) // penalize contradicting observations
               {
                 if (shifted_y_ions.find(yi) != shifted_y_ions.end())
                 {
-                  for (vector<FragmentAnnotationDetail_>::const_iterator k = shifted_y_ions[yi].begin(); k != shifted_y_ions[yi].end(); ++k)
+                  for (auto& k : shifted_y_ions[yi])
                   {
-                    sites_sum_score[i] -= 2.0 * (1.0 - distance) * k->intensity;
+                    sites_sum_score[i] -= k.intensity;
                   }
                 }
               }
@@ -1513,9 +1510,9 @@ protected:
               {
                 if (shifted_y_ions.find(yi) != shifted_y_ions.end())
                 {
-                  for (vector<FragmentAnnotationDetail_>::const_iterator k = shifted_y_ions[yi].begin(); k != shifted_y_ions[yi].end(); ++k)
+                  for (auto& k : shifted_y_ions[yi])
                   {
-                    sites_sum_score[i] += (1.0 - distance) * k->intensity;
+                    sites_sum_score[i] += k.intensity;
                   }
                 }
               }              
