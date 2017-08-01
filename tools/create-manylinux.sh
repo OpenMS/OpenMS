@@ -4,10 +4,13 @@
 #
 # Execute as:
 # 
-#   sudo docker run --net=host -v `pwd`:/data manylinux_qt_contrib /bin/bash /data/create-manylinux.sh
+#   sudo docker run --net=host -v `pwd`:/data hroest/manylinux_qt_contrib /bin/bash /data/create-manylinux.sh
 #
 
 git clone -b Release2.2.0 https://github.com/OpenMS/OpenMS.git
+cd OpenMS
+git apply /data/manylinux.patch
+cd /
 
 
 # install Python deps
@@ -31,9 +34,18 @@ for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
   # configure
   cmake -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPYTHON_EXECUTABLE:FILEPATH=$PYBIN/bin/python -DQT_QMAKE_EXECUTABLE=/qt/bin/qmake ../OpenMS
   make -j6 pyopenms
-  ## xx ## # make final wheel ready for bundling
+
+  # ensure auditwheel can find the libraries
   export LD_LIBRARY_PATH=`pwd`/lib
+  # strip the libraries
+  strip --strip-all lib/libOpenMS.so 
+  strip --strip-all lib/libOpenSwathAlgo.so 
+  strip --strip-all lib/libSuperHirn.so 
   cd pyOpenMS
+  # remove the libraries as auditwheel will take care of linked libs
+  rm -rf pyopenms/lib*
+  rm -rf build/lib*/pyopenms/lib*
+
   "$PYBIN/bin/pip" wheel . -w wheelhouse_tmp
 
   # Bundle external shared libraries into the wheels
