@@ -77,12 +77,12 @@ matrix:
       compiler: gcc
 
 ## clang tests class and TOPP tests: without gui and without address sanitizer (debug build)
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Debug CXX="ccache clang++" CC="clang"
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Debug CXX="ccache clang++" CC="clang" CXX_FLAGS="-Qunused-arguments"
       os: linux
       compiler: ": clang-debug"
 
 ## clang tests class and TOPP tests: without gui and without address sanitizer (release build)
-    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release CXX="ccache clang++" CC="clang"
+    - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=ON ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release CXX="ccache clang++" CC="clang"  CXX_FLAGS="-Qunused-arguments"
       os: linux
       compiler: ": clang-release"
 
