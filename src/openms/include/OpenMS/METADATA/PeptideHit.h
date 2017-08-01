@@ -71,7 +71,7 @@ public:
       In the example "[alpha|ci$y3-H2O-NH3]" "alpha" or "beta" determines on which of the two peptides the fragmentation occured,
       "ci" or "xi" determines whether the cross-link and with it the other peptide is contained in the fragment,
       and the last part is the ion type with the fragmentation position (index) and losses.
-      The separators "|" and "$" are used to separate the parts easily when parsing the annotationa
+      The separators "|" and "$" are used to separate the parts easily when parsing the annotation.
 
    */
   struct PeakAnnotation
