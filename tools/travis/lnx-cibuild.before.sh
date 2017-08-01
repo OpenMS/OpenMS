@@ -15,26 +15,24 @@ function build_contrib {
   fi
 }
 
-if [ ! -d "contrib" ]; then
-  # fetch contrib and build seqan
-  git clone git://github.com/OpenMS/contrib/
-  pushd contrib
+# fetch contrib and build seqan
+git clone git://github.com/OpenMS/contrib/
+pushd contrib
 
-  # we build seqan as the versions shipped in Ubuntu are not recent enough
-  build_contrib SEQAN
+# we build seqan as the versions shipped in Ubuntu are not recent enough
+build_contrib SEQAN
 
-  # we build WildMagic
-  build_contrib WILDMAGIC
+# we build WildMagic
+build_contrib WILDMAGIC
 
-  # we build Eigen as the versions shipped in Ubuntu are not recent enough
-  build_contrib EIGEN
+# we build Eigen as the versions shipped in Ubuntu are not recent enough
+build_contrib EIGEN
 
-  # we build Sqlite as the versions shipped in Ubuntu are not recent enough
-  build_contrib SQLITE
+# we build Sqlite as the versions shipped in Ubuntu are not recent enough
+build_contrib SQLITE
 
-  # leave contrib
-  popd
-fi
+# leave contrib
+popd
 
 # build custom cppcheck if we want to perform style tests
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
