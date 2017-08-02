@@ -1,12 +1,5 @@
 #!/bin/bash
 
-if [ "${COMPILER}" = "g++-6" ]; then
-  export CXX=g++-6
-  export CC=gcc-6
-fi
-echo $CXX
-echo $CC
-
 # helper function to convert build name into a proper, CDash-compatible format
 function cdashify()
 {

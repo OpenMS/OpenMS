@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [ "${COMPILER}" = "g++-6" ]; then
-  export CXX=g++-6
-  export CC=gcc-6
-fi
-
 function build_contrib {
   cmake . -DBUILD_TYPE=$1
 
