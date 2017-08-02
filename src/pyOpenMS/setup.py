@@ -9,7 +9,8 @@ iswin = sys.platform == "win32"
 from env import  (OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
                   QT_LIBRARY_DIR, MSVS_RTLIBS,
                   QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
-                  LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS, PY_NUM_MODULES)
+                  LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS, 
+                  PY_NUM_MODULES, PY_NUM_THREADS)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -21,6 +22,7 @@ import pickle
 import os
 import glob
 import shutil
+import time
 
 j = os.path.join
 
@@ -34,8 +36,20 @@ for include in extra_includes:
 persisted_data_path = "include_dir.bin"
 autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
 
-from setuptools import setup, Extension
-import time
+# patch for parallel compilation
+# https://stackoverflow.com/questions/11013851/speeding-up-build-process-with-distutils
+# -- this is not what we want, we dont want to compile each object with
+#    multiple threads, we want to compile multiple extensions at the same time:
+from distutils.extension import Extension
+from distutils.core import setup
+import multiprocessing.pool
+def parallel_build_extensions(self):
+    # taken from distutils/command/build_ext.py
+    # First, sanity-check the 'extensions' list
+    self.check_extensions_list(self.extensions)
+    list(multiprocessing.pool.ThreadPool(int(PY_NUM_THREADS)).imap(self.build_extension, self.extensions))
+import distutils.command.build_ext
+distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
 
 # create version information
 ctime = os.stat("pyopenms").st_mtime
