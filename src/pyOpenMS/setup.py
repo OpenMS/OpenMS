@@ -40,16 +40,20 @@ autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
 # https://stackoverflow.com/questions/11013851/speeding-up-build-process-with-distutils
 # -- this is not what we want, we dont want to compile each object with
 #    multiple threads, we want to compile multiple extensions at the same time:
-from distutils.extension import Extension
-from distutils.core import setup
+from setuptools import setup, Extension
 import multiprocessing.pool
 def parallel_build_extensions(self):
     # taken from distutils/command/build_ext.py
+    # see also Cython/Distutils/old_build_ext.py
+    #  - note that we are missing the self.cython_sources line, so this will not work under all circumstances
     # First, sanity-check the 'extensions' list
     self.check_extensions_list(self.extensions)
     list(multiprocessing.pool.ThreadPool(int(PY_NUM_THREADS)).imap(self.build_extension, self.extensions))
 import distutils.command.build_ext
 distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
+import Cython.Distutils.build_ext
+distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
+
 
 # create version information
 ctime = os.stat("pyopenms").st_mtime
