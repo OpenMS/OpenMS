@@ -26,11 +26,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
   pip install -U numpy
   pip install -U wheel
   pip install -U Cython
-
-  git clone -b feature/pxd_files https://git@github.com/hroest/autowrap.git
-  pushd autowrap
-  python setup.py install
-  popd
+  pip install -U autowrap
 fi
 
 # fetch contrib and build seqan
