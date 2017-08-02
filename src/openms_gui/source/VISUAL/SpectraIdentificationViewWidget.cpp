@@ -139,19 +139,15 @@ namespace OpenMS
     create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
     connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
-    QPushButton* save_idXML = new QPushButton("save idXML", this);
-    connect(save_idXML, SIGNAL(clicked()), this, SLOT(saveIdXML_()));
-
-    QPushButton* save_mzIdentML = new QPushButton("save mzIdentML", this);
-    connect(save_mzIdentML, SIGNAL(clicked()), this, SLOT(saveMzIdentML_()));
+    QPushButton* save_IDs = new QPushButton("save IDs", this);
+    connect(save_IDs, SIGNAL(clicked()), this, SLOT(saveIDs_()));
 
     QPushButton* export_table = new QPushButton("export table", this);
     connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
     tmp_hbox_layout->addWidget(hide_no_identification_);
     tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
-    tmp_hbox_layout->addWidget(save_mzIdentML);
-    tmp_hbox_layout->addWidget(save_idXML);
+    tmp_hbox_layout->addWidget(save_IDs);
     tmp_hbox_layout->addWidget(export_table);
 
     spectra_widget_layout->addLayout(tmp_hbox_layout);
@@ -539,7 +535,7 @@ namespace OpenMS
 
             // index
             addIntItemToBottomRow_(static_cast<Int>(i), 1, c);
-   
+
             // rt
             addDoubleItemToBottomRow_((*layer_->getPeakData())[i].getRT(), 2, c);
 
@@ -875,7 +871,7 @@ namespace OpenMS
     table_widget_->setItem(table_widget_->rowCount() - 1, column_index, item);
   }
 
-  void SpectraIdentificationViewWidget::saveIdXML_()
+  void SpectraIdentificationViewWidget::saveIDs_()
   {
     // no valid peak layer attached
     if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
@@ -883,34 +879,17 @@ namespace OpenMS
       return;
     }
 
-    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML)");
-    vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
-    vector<PeptideIdentification> all_pep_ids;
-    for (int r = 0; r < table_widget_->rowCount(); ++r)
-    {
-      int spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
-      vector<PeptideIdentification> pep_id = (*layer_->getPeakData())[spectrum_index].getPeptideIdentifications();
-      copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
-    }
-    IdXMLFile().store(filename, prot_id, all_pep_ids);
-  }
-
-  void SpectraIdentificationViewWidget::saveMzIdentML_()
-  {
-    // no valid peak layer attached
-    if (layer_ == 0 || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
-    {
-      return;
-    }
-
-    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "mzIdentML file (*.mzid)");
+    QString selectedFilter;
+    QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML);;mzIdentML file (*.mzid)", &selectedFilter);
     vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;
 
     // collect PeptideIdentifications from each spectrum, while making sure each spectrum is only considered once
+    // otherwise duplicates will be stored, if more than one PeptideHit is contained in a PeptideIdentification
     vector<int> added_spectra;
     for (int r = 0; r < table_widget_->rowCount(); ++r)
     {
+      // get spectrum index of current table line
       int spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
 
       // skip this row, if this spectrum was already processed
@@ -925,7 +904,24 @@ namespace OpenMS
       copy(pep_id.begin(), pep_id.end(), back_inserter(all_pep_ids));
     }
 
-    MzIdentMLFile().store(filename, prot_id, all_pep_ids);
+    if (String(filename).hasSuffix(String(".mzid")))
+    {
+      MzIdentMLFile().store(filename, prot_id, all_pep_ids);
+    }
+    else if (String(filename).hasSuffix(String(".idXML")))
+    {
+      IdXMLFile().store(filename, prot_id, all_pep_ids);
+    }
+    else if (String(selectedFilter).hasSubstring(String(".mzid")))
+    {
+      filename = filename + ".mzid";
+      MzIdentMLFile().store(filename, prot_id, all_pep_ids);
+    }
+    else
+    {
+      filename = filename + ".idXML";
+      IdXMLFile().store(filename, prot_id, all_pep_ids);
+    }
   }
 
   // Upon changes in the table data (only possible by checking or unchecking a checkbox rigth now),
