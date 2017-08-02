@@ -7,6 +7,7 @@ include pyopenms/libOpenSwathAlgo.*
 include pyopenms/libSuperHirn.*
 include pyopenms/QtCore*
 include pyopenms/QtNetwork*
+include pyopenms/libz.*
 exclude pyopenms/*.cpp
 global-exclude pyopenms.cpp
 global-exclude HMDB2StructMapping.tsv
