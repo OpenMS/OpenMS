@@ -584,7 +584,9 @@ namespace OpenMS
               // table_widget_->setItem(table_widget_->rowCount() - 1, 3, item); // precursor version
 //              addDoubleItemToBottomRow_(5.0, 15, c);
 
-              // Protein:RNA cross-link
+              double ppm_error(0);
+
+              // Protein:RNA cross-link, Protein-Protein cross-link, or other data with a precomputed precursor error
               if (pi[pi_idx].getHits()[0].metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
               {
                 ppm_error = fabs((double)pi[pi_idx].getHits()[0].getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
@@ -595,7 +597,7 @@ namespace OpenMS
                 int charge = (*layer_->getPeakData())[i].getPrecursors()[0].getCharge();
                 double theo_mass = ph.getSequence().getMonoWeight();
                 double theo_precursor= (theo_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
-                double ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
+                ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
               }
               addDoubleItemToBottomRow_(ppm_error, 15, c);
             }
