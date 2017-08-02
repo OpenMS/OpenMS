@@ -139,9 +139,14 @@ elif sys.platform == "darwin":
 if IS_DEBUG:
     extra_compile_args.append("-g2")
 
-# Note: we use -std=gnu++11 in Linux by default
+# Note: we use -std=gnu++11 in Linux by default, also reduce some warnings
 extra_link_args.append("-std=c++11")
 extra_compile_args.append("-std=c++11")
+extra_compile_args.append("-Wno-redeclared-class-member")
+extra_compile_args.append("-Wno-unused-local-typedef")
+extra_compile_args.append("-Wno-deprecated-register")
+extra_compile_args.append("-Wno-sign-compare")
+extra_compile_args.append("-Wno-unknown-pragmas")
 
 mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
