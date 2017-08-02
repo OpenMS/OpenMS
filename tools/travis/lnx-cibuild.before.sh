@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ "${COMPILER}" = "g++-6" ]; then
+  export CXX=g++-6
+  export CC=gcc-6
+fi
+
 function build_contrib {
   cmake . -DBUILD_TYPE=$1
 
@@ -33,6 +38,7 @@ build_contrib SQLITE
 
 # leave contrib
 popd
+
 
 # build custom cppcheck if we want to perform style tests
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
