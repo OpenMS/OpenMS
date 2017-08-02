@@ -378,15 +378,15 @@ class FragmentAnnotationHelper
     return fas;
   }
 
-  // conversion of RNPxl annotations to PeptideHit::FragmentAnnotation
-  static std::vector<PeptideHit::FragmentAnnotation> fragmentAnnotationDetailsToPHFA(const String& ion_type, map<Size, vector<FragmentAnnotationDetail_> > ion_annotation_details)
+  // conversion of RNPxl annotations to PeptideHit::PeakAnnotation
+  static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(const String& ion_type, map<Size, vector<FragmentAnnotationDetail_> > ion_annotation_details)
   {
-    std::vector<PeptideHit::FragmentAnnotation> fas;
+    std::vector<PeptideHit::PeakAnnotation> fas;
     for (auto ait : ion_annotation_details)
     {
       for (auto sit : ait.second)
       {
-        PeptideHit::FragmentAnnotation fa;
+        PeptideHit::PeakAnnotation fa;
         fa.charge = sit.charge;
         fa.mz = sit.mz;
         fa.intensity = sit.intensity;
@@ -398,14 +398,14 @@ class FragmentAnnotationHelper
     return fas;
   }
 
-  static std::vector<PeptideHit::FragmentAnnotation> shiftedToPHFA(const map<String, set<pair<String, double > > >& shifted_ions)
+  static std::vector<PeptideHit::PeakAnnotation> shiftedToPHFA(const map<String, set<pair<String, double > > >& shifted_ions)
   {
-    std::vector<PeptideHit::FragmentAnnotation> fas;
+    std::vector<PeptideHit::PeakAnnotation> fas;
     for (auto ait : shifted_ions)
     {
       for (auto sit : ait.second)
       {
-        PeptideHit::FragmentAnnotation fa;
+        PeptideHit::PeakAnnotation fa;
         fa.charge = 1;
         fa.mz = sit.second;
         fa.intensity = 1;
@@ -418,7 +418,7 @@ class FragmentAnnotationHelper
   }
 
 
-  static String shiftedIonsToString(const vector<PeptideHit::FragmentAnnotation>& as)
+  static String shiftedIonsToString(const vector<PeptideHit::PeakAnnotation>& as)
   {
     String fas;
     for (auto&  a : as)
@@ -588,7 +588,7 @@ protected:
     String localization_scores;
     String best_localization;  
     String fragment_annotation_string;
-    std::vector<PeptideHit::FragmentAnnotation> fragment_annotations;
+    std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
     {
       return a.score > b.score;
@@ -1166,9 +1166,9 @@ protected:
 
           // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
           map<Size, vector<FragmentAnnotationDetail_> > unshifted_b_ions, unshifted_y_ions, unshifted_a_ions, shifted_b_ions, shifted_y_ions, shifted_a_ions;
-          vector<PeptideHit::FragmentAnnotation> shifted_immonium_ions;
-          vector<PeptideHit::FragmentAnnotation> annotated_marker_ions;
-          vector<PeptideHit::FragmentAnnotation> annotated_precursor_ions;
+          vector<PeptideHit::PeakAnnotation> shifted_immonium_ions;
+          vector<PeptideHit::PeakAnnotation> annotated_marker_ions;
+          vector<PeptideHit::PeakAnnotation> annotated_precursor_ions;
 
 
           // first annotate total loss peaks (these give no information where the actual shift occured)
@@ -1271,7 +1271,7 @@ protected:
             }
             else if (ion_name.hasPrefix("[M+"))
             {
-              PeptideHit::FragmentAnnotation fa;
+              PeptideHit::PeakAnnotation fa;
               fa.mz = fragment_mz;
               fa.intensity = fragment_intensity;
               fa.charge = 1; // for visualion charge is not really important so we set it to 0
@@ -1282,26 +1282,26 @@ protected:
 
           // generate fragment annotation strings for unshifted ions
           StringList fa_strings;
-          vector<PeptideHit::FragmentAnnotation> fas;
+          vector<PeptideHit::PeakAnnotation> fas;
           String ub = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions);
           if (!ub.empty()) 
           {
             fa_strings.push_back(ub);
-            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);;
+            const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);;
             fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
           }
           String uy = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions);
           if (!uy.empty()) 
           {
             fa_strings.push_back(uy);
-            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);;
+            const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);;
             fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
           }
           String ua = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions);
           if (!ua.empty()) 
           {
             fa_strings.push_back(ua);
-            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);;
+            const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);;
             fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
           }
           vector<double> sites_sum_score(aas.size(), 0);
@@ -1419,7 +1419,7 @@ protected:
             {
               if (fragment_charge <= 1)
               {
-                PeptideHit::FragmentAnnotation fa;
+                PeptideHit::PeakAnnotation fa;
                 fa.mz = fragment_mz;
                 fa.intensity = fragment_intensity;
                 fa.charge = 1;
@@ -1437,7 +1437,7 @@ protected:
             {
               if (fragment_charge <= 1)
               {
-                PeptideHit::FragmentAnnotation fa;
+                PeptideHit::PeakAnnotation fa;
                 fa.mz = fragment_mz;
                 fa.intensity = fragment_intensity;
                 fa.charge = 1;
@@ -1453,7 +1453,7 @@ protected:
             }
             else if (ion_name.hasPrefix("[M+"))
             {
-              PeptideHit::FragmentAnnotation fa;
+              PeptideHit::PeakAnnotation fa;
               fa.mz = fragment_mz;
               fa.intensity = fragment_intensity;
               fa.charge = 1; // for visualion charge is not really important so we set it to 1, TODO: read out charge from ion name and set here
@@ -1604,7 +1604,7 @@ protected:
           if (!sb.empty()) 
           {
             fa_strings.push_back(sb);
-            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", shifted_b_ions);;
+            const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", shifted_b_ions);;
             fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
           }
 
@@ -1612,7 +1612,7 @@ protected:
           if (!sy.empty()) 
           {
             fa_strings.push_back(sy);
-            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", shifted_y_ions);;
+            const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", shifted_y_ions);;
             fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
           }
 
@@ -1620,7 +1620,7 @@ protected:
           if (!sa.empty()) 
           {
             fa_strings.push_back(sa);
-            const vector<PeptideHit::FragmentAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", shifted_a_ions);;
+            const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", shifted_a_ions);;
             fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
           }
 
@@ -1739,7 +1739,7 @@ protected:
           ph.setMetaValue(String("RNPxl:localization_scores"), a_it->localization_scores);
           ph.setMetaValue(String("RNPxl:best_localization"), a_it->best_localization);
           ph.setMetaValue(String("RNPxl:fragment_annotation"), a_it->fragment_annotation_string);
-          ph.setFragmentAnnotations(a_it->fragment_annotations);
+          ph.setPeakAnnotations(a_it->fragment_annotations);
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
           phs.push_back(ph);
