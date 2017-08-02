@@ -121,7 +121,7 @@ namespace OpenMS
        * @param theoretical_spectrum The theoretical spectrum with meta information
        * @param experiment_spectrum The experimental specrum
        */
-      static void buildFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum);
+      static void buildFragmentAnnotations(std::vector<PeptideHit::PeakAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum);
 
       /**
        * @brief Builds PeptideIdentifications and PeptideHits
