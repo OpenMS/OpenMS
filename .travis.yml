@@ -70,14 +70,19 @@ matrix:
       os: linux
       compiler: gcc
 
+## see for example https://github.com/taocpp/PEGTL/blob/master/.travis.yml
 ## gcc tests class and TOPP tests
     - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release
       os: linux
       compiler: gcc
 
-    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release COMPILER=g++-7
+    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Debug
       os: linux
       compiler: gcc
+
+    - os: linux
+      compiler: gcc
+      env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release COMPILER=g++-7
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
