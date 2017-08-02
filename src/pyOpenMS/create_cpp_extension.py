@@ -30,15 +30,16 @@ import shutil
 import time
 
 def chunkIt(seq, num):
-  avg = len(seq) / float(num)
-  out = []
-  last = 0.0
+    avg = len(seq) / float(num)
+    out = []
+    last = 0.0
+    while len(out) < num:
+      out.append(seq[int(last):int(last + avg)])
+      last += avg
 
-  while last < len(seq):
-    out.append(seq[int(last):int(last + avg)])
-    last += avg
-
-  return out
+    # append the rest to the last element (if there is any)
+    out[-1].extend( seq[int(last):] )
+    return out
 
 j = os.path.join
 
@@ -90,8 +91,12 @@ for d in decls:
             break
 
 # Split into chunks based on pxd files and store the mapping to decls, addons
-# and actual pxd files in a hash
+# and actual pxd files in a hash. We need to produce the exact number of chunks
+# as setup.py relies on it as well.
 pxd_files_chunk = chunkIt(list(pxd_decl_mapping.keys()), PY_NUM_MODULES)
+assert (len(pxd_files_chunk) == PY_NUM_MODULES), "Internal Error: number of chunks not equal to number of modules"
+assert (sum( [len(ch) for ch in pxd_files_chunk]) == len(pxd_decl_mapping)), "Internal Error: chunking lost files"
+
 mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 allDecl_mapping = {}
 for pxd_f, m in zip(pxd_files_chunk, mnames):
