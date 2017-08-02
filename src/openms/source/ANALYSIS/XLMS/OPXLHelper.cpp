@@ -724,7 +724,7 @@ namespace OpenMS
       }
 
       // Error calculation
-      double weight = seq_alpha.getMonoWeight() + top_csm->cross_link.cross_linker_mass;
+      double weight = seq_alpha.getMonoWeight() + top_csms_spectrum[i].cross_link.cross_linker_mass;
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
       {
         weight += top_csms_spectrum[i].cross_link.beta.getMonoWeight();
