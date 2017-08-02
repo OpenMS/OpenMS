@@ -223,7 +223,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor mono mass tolerance.", false);
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance.", false);
 
     registerStringOption_("precursor_mass_tolerance_unit", "<unit>", "ppm", "Unit to be used for precursor mass tolerance.", false);
     setValidStrings_("precursor_mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
