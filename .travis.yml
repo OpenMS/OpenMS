@@ -76,18 +76,6 @@ matrix:
       os: linux
       compiler: gcc
 
-    - env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Debug
-      os: linux
-      compiler: gcc
-
-    - os: linux
-      compiler: gcc
-      env: ENABLE_STYLE_TESTING=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON WITH_GUI=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Release COMPILER=g++-6
-      addons:
-        apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-6']
-
 ## clang tests class and TOPP tests: without gui and without address sanitizer (debug build)
     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Debug CXX_FLAGS="-Qunused-arguments" CFLAGS="-Qunused-arguments" CCACHE_CPP2=1
       os: linux
