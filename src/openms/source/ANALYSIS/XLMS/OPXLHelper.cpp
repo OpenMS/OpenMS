@@ -599,7 +599,7 @@ namespace OpenMS
     return cross_link_candidates;
   }
 
-  void OPXLHelper::buildFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum)
+  void OPXLHelper::buildFragmentAnnotations(std::vector<PeptideHit::PeakAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum)
   {
     if (theoretical_spectrum.empty() || experiment_spectrum.empty())
     {
@@ -609,7 +609,7 @@ namespace OpenMS
     PeakSpectrum::StringDataArray names = theoretical_spectrum.getStringDataArrays()[0];
     for (Size k = 0; k < matching.size(); ++k)
     {
-      PeptideHit::FragmentAnnotation frag_anno;
+      PeptideHit::PeakAnnotation frag_anno;
       frag_anno.mz = experiment_spectrum[matching[k].second].getMZ();
       frag_anno.intensity = experiment_spectrum[matching[k].second].getIntensity();
 
@@ -786,8 +786,8 @@ namespace OpenMS
 
       ph_alpha.setMetaValue("selected", "false");
 
-      ph_alpha.setFragmentAnnotations(top_csms_spectrum[i].frag_annotations);
-      LOG_DEBUG << "Annotations of size " << ph_alpha.getFragmentAnnotations().size() << endl;
+      ph_alpha.setPeakAnnotations(top_csms_spectrum[i].frag_annotations);
+      LOG_DEBUG << "Annotations of size " << ph_alpha.getPeakAnnotations().size() << endl;
       phs.push_back(ph_alpha);
 
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)

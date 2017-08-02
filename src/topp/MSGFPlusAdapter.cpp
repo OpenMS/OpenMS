@@ -150,7 +150,7 @@ protected:
 
     registerFlag_("add_decoys", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.");
 
-    registerDoubleOption_("precursor_mass_tolerance", "<value>", 20, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
+    registerDoubleOption_("precursor_mass_tolerance", "<value>", 10, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance (MS-GF+ parameter '-t')", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
 
