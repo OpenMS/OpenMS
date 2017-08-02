@@ -107,10 +107,10 @@ namespace OpenMS
       {
         switch (ms_level)
         {
-          // mass fingerprint annotation of name etc 
+          // mass fingerprint annotation of name etc
           case 1: { addPeakAnnotations_(pis); break; }
-          // annotation with stored fragments or synthesized theoretical spectrum 
-          case 2: 
+          // annotation with stored fragments or synthesized theoretical spectrum
+          case 2:
           {
             // check if index in bounds and hits are present
             if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
@@ -167,9 +167,9 @@ namespace OpenMS
     {
       // query closest peak to expected position
       int peak_idx = current_layer.getCurrentSpectrum().findNearest(it->mz, 1e-2);
-        
+
       // check if m/z fits
-      if (peak_idx == -1) 
+      if (peak_idx == -1)
       {
         LOG_WARN << "Annotation present for missing peak.  m/z: " << it->mz << std::endl;
         continue;
@@ -178,14 +178,20 @@ namespace OpenMS
       const double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
       DPosition<2> position = DPosition<2>(it->mz, peak_int);
       String annotation = it->annotation;
-      if (it->charge > 0) { annotation += "+" + it->charge; }
+      if (it->charge > 0)
+      {
+        annotation = annotation + "+" + String(it->charge);
+      }
 
       Annotation1DItem * item;
-      if (annotation.hasSubstring("|ci$"))
+
+      // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
+      // for now red is the standard color of labels
+      if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) && annotation.hasSubstring(String("|ci$")))
       {
         item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkGreen);
       }
-      else
+      else //if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) &&  annotation.hasSubstring(String("|xi$")))
       {
         item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkRed);
       }
@@ -229,7 +235,7 @@ namespace OpenMS
       if (!it->hasMZ()) continue;
       double mz = it->getMZ();
       Size peak_idx = current_layer.getCurrentSpectrum().findNearest(mz);
-        
+
       // m/z fits ?
       if (Math::getPPMAbs(mz, current_layer.getCurrentSpectrum()[peak_idx].getMZ()) > ppm) continue;
 
@@ -245,7 +251,7 @@ namespace OpenMS
         if (ith->metaValueExists("identifier") && ith->metaValueExists("chemical_formula"))
         {
           String name = ith->getMetaValue("identifier");
-          if (name.length() > 20) 
+          if (name.length() > 20)
           {
             name = name.substr(0, 17) + "...";
           }
@@ -327,7 +333,7 @@ namespace OpenMS
     widget_1D->canvas()->activateSpectrum(spectrum_index);
     LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
     current_layer.peptide_id_index = peptide_id_index;
-    current_layer.peptide_hit_index = peptide_hit_index;   
+    current_layer.peptide_hit_index = peptide_hit_index;
 
     if (current_layer.type == LayerData::DT_PEAK)
     {
@@ -337,8 +343,8 @@ namespace OpenMS
       switch (ms_level)
       {
         case 1: // mass fingerprint annotation of name etc and precursor labels
-        { 
-          addPeakAnnotations_(pis); 
+        {
+          addPeakAnnotations_(pis);
           vector<Precursor> precursors;
 
           // collect all MS2 spectra precursor till next MS1 spectrum is encountered
@@ -356,7 +362,7 @@ namespace OpenMS
           addPrecursorLabels1D_(precursors);
           break;
         }
-        case 2: // annotation with stored fragments or synthesized theoretical spectrum 
+        case 2: // annotation with stored fragments or synthesized theoretical spectrum
         {
           // check if index in bounds and hits are present
           if (peptide_id_index < static_cast<int>(pis.size()) && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
@@ -482,84 +488,87 @@ namespace OpenMS
 
     for (Size i = 0; i < frag_annotations.size(); ++i)
     {
-      vector<String> dol_split;
-      frag_annotations[i].annotation.split("$", dol_split);
-
-      vector<String> bar_split;
-      dol_split[0].split("|", bar_split);
-
-      bool alpha = bar_split[0] == "[alpha";
-      bool ci = bar_split[1] == "ci";
-
-      int pos = dol_split[1].suffix(dol_split[1].size()-1).prefix(dol_split[1].size()-2).toInt()-1;
-      String frag_type = dol_split[1][0];
-      //bool left = (frag_type == "a" || frag_type == "b" || frag_type == "c");
-      int direction;
-      if (frag_type == "a" || frag_type == "b" || frag_type == "c")
+      if (frag_annotations[i].annotation.hasSubstring(String("[alpha|")) || frag_annotations[i].annotation.hasSubstring(String("[beta|")))
       {
-        direction = -1;
-      }
-      else
-      {
-        direction = 1;
-      }
+        vector<String> dol_split;
+        frag_annotations[i].annotation.split("$", dol_split);
 
-      if (direction == 1)
-      {
-        if (alpha)
+        vector<String> bar_split;
+        dol_split[0].split("|", bar_split);
+
+        bool alpha = bar_split[0] == "[alpha";
+        bool ci = bar_split[1] == "ci";
+
+        int pos = dol_split[1].suffix(dol_split[1].size()-1).prefix(dol_split[1].size()-2).toInt()-1;
+        String frag_type = dol_split[1][0];
+        //bool left = (frag_type == "a" || frag_type == "b" || frag_type == "c");
+        int direction;
+        if (frag_type == "a" || frag_type == "b" || frag_type == "c")
         {
-          pos = alpha_size - pos - 1;
+          direction = -1;
         }
         else
         {
-          pos = beta_size - pos - 1;
+          direction = 1;
         }
-      }
 
-      String arrow;
-      if (ci)
-      {
-        arrow += "<font color=\"green\">";
-      }
-      else
-      {
-        arrow += "<font color=\"red\">";
-      }
-
-      if (direction == -1)
-      {
-        arrow += "&#8636;</font>";
-      }
-      else
-      {
-        arrow += "&#8641;</font>";
-      }
-
-      if (alpha)
-      {
-        if (alpha_direction[pos] == 0) // no arrow assigned yet
+        if (direction == 1)
         {
-          alpha_strings[pos] = arrow;
-          alpha_direction[pos] = direction;
+          if (alpha)
+          {
+            pos = alpha_size - pos - 1;
+          }
+          else
+          {
+            pos = beta_size - pos - 1;
+          }
         }
-        else if (alpha_direction[pos] != direction && alpha_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
+
+        String arrow;
+        if (ci)
         {
-          alpha_strings[pos] = String("<font color=\"blue\">&#8651;</font>");
-          alpha_direction[pos] = 2;
-        } // otherwise an arrow with the correct direction is already assigned
-      }
-      else
-      {
-        if (beta_direction[pos] == 0) // no arrow assigned yet
-        {
-          beta_strings[pos] = arrow;
-          beta_direction[pos] = direction;
+          arrow += "<font color=\"green\">";
         }
-        else if (beta_direction[pos] != direction && beta_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
+        else
         {
-          beta_strings[pos] = String("<font color=\"blue\">&#8651;</font>");
-          beta_direction[pos] = 2;
-        } // otherwise an arrow with the correct direction is already assigned
+          arrow += "<font color=\"red\">";
+        }
+
+        if (direction == -1)
+        {
+          arrow += "&#8636;</font>";
+        }
+        else
+        {
+          arrow += "&#8641;</font>";
+        }
+
+        if (alpha)
+        {
+          if (alpha_direction[pos] == 0) // no arrow assigned yet
+          {
+            alpha_strings[pos] = arrow;
+            alpha_direction[pos] = direction;
+          }
+          else if (alpha_direction[pos] != direction && alpha_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
+          {
+            alpha_strings[pos] = String("<font color=\"blue\">&#8651;</font>");
+            alpha_direction[pos] = 2;
+          } // otherwise an arrow with the correct direction is already assigned
+        }
+        else
+        {
+          if (beta_direction[pos] == 0) // no arrow assigned yet
+          {
+            beta_strings[pos] = arrow;
+            beta_direction[pos] = direction;
+          }
+          else if (beta_direction[pos] != direction && beta_direction[pos] != 2) // assigned arrow has different direction, make bidirectional arrow
+          {
+            beta_strings[pos] = String("<font color=\"blue\">&#8651;</font>");
+            beta_direction[pos] = 2;
+          } // otherwise an arrow with the correct direction is already assigned
+        }
       }
     }
     alpha_string = "<font style=\"\">" + collapseStringVector(alpha_strings) + "</font>";
@@ -859,9 +868,9 @@ namespace OpenMS
           // copy user annotations to fragment annotation vector
           Annotations1DContainer & las = current_layer.getAnnotations(spectrum_index);
 
-          vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();         
+          vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
 
-          bool annotations_changed(false); 
+          bool annotations_changed(false);
 
           // for each annotation item on the canvas
           for (auto& a : las)
@@ -877,15 +886,15 @@ namespace OpenMS
               if (fabs(tmp_a.mz - pa->getPeakPosition()[0]) < 1e-6)
               {
                 if (tmp_a.annotation == pa->getText().toUtf8().constData())
-                { 
-                  already_annotated = true; 
+                {
+                  already_annotated = true;
                   break;
                 }
                 else // preak annotated but different text (e.g., changed by user)
                 {
                   tmp_a.annotation = pa->getText().toUtf8().constData();
                   annotations_changed = true;
-                  already_annotated = true; 
+                  already_annotated = true;
                   break;
                 }
               }
@@ -898,13 +907,13 @@ namespace OpenMS
               fa.charge = 0;
               fa.mz = pa->getPeakPosition()[0];
               fa.intensity = pa->getPeakPosition()[1];
-              fa.annotation = pa->getText().toUtf8().constData(); 
+              fa.annotation = pa->getText().toUtf8().constData();
               fas.push_back(fa);
               annotations_changed = true;
             }
           }
           if (annotations_changed) { hit.setPeakAnnotations(fas); }
-        } 
+        }
       }
 
       // remove all graphical peak annotations as these will be recreated from the stored peak annotations
@@ -914,7 +923,7 @@ namespace OpenMS
                               { return dynamic_cast<const Annotation1DPeakItem*>(a) != nullptr; });
       las.erase(new_end, las.end());
 
-      removeTheoreticalSpectrumLayer_();    
+      removeTheoreticalSpectrumLayer_();
     }
 
     // reset selected id indices
