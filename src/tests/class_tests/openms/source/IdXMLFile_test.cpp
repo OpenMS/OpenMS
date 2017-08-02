@@ -272,6 +272,22 @@ START_SECTION(([EXTRA] No protein identification bug))
 
 END_SECTION
 
+START_SECTION(([EXTRA] XLMS data labeled cross-linker))
+  vector<ProteinIdentification> protein_ids;
+  vector<PeptideIdentification> peptide_ids;
+
+  String input_file= OPENMS_GET_TEST_DATA_PATH("IdXML_XLMS_labelled.idXML");
+  IdXMLFile().load(input_file, protein_ids, peptide_ids);
+
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getFragmentAnnotations()[0].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getFragmentAnnotations()[0].charge, 1)
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getFragmentAnnotations()[1].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getFragmentAnnotations()[8].annotation, "[alpha|xi$b8]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getFragmentAnnotations()[20].annotation, "[alpha|xi$b9]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getFragmentAnnotations()[25].charge, 3)
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getFragmentAnnotations()[25].annotation, "[alpha|xi$y8]")
+
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

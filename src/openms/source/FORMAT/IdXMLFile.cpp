@@ -346,6 +346,7 @@ namespace OpenMS
           }
 
           os << " >\n";
+          writeFragmentAnnotations_("UserParam", os, peptide_ids[l].getHits()[j].getFragmentAnnotations(), 4);
           writeUserParam_("UserParam", os, peptide_ids[l].getHits()[j], 4);
           os << "\t\t\t</PeptideHit>\n";
         }
@@ -731,7 +732,17 @@ namespace OpenMS
       }
       else if (type == "string")
       {
-        last_meta_->setMetaValue(name, (String)attributeAsString_(attributes, "value"));
+        String value = (String)attributeAsString_(attributes, "value");
+
+        // TODO: check if we are parsing a peptide hit
+        if (name == "fragment_annotation")
+        {
+          std::vector<PeptideHit::FragmentAnnotation> annotations;
+          parseFragmentAnnotation_(value, annotations);
+          pep_hit_.setFragmentAnnotations(annotations);
+          return;
+        }
+        last_meta_->setMetaValue(name, value);
       }
       else if (type == "intList")
       {
@@ -986,5 +997,41 @@ namespace OpenMS
     return aa_string;
   }
 
+  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
+                                            const std::vector<PeptideHit::FragmentAnnotation> & annotations, UInt indent)
+  {
+    if (annotations.empty()) { return; } 
+    String val;
+    for (auto& a : annotations)
+    {
+      val += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
+      if (&a != &annotations.back()) { val += "|"; }     
+    }
+    os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+  }
+ 
+  void IdXMLFile::parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::FragmentAnnotation> & annotations)
+  {
+    if (s.empty()) { return; }
+    StringList as;
+    s.split_quoted('|', as);
 
+    // for each peak annotation: split string and fill fragment annotation entries
+    for (auto& pa : as)
+    {
+      StringList fields;
+      pa.split_quoted(',', fields);
+      if (fields.size() != 4) 
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "Invalid fragment annotation. Four comma-separated fields required. String is: '" + pa + "'");
+      }
+      PeptideHit::FragmentAnnotation fa;
+      fa.mz = fields[0].toDouble();
+      fa.intensity = fields[1].toDouble();
+      fa.charge = fields[2].toInt();
+      fa.annotation = fields[3].unquote();
+      annotations.push_back(fa);
+    }
+  }
 } // namespace OpenMS
