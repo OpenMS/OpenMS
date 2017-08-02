@@ -142,11 +142,15 @@ if IS_DEBUG:
 # Note: we use -std=gnu++11 in Linux by default, also reduce some warnings
 extra_link_args.append("-std=c++11")
 extra_compile_args.append("-std=c++11")
-extra_compile_args.append("-Wno-redeclared-class-member")
-extra_compile_args.append("-Wno-unused-local-typedef")
-extra_compile_args.append("-Wno-deprecated-register")
-extra_compile_args.append("-Wno-sign-compare")
-extra_compile_args.append("-Wno-unknown-pragmas")
+if not iswin:
+    extra_compile_args.append("-Wno-redeclared-class-member")
+    extra_compile_args.append("-Wno-unused-local-typedefs")
+    extra_compile_args.append("-Wno-deprecated-register")
+    extra_compile_args.append("-Wdeprecated-declarations")
+    extra_compile_args.append("-Wno-sign-compare")
+    extra_compile_args.append("-Wno-unknown-pragmas")
+    extra_compile_args.append("-Wno-header-guard")
+    extra_compile_args.append("-Wno-unused-function")
 
 mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
