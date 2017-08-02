@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="/home/eugen/MSData/01_ExampleFiles/26Syeast.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="MS:1002494" value=""/>
+				<UserParam type="string" name="algorithm:candidate_search" value="enumeration"/>
+				<UserParam type="string" name="cross_link:mass" value="138.0680796"/>
+				<UserParam type="string" name="cross_link:mass_isoshift" value="12.075321"/>
+				<UserParam type="string" name="cross_link:mass_monolink" value="[156.07864431, 155.094628715]"/>
+				<UserParam type="string" name="cross_link:residue1" value="[K]"/>
+				<UserParam type="string" name="cross_link:residue2" value="[K]"/>
+				<UserParam type="string" name="decoy_prefix" value="0"/>
+				<UserParam type="string" name="decoy_string" value="decoy"/>
+				<UserParam type="string" name="fragment:mass_tolerance_xlinks" value="0.3"/>
+				<UserParam type="string" name="input_consensusXML" value="/home/eugen/MSData/01_ExampleFiles/test.consensusXML"/>
+				<UserParam type="string" name="input_decoys" value=""/>
+				<UserParam type="string" name="modifications:variable_max_per_peptide" value="2"/>
+				<UserParam type="string" name="peptide:min_size" value="5"/>
+				<UserParam type="string" name="precursor:max_charge" value="7"/>
+				<UserParam type="string" name="precursor:min_charge" value="2"/>
+	</SearchParameters>
+	<IdentificationRun date="2017-01-25T11:57:33" search_engine="OpenXQuest" search_engine_version="2.0.1" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="sp|Q10335|RPN7_SCHPO" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|P87048|RPN1_SCHPO" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|P50524|RPN12_SCHPO" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="sp|P06732|KCRM_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="sp|O74445|PRS10_SCHPO" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="sp|O14126|PRS6A_SCHPO" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<UserParam type="string" name="SpectrumIdentificationProtocol" value="MS:1002494"/>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:/MSData/S26_Yeast_RAW/aleitner_M1012_004.RAW]"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="721.084594726563" RT="2132.47579999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=3647,controllerType=0 controllerNumber=1 scan=3539" >
+			<PeptideHit score="28.9867104206965" sequence="LM(Oxidation)VEMEKKLEK" charge="3" aa_before="K" aa_after="G" start="358" end="368" protein_refs="PH_3" >
+				<UserParam type="string" name="fragment_annotation" value="261.180999755859,0.102394722402096,1,&quot;[alpha|ci$b2]&quot;|262.144775390625,0.0113859036937356,1,&quot;[alpha|ci$b2]&quot;|360.179565429688,0.0187295079231262,1,&quot;[alpha|ci$b3]&quot;|276.242279052734,0.054167415946722,1,&quot;[alpha|ci$y2]&quot;|277.072509765625,0.0158354509621859,1,&quot;[alpha|ci$y2]&quot;|261.180999755859,0.102394722402096,1,&quot;[beta|ci$y2]&quot;|503.325561523438,0.366594970226288,1,&quot;[beta|ci$y4]&quot;|822.96826171875,0.152460619807243,2,&quot;[alpha|xi$b7]&quot;|887.297424316406,0.0834100991487503,2,&quot;[alpha|xi$b8]&quot;|943.879577636719,0.0942461416125298,2,&quot;[alpha|xi$b9]&quot;|830.167785644531,0.176088735461235,2,&quot;[beta|xi$b1]&quot;|895.372497558594,0.0437386408448219,2,&quot;[beta|xi$b2]&quot;|951.509765625,0.779896795749664,2,&quot;[beta|xi$b3]&quot;|707.40625,0.112175077199936,2,&quot;[alpha|xi$y5]&quot;|901.445617675781,0.530827462673187,2,&quot;[alpha|xi$y8]&quot;|950.890625,0.7541623711586,2,&quot;[alpha|xi$y9]&quot;|951.509765625,0.779896795749664,2,&quot;[alpha|xi$y9]&quot;|672.516296386719,0.0638445392251015,3,&quot;[alpha|xi$b10]&quot;|548.872680664062,0.198092252016068,3,&quot;[alpha|xi$b7]&quot;|549.585815429688,0.040795098990202,3,&quot;[alpha|xi$b7]&quot;|629.356018066406,0.0632463321089745,3,&quot;[alpha|xi$b9]&quot;|634.51025390625,0.953487992286682,3,&quot;[beta|xi$b3]&quot;|635.210998535156,0.40127831697464,3,&quot;[beta|xi$b3]&quot;|672.516296386719,0.0638445392251015,3,&quot;[beta|xi$b4]&quot;|683.861999511719,0.0377410724759102,3,&quot;[alpha|xi$y10]&quot;|601.411682128906,0.0773515552282333,3,&quot;[alpha|xi$y8]&quot;|634.51025390625,0.953487992286682,3,&quot;[alpha|xi$y9]&quot;"/>
+				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=3647"/>
+				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
+				<UserParam type="float" name="spec_heavy_RT" value="2089.55329999998"/>
+				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
+				<UserParam type="string" name="spectrum_reference_heavy" value="controllerType=0 controllerNumber=1 scan=3539"/>
+				<UserParam type="string" name="xl_type" value="cross-link"/>
+				<UserParam type="int" name="xl_rank" value="2"/>
+				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.588695847189127"/>
+				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.152136404994187"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="7.13159596234039"/>
+				<UserParam type="float" name="OpenXQuest:intsum" value="5.21536117326468"/>
+				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0644193347450823"/>
+				<UserParam type="string" name="cross-link_chain" value="alpha alpha alpha"/>
+				<UserParam type="string" name="cross-link_ioncategory" value="xi xi xi"/>
+				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="1.6017627482259"/>
+				<UserParam type="float" name="OpenProXL:HyperXlink" value="4.02841283798733"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="3.5072089425147"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="2.99740461125412"/>
+				<UserParam type="float" name="OpenProXL:HyperBoth" value="3.97759567869142"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="10.5931120907639"/>
+				<UserParam type="float" name="OpenProXL:PScoreXlink" value="30.2104606431491"/>
+				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="15.4993120500215"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="21.7586728347704"/>
+				<UserParam type="float" name="OpenProXL:PScoreBoth" value="24.5906062837519"/>
+				<UserParam type="string" name="selected" value="false"/>
+				<UserParam type="string" name="xl_mod" value="DSS"/>
+				<UserParam type="float" name="xl_mass" value="138.0680796"/>
+				<UserParam type="int" name="xl_pos" value="6"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+			<PeptideHit score="28.9867104206965" sequence="KELLK" charge="3" aa_before="K" aa_after="L" start="22" end="26" protein_refs="PH_2" >
+				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=3647"/>
+				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
+				<UserParam type="float" name="spec_heavy_RT" value="2089.55329999998"/>
+				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
+				<UserParam type="string" name="spectrum_reference_heavy" value="controllerType=0 controllerNumber=1 scan=3539"/>
+				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.588695847189127"/>
+				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.152136404994187"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="7.13159596234039"/>
+				<UserParam type="float" name="OpenXQuest:intsum" value="5.21536117326468"/>
+				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0644193347450823"/>
+				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="1.6017627482259"/>
+				<UserParam type="float" name="OpenProXL:HyperXlink" value="4.02841283798733"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="3.5072089425147"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="2.99740461125412"/>
+				<UserParam type="float" name="OpenProXL:HyperBoth" value="3.97759567869142"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="10.5931120907639"/>
+				<UserParam type="float" name="OpenProXL:PScoreXlink" value="30.2104606431491"/>
+				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="15.4993120500215"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="21.7586728347704"/>
+				<UserParam type="float" name="OpenProXL:PScoreBoth" value="24.5906062837519"/>
+				<UserParam type="string" name="selected" value="false"/>
+				<UserParam type="int" name="xl_pos" value="0"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="895.456604003906" RT="3641.39560000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=7786,controllerType=0 controllerNumber=1 scan=7773" >
+			<PeptideHit score="45.8766009480405" sequence="TLADVEVNHLK(Xlink:DSS)C(Carbamidomethyl)DQFLVAHYR" charge="3" aa_before="R" aa_after="Y" start="287" end="307" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="286.309814453125,0.0148048270493746,1,&quot;[alpha|ci$b3]&quot;|401.253173828125,0.0290493667125702,1,&quot;[alpha|ci$b4]&quot;|500.114990234375,0.0260294284671545,1,&quot;[alpha|ci$b5]&quot;|629.325927734375,0.0259266011416912,1,&quot;[alpha|ci$b6]&quot;|728.359436035156,0.0219052415341139,1,&quot;[alpha|ci$b7]&quot;|980.658447265625,0.0127591555938125,1,&quot;[alpha|ci$b9]&quot;|1308.49157714844,0.113692156970501,1,&quot;[alpha|ci$y10]&quot;|1309.50170898438,0.0625565648078918,1,&quot;[alpha|ci$y10]&quot;|475.27978515625,0.0932493284344673,1,&quot;[alpha|ci$y3]&quot;|476.345764160156,0.0177356395870447,1,&quot;[alpha|ci$y3]&quot;|546.327697753906,0.337678521871567,1,&quot;[alpha|ci$y4]&quot;|547.237426757812,0.105344533920288,1,&quot;[alpha|ci$y4]&quot;|645.333740234375,0.27415457367897,1,&quot;[alpha|ci$y5]&quot;|646.360900878906,0.0643866956233978,1,&quot;[alpha|ci$y5]&quot;|758.543395996094,0.191774249076843,1,&quot;[alpha|ci$y6]&quot;|759.556579589844,0.0683947280049324,1,&quot;[alpha|ci$y6]&quot;|964.1298828125,0.15831196308136,2,&quot;[alpha|xi$b15]&quot;|1020.23852539062,0.099664606153965,2,&quot;[alpha|xi$b16]&quot;|1021.1650390625,0.042680848389864,2,&quot;[alpha|xi$b16]&quot;|1069.90686035156,0.0628671571612358,2,&quot;[alpha|xi$b17]&quot;|1174.31005859375,0.112620256841183,2,&quot;[alpha|xi$b19]&quot;|1255.67980957031,0.11426354944706,2,&quot;[alpha|xi$b20]&quot;|655.011108398438,0.0585997439920902,2,&quot;[alpha|ci$y10]&quot;|453.598083496094,0.0110041126608849,2,&quot;[alpha|ci$y7]&quot;|517.251953125,0.0738119557499886,2,&quot;[alpha|ci$y8]&quot;|574.696838378906,0.0138157084584236,2,&quot;[alpha|ci$y9]&quot;|797.260131835938,0.10013222694397,2,&quot;[alpha|xi$y11]&quot;|853.56103515625,0.113372452557087,2,&quot;[alpha|xi$y12]&quot;|979.202453613281,0.408718585968018,2,&quot;[alpha|xi$y14]&quot;|1028.43823242188,0.190723329782486,2,&quot;[alpha|xi$y15]&quot;|1093.15161132812,0.615916073322296,2,&quot;[alpha|xi$y16]&quot;|1142.77368164062,0.479617744684219,2,&quot;[alpha|xi$y17]&quot;|1199.92395019531,0.211004048585892,2,&quot;[alpha|xi$y18]&quot;|1200.80773925781,0.312078505754471,2,&quot;[alpha|xi$y18]&quot;|1235.42529296875,0.532333254814148,2,&quot;[alpha|xi$y19]&quot;|1236.25476074219,1,2,&quot;[alpha|xi$y19]&quot;|685.865905761719,0.0303158983588219,3,&quot;[alpha|xi$y15]&quot;|762.283508300781,0.21214371919632,3,&quot;[alpha|xi$y17]&quot;|800.642456054688,0.117787085473537,3,&quot;[alpha|xi$y18]&quot;|824.167785644531,0.5530886054039,3,&quot;[alpha|xi$y19]&quot;|862.102478027344,0.0998476594686508,3,&quot;[alpha|xi$y20]&quot;"/>
+				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=7786"/>
+				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
+				<UserParam type="float" name="spec_heavy_RT" value="3637.10710000002"/>
+				<UserParam type="float" name="spec_heavy_MZ" value="899.483581542969"/>
+				<UserParam type="string" name="spectrum_reference_heavy" value="controllerType=0 controllerNumber=1 scan=7773"/>
+				<UserParam type="string" name="xl_type" value="mono-link"/>
+				<UserParam type="int" name="xl_rank" value="1"/>
+				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.59168901150042"/>
+				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.39271151108791"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="10.8000470098018"/>
+				<UserParam type="float" name="OpenXQuest:intsum" value="7.29678096156567"/>
+				<UserParam type="float" name="OpenXQuest:wTIC" value="0.125128378036524"/>
+				<UserParam type="string" name="cross-link_chain" value="alpha alpha alpha alpha alpha"/>
+				<UserParam type="string" name="cross-link_ioncategory" value="xi xi xi xi xi"/>
+				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="2.54349666568363"/>
+				<UserParam type="float" name="OpenProXL:HyperXlink" value="3.94188001385495"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="3.85908840604896"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBoth" value="3.85908840604896"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="62.2028315830821"/>
+				<UserParam type="float" name="OpenProXL:PScoreXlink" value="44.8160986920159"/>
+				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="81.8441885859563"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
+				<UserParam type="float" name="OpenProXL:PScoreBoth" value="81.8441885859563"/>
+				<UserParam type="string" name="selected" value="false"/>
+				<UserParam type="int" name="xl_pos" value="10"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="911.486450195313" RT="5194.4871" spectrum_reference="controllerType=0 controllerNumber=1 scan=11868,controllerType=0 controllerNumber=1 scan=11856" >
+			<PeptideHit score="36.4839617808189" sequence="ELNLMDPKVPEDIFKTHLEVAR" charge="3" aa_before="K" aa_after="T" start="332" end="353" protein_refs="PH_1" >
+				<UserParam type="string" name="fragment_annotation" value="357.292297363281,0.00975700560957193,1,&quot;[alpha|ci$b3]&quot;|470.204711914062,0.0128198675811291,1,&quot;[alpha|ci$b4]&quot;|471.201293945312,0.00461764167994261,1,&quot;[alpha|ci$b4]&quot;|601.303771972656,0.0305753611028194,1,&quot;[alpha|ci$b5]&quot;|602.368347167969,0.00372271263040602,1,&quot;[alpha|ci$b5]&quot;|716.222900390625,0.0277988966554403,1,&quot;[alpha|ci$b6]&quot;|717.326965332031,0.00930942967534065,1,&quot;[alpha|ci$b6]&quot;|345.262390136719,0.00266305869445205,1,&quot;[alpha|ci$y3]&quot;|474.266296386719,0.00725197000429034,1,&quot;[alpha|ci$y4]&quot;|475.44189453125,0.00097184965852648,1,&quot;[alpha|ci$y4]&quot;|587.277770996094,0.00425928737968206,1,&quot;[alpha|ci$y5]&quot;|725.554504394531,0.00218337378464639,1,&quot;[alpha|ci$y6]&quot;|825.411315917969,0.00862348731607199,1,&quot;[alpha|ci$y7]&quot;|359.298492431641,0.00228544813580811,2,&quot;[alpha|ci$b6]&quot;|1073.27026367188,0.00486595882102847,2,&quot;[alpha|xi$b17]&quot;|1073.99731445312,0.00448289187625051,2,&quot;[alpha|xi$b17]&quot;|1130.01904296875,0.00574612384662032,2,&quot;[alpha|xi$b18]&quot;|1195.37194824219,0.00477101886644959,2,&quot;[alpha|xi$b19]&quot;|1244.73266601562,0.00194164447020739,2,&quot;[alpha|xi$b20]&quot;|1279.70812988281,0.00247407425194979,2,&quot;[alpha|xi$b21]&quot;|294.185852050781,0.000551082426682115,2,&quot;[alpha|ci$y5]&quot;|362.626525878906,0.00174080906435847,2,&quot;[alpha|ci$y6]&quot;|960.464111328125,0.0142580401152372,2,&quot;[alpha|xi$y15]&quot;|961.147033691406,0.0151260774582624,2,&quot;[alpha|xi$y15]&quot;|1066.72387695312,0.912360727787018,2,&quot;[alpha|xi$y17]&quot;|1132.23168945312,0.608906269073486,2,&quot;[alpha|xi$y18]&quot;|1188.38134765625,0.0396722033619881,2,&quot;[alpha|xi$y19]&quot;|1189.02478027344,0.04904530569911,2,&quot;[alpha|xi$y19]&quot;|673.202697753906,0.032476868480444,3,&quot;[alpha|xi$y16]&quot;|711.677856445312,0.00504607753828168,3,&quot;[alpha|xi$y17]&quot;|755.186767578125,0.0153065454214811,3,&quot;[alpha|xi$y18]&quot;|792.903747558594,0.0107811773195863,3,&quot;[alpha|xi$y19]&quot;|830.742858886719,0.0575458966195583,3,&quot;[alpha|xi$y20]&quot;"/>
+				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=11868"/>
+				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
+				<UserParam type="float" name="spec_heavy_RT" value="5189.9535"/>
+				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
+				<UserParam type="string" name="spectrum_reference_heavy" value="controllerType=0 controllerNumber=1 scan=11856"/>
+				<UserParam type="string" name="xl_type" value="loop-link"/>
+				<UserParam type="int" name="xl_rank" value="1"/>
+				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.565157894315017"/>
+				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.358312049329161"/>
+				<UserParam type="float" name="OpenXQuest:match-odds" value="11.1060148185832"/>
+				<UserParam type="float" name="OpenXQuest:intsum" value="1.91393818240613"/>
+				<UserParam type="float" name="OpenXQuest:wTIC" value="0.163385367268869"/>
+				<UserParam type="string" name="cross-link_chain" value="alpha alpha alpha alpha alpha"/>
+				<UserParam type="string" name="cross-link_ioncategory" value="xi xi xi xi xi"/>
+				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OpenProXL:HyperCommon" value="-0.0469257068461801"/>
+				<UserParam type="float" name="OpenProXL:HyperXlink" value="2.6143299053609"/>
+				<UserParam type="float" name="OpenProXL:HyperAlpha" value="2.67783759643467"/>
+				<UserParam type="float" name="OpenProXL:HyperBeta" value="0"/>
+				<UserParam type="float" name="OpenProXL:HyperBoth" value="2.67783759643467"/>
+				<UserParam type="float" name="OpenProXL:PScoreCommon" value="40.3149525859589"/>
+				<UserParam type="float" name="OpenProXL:PScoreXlink" value="84.364931456958"/>
+				<UserParam type="float" name="OpenProXL:PScoreAlpha" value="95.9958977911669"/>
+				<UserParam type="float" name="OpenProXL:PScoreBeta" value="0"/>
+				<UserParam type="float" name="OpenProXL:PScoreBoth" value="95.9958977911669"/>
+				<UserParam type="string" name="selected" value="false"/>
+				<UserParam type="string" name="xl_mod" value="DSS"/>
+				<UserParam type="float" name="xl_mass" value="138.0680796"/>
+				<UserParam type="int" name="xl_pos" value="7"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="int" name="xl_pos2" value="14"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

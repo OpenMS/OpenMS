@@ -1,21 +1,24 @@
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp cimport bool
 from Types cimport *
+from Matrix cimport *
 
 cdef extern from "<OpenMS/MATH/MISC/BilinearInterpolation.h>" namespace "OpenMS::Math":
     
     cdef cppclass BilinearInterpolation[KeyType,ValueType]:
         # wrap-instances:
         #   BilinearInterpolation := BilinearInterpolation[double, double]
+
         BilinearInterpolation() nogil except +
         BilinearInterpolation(BilinearInterpolation) nogil except +
         ValueType value(KeyType arg_pos_0, KeyType arg_pos_1) nogil except +
         void addValue(KeyType arg_pos_0, KeyType arg_pos_1, ValueType arg_value) nogil except +
-        # ValueType derivative(KeyType arg_pos) nogil except +
-        # TODO does this work ?
-        # libcpp_vector[ValueType]  getData() nogil except +
-        # void setData(libcpp_vector[ValueType] & data) nogil except +
+
+        Matrix[ValueType] getData() nogil except +
+        void setData(Matrix[ValueType] & data) nogil except +
+
         bool empty() nogil except +
+
         KeyType key2index_0(KeyType pos) nogil except +
         KeyType index2key_0(KeyType pos) nogil except +
         KeyType key2index_1(KeyType pos) nogil except +
