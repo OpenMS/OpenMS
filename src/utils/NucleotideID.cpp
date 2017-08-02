@@ -698,12 +698,6 @@ protected:
         {
             if (fm_it->getPeptideIdentifications().size()!=0)
             {
-                //fm_it=feature_map.erase(fm_it,fm_it+1);
-                //--fm_it;
-                parsed_feature_map.push_back(*fm_it);
-            }
-            else
-            {
                 vector<PeptideIdentification> copy_of_pep_ids; //remove score 0;
                 for (vector<PeptideIdentification>::iterator v_it = fm_it->getPeptideIdentifications().begin(); v_it != fm_it->getPeptideIdentifications().end(); ++v_it)
                 {
