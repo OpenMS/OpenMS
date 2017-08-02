@@ -1999,7 +1999,7 @@ protected:
         double precursor_mz = precursor[0].getMZ();
 
         // map (corrected) precursor mass to spectra
-        for (auto i : precursor_isotopes)
+        for (int i : precursor_isotopes)
         {
           double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
 
