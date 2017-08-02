@@ -21,7 +21,9 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>" namespace
 
 cdef extern from "<OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>" namespace "OpenMS::FeatureDeconvolution":
     
-    cdef enum CHARGEMODE "OpenMS::FeatureDeconvolution::CHARGEMODE":
+    cdef enum CHARGEMODE_FD "OpenMS::FeatureDeconvolution::CHARGEMODE":
+        #wrap-attach:
+        #    FeatureDeconvolution
         QFROMFEATURE
         QHEURISTIC
         QALL
