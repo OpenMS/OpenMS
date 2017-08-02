@@ -71,7 +71,7 @@ matrix:
 ## pyopenms test
     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=OFF ENABLE_CLASS_TESTING=OFF ADDRESS_SANITIZER=Off BUILD_TYPE=Release PYOPENMS=ON
       os: linux
-      compiler: clang
+      compiler: gcc
 
 ## clang tests class and TOPP tests: without gui and without address sanitizer (debug build)
     - env: ENABLE_STYLE_TESTING=OFF WITH_GUI=OFF ENABLE_TOPP_TESTING=ON ENABLE_CLASS_TESTING=ON ADDRESS_SANITIZER=Off BUILD_TYPE=Debug
