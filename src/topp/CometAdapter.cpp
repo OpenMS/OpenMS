@@ -137,7 +137,7 @@ protected:
     //registerIntOption_("threads", "<num>", 1, "number of threads", false, true);
 
     //Masses
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance, peptide_mass_tolerance(Comet)", false, false);
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance (Comet parameter: peptide_mass_tolerance)", false, false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "peptide_mass_units 0=amu, 1=mmu, 2=ppm", false, false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("amu,ppm,Da"));
     //registerIntOption_("mass_type_parent", "<num>", 1, "0=average masses, 1=monoisotopic masses", false, true);
