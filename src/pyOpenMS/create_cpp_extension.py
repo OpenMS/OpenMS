@@ -5,6 +5,10 @@ from __future__ import print_function
 import sys
 iswin = sys.platform == "win32"
 
+# make sure we only log errors and not info/debug ... 
+from logging import basicConfig, CRITICAL, ERROR, WARNING, INFO, DEBUG
+basicConfig(level=WARNING)
+
 # import config
 from env import (QT_QMAKE_VERSION_INFO, QT_LIBRARY_DIR, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
                  OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, SUPERHIRN_LIB,
