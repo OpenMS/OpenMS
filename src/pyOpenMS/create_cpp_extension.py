@@ -7,7 +7,7 @@ iswin = sys.platform == "win32"
 
 # make sure we only log errors and not info/debug ... 
 from logging import basicConfig, CRITICAL, ERROR, WARNING, INFO, DEBUG
-basicConfig(level=WARNING)
+basicConfig(level=21)
 
 # import config
 from env import (QT_QMAKE_VERSION_INFO, QT_LIBRARY_DIR, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
