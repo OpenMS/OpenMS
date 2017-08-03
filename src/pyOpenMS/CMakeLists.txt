@@ -62,8 +62,10 @@ execute_process(
 message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
 #------------------------------------------------------------------------------
-# Windows support restricted to Python 2.[67] and Python 3.[34] at the moment!
-#  * we also require VC 2008 / 2010 and the corresponding vcredist to be installed
+# Windows support requires that the correct Python version is matched to the correct MSVS version:
+# * Python 2.[67] needs to be compiled with MSVS 2008
+# * Python 3.[34] needs to be compiled with MSVS 2010
+# * Python 3.[56] needs to be compiled with MSVS 2015
 if(WIN32)
     if(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
