@@ -33,6 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+
+#include <regex>
 
 using namespace OpenMS;
 using namespace std;
@@ -65,8 +70,12 @@ class TOPPMSstatsConverter :
 {
 public:
 
-    static const String param_input_quantitation;
-    static const String param_input_identification;
+    static const String param_in_quantitation;
+    static const String param_in_identification;
+    static const String param_out;
+    static const String param_labeled_reference_peptides;
+
+    static const String na_string;
 
   TOPPMSstatsConverter() :
     TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
@@ -81,28 +90,137 @@ protected:
   void registerOptionsAndFlags_()
   {
     // Quantification data
-    this->registerInputFile_(TOPPMSstatsConverter::param_input_quantitation, "<input_quantitation>", "", "Quantification data", true, false);
-    this->setValidFormats_(TOPPMSstatsConverter::param_input_quantitation, ListUtils::create<String>("consensusXML"));
+    this->registerInputFile_(TOPPMSstatsConverter::param_in_quantitation, "<in_quantitation>", "", "Quantification data", true, false);
+    this->setValidFormats_(TOPPMSstatsConverter::param_in_quantitation, ListUtils::create<String>("consensusXML"));
 
     // Identification data
-    this->registerInputFile_(TOPPMSstatsConverter::param_input_identification, "<input_identification>", "", "Identification", true, false);
-    this->setValidFormats_(TOPPMSstatsConverter::param_input_identification, ListUtils::create<String>("idXML"));
+    this->registerInputFile_(TOPPMSstatsConverter::param_in_identification, "<in_identification>", "", "Identification", true, false);
+    this->setValidFormats_(TOPPMSstatsConverter::param_in_identification, ListUtils::create<String>("idXML"));
+
+    // Isotope label type
+    this->registerFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides, "If set, IsotopeLabelType is 'H', else 'L'");
+
+    // Output CSV file
+    this->registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
+    this->setValidFormats_(TOPPMSstatsConverter::param_out, ListUtils::create<String>("csv"));
   }
 
 
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **)
   {
-      cout << "Hello World!" << endl;
 
-      return EXECUTION_OK;
+    // Read the input files
+    ConsensusMap consensus_map;
+    ConsensusXMLFile().load(this->getStringOption_(TOPPMSstatsConverter::param_in_quantitation), consensus_map);
+
+    for (auto const & consensus_feature : consensus_map)
+    {
+      Peak2D::IntensityType intensity = consensus_feature.getIntensity();
+
+
+    }
+
+    // Read peptide identifications from idXML
+    std::vector< ProteinIdentification > protein_identifications;
+    std::vector< PeptideIdentification > peptide_identifications;
+    IdXMLFile().load(this->getStringOption_(TOPPMSstatsConverter::param_in_identification), protein_identifications, peptide_identifications);
+
+    // Write the output CSV file
+    String const & arg_out = this->getStringOption_(TOPPMSstatsConverter::param_out);
+
+    // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
+    TextFile csv_out;
+
+    // Add the header line
+    csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run,Intensity");
+
+    std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
+
+    // These are placeholder fragment annotations and peptide evidences in case the original ones are empty
+
+    // Placeholder fragment annotation
+    PeptideHit::FragmentAnnotation new_frag_ann;
+    new_frag_ann.annotation = TOPPMSstatsConverter::na_string;
+    new_frag_ann.charge = -1;
+    std::vector< PeptideHit::FragmentAnnotation > placeholder_fragment_annotations = {new_frag_ann};
+
+    // Placeholder peptide evidence
+    PeptideEvidence new_pep_ev;
+    new_pep_ev.setProteinAccession(TOPPMSstatsConverter::na_string);
+    std::vector< PeptideEvidence > placeholder_peptide_evidences = {new_pep_ev};
+
+    // From the MSstats user guide: endogenouspeptides (use “L”) or labeled reference peptides (use “H”).
+    String isotope_label_type = this->getFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides) ? "H" : "L";
+
+    for (auto & pep_id : peptide_identifications)
+    {
+      for (auto & pep_hit : pep_id.getHits())
+      {
+        std::vector< PeptideHit::FragmentAnnotation > const & original_fragment_annotations = pep_hit.getFragmentAnnotations();
+        std::vector< PeptideEvidence > const & original_peptide_evidences = pep_hit.getPeptideEvidences();
+
+        // Decide whether to use original or placeholder iterator
+        std::vector< PeptideHit::FragmentAnnotation > const & fragment_annotations = (original_fragment_annotations.size() == 0) ? placeholder_fragment_annotations : original_fragment_annotations;
+        std::vector< PeptideEvidence> const & peptide_evidences = (original_peptide_evidences.size() == 0) ? placeholder_peptide_evidences : original_peptide_evidences;
+
+        // Variables of the peptide hit
+        Int precursor_charge = std::max(pep_hit.getCharge(), 0);
+
+        // Have to combine all fragment annotations with all peptide evidences
+        for (auto const & frag_ann : fragment_annotations)
+        {
+          String fragment_ion = TOPPMSstatsConverter::na_string;
+
+          // Determine if the FragmentIon field can be assigned
+          if (frag_ann.annotation != TOPPMSstatsConverter::na_string)
+          {
+            std::set< std::string > frag_ions;
+            std::smatch sm;
+            std::regex_search(frag_ann.annotation, sm, regex_msstats_FragmentIon);
+            frag_ions.insert(sm.begin(), sm.end());
+            if (frag_ions.size() == 1)
+            {
+              for (auto frag_ions_elem : frag_ions)
+              {
+               fragment_ion = frag_ions_elem;
+              }
+            }
+          }
+          Int frag_charge = std::max(frag_ann.charge, 0);
+
+          for (auto const & pep_ev : peptide_evidences)
+          {
+            // Try to extract the FragmentIon value from the fragment annotation
+            // Write new line for each protein accession
+            csv_out.addLine(  pep_ev.getProteinAccession()
+                             + ',' + pep_hit.getSequence().toUnmodifiedString()
+                             + ',' + ((precursor_charge < 0) ? 0 : precursor_charge)   // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
+                             + ',' + fragment_ion
+                             + ',' + frag_charge
+                             + ',' + isotope_label_type);
+
+          }
+
+        }
+      }
+    }
+
+
+    // Store the final assembled CSV file
+    csv_out.store(arg_out);
+
+
+    return EXECUTION_OK;
   }
 
 };
 
-const String TOPPMSstatsConverter::param_input_quantitation = "input_quantitation";
-const String TOPPMSstatsConverter::param_input_identification = "input_identification";
-
+const String TOPPMSstatsConverter::param_in_quantitation = "in_quantitation";
+const String TOPPMSstatsConverter::param_in_identification = "in_identification";
+const String TOPPMSstatsConverter::param_out = "out";
+const String TOPPMSstatsConverter::na_string = "NA";
+const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
 
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
