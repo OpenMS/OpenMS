@@ -109,15 +109,15 @@ namespace OpenMS
       // Create SQL structure
       const char * create_sql =
         "CREATE TABLE FEATURE(" \
-        "ID INT PRIMARY KEY NOT NULL," \
-        "PRECURSOR_ID INT NOT NULL," \
+        "ID TEXT PRIMARY KEY NOT NULL," \
+        "PRECURSOR_ID TEXT NOT NULL," \
         "RT REAL NOT NULL," \
         "DELTA_RT REAL NOT NULL," \
         "LEFT_WIDTH REAL NOT NULL," \
         "RIGHT_WIDTH REAL NOT NULL); " \
 
         "CREATE TABLE FEATURE_MS1(" \
-        "FEATURE_ID INT NOT NULL," \
+        "FEATURE_ID TEXT NOT NULL," \
         "AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
         "VAR_MASSDEV_SCORE REAL NOT NULL," \
@@ -127,7 +127,7 @@ namespace OpenMS
         "VAR_XCORR_SHAPE REAL NOT NULL); " \
 
         "CREATE TABLE FEATURE_MS2(" \
-        "FEATURE_ID INT NOT NULL," \
+        "FEATURE_ID TEXT NOT NULL," \
         "AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
         "VAR_BSERIES_SCORE REAL NOT NULL," \
@@ -160,8 +160,8 @@ namespace OpenMS
         "VAR_SONAR_RSQ REAL NULL); " \
 
         "CREATE TABLE FEATURE_TRANSITION(" \
-        "FEATURE_ID INT NOT NULL," \
-        "TRANSITION_ID INT NOT NULL," \
+        "FEATURE_ID TEXT NOT NULL," \
+        "TRANSITION_ID TEXT NOT NULL," \
         "AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
         "VAR_LOG_INTENSITY REAL NULL," \
