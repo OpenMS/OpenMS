@@ -28,5 +28,5 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>" namespace "Ope
         SiriusAdapterIdentification(SiriusAdapterIdentification) nogil except + # wrap-ignore
 
         String scan_index
-        # libcpp_vector[ SiriusAdapterHit ] hits
+        libcpp_vector[ SiriusAdapterHit ] hits
 

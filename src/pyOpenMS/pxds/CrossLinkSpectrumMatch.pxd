@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         double PScoreAlpha
         double PScoreBeta
         double PScoreBoth
-        # NAMESPACE # libcpp_vector[ PeptideHit::FragmentAnnotation ] frag_annotations
+        libcpp_vector[ PeptideHit_PeakAnnotation ] frag_annotations
         Size peptide_id_index
         bool operator<(OPXL_CrossLinkSpectrumMatch & other) nogil except +
         bool operator==(OPXL_CrossLinkSpectrumMatch & other) nogil except +

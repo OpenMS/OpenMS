@@ -18,10 +18,10 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS":
 
         double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, libcpp_map[ size_t, MSSpectrum[Peak1D] ] & peak_level_spectra, MSSpectrum[Peak1D] & theo_spectrum, double mz_window) nogil except +
 
-# ## wrap static methods
-# cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS::PScore":
-# 
-#     double massCorrectionTerm(double mass) nogil except +
-#     double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage) nogil except +
-#     double modificationCorrectionTerm(Size modifications) nogil except +
-# 
+## wrap static methods
+cdef extern from "<OpenMS/ANALYSIS/RNPXL/PScore.h>" namespace "OpenMS::PScore":
+
+    double massCorrectionTerm(double mass) nogil except + #wrap-attach:PScore
+    double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage) nogil except + #wrap-attach:PScore
+    double modificationCorrectionTerm(Size modifications) nogil except + #wrap-attach:PScore
+

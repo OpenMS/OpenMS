@@ -24,6 +24,9 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>" namespace
     cdef enum CHARGEMODE_FD "OpenMS::FeatureDeconvolution::CHARGEMODE":
         #wrap-attach:
         #    FeatureDeconvolution
+        # todo -- are these really unique ??  prob not! all become __CHARGEMODE
+        # TODO wrap-instances:
+        #    CHARGEMODE := CHARGEMODE_FD
         QFROMFEATURE
         QHEURISTIC
         QALL
