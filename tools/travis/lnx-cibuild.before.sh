@@ -22,8 +22,8 @@ if [ "${PYOPENMS}" = "ON" ]; then
 
   # small patch to accelerate build
   pwd
-  ls OpenMS/OpenMS/src/pyOpenMS/create_cpp_extension.py
-  sed -i 's/import time/import time\nPY_NUM_THREADS=4/g' OpenMS/OpenMS/src/pyOpenMS/create_cpp_extension.py
+  ls src/pyOpenMS/create_cpp_extension.py
+  sed -i 's/import time/import time\nPY_NUM_THREADS=4/g' src/pyOpenMS/create_cpp_extension.py
 
   pip install -U setuptools
   pip install -U pip
