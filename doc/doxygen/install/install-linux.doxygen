@@ -103,8 +103,9 @@
       <td><pre>
     sudo apt-get install build-essential cmake autoconf patch libtool automake
     sudo apt-get install qt4-default libqtwebkit-dev
-    sudo apt-get install libeigen3-dev libwildmagic-dev \
-      libxerces-c-dev libboost-all-dev libsvn-dev libgsl-dev libbz2-dev
+    sudo apt-get install libeigen3-dev libsqlite3-dev \
+      libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
+      libxerces-c-dev libglpk-dev libsvm-dev libbz2-dev
     # use from contrib for compatibility: SEQAN ; COINOR; ZLIB ; WILDMAGIC
       </pre></td>
     </tr>

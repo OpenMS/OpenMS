@@ -714,7 +714,7 @@ protected:
 
         consensus_xml_file.load(in, consensus_map);
 
-  // extract common id and hit meta values
+        // extract common id and hit meta values
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
 
