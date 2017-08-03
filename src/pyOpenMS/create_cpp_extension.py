@@ -5,8 +5,9 @@ from __future__ import print_function
 import sys
 iswin = sys.platform == "win32"
 
-# make sure we only log errors and not info/debug ... 
-from logging import basicConfig, CRITICAL, ERROR, WARNING, INFO, DEBUG
+# make sure we only log errors and not info/debug ...
+from logging import basicConfig
+# from logging import CRITICAL, ERROR, WARNING, INFO, DEBUG
 basicConfig(level=21)
 
 # import config
@@ -104,7 +105,7 @@ for pxd_f, m in zip(pxd_files_chunk, mnames):
     tmp_decls = []
     for f in pxd_f:
         tmp_decls.extend( pxd_decl_mapping[f] )
- 
+
     allDecl_mapping[m] =  {"decls" : tmp_decls, "addons" : [] , "files" : pxd_f}
 
 # Deal with addons, make sure the addons are added to the correct compilation
@@ -156,8 +157,8 @@ for k, got_added in enumerate(is_added):
 def doCythonCodeGeneration(modname, allDecl_mapping, instance_map, converters):
     m_filename = "pyopenms/%s.pyx" % modname
     cimports, manual_code = autowrap.Main.collect_manual_code(allDecl_mapping[modname]["addons"])
-    autowrap.Main.register_converters(converters) 
-    autowrap_include_dirs = autowrap.generate_code(allDecl_mapping[modname]["decls"], instance_map, 
+    autowrap.Main.register_converters(converters)
+    autowrap_include_dirs = autowrap.generate_code(allDecl_mapping[modname]["decls"], instance_map,
                                                         target=m_filename, debug=False, manual_code=manual_code,
                                                         extra_cimports=cimports,
                                                         include_boost=False, include_numpy=True, allDecl=allDecl_mapping)
@@ -200,7 +201,7 @@ for modname in mnames:
 
 argzip = [ (modname, allDecl_mapping[modname]["inc_dirs"]) for modname in mnames]
 for arg in argzip:
-    autowrap_include_dirs = doCythonCompile(arg)
+    doCythonCompile(arg)
 
 print("created pyopenms.cpp")
 
