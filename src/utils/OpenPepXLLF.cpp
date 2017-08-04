@@ -898,7 +898,7 @@ protected:
 
         // write fragment annotations
         LOG_DEBUG << "Start writing annotations" << endl;
-        vector<PeptideHit::FragmentAnnotation> frag_annotations;
+        vector<PeptideHit::PeakAnnotation> frag_annotations;
 
         OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_common_alpha, theoretical_spec_common_alpha, spectrum);
         OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_common_beta, theoretical_spec_common_beta, spectrum);
@@ -908,7 +908,7 @@ protected:
 
         // make annotations unique
         sort(frag_annotations.begin(), frag_annotations.end());
-        vector<PeptideHit::FragmentAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
+        vector<PeptideHit::PeakAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
         if (last_unique_anno != frag_annotations.end())
         {
           frag_annotations.erase(last_unique_anno, frag_annotations.end());

@@ -136,6 +136,33 @@ namespace OpenMS
     return true;
   }
 
+  bool File::removeDir(const QString& dir_name)
+  {
+    bool result = true;
+    QDir dir(dir_name);
+
+    if (dir.exists(dir_name))
+    {
+      Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
+        {
+          if (info.isDir())
+          {
+            result = removeDir(info.absoluteFilePath());
+          }
+          else
+          {
+            result = QFile::remove(info.absoluteFilePath());
+          }
+          if (!result)
+          {
+            return result;
+          }
+        }
+      result = dir.rmdir(dir_name);
+    }
+    return result;
+  }
+
   bool File::removeDirRecursively(const String& dir_name)
   {
     bool fail = false;

@@ -34,6 +34,7 @@ build_contrib SQLITE
 # leave contrib
 popd
 
+
 # build custom cppcheck if we want to perform style tests
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
@@ -43,10 +44,8 @@ if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   popd
 else
   # regular builds .. get the search engine executables via githubs SVN interface (as git doesn't allow single folder checkouts)
-  svn checkout https://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty
-  # remove .svn otherwise we can't check out the other search engines into the same directory
-  rm _thirdparty/.svn -R -f || true
-  svn checkout https://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty
+  svn export --force https://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty
+  svn export --force https://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty
 fi
 
 

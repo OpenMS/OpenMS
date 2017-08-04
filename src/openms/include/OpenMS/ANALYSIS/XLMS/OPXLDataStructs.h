@@ -149,7 +149,7 @@ namespace OpenMS
         double PScoreBeta;
         double PScoreBoth;
 
-        std::vector<PeptideHit::FragmentAnnotation> frag_annotations;
+        std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 
         Size peptide_id_index;
 

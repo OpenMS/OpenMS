@@ -62,25 +62,37 @@ execute_process(
 message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
 #------------------------------------------------------------------------------
-# Windows support restricted to Python 2.7 at the moment!
-#  * we also require VC 2008 and the corresponding vcredist to be installed
+# Windows support requires that the correct Python version is matched to the correct MSVS version:
+# * Python 2.[67] needs to be compiled with MSVS 2008
+# * Python 3.[34] needs to be compiled with MSVS 2010
+# * Python 3.[56] needs to be compiled with MSVS 2015
 if(WIN32)
-    if(NOT MSVC90)
+    if(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
+        message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
+    elseif(MSVC10 AND (${PY_VERSION} STREQUAL "3.3" OR ${PY_VERSION} STREQUAL "3.4" ))
+        message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
+    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" ))
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions -- ok")
+    else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
-        message(FATAL_ERROR "Either reconfigure with Visual Studio 9 2008 generator or disable pyOpenMS.")
+        message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions")
+        message(FATAL_ERROR "Either reconfigure with Visual Studio 2008, 2010 or 2015 generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 
+    # Try to find MSVS runtime libs
     include(InstallRequiredSystemLibraries)
-    set(MSVCR90DLL ${MSVC90_CRT_DIR}/msvcr90.dll)
-    if(NOT EXISTS ${MSVCR90DLL})
-        message(STATUS "Missing msvcr90.dll - Visual C++ 2008 Runtime (called vcredist)")
-        message(FATAL_ERROR "Please install VC 2008 runtime package or disable pyOpenMS.")
+
+    if("${MSVS_RTLIBS}" STREQUAL "")
+        set(MSVS_RTLIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}")
     endif()
-    set(MSVCP90DLL ${MSVC90_CRT_DIR}/msvcp90.dll)
-    if(NOT EXISTS ${MSVCP90DLL})
-        message(STATUS "Missing msvcp90.dll - Visual C++ 2008 Runtime (called vcredist)")
-        message(FATAL_ERROR "Please install VC 2008 runtime package or disable pyOpenMS.")
+     
+    if("${MSVS_RTLIBS}" STREQUAL "")
+        message(FATAL_ERROR "Did not find MSVS runtime, either provide with -DMSVS_RTLIBS='lib1;lib2' or disable pyOpenMS.")
+    else()
+    message(STATUS "Found MSVS runtime: ${MSVS_RTLIBS}")
     endif()
+
 endif(WIN32)
 
 #------------------------------------------------------------------------------
@@ -336,8 +348,11 @@ foreach(pyfile ${_sub_pyopenms_files})
 endforeach()
 
 if(WIN32)
-    file(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-    file(COPY ${MSVCP90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+    # copy all runtime files (dont preserve permissions, due to issues when deleting them from tmp folders)
+    foreach (_runtime ${MSVS_RTLIBS})
+      file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
+    endforeach()
+    
     set(FOUND_XERCES FALSE)
     foreach(CONTRIB_PATH ${CMAKE_PREFIX_PATH})
         if(EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
@@ -351,6 +366,7 @@ if(WIN32)
     endif()
 endif()
 
+find_boost()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 
