@@ -468,6 +468,10 @@ protected:
     registerIntOption_("precursor:min_charge", "<num>", 2, "Minimum precursor charge to be considered.", false, false);
     registerIntOption_("precursor:max_charge", "<num>", 5, "Maximum precursor charge to be considered.", false, false);
 
+    // consider one before annotated monoisotopic peak and the annotated one
+    IntList isotopes = {-1, 0};
+    registerIntList_("precursor:isotopes", "<num>", isotopes, "Isotopic peak to match (-1 considers isotopic peak before annotated prec.). Corrects for mono-isotopic peak misassignments.", false, false);
+
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance (+/- around fragment m/z)", false);
 
@@ -961,6 +965,11 @@ protected:
         {
           // get unmodified string
           String unmodified_sequence = a_it->sequence.getString();
+
+          // initialize result fields
+          a_it->best_localization = unmodified_sequence;
+          a_it->best_localization_score = 0;
+
           AASequence aas = AASequence::fromString(unmodified_sequence);
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
@@ -1943,6 +1952,7 @@ protected:
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
+    IntList precursor_isotopes = getIntList_("precursor:isotopes");
 
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
@@ -2046,25 +2056,33 @@ protected:
         }
 
         double precursor_mz = precursor[0].getMZ();
-        double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
 
-        if (getFlag_("RNPxl:filter_fractional_mass"))
+        // map (corrected) precursor mass to spectra
+        for (int i : precursor_isotopes)
         {
-          if (precursor_mass < 1750.0 && precursor_mass - floor(precursor_mass) < 0.2)
+          double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
+
+          // corrected for monoisotopic misassignments of the precursor annotation
+          if (i != 0) { precursor_mass += i * Constants::C13C12_MASSDIFF_U; } 
+
+          if (getFlag_("RNPxl:filter_fractional_mass"))
           {
-            fractional_mass_filtered++;
+            if (precursor_mass < 1750.0 && precursor_mass - floor(precursor_mass) < 0.2)
+            {
+              fractional_mass_filtered++;
+              continue;
+            }
+          }
+
+
+          if (precursor_mass < small_peptide_mass_filter_threshold)
+          {
+            small_peptide_mass_filtered++;
             continue;
           }
+
+          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
         }
-
-
-        if (precursor_mass < small_peptide_mass_filter_threshold)
-        {
-          small_peptide_mass_filtered++;
-          continue;
-        }
-
-        multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
       }
     }
 
@@ -2152,9 +2170,13 @@ protected:
         // no critial section is needed despite ResidueDB not beeing thread sage.
         // It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
         {
-          AASequence aas = AASequence::fromString(cit->getString());
-          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
-          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+          const String s = cit->getString();
+          if (!s.has('X')) // only process peptides without X (placeholder / any amino acid)
+          {
+            AASequence aas = AASequence::fromString(cit->getString());
+            ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+            ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+          }
         }
 
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
