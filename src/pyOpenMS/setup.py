@@ -59,7 +59,7 @@ def parallel_build_extensions(self):
     # First, sanity-check the 'extensions' list
     self.check_extensions_list(self.extensions)
     list(multiprocessing.pool.ThreadPool(int(PY_NUM_THREADS)).imap(self.build_extension, self.extensions))
-if single_threaded:
+if not single_threaded:
     import distutils.command.build_ext
     distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
     import Cython.Distutils.build_ext
