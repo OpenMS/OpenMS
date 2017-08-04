@@ -38,6 +38,8 @@
 // Interfaces
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <sqlite3.h>
@@ -58,6 +60,7 @@ namespace OpenMS
   {
     String output_filename_;
     String input_filename_;
+    OpenMS::UInt64 run_id_;
     bool doWrite_;
     bool use_ms1_traces_;
     bool sonar_;
@@ -68,6 +71,7 @@ namespace OpenMS
     OpenSwathOSWWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false, bool sonar = false, bool uis_scores = false) :
       output_filename_(output_filename),
       input_filename_(input_filename),
+      run_id_(OpenMS::UniqueIdGenerator::getUniqueId()),
       doWrite_(!output_filename.empty()),
       use_ms1_traces_(ms1_scores),
       sonar_(sonar),
@@ -108,8 +112,13 @@ namespace OpenMS
 
       // Create SQL structure
       const char * create_sql =
+        "CREATE TABLE RUN(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "FILENAME TEXT NOT NULL); " \
+
         "CREATE TABLE FEATURE(" \
         "ID TEXT PRIMARY KEY NOT NULL," \
+        "RUN_ID INT NOT NULL," \
         "PRECURSOR_ID INT NOT NULL," \
         "RT REAL NOT NULL," \
         "DELTA_RT REAL NOT NULL," \
@@ -181,6 +190,22 @@ namespace OpenMS
             zErrMsg);
         sqlite3_free(zErrMsg);
       }
+
+      // Insert run_id information
+      std::stringstream sql_run;
+      sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
+              << run_id_ << ", '"
+              << input_filename_ << "'); ";
+
+      // Execute SQL insert statement
+      rc = sqlite3_exec(db, sql_run.str().c_str(), callback, 0, &zErrMsg);
+      if( rc != SQLITE_OK )
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            zErrMsg);
+        sqlite3_free(zErrMsg);
+      }
+
       sqlite3_close(db);
     }
 
@@ -230,8 +255,9 @@ namespace OpenMS
           }
         }
 
-        sql_feature << "INSERT INTO FEATURE (ID, PRECURSOR_ID, RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES (" 
+        sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES (" 
                     << feature_it->getUniqueId() << ", " 
+                    << run_id_ << ", " 
                     << id << ", " 
                     << feature_it->getMetaValue("norm_RT") << ", " 
                     << feature_it->getMetaValue("delta_rt") << ", " 
