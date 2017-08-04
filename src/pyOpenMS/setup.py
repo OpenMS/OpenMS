@@ -5,6 +5,16 @@ from __future__ import print_function
 import sys
 iswin = sys.platform == "win32"
 
+import sys
+single_threaded = False
+no_optimization = False
+if "--single-threaded" in sys.argv:
+    single_threaded = True
+    sys.argv.remove("--single-threaded")
+if "--no-optimization" in sys.argv:
+    no_optimization = True
+    sys.argv.remove("--no-optimization")
+
 # import config
 from env import  (OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
                   QT_LIBRARY_DIR, MSVS_RTLIBS,
@@ -49,10 +59,11 @@ def parallel_build_extensions(self):
     # First, sanity-check the 'extensions' list
     self.check_extensions_list(self.extensions)
     list(multiprocessing.pool.ThreadPool(int(PY_NUM_THREADS)).imap(self.build_extension, self.extensions))
-import distutils.command.build_ext
-distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
-import Cython.Distutils.build_ext
-distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
+if single_threaded:
+    import distutils.command.build_ext
+    distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
+    import Cython.Distutils.build_ext
+    distutils.command.build_ext.build_ext.build_extensions = parallel_build_extensions
 
 
 # create version information
@@ -140,9 +151,9 @@ if IS_DEBUG:
     extra_compile_args.append("-g2")
 
 # Note: we use -std=gnu++11 in Linux by default, also reduce some warnings
-extra_link_args.append("-std=c++11")
-extra_compile_args.append("-std=c++11")
 if not iswin:
+    extra_link_args.append("-std=c++11")
+    extra_compile_args.append("-std=c++11")
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
     extra_compile_args.append("-Wno-deprecated-register")
@@ -151,6 +162,10 @@ if not iswin:
     extra_compile_args.append("-Wno-unknown-pragmas")
     extra_compile_args.append("-Wno-header-guard")
     extra_compile_args.append("-Wno-unused-function")
+    extra_compile_args.append("-Wno-deprecated-declarations")
+    if no_optimization:
+        extra_compile_args.append("-O0")
+        extra_link_args.append("-O0")
 
 mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
