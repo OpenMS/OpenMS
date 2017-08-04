@@ -230,8 +230,8 @@ protected:
     setValidStrings_("peptide:enzyme", all_enzymes);
 
     registerTOPPSubsection_("cross_linker", "Cross Linker Options");
-    registerStringList_("cross_linker:residue1", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the first side of a bifunctional cross-linker can attach to", false, false);
-    registerStringList_("cross_linker:residue2", "<one letter code>", ListUtils::create<String>("K"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to", false, false);
+    registerStringList_("cross_linker:residue1", "<one letter code>", ListUtils::create<String>("K,N-term"), "Comma separated residues, that the first side of a bifunctional cross-linker can attach to", false, false);
+    registerStringList_("cross_linker:residue2", "<one letter code>", ListUtils::create<String>("K,N-term"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to", false, false);
     registerDoubleOption_("cross_linker:mass_light", "<mass>", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides", false, false);
     registerDoubleOption_("cross_linker:mass_iso_shift", "<mass>", 12.075321, "Mass of the isotopic shift between the light and heavy linkers", false, false);
     registerDoubleList_("cross_linker:mass_mono_link", "<mass>", ListUtils::create<double>("156.07864431, 155.094628715"), "Possible masses of the linker, when attached to only one peptide", false, false);
@@ -622,32 +622,6 @@ protected:
 
     vector<PeptideIdentification> peptide_ids;
 
-    // Determine if N-term and C-term modifications are possible with the used linker
-    bool n_term_linker = false;
-    bool c_term_linker = false;
-    for (Size k = 0; k < cross_link_residue1.size(); k++)
-    {
-      if (cross_link_residue1[k] == "K")
-      {
-        n_term_linker = true;
-      }
-      if (cross_link_residue1[k] == "D")
-      {
-        c_term_linker = true;
-      }
-    }
-    for (Size k = 0; k < cross_link_residue2.size(); k++)
-    {
-      if (cross_link_residue2[k] == "K")
-      {
-        n_term_linker = true;
-      }
-      if (cross_link_residue2[k] == "D")
-      {
-        c_term_linker = true;
-      }
-    }
-
     // lookup for processed peptides. must be defined outside of omp section and synchronized
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;
 
@@ -655,7 +629,7 @@ protected:
     Size count_peptides = 0;
 
     progresslogger.startProgress(0, 1, "Digesting peptides...");
-    peptide_masses = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications,  variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides, n_term_linker, c_term_linker);
+    peptide_masses = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications,  variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides);
     progresslogger.endProgress();
 
     // create spectrum generator
@@ -808,7 +782,7 @@ protected:
       cout << "Number of candidates for this spectrum: " << candidates.size() << endl;
 
       // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
-      vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name, n_term_linker, c_term_linker);
+      vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
 
       // lists for one spectrum, to determine best match to the spectrum
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;

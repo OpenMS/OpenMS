@@ -234,10 +234,35 @@ namespace OpenMS
     return modifications;
   }
 
-  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides, bool n_term_linker, bool c_term_linker)
+  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides)
   {
     multimap<StringView, AASequence> processed_peptides;
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;
+
+    bool n_term_linker = false;
+    bool c_term_linker = false;
+    for (String res : cross_link_residue1)
+    {
+      if (res == "N-term")
+      {
+        n_term_linker = true;
+      }
+      else if (res == "C-term")
+      {
+        c_term_linker = true;
+      }
+    }
+    for (String res : cross_link_residue2)
+    {
+      if (res == "N-term")
+      {
+        n_term_linker = true;
+      }
+      else if (res == "C-term")
+      {
+        c_term_linker = true;
+      }
+    }
 //#ifdef _OPENMP
 //#pragma omp parallel for
 //#endif
@@ -269,34 +294,29 @@ namespace OpenMS
 
         // skip if no cross-linked residue
         bool skip = true;
-        for (Size k = 0; k < cross_link_residue1.size(); k++)
+        if (n_term_linker && position == OPXLDataStructs::N_TERM)
         {
-          if (cit->getString().find(cross_link_residue1[k]) < cit->getString().size()-1)
-          {
-            skip = false;
-          }
-          if (n_term_linker && position == OPXLDataStructs::N_TERM)
-          {
-            skip = false;
-          }
-          if (c_term_linker && position == OPXLDataStructs::C_TERM)
-          {
-            skip = false;
-          }
+          skip = false;
         }
-        for (Size k = 0; k < cross_link_residue2.size(); k++)
+        else if (c_term_linker && position == OPXLDataStructs::C_TERM)
         {
-          if (cit->getString().find(cross_link_residue2[k]) < cit->getString().size()-1)
+          skip = false;
+        }
+        else
+        {
+          for (Size k = 0; k < cross_link_residue1.size(); k++)
           {
-            skip = false;
+            if (cit->getString().find(cross_link_residue1[k]) < cit->getString().size()-1)
+            {
+              skip = false;
+            }
           }
-          if (n_term_linker && position == OPXLDataStructs::N_TERM)
+          for (Size k = 0; k < cross_link_residue2.size(); k++)
           {
-            skip = false;
-          }
-          if (c_term_linker && position == OPXLDataStructs::C_TERM)
-          {
-            skip = false;
+            if (cit->getString().find(cross_link_residue2[k]) < cit->getString().size()-1)
+            {
+              skip = false;
+            }
           }
         }
         if (skip) continue;
@@ -362,8 +382,33 @@ namespace OpenMS
     return peptide_masses;
   }
 
-  vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker)
+  vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name)
   {
+    bool n_term_linker = false;
+    bool c_term_linker = false;
+    for (String res : cross_link_residue1)
+    {
+      if (res == "N-term")
+      {
+        n_term_linker = true;
+      }
+      else if (res == "C-term")
+      {
+        c_term_linker = true;
+      }
+    }
+    for (String res : cross_link_residue2)
+    {
+      if (res == "N-term")
+      {
+        n_term_linker = true;
+      }
+      else if (res == "C-term")
+      {
+        c_term_linker = true;
+      }
+    }
+    
     vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates;
     for (Size i = 0; i < candidates.size(); ++i)
     {
