@@ -110,7 +110,7 @@ namespace OpenMS
       const char * create_sql =
         "CREATE TABLE FEATURE(" \
         "ID TEXT PRIMARY KEY NOT NULL," \
-        "PRECURSOR_ID TEXT NOT NULL," \
+        "PRECURSOR_ID INT NOT NULL," \
         "RT REAL NOT NULL," \
         "DELTA_RT REAL NOT NULL," \
         "LEFT_WIDTH REAL NOT NULL," \
@@ -161,7 +161,7 @@ namespace OpenMS
 
         "CREATE TABLE FEATURE_TRANSITION(" \
         "FEATURE_ID TEXT NOT NULL," \
-        "TRANSITION_ID TEXT NOT NULL," \
+        "TRANSITION_ID INT NOT NULL," \
         "AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
         "VAR_LOG_INTENSITY REAL NULL," \
