@@ -94,21 +94,18 @@ std::vector<ResidueModification> variable_modifications = OPXLHelper::getModific
 QStringList q_str_list3;
 QStringList q_str_list4;
 q_str_list3 << "K" << "E";
-q_str_list4 << "D" << "E";
+q_str_list4 << "D" << "E" << "C-term";
 StringList cross_link_residue1 = StringListUtils::fromQStringList(q_str_list3);
 StringList cross_link_residue2 = StringListUtils::fromQStringList(q_str_list4);
 
 Size max_variable_mods_per_peptide = 5;
 Size count_proteins = 0;
 Size count_peptides = 0;
-bool n_term_linker = false;
-bool c_term_linker = true;
 
 
+START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins = 0, Size count_peptides = 0))
 
-START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins = 0, Size count_peptides = 0, bool n_term_linker = false, bool c_term_linker = false))
-
-  std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides, n_term_linker, c_term_linker);
+  std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides);
 
   TEST_EQUAL(peptides.size(), 880)
   TEST_EQUAL(peptides[5].peptide_mass > 5, true) // not an empty AASequence
@@ -120,7 +117,7 @@ START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(
 END_SECTION
 
 // building more data structures required in several following tests
-std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides, n_term_linker, c_term_linker);
+std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides);
 
 std::sort(peptides.begin(), peptides.end(), OPXLDataStructs::AASeqWithMassComparator());
 
@@ -173,7 +170,7 @@ std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCros
 std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
 
-START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker))
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name))
   double precursor_mass = 3425.57034;
   double allowed_error = precursor_mass * precursor_mass_tolerance * 1e-6;
   String cross_link_name = "MyLinker";
@@ -195,7 +192,7 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
     }
   }
 
-  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::buildCandidates(candidates, peptides, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name, n_term_linker, c_term_linker);
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::buildCandidates(candidates, peptides, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
 
   TEST_EQUAL(spectrum_candidates.size(), 59)
   TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
