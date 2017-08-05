@@ -163,6 +163,7 @@ if not iswin:
     extra_compile_args.append("-Wno-header-guard")
     extra_compile_args.append("-Wno-unused-function")
     extra_compile_args.append("-Wno-deprecated-declarations")
+    extra_compile_args.append("-Wno-missing-declarations")
     if no_optimization:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
