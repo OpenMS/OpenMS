@@ -165,11 +165,12 @@ def doCythonCodeGeneration(modname, allDecl_mapping, instance_map, converters):
     allDecl_mapping[modname]["inc_dirs"] = autowrap_include_dirs
     return autowrap_include_dirs
 
-def doCythonCompile((modname, autowrap_include_dirs)):
+def doCythonCompile(arg):
     """
     Perform the Cython compilation step for each module
     """
 
+    modname, autowrap_include_dirs = arg
     m_filename = "pyopenms/%s.pyx" % modname
     print ("Cython compile", m_filename)
     autowrap.Main.run_cython(inc_dirs=autowrap_include_dirs, extra_opts=None, out=m_filename)
