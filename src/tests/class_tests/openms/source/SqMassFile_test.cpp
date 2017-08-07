@@ -49,15 +49,6 @@ using namespace std;
 
 ///////////////////////////
 
-double getFileSize(std::string filename)
-{
-    QFile qfile (filename.c_str());
-    qfile.open(QFile::ReadOnly);
-    double size = qfile.size();
-    qfile.close();
-    return size;
-}
-
 START_TEST(SqMassFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -173,24 +164,6 @@ START_SECTION(void store(const String& filename, MapType& map))
   std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename, exp_orig);
 
-  double size1 = getFileSize(tmp_filename);
-  TEST_EQUAL(size1 < 339968+100 && size1 > 339968-100, true);
-
-  // store larger file with full meta data
-  {
-    config.write_full_meta = true;
-
-    SqMassFile file;
-    file.setConfig(config);
-    std::string tmp_filename;
-    NEW_TMP_FILE(tmp_filename);
-    file.store(tmp_filename, exp_orig);
-
-    double size2 = getFileSize(tmp_filename);
-
-    TEST_EQUAL(size2 < 343040+100 && size2 > 343040-100, true);
-  }
-
   MSExperiment exp;
   file.load(tmp_filename, exp);
 
@@ -280,9 +253,6 @@ START_SECTION([EXTRA] void store(const String& filename, MapType& map))
   NEW_TMP_FILE(tmp_filename);
   std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename, exp_orig);
-
-  double size1 = getFileSize(tmp_filename);
-  TEST_EQUAL(size1 < 84992+100 && size1 > 84992-100, true);
 
   MSExperiment exp;
   file.load(tmp_filename, exp);
