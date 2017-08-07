@@ -7,6 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h
     cdef cppclass MapAlignmentEvaluationAlgorithm "OpenMS::MapAlignmentEvaluationAlgorithm":
         # wrap-ignore
         # ABSTRACT class
+        # no-pxd-import
         MapAlignmentEvaluationAlgorithm() nogil except +
         MapAlignmentEvaluationAlgorithm(MapAlignmentEvaluationAlgorithm) nogil except + #wrap-ignore
 
