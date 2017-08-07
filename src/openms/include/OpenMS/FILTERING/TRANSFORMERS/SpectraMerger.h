@@ -585,17 +585,23 @@ protected:
               // or add aligned peak height to ALL corresponding existing peaks
               else
               {
-                  Size counter = 0;
+                  Size counter = 0, copy_of_align_index = align_index;
+
+                  while (alignment.size() > 0 && alignment[copy_of_align_index].second == spec_b_index)
+                  {
+                      ++copy_of_align_index;
+                      ++counter;
+                  } // Count the number of peaks that in a that correspond to a single b peak.
+
                   while (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
                   {
                       consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
-                              pit->getIntensity());
+                              (pit->getIntensity()/(double)counter)); // add the intensity divided by the number of peaks
                       ++align_index; // this aligned peak was explained, wait for next aligned peak ...
                       if (align_index == alignment.size())
                       {
                           alignment.clear();  // end reached -> avoid going into this block again
                       }
-                      ++counter;
                   }
                   align_size=align_size+1-counter; //Decrease align_size by number of
               }
