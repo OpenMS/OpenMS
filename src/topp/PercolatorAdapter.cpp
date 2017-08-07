@@ -283,12 +283,12 @@ protected:
     {
       // if scan number is not available, use the scan index
       Size idx = 0;
-      if ((idx = it->hasPrefix("scan=")) != string::npos)
+      if ((idx = it->find("scan=")) != string::npos)
       {
         scan_number = it->substr(idx + 5).toInt();
         break;
       }
-      else if ((idx = it->hasPrefix("index=")) != string::npos)
+      else if ((idx = it->find("index=")) != string::npos)
       {
         scan_number = it->substr(idx + 6).toInt();
       }

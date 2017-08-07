@@ -30,6 +30,8 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian
 cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>" namespace "OpenMS::SignalToNoiseEstimatorMedian":
 
     cdef enum IntensityThresholdCalculation "OpenMS::SignalToNoiseEstimatorMedianChrom::IntensityThresholdCalculation":
+        # wrap-attach:
+        #     SignalToNoiseEstimatorMedian
         MANUAL
         AUTOMAXBYSTDEV
         AUTOMAXBYPERCENT

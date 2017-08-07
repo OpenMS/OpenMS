@@ -44,16 +44,11 @@ namespace OpenMS
   PeakPickerMRM::PeakPickerMRM() :
     DefaultParamHandler("PeakPickerMRM")
   {
-    // NEW default settings: recommended:
+    // For SWATH-MS data from 5600 TripleTOF, these settings are recommended: 
     //
     // sgolay_frame_length = 9  (29.7s on our data)
     // gauss_width = 30  (if even gauss is used)
     // use_gauss = false
-    //
-    //
-    // THIS is the most important change !! this caused a lot of trouble ...
-    // peak_width = -1 (do not force a certain width)
-    // method = corrected
     //
     defaults_.setValue("sgolay_frame_length", 15, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
     defaults_.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
@@ -61,7 +56,7 @@ namespace OpenMS
     defaults_.setValue("use_gauss", "true", "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)");
     defaults_.setValidStrings("use_gauss", ListUtils::create<String>("false,true"));
 
-    defaults_.setValue("peak_width", 40.0, "Force a certain minimal peak_width on the data (e.g. extend the peak at least by this amount on both sides) in seconds. -1 turns this feature off.");
+    defaults_.setValue("peak_width", -1.0, "Force a certain minimal peak_width on the data (e.g. extend the peak at least by this amount on both sides) in seconds. -1 turns this feature off.");
     defaults_.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
     defaults_.setMinFloat("signal_to_noise", 0.0);
 
@@ -73,7 +68,7 @@ namespace OpenMS
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
     defaults_.setValidStrings("remove_overlapping_peaks", ListUtils::create<String>("false,true"));
 
-    defaults_.setValue("method", "legacy", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy, corrected picking or Crawdad).");
+    defaults_.setValue("method", "corrected", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy on raw data, corrected picking on smoothed chromatogram or Crawdad on smoothed chromatogram).");
     defaults_.setValidStrings("method", ListUtils::create<String>("legacy,corrected,crawdad"));
 
     // write defaults into Param object param_

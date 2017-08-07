@@ -3,6 +3,7 @@ set(directory include/OpenMS/FORMAT/DATAACCESS)
 
 ### list all header files of the directory here
 set(sources_list_h
+  CsiFingerIdMzTabWriter.h
   MSDataAggregatingConsumer.h
   MSDataCachedConsumer.h
   MSDataChainingConsumer.h
@@ -11,6 +12,7 @@ set(sources_list_h
   MSDataTransformingConsumer.h
   MSDataWritingConsumer.h
   NoopMSDataConsumer.h
+  SiriusMzTabWriter.h
   SwathFileConsumer.h
 )
 

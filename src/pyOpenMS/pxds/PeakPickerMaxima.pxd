@@ -23,6 +23,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>" namespac
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>" namespace "OpenMS::PeakPickerMaxima":
     
     cdef cppclass PeakCandidate "OpenMS::PeakPickerMaxima::PeakCandidate":
+        # wrap-attach:
+        #   PeakPickerMaxima
 
         PeakCandidate() nogil except +
         PeakCandidate(PeakCandidate &) nogil except +

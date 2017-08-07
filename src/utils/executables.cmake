@@ -49,6 +49,7 @@ RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
+SiriusAdapter
 SpecLibCreator
 SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer

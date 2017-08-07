@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         bool clearMetaDataArrays() nogil except +
         ExperimentalSettings getExperimentalSettings() nogil except +
         
-        StringList getPrimaryMSRunPath() nogil except +
+        void getPrimaryMSRunPath(StringList& toFill) nogil except +
 
         void swap(MSExperiment) nogil except +
 

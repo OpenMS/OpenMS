@@ -37,28 +37,28 @@
 
 #include <OpenMS/config.h>
 
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/IndexedMzMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/IndexedMzMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
-
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -595,6 +595,7 @@ protected:
       set<String> proteins;
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
+      vector<uint16_t> peptide_length;
 
       // reading input
       mu.before();
@@ -640,6 +641,7 @@ protected:
           for (Size j = 0; j < temp_hits.size(); ++j)
           {
             peptides.insert(temp_hits[j].getSequence().toString());
+            peptide_length.push_back(temp_hits[j].getSequence().size());
           }
         }
       }
@@ -653,6 +655,10 @@ protected:
           proteins.insert(temp_hits[j].getAccession());
         }
       }
+      if (peptide_length.empty())
+      { // avoid invalid-range exception when computing mean()
+        peptide_length.push_back(0); 
+      }
 
       os << "Number of:"
          << "\n";
@@ -663,10 +669,10 @@ protected:
          << "\n";
       os << "\n";
       os << "  matched spectra:    " << spectrum_count << "\n";
-      os << "  peptide hits:               " << peptide_hit_count << "\n";
-      os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count > 0 ? String(" (") + (modified_peptide_count * 100.0 / spectrum_count) + "%)" : "") << "\n";
+      os << "  peptide hits:               " << peptide_hit_count << " (avg. length: " << Math::round(Math::mean(peptide_length.begin(), peptide_length.end())) << ")\n";
+      os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count > 0 ? String(" (") + Math::round(modified_peptide_count * 1000.0 / spectrum_count) / 10 + "%)" : "") << "\n";
       os << "  non-redundant peptide hits: " << peptides.size() << "\n";
-      os << "  (only hits that differ in sequence and/ or modifications)"
+      os << "  (only hits that differ in sequence and/or modifications)"
          << "\n";
       for (Map<String, int>::ConstIterator it = mod_counts.begin(); it != mod_counts.end(); ++it)
       {
@@ -679,7 +685,7 @@ protected:
 
       os_tsv << "peptide hits"
              << "\t" << peptide_hit_count << "\n";
-      os_tsv << "non-redundant peptide hits (only hits that differ in sequence and/ or modifications): "
+      os_tsv << "non-redundant peptide hits (only hits that differ in sequence and/or modifications): "
              << "\t" << peptides.size() << "\n";
       os_tsv << "protein hits"
              << "\t" << protein_hit_count << "\n";

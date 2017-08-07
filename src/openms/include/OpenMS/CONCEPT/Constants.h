@@ -36,6 +36,7 @@
 #define OPENMS_CONCEPT_CONSTANTS_H
 
 #include <OpenMS/config.h>
+#include <string>
 
 /**
     @brief Main %OpenMS namespace.
@@ -252,6 +253,11 @@ namespace OpenMS
             1/JOULE_PER_CAL
     */
     extern OPENMS_DLLAPI const double   CAL_PER_JOULE;
+
+    /** User parameter name for precursor mz error in ppm
+            String
+    */
+    extern OPENMS_DLLAPI const std::string   PRECURSOR_ERROR_PPM_USERPARAM;
 
     //@}
   }

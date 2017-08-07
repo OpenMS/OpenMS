@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,37 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Christian Ehrlich $
+// $Maintainer: Oliver Alka $
+// $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/MISC/Spline2d.h>
+#ifndef OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
+#define OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
+
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+
 
 namespace OpenMS
 {
 
-  // dummy cpp for better navigation in IDE
+  class OPENMS_DLLAPI SiriusMSFile
+  {
+public:
+
+  /**
+    @brief Internal structure used in @ref SiriusAdapter that is used
+    for the conversion of a MzMlFile to an internal format.
+
+    @ingroup ID
+    */
+
+    /// store MS file
+    /// @return string (full path to file)
+    static void store(const PeakMap & spectra, const OpenMS::String & msfile);
+
+  };
 
 }
+
+#endif //OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H

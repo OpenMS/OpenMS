@@ -534,10 +534,10 @@ namespace OpenMS
     defaults_.setValue("db:struct", ListUtils::create<String>("CHEMISTRY/HMDB2StructMapping.tsv"), "Database input file(s), containing four tab-separated columns of identifier, name, SMILES, INCHI."
                                                                         "The identifier should match with mapping file. SMILES and INCHI are reported in the output, but not used otherwise. "
                                                                         "By default CHEMISTRY/HMDB2StructMapping.tsv in OpenMS/share is used! If empty, the default will be used.");
-    defaults_.setValue("positive_adducts_file", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. "
+    defaults_.setValue("positive_adducts", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
                                                                                  "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("negative_adducts_file", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
+    defaults_.setValue("negative_adducts", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
                                                                                  "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
     defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
@@ -1254,10 +1254,10 @@ namespace OpenMS
     db_struct_file_ = param_.getValue("db:struct").toStringList();
     if (db_struct_file_.empty()) db_struct_file_ = defaults_.getValue("db:struct").toStringList();
 
-    pos_adducts_fname_ = (String)param_.getValue("positive_adducts_file");
-    if (pos_adducts_fname_.trim().empty()) pos_adducts_fname_ = (String)defaults_.getValue("positive_adducts_file");
-    neg_adducts_fname_ = (String)param_.getValue("negative_adducts_file");
-    if (neg_adducts_fname_.trim().empty()) neg_adducts_fname_ = (String)defaults_.getValue("negative_adducts_file");
+    pos_adducts_fname_ = (String)param_.getValue("positive_adducts");
+    if (pos_adducts_fname_.trim().empty()) pos_adducts_fname_ = (String)defaults_.getValue("positive_adducts");
+    neg_adducts_fname_ = (String)param_.getValue("negative_adducts");
+    if (neg_adducts_fname_.trim().empty()) neg_adducts_fname_ = (String)defaults_.getValue("negative_adducts");
 
     keep_unidentified_masses_ = param_.getValue("keep_unidentified_masses").toBool();
     // database names might have changed, so parse files again before next query

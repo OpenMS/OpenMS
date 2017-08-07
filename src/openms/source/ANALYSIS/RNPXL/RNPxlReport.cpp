@@ -126,7 +126,7 @@ namespace OpenMS
     {
       int scan_index = s_it - spectra.begin();
      std::vector<Precursor> precursor = s_it->getPrecursors();
- 
+
       // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least for every AA in the peptide)
       if (s_it->getMSLevel() == 2 && precursor.size() == 1)
       {
@@ -155,9 +155,9 @@ namespace OpenMS
 
         // case 2: identification data present for spectrum
         PeptideHit& ph = phs[0];
-       
+
         // total weight = precursor RNA weight + peptide weight
-        // this hack ensures that sequences with additional reported partial loss match the total weight 
+        // this hack ensures that sequences with additional reported partial loss match the total weight
         // Note that the partial loss is only relevent on the MS2 and would otherwise be added to the totalweight
         String sequence_string = ph.getSequence().toString();
         sequence_string.substitute("(RNA:U_prime-H2O)", "");
@@ -167,7 +167,7 @@ namespace OpenMS
         sequence_string.substitute("(RNA:U)", "");
         sequence_string.substitute("(RNA:C3O)", "");
 
-        const AASequence sequence = AASequence::fromString(sequence_string); 
+        const AASequence sequence = AASequence::fromString(sequence_string);
 
         double peptide_weight = sequence.getMonoWeight();
         String rna_name = ph.getMetaValue("RNPxl:RNA");
@@ -236,7 +236,7 @@ namespace OpenMS
         }
 
         ph.setMetaValue("RNPxl:Da difference", (double)absolute_difference);
-        ph.setMetaValue("RNPxl:ppm difference", (double)ppm_difference);
+        ph.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, (double)ppm_difference);
         ph.setMetaValue("RNPxl:z1 mass", (double)weight_z1);
         ph.setMetaValue("RNPxl:z2 mass", (double)weight_z2);
         ph.setMetaValue("RNPxl:z3 mass", (double)weight_z3);

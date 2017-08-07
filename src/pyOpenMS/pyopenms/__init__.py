@@ -19,7 +19,7 @@ if sys.platform.startswith("linux"):
     ctypes.cdll.LoadLibrary(os.path.join(here, "libSuperHirn.so"))
 
 try:
-    from .pyopenms import *
+    from .all_modules import *
     from .python_extras import *
 except Exception as e:
     print("\n")

@@ -17,7 +17,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="397"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-05-24T18:56:39" search_engine="OpenXQuest" search_engine_version="2.1.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-08-03T12:44:55" search_engine="OpenXQuest" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -27,12 +27,14 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="787.740356445313" RT="2175.3003" spectrum_reference="controllerType=0 controllerNumber=1 scan=2395" >
 			<PeptideHit score="0.995160545684687" sequence="IVEGLK(Xlink:DSS)FPNEFDELEIQGK" charge="3" aa_before="R" aa_after="L" start="2072" end="2090" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="446.284301757812,0.0124782957136631,1,&quot;[alpha|ci$y4]&quot;|1108.56494140625,0.429302453994751,2,&quot;[alpha|xi$b18]&quot;|516.26025390625,0.0137936556711793,3,&quot;[alpha|xi$b12]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=2395"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-61959.1129584792"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.144357797223333"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0365179622514171"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.56221037512444"/>
@@ -55,12 +57,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.436584472656" RT="2689.413" spectrum_reference="controllerType=0 controllerNumber=1 scan=3604" >
 			<PeptideHit score="1.64259464935651" sequence="FIGNPGIQKCGLK" charge="3" aa_before="R" aa_after="V" start="552" end="564" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="421.238006591797,0.0138164684176445,1,&quot;[alpha|ci$y4]&quot;|414.220336914062,0.0186654273420572,2,&quot;[alpha|ci$b8]&quot;|815.010498046875,0.0185057371854782,2,&quot;[alpha|xi$y7]&quot;|633.030090332031,0.0540961734950542,3,&quot;[alpha|xi$b10]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=3604"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="8"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.23684947502083"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.188680487850844"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.033931239086604"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33199421133167"/>
@@ -87,6 +91,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.23684947502083"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.188680487850844"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.033931239086604"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33199421133167"/>
@@ -109,12 +114,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.901794433594" RT="2692.12390000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=3610" >
 			<PeptideHit score="2.25412033271287" sequence="TEKLCGLIDCVHFLR" charge="4" aa_before="K" aa_after="E" start="2379" end="2393" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="572.329284667969,0.105035237967968,1,&quot;[alpha|ci$y4]&quot;|513.285827636719,0.00284023396670818,1,&quot;[beta|ci$y4]&quot;|586.819152832031,0.0181702170521021,2,&quot;[alpha|ci$y10]&quot;|991.14697265625,0.0119948238134384,3,&quot;[alpha|xi$b14]&quot;|561.788696289062,0.0408158712089062,4,&quot;[beta|xi$b3]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=3610"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685154655"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.256112189293734"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0442349318188655"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.75473893302454"/>
@@ -141,6 +148,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685154655"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.256112189293734"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0442349318188655"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.75473893302454"/>
@@ -163,12 +171,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.901794433594" RT="2692.12390000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=3610" >
 			<PeptideHit score="0.997439163649962" sequence="KTEKLCGLIDCVHFLR" charge="4" aa_before="K" aa_after="E" start="2378" end="2393" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="572.329284667969,0.105035237967968,1,&quot;[alpha|ci$y4]&quot;|513.285827636719,0.00284023396670818,1,&quot;[beta|ci$y4]&quot;|586.819152832031,0.0181702170521021,2,&quot;[alpha|ci$y10]&quot;|991.14697265625,0.0119948238134384,3,&quot;[alpha|xi$b15]&quot;|729.120910644531,0.0534396842122078,4,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=3610"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685183549"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.28525398955669"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0190809182476184"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.71716389284832"/>
@@ -195,6 +205,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685183549"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.28525398955669"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0190809182476184"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.71716389284832"/>
@@ -217,12 +228,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.901794433594" RT="2692.12390000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=3610" >
 			<PeptideHit score="0.871051427562919" sequence="TEKLCGLIDCVHFLR" charge="4" aa_before="K" aa_after="E" start="2379" end="2393" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="572.329284667969,0.105035237967968,1,&quot;[alpha|ci$y4]&quot;|513.285827636719,0.00284023396670818,1,&quot;[beta|ci$y4]&quot;|586.819152832031,0.0181702170521021,2,&quot;[alpha|ci$y10]&quot;|991.14697265625,0.0119948238134384,3,&quot;[alpha|xi$b14]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=3610"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685154655"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.24559523029248"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0129769879631018"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33315984623444"/>
@@ -249,6 +262,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685154655"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.24559523029248"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0129769879631018"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33315984623444"/>
@@ -271,12 +285,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.901794433594" RT="2692.12390000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=3610" >
 			<PeptideHit score="0.747324596499374" sequence="KTEKLCGLIDCVHFLR" charge="4" aa_before="K" aa_after="E" start="2378" end="2393" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="572.329284667969,0.105035237967968,1,&quot;[alpha|ci$y4]&quot;|513.285827636719,0.00284023396670818,1,&quot;[beta|ci$y4]&quot;|586.819152832031,0.0181702170521021,2,&quot;[alpha|ci$y10]&quot;|991.14697265625,0.0119948238134384,3,&quot;[alpha|xi$b15]&quot;|729.120910644531,0.0534396842122078,4,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=3610"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685183549"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.240902734232937"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0257756439255435"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74404813080311"/>
@@ -303,6 +319,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685183549"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.240902734232937"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0257756439255435"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74404813080311"/>
@@ -325,12 +342,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.059875488281" RT="3029.54959999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=4482" >
 			<PeptideHit score="1.42919104802106" sequence="FPKNYMSQYFK" charge="3" aa_before="K" aa_after="L" start="1640" end="1650" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1081.48449707031,0.0340138152241707,1,&quot;[alpha|ci$y8]&quot;|1540.82214355469,0.00665490981191397,1,&quot;[alpha|xi$b6]&quot;|567.361083984375,0.0397814325988293,2,&quot;[alpha|xi$b3]&quot;|689.361877441406,0.0587936118245125,3,&quot;[alpha|xi$b10]&quot;|689.361877441406,0.0587936118245125,3,&quot;[beta|xi$b4]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=4482"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.30215412688569"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.164286537391606"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0187358866029936"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36381971887944"/>
@@ -357,6 +376,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.30215412688569"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.164286537391606"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0187358866029936"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36381971887944"/>
@@ -379,12 +399,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="787.416870117188" RT="3179.9553" spectrum_reference="controllerType=0 controllerNumber=1 scan=4889" >
 			<PeptideHit score="3.02578107003832" sequence="DYHFVNATEESDALAKLR" charge="4" aa_before="R" aa_after="K" start="1483" end="1500" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="404.254333496094,0.00930688343942165,1,&quot;[beta|ci$y4]&quot;|1100.13439941406,0.0439492985606194,2,&quot;[alpha|xi$y10]&quot;|877.435546875,0.0959417223930359,3,&quot;[beta|xi$b4]&quot;|982.1923828125,0.0994132682681084,3,&quot;[beta|xi$b7]&quot;|750.895080566406,0.224144458770752,4,&quot;[beta|xi$b8]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=4889"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="15"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.75353076503564"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.353655758995196"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0429182844388914"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.73413432141225"/>
@@ -411,6 +433,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.75353076503564"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.353655758995196"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0429182844388914"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.73413432141225"/>
@@ -433,12 +456,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="787.416870117188" RT="3179.9553" spectrum_reference="controllerType=0 controllerNumber=1 scan=4889" >
 			<PeptideHit score="2.17078886703249" sequence="ESSPKLVELLLNSGSREQDVR" charge="4" aa_before="K" aa_after="K" start="751" end="771" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="305.122711181641,0.00494201993569732,1,&quot;[alpha|ci$b3]&quot;|324.163696289062,0.0234858989715576,2,&quot;[alpha|ci$y5]&quot;|750.895080566406,0.224144458770752,4,&quot;[beta|xi$b4]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=4889"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.83818511834777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.358622766114845"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0276762297394982"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.79529535544501"/>
@@ -465,6 +490,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.83818511834777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.358622766114845"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0276762297394982"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.79529535544501"/>
@@ -487,12 +513,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="787.416870117188" RT="3179.9553" spectrum_reference="controllerType=0 controllerNumber=1 scan=4889" >
 			<PeptideHit score="1.92787110715321" sequence="EDTEFHHKLNMVKK" charge="4" aa_before="R" aa_after="Q" start="521" end="534" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="620.354858398438,0.0708316341042519,1,&quot;[alpha|ci$y5]&quot;|644.399108886719,0.00337077584117651,1,&quot;[beta|ci$y5]&quot;|1263.73669433594,0.0471178255975246,2,&quot;[alpha|xi$y9]&quot;|1448.76342773438,0.00935571920126677,2,&quot;[beta|xi$y9]&quot;|661.33837890625,0.0188811756670475,4,&quot;[alpha|xi$b10]&quot;|750.895080566406,0.224144458770752,4,&quot;[alpha|xi$b13]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=4889"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334058879811394"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00370681778498793"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74024802275347"/>
@@ -519,6 +547,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334058879811394"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00370681778498793"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74024802275347"/>
@@ -541,12 +570,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="787.416870117188" RT="3179.9553" spectrum_reference="controllerType=0 controllerNumber=1 scan=4889" >
 			<PeptideHit score="1.71180562013333" sequence="EDTEFHHKLNMVKK" charge="4" aa_before="R" aa_after="Q" start="521" end="534" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="620.354858398438,0.0708316341042519,1,&quot;[alpha|ci$y5]&quot;|1263.73669433594,0.0471178255975246,2,&quot;[alpha|xi$y9]&quot;|259.167327880859,0.0103197386488318,2,&quot;[beta|ci$y4]&quot;|1448.76342773438,0.00935571920126677,2,&quot;[beta|xi$y9]&quot;|661.33837890625,0.0188811756670475,4,&quot;[alpha|xi$b10]&quot;|750.895080566406,0.224144458770752,4,&quot;[alpha|xi$b13]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=4889"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334058879811374"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.00695652490001962"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.70687677116351"/>
@@ -573,6 +604,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334058879811374"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.00695652490001962"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.70687677116351"/>
@@ -595,12 +627,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="787.416870117188" RT="3179.9553" spectrum_reference="controllerType=0 controllerNumber=1 scan=4889" >
 			<PeptideHit score="1.70768045862624" sequence="EDTEFHHKLNMVKK" charge="4" aa_before="R" aa_after="Q" start="521" end="534" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="644.399108886719,0.00337077584117651,1,&quot;[beta|ci$y5]&quot;|1263.73669433594,0.0471178255975246,2,&quot;[alpha|xi$y9]&quot;|1448.76342773438,0.00935571920126677,2,&quot;[beta|xi$y9]&quot;|750.895080566406,0.224144458770752,4,&quot;[alpha|xi$b13]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=4889"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="12"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.358983498429224"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00353308167659501"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.73929340695119"/>
@@ -627,6 +661,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.358983498429224"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00353308167659501"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.73929340695119"/>
@@ -649,12 +684,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.909729003906" RT="3323.43280000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=5293" >
 			<PeptideHit score="4.54061130370939" sequence="TEKLCGLIDCVHFLR" charge="4" aa_before="K" aa_after="E" start="2379" end="2393" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1275.63928222656,0.0162707231938839,1,&quot;[alpha|ci$y11]&quot;|754.427124023438,0.12993660569191,1,&quot;[beta|ci$y6]&quot;|901.473510742188,0.0468729212880135,1,&quot;[beta|ci$y7]&quot;|1072.56677246094,0.0155289210379124,2,&quot;[alpha|xi$b7]&quot;|1457.73937988281,0.00757023878395557,2,&quot;[alpha|xi$y13]&quot;|858.423706054688,0.0654434636235237,3,&quot;[alpha|xi$b11]&quot;|953.469848632812,0.212449163198471,3,&quot;[alpha|xi$b13]&quot;|749.051147460938,0.241585716605186,3,&quot;[beta|xi$b3]&quot;|1000.51678466797,0.0503019243478775,3,&quot;[beta|xi$b9]&quot;|593.79931640625,0.0503585003316402,4,&quot;[alpha|xi$b9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5293"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.495440854119215"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.292756641828302"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0747937413138887"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.47579738056227"/>
@@ -681,6 +718,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.495440854119215"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.292756641828302"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0747937413138887"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.47579738056227"/>
@@ -703,12 +741,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.909729003906" RT="3323.43280000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=5293" >
 			<PeptideHit score="3.00721165335381" sequence="VEPSWLGPLFPDKTSNLR" charge="4" aa_before="K" aa_after="K" start="812" end="829" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="296.169921875,0.00584412598982453,2,&quot;[alpha|ci$y5]&quot;|904.484497070312,0.191493660211563,2,&quot;[alpha|xi$y6]&quot;|953.469848632812,0.212449163198471,3,&quot;[alpha|xi$b16]&quot;|940.497253417969,0.227883130311966,3,&quot;[alpha|xi$y15]&quot;|1016.17462158203,0.0521370023488998,3,&quot;[alpha|xi$y17]&quot;|1000.51678466797,0.0503019243478775,3,&quot;[beta|xi$b7]&quot;|686.60888671875,0.0633640363812447,4,&quot;[alpha|xi$b15]&quot;|570.5546875,0.0493052005767822,4,&quot;[alpha|xi$y10]&quot;|637.351318359375,0.0189982280135155,4,&quot;[alpha|xi$y13]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5293"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="12"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.14662542896997"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.335563657720809"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0064488312336887"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.68283753355919"/>
@@ -735,6 +775,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.14662542896997"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.335563657720809"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0064488312336887"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.68283753355919"/>
@@ -757,12 +798,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.909729003906" RT="3323.43280000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=5293" >
 			<PeptideHit score="2.92840506341035" sequence="KTEKLCGLIDCVHFLR" charge="4" aa_before="K" aa_after="E" start="2378" end="2393" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="360.20068359375,0.00766396429389715,1,&quot;[alpha|ci$b3]&quot;|1275.63928222656,0.0162707231938839,1,&quot;[alpha|ci$y11]&quot;|284.172058105469,0.00520086009055376,1,&quot;[beta|ci$y2]&quot;|1072.56677246094,0.0155289210379124,2,&quot;[alpha|xi$b8]&quot;|858.423706054688,0.0654434636235237,3,&quot;[alpha|xi$b12]&quot;|953.469848632812,0.212449163198471,3,&quot;[alpha|xi$b14]&quot;|972.488586425781,0.234553068876266,3,&quot;[alpha|xi$y14]&quot;|1000.51678466797,0.0503019243478775,3,&quot;[beta|xi$b8]&quot;|593.79931640625,0.0503585003316402,4,&quot;[alpha|xi$b10]&quot;|692.620483398438,0.170881435275078,4,&quot;[beta|xi$y6]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5293"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.49544085383027"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.267055876940883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00585212691592718"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.15051270795164"/>
@@ -789,6 +832,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.49544085383027"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.267055876940883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00585212691592718"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.15051270795164"/>
@@ -811,12 +855,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.909729003906" RT="3323.43280000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=5293" >
 			<PeptideHit score="2.84732143184366" sequence="KTEKLCGLIDCVHFLR" charge="4" aa_before="K" aa_after="E" start="2378" end="2393" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1275.63928222656,0.0162707231938839,1,&quot;[alpha|ci$y11]&quot;|284.172058105469,0.00520086009055376,1,&quot;[beta|ci$y2]&quot;|699.877807617188,0.0707430467009544,2,&quot;[alpha|xi$b1]&quot;|1072.56677246094,0.0155289210379124,2,&quot;[alpha|xi$b8]&quot;|858.423706054688,0.0654434636235237,3,&quot;[alpha|xi$b12]&quot;|953.469848632812,0.212449163198471,3,&quot;[alpha|xi$b14]&quot;|1000.51678466797,0.0503019243478775,3,&quot;[beta|xi$b8]&quot;|593.79931640625,0.0503585003316402,4,&quot;[alpha|xi$b10]&quot;|692.620483398438,0.170881435275078,4,&quot;[beta|xi$y6]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5293"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.49544085383027"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.2872534459084"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0180707629932045"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.5503650295547"/>
@@ -843,6 +889,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.49544085383027"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.2872534459084"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0180707629932045"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.5503650295547"/>
@@ -865,12 +912,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.909729003906" RT="3323.43280000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=5293" >
 			<PeptideHit score="2.3932799014858" sequence="KAEEGDLLVNPDQPR" charge="4" aa_before="K" aa_after="L" start="1832" end="1846" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="377.201232910156,0.0339986197650433,2,&quot;[beta|ci$b6]&quot;|1422.78356933594,0.00656705955043435,2,&quot;[beta|xi$y8]&quot;|555.309692382812,0.0142126595601439,3,&quot;[alpha|xi$b2]&quot;|836.099853515625,0.0327020026743412,3,&quot;[beta|xi$y5]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5293"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.4399738185818"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.312879077650838"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0581863803541114"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.99778844482736"/>
@@ -897,6 +946,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="8"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.4399738185818"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.312879077650838"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0581863803541114"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.99778844482736"/>
@@ -919,12 +969,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.050415039063" RT="3330.46669999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=5311" >
 			<PeptideHit score="2.14820543958073" sequence="FPKNYMSQYFK" charge="3" aa_before="K" aa_after="L" start="1640" end="1650" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="672.325866699219,0.0271007958799601,1,&quot;[alpha|ci$y5]&quot;|814.422546386719,0.00756498007103801,2,&quot;[alpha|xi$b7]&quot;|933.498168945312,0.0349314399063587,2,&quot;[beta|xi$y2]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5311"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.51592358397501"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.175855461864883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0624926522382935"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.0230746455366"/>
@@ -951,6 +1003,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.51592358397501"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.175855461864883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0624926522382935"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.0230746455366"/>
@@ -973,12 +1026,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.050415039063" RT="3330.46669999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=5311" >
 			<PeptideHit score="1.6019675310026" sequence="GQAEVDAMKPWLFNIKAR" charge="3" aa_before="K" aa_after="A" start="1423" end="1440" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="803.341552734375,0.0112198870629072,1,&quot;[alpha|ci$b8]&quot;|538.307800292969,0.00238224654458463,3,&quot;[alpha|xi$y12]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5311"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="8"/>
 				<UserParam type="string" name="xl_type" value="loop-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.77264895899935"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.225847290255787"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0353829157232503"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.48356067397196"/>
@@ -1004,12 +1059,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.051696777344" RT="3356.87440000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=5386" >
 			<PeptideHit score="1.86835589879143" sequence="FPKNYMSQYFK" charge="3" aa_before="K" aa_after="L" start="1640" end="1650" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="457.248962402344,0.0051721939817071,1,&quot;[alpha|ci$y3]&quot;|541.239074707031,0.0153944063931704,2,&quot;[alpha|ci$y8]&quot;|985.007690429688,0.253264546394348,2,&quot;[alpha|xi$y9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5386"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.77928079752513"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.143376930963517"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0352576530817324"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.12677805434349"/>
@@ -1036,6 +1093,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.77928079752513"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.143376930963517"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0352576530817324"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.12677805434349"/>
@@ -1058,12 +1116,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.140380859375" RT="3425.39659999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=5587" >
 			<PeptideHit score="3.40494136755845" sequence="VEPSWLGPLFPDKTSNLR" charge="4" aa_before="K" aa_after="K" start="812" end="829" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="591.322570800781,0.0166951473802328,1,&quot;[alpha|ci$y5]&quot;|490.26611328125,0.147388607263565,2,&quot;[alpha|ci$b9]&quot;|1176.61926269531,0.0642097592353821,2,&quot;[alpha|xi$y13]&quot;|863.966613769531,0.55034327507019,2,&quot;[alpha|xi$y7]&quot;|888.1044921875,0.0689233690500259,3,&quot;[alpha|xi$b16]&quot;|784.752258300781,0.185388624668121,3,&quot;[alpha|xi$y13]&quot;|588.577453613281,0.0122620305046439,4,&quot;[alpha|xi$y13]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5587"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="12"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.74800038064634"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.287546529237413"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0185694083532503"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.95174235581919"/>
@@ -1090,6 +1150,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.74800038064634"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.287546529237413"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0185694083532503"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.95174235581919"/>
@@ -1112,12 +1173,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.140380859375" RT="3425.39659999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=5587" >
 			<PeptideHit score="2.46581828915459" sequence="VAMDDYLKNVMLER" charge="4" aa_before="K" aa_after="A" start="701" end="714" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="549.295654296875,0.0382828861474991,1,&quot;[alpha|ci$y4]&quot;|476.28271484375,0.451203763484955,1,&quot;[beta|ci$y4]&quot;|888.1044921875,0.0689233690500259,3,&quot;[beta|xi$b7]&quot;|662.347595214844,0.0164278615266085,4,&quot;[alpha|xi$b12]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5587"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.43349787768679"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.282383924404941"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0168443028610636"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.09131332032556"/>
@@ -1144,6 +1207,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.43349787768679"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.282383924404941"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0168443028610636"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.09131332032556"/>
@@ -1166,12 +1230,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.140380859375" RT="3425.39659999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=5587" >
 			<PeptideHit score="2.28439357923991" sequence="GQAEVDAMKPWLFNIK" charge="4" aa_before="K" aa_after="A" start="1423" end="1438" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="918.5166015625,0.0337695442140102,1,&quot;[alpha|ci$y7]&quot;|1065.52758789062,0.10588838160038,2,&quot;[alpha|xi$b10]&quot;|588.577453613281,0.0122620305046439,4,&quot;[alpha|xi$y10]&quot;|691.862426757812,0.150904312729836,4,&quot;[alpha|xi$y14]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5587"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="8"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.13908937242832"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.290300556477067"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.038794261492305"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.47645552206342"/>
@@ -1198,6 +1264,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.13908937242832"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.290300556477067"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.038794261492305"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.47645552206342"/>
@@ -1220,12 +1287,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.140380859375" RT="3425.39659999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=5587" >
 			<PeptideHit score="1.45563579537982" sequence="FPKNYMSQYFKLLEK" charge="4" aa_before="K" aa_after="F" start="1640" end="1654" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="777.492309570312,0.0965550914406776,1,&quot;[alpha|ci$y6]&quot;|1068.58874511719,0.0129279494285583,1,&quot;[alpha|ci$y8]&quot;|535.304992675781,0.0127459969371557,2,&quot;[alpha|ci$y8]&quot;|941.973754882812,0.0245773922652006,2,&quot;[alpha|xi$b7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5587"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.87580183995883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.256850116357478"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0134248561060071"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.46813077791107"/>
@@ -1252,6 +1321,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.87580183995883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.256850116357478"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0134248561060071"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.46813077791107"/>
@@ -1274,12 +1344,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.137878417969" RT="3447.8262" spectrum_reference="controllerType=0 controllerNumber=1 scan=5657" >
 			<PeptideHit score="2.08739249017179" sequence="FPKNYMSQYFKLLEK" charge="4" aa_before="K" aa_after="F" start="1640" end="1654" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1286.669921875,0.00200980040244758,1,&quot;[alpha|ci$y10]&quot;|897.945556640625,0.328627526760101,2,&quot;[alpha|xi$b6]&quot;|1322.705078125,0.00349297025240958,2,&quot;[beta|xi$b5]&quot;|854.763061523438,0.0925986915826797,3,&quot;[alpha|xi$b12]&quot;|671.005676269531,0.0314202159643173,3,&quot;[alpha|xi$b8]&quot;|641.08251953125,0.0197772216051817,4,&quot;[alpha|xi$b12]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5657"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.48558817285451"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.27286428369415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00924776757793332"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.80758625750148"/>
@@ -1306,6 +1378,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.48558817285451"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.27286428369415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00924776757793332"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.80758625750148"/>
@@ -1328,12 +1401,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.137878417969" RT="3447.8262" spectrum_reference="controllerType=0 controllerNumber=1 scan=5657" >
 			<PeptideHit score="1.72643888089159" sequence="VAMDDYLKNVMLER" charge="4" aa_before="K" aa_after="A" start="701" end="714" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="761.412353515625,0.0585291683673859,1,&quot;[alpha|ci$y6]&quot;|927.130126953125,0.0263154376298189,3,&quot;[alpha|xi$y12]&quot;|897.136047363281,0.398955196142197,3,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5657"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.956707509525629"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.259395679424268"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.00275477849268277"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.2628277643077"/>
@@ -1360,6 +1435,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.956707509525629"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.259395679424268"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.00275477849268277"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.2628277643077"/>
@@ -1382,12 +1458,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.137878417969" RT="3447.8262" spectrum_reference="controllerType=0 controllerNumber=1 scan=5657" >
 			<PeptideHit score="1.36385759804559" sequence="GQAEVDAMKPWLFNIK" charge="4" aa_before="K" aa_after="A" start="1423" end="1438" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="820.462219238281,0.131768628954887,1,&quot;[alpha|ci$y6]&quot;|459.265930175781,0.00395147874951363,2,&quot;[alpha|ci$y7]&quot;|1159.05847167969,0.0146544920280576,2,&quot;[alpha|xi$b11]&quot;|1229.11096191406,0.0100135784596205,2,&quot;[beta|xi$b4]&quot;|855.457641601562,0.032261461019516,3,&quot;[alpha|xi$y12]&quot;|674.367980957031,0.00556152639910579,4,&quot;[alpha|xi$y13]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5657"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="8"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.52928264786567"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.28865044965055"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.000549888303307683"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.67888117942069"/>
@@ -1414,6 +1492,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.52928264786567"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.28865044965055"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.000549888303307683"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.67888117942069"/>
@@ -1436,12 +1515,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.7607421875" RT="3484.4517" spectrum_reference="controllerType=0 controllerNumber=1 scan=5769" >
 			<PeptideHit score="2.1362867525522" sequence="QCFKNDIHK" charge="3" aa_before="K" aa_after="L" start="535" end="543" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="513.2900390625,0.00479694595560431,1,&quot;[alpha|ci$y4]&quot;|341.26513671875,0.00141889275982976,1,&quot;[beta|ci$b3]&quot;|814.431396484375,0.00906790513545275,1,&quot;[beta|ci$b7]&quot;|616.332946777344,0.0135305440053344,3,&quot;[alpha|xi$b5]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5769"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.94723233666204"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.14669292660026"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0650740522404403"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.21322948952159"/>
@@ -1468,6 +1549,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.94723233666204"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.14669292660026"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0650740522404403"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.21322948952159"/>
@@ -1490,12 +1572,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.7607421875" RT="3484.4517" spectrum_reference="controllerType=0 controllerNumber=1 scan=5769" >
 			<PeptideHit score="0.914393790704319" sequence="QCFKNDIHK" charge="3" aa_before="K" aa_after="L" start="535" end="543" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="513.2900390625,0.00479694595560431,1,&quot;[alpha|ci$y4]&quot;|290.165069580078,0.00162444903980941,1,&quot;[beta|ci$y2]&quot;|847.4638671875,0.00623807031661272,1,&quot;[beta|ci$y7]&quot;|616.332946777344,0.0135305440053344,3,&quot;[alpha|xi$b5]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5769"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.14297680759624"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.17513073169176"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00479146924107842"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.17375321948352"/>
@@ -1522,6 +1606,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.14297680759624"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.17513073169176"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00479146924107842"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.17375321948352"/>
@@ -1544,12 +1629,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.7607421875" RT="3484.4517" spectrum_reference="controllerType=0 controllerNumber=1 scan=5769" >
 			<PeptideHit score="0.220867300148545" sequence="QCFKNDIHK" charge="3" aa_before="K" aa_after="L" start="535" end="543" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="513.2900390625,0.00479694595560431,1,&quot;[alpha|ci$y4]&quot;|290.165069580078,0.00162444903980941,1,&quot;[beta|ci$y2]&quot;|616.332946777344,0.0135305440053344,3,&quot;[alpha|xi$b5]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5769"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.14297680759624"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.177824829831741"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0227309628205558"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.16928587980719"/>
@@ -1576,6 +1663,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.14297680759624"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.177824829831741"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0227309628205558"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.16928587980719"/>
@@ -1598,12 +1686,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.617858886719" RT="3525.42280000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=5892" >
 			<PeptideHit score="1.86242390158726" sequence="MTDSVTCLYCNSFSKQSK" charge="4" aa_before="K" aa_after="Q" start="2240" end="2257" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="739.287353515625,0.035644244402647,1,&quot;[alpha|ci$b7]&quot;|1014.44189453125,0.175525084137917,1,&quot;[alpha|ci$b9]&quot;|1051.04345703125,0.0564000569283962,2,&quot;[alpha|xi$y10]&quot;|969.506958007812,0.0507675893604755,2,&quot;[alpha|xi$y9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5892"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="14"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.24975441253637"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.272910863245464"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0198505472750013"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.66679514650813"/>
@@ -1630,6 +1720,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.24975441253637"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.272910863245464"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0198505472750013"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.66679514650813"/>
@@ -1652,12 +1743,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.751281738281" RT="3531.10069999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=5912" >
 			<PeptideHit score="0.137221888457763" sequence="QCFKNDIHK" charge="3" aa_before="K" aa_after="L" start="535" end="543" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="814.424987792969,0.00135379761923105,1,&quot;[beta|ci$b7]&quot;|981.479919433594,0.0398013330996037,2,&quot;[alpha|xi$b6]&quot;|1066.53869628906,0.00516697112470865,2,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5912"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.07738393449789"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.134559080867467"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0247152367062349"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450258782576"/>
@@ -1684,6 +1777,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.07738393449789"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.134559080867467"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0247152367062349"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450258782576"/>
@@ -1706,12 +1800,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.753234863281" RT="3551.0598" spectrum_reference="controllerType=0 controllerNumber=1 scan=5973" >
 			<PeptideHit score="0.978703475409577" sequence="QCFKNDIHK" charge="3" aa_before="K" aa_after="L" start="535" end="543" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="456.2822265625,0.00041602598503232,1,&quot;[beta|ci$b4]&quot;|838.417358398438,0.00160274375230074,2,&quot;[beta|xi$y3]&quot;|616.673400878906,0.0125183193013072,3,&quot;[alpha|xi$b5]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5973"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.59488251083421"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.161879188011971"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0161534910422094"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450228473577"/>
@@ -1738,6 +1834,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.59488251083421"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.161879188011971"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0161534910422094"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450228473577"/>
@@ -1760,12 +1857,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.753234863281" RT="3551.0598" spectrum_reference="controllerType=0 controllerNumber=1 scan=5973" >
 			<PeptideHit score="-0.291760154396342" sequence="ESKHKMSYSGR" charge="3" aa_before="K" aa_after="V" start="2402" end="2412" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="320.177062988281,0.000882201769854873,1,&quot;[alpha|ci$y3]&quot;|697.407348632812,0.00300896330736578,2,&quot;[alpha|xi$b3]&quot;|939.014099121094,0.0108334189280868,2,&quot;[alpha|xi$b7]&quot;|1115.10461425781,0.00245123566128314,2,&quot;[alpha|xi$y10]&quot;|709.7001953125,0.00918744783848524,3,&quot;[alpha|xi$b9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5973"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.4346245992552"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.183893854216405"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0535030164472894"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.22590326392747"/>
@@ -1792,6 +1891,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.4346245992552"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.183893854216405"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0535030164472894"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.22590326392747"/>
@@ -1814,12 +1914,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.753234863281" RT="3551.0598" spectrum_reference="controllerType=0 controllerNumber=1 scan=5973" >
 			<PeptideHit score="-1.14191200578919" sequence="ESKHKMSYSGR" charge="3" aa_before="K" aa_after="V" start="2402" end="2412" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="320.177062988281,0.000882201769854873,1,&quot;[alpha|ci$y3]&quot;|1115.10461425781,0.00245123566128314,2,&quot;[alpha|xi$y10]&quot;|939.014099121094,0.0108334189280868,2,&quot;[alpha|xi$y7]&quot;|709.7001953125,0.00918744783848524,3,&quot;[alpha|xi$b9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=5973"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.4346245992552"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.180128134518623"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0887774670250567"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.40015393166131"/>
@@ -1846,6 +1948,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.4346245992552"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.180128134518623"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0887774670250567"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.40015393166131"/>
@@ -1868,12 +1971,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="737.420532226563" RT="3580.84909999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=6067" >
 			<PeptideHit score="3.99155405968785" sequence="KNTEGTQKQK" charge="3" aa_before="R" aa_after="E" start="2477" end="2486" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="818.439208984375,0.467625856399536,1,&quot;[alpha|ci$y7]&quot;|1034.52355957031,0.0159783884882927,1,&quot;[alpha|ci$y9]&quot;|1522.88696289062,0.0141118597239256,1,&quot;[alpha|xi$b4]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=6067"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="9.8894195728326"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.187765585669026"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.109257054872384"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.2070099838773"/>
@@ -1900,6 +2005,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="9.8894195728326"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.187765585669026"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.109257054872384"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.2070099838773"/>
@@ -1922,12 +2028,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="737.420532226563" RT="3580.84909999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=6067" >
 			<PeptideHit score="2.99427253719824" sequence="HPKGIISRR" charge="3" aa_before="K" aa_after="D" start="1620" end="1628" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="810.415100097656,0.105757839977741,1,&quot;[beta|ci$y7]&quot;|881.447692871094,0.0761097073554993,1,&quot;[beta|ci$y8]&quot;|351.224609375,0.0112486490979791,2,&quot;[alpha|ci$y6]&quot;|818.439208984375,0.467625856399536,2,&quot;[beta|xi$b4]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=6067"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.94937778044415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.195711805228795"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0396941475007674"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.160919555132"/>
@@ -1954,6 +2062,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.94937778044415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.195711805228795"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0396941475007674"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.160919555132"/>
@@ -1976,12 +2085,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="737.420532226563" RT="3580.84909999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=6067" >
 			<PeptideHit score="-0.138419878307935" sequence="HPKGIISRR" charge="3" aa_before="K" aa_after="D" start="1620" end="1628" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="351.224609375,0.0112486490979791,2,&quot;[alpha|ci$y6]&quot;|1006.57879638672,0.0761902928352356,2,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=6067"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.94937778044415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.154650785243648"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0391804981785017"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.32329491696964"/>
@@ -2008,6 +2119,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.94937778044415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.154650785243648"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0391804981785017"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.32329491696964"/>
@@ -2030,12 +2142,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="876.158569335938" RT="3586.38880000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=6084" >
 			<PeptideHit score="2.31645648288326" sequence="YQMKSAVEEGTASGSDGNFSEDVLSK" charge="4" aa_before="R" aa_after="F" start="845" end="870" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1298.59765625,0.00555392680689692,1,&quot;[alpha|ci$y12]&quot;|1671.76330566406,0.00102146726567298,1,&quot;[alpha|ci$y17]&quot;|1039.52844238281,0.00330255436711013,1,&quot;[alpha|ci$y9]&quot;|765.033325195312,0.00773172220215201,3,&quot;[alpha|xi$b15]&quot;|822.034240722656,0.02829903177917,3,&quot;[alpha|xi$b17]&quot;|981.435729980469,0.0980390533804893,3,&quot;[alpha|xi$b21]&quot;|1090.47802734375,0.0106310807168484,3,&quot;[alpha|xi$b24]&quot;|468.890228271484,0.041868943721056,3,&quot;[alpha|xi$b5]&quot;|1073.48205566406,0.00980532448738813,3,&quot;[beta|xi$b3]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=6084"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.75576489061855"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.347391153300287"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0333025145730019"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.24543385415673"/>
@@ -2062,6 +2176,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.75576489061855"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.347391153300287"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0333025145730019"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.24543385415673"/>
@@ -2084,12 +2199,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.750610351563" RT="3634.35730000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=6227" >
 			<PeptideHit score="1.00651699136154" sequence="QCFKNDIHK" charge="3" aa_before="K" aa_after="L" start="535" end="543" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="512.282958984375,0.00279126246459782,1,&quot;[alpha|ci$y4]&quot;|341.258209228516,0.00935712177306414,1,&quot;[beta|ci$b3]&quot;|838.437194824219,0.0199154913425446,2,&quot;[beta|xi$y3]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=6227"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.93074379801527"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.148648829026499"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0158427283195803"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.21028025454207"/>
@@ -2116,6 +2233,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.93074379801527"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.148648829026499"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0158427283195803"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.21028025454207"/>
@@ -2138,12 +2256,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.750610351563" RT="3634.35730000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=6227" >
 			<PeptideHit score="-0.1753629676923" sequence="ESKHKMSYSGR" charge="3" aa_before="K" aa_after="V" start="2402" end="2412" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="490.286437988281,0.0085016367956996,1,&quot;[beta|ci$y4]&quot;|939.498229980469,0.0315509662032127,2,&quot;[alpha|xi$b7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=6227"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.09873319075252"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.157039715095843"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0374216827053061"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.39567538407891"/>
@@ -2170,6 +2290,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.09873319075252"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.157039715095843"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0374216827053061"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.39567538407891"/>
@@ -2192,12 +2313,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="786.750610351563" RT="3634.35730000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=6227" >
 			<PeptideHit score="-0.477686744923071" sequence="ESKHKMSYSGR" charge="3" aa_before="K" aa_after="V" start="2402" end="2412" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="490.286437988281,0.0085016367956996,1,&quot;[beta|ci$y4]&quot;|939.498229980469,0.0315509662032127,2,&quot;[alpha|xi$b7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=6227"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.09873319075252"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.173720274676571"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0534723696253414"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.37285095911698"/>
@@ -2224,6 +2347,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.09873319075252"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.173720274676571"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0534723696253414"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.37285095911698"/>
@@ -2246,12 +2370,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="737.396301269531" RT="3884.88310000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=7023" >
 			<PeptideHit score="-0.123781108645199" sequence="RDVEKFLSK" charge="3" aa_before="R" aa_after="K" start="1628" end="1636" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1716.85266113281,0.00224044756032526,1,&quot;[alpha|xi$b5]&quot;|366.193542480469,0.00283293030224741,1,&quot;[beta|ci$y3]&quot;|1032.55456542969,0.00659590493887663,2,&quot;[alpha|xi$b8]&quot;|1032.55456542969,0.00659590493887663,2,&quot;[beta|xi$b7]&quot;|1041.54748535156,0.0110732950270176,2,&quot;[beta|xi$y7]&quot;|694.718017578125,0.0261782817542553,3,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=7023"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.83689414983031"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.140501751105963"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0481624579960849"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.19266111259219"/>
@@ -2278,6 +2404,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.83689414983031"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.140501751105963"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0481624579960849"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.19266111259219"/>
@@ -2300,12 +2427,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.122253417969" RT="4060.0914" spectrum_reference="controllerType=0 controllerNumber=1 scan=7599" >
 			<PeptideHit score="4.15682848728227" sequence="K(Xlink:DSS)WALYSFNDGEEHQKILLDDLMK" charge="4" aa_before="K" aa_after="K" start="1809" end="1831" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="848.454284667969,0.020764697343111,1,&quot;[alpha|ci$y7]&quot;|608.842041015625,0.0104672657325864,2,&quot;[alpha|ci$y10]&quot;|677.378112792969,0.0360988937318325,2,&quot;[alpha|ci$y11]&quot;|1222.61096191406,0.00125071045476943,2,&quot;[alpha|xi$b19]&quot;|583.807495117188,0.229168012738228,2,&quot;[alpha|xi$b8]&quot;|621.62646484375,0.014547523111105,3,&quot;[alpha|xi$b14]&quot;|701.591430664062,0.0885357037186623,4,&quot;[alpha|xi$b22]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=7599"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-50210.1318427365"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.179982349878325"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.103892899058568"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.97940311762737"/>
@@ -2328,12 +2457,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.122253417969" RT="4060.0914" spectrum_reference="controllerType=0 controllerNumber=1 scan=7599" >
 			<PeptideHit score="4.00861048088442" sequence="KWALYSFNDGEEHQK(Xlink:DSS)ILLDDLMK" charge="4" aa_before="K" aa_after="K" start="1809" end="1831" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="897.481872558594,0.0624301396310329,1,&quot;[alpha|ci$b7]&quot;|848.454284667969,0.020764697343111,1,&quot;[alpha|ci$y7]&quot;|853.381286621094,0.0383132509887218,2,&quot;[alpha|ci$b14]&quot;|1222.61096191406,0.00125071045476943,2,&quot;[alpha|xi$b19]&quot;|589.97998046875,0.0246546603739262,3,&quot;[alpha|xi$y13]&quot;|701.591430664062,0.0885357037186623,4,&quot;[alpha|xi$b22]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=7599"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="14"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-50210.1318427365"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334854638649509"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.10311392585885"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.51339289589193"/>
@@ -2356,12 +2487,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.122253417969" RT="4060.0914" spectrum_reference="controllerType=0 controllerNumber=1 scan=7599" >
 			<PeptideHit score="3.20245697178605" sequence="WALYSFNDGEEHQKILLDDLMK(Xlink:DSS)K" charge="4" aa_before="K" aa_after="A" start="1810" end="1832" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="853.381286621094,0.0383132509887218,2,&quot;[alpha|ci$b14]&quot;|1138.55786132812,0.00868122465908527,2,&quot;[alpha|ci$b19]&quot;|819.465026855469,0.0136715779080987,2,&quot;[alpha|xi$y12]&quot;|701.591430664062,0.0885357037186623,4,&quot;[alpha|xi$b22]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=7599"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="21"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-50210.1318427363"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.231152371999909"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0943976258734896"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.83524149677736"/>
@@ -2384,12 +2517,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.122253417969" RT="4060.0914" spectrum_reference="controllerType=0 controllerNumber=1 scan=7599" >
 			<PeptideHit score="1.54036607164837" sequence="GQAEVDAMKPWLFNIK" charge="4" aa_before="K" aa_after="A" start="1423" end="1438" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="700.310729980469,0.1652452647686,1,&quot;[beta|ci$y6]&quot;|1233.13928222656,0.00531008373945951,2,&quot;[alpha|xi$y11]&quot;|1446.7099609375,0.00894530024379492,2,&quot;[alpha|xi$y15]&quot;|1140.59204101562,0.00466970540583134,2,&quot;[alpha|xi$y9]&quot;|644.822875976562,0.0729642882943153,4,&quot;[alpha|xi$b13]&quot;|701.591430664062,0.0885357037186623,4,&quot;[alpha|xi$b15]&quot;|641.83642578125,0.0171503257006407,4,&quot;[alpha|xi$y12]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=7599"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="8"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.64504118919742"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.274748970712516"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0117590834579883"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36120525400929"/>
@@ -2416,6 +2551,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.64504118919742"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.274748970712516"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0117590834579883"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36120525400929"/>
@@ -2438,12 +2574,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="876.454895019531" RT="4140.7221" spectrum_reference="controllerType=0 controllerNumber=1 scan=7870" >
 			<PeptideHit score="-0.231392236291209" sequence="MSYSGRVKTLCLQK" charge="3" aa_before="K" aa_after="N" start="2407" end="2420" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="683.29736328125,0.0115266498178244,1,&quot;[alpha|ci$b6]&quot;|781.351806640625,0.0202871151268482,1,&quot;[alpha|ci$b7]&quot;|962.496215820312,0.0934150218963623,2,&quot;[alpha|xi$b8]&quot;|1080.583984375,0.0225724615156651,2,&quot;[alpha|xi$y10]&quot;|1123.59521484375,0.0346657708287239,2,&quot;[alpha|xi$y11]&quot;|924.016418457031,0.074960820376873,2,&quot;[alpha|xi$y7]&quot;|1162.09729003906,0.0269267894327641,2,&quot;[beta|xi$b5]&quot;|720.386779785156,0.00887355674058199,3,&quot;[alpha|xi$y10]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=7870"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.23045020219282"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.205223443451157"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0835290231168088"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.51728970148157"/>
@@ -2470,6 +2608,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.23045020219282"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.205223443451157"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0835290231168088"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.51728970148157"/>
@@ -2492,12 +2631,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="737.826477050781" RT="4302.63220000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=8399" >
 			<PeptideHit score="0.931242800412772" sequence="MASGSCQGCEEDEETLK" charge="4" aa_before="[" aa_after="K" start="0" end="16" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="740.379455566406,0.0271278396248817,2,&quot;[alpha|xi$b4]&quot;|978.91015625,0.0131225138902664,2,&quot;[alpha|xi$b9]&quot;|907.748413085938,0.0227861404418945,3,&quot;[beta|xi$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=8399"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.03501732756301"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.349010441687718"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0078121872914508"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.992714381621201"/>
@@ -2524,6 +2665,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.03501732756301"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.349010441687718"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0078121872914508"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.992714381621201"/>
@@ -2546,12 +2688,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.699645996094" RT="4427.87590000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=8810" >
 			<PeptideHit score="2.61928127180451" sequence="LPDPVK(Xlink:DSS-NH2)EYGCAPWPMVEK" charge="3" aa_before="K" aa_after="L" start="2091" end="2108" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="444.230773925781,0.00141199061181396,2,&quot;[alpha|ci$y7]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=8810"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-65412.9495368154"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.318352734096409"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0808155206515461"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.04179783857762"/>
@@ -2574,12 +2718,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="876.442626953125" RT="4452.27109999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=8890" >
 			<PeptideHit score="1.034065736026" sequence="EDTEFHHKLNMVKK" charge="3" aa_before="R" aa_after="Q" start="521" end="534" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1482.68005371094,0.00240905839018524,1,&quot;[alpha|ci$b12]&quot;|1024.43481445312,0.0161964874714613,1,&quot;[alpha|ci$b8]&quot;|761.738830566406,0.0145963793620467,3,&quot;[alpha|xi$y11]&quot;|795.091369628906,0.0123091302812099,3,&quot;[alpha|xi$y12]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=8890"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="12"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.0241086845338956"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.208597913528348"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00785568714236135"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.29925008836444"/>
@@ -2606,6 +2752,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.0241086845338956"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.208597913528348"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00785568714236135"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.29925008836444"/>
@@ -2628,12 +2775,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.165161132813" RT="4618.08310000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=9435" >
 			<PeptideHit score="5.35248440260929" sequence="KNVPIEFPVIDR" charge="4" aa_before="R" aa_after="K" start="1538" end="1549" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="599.355163574219,0.198931530117989,1,&quot;[alpha|ci$y5]&quot;|876.466979980469,0.0660846382379532,1,&quot;[alpha|ci$y7]&quot;|989.551025390625,0.0213928688317537,1,&quot;[alpha|ci$y8]&quot;|914.527282714844,0.0311792530119419,1,&quot;[beta|ci$y7]&quot;|984.05322265625,0.00223412760533392,2,&quot;[beta|xi$b4]&quot;|1193.67272949219,0.00443244306370616,2,&quot;[beta|xi$b8]&quot;|669.8896484375,0.00666172103956342,4,&quot;[beta|xi$y9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9435"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.176655370276363"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.310349345050731"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.150843856794748"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.45252493336095"/>
@@ -2660,6 +2809,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.176655370276363"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.310349345050731"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.150843856794748"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.45252493336095"/>
@@ -2682,12 +2832,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.72900390625" RT="4706.7912" spectrum_reference="controllerType=0 controllerNumber=1 scan=9705" >
 			<PeptideHit score="2.45958308342244" sequence="IFSFSNDFTIQK(Xlink:DSS-NH2)LIETR" charge="3" aa_before="K" aa_after="T" start="2322" end="2338" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="496.262512207031,0.0220275055617094,1,&quot;[alpha|ci$b4]&quot;|816.951599121094,0.0731224715709686,2,&quot;[alpha|xi$y12]&quot;|629.380187988281,0.0119189685210586,2,&quot;[alpha|xi$y9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9705"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="11"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-65408.5741635502"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.274125933362739"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0579053622391685"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.76069700524752"/>
@@ -2710,12 +2862,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="876.445373535156" RT="4800.8751" spectrum_reference="controllerType=0 controllerNumber=1 scan=9986" >
 			<PeptideHit score="1.61932898849784" sequence="HTLEKMTDSVTCLYCNSFSKQSK" charge="4" aa_before="R" aa_after="Q" start="2235" end="2257" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1028.4892578125,0.0178484283387661,1,&quot;[alpha|ci$y9]&quot;|1156.60498046875,0.0636651068925858,2,&quot;[alpha|xi$b13]&quot;|1683.83215332031,0.00282517494633794,2,&quot;[alpha|xi$y22]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9986"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.329709618133968"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0264826484533675"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.702585089128707"/>
@@ -2742,6 +2896,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.329709618133968"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0264826484533675"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.702585089128707"/>
@@ -2764,12 +2919,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="876.445373535156" RT="4800.8751" spectrum_reference="controllerType=0 controllerNumber=1 scan=9986" >
 			<PeptideHit score="1.43351371950107" sequence="VEPSWLGPLFPDKTSNLR" charge="4" aa_before="K" aa_after="K" start="812" end="829" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1126.60803222656,0.00965909473598003,1,&quot;[alpha|ci$b10]&quot;|1127.57922363281,0.0200793091207743,1,&quot;[alpha|ci$b10]&quot;|403.252319335938,0.00331570347771049,1,&quot;[alpha|ci$y3]&quot;|965.454650878906,0.02400285564363,1,&quot;[beta|ci$y8]&quot;|1319.64978027344,0.0121979378163815,2,&quot;[alpha|xi$y10]&quot;|1083.56982421875,0.0228843167424202,2,&quot;[alpha|xi$y6]&quot;|931.457885742188,0.0702324286103249,3,&quot;[alpha|xi$y12]&quot;|1091.20251464844,0.0399146936833858,3,&quot;[beta|xi$b9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9986"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="12"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.44883273717163"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.330156577796677"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0107641509792043"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.86461152597238"/>
@@ -2796,6 +2953,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.44883273717163"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.330156577796677"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0107641509792043"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.86461152597238"/>
@@ -2818,12 +2976,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="876.445373535156" RT="4800.8751" spectrum_reference="controllerType=0 controllerNumber=1 scan=9986" >
 			<PeptideHit score="0.877197816095464" sequence="HTLEKMTDSVTCLYCNSFSKQSK" charge="4" aa_before="R" aa_after="Q" start="2235" end="2257" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1143.55651855469,0.00228088186122477,1,&quot;[alpha|ci$b10]&quot;|1043.46301269531,0.0130588971078396,1,&quot;[alpha|ci$b9]&quot;|1683.83215332031,0.00282517494633794,2,&quot;[alpha|xi$y22]&quot;|754.399597167969,0.00919033773243427,3,&quot;[alpha|xi$y12]&quot;|787.75390625,0.01304498501122,3,&quot;[alpha|xi$y13]&quot;|637.587463378906,0.00882522016763687,4,&quot;[alpha|xi$y15]&quot;|471.257354736328,0.00669420557096601,4,&quot;[alpha|xi$y9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9986"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="19"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.305468099790881"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0104949482637371"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.30962430769166"/>
@@ -2850,6 +3010,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.305468099790881"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0104949482637371"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.30962430769166"/>
@@ -2872,12 +3033,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="876.445373535156" RT="4800.8751" spectrum_reference="controllerType=0 controllerNumber=1 scan=9986" >
 			<PeptideHit score="0.730752648512963" sequence="VEPSWLGPLFPDKTSNLR" charge="4" aa_before="K" aa_after="K" start="812" end="829" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1126.60803222656,0.00965909473598003,1,&quot;[alpha|ci$b10]&quot;|1127.57922363281,0.0200793091207743,1,&quot;[alpha|ci$b10]&quot;|403.252319335938,0.00331570347771049,1,&quot;[alpha|ci$y3]&quot;|1319.64978027344,0.0121979378163815,2,&quot;[alpha|xi$y10]&quot;|1083.56982421875,0.0228843167424202,2,&quot;[alpha|xi$y6]&quot;|931.457885742188,0.0702324286103249,3,&quot;[alpha|xi$y12]&quot;|1091.20251464844,0.0399146936833858,3,&quot;[beta|xi$b9]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=9986"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="12"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.44883273717163"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.319582443642515"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0362148941377591"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.09419743178112"/>
@@ -2904,6 +3067,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.44883273717163"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.319582443642515"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0362148941377591"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.09419743178112"/>
@@ -2926,12 +3090,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="738.703552246094" RT="4952.02870000002" spectrum_reference="controllerType=0 controllerNumber=1 scan=10425" >
 			<PeptideHit score="1.61694712794807" sequence="LPDPVK(Xlink:DSS-NH2)EYGCAPWPMVEK" charge="3" aa_before="K" aa_after="L" start="2091" end="2108" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="604.327880859375,0.00307170790620148,1,&quot;[alpha|ci$y5]&quot;|479.240478515625,0.00211193901486695,2,&quot;[alpha|ci$y8]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=10425"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-65408.0074325574"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.306922885908326"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0278273512280933"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.41504305777641"/>
@@ -2954,12 +3120,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="877.457275390625" RT="4998.3789" spectrum_reference="controllerType=0 controllerNumber=1 scan=10558" >
 			<PeptideHit score="0.0462967541456454" sequence="CFAKVAMDDYLK" charge="3" aa_before="K" aa_after="N" start="697" end="708" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="856.384765625,0.00797753594815731,1,&quot;[alpha|ci$y7]&quot;|478.243041992188,0.011558591388166,2,&quot;[alpha|ci$y8]&quot;|843.452270507812,0.0772473067045212,3,&quot;[alpha|xi$y11]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=10558"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.89595625823609"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.17518545498017"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0374062258192429"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.97101568816126"/>
@@ -2986,6 +3154,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.89595625823609"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.17518545498017"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0374062258192429"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.97101568816126"/>
@@ -3008,12 +3177,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="737.82861328125" RT="5274.01189999998" spectrum_reference="controllerType=0 controllerNumber=1 scan=11395" >
 			<PeptideHit score="1.40870950116982" sequence="MASGSCQGCEEDEETLK" charge="4" aa_before="[" aa_after="K" start="0" end="16" protein_refs="PH_0" >
+				<UserParam type="string" name="fragment_annotation" value="1281.51623535156,0.00622798874974251,1,&quot;[alpha|ci$y11]&quot;|1264.63305664062,0.00402253307402134,1,&quot;[alpha|xi$b1]&quot;|1345.54357910156,0.00303645385429263,2,&quot;[alpha|xi$b15]&quot;|632.311950683594,0.0248882826417685,2,&quot;[alpha|xi$b1]&quot;|783.386108398438,0.00447252625599504,2,&quot;[alpha|xi$b5]&quot;|713.3134765625,0.0101240025833249,4,&quot;[beta|xi$y8]&quot;"/>
 				<UserParam type="string" name="spectrum_reference" value="controllerType=0 controllerNumber=1 scan=11395"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.93032521185348"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334543981046149"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0099838601364481"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.4415995970594"/>
@@ -3040,6 +3211,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.93032521185348"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334543981046149"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0099838601364481"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.4415995970594"/>
