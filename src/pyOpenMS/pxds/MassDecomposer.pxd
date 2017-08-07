@@ -6,6 +6,7 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/MassDecomposer.h>" nam
     cdef cppclass MassDecomposer[ValueType,DecompositionValueType]:
         # wrap-ignore
         # ABSTRACT class
+        # no-pxd-import
         MassDecomposer(MassDecomposer) nogil except + #wrap-ignore
 
         bool exist(ValueType mass) nogil except +

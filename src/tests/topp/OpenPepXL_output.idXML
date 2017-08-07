@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXL_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
-				<UserParam type="string" name="input_consensusXML" value="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXL_input.consensusXML"/>
-				<UserParam type="string" name="input_mzML" value="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXL_input.mzML"/>
+	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.2" peak_mass_tolerance_ppm="false" >
+				<UserParam type="string" name="input_consensusXML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
+				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
 				<UserParam type="int" name="decoy_prefix" value="0"/>
 				<UserParam type="string" name="decoy_string" value="decoy"/>
@@ -19,7 +19,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-07-27T17:26:24" search_engine="OpenXQuest" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-08-03T12:44:54" search_engine="OpenXQuest" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -46,6 +46,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.162473242929906"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.656090707433842"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.811493072604136"/>
@@ -73,6 +74,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.162473242929906"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.656090707433842"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.811493072604136"/>
@@ -107,6 +109,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.274384184482009"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.687855890993178"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.32056596920873"/>
@@ -134,6 +137,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.274384184482009"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.687855890993178"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.32056596920873"/>
@@ -168,6 +172,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.255812133172784"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.47668680593951"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.649742753110708"/>
@@ -195,6 +200,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.255812133172784"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.47668680593951"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.649742753110708"/>
@@ -229,6 +235,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.192280315288488"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.449638872419585"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.03898893171825"/>
@@ -256,6 +263,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.73411703302438"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.192280315288488"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.449638872419585"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.03898893171825"/>
@@ -290,6 +298,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2099.09545898438"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="732.436096191406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=48"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="3.68496975184722"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0530856084417849"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0746142296755867"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.0668016022404448"/>
@@ -317,6 +326,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2099.09545898438"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="732.436096191406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=48"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="3.68496975184722"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0530856084417849"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0746142296755867"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.0668016022404448"/>
@@ -349,6 +359,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2099.09545898438"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="732.436096191406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=48"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-66665.7792280483"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.000333623265276995"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0259976562688046"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.000228211390356841"/>
@@ -383,6 +394,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.53107322829242"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.399394053053609"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.513182739174348"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.695707754294939"/>
@@ -410,6 +422,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.53107322829242"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.399394053053609"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.513182739174348"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.695707754294939"/>
@@ -444,6 +457,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.53107322829242"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.461911974784838"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.407998596816918"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.39268746822049"/>
@@ -471,6 +485,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.53107322829242"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.461911974784838"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.407998596816918"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.39268746822049"/>
@@ -505,6 +520,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.44642947666162"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.554227564017473"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.61939514013582"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.31951038704145"/>
@@ -532,6 +548,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.44642947666162"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.554227564017473"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.61939514013582"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.31951038704145"/>
@@ -566,6 +583,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.44642947666162"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.463871564656573"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.579953892500178"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.58684476206822"/>
@@ -593,6 +611,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.44642947666162"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.463871564656573"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.579953892500178"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.58684476206822"/>
@@ -625,6 +644,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2110.98901367188"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="471.971282958984"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=77"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-100055.236818812"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.237457299396362"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.529048564861274"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.83711027456976"/>
@@ -657,6 +677,7 @@
 				<UserParam type="float" name="spec_heavy_RT" value="2221.23388666232"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="660.072448730469"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=219"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-73470.0271881252"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.389891893192958"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.462351176037813"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.91795419754295"/>

@@ -844,7 +844,7 @@ namespace OpenMS
     // Return if no valid peak layer attached
     if (current_layer.getPeakData()->size() == 0 || current_layer.type != LayerData::DT_PEAK) { return; }
 
-    MSSpectrum<> & spectrum = (*current_layer.getPeakData())[spectrum_index];
+    MSSpectrum & spectrum = (*current_layer.getPeakData())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
 
     removeTemporaryAnnotations_(spectrum_index);

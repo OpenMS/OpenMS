@@ -9,6 +9,8 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/DeNovoPostScoring.h>" namespace "OpenM
     
     cdef cppclass DeNovoPostScoring "OpenMS::DeNovoPostScoring":
         # wrap-ignore
+        # ABSTRACT CLASS
+        # no-pxd-import
         DeNovoPostScoring() nogil except +
         DeNovoPostScoring(DeNovoPostScoring) nogil except +
         void apply(libcpp_vector[ PeptideIdentification ] &identifications, MSExperiment &exp) nogil except +

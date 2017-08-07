@@ -76,7 +76,7 @@ namespace OpenMS
     return max_intensity_it - spectrum1.begin();
   }
 
-  void SiriusMSFile::store(const PeakMap &spectra, OpenMS::String & msfile)
+  void SiriusMSFile::store(const PeakMap &spectra, const OpenMS::String & msfile)
   {
 
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
@@ -95,15 +95,12 @@ namespace OpenMS
 
     // loop over all spectra in file and write data to ofstream
     ofstream os;
-    String unique_name =  String(File::getUniqueName()).toQString(); // generate unique name once
-    String tmp_filename = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + unique_name.toQString() + ".ms";
-    msfile = tmp_filename;
 
     // create temporary input file (.ms)
-    os.open(tmp_filename.c_str());
+    os.open(msfile.c_str());
     if (!os)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msfile);
     }
     os.precision(12);
 
@@ -225,31 +222,53 @@ namespace OpenMS
         os << ">charge " << int_charge << "\n\n";
 
         // Use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
-        if (isotopes.empty() == false) //if ms1 spectrum was present
+        Size no_isotopes = isotopes.size();
+
+        if ( no_isotopes > 0) //if ms1 spectrum was present
         {
-          os << ">ms1" << "\n";
+          os << ">ms1" << endl;
           //m/z and intensity have to be higher than 1e-10
           //the intensity of the peaks of the isotope pattern have to be smaller than the one before
-          if (isotopes[0].getMZ() > 1e-10 && isotopes[0].getIntensity() > 1e-10)
+
+          double threshold = 1e-10;
+
+          double first_mz = isotopes[0].getMZ();
+          double first_intensity = isotopes[0].getIntensity();
+
+          if (first_mz > threshold && first_intensity > threshold)
+          {
+            os << first_mz << " " << first_intensity << endl;
+          }
+
+          if (no_isotopes > 1)
+          {
+            double second_mz = isotopes[1].getMZ();
+            double second_intensity = isotopes[1].getIntensity();
+
+            if (second_mz > threshold && second_intensity > threshold && second_intensity < first_intensity && first_intensity > threshold)
             {
-              os << isotopes[0].getMZ() << " " << isotopes[0].getIntensity() << "\n";
+              os << second_mz << " " << second_intensity << endl;
             }
-          if (isotopes[1].getMZ() > 1e-10 && isotopes[1].getIntensity() > 1e-10 && isotopes[1].getIntensity() < isotopes[0].getIntensity() && isotopes[0].getIntensity() > 1e-10)
+
+            if (no_isotopes > 2)
             {
-              os << isotopes[1].getMZ() << " " << isotopes[1].getIntensity() << "\n";
+              double third_mz = isotopes[2].getMZ();
+              double third_intensity = isotopes[2].getIntensity();
+
+              if (third_mz > threshold && third_intensity > threshold && third_intensity < second_intensity && second_intensity > threshold)
+              {
+                os << third_mz << " " << third_intensity << endl;
+              }
             }
-          if (isotopes[2].getMZ() > 1e-10 && isotopes[2].getIntensity() > 1e-10 && isotopes[2].getIntensity() < isotopes[1].getIntensity() && isotopes[1].getIntensity() > 1e-10)
-            {
-              os << isotopes[2].getMZ() << " " << isotopes[2].getIntensity() << "\n";
-            }
-          os << "\n";
+          }
+          os << endl;
         }
         else
         {
           if (precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
           {
             os << ">ms1" << "\n"
-               << precursor_mz << " " << precursor_int << "\n\n";
+                << precursor_mz << " " << precursor_int << "\n\n";
           }
         }
 
@@ -264,7 +283,7 @@ namespace OpenMS
         }
 
         //single spectrum peaks
-        for (Size i = 0; i != spectrum.size(); ++i)
+        for (Size i = 0; i < spectrum.size(); ++i)
         {
           const Peak1D& peak = spectrum[i];
           double mz = peak.getMZ();
@@ -276,10 +295,9 @@ namespace OpenMS
             os << mz << " " << intensity << "\n";
           }
         }
-        os << "\n";
+        os << endl;
       }
     }
-
     os.close();
 
     LOG_WARN << "No MS1 spectrum for this precursor. Occurred " << count_no_ms1 << " times." << endl;

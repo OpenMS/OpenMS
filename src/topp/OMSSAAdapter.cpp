@@ -201,8 +201,9 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance (Default: Dalton)", false);
-    registerFlag_("precursor_mass_tolerance_unit_ppm", "If this flag is set, ppm is used as precursor mass tolerance unit");
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance", false);
+    registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
+    setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error in Dalton", false);
     registerInputFile_("database", "<psq or fasta>", "", "NCBI formatted FASTA files. The .psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end in '.psq' (e.g., SwissProt.fasta) the psq suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("psq,fasta"));
@@ -501,11 +502,11 @@ protected:
     parameters << "-to" << String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
     parameters << "-hs" << String(getIntOption_("hs"));
     parameters << "-te" << String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
-    if (getFlag_("precursor_mass_tolerance_unit_ppm"))
+    if (getStringOption_("precursor_error_units") == "ppm")
     {
       if (omssa_version_i < OMSSAVersion(2, 1, 8))
       {
-        writeLog_("This OMSSA version (" + omssa_version + ") does not support the 'precursor_mass_tolerance_unit_ppm' flag."
+        writeLog_("This OMSSA version (" + omssa_version + ") does not support ppm tolerances."
                   + " Please disable it and set the precursor tolerance in Da."
                   + " Required version is 2.1.8 and above.\n");
         return ILLEGAL_PARAMETERS;
@@ -1023,7 +1024,7 @@ protected:
     search_parameters.missed_cleavages = getIntOption_("v");
     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-    search_parameters.precursor_mass_tolerance_ppm = getFlag_("precursor_mass_tolerance_unit_ppm");
+    search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm";
     search_parameters.fragment_mass_tolerance_ppm = false; // OMSSA doesn't support ppm fragment mass tolerance
     
     protein_identification.setSearchParameters(search_parameters);

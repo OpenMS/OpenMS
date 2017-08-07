@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_17876486934271562208"
-	creationDate="2017-07-12T18:54:03">
+	creationDate="2017-08-03T12:44:54">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -191,7 +191,7 @@
 	<PeptideEvidence id="PEV_8195437834883133454" peptide_ref="PEP_7061025990090747374" dBSequence_ref="PROT_13440783915218733453" post="Y" pre="R" start="67" end="76" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-07-12T18:54:03">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-08-03T12:44:54">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -204,8 +204,8 @@
 		<AdditionalSearchParams>
 
 			<cvParam accession="MS:1002494" cvRef="PSI-MS" name="cross-linking search"/>
-			<userParam name="input_consensusXML" unitName="xsd:string" value="C:/Tools/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
-			<userParam name="input_mzML" unitName="xsd:string" value="C:/Tools/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
+			<userParam name="input_consensusXML" unitName="xsd:string" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
+			<userParam name="input_mzML" unitName="xsd:string" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
 			<userParam name="input_decoys" unitName="xsd:string" value=""/>
 			<userParam name="decoy_prefix" unitName="xsd:integer" value="0"/>
 			<userParam name="decoy_string" unitName="xsd:string" value="decoy"/>
@@ -243,12 +243,12 @@
 </AnalysisProtocolCollection>
 <DataCollection>
 	<Inputs>
-		<SearchDatabase location="C:/Tools/OpenMS/src/tests/topp/OpenPepXL_input.fasta" id="SDB_3332699010107892018">
+		<SearchDatabase location="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta" id="SDB_3332699010107892018">
 			<FileFormat>
 				<cvParam accession="MS:1001348" cvRef="PSI-MS" name="FASTA format"/>
 			</FileFormat>
 			<DatabaseName>
-				<userParam name="C:/Tools/OpenMS/src/tests/topp/OpenPepXL_input.fasta"/>
+				<userParam name="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta"/>
 			</DatabaseName>
 			<cvParam accession="MS:1001029" cvRef="PSI-MS" name="number of sequences searched" value="329"/>
 		</SearchDatabase>
@@ -317,6 +317,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.92258863151073"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.660300024858228"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-100055.236818812"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="6.00933745221316"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="4.94670136016877"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.7101139810948"/>
@@ -371,6 +372,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.92258863151073"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.660300024858228"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-100055.236818812"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="6.00933745221316"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="4.94670136016877"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.7101139810948"/>
@@ -391,14 +393,14 @@
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_18390135059454481268"/>
 					<Fragmentation>
 						<IonType charge="1" index="3 4 5 6 2 3 4">
-							<FragmentArray measure_ref="Measure_mz" values="329.274536132813 416.203674316406 503.325561523438 574.280883789063 276.242279052734 363.278503417969 464.295043945313"/>
+							<FragmentArray measure_ref="Measure_mz" values="329.274536132812 416.203674316406 503.325561523438 574.280883789062 276.242279052734 363.278503417969 464.295043945312"/>
 							<FragmentArray measure_ref="Measure_int" values="0.093634158372879 0.127343788743019 0.366594970226288 0.684320747852325 0.054167415946722 0.147204279899597 0.436179101467133"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 						<IonType charge="2" index="4">
-							<FragmentArray measure_ref="Measure_mz" values="794.655395507813"/>
+							<FragmentArray measure_ref="Measure_mz" values="794.655395507812"/>
 							<FragmentArray measure_ref="Measure_int" values="0.20633727312088"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
@@ -420,6 +422,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.07097506150603"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.656644298044688"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.3436275609857"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="20.633228936281"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
@@ -438,14 +441,14 @@
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_18390135059454481268"/>
 					<Fragmentation>
 						<IonType charge="1" index="3 4 5 6 2 3 4">
-							<FragmentArray measure_ref="Measure_mz" values="329.274536132813 416.203674316406 503.325561523438 574.280883789063 276.242279052734 363.278503417969 464.295043945313"/>
+							<FragmentArray measure_ref="Measure_mz" values="329.274536132812 416.203674316406 503.325561523438 574.280883789062 276.242279052734 363.278503417969 464.295043945312"/>
 							<FragmentArray measure_ref="Measure_int" values="0.093634158372879 0.127343788743019 0.366594970226288 0.684320747852325 0.054167415946722 0.147204279899597 0.436179101467133"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 						<IonType charge="2" index="4">
-							<FragmentArray measure_ref="Measure_mz" values="794.655395507813"/>
+							<FragmentArray measure_ref="Measure_mz" values="794.655395507812"/>
 							<FragmentArray measure_ref="Measure_int" values="0.20633727312088"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
@@ -467,6 +470,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.07097506150603"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.656644298044688"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.3436275609857"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="20.633228936281"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
@@ -491,6 +495,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.07097506150603"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.656644298044688"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.3436275609857"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="20.633228936281"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
@@ -515,6 +520,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.07097506150603"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.656644298044688"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.3436275609857"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="20.633228936281"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
@@ -542,14 +548,14 @@
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="1" index="4 5 6 3 4">
-							<FragmentArray measure_ref="Measure_mz" values="416.203674316406 503.325561523438 574.280883789063 363.278503417969 464.295043945313"/>
+							<FragmentArray measure_ref="Measure_mz" values="416.203674316406 503.325561523438 574.280883789062 363.278503417969 464.295043945312"/>
 							<FragmentArray measure_ref="Measure_int" values="0.127343788743019 0.366594970226288 0.684320747852325 0.147204279899597 0.436179101467133"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 						<IonType charge="2" index="4">
-							<FragmentArray measure_ref="Measure_mz" values="794.655395507813"/>
+							<FragmentArray measure_ref="Measure_mz" values="794.655395507812"/>
 							<FragmentArray measure_ref="Measure_int" values="0.20633727312088"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
@@ -578,6 +584,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.13951131701469"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.768526301879695"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="9.92801567205764"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="15.7458583329561"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
@@ -603,14 +610,14 @@
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="1" index="4 5 6 3 4">
-							<FragmentArray measure_ref="Measure_mz" values="416.203674316406 503.325561523438 574.280883789063 363.278503417969 464.295043945313"/>
+							<FragmentArray measure_ref="Measure_mz" values="416.203674316406 503.325561523438 574.280883789062 363.278503417969 464.295043945312"/>
 							<FragmentArray measure_ref="Measure_int" values="0.127343788743019 0.366594970226288 0.684320747852325 0.147204279899597 0.436179101467133"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci"/>
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 						<IonType charge="2" index="4">
-							<FragmentArray measure_ref="Measure_mz" values="794.655395507813"/>
+							<FragmentArray measure_ref="Measure_mz" values="794.655395507812"/>
 							<FragmentArray measure_ref="Measure_int" values="0.20633727312088"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi"/>
@@ -639,6 +646,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.13951131701469"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.768526301879695"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="9.92801567205764"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="15.7458583329561"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
@@ -663,6 +671,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.13951131701469"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.768526301879695"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="9.92801567205764"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="15.7458583329561"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
@@ -687,6 +696,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.13951131701469"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.768526301879695"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="9.92801567205764"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="15.7458583329561"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="12.866017170325"/>
@@ -714,7 +724,7 @@
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="1" index="3 4 5 6 2 3 4">
-							<FragmentArray measure_ref="Measure_mz" values="329.206848144531 416.272338867188 503.17431640625 574.307067871094 276.103637695313 363.125854492188 464.2607421875"/>
+							<FragmentArray measure_ref="Measure_mz" values="329.206848144531 416.272338867188 503.17431640625 574.307067871094 276.103637695312 363.125854492188 464.2607421875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.142659738659859 0.185629785060883 0.368112057447433 0.279668509960175 0.0549341179430485 0.228076443076134 0.639200270175934"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
@@ -736,6 +746,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.32643697783351"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405495636964018"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.0786685085882"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.06505318510127"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.24307376521432"/>
@@ -761,7 +772,7 @@
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="1" index="3 4 5 6 2 3 4">
-							<FragmentArray measure_ref="Measure_mz" values="329.206848144531 416.272338867188 503.17431640625 574.307067871094 276.103637695313 363.125854492188 464.2607421875"/>
+							<FragmentArray measure_ref="Measure_mz" values="329.206848144531 416.272338867188 503.17431640625 574.307067871094 276.103637695312 363.125854492188 464.2607421875"/>
 							<FragmentArray measure_ref="Measure_int" values="0.142659738659859 0.185629785060883 0.368112057447433 0.279668509960175 0.0549341179430485 0.228076443076134 0.639200270175934"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
@@ -783,6 +794,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.32643697783351"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405495636964018"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.0786685085882"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.06505318510127"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.24307376521432"/>
@@ -807,6 +819,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.32643697783351"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405495636964018"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.0786685085882"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.06505318510127"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.24307376521432"/>
@@ -831,6 +844,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.32643697783351"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405495636964018"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.0786685085882"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.06505318510127"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.24307376521432"/>
@@ -880,6 +894,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.0623814240098"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.351837083235437"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="10.2123004542122"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.1115355865716"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.81047549051542"/>
@@ -927,6 +942,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.0623814240098"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.351837083235437"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="10.2123004542122"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.1115355865716"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.81047549051542"/>
@@ -951,6 +967,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.0623814240098"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.351837083235437"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="10.2123004542122"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.1115355865716"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.81047549051542"/>
@@ -975,6 +992,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.0623814240098"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.351837083235437"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="10.2123004542122"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.1115355865716"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.81047549051542"/>
@@ -1009,14 +1027,14 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 						<IonType charge="2" index="13 14">
-							<FragmentArray measure_ref="Measure_mz" values="839.981567382813 896.316162109375"/>
+							<FragmentArray measure_ref="Measure_mz" values="839.981567382812 896.316162109375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.125570505857468 0.0581442341208458"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="2" index="6 7 10 11 12">
-							<FragmentArray measure_ref="Measure_mz" values="387.815673828125 444.946411132813 692.068786621094 748.578674316406 812.867004394531"/>
+							<FragmentArray measure_ref="Measure_mz" values="387.815673828125 444.946411132812 692.068786621094 748.578674316406 812.867004394531"/>
 							<FragmentArray measure_ref="Measure_int" values="0.215708956122398 0.119465403258801 1 0.292433172464371 0.152033895254135"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci xi xi xi"/>
@@ -1031,6 +1049,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="3.03074353560805"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.672367841921044"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-73470.0271881252"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.62461140376791"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="4.14362514382879"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="17.1160865924937"/>
@@ -1063,14 +1082,14 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 						<IonType charge="2" index="13 14">
-							<FragmentArray measure_ref="Measure_mz" values="839.981567382813 896.316162109375"/>
+							<FragmentArray measure_ref="Measure_mz" values="839.981567382812 896.316162109375"/>
 							<FragmentArray measure_ref="Measure_int" values="0.125570505857468 0.0581442341208458"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="xi xi"/>
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="2" index="6 7 10 11 12">
-							<FragmentArray measure_ref="Measure_mz" values="387.815673828125 444.946411132813 692.068786621094 748.578674316406 812.867004394531"/>
+							<FragmentArray measure_ref="Measure_mz" values="387.815673828125 444.946411132812 692.068786621094 748.578674316406 812.867004394531"/>
 							<FragmentArray measure_ref="Measure_int" values="0.215708956122398 0.119465403258801 1 0.292433172464371 0.152033895254135"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha alpha"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci xi xi xi"/>
@@ -1085,6 +1104,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="3.03074353560805"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.672367841921044"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-73470.0271881252"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.62461140376791"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="4.14362514382879"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="17.1160865924937"/>
@@ -1105,7 +1125,7 @@
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_4021463513649428920"/>
 					<Fragmentation>
 						<IonType charge="1" index="4 5 6 4">
-							<FragmentArray measure_ref="Measure_mz" values="416.172302246094 503.233581542969 574.276184082031 464.272094726563"/>
+							<FragmentArray measure_ref="Measure_mz" values="416.172302246094 503.233581542969 574.276184082031 464.272094726562"/>
 							<FragmentArray measure_ref="Measure_int" values="0.113435924053192 0.284903049468994 0.394180774688721 0.299913018941879"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci"/>
@@ -1141,6 +1161,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.36105836182833"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.676504666279161"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.7893135280886"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.7888973339347"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="8.64960496953687"/>
@@ -1159,7 +1180,7 @@
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_4021463513649428920"/>
 					<Fragmentation>
 						<IonType charge="1" index="4 5 6 4">
-							<FragmentArray measure_ref="Measure_mz" values="416.172302246094 503.233581542969 574.276184082031 464.272094726563"/>
+							<FragmentArray measure_ref="Measure_mz" values="416.172302246094 503.233581542969 574.276184082031 464.272094726562"/>
 							<FragmentArray measure_ref="Measure_int" values="0.113435924053192 0.284903049468994 0.394180774688721 0.299913018941879"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci"/>
@@ -1195,6 +1216,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.36105836182833"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.676504666279161"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.7893135280886"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.7888973339347"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="8.64960496953687"/>
@@ -1219,6 +1241,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.36105836182833"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.676504666279161"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.7893135280886"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.7888973339347"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="8.64960496953687"/>
@@ -1243,6 +1266,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.36105836182833"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.676504666279161"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.7893135280886"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.7888973339347"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="8.64960496953687"/>
@@ -1263,7 +1287,7 @@
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_5495827884756377090"/>
 					<Fragmentation>
 						<IonType charge="1" index="4 5 6 4">
-							<FragmentArray measure_ref="Measure_mz" values="416.172302246094 503.233581542969 574.276184082031 464.272094726563"/>
+							<FragmentArray measure_ref="Measure_mz" values="416.172302246094 503.233581542969 574.276184082031 464.272094726562"/>
 							<FragmentArray measure_ref="Measure_int" values="0.113435924053192 0.284903049468994 0.394180774688721 0.299913018941879"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci"/>
@@ -1299,6 +1323,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="4.12981671839952"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.781255905117072"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.7893135280886"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.3938995237745"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.43794591908544"/>
@@ -1317,7 +1342,7 @@
 					<PeptideEvidenceRef peptideEvidence_ref="PEV_5495827884756377090"/>
 					<Fragmentation>
 						<IonType charge="1" index="4 5 6 4">
-							<FragmentArray measure_ref="Measure_mz" values="416.172302246094 503.233581542969 574.276184082031 464.272094726563"/>
+							<FragmentArray measure_ref="Measure_mz" values="416.172302246094 503.233581542969 574.276184082031 464.272094726562"/>
 							<FragmentArray measure_ref="Measure_int" values="0.113435924053192 0.284903049468994 0.394180774688721 0.299913018941879"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci"/>
@@ -1353,6 +1378,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="4.12981671839952"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.781255905117072"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.7893135280886"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.3938995237745"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.43794591908544"/>
@@ -1377,6 +1403,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="4.12981671839952"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.781255905117072"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.7893135280886"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.3938995237745"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.43794591908544"/>
@@ -1401,6 +1428,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="4.12981671839952"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.781255905117072"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.7893135280886"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="13.3938995237745"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="6.43794591908544"/>
@@ -1428,7 +1456,7 @@
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="1" index="3 4 5 6 2 3 4">
-							<FragmentArray measure_ref="Measure_mz" values="329.25048828125 416.274291992188 503.178283691406 574.275268554688 276.082397460938 363.302978515625 464.282836914063"/>
+							<FragmentArray measure_ref="Measure_mz" values="329.25048828125 416.274291992188 503.178283691406 574.275268554688 276.082397460938 363.302978515625 464.282836914062"/>
 							<FragmentArray measure_ref="Measure_int" values="0.177601501345634 0.250927746295929 0.405435562133789 0.43561378121376 0.113416388630867 0.225260227918625 0.588942646980286"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
@@ -1450,6 +1478,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.87241573631763"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.43644221362543"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="13.381719245832"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.08423368635255"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
@@ -1475,7 +1504,7 @@
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="1" index="3 4 5 6 2 3 4">
-							<FragmentArray measure_ref="Measure_mz" values="329.25048828125 416.274291992188 503.178283691406 574.275268554688 276.082397460938 363.302978515625 464.282836914063"/>
+							<FragmentArray measure_ref="Measure_mz" values="329.25048828125 416.274291992188 503.178283691406 574.275268554688 276.082397460938 363.302978515625 464.282836914062"/>
 							<FragmentArray measure_ref="Measure_int" values="0.177601501345634 0.250927746295929 0.405435562133789 0.43561378121376 0.113416388630867 0.225260227918625 0.588942646980286"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha beta beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci ci"/>
@@ -1497,6 +1526,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.87241573631763"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.43644221362543"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="13.381719245832"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.08423368635255"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
@@ -1521,6 +1551,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.87241573631763"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.43644221362543"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="13.381719245832"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.08423368635255"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
@@ -1545,6 +1576,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.87241573631763"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.43644221362543"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="13.381719245832"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.08423368635255"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
@@ -1572,7 +1604,7 @@
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="1" index="3 4 5 6 3 4">
-							<FragmentArray measure_ref="Measure_mz" values="329.25048828125 416.274291992188 503.178283691406 574.275268554688 363.302978515625 464.282836914063"/>
+							<FragmentArray measure_ref="Measure_mz" values="329.25048828125 416.274291992188 503.178283691406 574.275268554688 363.302978515625 464.282836914062"/>
 							<FragmentArray measure_ref="Measure_int" values="0.177601501345634 0.250927746295929 0.405435562133789 0.43561378121376 0.225260227918625 0.588942646980286"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci"/>
@@ -1594,6 +1626,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.63155278563499"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.396954220850271"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.2343614000658"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.08423368635255"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
@@ -1619,7 +1652,7 @@
 							<cvParam accession="MS:1001224" cvRef="PSI-MS" name="frag: b ion"/>
 						</IonType>
 						<IonType charge="1" index="3 4 5 6 3 4">
-							<FragmentArray measure_ref="Measure_mz" values="329.25048828125 416.274291992188 503.178283691406 574.275268554688 363.302978515625 464.282836914063"/>
+							<FragmentArray measure_ref="Measure_mz" values="329.25048828125 416.274291992188 503.178283691406 574.275268554688 363.302978515625 464.282836914062"/>
 							<FragmentArray measure_ref="Measure_int" values="0.177601501345634 0.250927746295929 0.405435562133789 0.43561378121376 0.225260227918625 0.588942646980286"/>
 							<userParam name="cross-link_chain" unitName="xsd:string" value="alpha alpha alpha alpha beta beta"/>
 							<userParam name="cross-link_ioncategory" unitName="xsd:string" value="ci ci ci ci ci ci"/>
@@ -1641,6 +1674,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.63155278563499"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.396954220850271"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.2343614000658"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.08423368635255"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
@@ -1665,6 +1699,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.63155278563499"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.396954220850271"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.2343614000658"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.08423368635255"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
@@ -1689,6 +1724,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.63155278563499"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.396954220850271"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.2343614000658"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="9.08423368635255"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.51358783729074"/>
@@ -1724,6 +1760,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.0859605744481087"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975184722"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
@@ -1757,6 +1794,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.0859605744481087"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975184722"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
@@ -1781,6 +1819,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.0859605744481087"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975184722"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
@@ -1805,6 +1844,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.0859605744481087"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975184722"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
@@ -1838,6 +1878,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.334201395511627"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0688459236181392"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-66665.7792280483"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0.903988512848557"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="2.99091414238751"/>
@@ -1871,6 +1912,7 @@
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.334201395511627"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0688459236181392"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-66665.7792280483"/>
 					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
 					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0.903988512848557"/>
 					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="2.99091414238751"/>

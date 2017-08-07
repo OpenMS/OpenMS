@@ -10,6 +10,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAcces
     # see ./pyOpenMS/pyopenms/python_extras.py file 
     cdef cppclass SimpleOpenMSSpectraFactory(ProgressLogger):
         # wrap-ignore
+        # no-pxd-import
 
         SimpleOpenMSSpectraFactory() nogil except +
 

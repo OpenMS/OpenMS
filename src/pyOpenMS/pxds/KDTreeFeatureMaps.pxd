@@ -7,6 +7,7 @@ from TransformationModelLowess cimport *
 from MSExperiment cimport *
 from ConsensusMap cimport *
 from FeatureMap cimport *
+from BaseFeature cimport *
 # from KDTree cimport *
 # from KDTreeFeatureNode cimport *
 

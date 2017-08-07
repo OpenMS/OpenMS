@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXLLF_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
-				<UserParam type="string" name="input_mzML" value="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXLLF_input.mzML"/>
+	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2,3,4,5,6" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
 				<UserParam type="int" name="decoy_prefix" value="0"/>
 				<UserParam type="string" name="decoy_string" value="decoy"/>
@@ -17,7 +17,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="397"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-07-27T17:26:29" search_engine="OpenXQuest" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-08-03T12:44:55" search_engine="OpenXQuest" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -34,6 +34,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-61959.1129584792"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.144357797223333"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0365179622514171"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.56221037512444"/>
@@ -63,6 +64,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.23684947502083"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.188680487850844"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.033931239086604"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33199421133167"/>
@@ -89,6 +91,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.23684947502083"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.188680487850844"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.033931239086604"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33199421133167"/>
@@ -118,6 +121,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685154655"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.256112189293734"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0442349318188655"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.75473893302454"/>
@@ -144,6 +148,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685154655"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.256112189293734"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0442349318188655"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.75473893302454"/>
@@ -173,6 +178,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685183549"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.28525398955669"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0190809182476184"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.71716389284832"/>
@@ -199,6 +205,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685183549"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.28525398955669"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0190809182476184"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.71716389284832"/>
@@ -228,6 +235,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685154655"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.24559523029248"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0129769879631018"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33315984623444"/>
@@ -254,6 +262,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685154655"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.24559523029248"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0129769879631018"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33315984623444"/>
@@ -283,6 +292,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685183549"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.240902734232937"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0257756439255435"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74404813080311"/>
@@ -309,6 +319,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.58776685183549"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.240902734232937"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0257756439255435"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74404813080311"/>
@@ -338,6 +349,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.30215412688569"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.164286537391606"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0187358866029936"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36381971887944"/>
@@ -364,6 +376,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.30215412688569"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.164286537391606"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0187358866029936"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36381971887944"/>
@@ -393,6 +406,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.75353076503564"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.353655758995196"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0429182844388914"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.73413432141225"/>
@@ -419,6 +433,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.75353076503564"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.353655758995196"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0429182844388914"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.73413432141225"/>
@@ -448,6 +463,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.83818511834777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.358622766114845"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0276762297394982"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.79529535544501"/>
@@ -474,6 +490,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.83818511834777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.358622766114845"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0276762297394982"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.79529535544501"/>
@@ -503,6 +520,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334058879811394"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00370681778498793"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74024802275347"/>
@@ -529,6 +547,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334058879811394"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00370681778498793"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74024802275347"/>
@@ -558,6 +577,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334058879811374"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.00695652490001962"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.70687677116351"/>
@@ -584,6 +604,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334058879811374"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.00695652490001962"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.70687677116351"/>
@@ -613,6 +634,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.358983498429224"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00353308167659501"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.73929340695119"/>
@@ -639,6 +661,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.60948519177777"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.358983498429224"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00353308167659501"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.73929340695119"/>
@@ -668,6 +691,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.495440854119215"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.292756641828302"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0747937413138887"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.47579738056227"/>
@@ -694,6 +718,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.495440854119215"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.292756641828302"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0747937413138887"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.47579738056227"/>
@@ -723,6 +748,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.14662542896997"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.335563657720809"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0064488312336887"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.68283753355919"/>
@@ -749,6 +775,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.14662542896997"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.335563657720809"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0064488312336887"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.68283753355919"/>
@@ -778,6 +805,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.49544085383027"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.267055876940883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00585212691592718"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.15051270795164"/>
@@ -804,6 +832,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.49544085383027"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.267055876940883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00585212691592718"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.15051270795164"/>
@@ -833,6 +862,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.49544085383027"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.2872534459084"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0180707629932045"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.5503650295547"/>
@@ -859,6 +889,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.49544085383027"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.2872534459084"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0180707629932045"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.5503650295547"/>
@@ -888,6 +919,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.4399738185818"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.312879077650838"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0581863803541114"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.99778844482736"/>
@@ -914,6 +946,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="8"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.4399738185818"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.312879077650838"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0581863803541114"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.99778844482736"/>
@@ -943,6 +976,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.51592358397501"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.175855461864883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0624926522382935"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.0230746455366"/>
@@ -969,6 +1003,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.51592358397501"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.175855461864883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0624926522382935"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.0230746455366"/>
@@ -998,6 +1033,7 @@
 				<UserParam type="string" name="xl_type" value="loop-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.77264895899935"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.225847290255787"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0353829157232503"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.48356067397196"/>
@@ -1030,6 +1066,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.77928079752513"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.143376930963517"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0352576530817324"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.12677805434349"/>
@@ -1056,6 +1093,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.77928079752513"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.143376930963517"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0352576530817324"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.12677805434349"/>
@@ -1085,6 +1123,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.74800038064634"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.287546529237413"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0185694083532503"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.95174235581919"/>
@@ -1111,6 +1150,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.74800038064634"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.287546529237413"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0185694083532503"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.95174235581919"/>
@@ -1140,6 +1180,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.43349787768679"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.282383924404941"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0168443028610636"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.09131332032556"/>
@@ -1166,6 +1207,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.43349787768679"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.282383924404941"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0168443028610636"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.09131332032556"/>
@@ -1195,6 +1237,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.13908937242832"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.290300556477067"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.038794261492305"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.47645552206342"/>
@@ -1221,6 +1264,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.13908937242832"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.290300556477067"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.038794261492305"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.47645552206342"/>
@@ -1250,6 +1294,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.87580183995883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.256850116357478"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0134248561060071"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.46813077791107"/>
@@ -1276,6 +1321,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.87580183995883"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.256850116357478"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0134248561060071"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.46813077791107"/>
@@ -1305,6 +1351,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.48558817285451"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.27286428369415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00924776757793332"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.80758625750148"/>
@@ -1331,6 +1378,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.48558817285451"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.27286428369415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00924776757793332"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.80758625750148"/>
@@ -1360,6 +1408,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.956707509525629"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.259395679424268"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.00275477849268277"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.2628277643077"/>
@@ -1386,6 +1435,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.956707509525629"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.259395679424268"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.00275477849268277"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.2628277643077"/>
@@ -1415,6 +1465,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.52928264786567"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.28865044965055"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.000549888303307683"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.67888117942069"/>
@@ -1441,6 +1492,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.52928264786567"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.28865044965055"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.000549888303307683"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.67888117942069"/>
@@ -1470,6 +1522,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.94723233666204"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.14669292660026"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0650740522404403"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.21322948952159"/>
@@ -1496,6 +1549,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.94723233666204"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.14669292660026"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0650740522404403"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.21322948952159"/>
@@ -1525,6 +1579,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.14297680759624"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.17513073169176"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00479146924107842"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.17375321948352"/>
@@ -1551,6 +1606,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.14297680759624"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.17513073169176"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00479146924107842"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.17375321948352"/>
@@ -1580,6 +1636,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.14297680759624"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.177824829831741"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0227309628205558"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.16928587980719"/>
@@ -1606,6 +1663,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.14297680759624"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.177824829831741"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0227309628205558"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.16928587980719"/>
@@ -1635,6 +1693,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.24975441253637"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.272910863245464"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0198505472750013"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.66679514650813"/>
@@ -1661,6 +1720,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.24975441253637"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.272910863245464"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0198505472750013"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.66679514650813"/>
@@ -1690,6 +1750,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.07738393449789"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.134559080867467"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0247152367062349"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450258782576"/>
@@ -1716,6 +1777,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.07738393449789"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.134559080867467"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0247152367062349"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450258782576"/>
@@ -1745,6 +1807,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.59488251083421"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.161879188011971"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0161534910422094"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450228473577"/>
@@ -1771,6 +1834,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.59488251083421"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.161879188011971"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0161534910422094"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450228473577"/>
@@ -1800,6 +1864,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.4346245992552"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.183893854216405"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0535030164472894"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.22590326392747"/>
@@ -1826,6 +1891,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.4346245992552"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.183893854216405"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0535030164472894"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.22590326392747"/>
@@ -1855,6 +1921,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.4346245992552"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.180128134518623"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0887774670250567"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.40015393166131"/>
@@ -1881,6 +1948,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.4346245992552"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.180128134518623"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0887774670250567"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.40015393166131"/>
@@ -1910,6 +1978,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="9.8894195728326"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.187765585669026"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.109257054872384"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.2070099838773"/>
@@ -1936,6 +2005,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="9.8894195728326"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.187765585669026"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.109257054872384"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.2070099838773"/>
@@ -1965,6 +2035,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.94937778044415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.195711805228795"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0396941475007674"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.160919555132"/>
@@ -1991,6 +2062,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.94937778044415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.195711805228795"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0396941475007674"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.160919555132"/>
@@ -2020,6 +2092,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.94937778044415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.154650785243648"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0391804981785017"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.32329491696964"/>
@@ -2046,6 +2119,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.94937778044415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.154650785243648"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0391804981785017"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.32329491696964"/>
@@ -2075,6 +2149,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.75576489061855"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.347391153300287"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0333025145730019"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.24543385415673"/>
@@ -2101,6 +2176,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.75576489061855"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.347391153300287"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0333025145730019"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.24543385415673"/>
@@ -2130,6 +2206,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.93074379801527"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.148648829026499"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0158427283195803"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.21028025454207"/>
@@ -2156,6 +2233,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.93074379801527"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.148648829026499"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0158427283195803"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.21028025454207"/>
@@ -2185,6 +2263,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.09873319075252"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.157039715095843"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0374216827053061"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.39567538407891"/>
@@ -2211,6 +2290,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.09873319075252"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.157039715095843"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0374216827053061"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.39567538407891"/>
@@ -2240,6 +2320,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.09873319075252"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.173720274676571"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0534723696253414"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.37285095911698"/>
@@ -2266,6 +2347,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.09873319075252"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.173720274676571"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0534723696253414"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.37285095911698"/>
@@ -2295,6 +2377,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.83689414983031"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.140501751105963"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0481624579960849"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.19266111259219"/>
@@ -2321,6 +2404,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.83689414983031"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.140501751105963"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0481624579960849"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.19266111259219"/>
@@ -2350,6 +2434,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-50210.1318427365"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.179982349878325"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.103892899058568"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.97940311762737"/>
@@ -2379,6 +2464,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-50210.1318427365"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334854638649509"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.10311392585885"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.51339289589193"/>
@@ -2408,6 +2494,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-50210.1318427363"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.231152371999909"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0943976258734896"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.83524149677736"/>
@@ -2437,6 +2524,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.64504118919742"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.274748970712516"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0117590834579883"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36120525400929"/>
@@ -2463,6 +2551,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.64504118919742"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.274748970712516"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0117590834579883"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36120525400929"/>
@@ -2492,6 +2581,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.23045020219282"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.205223443451157"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0835290231168088"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.51728970148157"/>
@@ -2518,6 +2608,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.23045020219282"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.205223443451157"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0835290231168088"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.51728970148157"/>
@@ -2547,6 +2638,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.03501732756301"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.349010441687718"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0078121872914508"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.992714381621201"/>
@@ -2573,6 +2665,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.03501732756301"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.349010441687718"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0078121872914508"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.992714381621201"/>
@@ -2602,6 +2695,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-65412.9495368154"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.318352734096409"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0808155206515461"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.04179783857762"/>
@@ -2631,6 +2725,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.0241086845338956"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.208597913528348"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00785568714236135"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.29925008836444"/>
@@ -2657,6 +2752,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.0241086845338956"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.208597913528348"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00785568714236135"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.29925008836444"/>
@@ -2686,6 +2782,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.176655370276363"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.310349345050731"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.150843856794748"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.45252493336095"/>
@@ -2712,6 +2809,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.176655370276363"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.310349345050731"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.150843856794748"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.45252493336095"/>
@@ -2741,6 +2839,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-65408.5741635502"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.274125933362739"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0579053622391685"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.76069700524752"/>
@@ -2770,6 +2869,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.329709618133968"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0264826484533675"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.702585089128707"/>
@@ -2796,6 +2896,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.329709618133968"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0264826484533675"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.702585089128707"/>
@@ -2825,6 +2926,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.44883273717163"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.330156577796677"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0107641509792043"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.86461152597238"/>
@@ -2851,6 +2953,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.44883273717163"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.330156577796677"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0107641509792043"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.86461152597238"/>
@@ -2880,6 +2983,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.305468099790881"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0104949482637371"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.30962430769166"/>
@@ -2906,6 +3010,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.305468099790881"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0104949482637371"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.30962430769166"/>
@@ -2935,6 +3040,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.44883273717163"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.319582443642515"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0362148941377591"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.09419743178112"/>
@@ -2961,6 +3067,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.44883273717163"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.319582443642515"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0362148941377591"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.09419743178112"/>
@@ -2990,6 +3097,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-65408.0074325574"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.306922885908326"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0278273512280933"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.41504305777641"/>
@@ -3019,6 +3127,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.89595625823609"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.17518545498017"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0374062258192429"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.97101568816126"/>
@@ -3045,6 +3154,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.89595625823609"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.17518545498017"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0374062258192429"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.97101568816126"/>
@@ -3074,6 +3184,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.93032521185348"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334543981046149"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0099838601364481"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.4415995970594"/>
@@ -3100,6 +3211,7 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.93032521185348"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.334543981046149"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0099838601364481"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.4415995970594"/>

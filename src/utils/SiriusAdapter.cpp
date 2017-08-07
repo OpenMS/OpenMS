@@ -35,32 +35,15 @@
 //not sure if more #include directives are needed
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/JavaInfo.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
-
-#include <QtCore/QFile>
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDebug>
-#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
-
 #include <QDirIterator>
-#include <regex>
 
 using namespace OpenMS;
 using namespace std;
@@ -92,7 +75,7 @@ using namespace std;
   @verbinclude UTILS_SiriusAdapter.cli
   <B>INI file documentation of this tool:</B>
   @htmlinclude UTILS_SiriusAdapter.html
-*/
+ */
 
 /// @cond TOPPCLASSES
 
@@ -101,33 +84,11 @@ class TOPPSiriusAdapter :
 {
 public:
   TOPPSiriusAdapter() :
-      TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false)
+    TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false)
   {
   }
 
 protected:
-
-  void removeTempFiles_(const String& tmp_dir, const String& ms_file)
-  {
-    if (tmp_dir.empty() && ms_file.empty())
-     {
-     return;
-     }
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ ms_file + ". Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 0)
-      {
-        writeDebug_("Deleting temporary directory '" + tmp_dir +" and msfile " + ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::removeDir(tmp_dir.toQString()); // remove directory & subdirectories
-        File::remove(ms_file); // remove msfile
-      }
-    }
-  }
 
   static bool sortByScanIndex(const String & i, const String & j)
   {
@@ -137,12 +98,12 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("executable", "<executable>",
-    #if  defined(__APPLE__)
-      "sirius",
-    #else
-      "sirius-console-64.exe",
-    #endif
-      "sirius executable e.g. sirius", true, false, ListUtils::create<String>("skipexists"));
+#if  defined(__APPLE__)
+                       "sirius",
+#else
+                       "sirius-console-64.exe",
+#endif
+                       "sirius executable e.g. sirius", true, false, ListUtils::create<String>("skipexists"));
 
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
@@ -179,12 +140,11 @@ protected:
     //-------------------------------------------------------------
 
     String in = getStringOption_("in");
-    String out1 = getStringOption_("out_sirius");
-    String out2 = getStringOption_("out_CSIFingerID");
+    String out_sirius = getStringOption_("out_sirius");
+    String out_csifingerid = getStringOption_("out_CSIFingerID");
 
     // needed for counting
-    int number = getIntOption_("number");
-    number = number + 1; //needed to write the correct number of compounds
+    int number_compounds = getIntOption_("number") + 1;  // +1 needed to write the correct number of compounds
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
@@ -213,10 +173,14 @@ protected:
     f.load(in, spectra);
     std::vector<String> subdirs;
 
+
+    QString tmp_base_dir = File::getTempDirectory().toQString();
+    QString tmp_dir = QDir(tmp_base_dir).filePath(File::getUniqueName().toQString());
+
+    String tmp_ms_file = QDir(tmp_base_dir).filePath((File::getUniqueName() + ".ms").toQString());
+    String out_dir = QDir(tmp_dir).filePath("sirius_out");
+
     //Write msfile
-    String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + String(File::getUniqueName()).toQString();
-    String tmp_ms_file = tmp_dir + "/" + "msfile";
-    String out_dir = tmp_dir + "/" + "sirius_out";
     SiriusMSFile::store(spectra, tmp_ms_file);
 
     //Knime hack
@@ -224,6 +188,7 @@ protected:
     String siriuspath = "SIRIUS_PATH";
     QString qsiriuspath = env.systemEnvironment().value(siriuspath.toQString());
 
+    // TODO Is it correct that the executable argument is ignored if the SIRIUS_PATH is not empty?
     if (!qsiriuspath.isEmpty())
     {
       executable = qsiriuspath;
@@ -289,20 +254,36 @@ protected:
     //Convert sirius_output to mztab and store file
     MzTab sirius_result;
     MzTabFile siriusfile;
-    SiriusMzTabWriter::read(subdirs, number, sirius_result);
-    siriusfile.store(out1, sirius_result);
+    SiriusMzTabWriter::read(subdirs, number_compounds, sirius_result);
+    siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
-    if (!out2.empty() && fingerid == true)
+    if (out_csifingerid.empty() == false && fingerid)
     {
       MzTab csi_result;
       MzTabFile csifile;
-      CsiFingerIdMzTabWriter::read(subdirs, number, csi_result);
-      csifile.store(out2, csi_result);
+      CsiFingerIdMzTabWriter::read(subdirs, number_compounds, csi_result);
+      csifile.store(out_csifingerid, csi_result);
     }
 
-    //clean tmp directory
-    removeTempFiles_(tmp_dir, tmp_ms_file);
+    //clean tmp directory if debug level < 2
+    if (debug_level_ >= 2)
+    {
+      writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
+    }
+    else
+    {
+      if (tmp_dir.isEmpty() == false)
+      {
+        writeDebug_("Deleting temporary directory '" + String(tmp_dir) + "'. Set debug level to 2 or higher to keep it.", 0);
+        File::removeDir(tmp_dir);
+      }
+      if (tmp_ms_file.empty() == false)
+      {
+        writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
+        File::remove(tmp_ms_file); // remove msfile
+      }
+    }
 
     return EXECUTION_OK;
   }
