@@ -1,3 +1,4 @@
+from UniqueIdInterface cimport setUniqueId as _setUniqueId
 
 
     def setUniqueIds(self):

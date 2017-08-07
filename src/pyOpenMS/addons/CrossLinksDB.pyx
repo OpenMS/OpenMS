@@ -4,7 +4,7 @@
     # Provides the same interface as expected by autowrap (get/assign) but
     # simply holds the ptr and does not do any memory management.
     # see autowrap/data_files/autowrap/README.md for implementation
-    cdef AutowrapPtrHolder[_CrossLinksDB] inst
+    # cdef AutowrapPtrHolder[_CrossLinksDB] inst
 
     def __init__(self):
       self.inst = AutowrapPtrHolder[_CrossLinksDB](_getInstance_CrossLinksDB())

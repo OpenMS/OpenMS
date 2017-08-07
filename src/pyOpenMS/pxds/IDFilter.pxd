@@ -8,6 +8,7 @@ from DefaultParamHandler cimport *
 from PeptideIdentification cimport *
 from ProteinIdentification cimport *
 from FASTAFile cimport *
+from EnzymaticDigestion cimport *
 
 from MSExperiment cimport *
 from MSSpectrum cimport *
@@ -95,3 +96,26 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void keepNBestHits(MSExperiment& experiment, Size n) nogil except +
 
         void keepHitsMatchingProteins(MSExperiment& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +
+
+
+cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS::IDFilter":
+    
+    cdef cppclass DigestionFilter "OpenMS::IDFilter::DigestionFilter":
+        # wrap-attach:
+        #    IDFilter
+        DigestionFilter() nogil except + # wrap-ignore
+        DigestionFilter(DigestionFilter) nogil except + #wrap-ignore
+
+        # GetMatchingItems[ PeptideEvidence, FASTAEntry ] accession_resolver_
+        EnzymaticDigestion digestion_
+        bool ignore_missed_cleavages_
+        bool methionine_cleavage_
+
+        DigestionFilter(libcpp_vector[ FASTAEntry ] & entries, 
+                        EnzymaticDigestion & digestion,
+                        bool ignore_missed_cleavages,
+                        bool methionine_cleavage) nogil except +
+
+        # bool operator()(PeptideEvidence & evidence) nogil except +
+        void filterPeptideEvidences(libcpp_vector[ PeptideIdentification ] & peptides) nogil except +
+
