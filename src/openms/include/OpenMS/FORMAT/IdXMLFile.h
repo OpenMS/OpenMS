@@ -134,7 +134,7 @@ protected:
       * Helper function to write out fragment annotations as user param fragment_annotation
       */  
     static void writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
-                                          const std::vector<PeptideHit::PeakAnnotation> & annotations, UInt indent); 
+                                          std::vector<PeptideHit::PeakAnnotation> annotations, UInt indent); 
 
     /**
       * Helper function to parse fragment annotations from string

@@ -133,8 +133,8 @@ class SimpleSearchEngine :
       registerIntOption_("precursor:max_charge", "<num>", 5, "Maximum precursor charge to be considered.", false, true);
 
       // consider one before annotated monoisotopic peak and the annotated one
-      IntList isotopes = {-1, 0};
-      registerIntList_("precursor:isotopes", "<num>", isotopes, "Isotopic peak to match (-1 considers isotopic peak before annotated prec.). Corrects for mono-isotopic peak misassignments.", false, false);
+      IntList isotopes = {0, 1};
+      registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
 
       registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
       registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
@@ -485,7 +485,7 @@ class SimpleSearchEngine :
             double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
 
             // correct for monoisotopic misassignments of the precursor annotation
-            if (isotope_number != 0) { precursor_mass += isotope_number * Constants::C13C12_MASSDIFF_U; }
+            if (isotope_number != 0) { precursor_mass -= isotope_number * Constants::C13C12_MASSDIFF_U; }
 
             multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
           }
