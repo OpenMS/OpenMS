@@ -862,6 +862,9 @@ namespace OpenMS
       return;
     }
 
+    // synchronize PeptideHits with the annotations in the spectrum
+    layer_->synchronizePeakAnnotations();
+
     QString selectedFilter;
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML);;mzIdentML file (*.mzid)", &selectedFilter);
     vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
