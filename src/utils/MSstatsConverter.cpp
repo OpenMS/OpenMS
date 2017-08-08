@@ -130,10 +130,10 @@ protected:
     // These are placeholder fragment annotations and peptide evidences in case the original ones are empty
 
     // Placeholder fragment annotation
-    PeptideHit::FragmentAnnotation new_frag_ann;
-    new_frag_ann.annotation = TOPPMSstatsConverter::na_string;
-    new_frag_ann.charge = -1;
-    std::vector< PeptideHit::FragmentAnnotation > placeholder_fragment_annotations = {new_frag_ann};
+    PeptideHit::PeakAnnotation new_peak_ann;
+    new_peak_ann.annotation = TOPPMSstatsConverter::na_string;
+    new_peak_ann.charge = -1;
+    std::vector< PeptideHit::PeakAnnotation > placeholder_fragment_annotations = {new_peak_ann};
 
     // Placeholder peptide evidence
     PeptideEvidence new_pep_ev;
@@ -151,11 +151,11 @@ protected:
       {
         for (auto & pep_hit : pep_id.getHits())
         {
-          std::vector< PeptideHit::FragmentAnnotation > const & original_fragment_annotations = pep_hit.getFragmentAnnotations();
+          std::vector< PeptideHit::PeakAnnotation > const & original_fragment_annotations = pep_hit.getPeakAnnotations();
           std::vector< PeptideEvidence > const & original_peptide_evidences = pep_hit.getPeptideEvidences();
 
           // Decide whether to use original or placeholder iterator
-          std::vector< PeptideHit::FragmentAnnotation > const & fragment_annotations = (original_fragment_annotations.size() == 0) ? placeholder_fragment_annotations : original_fragment_annotations;
+          std::vector< PeptideHit::PeakAnnotation > const & fragment_annotations = (original_fragment_annotations.size() == 0) ? placeholder_fragment_annotations : original_fragment_annotations;
           std::vector< PeptideEvidence> const & peptide_evidences = (original_peptide_evidences.size() == 0) ? placeholder_peptide_evidences : original_peptide_evidences;
 
           // Variables of the peptide hit
