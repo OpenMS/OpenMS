@@ -469,8 +469,8 @@ protected:
     registerIntOption_("precursor:max_charge", "<num>", 5, "Maximum precursor charge to be considered.", false, false);
 
     // consider one before annotated monoisotopic peak and the annotated one
-    IntList isotopes = {-1, 0};
-    registerIntList_("precursor:isotopes", "<num>", isotopes, "Isotopic peak to match (-1 considers isotopic peak before annotated prec.). Corrects for mono-isotopic peak misassignments.", false, false);
+    IntList isotopes = {0, 1};
+    registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance (+/- around fragment m/z)", false);
@@ -1654,7 +1654,6 @@ protected:
             fas.insert(fas.end(), annotated_precursor_ions.begin(), annotated_precursor_ions.end());
           }
 
-          // build PD string and native fragment annotation
           a_it->fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
           a_it->fragment_annotations = fas;
 
@@ -2063,7 +2062,7 @@ protected:
           double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
 
           // corrected for monoisotopic misassignments of the precursor annotation
-          if (i != 0) { precursor_mass += i * Constants::C13C12_MASSDIFF_U; } 
+          if (i != 0) { precursor_mass -= i * Constants::C13C12_MASSDIFF_U; } 
 
           if (getFlag_("RNPxl:filter_fractional_mass"))
           {

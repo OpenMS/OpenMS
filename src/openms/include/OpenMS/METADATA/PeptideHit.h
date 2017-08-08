@@ -83,6 +83,16 @@ public:
 
     bool operator<(const PeptideHit::PeakAnnotation& other) const
     {
+      // sensible to sort first by m/z and charge
+      if (mz < other.mz)
+      {
+        return true;
+      }
+      else if (mz > other.mz)
+      {
+        return false;
+      }
+
       if (charge < other.charge)
       {
         return true;
@@ -97,15 +107,6 @@ public:
         return true;
       }
       else if (annotation > other.annotation)
-      {
-        return false;
-      }
-
-      if (mz < other.mz)
-      {
-        return true;
-      }
-      else if (mz > other.mz)
       {
         return false;
       }
