@@ -271,6 +271,10 @@ public:
       }
     }
 
+    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
+    /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
+    void synchronizePeakAnnotations();
+
     /// if this layer is visible
     bool visible;
 
@@ -315,6 +319,9 @@ public:
     int peptide_hit_index;
 
 private:
+    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
+    void updatePeptideHitAnnotations_(PeptideHit& hit);
+
     /// feature data
     FeatureMapSharedPtrType features;
 
