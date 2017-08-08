@@ -38,6 +38,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 
+// array_wrapper needs to be included before it is used
+// only in boost1.64+. See issue #2790
 #if OPENMS_BOOST_VERSION_MINOR >= 64
 #include <boost/serialization/array_wrapper.hpp>
 #endif
