@@ -998,9 +998,13 @@ namespace OpenMS
   }
 
   void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
-                                            const std::vector<PeptideHit::PeakAnnotation> & annotations, UInt indent)
+                                            std::vector<PeptideHit::PeakAnnotation> annotations, UInt indent)
   {
     if (annotations.empty()) { return; } 
+
+    // sort by mz, charge, ...
+    stable_sort(annotations.begin(), annotations.end());
+
     String val;
     for (auto& a : annotations)
     {
