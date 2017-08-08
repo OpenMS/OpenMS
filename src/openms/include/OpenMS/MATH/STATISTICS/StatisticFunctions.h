@@ -38,6 +38,9 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 
+#if OPENMS_BOOST_VERSION_MINOR >= 64
+#include <boost/serialization/array_wrapper.hpp>
+#endif
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/covariance.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
