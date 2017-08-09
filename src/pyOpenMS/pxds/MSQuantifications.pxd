@@ -59,8 +59,6 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
         SIZE_OF_QUANT_TYPES
 
     cdef cppclass AnalysisSummary:
-        # wrap-attach:
-        #     MSQuantifications
         AnalysisSummary()  nogil except +
         AnalysisSummary(AnalysisSummary) nogil except +
 
@@ -69,8 +67,6 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
         QUANT_TYPES quant_type_
 
     cdef cppclass Assay:
-        # wrap-attach:
-        #     MSQuantifications
         Assay() nogil except +
         Assay(Assay) nogil except +
 
