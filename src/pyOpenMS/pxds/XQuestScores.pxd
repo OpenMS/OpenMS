@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/XQuestScores.h>" namespace "OpenMS":
         float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta) nogil except +
         float preScore(Size matched_alpha, Size ions_alpha) nogil except +
 
-        double matchOddsScore(MSSpectrum[Peak1D] & theoretical_spec,
+        double matchOddsScore(MSSpectrum& theoretical_spec,
                              libcpp_vector[ libcpp_pair[ size_t, size_t ] ] & matched_spec, 
                              double fragment_mass_tolerance, 
                              bool fragment_mass_tolerance_unit_ppm, 
@@ -29,17 +29,17 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/XQuestScores.h>" namespace "OpenMS":
 
         double matchedCurrentChain(libcpp_vector[ libcpp_pair[ size_t, size_t ] ] & matched_spec_common,
                                   libcpp_vector[ libcpp_pair[ size_t, size_t ] ] & matched_spec_xlinks,
-                                  MSSpectrum[Peak1D] & spectrum_common_peaks, 
-                                  MSSpectrum[Peak1D] & spectrum_xlink_peaks) nogil except +
+                                  MSSpectrum & spectrum_common_peaks, 
+                                  MSSpectrum & spectrum_xlink_peaks) nogil except +
 
         double totalMatchedCurrent(libcpp_vector[ libcpp_pair[ size_t, size_t ] ] & matched_spec_common_alpha,
                                    libcpp_vector[ libcpp_pair[ size_t, size_t ] ] & matched_spec_common_beta,
                                    libcpp_vector[ libcpp_pair[ size_t, size_t ] ] & matched_spec_xlinks_alpha,
                                    libcpp_vector[ libcpp_pair[ size_t, size_t ] ] & matched_spec_xlinks_beta,
-                                   MSSpectrum[Peak1D] & spectrum_common_peaks,
-                                   MSSpectrum[Peak1D] & spectrum_xlink_peaks) nogil except +
+                                   MSSpectrum & spectrum_common_peaks,
+                                   MSSpectrum & spectrum_xlink_peaks) nogil except +
 
-        libcpp_vector[ double ] xCorrelation(MSSpectrum[Peak1D] & spec1,
-                                             MSSpectrum[Peak1D] & spec2,
+        libcpp_vector[ double ] xCorrelation(MSSpectrum & spec1,
+                                             MSSpectrum & spec2,
                                              Int maxshift, double tolerance) nogil except +
 

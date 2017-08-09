@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>" namespace "
     cdef cppclass RNPxlMarkerIonExtractor "OpenMS::RNPxlMarkerIonExtractor":
         RNPxlMarkerIonExtractor() nogil except + 
         RNPxlMarkerIonExtractor(RNPxlMarkerIonExtractor) nogil except + #wrap-ignore
-        # MarkerIonsType extractMarkerIons(MSSpectrum[Peak1D] & s, double marker_tolerance) nogil except +
-        libcpp_map[String, libcpp_vector[ libcpp_pair[double, double] ] ] extractMarkerIons(MSSpectrum[Peak1D] & s,
+        # MarkerIonsType extractMarkerIons(MSSpectrum & s, double marker_tolerance) nogil except +
+        libcpp_map[String, libcpp_vector[ libcpp_pair[double, double] ] ] extractMarkerIons(MSSpectrum & s,
                                                                                             double marker_tolerance) nogil except +
 
