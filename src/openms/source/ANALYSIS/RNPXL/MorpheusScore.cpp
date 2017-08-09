@@ -61,7 +61,7 @@ namespace OpenMS
       if (abs(d) <= max_dist_dalton) // match in tolerance window? 
       {
         ++matches;
-        ++t;
+        ++t;  // count theoretical peak only once
       }
       else if (d < 0) // theo peak is left of exp. peak (outside of tolerance window)
       {
@@ -90,7 +90,7 @@ namespace OpenMS
       if (abs(d) <= max_dist_dalton) // match in tolerance window? 
       {
         match_intensity += exp_spectrum[e].getIntensity();
-        ++e;
+        ++e; // sum up experimental peak intensity only once
       }
       else if (d < 0) // theo peak is left of exp. peak (outside of tolerance window)
       {
