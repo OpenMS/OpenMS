@@ -102,6 +102,8 @@ namespace OpenMS
       tv_->showSpectrumWidgetInWindow(w, caption);
 
       // special behavior
+      if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
+
       const vector<PeptideIdentification>& pis = w->canvas()->getCurrentLayer().getCurrentSpectrum().getPeptideIdentifications();
       if (!pis.empty())
       {
@@ -178,9 +180,10 @@ namespace OpenMS
       const double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
       DPosition<2> position = DPosition<2>(it->mz, peak_int);
       String annotation = it->annotation;
-      if (it->charge > 0)
+      // write out positive and negative charges with the correct sign, at the end of the annotation string
+      if (it->charge != 0)
       {
-        annotation = annotation + "+" + String(it->charge);
+        annotation = it->charge > 0 ? annotation + "+" + String(it->charge): annotation + String(it->charge);
       }
 
       Annotation1DItem * item;
@@ -191,9 +194,13 @@ namespace OpenMS
       {
         item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkGreen);
       }
-      else //if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) &&  annotation.hasSubstring(String("|xi$")))
+      else if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) &&  annotation.hasSubstring(String("|xi$")))
       {
         item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkRed);
+      }
+      else // use peak color as default annotation color
+      {
+        item = new Annotation1DPeakItem(position, annotation.toQString(), QColor(current_layer.param.getValue("peak_color").toQString()));
       }
       item->setSelected(false);
       temporary_annotations_.push_back(item); // for removal (no ownership)
@@ -851,70 +858,8 @@ namespace OpenMS
 
     if (ms_level == 2)
     {
-      // store user fragment annotations
-      vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();
-
-      int pep_id_index = current_layer.peptide_id_index;
-      int pep_hit_index = current_layer.peptide_hit_index;
-
-      if (!pep_id.empty() && pep_id_index != -1)
-      {
-        vector<PeptideHit>& hits = pep_id[pep_id_index].getHits();
-
-        if (!hits.empty() && pep_hit_index != -1)
-        {
-          PeptideHit& hit = hits[pep_hit_index];
-
-          // copy user annotations to fragment annotation vector
-          Annotations1DContainer & las = current_layer.getAnnotations(spectrum_index);
-
-          vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
-
-          bool annotations_changed(false);
-
-          // for each annotation item on the canvas
-          for (auto& a : las)
-          {
-            // only store peak annotations
-            Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
-            if (pa == nullptr) { continue; }
-
-            // if already annotated we want to keep mz, intensity, and charge information
-            bool already_annotated(false);
-            for (auto& tmp_a : fas)
-            {
-              if (fabs(tmp_a.mz - pa->getPeakPosition()[0]) < 1e-6)
-              {
-                if (tmp_a.annotation == pa->getText().toUtf8().constData())
-                {
-                  already_annotated = true;
-                  break;
-                }
-                else // preak annotated but different text (e.g., changed by user)
-                {
-                  tmp_a.annotation = pa->getText().toUtf8().constData();
-                  annotations_changed = true;
-                  already_annotated = true;
-                  break;
-                }
-              }
-            }
-
-            // add new fragment annotation if peak not yet annotated
-            if (!already_annotated)
-            {
-              PeptideHit::PeakAnnotation fa;
-              fa.charge = 0;
-              fa.mz = pa->getPeakPosition()[0];
-              fa.intensity = pa->getPeakPosition()[1];
-              fa.annotation = pa->getText().toUtf8().constData();
-              fas.push_back(fa);
-              annotations_changed = true;
-            }
-          }
-          if (annotations_changed) { hit.setPeakAnnotations(fas); }
-        }
-      }
+      // synchronize PeptideHits with the annotations in the spectrum
+      current_layer.synchronizePeakAnnotations();
 
       // remove all graphical peak annotations as these will be recreated from the stored peak annotations
       Annotations1DContainer & las = current_layer.getAnnotations(spectrum_index);
