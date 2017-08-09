@@ -36,8 +36,11 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 
 #include <regex>
+
+#include <boost/algorithm/string.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -71,11 +74,20 @@ class TOPPMSstatsConverter :
 public:
 
   static const String param_in;
+  static const String param_in_experimental_design;
   //static const String param_in_identification;
   static const String param_out;
   static const String param_labeled_reference_peptides;
 
+  static const String msstats_header_filename;
+  static const String msstats_header_bioreplicate;
+  static const String msstats_header_run;
+  static const String msstats_header_condition;
+
   static const String na_string;
+
+  // The meta value of the peptide identification which is gonna used for the exp design association
+  static const String meta_value_exp_design_key;
 
   TOPPMSstatsConverter() :
     TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
@@ -87,11 +99,16 @@ protected:
 
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // Input consensusXML
     this->registerInputFile_(TOPPMSstatsConverter::param_in, "<in>", "", "Input consensusXML with peptide intensities", true, false);
     this->setValidFormats_(TOPPMSstatsConverter::param_in, ListUtils::create<String>("consensusXML"));
+
+    // Input file for the experimental design
+    this->registerInputFile_(TOPPMSstatsConverter::param_in_experimental_design, "<in_experimental_design>", "",
+                             "Experimental design as CSV file. The required columns are FileName,Condition,BioReplicate,Run", true, false);
+    this->setValidFormats_(TOPPMSstatsConverter::param_in_experimental_design, ListUtils::create<String>("csv"));
 
     // Identification data
     //this->registerInputFile_(TOPPMSstatsConverter::param_in_identification, "<in_identification>", "", "Identification", true, false);
@@ -107,9 +124,123 @@ protected:
 
 
   // the main_ function is called after all parameters are read
-  ExitCodes main_(int, const char **)
-  {
+  ExitCodes main_(int, const char **) override
+      {
 
+    // Read the experimental design file and validate the format
+    CsvFile file_experimental_design;
+    file_experimental_design.fload(this->getStringOption_(TOPPMSstatsConverter::param_in_experimental_design));
+
+    // Read the experimental design file, validate the format, and map the exp_design_key (edkey) to the index where it can
+    // be fond in the CSVfile (the edkey normally is the filename with the raw data of the experiment)
+    std::map< String, std::set< Size > > edkey_to_rowindex;
+    std::map< String, Size > columnname_to_columnindex;
+
+    {
+      Size n_lines = file_experimental_design.rowCount();
+      std::set < String > headers = {
+          TOPPMSstatsConverter::msstats_header_filename,
+          TOPPMSstatsConverter::msstats_header_bioreplicate,
+          TOPPMSstatsConverter::msstats_header_run,
+          TOPPMSstatsConverter::msstats_header_condition
+      };
+      Size const headers_size = headers.size();
+
+      // Go to the header line in the read file
+      Size i = 0;
+      for(; i < n_lines; ++i)
+      {
+        std::vector< String > line;
+        file_experimental_design.getRow(i, line);
+
+        // Skip empty lines
+        if (line.empty())
+        {
+          continue;
+        }
+
+        std::set< String > col_set;
+        col_set.insert(line.begin(), line.end());
+        Size const n_cols = col_set.size();
+
+        // Compare the encountered column names with the expected ones
+        std::set< String > diff;
+
+        bool headers_valid = false;
+        if (n_cols <= headers_size)
+        {
+          std::set_difference(headers.begin(), headers.end(), col_set.begin(), col_set.end(),
+                              std::inserter(diff, diff.begin()));
+          if (diff.size() != 0)
+          {
+            LOG_ERROR << "ERROR: Columns in experimental design file are missing. The following columns could not be found:";
+          }
+          else
+          {
+            // All required columns are present
+            headers_valid = true;
+          }
+        }
+        else
+        {
+           // n_cols > headers_size
+          std::set_difference(col_set.begin(), col_set.end(), headers.begin(), headers.end(),
+                                  std::inserter(diff, diff.begin()));
+          LOG_ERROR << "ERROR: Too many columns in experimental design input file. The following columns are unrecognized:";
+        }
+
+        if (headers_valid)
+        {
+          // Map the column name to the index
+          for (int j = 0; j < n_cols; ++j)
+          {
+            columnname_to_columnindex[line[j]] = j;
+          }
+          break;
+        }
+        else
+        {
+          for (auto const & entry: diff)
+          {
+            LOG_ERROR << " " << entry;
+          }
+          LOG_ERROR << std::endl;
+          return ILLEGAL_PARAMETERS;
+        }
+      }
+
+      // Iterate all remaining lines in the experimental design file
+      for (++i; i < n_lines; ++i)
+      {
+         std::vector< String > line;
+         file_experimental_design.getRow(i, line);
+
+         // Skip empty lines
+         if (line.empty())
+         {
+           continue;
+         }
+         // Check whether the number of entries in this line is as expected
+         if (line.size() != headers_size)
+         {
+           LOG_ERROR << "ERROR: Wrong number of entries in line "
+                     << (i + 1) << ". Have: "  << line.size() << ". Expected: " << headers_size << std::endl;
+           return ILLEGAL_PARAMETERS;
+         }
+         String const & filename = line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_filename]];
+         edkey_to_rowindex[filename].insert(i);
+      }
+    }
+
+    // Print column name to index mapping
+    if (this->debug_level_ > 0)
+    {
+      this->writeDebug_("Experimental Design Columns:\n", 1);
+      for (auto const & columnname : columnname_to_columnindex)
+      {
+        this->writeDebug_(columnname.first + " : " + columnname.second, 1);
+      }
+    }
     // Read the input files
     ConsensusMap consensus_map;
     ConsensusXMLFile().load(this->getStringOption_(TOPPMSstatsConverter::param_in), consensus_map);
@@ -125,7 +256,26 @@ protected:
     // Add the header line
     csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run,Intensity");
 
+    // Regex definition
     std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
+    //std::regex regex_path_sep("[/\\]");
+
+    // Iterate protein identifications and collect spectra_data metavalue and ID
+
+    for (auto const & protein_identification : consensus_map.getProteinIdentifications())
+    {
+      String const & identifier = protein_identification.getIdentifier();
+      for (auto const meta_value : protein_identification.getMetaValue(TOPPMSstatsConverter::meta_value_exp_design_key).toStringList())
+      {
+        // Split the identifier by path separator character
+        std::vector< std::string > strs;
+        boost::split(strs, meta_value, boost::is_any_of("/\\"));
+
+        std::cout << strs.back() << std::endl;
+      }
+    }
+    return EXECUTION_OK;
+
 
     // These are placeholder fragment annotations and peptide evidences in case the original ones are empty
 
@@ -202,15 +352,23 @@ protected:
     // Store the final assembled CSV file
     csv_out.store(this->getStringOption_(TOPPMSstatsConverter::param_out));
     return EXECUTION_OK;
-  }
+      }
 
 };
 
 const String TOPPMSstatsConverter::param_in = "in";
+const String TOPPMSstatsConverter::param_in_experimental_design = "in_experimental_design";
 //const String TOPPMSstatsConverter::param_in_identification = "in_identification";
 const String TOPPMSstatsConverter::param_out = "out";
 const String TOPPMSstatsConverter::na_string = "NA";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
+const String TOPPMSstatsConverter::meta_value_exp_design_key = "spectra_data";
+
+const String TOPPMSstatsConverter::msstats_header_filename = "FileName";
+const String TOPPMSstatsConverter::msstats_header_bioreplicate = "BioReplicate";
+const String TOPPMSstatsConverter::msstats_header_run = "Run";
+const String TOPPMSstatsConverter::msstats_header_condition = "Condition";
+
 
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
