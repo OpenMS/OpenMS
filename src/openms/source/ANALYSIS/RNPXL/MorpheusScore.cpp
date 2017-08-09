@@ -89,7 +89,7 @@ namespace OpenMS
       const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
       if (abs(d) <= max_dist_dalton) // match in tolerance window? 
       {
-        match_intensity += exp_spectrum[e].getIntensity();;
+        match_intensity += exp_spectrum[e].getIntensity();
         ++e;
       }
       else if (d < 0) // theo peak is left of exp. peak (outside of tolerance window)
