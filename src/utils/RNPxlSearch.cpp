@@ -390,8 +390,15 @@ class FragmentAnnotationHelper
         fa.charge = sit.charge;
         fa.mz = sit.mz;
         fa.intensity = sit.intensity;
-        const String annotation_text = ion_type + String(ait.first) + "+" + sit.shift; 
-        fa.annotation = annotation_text;
+        if (sit.shift.empty())
+        {
+          fa.annotation = ion_type + String(ait.first);
+        }
+        else
+        {
+          const String annotation_text = ion_type + String(ait.first) + "+" + sit.shift; 
+          fa.annotation = annotation_text;
+        }
         fas.push_back(fa);
       }
     }
