@@ -10,6 +10,7 @@ RNPxlReport.cpp
 RNPxlMarkerIonExtractor.cpp
 RNPxlModificationsGenerator.cpp
 HyperScore.cpp
+MorpheusScore.cpp
 PScore.cpp
 )
 
