@@ -12,7 +12,7 @@ from BaseFeature cimport *
 # from KDTreeFeatureNode cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>" namespace "OpenMS":
-    
+
     cdef cppclass KDTreeFeatureMaps(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler
@@ -32,12 +32,15 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>" namespace 
         Size size() nogil except +
         Size treeSize() nogil except +
         Size numMaps() nogil except +
-        double rtTolerance() nogil except +
-        double mzTolerance() nogil except +
-        bool mzPPM() nogil except +
         void clear() nogil except +
         void optimizeTree() nogil except +
-        void getNeighborhood(Size index, libcpp_vector[ size_t ] & result_indices, bool include_features_from_same_map, double max_pairwise_log_fc) nogil except +
+        void getNeighborhood(Size index,
+                             libcpp_vector[ size_t ] & result_indices,
+                             double rt_tol,
+                             double mz_tol,
+                             bool mz_ppm,
+                             bool include_features_from_same_map,
+                             double max_pairwise_log_fc) nogil except +
         void queryRegion(double rt_low, double rt_high, double mz_low, double mz_high, libcpp_vector[ size_t ] & result_indices, Size ignored_map_index) nogil except +
         # void applyTransformations(libcpp_vector[ TransformationModelLowess * ] & trafos) nogil except +
 

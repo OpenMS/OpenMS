@@ -31,7 +31,7 @@ if [ "${PYOPENMS}" = "ON" ]; then
   pip install -U numpy
   pip install -U wheel
   pip install -U Cython
-  pip install -U autowrap
+  pip install -U autowrap==0.14
 fi
 
 # fetch contrib and build seqan

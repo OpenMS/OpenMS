@@ -51,13 +51,6 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::En
     #   double p_cleave
     #   double p_miss
 
-    # not wrapped due to name clash with Enzyme.h
-    #cdef enum Enzyme:
-    #    # wrap-attach:
-    #    #    EnzymaticDigestion
-    #    TRYPSIN,
-    #    SIZE_OF_TRYPSIN
-
     cdef enum Specificity:
         # wrap-attach:
         #    EnzymaticDigestion
