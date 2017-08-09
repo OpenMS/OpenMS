@@ -35,7 +35,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
@@ -402,7 +402,7 @@ namespace OpenMS
 
   {
     // construct averagine distribution
-    IsotopeDistribution distribution;
+    CoarseID distribution;
     vector<double> averagine_pattern;
     distribution.setMaxIsotope(pattern.size());
     if (averagine_type_ == "peptide")

@@ -36,8 +36,10 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+
 
 #include <iostream>
 
@@ -156,11 +158,11 @@ namespace OpenMS
 
   IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const
   {
-    IsotopeDistribution result(max_depth);
+    CoarseID result(max_depth);
     MapType_::const_iterator it = formula_.begin();
     for (; it != formula_.end(); ++it)
     {
-      IsotopeDistribution tmp = it->first->getIsotopeDistribution();
+      CoarseID tmp = CoarseID(it->first->getIsotopeDistribution());
       tmp.setMaxIsotope(max_depth);
       result += tmp * it->second;
     }
@@ -179,7 +181,7 @@ namespace OpenMS
     IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(max_depth);
     IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(max_depth);
 
-    IsotopeDistribution result;
+    CoarseID result;
     result.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
 
     // Renormalize to make these conditional probabilities (conditioned on the isolated precursor isotopes)

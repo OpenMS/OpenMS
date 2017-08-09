@@ -41,6 +41,7 @@
 #include <algorithm>
 
 #include <OpenMS/CONCEPT/Types.h>
+//#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Base.h>
 
 namespace OpenMS
 {
@@ -48,7 +49,6 @@ namespace OpenMS
   class Element;
   class ElementDB;
   class IsotopeDistribution;
-
   /**
     @ingroup Chemistry
 

@@ -36,7 +36,7 @@
 ///////////////////////////
 
 // This one is going to be tested.
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
 
 ///////////////////////////
 
@@ -118,7 +118,7 @@ START_SECTION(IsotopeDistribution& operator = (const IsotopeDistribution& isotop
 END_SECTION
 
 START_SECTION(void setMaxIsotope(Size max_isotope))
-	IsotopeDistribution iso2;
+	CoarseID iso2;
 	iso2.estimateFromPeptideWeight(1234.2);
 	TEST_EQUAL(iso2.getMaxIsotope(), 0)
 	TEST_EQUAL(iso2.getContainer().size(), 317)
@@ -255,7 +255,7 @@ END_SECTION
 
 START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	// hard to test as this is an rough estimate
-	IsotopeDistribution iso(3);
+	CoarseID iso(3);
 	iso.estimateFromPeptideWeight(100.0);
 	TEST_REAL_SIMILAR(iso.begin()->second, 0.949735)
 
@@ -266,9 +266,9 @@ START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	TEST_REAL_SIMILAR(iso.begin()->second, 0.046495)
 END_SECTION
 
-START_SECTION(void IsotopeDistribution::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::vector<UInt>& precursor_isotopes))
-	IsotopeDistribution iso;
-	IsotopeDistribution iso2;
+START_SECTION(void CoarseID::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::vector<UInt>& precursor_isotopes))
+	CoarseID iso;
+	CoarseID iso2;
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M+2 precursor isotopes
 	precursor_isotopes.insert(2);
@@ -309,9 +309,9 @@ START_SECTION(void IsotopeDistribution::estimateForFragmentFromPeptideWeightAndS
 
 END_SECTION
 
-START_SECTION(void IsotopeDistribution::estimateFromPeptideWeightAndS(double average_weight_precursor, UInt S))
-	IsotopeDistribution iso(3);
-	IsotopeDistribution iso2(3);
+START_SECTION(void CoarseID::estimateFromPeptideWeightAndS(double average_weight_precursor, UInt S))
+	CoarseID iso(3);
+	CoarseID iso2(3);
 	// These are regression tests, but the results also follow an expected pattern.
 
 	// With 0 sulfurs, it should be very unlikely for this tiny peptide to be M+2.
@@ -350,7 +350,7 @@ END_SECTION
 
 START_SECTION(void estimateFromRNAWeight(double average_weight))
     // hard to test as this is an rough estimate
-    IsotopeDistribution iso(3);
+    CoarseID iso(3);
     iso.estimateFromRNAWeight(100.0);
     TEST_REAL_SIMILAR(iso.begin()->second, 0.958166)
 
@@ -364,7 +364,7 @@ END_SECTION
 
 START_SECTION(void estimateFromDNAWeight(double average_weight))
     // hard to test as this is an rough estimate
-    IsotopeDistribution iso(3);
+    CoarseID iso(3);
     iso.estimateFromDNAWeight(100.0);
     TEST_REAL_SIMILAR(iso.begin()->second, 0.958166)
 
@@ -376,7 +376,7 @@ START_SECTION(void estimateFromDNAWeight(double average_weight))
 END_SECTION
 
 START_SECTION(void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
-	IsotopeDistribution iso;
+	CoarseID iso;
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
 	precursor_isotopes.insert(0);
@@ -431,7 +431,7 @@ START_SECTION(void estimateForFragmentFromPeptideWeight(double average_weight_pr
 	// If the fragment is identical to the precursor, then the distribution
 	// should be the same as if it was just a precursor that wasn't isolated.
 	iso.estimateForFragmentFromPeptideWeight(200.0, 200.0, precursor_isotopes);
-	IsotopeDistribution iso_precursor(2);
+	CoarseID iso_precursor(2);
 	iso_precursor.estimateFromPeptideWeight(200.0);
 	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
 
@@ -444,7 +444,7 @@ START_SECTION(void estimateForFragmentFromPeptideWeight(double average_weight_pr
 END_SECTION
 
 START_SECTION(void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
-	IsotopeDistribution iso;
+	CoarseID iso;
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
 	precursor_isotopes.insert(0);
@@ -477,7 +477,7 @@ START_SECTION(void estimateForFragmentFromDNAWeight(double average_weight_precur
 	TEST_REAL_SIMILAR(iso.begin()->second, 0.555730613643729)
 
 	iso.estimateForFragmentFromDNAWeight(200.0, 200.0, precursor_isotopes);
-	IsotopeDistribution iso_precursor(2);
+	CoarseID iso_precursor(2);
 	iso_precursor.estimateFromDNAWeight(200.0);
 	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
 
@@ -490,7 +490,7 @@ START_SECTION(void estimateForFragmentFromDNAWeight(double average_weight_precur
 END_SECTION
 
 START_SECTION(void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
-	IsotopeDistribution iso;
+	CoarseID iso;
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
 	precursor_isotopes.insert(0);
@@ -523,7 +523,7 @@ START_SECTION(void estimateForFragmentFromRNAWeight(double average_weight_precur
 	TEST_REAL_SIMILAR(iso.begin()->second, 0.558201381343203)
 
 	iso.estimateForFragmentFromRNAWeight(200.0, 200.0, precursor_isotopes);
-	IsotopeDistribution iso_precursor(2);
+	CoarseID iso_precursor(2);
 	iso_precursor.estimateFromRNAWeight(200.0);
 	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
 
@@ -537,8 +537,8 @@ END_SECTION
 
 START_SECTION(void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P))
 	// We are testing that the parameterized version matches the hardcoded version.
-	IsotopeDistribution iso(3);
-	IsotopeDistribution iso2(3);
+	CoarseID iso(3);
+	CoarseID iso2(3);
 	std::set<UInt> precursor_isotopes;
 	precursor_isotopes.insert(0);
 	precursor_isotopes.insert(1);
@@ -551,8 +551,8 @@ END_SECTION
 
 START_SECTION(void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
     // We are testing that the parameterized version matches the hardcoded version.
-    IsotopeDistribution iso(3);
-    IsotopeDistribution iso2(3);
+    CoarseID iso(3);
+    CoarseID iso2(3);
     iso.estimateFromWeightAndComp(1000.0, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0.0);
     iso2.estimateFromPeptideWeight(1000.0);
     TEST_EQUAL(iso.begin()->second,iso2.begin()->second);
@@ -639,7 +639,7 @@ START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribut
   precursor_isotopes.insert(0);
   precursor_isotopes.insert(1);
   precursor_isotopes.insert(2);
-  IsotopeDistribution iso3;
+  CoarseID iso3;
   iso3.calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
   iso3.renormalize();
 
@@ -654,7 +654,7 @@ START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribut
   }
 
   precursor_isotopes.erase(precursor_isotopes.find(2));
-  IsotopeDistribution iso4;
+  CoarseID iso4;
   iso4.calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
   iso4.renormalize();
 
@@ -705,7 +705,7 @@ END_SECTION
 delete iso;
 
 
-EmpiricalFormula f("C200");
+EmpiricalFormula f("C2");
 
 START_SECTION(MIDAs(double,EmpiricalFormula&))
 
@@ -713,7 +713,7 @@ START_SECTION(MIDAs(double,EmpiricalFormula&))
   //midas_pol->run();
   //delete midas_pol;
 
-  MIDAs *midas_fft = new MIDAsFFTID(f,0.005);
+  MIDAs *midas_fft = new MIDAsFFTID(f, 0.1);
   midas_fft->run();
   delete midas_fft;
 

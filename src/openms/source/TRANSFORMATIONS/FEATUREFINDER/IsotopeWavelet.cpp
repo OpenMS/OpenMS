@@ -115,7 +115,7 @@ namespace OpenMS
   std::vector<double> IsotopeWavelet::sine_table_;
   double IsotopeWavelet::table_steps_ = 0.0001;
   double IsotopeWavelet::inv_table_steps_ = 1. / table_steps_;
-  IsotopeDistribution IsotopeWavelet::averagine_;
+  CoarseID IsotopeWavelet::averagine_;
   Size IsotopeWavelet::gamma_table_max_index_ = 0;
   Size IsotopeWavelet::exp_table_max_index_ = 0;
 

@@ -2,7 +2,7 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 
-cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Base.h>" namespace "OpenMS":
 
     cdef cppclass IsotopeDistribution:
 

@@ -35,7 +35,8 @@
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
 
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
+//#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Base.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
@@ -253,7 +254,7 @@ namespace OpenMS
     }
 
     // get the theoretical isotope distribution
-    IsotopeDistribution iso_dist(iso_pattern.size());
+    CoarseID iso_dist(iso_pattern.size());
     iso_dist.estimateFromPeptideWeight((it_pos - charge * Constants::PROTON_MASS_U) * charge + Constants::PROTON_MASS_U);
 
     // compare the distribution sizes
@@ -354,7 +355,7 @@ namespace OpenMS
 
 
     // get the theoretical isotope distribution
-    IsotopeDistribution iso_dist(iso_pattern.size());
+    CoarseID iso_dist(UInt(iso_pattern.size()));
     iso_dist.estimateFromPeptideWeight(it_pos * (double)charge - (double)(charge - 1) * Constants::PROTON_MASS_U);
 
     // compare the distribution sizes
@@ -388,8 +389,8 @@ namespace OpenMS
   void CompNovoIonScoringBase::initIsotopeDistributions_()
   {
     double max_mz(param_.getValue("max_mz"));
-    UInt max_isotope(param_.getValue("max_isotope"));
-    IsotopeDistribution iso_dist(max_isotope);
+    Size max_isotope(param_.getValue("max_isotope"));
+    CoarseID iso_dist(max_isotope);
     for (Size i = 1; i <= max_mz; ++i)
     {
       iso_dist.estimateFromPeptideWeight((double)i);
@@ -404,7 +405,7 @@ namespace OpenMS
     }
   }
 
-  void    CompNovoIonScoringBase::updateMembers_()
+  void CompNovoIonScoringBase::updateMembers_()
   {
     fragment_mass_tolerance_ = (double)param_.getValue("fragment_mass_tolerance");
 

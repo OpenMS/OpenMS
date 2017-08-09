@@ -36,7 +36,7 @@
 #define OPENMS_FILTERING_TRANSFORMERS_ISOTOPEMARKER_H
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
 
 #include <map>
 #include <vector>
@@ -102,7 +102,7 @@ public:
         Size j = i + 1;
 
         //std::vector<std::pair<double, double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz, intensity);
-        IsotopeDistribution id;
+        CoarseID id;
         id.estimateFromPeptideWeight(mz);
 
         while (j < spectrum.size() && spectrum[j].getPosition()[0] <= mz + 3 + mzvariation)

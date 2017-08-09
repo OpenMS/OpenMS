@@ -41,13 +41,13 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Base.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -406,7 +406,7 @@ namespace OpenMS
       for (Size index = 0; index < num_isotopes; ++index)
       {
         //if(debug_) log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
-        IsotopeDistribution d;
+        CoarseID d;
         d.setMaxIsotope(max_isotopes);
         d.estimateFromPeptideWeight(0.5 * mass_window_width_ + index * mass_window_width_);
         //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak

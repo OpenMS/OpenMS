@@ -37,7 +37,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEMODEL_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Base.h>
 
 namespace OpenMS
 {

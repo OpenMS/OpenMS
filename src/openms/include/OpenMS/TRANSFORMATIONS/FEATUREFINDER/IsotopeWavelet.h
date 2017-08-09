@@ -37,7 +37,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletConstants.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
 
 namespace OpenMS
 {
@@ -248,7 +248,7 @@ protected:
     static std::vector<double> sine_table_;
 
     /** Internally used averagine model. */
-    static IsotopeDistribution averagine_;
+    static CoarseID averagine_;
 
     static Size gamma_table_max_index_;
     static Size exp_table_max_index_;

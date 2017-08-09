@@ -39,7 +39,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Base.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 using namespace OpenMS;
