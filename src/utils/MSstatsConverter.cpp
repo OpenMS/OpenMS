@@ -74,7 +74,6 @@ public:
 
   static const String param_in_consensusxml;
   static const String param_in_experimental_design;
-  //static const String param_in_identification;
   static const String param_out;
   static const String param_labeled_reference_peptides;
 
@@ -119,7 +118,7 @@ protected:
 
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **) override
-      {
+  {
     // Read the experimental design file and validate the format
     CsvFile file_experimental_design;
     file_experimental_design.fload(this->getStringOption_(TOPPMSstatsConverter::param_in_experimental_design));
@@ -286,7 +285,6 @@ protected:
     // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
     String isotope_label_type = this->getFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides) ? "H" : "L";
 
-
     // Keeps track of precursor charges and accessions of a peptide sequence to avoid duplicate lines in output
     String previous_sequence = "";
     std::set< Int > previous_precursor_charges;
@@ -314,7 +312,6 @@ protected:
           std::set< Size > const & indices = edkey_to_rowindex[filename];
           runs.insert(indices.begin(), indices.end());
         }
-
 
         for (auto const & pep_hit : pep_id.getHits())
         {
@@ -382,9 +379,9 @@ protected:
                                     + ',' + frag_charge
                                     + ',' + isotope_label_type
                                     + ',' + line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_condition]]
-                                                 + ',' + line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_bioreplicate]]
-                                                              + ',' + line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_run]]
-                                                                           + ',' + intensity);
+                                    + ',' + line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_bioreplicate]]
+                                    + ',' + line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_run]]
+                                    + ',' + intensity);
                   previous_prot_accs.insert(accession);
                   previous_precursor_charges.insert(precursor_charge);
                 }
@@ -397,13 +394,11 @@ protected:
     // Store the final assembled CSV file
     csv_out.store(this->getStringOption_(TOPPMSstatsConverter::param_out));
     return EXECUTION_OK;
-      }
-
+   }
 };
 
 const String TOPPMSstatsConverter::param_in_consensusxml = "in";
 const String TOPPMSstatsConverter::param_in_experimental_design = "in_experimental_design";
-//const String TOPPMSstatsConverter::param_in_identification = "in_identification";
 const String TOPPMSstatsConverter::param_out = "out";
 const String TOPPMSstatsConverter::na_string = "NA";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
