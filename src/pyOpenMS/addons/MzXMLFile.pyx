@@ -23,9 +23,9 @@
         finally:
             del consumer
 
-cdef _wrap_MSSpectrum_mzxml(const _MSSpectrum[_Peak1D] & _spec):
+cdef _wrap_MSSpectrum_mzxml(const _MSSpectrum & _spec):
     cdef MSSpectrum spec = MSSpectrum.__new__(MSSpectrum)
-    spec.inst = shared_ptr[_MSSpectrum[_Peak1D]](new _MSSpectrum[_Peak1D](_spec))
+    spec.inst = shared_ptr[_MSSpectrum](new _MSSpectrum(_spec))
     return spec
 
 
