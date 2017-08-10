@@ -63,18 +63,18 @@ namespace OpenMS
         ++matches;
         ++t;  // count theoretical peak only once
       }
-      else if (d < 0) // theo peak is left of exp. peak (outside of tolerance window)
+      else if (d < 0) // exp. peak is left of theo. peak (outside of tolerance window)
       {
         total_intensity += exp_spectrum[e].getIntensity();
         ++e; 
       }
-      else if (d > 0) // theo peak is right of exp. peak (outside of tolerance window)
+      else if (d > 0) // theo. peak is left of exp. peak (outside of tolerance window)
       {
         ++t;
       }
     }
 
-    while (e < n_e) { total_intensity += exp_spectrum[e].getIntensity(); ++e; }
+    for (; e < n_e; ++e) { total_intensity += exp_spectrum[e].getIntensity(); }
 
     // similar to above but we now make sure that the intensity of every matched experimental peak is summed up to form match_intensity
     t = 0; 
@@ -92,11 +92,11 @@ namespace OpenMS
         match_intensity += exp_spectrum[e].getIntensity();
         ++e; // sum up experimental peak intensity only once
       }
-      else if (d < 0) // theo peak is left of exp. peak (outside of tolerance window)
+      else if (d < 0) // exp. peak is left of theo. peak (outside of tolerance window)
       {
         ++e; 
       }
-      else if (d > 0) // theo peak is right of exp. peak (outside of tolerance window)
+      else if (d > 0) // theo. peak is left of exp. peak (outside of tolerance window)
       {
         ++t;
       }
