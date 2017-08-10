@@ -258,8 +258,8 @@ protected:
         LOG_ERROR << "ERROR: ProteinIdentification does not have meta value for original file. Cannot continue!" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
-
-      for (auto const & meta_value : protein_identification.getMetaValue(TOPPMSstatsConverter::meta_value_exp_design_key).toStringList())
+      const StringList & exp_design_key = protein_identification.getMetaValue(TOPPMSstatsConverter::meta_value_exp_design_key).toStringList();
+      for (auto const & meta_value : exp_design_key)
       {
         // Split the identifier by path separator character
         std::vector< std::string > strs;
