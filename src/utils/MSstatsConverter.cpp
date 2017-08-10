@@ -128,14 +128,14 @@ protected:
     std::map< String, Size > columnname_to_columnindex;
 
     {
-      Size const n_lines = file_experimental_design.rowCount();
+      const Size n_lines = file_experimental_design.rowCount();
       std::set < String > headers = {
           TOPPMSstatsConverter::msstats_header_filename,
           TOPPMSstatsConverter::msstats_header_bioreplicate,
           TOPPMSstatsConverter::msstats_header_run,
           TOPPMSstatsConverter::msstats_header_condition
       };
-      Size const headers_size = headers.size();
+      const Size headers_size = headers.size();
 
       // Go to the header line in the read file
       Size i = 0;
@@ -152,7 +152,7 @@ protected:
 
         std::set< String > col_set;
         col_set.insert(line.begin(), line.end());
-        Size const n_cols = col_set.size();
+        const Size n_cols = col_set.size();
         assert(n_cols > 0);
 
         // Compare the encountered column names with the expected ones
@@ -192,7 +192,7 @@ protected:
         }
         else
         {
-          for (auto const & entry: diff)
+          for (const auto & entry: diff)
           {
             LOG_ERROR << " " << entry;
           }
@@ -219,7 +219,7 @@ protected:
               << (i + 1) << ". Have: "  << line.size() << ". Expected: " << headers_size << std::endl;
           return ILLEGAL_PARAMETERS;
         }
-        String const & filename = line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_filename]];
+        const String & filename = line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_filename]];
         edkey_to_rowindex[filename].insert(i);
       }
     }
@@ -228,7 +228,7 @@ protected:
     if (this->debug_level_ > 0)
     {
       this->writeDebug_("Experimental Design Columns:", 1);
-      for (auto const & columnname : columnname_to_columnindex)
+      for (const auto & columnname : columnname_to_columnindex)
       {
         this->writeDebug_(columnname.first + " : " + columnname.second, 1);
       }
@@ -248,9 +248,9 @@ protected:
 
     // Iterate protein identifications and collect spectra_data metavalue and ID
     std::map< String, std::set< String> > protid_to_filenames;
-    for (auto const & protein_identification : consensus_map.getProteinIdentifications())
+    for (const auto & protein_identification : consensus_map.getProteinIdentifications())
     {
-      String const & identifier = protein_identification.getIdentifier();
+      const String & identifier = protein_identification.getIdentifier();
 
       if (protein_identification.metaValueExists(TOPPMSstatsConverter::meta_value_exp_design_key) == false)
       {
@@ -258,7 +258,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
       const StringList & exp_design_key = protein_identification.getMetaValue(TOPPMSstatsConverter::meta_value_exp_design_key).toStringList();
-      for (auto const & meta_value : exp_design_key)
+      for (const auto & meta_value : exp_design_key)
       {
         protid_to_filenames[identifier].insert(File::basename(meta_value));
       }
@@ -285,18 +285,18 @@ protected:
     std::set< Int > previous_precursor_charges;
     std::set< String > previous_prot_accs;
 
-    for (auto const & consensus_feature : consensus_map)
+    for (const auto & consensus_feature : consensus_map)
     {
       Peak2D::IntensityType intensity = consensus_feature.getIntensity();
       assert(intensity > 0);
 
-      for (auto const & pep_id : consensus_feature.getPeptideIdentifications())
+      for (const auto & pep_id : consensus_feature.getPeptideIdentifications())
       {
         // Get runs that belong to this identifier
         std::set< Size > runs;
         assert(protid_to_filenames.find(pep_id.getIdentifier()) != protid_to_filenames.end());
 
-        for (auto const & filename : protid_to_filenames[pep_id.getIdentifier()])
+        for (const auto & filename : protid_to_filenames[pep_id.getIdentifier()])
         {
           // Test whether the experimental design specifies the encountered filename
           if (edkey_to_rowindex.find(filename) == edkey_to_rowindex.end())
@@ -304,25 +304,25 @@ protected:
             LOG_ERROR << "ERROR: Experimental design does not contain information on file " << filename << ". Cannot continue!" << std::endl;
             return ILLEGAL_PARAMETERS;
           }
-          std::set< Size > const & indices = edkey_to_rowindex[filename];
+          const std::set< Size > & indices = edkey_to_rowindex[filename];
           runs.insert(indices.begin(), indices.end());
         }
 
-        for (auto const & pep_hit : pep_id.getHits())
+        for (const auto & pep_hit : pep_id.getHits())
         {
-          std::vector< PeptideHit::PeakAnnotation > const & original_fragment_annotations = pep_hit.getPeakAnnotations();
-          std::vector< PeptideEvidence > const & original_peptide_evidences = pep_hit.getPeptideEvidences();
+          const std::vector< PeptideHit::PeakAnnotation > & original_fragment_annotations = pep_hit.getPeakAnnotations();
+          const std::vector< PeptideEvidence > & original_peptide_evidences = pep_hit.getPeptideEvidences();
 
           // Decide whether to use original or placeholder iterator
-          std::vector< PeptideHit::PeakAnnotation > const & fragment_annotations = (original_fragment_annotations.size() == 0) ? placeholder_fragment_annotations : original_fragment_annotations;
-          std::vector< PeptideEvidence> const & peptide_evidences = (original_peptide_evidences.size() == 0) ? placeholder_peptide_evidences : original_peptide_evidences;
+          const std::vector< PeptideHit::PeakAnnotation > & fragment_annotations = (original_fragment_annotations.size() == 0) ? placeholder_fragment_annotations : original_fragment_annotations;
+          const std::vector< PeptideEvidence> & peptide_evidences = (original_peptide_evidences.size() == 0) ? placeholder_peptide_evidences : original_peptide_evidences;
 
           // Variables of the peptide hit
           // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
-          Int const precursor_charge = std::max(pep_hit.getCharge(), 0);
+          const Int precursor_charge = std::max(pep_hit.getCharge(), 0);
 
           // Have to combine all fragment annotations with all peptide evidences
-          for (auto const & frag_ann : fragment_annotations)
+          for (const auto & frag_ann : fragment_annotations)
           {
             String fragment_ion = TOPPMSstatsConverter::na_string;
 
@@ -341,19 +341,19 @@ protected:
                 }
               }
             }
-            Int const frag_charge = std::max(frag_ann.charge, 0);
+            const Int frag_charge = std::max(frag_ann.charge, 0);
 
-            for (auto const & pep_ev : peptide_evidences)
+            for (const auto & pep_ev : peptide_evidences)
             {
               // Try to extract the FragmentIon value from the fragment annotation
               // Write new line for each protein accession and for each run
-              for (auto const & index : runs)
+              for (const auto & index : runs)
               {
                 std::vector< String > line;
                 file_experimental_design.getRow(index, line);
 
-                String const & accession = pep_ev.getProteinAccession();
-                String const & sequence = pep_hit.getSequence().toUnmodifiedString();
+                const String & accession = pep_ev.getProteinAccession();
+                const String & sequence = pep_hit.getSequence().toUnmodifiedString();
 
                 // The peptide sequence has changed, the charges and accessions of the previous peptide can be removed
                 if (sequence != previous_sequence)
