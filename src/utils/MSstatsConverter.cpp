@@ -319,7 +319,7 @@ protected:
 
           // Variables of the peptide hit
           // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
-          const Int precursor_charge = std::max(pep_hit.getCharge(), 0);
+          const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
 
           // Have to combine all fragment annotations with all peptide evidences
           for (const auto & frag_ann : fragment_annotations)
@@ -341,7 +341,7 @@ protected:
                 }
               }
             }
-            const Int frag_charge = std::max(frag_ann.charge, 0);
+            const Int frag_charge = (std::max)(frag_ann.charge, 0);
 
             for (const auto & pep_ev : peptide_evidences)
             {
