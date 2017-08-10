@@ -36,9 +36,8 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-
+#include <OpenMS/SYSTEM/File.h>
 #include <regex>
-#include <boost/algorithm/string.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -261,11 +260,7 @@ protected:
       const StringList & exp_design_key = protein_identification.getMetaValue(TOPPMSstatsConverter::meta_value_exp_design_key).toStringList();
       for (auto const & meta_value : exp_design_key)
       {
-        // Split the identifier by path separator character
-        std::vector< std::string > strs;
-        boost::split(strs, meta_value, boost::is_any_of("/\\"));
-        assert(strs.empty() == false);
-        protid_to_filenames[identifier].insert(strs.back());
+        protid_to_filenames[identifier].insert(File::basename(meta_value));
       }
     }
 
