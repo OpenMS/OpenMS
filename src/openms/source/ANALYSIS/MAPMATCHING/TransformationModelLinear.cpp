@@ -135,9 +135,32 @@ namespace OpenMS
     }
     intercept_ = -intercept_ / slope_;
     slope_ = 1.0 / slope_;
+    
+    // invert the weights:
+    double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
+    std::string x_weight, y_weight;
+    x_weight = x_weight_;
+    y_weight = y_weight_;
+    x_datum_min = x_datum_min_;
+    x_datum_max = x_datum_max_;
+    y_datum_min = y_datum_min_;
+    y_datum_max = y_datum_max_;
+    x_weight_ = y_weight;
+    y_weight_ = x_weight;
+    x_datum_min_ = y_datum_min;
+    x_datum_max_ = y_datum_max;
+    y_datum_min_ = x_datum_min;
+    y_datum_max_ = x_datum_max;
+
     // update parameters:
     params_.setValue("slope", slope_);
     params_.setValue("intercept", intercept_);
+    params_.setValue("x_weight", x_weight_);
+    params_.setValue("y_weight", y_weight_);
+    params_.setValue("x_datum_min", x_datum_min_);
+    params_.setValue("x_datum_max", x_datum_max_);
+    params_.setValue("y_datum_min", y_datum_min_);
+    params_.setValue("y_datum_max", y_datum_max_);
   }
 
   void TransformationModelLinear::getParameters(double& slope, double& intercept, std::string& x_weight, std::string& y_weight, double& x_datum_min, double& x_datum_max, double& y_datum_min, double& y_datum_max) const

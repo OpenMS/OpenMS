@@ -134,7 +134,7 @@ START_SECTION((void getParameters(Param & params) const))
 END_SECTION
 
 START_SECTION(([EXTRA] void getParameters(double&, double&, std::string&, std::string&, double&, double&, double&, double&)))
-{ //update 1
+{
   Param param;
   param.setValue("slope", 12.3);
   param.setValue("intercept", -45.6);  
@@ -159,6 +159,53 @@ START_SECTION(([EXTRA] void getParameters(double&, double&, std::string&, std::s
   TEST_REAL_SIMILAR(param.getValue("x_datum_max"), x_datum_max);
   TEST_REAL_SIMILAR(param.getValue("y_datum_min"), y_datum_min);
   TEST_REAL_SIMILAR(param.getValue("y_datum_max"), y_datum_max);
+}
+END_SECTION
+
+START_SECTION((TransformationModelLinear(const DataPoints &, const Param &)))
+{
+  // weighting/unweighting test 1
+  // set-up the parameters
+  Param param; 
+  std::string x_weight_test, y_weight_test;
+  x_weight_test = "ln(x)";
+  y_weight_test = "ln(y)";
+  param.setValue("x_weight", x_weight_test);
+  param.setValue("y_weight", y_weight_test);
+  param.setValue("x_datum_min", 1e-15);
+  param.setValue("x_datum_max", 1e8);
+  param.setValue("y_datum_min", 1e-8);
+  param.setValue("y_datum_max", 1e15);
+
+  // set-up the data and test
+  TransformationModel::DataPoints data1;
+  data1.clear();
+  data1.push_back(make_pair(1, 2));
+  data1.push_back(make_pair(2, 4));
+  data1.push_back(make_pair(4, 8)); 
+
+  // test evaluate
+  TransformationModelLinear lm(data1, param);
+  TEST_REAL_SIMILAR(lm.evaluate(2),4);
+
+  // test evaluate using the inverted model
+  lm.invert();
+  TEST_REAL_SIMILAR(lm.evaluate(4),2);
+
+  // weighting/unweighting test 2
+  // set-up the parameters
+  x_weight_test = "1/x";
+  y_weight_test = "";
+  param.setValue("x_weight", x_weight_test);
+  param.setValue("y_weight", y_weight_test);
+
+  // test evaluate
+  TransformationModelLinear lm1(data1, param);
+  TEST_REAL_SIMILAR(lm1.evaluate(2),5.285714286);
+
+  // test evaluate using the inverted model
+  lm1.invert();
+  TEST_REAL_SIMILAR(lm1.evaluate(5.285714286),2);
 }
 END_SECTION
 
