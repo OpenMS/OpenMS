@@ -598,7 +598,7 @@ protected:
     double best_localization_score;
     String localization_scores;
     String best_localization;  
-    String fragment_annotation_string;
+    String fragment_annotation_string; // for visualizaion in Proteome Discoverer
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
     {
@@ -1332,6 +1332,7 @@ protected:
 
           if (alignment.empty()) 
           {
+            std::sort(fa_strings.begin(), fa_strings.end());
             a_it->fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
             a_it->fragment_annotations = fas;
             continue;
@@ -1661,6 +1662,7 @@ protected:
             fas.insert(fas.end(), annotated_precursor_ions.begin(), annotated_precursor_ions.end());
           }
 
+          std::sort(fa_strings.begin(), fa_strings.end());
           a_it->fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
           a_it->fragment_annotations = fas;
 
