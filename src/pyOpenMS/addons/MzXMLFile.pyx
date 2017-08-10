@@ -29,9 +29,9 @@ cdef _wrap_MSSpectrum_mzxml(const _MSSpectrum & _spec):
     return spec
 
 
-cdef _wrap_MSChromatogram_mzxml(const _MSChromatogram[_ChromatogramPeak] & _chromo):
+cdef _wrap_MSChromatogram_mzxml(const _MSChromatogram & _chromo):
     cdef MSChromatogram chromo = MSChromatogram.__new__(MSChromatogram)
-    chromo.inst = shared_ptr[_MSChromatogram[_ChromatogramPeak]](new _MSChromatogram[_ChromatogramPeak](_chromo))
+    chromo.inst = shared_ptr[_MSChromatogram](new _MSChromatogram(_chromo))
     return chromo
 
 
