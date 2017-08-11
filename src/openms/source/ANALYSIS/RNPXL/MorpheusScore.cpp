@@ -53,6 +53,7 @@ namespace OpenMS
     Size t(0), e(0), matches(0);
     double total_intensity(0);
 
+    // count matching peaks and make sure that every theoretical peak is matched at most once
     while (t < n_t && e < n_e)
     {
       const double theo_mz = theo_spectrum[t].getMZ();
@@ -62,22 +63,22 @@ namespace OpenMS
       if (abs(d) <= max_dist_dalton) // match in tolerance window? 
       {
         ++matches;
-        ++t;
+        ++t;  // count theoretical peak only once
       }
-      else if (d < 0) // theo peak is left of exp. peak (outside of tolerance window)
+      else if (d < 0) // exp. peak is left of theo. peak (outside of tolerance window)
       {
         total_intensity += exp_spectrum[e].getIntensity();
         ++e; 
       }
-      else if (d > 0) // theo peak is right of exp. peak (outside of tolerance window)
+      else if (d > 0) // theo. peak is left of exp. peak (outside of tolerance window)
       {
         ++t;
       }
     }
 
-    while (e < n_e) { total_intensity += exp_spectrum[e].getIntensity(); ++e; }
+    for (; e < n_e; ++e) { total_intensity += exp_spectrum[e].getIntensity(); }
 
-    // similar to above but we now make sure that every experimental peak intensity is summed up
+    // similar to above but we now make sure that the intensity of every matched experimental peak is summed up to form match_intensity
     t = 0; 
     e = 0;
     double match_intensity(0);
@@ -90,14 +91,14 @@ namespace OpenMS
       const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
       if (abs(d) <= max_dist_dalton) // match in tolerance window? 
       {
-        match_intensity += exp_spectrum[e].getIntensity();;
-        ++e;
+        match_intensity += exp_spectrum[e].getIntensity();
+        ++e; // sum up experimental peak intensity only once
       }
-      else if (d < 0) // theo peak is left of exp. peak (outside of tolerance window)
+      else if (d < 0) // exp. peak is left of theo. peak (outside of tolerance window)
       {
         ++e; 
       }
-      else if (d > 0) // theo peak is right of exp. peak (outside of tolerance window)
+      else if (d > 0) // theo. peak is left of exp. peak (outside of tolerance window)
       {
         ++t;
       }
