@@ -562,7 +562,7 @@ class CVTermMapConverter(TypeConverterBase):
         return "Map",
 
     def matches(self, cpp_type):
-        print(str(cpp_type), "Map[String,libcpp_vector[CVTerm]]")
+        # print(str(cpp_type), "Map[String,libcpp_vector[CVTerm]]")
         return str(cpp_type) == "Map[String,libcpp_vector[CVTerm]]" \
            or  str(cpp_type) == "Map[String,libcpp_vector[CVTerm]] &"
 

@@ -1370,7 +1370,7 @@ namespace OpenMS
       std::vector<double> RTs;
       int rank = 0;
       int charge = 0;
-      vector<PeptideHit::FragmentAnnotation> frag_annotations;
+      vector<PeptideHit::PeakAnnotation> frag_annotations;
 
       double xcorrx = 0;
       double xcorrc = 0;
@@ -1609,7 +1609,7 @@ namespace OpenMS
               {
                 String annotation= "[" + chains[s] + "|" + categories[s]  + "$" + frag_type + indices[s] + loss + "]";
 
-                PeptideHit::FragmentAnnotation frag_anno;
+                PeptideHit::PeakAnnotation frag_anno;
                 frag_anno.charge = ion_charge;
                 frag_anno.mz = positions[s].toDouble();
                 frag_anno.intensity = intensities[s].toDouble();
@@ -1737,7 +1737,7 @@ namespace OpenMS
         }
       }
 
-      ph_alpha.setFragmentAnnotations(frag_annotations);
+      ph_alpha.setPeakAnnotations(frag_annotations);
 
       if (xl_type == "loop-link")
       {

@@ -15,6 +15,25 @@ function build_contrib {
   fi
 }
 
+if [ "${PYOPENMS}" = "ON" ]; then
+  # Note: ensure that cmake uses the same python!
+  which pip
+  which python
+
+  # small patch to accelerate build
+  pwd
+  ls src/pyOpenMS/create_cpp_extension.py
+  sed -i 's/import time/import time\nPY_NUM_THREADS=4/g' src/pyOpenMS/create_cpp_extension.py
+
+  pip install -U setuptools
+  pip install -U pip
+  pip install -U nose
+  pip install -U numpy
+  pip install -U wheel
+  pip install -U Cython
+  pip install -U autowrap==0.14
+fi
+
 # fetch contrib and build seqan
 git clone git://github.com/OpenMS/contrib/
 pushd contrib
@@ -33,6 +52,7 @@ build_contrib SQLITE
 
 # leave contrib
 popd
+
 
 # build custom cppcheck if we want to perform style tests
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then

@@ -8,7 +8,8 @@ from ResidueModification cimport *
 cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
     
     cdef cppclass CrossLinksDB:
-        # wrap-manual-memory
+        # wrap-manual-memory:
+        #     cdef AutowrapPtrHolder[_CrossLinksDB] inst
 
         CrossLinksDB(CrossLinksDB) nogil except + #wrap-ignore
 

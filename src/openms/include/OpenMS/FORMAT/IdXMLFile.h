@@ -129,6 +129,19 @@ protected:
       */
     static String createPositionXMLString_(const std::vector<PeptideEvidence> & pes);
 
+
+    /**
+      * Helper function to write out fragment annotations as user param fragment_annotation
+      */  
+    static void writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
+                                          std::vector<PeptideHit::PeakAnnotation> annotations, UInt indent); 
+
+    /**
+      * Helper function to parse fragment annotations from string
+      */  
+    static void parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::PeakAnnotation> & annotations);
+    
+
     /// @name members for loading data
     //@{
     /// Pointer to fill in protein identifications

@@ -8,6 +8,7 @@ cdef extern from "python_ms_data_consumer.hpp":
 
     cdef cppclass PythonMSDataConsumer(IMSDataConsumer[Peak1D, ChromatogramPeak]):
         # wrap-ignore
+        # no-pxd-import
 
         PythonMSDataConsumer(object py_consumer,
                              object (*spectrum_wrapper)(const MSSpectrum[Peak1D] &),

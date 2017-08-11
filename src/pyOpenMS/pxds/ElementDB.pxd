@@ -8,7 +8,8 @@ from IsotopeDistribution cimport *
 cdef extern from "<OpenMS/CHEMISTRY/ElementDB.h>" namespace "OpenMS":
     
     cdef cppclass ElementDB "OpenMS::ElementDB":
-        # wrap-manual-memory
+        # wrap-manual-memory:
+        #    cdef AutowrapConstPtrHolder[_ElementDB] inst
 
         ElementDB(ElementDB) nogil except + #wrap-ignore
 
