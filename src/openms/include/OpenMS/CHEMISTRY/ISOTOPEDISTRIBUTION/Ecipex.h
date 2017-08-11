@@ -23,22 +23,24 @@ namespace OpenMS
         number of values, if the mass value is large!
     */
 
-  class OPENMS_DLLAPI Ecipex : public MIDAs
+  class OPENMS_DLLAPI Ecipex : public IsotopeDistribution
   {
   public:
     typedef ContainerType Spectrum;
-   
-    Ecipex(EmpiricalFormula&, double, UInt);
+    using IsotopeDistribution::operator[];
+    Ecipex(EmpiricalFormula& formula, double threshold, double fft_threshold);
     Ecipex();
     Ecipex(const IsotopeDistribution& isotope_distribution);
     
     void sortAndNormalize();
     void computeIsotopePattern(double threshold, double fft_threshold);
     void run();
-    ContainerType elementIsotopePattern(const Spectrum& iso_pattern, UInt size, double fft_threshold);
-    ContainerType convolve(const ContainerType& spectrum, double threshold);
-
-
+    Ecipex elementIsotopePattern(const Spectrum& iso_pattern, UInt size, double fft_threshold);
+    void convolve(IsotopeDistribution& spectrum, double threshold);
+  private:
+    EmpiricalFormula formula_;
+    double fft_threshold_;
+    double threshold_;
   };
 
 

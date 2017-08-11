@@ -151,20 +151,20 @@ namespace OpenMS
     distribution_.erase(
       remove_if(distribution_.begin(),
                 distribution_.end(),
-                [&cutoff](MassAbundance& sample)
+                [&cutoff](const MassAbundance& sample)
                 {
-                  return sample.second > cutoff;
-                }));
+                  return sample.second < cutoff;
+                }), distribution_.end());
   }
 
-  void IsotopeDistribution::sort_(function<bool(pair<Mass, Abundance>&, pair<Mass, Abundance>&)> sorter)
+  void IsotopeDistribution::sort_(function<bool(const MassAbundance& p1, const MassAbundance& p2)> sorter)
   {
     sort(distribution_.begin(), distribution_.end(), sorter);
   }
 
   void IsotopeDistribution::sortByIntensity()
   {
-    sort_([](MassAbundance& p1, MassAbundance& p2){
+    sort_([](const MassAbundance& p1, const MassAbundance& p2){
         return p1.second > p2.second;
       });
   }
@@ -254,6 +254,25 @@ namespace OpenMS
       }
     }
   }
+
+  bool IsotopeDistribution::isNormalized() const
+  {
+    return distribution_.front().second == 1.0 && 
+      is_sorted(distribution_.begin(), distribution_.end(),[](const MassAbundance& fr1, const MassAbundance& fr2){
+          return fr1.second > fr2.second;
+        });
+  }
+
+  bool IsotopeDistribution::isConvolutionUnit() const
+  { 
+    return distribution_.size() == 1  && distribution_.front().first == 0.0;
+  }
+
+  IsotopeDistribution::ContainerType& IsotopeDistribution::data()
+  {
+    return distribution_;
+  }
+
 
   inline bool desc_prob(const struct MIDAsPolynomialID::PMember& p0, const struct MIDAsPolynomialID::PMember& p)
   {

@@ -96,6 +96,19 @@ public:
     typedef ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
+
+    enum Sorted { intensity, mass, undefined};
+    ///TBD if this is more maintainable
+    struct SpectrumFragment
+    {
+     SpectrumFragment(Mass& mass, Abundance& abundance):
+      mw(mass), intensity(abundance)
+      {}
+      Mass& mw; 
+      Abundance& intensity;
+    };
+
+
     /// @name Constructors and Destructors
     //@{
     /** Default constructor, note max_isotope must be set later
@@ -176,6 +189,13 @@ public:
             Do consider normalising the distribution afterwards.
     */
     void trimLeft(double cutoff);
+
+
+    
+    bool isNormalized() const;
+
+
+    bool isConvolutionUnit() const;
     //@}
 
     /// @name Operators
@@ -209,7 +229,7 @@ public:
     inline ConstReverseIterator rend() const { return distribution_.rend(); }
     //@}
 
-    /// @name Dummy Operators
+    /// @name Convolutional Dummy Operators
     //@{
     /// operator which adds this distribution and the @p isotope_distribution to return IsotopeDisribution (similar to convolve distributions)
     IsotopeDistribution operator+(const IsotopeDistribution & isotope_distribution) const;
@@ -225,9 +245,20 @@ public:
     //@}
 
 
+    /// @name Data Access Operators
+    //@{
+    /// operator which access a cell of the distribution and wraps it in SpectrumFragment struct
+    SpectrumFragment operator[](const UInt64& index){ return SpectrumFragment(distribution_[index].first, distribution_[index].second);}
+    
+    ///
+    ContainerType& data();
+
+    //@}
+
+
 protected:   
 
-    void sort_(std::function<bool(MassAbundance&, MassAbundance&)> sorter);
+    void sort_(std::function<bool(const MassAbundance& p1, const MassAbundance& p2)> sorter);
 
     void transform_(std::function<void(MassAbundance&)> lambda);
 
@@ -236,6 +267,9 @@ protected:
 
     /// stores the isotope distribution
     ContainerType distribution_;
+
+    ///Holds if the distribution is sorted
+    Sorted sort_type;
   };
 
   class OPENMS_DLLAPI MIDAs : public IsotopeDistribution

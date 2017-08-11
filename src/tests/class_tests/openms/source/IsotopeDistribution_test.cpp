@@ -37,6 +37,7 @@
 
 // This one is going to be tested.
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Ecipex.h>
 
 ///////////////////////////
 
@@ -705,7 +706,7 @@ END_SECTION
 delete iso;
 
 
-EmpiricalFormula f("C2");
+EmpiricalFormula f("CH200");
 
 START_SECTION(MIDAs(double,EmpiricalFormula&))
 
@@ -713,9 +714,13 @@ START_SECTION(MIDAs(double,EmpiricalFormula&))
   //midas_pol->run();
   //delete midas_pol;
 
-  MIDAs *midas_fft = new MIDAsFFTID(f, 0.1);
-  midas_fft->run();
-  delete midas_fft;
+  Ecipex* ecipex = new Ecipex(f, 0.00001, 0.00001);
+  ecipex->run();
+  for(auto& sample: ecipex->data())
+  {
+    std::cout << sample.first <<" " << sample.second << endl;
+  }
+  delete ecipex;
 
 END_SECTION
 
