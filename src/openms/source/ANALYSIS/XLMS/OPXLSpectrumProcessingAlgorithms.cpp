@@ -380,10 +380,13 @@ namespace OpenMS
     {
       PeakSpectrum out;
       PeakSpectrum::IntegerDataArray charge_array;
+      PeakSpectrum::IntegerDataArray num_iso_peaks;
       charge_array.setName("Charges");
+      num_iso_peaks.setName("NumIsoPeaks");
 
       vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
       vector<double> mono_iso_peak_intensity(old_spectrum.size(), 0);
+      vector<Size> iso_peak_count(old_spectrum.size(), 0);
       if (old_spectrum.empty())
       {
         return out;
@@ -440,6 +443,7 @@ namespace OpenMS
                 // averagine check passed
                 extensions.push_back(p);
                 mono_iso_peak_intensity[current_peak] += old_spectrum[p].getIntensity();
+                iso_peak_count[current_peak] = i;
               }
             }
 
@@ -471,6 +475,9 @@ namespace OpenMS
             continue;
           }
 
+          // add the number of peaks in the isotopic pattern to the data array
+          num_iso_peaks.push_back(iso_peak_count[i]);
+
           // if already single charged or no decharging selected keep peak as it is
           if (!make_single_charged)
           {
@@ -491,6 +498,9 @@ namespace OpenMS
         }
         else
         {
+          // add the number of peaks in the isotopic pattern to the data array
+          num_iso_peaks.push_back(iso_peak_count[i]);
+
           // keep all unassigned peaks
           if (features[i] < 0)
           {
@@ -537,6 +547,7 @@ namespace OpenMS
       out.setName(old_spectrum.getName());
 
       out.getIntegerDataArrays().push_back(charge_array);
+      out.getIntegerDataArrays().push_back(num_iso_peaks);
 
 //      out.sortByPosition();
       return out;
