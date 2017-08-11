@@ -124,15 +124,6 @@ public:
   /// Number of maps
   Size numMaps() const;
 
-  /// RT tolerance
-  double rtTolerance() const;
-
-  /// mz tolerance
-  double mzTolerance() const;
-
-  /// mz tolerance ppm?
-  bool mzPPM() const;
-
   /// Clear all data
   void clear();
 
@@ -140,7 +131,7 @@ public:
   void optimizeTree();
 
   /// Fill @p result with indices of all features compatible (wrt. RT, m/z, map index) to the feature with @p index
-  void getNeighborhood(Size index, std::vector<Size>& result_indices, bool include_features_from_same_map = false, double max_pairwise_log_fc = -1.0) const;
+  void getNeighborhood(Size index, std::vector<Size>& result_indices, double rt_tol, double mz_tol, bool mz_ppm, bool include_features_from_same_map = false, double max_pairwise_log_fc = -1.0) const;
 
   /// Fill @p result with indices of all features within the specified boundaries
   void queryRegion(double rt_low, double rt_high, double mz_low, double mz_high, std::vector<Size>& result_indices, Size ignored_map_index = std::numeric_limits<Size>::max()) const;
@@ -160,15 +151,6 @@ protected:
 
   /// (Potentially transformed) retention times
   std::vector<double> rt_;
-
-  /// RT tolerance in seconds
-  double rt_tol_secs_;
-
-  /// m/z tolerance in ppm or Da
-  double mz_tol_;
-
-  /// m/z tolerance unit ppm?
-  bool mz_ppm_;
 
   /// Number of maps
   Size num_maps_;

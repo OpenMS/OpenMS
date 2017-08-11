@@ -768,7 +768,15 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_pos2", DataValue(beta_pos));
       }
 
-
+      // Error calculation
+      double weight = seq_alpha.getMonoWeight() + top_csms_spectrum[i].cross_link.cross_linker_mass;
+      if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
+      {
+        weight += top_csms_spectrum[i].cross_link.beta.getMonoWeight();
+      }
+      double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
+      double error = precursor_mz - theo_mz;
+      double rel_error = (error / theo_mz) / 1e-6;
 
       String alpha_term = "ANYWHERE";
       if (alpha_term_spec == ResidueModification::N_TERM)
@@ -810,6 +818,7 @@ namespace OpenMS
         ph_alpha.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
         ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
       }
+      ph_alpha.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
 
       ph_alpha.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
       ph_alpha.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
@@ -852,6 +861,7 @@ namespace OpenMS
           ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
           ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
         }
+        ph_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
 
         ph_beta.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
         ph_beta.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);

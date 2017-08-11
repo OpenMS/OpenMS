@@ -148,7 +148,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 11, 0))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 13, 1))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -163,7 +163,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.11.0 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.13.1 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -369,7 +369,15 @@ endif()
 find_boost()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
-
+#  1 thread for compilation and using 8 modules seems like a reasonable number
+#  for now -- note that you need change __init__.py if you change the number of
+#  modules...
+if(NOT PY_NUM_THREADS)
+  set(PY_NUM_THREADS 1)
+endif()
+if(NOT PY_NUM_MODULES)
+  set(PY_NUM_MODULES 8)
+endif()
 set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
@@ -425,9 +433,20 @@ add_custom_target(pyopenms_create_cpp
 	DEPENDS OpenMS SuperHirn
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
+set(PY_EXTRA_ARGS "")
+if(PY_SINGLE_THREADED)
+  message(STATUS "Turning off multi-threaded python module compilation")
+  set(PY_EXTRA_ARGS "${PY_EXTRA_ARGS}" "--single-threaded")
+endif()
+if(PY_NO_OPTIMIZATION)
+  message(STATUS "Turning off optimization for faster python module compile time")
+  set(PY_EXTRA_ARGS "${PY_EXTRA_ARGS}" "--no-optimization")
+endif()
+message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_custom_target(pyopenms
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
         COMMAND ${CMAKE_BINARY_DIR}/pyOpenMS/fix_pyopenms_dependencies_on_mac.sh
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
@@ -436,8 +455,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         DEPENDS pyopenms_create_cpp
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
-    add_custom_target(pyopenms
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
+    add_custom_target(pyopenms 
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip

@@ -1,7 +1,7 @@
 
 
     # NOTE: using shared_ptr for a singleton will lead to segfaults, use raw ptr instead
-    cdef AutowrapPtrHolder[_ResidueDB] inst
+    # cdef AutowrapPtrHolder[_ResidueDB] inst
 
     def __init__(self):
       self.inst = AutowrapPtrHolder[_ResidueDB](_getInstance_ResidueDB())

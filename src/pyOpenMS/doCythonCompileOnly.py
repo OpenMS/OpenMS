@@ -48,7 +48,12 @@ parses it.
 Author: Hannes Roest
 """
 
-import cPickle
+# Py2/3 fix
+try:
+    import cPickle
+except ImportError:
+    import _pickle as cPickle
+
 persisted_data_path = "include_dir.bin"
 try:
     autowrap_include_dirs = cPickle.load(open(persisted_data_path, "rb"))
@@ -60,14 +65,15 @@ import Cython
 print("Will try to compile with Cython version", Cython.__version__)
 
 # Prepare options
-print "include:", autowrap_include_dirs
+print ("include:", autowrap_include_dirs)
 options = dict(include_path=autowrap_include_dirs,
                #output_dir=".",
                #gdb_debug=True,
                cplus=True)
 
 # Do Cython compile
-out  = "pyopenms/pyopenms.pyx"
+import sys
+out  = sys.argv[1]
 options = CompilationOptions(**options)
 compile(out, options=options)
 

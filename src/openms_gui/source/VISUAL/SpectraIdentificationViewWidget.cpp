@@ -586,36 +586,19 @@ namespace OpenMS
 
               double ppm_error(0);
 
-              // Protein:RNA cross-link
-              if (pi[pi_idx].getHits()[0].metaValueExists("RNPxl:ppm difference"))
+              // Protein:RNA cross-link, Protein-Protein cross-link, or other data with a precomputed precursor error
+              if (pi[pi_idx].getHits()[0].metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
               {
-                ppm_error = fabs((double)pi[pi_idx].getHits()[0].getMetaValue("RNPxl:ppm difference"));
+                ppm_error = fabs((double)pi[pi_idx].getHits()[0].getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
               }
-              else
+              else // works for normal linear fragments with the correct modifications included in the AASequence
               {
                 double exp_precursor = (*layer_->getPeakData())[i].getPrecursors()[0].getMZ();
                 int charge = (*layer_->getPeakData())[i].getPrecursors()[0].getCharge();
-
-                // different theoretical precursors for XL-MS and other data
-                double theo_mass = 0;
-                //vector<PeptideHit> xl_hits = pi[pi_idx].getHits();
-                if (pi[pi_idx].getHits()[0].metaValueExists("xl_chain")) // XL-MS data
-                {
-                  vector<PeptideHit> xl_hits = pi[pi_idx].getHits();
-                  theo_mass = xl_hits[0].getSequence().getMonoWeight();
-                  if (xl_hits.size() > 1) // both peptide masses for cross-links
-                  {
-                    theo_mass += xl_hits[1].getSequence().getMonoWeight();
-                  }
-                } else // general case
-                {
-                  theo_mass = ph.getSequence().getMonoWeight();
-                }
-
+                double theo_mass = ph.getSequence().getMonoWeight();
                 double theo_precursor= (theo_mass + (static_cast<double>(charge) * Constants::PROTON_MASS_U)) / static_cast<double>(charge);
                 ppm_error = fabs((exp_precursor - theo_precursor) / exp_precursor / 1e-6);
               }
-              //  add ppm entry
               addDoubleItemToBottomRow_(ppm_error, 15, c);
             }
 
@@ -878,6 +861,9 @@ namespace OpenMS
     {
       return;
     }
+
+    // synchronize PeptideHits with the annotations in the spectrum
+    layer_->synchronizePeakAnnotations();
 
     QString selectedFilter;
     QString filename = QFileDialog::getSaveFileName(this, "Save File", "", "idXML file (*.idXML);;mzIdentML file (*.mzid)", &selectedFilter);
