@@ -148,6 +148,9 @@ namespace OpenMS
         double PScoreAlpha;
         double PScoreBeta;
         double PScoreBoth;
+        double num_iso_peaks_avg;
+        double ppm_error_abs_sum;
+        double ppm_error_variance;
 
         std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 

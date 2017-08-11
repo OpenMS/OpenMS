@@ -870,6 +870,12 @@ protected:
         csm.scan_index_heavy = -1;
 
 
+        // TODO compute from named data arrays
+        csm.num_iso_peaks_avg = 0;
+        csm.ppm_error_abs_sum = 0;
+        csm.ppm_error_variance = 0;
+
+
         // write fragment annotations
         LOG_DEBUG << "Start writing annotations" << endl;
         vector<PeptideHit::PeakAnnotation> frag_annotations;

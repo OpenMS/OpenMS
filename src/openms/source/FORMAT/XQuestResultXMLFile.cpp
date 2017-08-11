@@ -254,6 +254,7 @@ namespace OpenMS
               << "\" TIC_alpha=\"" << "TODO" << "\" TIC_beta=\"" << "TODO" << "\" wTIC=\"" << top_csm->wTIC << "\" wTICold=\"" << top_csm->wTICold << "\" intsum=\"" << top_csm->int_sum * 100 << "\" apriori_match_probs=\"" << "TODO" << "\" apriori_match_probs_log=\"" << "TODO"
               << "\" HyperCommon=\"" << top_csm->HyperCommon << "\" HyperXLink=\"" << top_csm->HyperXlink << "\" HyperAlpha=\"" << top_csm->HyperAlpha << "\" HyperBeta=\"" << top_csm->HyperBeta << "\" HyperBoth=\"" << top_csm->HyperBoth
               << "\" PScoreCommon=\"" << top_csm->PScoreCommon << "\" PScoreXLink=\"" << top_csm->PScoreXlink << "\" PScoreAlpha=\"" << top_csm->PScoreAlpha << "\" PScoreBeta=\"" << top_csm->PScoreBeta << "\" PScoreBoth=\"" << top_csm->PScoreBoth
+              << "\" num_iso_peaks_avg=\"" << top_csm->num_iso_peaks_avg << "\" ppm_error_abs_sum=\"" << top_csm->ppm_error_abs_sum << "\" ppm_error_variance=\"" << top_csm->ppm_error_variance
               << "\" series_score_mean=\"" << "TODO" << "\" annotated_spec=\"" << "" << "\" score=\"" << top_csm->score << "\" >" << std::endl;
         xml_file << "</search_hit>" << std::endl;
       }
