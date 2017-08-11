@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2017.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg$
 // $Authors: Marc Sturm $
@@ -84,7 +84,7 @@ START_SECTION(([EXTRA] MSSpectrum<>()))
   peak.getPosition()[0] = 47.11;
   tmp.push_back(peak);
   TEST_EQUAL(tmp.size(),1);
-  TEST_REAL_SIMILAR(tmp[0].getMZ(),47.11);  
+  TEST_REAL_SIMILAR(tmp[0].getMZ(),47.11);
 END_SECTION
 
 /////////////////////////////////////////////////////////////
@@ -216,7 +216,7 @@ START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
   TEST_EQUAL(s2.getIntegerDataArrays()[0].size(), 5)
   TEST_EQUAL(s2.getStringDataArrays().size(), 2)
   TEST_EQUAL(s2.getStringDataArrays()[0].size(), 5)
-  
+
   TEST_REAL_SIMILAR(s2.getFloatDataArrays()[0][1], 3.0)
   TEST_EQUAL(s2.getIntegerDataArrays()[0][1], 3)
   TEST_EQUAL(s2.getStringDataArrays()[0][1], "3")
@@ -224,7 +224,7 @@ START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
   // subset
   s2 = s;
   Size subset[] = {4, 2, 3};
-  // --> new values in Meta arrays are: 
+  // --> new values in Meta arrays are:
   //     5, 3, 4
   s2.select(std::vector<Size>(&subset[0], &subset[3]));
   TEST_REAL_SIMILAR(s2[0].getIntensity(), 2.0)
@@ -288,7 +288,7 @@ START_SECTION((MSSpectrum(const MSSpectrum& source)))
   MSSpectrum<>::PeakType peak;
   peak.getPosition()[0] = 47.11;
   tmp.push_back(peak);
-  
+
   MSSpectrum<> tmp2(tmp);
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),1);
   TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
@@ -314,7 +314,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
   MSSpectrum<>::PeakType peak;
   peak.getPosition()[0] = 47.11;
   tmp.push_back(peak);
-  
+
   //normal assignment
   MSSpectrum<> tmp2;
   tmp2 = tmp;
@@ -326,7 +326,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
   TEST_EQUAL(tmp2.getName(),"bla")
   TEST_EQUAL(tmp2.size(),1);
   TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
-  
+
   //Assignment of empty object
   //normal assignment
   tmp2 = MSSpectrum<>();
@@ -341,13 +341,13 @@ END_SECTION
 
 START_SECTION((bool operator== (const MSSpectrum& rhs) const))
   MSSpectrum<> edit, empty;
-  
+
   TEST_EQUAL(edit==empty,true);
-  
+
   edit = empty;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   TEST_EQUAL(edit==empty,false);
-  
+
   edit = empty;
   edit.resize(1);
   TEST_EQUAL(edit==empty,false);
@@ -395,13 +395,13 @@ END_SECTION
 
 START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
   MSSpectrum<> edit, empty;
-  
+
   TEST_EQUAL(edit!=empty,false);
-  
+
   edit = empty;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   TEST_EQUAL(edit!=empty,true);
-  
+
   edit = empty;
   edit.resize(1);
   TEST_EQUAL(edit!=empty,true);
@@ -485,7 +485,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   {
     if(it_ds == ds.end())
     {
-      TEST_EQUAL(true,false) 
+      TEST_EQUAL(true,false)
     }
     TEST_EQUAL(it_ds->getIntensity(), *it);
     ++it_ds;
@@ -521,7 +521,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   TEST_STRING_EQUAL(ds.getStringDataArrays()[1].getName(),"s2")
 
   TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
-  
+
   MSSpectrum<>::iterator it1 = ds.begin();
   MSSpectrum<>::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
   MSSpectrum<>::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
@@ -555,16 +555,16 @@ START_SECTION((void sortByPosition()))
   MSSpectrum<>::StringDataArray string_array;
   MSSpectrum<>::IntegerDataArray int_array;
   std::vector<double> mzs, intensities;
-  intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(56);  string_array.push_back("56");  int_array.push_back(56);  
-  intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(201); string_array.push_back("201"); int_array.push_back(201); 
-  intensities.push_back(31);  mzs.push_back(419.113); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);  
-  intensities.push_back(31);  mzs.push_back(418.232); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);  
-  intensities.push_back(31);  mzs.push_back(416.293); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);  
-  intensities.push_back(37);  mzs.push_back(415.287); float_array.push_back(37);  string_array.push_back("37");  int_array.push_back(37);  
-  intensities.push_back(29);  mzs.push_back(414.301); float_array.push_back(29);  string_array.push_back("29");  int_array.push_back(29);  
-  intensities.push_back(34);  mzs.push_back(413.800); float_array.push_back(34);  string_array.push_back("34");  int_array.push_back(34);  
-  intensities.push_back(60);  mzs.push_back(412.824); float_array.push_back(60);  string_array.push_back("60");  int_array.push_back(60);  
-  intensities.push_back(29);  mzs.push_back(412.321); float_array.push_back(29);  string_array.push_back("29");  int_array.push_back(29);  
+  intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(56);  string_array.push_back("56");  int_array.push_back(56);
+  intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(201); string_array.push_back("201"); int_array.push_back(201);
+  intensities.push_back(31);  mzs.push_back(419.113); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);
+  intensities.push_back(31);  mzs.push_back(418.232); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);
+  intensities.push_back(31);  mzs.push_back(416.293); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);
+  intensities.push_back(37);  mzs.push_back(415.287); float_array.push_back(37);  string_array.push_back("37");  int_array.push_back(37);
+  intensities.push_back(29);  mzs.push_back(414.301); float_array.push_back(29);  string_array.push_back("29");  int_array.push_back(29);
+  intensities.push_back(34);  mzs.push_back(413.800); float_array.push_back(34);  string_array.push_back("34");  int_array.push_back(34);
+  intensities.push_back(60);  mzs.push_back(412.824); float_array.push_back(60);  string_array.push_back("60");  int_array.push_back(60);
+  intensities.push_back(29);  mzs.push_back(412.321); float_array.push_back(29);  string_array.push_back("29");  int_array.push_back(29);
 
   for (Size i = 0; i < mzs.size(); ++i)
   {
@@ -592,14 +592,14 @@ START_SECTION((void sortByPosition()))
   ds.getFloatDataArrays()[0].setName("f1");
   ds.getFloatDataArrays()[1].setName("f2");
   ds.getFloatDataArrays()[2].setName("f3");
-  
+
   ds.getStringDataArrays() = std::vector<MSSpectrum<>::StringDataArray>(2, string_array);
   ds.getStringDataArrays()[0].setName("s1");
   ds.getStringDataArrays()[1].setName("s2");
 
   ds.getIntegerDataArrays() = std::vector<MSSpectrum<>::IntegerDataArray>(2, int_array);
   ds.getIntegerDataArrays()[0].setName("i1");
-  
+
   ds.sortByPosition();
 
   TEST_STRING_EQUAL(ds.getFloatDataArrays()[0].getName(),"f1")
@@ -608,7 +608,7 @@ START_SECTION((void sortByPosition()))
 
   TEST_STRING_EQUAL(ds.getStringDataArrays()[0].getName(),"s1")
   TEST_STRING_EQUAL(ds.getStringDataArrays()[1].getName(),"s2")
-  
+
   TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
 
   MSSpectrum<>::iterator it1 = ds.begin();
@@ -644,17 +644,17 @@ START_SECTION(bool isSorted() const)
   p.setIntensity(1.0);
   p.setMZ(1000.0);
   spec.push_back(p);
-  
+
   p.setIntensity(1.0);
   p.setMZ(1001.0);
   spec.push_back(p);
-  
+
   p.setIntensity(1.0);
   p.setMZ(1002.0);
   spec.push_back(p);
-  
+
   TEST_EQUAL(spec.isSorted(),true)
-  
+
   reverse(spec.begin(), spec.end());
   TEST_EQUAL(spec.isSorted(),false)
 END_SECTION
@@ -1018,7 +1018,7 @@ START_SECTION((Size findNearest(CoordinateType mz, CoordinateType left_tolerance
 
   TEST_EQUAL(tmp.findNearest(427.3, 0.1, 0.001), 11);
   TEST_EQUAL(tmp.findNearest(427.3, 0.001, 1.01), -1);
-  TEST_EQUAL(tmp.findNearest(427.3, 0.001, 1.1), 12); 
+  TEST_EQUAL(tmp.findNearest(427.3, 0.001, 1.1), 12);
 
   //empty spectrum
   MSSpectrum<> tmp2;
@@ -1122,9 +1122,56 @@ START_SECTION(([EXTRA] std::ostream& operator << (std::ostream& os, const MSSpec
 }
 END_SECTION
 
+START_SECTION(inline IntegerDataArray& getIntegerDataArrayByName(String name))
+{
+  MSSpectrum<> ds;
+  Peak1D p;
+  MSSpectrum<>::FloatDataArray float_array;
+  MSSpectrum<>::StringDataArray string_array;
+  MSSpectrum<>::IntegerDataArray int_array;
+  std::vector<double> mzs, intensities;
+  intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(56);  string_array.push_back("56");  int_array.push_back(56);
+  intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(201); string_array.push_back("201"); int_array.push_back(201);
+  intensities.push_back(31);  mzs.push_back(419.113); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);
+  intensities.push_back(31);  mzs.push_back(418.232); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);
+  intensities.push_back(31);  mzs.push_back(416.293); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);
+  intensities.push_back(37);  mzs.push_back(415.287); float_array.push_back(37);  string_array.push_back("37");  int_array.push_back(37);
+  intensities.push_back(29);  mzs.push_back(414.301); float_array.push_back(29);  string_array.push_back("29");  int_array.push_back(29);
+  intensities.push_back(34);  mzs.push_back(413.800); float_array.push_back(34);  string_array.push_back("34");  int_array.push_back(34);
+  intensities.push_back(60);  mzs.push_back(412.824); float_array.push_back(60);  string_array.push_back("60");  int_array.push_back(60);
+  intensities.push_back(29);  mzs.push_back(412.321); float_array.push_back(29);  string_array.push_back("29");  int_array.push_back(29);
+
+  for (Size i = 0; i < mzs.size(); ++i)
+  {
+    p.setIntensity(intensities[i]); p.setMZ(mzs[i]);
+    ds.push_back(p);
+  }
+
+  ds.getFloatDataArrays() = std::vector<MSSpectrum<>::FloatDataArray>(3,float_array);
+  ds.getFloatDataArrays()[0].setName("f1");
+  ds.getFloatDataArrays()[1].setName("f2");
+  ds.getFloatDataArrays()[2].setName("f3");
+
+  ds.getStringDataArrays() = std::vector<MSSpectrum<>::StringDataArray>(2, string_array);
+  ds.getStringDataArrays()[0].setName("s1");
+  ds.getStringDataArrays()[1].setName("s2");
+
+  ds.getIntegerDataArrays() = std::vector<MSSpectrum<>::IntegerDataArray>(2, int_array);
+  ds.getIntegerDataArrays()[0].setName("i1");
+
+  ds.sortByPosition();
+
+  TEST_STRING_EQUAL(ds.getFloatDataArrayByName("f1").getName(),"f1")
+  TEST_STRING_EQUAL(ds.getFloatDataArrayByName("f2").getName(),"f2")
+  TEST_STRING_EQUAL(ds.getFloatDataArrayByName("f3").getName(),"f3")
+
+  TEST_STRING_EQUAL(ds.getStringDataArrayByName("s1").getName(),"s1")
+  TEST_STRING_EQUAL(ds.getStringDataArrayByName("s2").getName(),"s2")
+
+  TEST_STRING_EQUAL(ds.getIntegerDataArrayByName("i1").getName(),"i1")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-
