@@ -365,9 +365,9 @@ public:
       integer_data_arrays_ = ida;
     }
 
-    /// Returns the first integer meta data array with the given name
+    /// Returns a mutable reference to the first integer meta data array with the given name
     /// if none with the given name exists, an empty array is returned
-    IntegerDataArray& getIntegerDataArrayByName(String name)
+    inline IntegerDataArray& getIntegerDataArrayByName(String name)
     {
       Size n_arrays = integer_data_arrays_.size();
       for (Size i = 0; i < n_arrays; i++)
@@ -381,9 +381,9 @@ public:
       return empty_array;
     }
 
-    /// Returns the first string meta data array with the given name
+    /// Returns a mutable reference to the first string meta data array with the given name
     /// if none with the given name exists, an empty array is returned
-    StringDataArray& getStringDataArrayByName(String name)
+    inline StringDataArray& getStringDataArrayByName(String name)
     {
       Size n_arrays = string_data_arrays_.size();
       for (Size i = 0; i < n_arrays; i++)
@@ -397,9 +397,9 @@ public:
       return empty_array;
     }
 
-    /// Returns the first float meta data array with the given name
+    /// Returns a mutable reference to the first float meta data array with the given name
     /// if none with the given name exists, an empty array is returned
-    FloatDataArray& getFloatDataArrayByName(String name)
+    inline FloatDataArray& getFloatDataArrayByName(String name)
     {
       Size n_arrays = float_data_arrays_.size();
       for (Size i = 0; i < n_arrays; i++)
