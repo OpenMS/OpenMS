@@ -365,6 +365,54 @@ public:
       integer_data_arrays_ = ida;
     }
 
+    /// Returns the first integer meta data array with the given name
+    /// if none with the given name exists, an empty array is returned
+    IntegerDataArray& getIntegerDataArrayByName(String name)
+    {
+      Size n_arrays = integer_data_arrays_.size();
+      for (Size i = 0; i < n_arrays; i++)
+      {
+        if (integer_data_arrays_[i].getName() == name)
+        {
+          return integer_data_arrays_[i];
+        }
+      }
+      OpenMS::DataArrays::IntegerDataArray empty_array;
+      return empty_array;
+    }
+
+    /// Returns the first string meta data array with the given name
+    /// if none with the given name exists, an empty array is returned
+    StringDataArray& getStringDataArrayByName(String name)
+    {
+      Size n_arrays = string_data_arrays_.size();
+      for (Size i = 0; i < n_arrays; i++)
+      {
+        if (string_data_arrays_[i].getName() == name)
+        {
+          return string_data_arrays_[i];
+        }
+      }
+      OpenMS::DataArrays::StringDataArray empty_array;
+      return empty_array;
+    }
+
+    /// Returns the first float meta data array with the given name
+    /// if none with the given name exists, an empty array is returned
+    FloatDataArray& getFloatDataArrayByName(String name)
+    {
+      Size n_arrays = float_data_arrays_.size();
+      for (Size i = 0; i < n_arrays; i++)
+      {
+        if (float_data_arrays_[i].getName() == name)
+        {
+          return float_data_arrays_[i];
+        }
+      }
+      OpenMS::DataArrays::FloatDataArray empty_array;
+      return empty_array;
+    }
+
     //@}
 
     ///@name Sorting peaks
@@ -714,7 +762,7 @@ public:
 
     */
     MSSpectrum& select(const std::vector<Size>& indices)
-    { 
+    {
       Size snew = indices.size();
       ContainerType tmp;
       tmp.reserve(indices.size());
@@ -731,7 +779,7 @@ public:
       {
         if (float_data_arrays_[i].size() != peaks_old)
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" + 
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" +
             String(float_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
         }
 
@@ -748,7 +796,7 @@ public:
       {
         if (string_data_arrays_[i].size() != peaks_old)
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" + 
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
             String(string_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
         }
         std::vector<String> mda_tmp;
@@ -764,7 +812,7 @@ public:
       {
         if (integer_data_arrays_[i].size() != peaks_old)
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" + 
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
             String(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
         }
         std::vector<Int> mda_tmp;
@@ -780,7 +828,7 @@ public:
     }
 
 protected:
-   
+
     /// Retention time
     double retention_time_;
 
@@ -825,4 +873,3 @@ protected:
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_MSSPECTRUM_H
-
