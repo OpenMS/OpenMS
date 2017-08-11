@@ -38,7 +38,7 @@
 
 namespace OpenMS
 {
-  std::tuple<double, Size, Size, Size, Size> MorpheusScore::compute(double fragment_mass_tolerance, 
+  MorpheusScore::Result MorpheusScore::compute(double fragment_mass_tolerance, 
                                 bool fragment_mass_tolerance_unit_ppm, 
                                 const PeakSpectrum& exp_spectrum, 
                                 const PeakSpectrum& theo_spectrum)
@@ -46,7 +46,9 @@ namespace OpenMS
     const Size n_t(theo_spectrum.size());
     const Size n_e(exp_spectrum.size());
 
-    if (n_t == 0 || n_e == 0) { return std::make_tuple(0.0, 0, 0, 0, 0); }
+    MorpheusScore::Result psm = MorpheusScore::Result{0, 0, 0, 0, 0};
+
+    if (n_t == 0 || n_e == 0) { return psm; }
 
     Size t(0), e(0), matches(0);
     double total_intensity(0);
@@ -103,7 +105,12 @@ namespace OpenMS
 
     const double intensity_fraction = match_intensity / total_intensity; 
 
-    return std::make_tuple(static_cast<double>(matches) + intensity_fraction, matches, theo_spectrum.size(), match_intensity, total_intensity); 
+    psm.score = static_cast<double>(matches) + intensity_fraction;
+    psm.n_peaks = theo_spectrum.size();
+    psm.matches = matches;
+    psm.MIC = match_intensity;
+    psm.TIC = total_intensity;
+    return psm;
   }
 }
 

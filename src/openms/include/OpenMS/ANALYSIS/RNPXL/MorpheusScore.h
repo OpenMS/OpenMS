@@ -38,23 +38,32 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
-#include <vector>
-#include <tuple>
 
 namespace OpenMS
 {
 
 /**
  *  @brief An implementation of the Morpheus PSM scoring function
+ *  Inspired by a C# implementation by C. Wenger released under MIT license
  */               
 struct OPENMS_DLLAPI MorpheusScore
 {
 
+  /// score and subscores
+  struct OPENMS_DLLAPI Result
+  {
+    double score; // Morpheus score (matched peaks + matched ion current / TIC)
+    Size matches; // matched theoretical peaks
+    Size n_peaks; // number of theoretical peaks
+    double MIC; // ion current of matches (experimental peaks)
+    double TIC; // total ion current (experimental peak) 
+  };
+
   /// returns Morpheus Score, #matched ions, #total ions, #matched intensities, #total fragment intensities (TIC)
-  static std::tuple<double, Size, Size, Size, Size> compute(double fragment_mass_tolerance, 
-			                                    bool fragment_mass_tolerance_unit_ppm, 
-			                                    const PeakSpectrum& exp_spectrum, 
-			                                    const PeakSpectrum& theo_spectrum);
+  static Result compute(double fragment_mass_tolerance, 
+                        bool fragment_mass_tolerance_unit_ppm, 
+                        const PeakSpectrum& exp_spectrum, 
+                        const PeakSpectrum& theo_spectrum);
 };
 
 }
