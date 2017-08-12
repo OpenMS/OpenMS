@@ -92,9 +92,9 @@ END_SECTION
 
 START_SECTION(void setEnzymes(const String& filename))
     ptr->setEnzymes("CHEMISTRY/Enzymes.xml"); // requires internal "File::find()"
-    TEST_EQUAL(std::distance(ptr->beginEnzyme(), ptr->endEnzyme()), 20); // should be 18 enzymes in "CHEMISTRY/Enzymes.xml"
+    TEST_EQUAL(std::distance(ptr->beginEnzyme(), ptr->endEnzyme()), 25); // should be 25 enzymes in "CHEMISTRY/Enzymes.xml"
     ptr->setEnzymes(File::find("CHEMISTRY/Enzymes.xml")); // full filename should also work
-    TEST_EQUAL(std::distance(ptr->beginEnzyme(), ptr->endEnzyme()), 20); // should be 18 enzymes in "CHEMISTRY/Enzymes.xml"
+    TEST_EQUAL(std::distance(ptr->beginEnzyme(), ptr->endEnzyme()), 25); // should be 25 enzymes in "CHEMISTRY/Enzymes.xml"
 END_SECTION
     
 START_SECTION(void addEnzyme(const Enzyme& enzyme))
