@@ -247,11 +247,11 @@ namespace OpenMS
         }
         continue;
       }
-      if (key.hasSubstring("MSGFid"))
+      if (key.hasSubstring("MSGFID"))
       {
         if (!key.hasSuffix(":"))
         {
-          enzy_ptr->setMSGFid(value.toInt());
+          enzy_ptr->setMSGFID(value.toInt());
         }
         continue;
       }
@@ -321,7 +321,7 @@ namespace OpenMS
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getMSGFid() != -1) // msgf+ starts enzyme numbering at 0
+      if ((*it)->getMSGFID() != -1) // msgf+ starts enzyme numbering at 0
       {
         all_names.push_back((*it)->getName());
       }
