@@ -230,7 +230,7 @@ namespace OpenMS
     msgf_id_ = value;
   }
 
-  Int Enzyme::getMSGFiID() const
+  Int Enzyme::getMSGFID() const
   {
       return msgf_id_;
   }
