@@ -73,8 +73,8 @@ public:
                     String psi_id = "",
                     String xtandem_id = "",
                     UInt comet_id = 0,
-                    UInt omssa_id = 0,
-                    Int msgf_id = -1);
+                    Int msgf_id = -1,
+                    UInt omssa_id = 0);
 
     /// destructor
     virtual ~Enzyme();
@@ -206,9 +206,10 @@ protected:
 
     UInt comet_id_;
 
+    Int msgf_id_;
+    
     UInt omssa_id_;
 
-    Int msgf_id_;
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Enzyme& enzyme);
