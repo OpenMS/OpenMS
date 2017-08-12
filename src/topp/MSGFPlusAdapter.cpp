@@ -466,6 +466,7 @@ protected:
 
     // parameters also used by OpenMS (see idXML creation below):
     String enzyme = getStringOption_("enzyme");
+    std::cout << enzyme << std::endl;
     double precursor_mass_tol = getDoubleOption_("precursor_mass_tolerance");
     String precursor_error_units = getStringOption_("precursor_error_units");
     Int min_precursor_charge = getIntOption_("min_precursor_charge");
@@ -476,7 +477,8 @@ protected:
     // no need to handle "not found" case - would have given error during parameter parsing:
     Int fragment_method_code = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
-    Int enzyme_code = ListUtils::getIndex<String>(enzymes_, enzyme);
+    Int enzyme_code = EnzymesDB::getInstance()->getEnzyme(enzyme)->getMSGFid();
+    std::cout << enzyme_code << std::endl;
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 

@@ -74,7 +74,7 @@
       <ITEM name="OMSSAid" value="3" type="int" />
     </NODE>
     <NODE name="Chymotrypsin/P">
-      <ITEM name="Name" value="Chymotrypsin" type="string" />
+      <ITEM name="Name" value="Chymotrypsin/P" type="string" />
       <ITEM name="RegEx" value="(?&lt;=[FLWY])" type="string" />
       <ITEM name="RegExDescription" value="Chymotrypsin cleaves following F, Y, W or L residue." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
