@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,17 +64,17 @@ TMTTenPlexQuantitationMethod::TMTTenPlexQuantitationMethod()
     //    "130C", 130.141145, 128C, 129C, x, x
     //    "131", 131.138180, 129N, 130N, x, x
 
-    // create the channel map
-    channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127726, -1, -1, 2, 4));
-    channels_.push_back(IsobaricChannelInformation("127N", 1, "", 127.124761, -1, -1, 3, 5));
-    channels_.push_back(IsobaricChannelInformation("127C", 2, "", 127.131081, -1, 0, 4, 6));
-    channels_.push_back(IsobaricChannelInformation("128N", 3, "", 128.128116, -1, 2, 5, 7));
-    channels_.push_back(IsobaricChannelInformation("128C", 4, "", 128.134436, 0, 2, 6, 8));
-    channels_.push_back(IsobaricChannelInformation("129N", 5, "", 129.131471, 1, 3, 7, 9));
-    channels_.push_back(IsobaricChannelInformation("129C", 6, "", 129.137790, 2, 4, 8, -1));
-    channels_.push_back(IsobaricChannelInformation("130N", 7, "", 130.134825, 3, 5, 9, -1));
-    channels_.push_back(IsobaricChannelInformation("130C", 8, "", 130.141145, 4, 6, -1, -1));
-    channels_.push_back(IsobaricChannelInformation("131", 9, "", 131.138180, 5, 7, -1, -1));
+    // create the channel map                                               //-2  -1  +1  +2
+    channels_.push_back(IsobaricChannelInformation("126",  0, "", 126.127726, -1, -1,  2,  4));
+    channels_.push_back(IsobaricChannelInformation("127N", 1, "", 127.124761, -1, -1,  3,  5));
+    channels_.push_back(IsobaricChannelInformation("127C", 2, "", 127.131081, -1,  0,  4,  6));
+    channels_.push_back(IsobaricChannelInformation("128N", 3, "", 128.128116, -1,  1,  5,  7));
+    channels_.push_back(IsobaricChannelInformation("128C", 4, "", 128.134436,  0,  2,  6,  8));
+    channels_.push_back(IsobaricChannelInformation("129N", 5, "", 129.131471,  1,  3,  7,  9));
+    channels_.push_back(IsobaricChannelInformation("129C", 6, "", 129.137790,  2,  4,  8, -1));
+    channels_.push_back(IsobaricChannelInformation("130N", 7, "", 130.134825,  3,  5,  9, -1));
+    channels_.push_back(IsobaricChannelInformation("130C", 8, "", 130.141145,  4,  6, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("131",  9, "", 131.138180,  5,  7, -1, -1));
 
     // we assume 126 to be the reference
     reference_channel_ = 0;

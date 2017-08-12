@@ -3,14 +3,19 @@ set(directory source/FORMAT/DATAACCESS)
 
 ### list all filenames of the directory here
 set(sources_list
-  MSDataAggregatingConsumer.cpp
+  CsiFingerIdMzTabWriter.cpp
   MSDataWritingConsumer.cpp
-  MSDataStoringConsumer.cpp
   MSDataTransformingConsumer.cpp
+  MSDataAggregatingConsumer.cpp
   MSDataCachedConsumer.cpp
   MSDataChainingConsumer.cpp
+  MSDataStoringConsumer.cpp
+  MSDataSqlConsumer.cpp
+  MSDataTransformingConsumer.cpp
+  MSDataWritingConsumer.cpp
   NoopMSDataConsumer.cpp
   SwathFileConsumer.cpp
+	SiriusMzTabWriter.cpp
 )
 
 ### add path to the filenames

@@ -9,6 +9,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>" n
     cdef cppclass SignalToNoiseEstimator[Container](DefaultParamHandler,ProgressLogger):
         # wrap-ignore
         # ABSTRACT class
+        # no-pxd-import
         # wrap-inherits:
         #  DefaultParamHandler
         #  ProgressLogger

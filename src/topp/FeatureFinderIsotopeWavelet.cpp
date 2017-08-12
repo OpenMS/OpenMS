@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,7 @@ using namespace std;
     @note that the wavelet transform is very slow on high-resolution spectra (i.e. FT, Orbitrap). We recommend
     to use a noise or intensity filter to remove spurious points first and to speed-up the feature detection process.
 
-    Specialized tools are available for some experimental techniques: @ref TOPP_ITRAQAnalyzer.
+    Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_FeatureFinderIsotopeWavelet.cli
@@ -155,7 +155,9 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
-    features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
+    features.setPrimaryMSRunPath(ms_runs);
 
     // get parameters specific for the feature finder
     Param feafi_param = getParam_().copy("algorithm:", true);

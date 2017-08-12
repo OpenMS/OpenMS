@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,14 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MSPFile.h>
+
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -78,7 +83,7 @@ namespace OpenMS
   {
   }
 
-  void MSPFile::load(const String & filename, vector<PeptideIdentification> & ids, RichPeakMap & exp)
+  void MSPFile::load(const String & filename, vector<PeptideIdentification> & ids, PeakMap & exp)
   {
     if (!File::exists(filename))
     {
@@ -121,13 +126,18 @@ namespace OpenMS
     modname_to_unimod["AB_old_ICATd8"] = "ICAT-D:2H(8)";
     modname_to_unimod["AB_old_ICATd0"] = "ICAT-D";
 
-    RichPeakSpectrum spec;
-
     bool parse_headers(param_.getValue("parse_headers").toBool());
     bool parse_peakinfo(param_.getValue("parse_peakinfo").toBool());
     String instrument((String)param_.getValue("instrument"));
     bool inst_type_correct(true);
     Size spectrum_number = 0;
+
+    PeakSpectrum spec;
+    if (parse_peakinfo)
+    {
+      spec.getStringDataArrays().resize(1);
+      spec.getStringDataArrays()[0].setName("MSPPeakInfo");
+    }
 
     // line number counter
     Size line_number = 0;
@@ -262,7 +272,7 @@ namespace OpenMS
           {
             vector<String> split;
             line.split('\t', split);
-            RichPeak1D peak;
+            Peak1D peak;
             if (split.size() != 3)
             {
               throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "not <mz><tab><intensity><tab>\"<comment>\" in line " + String(line_number));
@@ -271,13 +281,16 @@ namespace OpenMS
             peak.setIntensity(split[1].toFloat());
             if (parse_peakinfo)
             {
-              peak.setMetaValue("MSPPeakInfo", split[2]);
+              spec.getStringDataArrays()[0].push_back(split[2]);
             }
             spec.push_back(peak);
           }
           spec.setNativeID(String("index=") + spectrum_number);
           exp.addSpectrum(spec);
+          // clear spectrum, create new DataArrays
           spec.clear(true);
+          spec.getStringDataArrays().resize(1);
+          spec.getStringDataArrays()[0].setName("MSPPeakInfo");
         }
         spectrum_number++;
       }
@@ -288,7 +301,7 @@ namespace OpenMS
 
   }
 
-  void MSPFile::parseHeader_(const String & header, RichPeakSpectrum & spec)
+  void MSPFile::parseHeader_(const String & header, PeakSpectrum & spec)
   {
     // first header from std_protein of NIST spectra DB
     // Spec=Consensus Pep=Tryptic Fullname=R.AAANFFSASCVPCADQSSFPK.L/2 Mods=0 Parent=1074.480 Inst=it Mz_diff=0.500 Mz_exact=1074.4805 Mz_av=1075.204 Protein="TRFE_BOVIN" Organism="Protein Standard" Se=2^X23:ex=3.1e-008/1.934e-005,td=5.14e+007/2.552e+019,sd=0/0,hs=45.8/5.661,bs=6.3e-021,b2=1.2e-015,bd=5.87e+020^O22:ex=3.24e-005/0.0001075,td=304500/5.909e+297,pr=3.87e-007/1.42e-006,bs=1.65e-301,b2=1.25e-008,bd=1.3e+299 Sample=1/bovine-serotransferrin_cam,23,26 Nreps=23/34 Missing=0.3308/0.0425 Parent_med=1074.88/0.23 Max2med_orig=22.1/9.5 Dotfull=0.618/0.029 Dot_cons=0.728/0.040 Unassign_all=0.161 Unassigned=0.000 Dotbest=0.70 Naa=21 DUScorr=2.3/3.8/0.61 Dottheory=0.86 Pfin=4.3e+010 Probcorr=1 Tfratio=8e+008 Specqual=0.0
@@ -308,8 +321,13 @@ namespace OpenMS
     }
   }
 
-  void MSPFile::store(const String & filename, const RichPeakMap & exp) const
+  void MSPFile::store(const String & filename, const PeakMap & exp) const
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MSP) + "'");
+    }
+
     if (!File::writable(filename))
     {
       throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
@@ -317,7 +335,7 @@ namespace OpenMS
 
     ofstream out(filename.c_str());
 
-    for (RichPeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
+    for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
     {
       if (it->getPeptideIdentifications().size() > 0 && it->getPeptideIdentifications().begin()->getHits().size() > 0)
       {
@@ -381,9 +399,9 @@ namespace OpenMS
         out << "Num peaks: " << it->size() << "\n";
 
         // normalize to 10,000
-        RichPeakSpectrum rich_spec = *it;
+        PeakSpectrum rich_spec = *it;
         double max_int(0);
-        for (RichPeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+        for (PeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
         {
           if (sit->getIntensity() > max_int)
           {
@@ -393,7 +411,7 @@ namespace OpenMS
 
         if (max_int != 0)
         {
-          for (RichPeakSpectrum::Iterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+          for (PeakSpectrum::Iterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
           {
             sit->setIntensity(sit->getIntensity() / max_int * 10000.0);
           }
@@ -403,12 +421,24 @@ namespace OpenMS
           cerr << "MSPFile: spectrum contains only zero intensities!" << endl;
         }
 
-        for (RichPeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
+        int ion_name = -1;
+        for (Size k = 0; k < rich_spec.getStringDataArrays().size(); k++)
+        {
+          if (rich_spec.getStringDataArrays()[k].getName() == "IonName")
+          {
+            ion_name = k;
+            break;
+          }
+        }
+
+        Size k = 0;
+        for (PeakSpectrum::ConstIterator sit = rich_spec.begin(); sit != rich_spec.end(); ++sit)
         {
           out << sit->getPosition()[0] << "\t" << sit->getIntensity() << "\t";
-          if (sit->metaValueExists("IonName"))
+          if (ion_name >= 0)
           {
-            out << "\"" << sit->getMetaValue("IonName") << "\"";
+            out << "\"" << rich_spec.getStringDataArrays()[ion_name][k] << "\"";
+            k++;
           }
           else
           {

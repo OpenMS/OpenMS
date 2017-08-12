@@ -44,11 +44,13 @@ on run argv
     				set statusbar visible to false
     				set the bounds to {theXOrigin, theYOrigin, theBottomRightX, theBottomRightY}
     				set statusbar visible to false
-            set the position of item "@CPACK_PACKAGE_INSTALL_DIRECTORY@" to {470, 140}
+            set the position of item "@CPACK_PACKAGE_INSTALL_DIRECTORY@-Darwin" to {470, 140}
 
             -- change the icon of the OpenMS Folder.
             
             do shell script("cd /Volumes/@CPACK_PACKAGE_INSTALL_DIRECTORY@-Darwin
+            # Rename to just OpenMS-version
+            mv '@CPACK_PACKAGE_INSTALL_DIRECTORY@-Darwin' '@CPACK_PACKAGE_INSTALL_DIRECTORY@'
             # Take an image and make the image its own icon:
             sips -i @OPENMS_LOGO@ >> ~/logfile.log 2>&1
 
@@ -83,5 +85,5 @@ on run argv
     -- Weird behaviour of the CPACK module. Sometimes it does not write the changes to the dmg.
     delay 20
   end tell
-
+  -- Codesigning does not work here. You have to do it manually. CPack is not able to perform post packaging scripts.
 end run

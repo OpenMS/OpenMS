@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -62,25 +62,37 @@ execute_process(
 message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
 #------------------------------------------------------------------------------
-# Windows support restricted to Python 2.7 at the moment!
-#  * we also require VC 2008 and the corresponding vcredist to be installed
+# Windows support requires that the correct Python version is matched to the correct MSVS version:
+# * Python 2.[67] needs to be compiled with MSVS 2008
+# * Python 3.[34] needs to be compiled with MSVS 2010
+# * Python 3.[56] needs to be compiled with MSVS 2015
 if(WIN32)
-    if(NOT MSVC90)
+    if(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
+        message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
+    elseif(MSVC10 AND (${PY_VERSION} STREQUAL "3.3" OR ${PY_VERSION} STREQUAL "3.4" ))
+        message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
+    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" ))
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions -- ok")
+    else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
-        message(FATAL_ERROR "Either reconfigure with Visual Studio 9 2008 generator or disable pyOpenMS.")
+        message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions")
+        message(FATAL_ERROR "Either reconfigure with Visual Studio 2008, 2010 or 2015 generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 
+    # Try to find MSVS runtime libs
     include(InstallRequiredSystemLibraries)
-    set(MSVCR90DLL ${MSVC90_CRT_DIR}/msvcr90.dll)
-    if(NOT EXISTS ${MSVCR90DLL})
-        message(STATUS "Missing msvcr90.dll - Visual C++ 2008 Runtime (called vcredist)")
-        message(FATAL_ERROR "Please install VC 2008 runtime package or disable pyOpenMS.")
+
+    if("${MSVS_RTLIBS}" STREQUAL "")
+        set(MSVS_RTLIBS "${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}")
     endif()
-    set(MSVCP90DLL ${MSVC90_CRT_DIR}/msvcp90.dll)
-    if(NOT EXISTS ${MSVCP90DLL})
-        message(STATUS "Missing msvcp90.dll - Visual C++ 2008 Runtime (called vcredist)")
-        message(FATAL_ERROR "Please install VC 2008 runtime package or disable pyOpenMS.")
+     
+    if("${MSVS_RTLIBS}" STREQUAL "")
+        message(FATAL_ERROR "Did not find MSVS runtime, either provide with -DMSVS_RTLIBS='lib1;lib2' or disable pyOpenMS.")
+    else()
+    message(STATUS "Found MSVS runtime: ${MSVS_RTLIBS}")
     endif()
+
 endif(WIN32)
 
 #------------------------------------------------------------------------------
@@ -93,14 +105,14 @@ if(DEFINED CYTHON_EXECUTABLE-NOTFOUND)
 endif()
 
 # check minor version of Cython (0.xx.yy)
-# Working versions (tested manually) are 0.22, 0.23, 0.24 and 0.25
+# Working versions (tested manually) are 0.25.2
 set(CYTHON_VERSION_OK FALSE)
 if(CYTHON_MISSING)
 	message(FATAL_ERROR "Looking for cython - not found")
 else()
   execute_process(
       COMMAND
-      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) >= 22)"
+      ${PYTHON_EXECUTABLE} -c "import Cython; exit(int(Cython.__version__.split('.')[1]) > 25 or (int(Cython.__version__.split('.')[1]) == 25 and int(Cython.__version__.split('.')[2]) >= 2))"
       RESULT_VARIABLE _CYTHON_VERSION_OK
       ERROR_QUIET
       OUTPUT_QUIET
@@ -115,7 +127,7 @@ else()
       message(STATUS "Looking for Cython - found Cython ${CYTHON_VERSION}, version ok")
       set(CYTHON_VERSION_OK TRUE)
   else()
-      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.22 is required)")
+      message(STATUS "Found Cython version ${CYTHON_VERSION}. The version is too old (>= 0.25.2 is required)")
       message(FATAL_ERROR "Please upgrade Cython or disable pyOpenMS.")
   endif()
 endif()
@@ -136,7 +148,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 8, 0))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 13, 1))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -151,7 +163,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.8.0 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.13.1 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -336,8 +348,11 @@ foreach(pyfile ${_sub_pyopenms_files})
 endforeach()
 
 if(WIN32)
-    file(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-    file(COPY ${MSVCP90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+    # copy all runtime files (dont preserve permissions, due to issues when deleting them from tmp folders)
+    foreach (_runtime ${MSVS_RTLIBS})
+      file(COPY ${_runtime} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms NO_SOURCE_PERMISSIONS)
+    endforeach()
+    
     set(FOUND_XERCES FALSE)
     foreach(CONTRIB_PATH ${CMAKE_PREFIX_PATH})
         if(EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
@@ -351,9 +366,18 @@ if(WIN32)
     endif()
 endif()
 
+find_boost()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
-
+#  1 thread for compilation and using 8 modules seems like a reasonable number
+#  for now -- note that you need change __init__.py if you change the number of
+#  modules...
+if(NOT PY_NUM_THREADS)
+  set(PY_NUM_THREADS 1)
+endif()
+if(NOT PY_NUM_MODULES)
+  set(PY_NUM_MODULES 8)
+endif()
 set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
@@ -409,9 +433,20 @@ add_custom_target(pyopenms_create_cpp
 	DEPENDS OpenMS SuperHirn
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
+set(PY_EXTRA_ARGS "")
+if(PY_SINGLE_THREADED)
+  message(STATUS "Turning off multi-threaded python module compilation")
+  set(PY_EXTRA_ARGS "${PY_EXTRA_ARGS}" "--single-threaded")
+endif()
+if(PY_NO_OPTIMIZATION)
+  message(STATUS "Turning off optimization for faster python module compile time")
+  set(PY_EXTRA_ARGS "${PY_EXTRA_ARGS}" "--no-optimization")
+endif()
+message(STATUS "Py extra args ${PY_EXTRA_ARGS}")
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_custom_target(pyopenms
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
         COMMAND ${CMAKE_BINARY_DIR}/pyOpenMS/fix_pyopenms_dependencies_on_mac.sh
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
@@ -420,8 +455,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         DEPENDS pyopenms_create_cpp
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
-    add_custom_target(pyopenms
-        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
+    add_custom_target(pyopenms 
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext ${PY_EXTRA_ARGS}
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip

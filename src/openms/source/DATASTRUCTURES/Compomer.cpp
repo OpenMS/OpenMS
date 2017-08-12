@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,10 +115,10 @@ namespace OpenMS
     {
       std::cerr << "Compomer::add() was given adduct with negative amount! Are you sure this is what you want?!\n";
     }
-    if (a.getCharge() < 0)
-    {
-      std::cerr << "Compomer::add() was given adduct with negative charge! Are you sure this is what you want?!\n";
-    }
+    //if (a.getCharge() < 0)
+    //{
+    //  std::cerr << "Compomer::add() was given adduct with negative charge! Are you sure this is what you want?!\n";
+    //}
 
     if (cmp_[side].count(a.getFormula()) == 0)
     {

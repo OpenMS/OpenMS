@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,7 +85,7 @@ namespace OpenMS
     //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
     defaults_.setValue("icon_color", "#000000", "Peak icon color.");
-    defaults_.setValue("peak_color", "#0000ff", "Peak color.");
+    defaults_.setValue("peak_color", "#000000", "Peak color.");
     defaults_.setValue("annotation_color", "#000055", "Annotation color.");
     defaults_.setValue("background_color", "#ffffff", "Background color.");
     defaults_.setValue("show_legend", "false", "Annotate each layer with its name on the canvas.");
@@ -876,6 +876,20 @@ namespace OpenMS
       drawCoordinates_(*painter, selected_peak_);
     }
 
+    // draw text box (supporting HTML) on the right side of the canvas
+    if (!text_box_content_.isEmpty())
+    {
+      painter->save();
+      double w = text_box_content_.size().width();
+      double h = text_box_content_.size().height();
+      //draw text
+      painter->setPen(Qt::black);
+      painter->translate(width() - w - 2, 3);
+      painter->fillRect(width() - w - 2, 3, w, h, QColor(255, 255, 255, 200));
+      text_box_content_.drawContents(painter);
+      painter->restore();
+    }
+
     if (show_timing_)
     {
       cout << "paint event took " << timer.elapsed() << " ms" << endl;
@@ -1285,6 +1299,38 @@ namespace OpenMS
       {
         if (result->text() == "Delete")
         {
+          // Remove peak annotation also from fragment annotations
+          Annotation1DPeakItem * pa = dynamic_cast<Annotation1DPeakItem *>(annot_item);
+          if (pa != nullptr)
+          {
+            // check if present in current fragment annotation vector and also delete from there
+            MSSpectrum<> & spectrum = getCurrentLayer_().getCurrentSpectrum();
+
+            // store user fragment annotations
+            vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();
+            int pep_id_index = getCurrentLayer_().peptide_id_index;
+            int pep_hit_index = getCurrentLayer_().peptide_hit_index;
+
+            if (!pep_id.empty() && pep_id_index != -1)
+            {
+              vector<PeptideHit>& hits = pep_id[pep_id_index].getHits();
+
+              if (!hits.empty() && pep_hit_index != -1)
+              {
+                PeptideHit& hit = hits[pep_hit_index];
+
+                vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
+
+                // erase fragment annotations that match the visual peak annotation
+                fas.erase(std::remove_if(fas.begin(), fas.end(),
+                  [pa](const PeptideHit::PeakAnnotation& p)
+                  {
+                   return (fabs(p.mz - pa->getPeakPosition()[0]) < 1e-6);
+                  }), fas.end());
+                hit.setPeakAnnotations(fas);
+              }
+            }
+          }
           annots_1d.removeSelectedItems();
         }
         else if (result->text() == "Edit")
@@ -1439,6 +1485,11 @@ namespace OpenMS
     e->accept();
   }
 
+  void Spectrum1DCanvas::setTextBox(const QString& html)
+  {
+    text_box_content_.setHtml(html);
+  }
+
   void Spectrum1DCanvas::addUserLabelAnnotation_(const QPoint & screen_position)
   {
     bool ok;
@@ -1575,7 +1626,6 @@ namespace OpenMS
       zoomBack_();
     } else
     {
-   
       const PointType::CoordinateType zoom_factor = 0.8;
       AreaType new_area;
       if (isMzToXAxis())
@@ -1637,7 +1687,7 @@ namespace OpenMS
       newLo -= shift;
       newHi -= shift;
     }
-    else if (m == Qt::ShiftModifier) 
+    else if (m == Qt::ShiftModifier)
     { // jump to the next peak (useful for sparse data)
       const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer_().getCurrentSpectrum();
       PeakType p_temp(visible_area_.minX(), 0);
@@ -1669,7 +1719,7 @@ namespace OpenMS
       newLo += shift;
       newHi += shift;
     }
-    else if (m == Qt::ShiftModifier) 
+    else if (m == Qt::ShiftModifier)
     { // jump to the next peak (useful for sparse data)
       const LayerData::ExperimentType::SpectrumType& spec = getCurrentLayer_().getCurrentSpectrum();
       PeakType p_temp(visible_area_.maxX(), 0);

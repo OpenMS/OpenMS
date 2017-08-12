@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <limits> // for "quiet_NaN"
 
@@ -155,6 +157,7 @@ namespace OpenMS
     static const MetaDataFlags MDF_NATIVEID = 64;
     static const MetaDataFlags MDF_ALL = 127;
 
+
     /// Meta data of a spectrum
     struct SpectrumMetaData
     {
@@ -177,7 +180,8 @@ namespace OpenMS
     };
 
     /// Constructor
-    SpectrumMetaDataLookup(): SpectrumLookup() {}
+    SpectrumMetaDataLookup(): SpectrumLookup()
+    {}
 
     /// Destructor
     virtual ~SpectrumMetaDataLookup() {}
@@ -185,7 +189,7 @@ namespace OpenMS
     /**
        @brief Read spectra and store their meta data
 
-       @tparam SpectrumContainer Spectrum container class, must support @p size and @p operator[]
+       @param SpectrumContainer Spectrum container class, must support @p size and @p operator[]
 
        @param spectra Container of spectra
        @param scan_regexp Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
@@ -216,6 +220,18 @@ namespace OpenMS
         metadata_.push_back(meta);
       }
     }
+
+
+    /**
+     * @brief set spectra_data from read SpectrumContainer origin (i.e. filename)
+     *
+     * @param spectra_data the name (and path) of the origin of the read SpectrumContainer
+     */
+    void setSpectraDataRef(const String& spectra_data)
+    {
+      this->spectra_data_ref = spectra_data;
+    }
+
 
     /**
        @brief Look up meta data of a spectrum
@@ -264,16 +280,30 @@ namespace OpenMS
        @return True if all peptide IDs could be annotated successfully (including if all already had RT values), false otherwise.
 
        Look-up works by matching the "spectrum_reference" (meta value) of a peptide ID to the native ID of a spectrum. Only peptide IDs without RT (where PeptideIdentification::getRT() returns "NaN") are looked up; the RT is set to that of the corresponding spectrum.
-
-       The raw data is only loaded from @p filename if necessary, i.e. if there are any peptide IDs with missing RTs.
     */
-    static bool addMissingRTsToPeptideIDs(
-      std::vector<PeptideIdentification>& peptides, const String& filename,
+    static bool addMissingRTsToPeptideIDs(std::vector<PeptideIdentification>& peptides, const String &filename,
       bool stop_on_error = false);
+
+    /**
+     * @brief Add missing "spectrum_reference"s to peptide identifications based on raw data
+     *
+     * @param peptides Peptide IDs with or without spectrum_reference
+     * @param filename the name of the mz_file from which to draw spectrum_references
+     * @param stop_on_error Stop when an ID could not be matched to a spectrum (or keep going)?
+     * @param override_spectra_data if given ProteinIdentifications should be updated with new "spectra_data" values from SpectrumMetaDataLookup
+     * @param proteins Protein IDs corresponding to the Peptide IDs
+     *
+     * @return True if all peptide IDs could be annotated successfully (including if all already had "spectrum_reference" values), false otherwise.
+     *
+     * Look-up works by matching RT of a peptide identification with the given spectra. Matched spectra 'native ID' will be annotated to the identification. All spectrum_references are updated/added.
+     */
+    static bool addMissingSpectrumReferences(std::vector<PeptideIdentification>& peptides, const String& filename,
+      bool stop_on_error = false, bool override_spectra_data = false, std::vector<ProteinIdentification> proteins = std::vector<ProteinIdentification>());
 
   protected:
 
     std::vector<SpectrumMetaData> metadata_; ///< Meta data for spectra
+    String spectra_data_ref;
 
   private:
 

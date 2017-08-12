@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
 
         double computeHyperScore(MSSpectrum[Peak1D], MSSpectrum[Peak1D], double, double) nogil except +
 
-        void run(MSExperiment[Peak1D,ChromatogramPeak] & exp, MzTab& mz_tab) nogil except +
+        void run(MSExperiment & exp, MSExperiment & speclib, MzTab & mz_tab) nogil except +
 
     cdef cppclass SpectralMatch:
 

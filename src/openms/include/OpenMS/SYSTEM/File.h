@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,8 +75,11 @@ public:
     */
     static bool remove(const String& file);
 
-    /// Removes the specified directory (absolute path). Returns true if successful.
+    /// Removes the subdirectories of the specified directory (absolute path). Returns true if successful.
     static bool removeDirRecursively(const String& dir_name);
+
+    /// Removes the directory and all subdirectories (absolute path).
+    static bool removeDir(const QString& dir_name);
 
     /// Replaces the relative path in the argument with the absolute path.
     static String absolutePath(const String& file);

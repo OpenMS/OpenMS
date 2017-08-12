@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,14 +60,14 @@ public:
     /** @name Typedefs
     */
     //@{
-    typedef std::set<const Enzyme *>::const_iterator ConstEnzymeIterator;
-    typedef std::set<const Enzyme *>::iterator EnzymeIterator;
+    typedef std::set<const Enzyme*>::const_iterator ConstEnzymeIterator;
+    typedef std::set<const Enzyme*>::iterator EnzymeIterator;
     //@}
 
     /// this member function serves as a replacement of the constructor
     inline static EnzymesDB* getInstance()
     {
-      static EnzymesDB * db_ = 0;
+      static EnzymesDB* db_ = 0;
       if (db_ == 0)
       {
         db_ = new EnzymesDB;
@@ -88,11 +88,11 @@ public:
     /// returns a pointer to the enzyme with name (supports synonym names)
     /// @throw Exception::ElementNotFound if enzyme is unknown
     /// @note enzymes are registered in regular and in toLowercase() style, if unsure use toLowercase
-    const Enzyme* getEnzyme(const String & name) const;
+    const Enzyme* getEnzyme(const String& name) const;
 
     /// returns a pointer to the enzyme with cleavage regex
     /// @throw Exception::IllegalArgument if enzyme regex  is unregistered.
-    const Enzyme* getEnzymeByRegEx(const String & cleavage_regex) const;
+    const Enzyme* getEnzymeByRegEx(const String& cleavage_regex) const;
 
     /// load enzymes from given file
     void setEnzymes(const String& filename);
@@ -109,6 +109,9 @@ public:
 
     /// returns all the enzyme names available for XTandem
     void getAllXTandemNames(std::vector<String>& all_names) const;
+
+    /// returns all the enzyme names available for Comet
+    void getAllCometNames(std::vector<String>& all_names) const;
 
     /// returns all the enzyme names available for OMSSA
     void getAllOMSSANames(std::vector<String>& all_names) const;
@@ -151,7 +154,7 @@ protected:
     */
     //@{
     /// assignment operator
-    EnzymesDB & operator=(const EnzymesDB& enzymes_db);
+    EnzymesDB& operator=(const EnzymesDB& enzymes_db);
     //@}
 
     /// reads enzymes from the given file

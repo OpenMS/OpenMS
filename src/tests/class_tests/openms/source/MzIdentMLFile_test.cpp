@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -396,8 +396,11 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   String input_file= OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_labelled.mzid");
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
 
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("xl_pos"), 0)
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("xl_term_spec"), "N_TERM")
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getSequence().toString(), "KELLK")
+
   // Reading and writing
-//  String filename = "/home/eugen/Development/OpenMS-build/Testing/Temporary/test.mzid";
   String filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
@@ -436,15 +439,16 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids2[1].getHits()[1].getSequence().toString(), "KELLK")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_pos"), 6)
   TEST_EQUAL(peptide_ids2[1].getHits()[1].getMetaValue("xl_pos"), 0)
+  TEST_EQUAL(peptide_ids2[1].getHits()[1].getMetaValue("xl_term_spec"), "N_TERM")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mass"), 138.0680796)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mod"), "DSS")
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[0].annotation, "[alpha|ci$b2]")
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[0].charge, 1)
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[1].annotation, "[alpha|ci$b2]")
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[8].annotation, "[alpha|xi$b8]")
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[20].annotation, "[alpha|xi$b9]")
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[25].charge, 3)
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[25].annotation, "[alpha|xi$y8]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].charge, 1)
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[1].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[8].annotation, "[alpha|xi$b8]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[20].annotation, "[alpha|xi$b9]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[25].charge, 3)
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[25].annotation, "[alpha|xi$y8]")
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_type"), "loop-link")
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_pos"), 7)
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_pos2"), 14)
@@ -462,21 +466,10 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
 
   // Reading and writing
-//  String filename = "/home/eugen/Development/OpenMS-build/Testing/Temporary/test2.mzid";
   String filename;
   NEW_TMP_FILE(filename)
   MzIdentMLFile().store(filename, protein_ids, peptide_ids);
   MzIdentMLFile().load(filename, protein_ids2, peptide_ids2);
-
-  for (Size i = 0; i < peptide_ids2.size(); ++i)
-  {
-    cout << "PeptideID " << i << ": RT=" << peptide_ids2[i].getRT() << " | MZ=" << peptide_ids2[i].getMZ() << endl;
-    for (Size j = 0; j < peptide_ids2[i].getHits().size(); ++j)
-    {
-      cout << "PeptideHit " << j << ": " << peptide_ids2[i].getHits()[j].getMetaValue("xl_type") << " | Seq: " << peptide_ids2[i].getHits()[j].getSequence() << endl;
-    }
-  }
-  cout << "Loop: " << peptide_ids2[3].getHits()[0].getSequence() << " | " << peptide_ids2[3].getHits()[0].getMetaValue("xl_pos") << " | " << peptide_ids2[3].getHits()[0].getMetaValue("xl_pos2") << " | " << peptide_ids2[3].getHits()[0].getMetaValue("xl_type") << endl;
 
   // ProteinIdentification
   TEST_EQUAL(protein_ids2[0].getSearchParameters().fragment_mass_tolerance_ppm, true)
@@ -501,6 +494,8 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_chain"), "MS:1002509") // XL donor
   TEST_EQUAL(peptide_ids2[0].getHits()[1].getMetaValue("xl_chain"), "MS:1002510") // XL acceptor
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_type"), "cross-link")
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_pos"), 0)
+  TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_term_spec"), "N_TERM")
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getScore(), peptide_ids2[0].getHits()[1].getScore())
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getScore(), peptide_ids2[1].getHits()[1].getScore())
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getSequence().toString(), "FIVKASSGPR")
@@ -509,18 +504,19 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(peptide_ids2[1].getHits()[1].getMetaValue("xl_pos"), 4)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mass"), 138.0680796)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mod"), "DSS")
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[0].annotation, "[alpha|ci$b2]")
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[0].charge, 1)
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[1].annotation, "[alpha|ci$b3]")
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[8].annotation, "[alpha|ci$y5]")
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[20].annotation, "[beta|xi$y6]")
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[26].charge, 3)
-  TEST_EQUAL(peptide_ids2[1].getHits()[0].getFragmentAnnotations()[26].annotation, "[alpha|xi$y8]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].charge, 1)
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[1].annotation, "[alpha|ci$b3]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[8].annotation, "[alpha|ci$y5]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[20].annotation, "[beta|xi$y6]")
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[26].charge, 3)
+  TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[26].annotation, "[alpha|xi$y8]")
   TEST_EQUAL(peptide_ids2[3].getHits()[0].getSequence().toString(), "VLVKVHPEGKYVVDISPDIDIK")
   TEST_EQUAL(peptide_ids2[3].getHits()[0].getMetaValue("xl_type"), "loop-link")
   TEST_EQUAL(peptide_ids2[3].getHits()[0].getMetaValue("xl_pos"), 3)
   TEST_EQUAL(peptide_ids2[3].getHits()[0].getMetaValue("xl_pos2"), 9)
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue("xl_type"), "mono-link")
+
 
 
 END_SECTION

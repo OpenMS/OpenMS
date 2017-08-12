@@ -5,7 +5,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 --------------------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -35,26 +35,55 @@ $Authors: Hannes Roest$
 --------------------------------------------------------------------------
 """
 
-# https://pypi.python.org/pypi/breathe
-# $ sudo pip install breathe
-
 import glob, os, sys
 import re, time
 import argparse
+from xml.sax.saxutils import escape as xml_escape
+
 from PythonCheckerLib import parse_pxd_file
 from PythonCheckerLib import create_pxd_file_map
-import breathe.parser
-from breathe.parser.doxygen.compound import parse as doxygen_parse
-from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
-from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
-import yaml
-from xml.sax.saxutils import escape as xml_escape
+
+# Try non-standard libs
+try:
+    import breathe.parser
+    import yaml
+    from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
+    from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
+except ImportError:
+    print "You need to install a few packages for this library to work"
+    print "Please use:"
+    print " pip install breathe"
+    print " pip install pyyaml"
+    print " pip install autowrap"
+    print " pip install Cython"
+    raise ImportError
+
+# Try breathe parser
+try:
+    from breathe.parser.eoxygen.compound import parse as doxygen_parse
+except ImportError:
+    print "importing breathe.parser.doxygen.compound failed, try new API"
+    from breathe.parser.compound import parse as doxygen_parse
+
 
 # Matching function
 def handle_member_definition(mdef, pxd_class, cnt):
     """ Matches a doxygen member definition (mdef) to a Cython pxd file.
 
+    This tries to ensure that all C++ functions are wrapped and have an
+    equivalent in the Python wrapper. 
+
+    Parameters
+    ----------
+    mdef : breathe.parser.compound.memberdefTypeSub
+        A doxygen entry
+    pxd_class : autowrap.PXDParser.CppClassDecl
+        A PXD class file as parsed by autowrap
+    cnt : 
+        A count object to keep track of how many functions we wrapped
     """
+    pxd_class_methods_str = str([ str(m) for m in pxd_class.methods.keys()])
+
     tres = TestResult()
     protection = mdef.get_prot() # DoxProtectionKind: public, protected, private, package
     kind = mdef.get_kind() # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot
@@ -63,13 +92,26 @@ def handle_member_definition(mdef, pxd_class, cnt):
     if not kind in "define property event variable typedef enum function signal prototype friend dcop slot".split(" "):
         raise Exception("Error; something is wrong")
     if kind == "enum" and protection == "public":
+
         cnt.public_enums_total += 1
         cython_file = parse_pxd_file(pxd_class.pxd_path)
         found = False
         for klass in cython_file:
+
             if hasattr(klass[0], "name") and klass[0].name == mdef.get_name():
                 found = True
                 break
+
+            # Sometimes we rename things in pyOpenMS for sanity (and namespace consistency) sake
+            # E.g. OpenMS::PercolatorOutfile::ScoreType becomes PercolatorOutfile_ScoreType 
+            # and we have to go back to the full cname. However, the doxygen name needs to be inferred
+            if hasattr(klass[0], "cname") and klass[0].cname.endswith(mdef.get_name()):
+                assumed_fullname = mdef.compoundname + "::" + mdef.get_name()
+                if (assumed_fullname == klass[0].cname):
+                    found = True
+                    break
+                else:
+                    print "Something went wrong, %s is not equal to %s" % (assumed_fullname, klass[0].cname)
 
         if not found:
             tres.setPassed(False)
@@ -254,7 +296,7 @@ class DoxygenXMLFile(object):
 
     def parse_doxygen(self):
         try:
-            self.parsed_file =  doxygen_parse(self.fname)
+            self.parsed_file = doxygen_parse(self.fname)
             self.compound = self.parsed_file.get_compounddef()
             return self.parsed_file
         except Exception as e:
@@ -418,6 +460,7 @@ class DoxygenXMLFile(object):
             for mdef_ in sdef.get_memberdef():
                 mdef = DoxygenCppFunction.generate_from_obj(mdef_)
                 mdef.parent_doxy_file = self
+                mdef.compoundname = self.compound.compoundname
                 yield mdef
 
     def isAbstract(self):
@@ -549,18 +592,18 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("operator[", "operator<")
         cpp_def = cpp_def.replace("operator__[]", "operator[]")
         cpp_def = cpp_def.replace("const ", "")
+
+        # Note that template arguments cannot be typedefs but need to be basic types
         cpp_def = cpp_def.replace("[ DoubleReal ]", "[ double ]")
         cpp_def = cpp_def.replace("[ Size ]", "[ size_t ]")
+        cpp_def = cpp_def.replace("[Size,Size]", "[size_t,size_t]")
         cpp_def = cpp_def.replace("[ Int ]", "[ int ]")
-        cpp_def = cpp_def.replace("RichPeakSpectrum", "MSSpectrum[RichPeak1D]")
-        cpp_def = cpp_def.replace("RichPeakMap", "MSExperiment[RichPeak1D, ChromatogramPeak]")
+
         cpp_def = cpp_def.replace("FeatureMap[]", "FeatureMap[Feature]")
         cpp_def = cpp_def.replace("MSSpectrum[]", "MSSpectrum[Peak1D]")
-        cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment[Peak1D, ChromatogramPeak]")
-        # cpp_def = cpp_def.replace("Chromatogram", "MSChromatogram[ChromatogramPeak]")
-        #
+        cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment")
         cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum[Peak1D]")
-        cpp_def = cpp_def.replace("PeakMap", "MSExperiment[Peak1D, ChromatogramPeak]")
+        cpp_def = cpp_def.replace("PeakMap", "MSExperiment")
 
         # Alert the user to potential problems and comment out potential
         # dangerous things (raw pointers, iterators)
@@ -719,12 +762,18 @@ class TestResultHandler:
 
     def to_cdash_xml(self, template_path, output_path):
 
+        if template_path.endswith("Test.xml"):
+            body_start = "<Testing>"
+        elif template_path.endswith("Build.xml"):
+            body_start = "<Build>"
+        else:
+            raise Exception("Unsupported template name %s" % template_path)
         xml_output = []
         # load template head (everything up to "<Testing>")
         # -> this assumes a specific format of the xml
         with open(template_path) as f:
             for line in f:
-                if line.strip() == "<Testing>":
+                if line.strip() == body_start:
                     break
                 xml_output.append(line)
 
@@ -885,7 +934,11 @@ def writeOutput(testresults, output_format, cnt, bin_path):
             raise Exception("Missing nightly test information at %s" % (tag_file) )
 
         template_path = os.path.join(ctestReportingPath, "Test.xml" )
-        testresults.to_cdash_xml(template_path, template_path)
+        output_path = template_path # output is always Test.xml
+        if not os.path.isfile(template_path):
+            template_path = os.path.join(ctestReportingPath, "Build.xml" ) #Build.xml an be used as alternative template
+
+        testresults.to_cdash_xml(template_path, output_path)
 
     else:
         raise Exception("Unknown output format %s" % output_format)
@@ -946,7 +999,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             print ""
             print pxd_text
         if len(pxds_out) > 0 and pxd_text is not None:
-            fname =  os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
+            fname = os.path.join(pxds_out, "%s.pxd" % comp_name.split("::")[-1] )
             with open(fname, "w" ) as f:
                 f.write(pxd_text)
 
@@ -1057,7 +1110,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             pxdfile = pxd_class.pxdfile
         except PXDFileParseError as e:
             # TODO specific exception
-            msg = "Skip:: No-pxd :: " + e.message + "for %s (in pxd file %s)" % (comp_name, pxdfiles)
+            msg = "Skip:: No-pxd :: " + e.message + " for %s (in pxd file %s)" % (comp_name, pxdfiles)
             tres = TestResult(False, msg,  name="Missing_%s_test" % comp_name )
             tres.maintainer = maintainer
             testresults.append([ tres ])
@@ -1071,7 +1124,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
         # Loop through all methods which are listed in the doxygen XML file and match them to the pxd file
         classtestresults = []
-        for method_cntr,mdef in enumerate(dfile.iterMemberDef()):
+        for method_cntr, mdef in enumerate(dfile.iterMemberDef()):
 
             if mdef.get_name() in ignorefile.getIgnoredMethods(comp_name):
                 msg = "Ignore member function/attribute : %s %s %s " % (mdef.kind, mdef.prot, mdef.name)
@@ -1100,7 +1153,7 @@ def main(options):
                          options.generate_pxd)
 
 def handle_args():
-    usage = ""
+    usage = "Python extension checker. Run to identify classes and functions that have not been wrapped yet in pyOpenMS. Make sure you run 'make doc_xml' in the build path (--bin_path) first."
 
     parser = argparse.ArgumentParser(description = usage )
     parser.add_argument("--bin_path", dest="bin_path", default=".", help="OpenMS build path")

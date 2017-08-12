@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -92,6 +92,9 @@ elseif (MSVC)
 
 	## xerces bug workaround
 	add_definitions(/DOPENMS_XERCESDLL)
+	
+	## coinor windows.h include bug workaround
+	add_definitions(/DNOMINMAX)
 
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
@@ -123,6 +126,8 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-documentation
                   -Wno-source-uses-openmp
                   -Wno-old-style-cast
+                  -Wno-c++98-compat
+                  -Wno-c++98-compat-pedantic
                   # These are warnings of moderate severity, which are disabled
                   # for now until we are down to a reasonable size of warnings.
                   -Wno-conversion
@@ -130,6 +135,11 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-switch-enum
                   -Wno-missing-prototypes
                   -Wno-missing-variable-declarations
+                  -Wno-deprecated
+                  -Wno-deprecated-register
+                  -Wno-covered-switch-default
+                  -Wno-date-time
+                  -Wno-missing-noreturn
                   )
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")

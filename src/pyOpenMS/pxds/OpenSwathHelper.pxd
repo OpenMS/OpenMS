@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
     cdef cppclass OpenSwathHelper:
 
         bool checkSwathMapAndSelectTransitions(
-                                MSExperiment[Peak1D, ChromatogramPeak] & exp, 
+                                MSExperiment & exp, 
                                 TargetedExperiment & targeted_exp,
                                 TargetedExperiment & transition_exp_used,
                                 double min_upper_edge_dist

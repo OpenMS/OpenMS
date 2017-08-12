@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -134,18 +134,22 @@ protected:
     
     IntList ms_level = getIntList_("ms_level");
 
+    double offset = getDoubleOption_("offset");
+    double slope = getDoubleOption_("slope");
+    double power = getDoubleOption_("power");
+
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
 
     // Raw data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mz_file;
     mz_file.setLogType(log_type_);
     mz_file.load(in, exp);
 
     MZTrafoModel tm;
-    tm.setCoefficients(getDoubleOption_("offset"), getDoubleOption_("slope"), getDoubleOption_("power"));
+    tm.setCoefficients(offset, slope, power);
 
     InternalCalibration ic;
     ic.setLogType(log_type_);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #ifndef OPENMS_KERNEL_MSSPECTRUM_H
 #define OPENMS_KERNEL_MSSPECTRUM_H
 
+#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
@@ -43,8 +44,6 @@
 
 namespace OpenMS
 {
-  class Peak1D;
-
   /**
     @brief The representation of a 1D spectrum.
 
@@ -63,7 +62,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  template <typename PeakT = Peak1D>
+  template <typename PeakT>
   class MSSpectrum :
     private std::vector<PeakT>,
     public RangeManager<1>,
@@ -71,7 +70,7 @@ namespace OpenMS
   {
 public:
 
-    ///Comparator for the retention time.
+    /// Comparator for the retention time.
     struct RTLess :
       public std::binary_function<MSSpectrum, MSSpectrum, bool>
     {
@@ -192,6 +191,13 @@ public:
       string_data_arrays_ = source.string_data_arrays_;
       integer_data_arrays_ = source.integer_data_arrays_;
 
+      return *this;
+    }
+
+    /// Assignment operator
+    MSSpectrum& operator=(const SpectrumSettings & source)
+    {
+      SpectrumSettings::operator=(source);
       return *this;
     }
 
@@ -374,11 +380,11 @@ public:
       {
         if (reverse)
         {
-          std::sort(ContainerType::begin(), ContainerType::end(), reverseComparator(typename PeakType::IntensityLess()));
+          std::stable_sort(ContainerType::begin(), ContainerType::end(), reverseComparator(typename PeakType::IntensityLess()));
         }
         else
         {
-          std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::IntensityLess());
+          std::stable_sort(ContainerType::begin(), ContainerType::end(), typename PeakType::IntensityLess());
         }
       }
       else
@@ -393,11 +399,11 @@ public:
 
         if (reverse)
         {
-          std::sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >()));
+          std::stable_sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >()));
         }
         else
         {
-          std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >());
+          std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >());
         }
 
         // extract list of indices
@@ -420,7 +426,7 @@ public:
     {
       if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
       {
-        std::sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
+        std::stable_sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
       }
       else
       {
@@ -431,7 +437,7 @@ public:
         {
           sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
         }
-        std::sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::PositionType, Size> >());
+        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::PositionType, Size> >());
 
         // extract list of indices
         std::vector<Size> select_indices;
@@ -508,7 +514,7 @@ public:
     */
     Int findNearest(CoordinateType mz, CoordinateType tolerance) const
     {
-      if (ContainerType::empty()) return -1; 
+      if (ContainerType::empty()) return -1;
       Size i = findNearest(mz);
       const double found_mz = this->operator[](i).getMZ();
       if (found_mz >= mz - tolerance && found_mz <= mz + tolerance)
@@ -536,8 +542,8 @@ public:
     */
     Int findNearest(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const
     {
-      if (ContainerType::empty()) return -1; 
-      
+      if (ContainerType::empty()) return -1;
+
       // do a binary search for nearest peak first
       Size i = findNearest(mz);
 
@@ -545,7 +551,7 @@ public:
 
       if (nearest_mz < mz)
       {
-        if (nearest_mz >= mz - tolerance_left) 
+        if (nearest_mz >= mz - tolerance_left)
         {
           return i; // success: nearest peak is in left tolerance window
         }
@@ -556,12 +562,12 @@ public:
           // There still might be a peak to the right of mz that falls in the right window
           ++i;  // now we are at a peak exactly on or to the right of mz
           const double next_mz = this->operator[](i).getMZ();
-          if (next_mz <= mz + tolerance_right) return i; 
+          if (next_mz <= mz + tolerance_right) return i;
         }
       }
       else
       {
-        if (nearest_mz <= mz + tolerance_right) 
+        if (nearest_mz <= mz + tolerance_right)
         {
           return i; // success: nearest peak is in right tolerance window
         }
@@ -570,7 +576,7 @@ public:
           if (i == 0) return -1; // we are at the first peak which is too far right
           --i;  // now we are at a peak exactly on or to the right of mz
           const double next_mz = this->operator[](i).getMZ();
-          if (next_mz >= mz - tolerance_left) return i; 
+          if (next_mz >= mz - tolerance_left) return i;
         }
       }
 
@@ -712,6 +718,9 @@ public:
       Size snew = indices.size();
       ContainerType tmp;
       tmp.reserve(indices.size());
+
+      const Size peaks_old = size();
+
       for (Size i = 0; i < snew; ++i)
       {
         tmp.push_back(*(ContainerType::begin() + indices[i]));
@@ -720,6 +729,12 @@ public:
 
       for (Size i = 0; i < float_data_arrays_.size(); ++i)
       {
+        if (float_data_arrays_[i].size() != peaks_old)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" + 
+            String(float_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
+        }
+
         std::vector<float> mda_tmp;
         mda_tmp.reserve(float_data_arrays_[i].size());
         for (Size j = 0; j < snew; ++j)
@@ -731,6 +746,11 @@ public:
 
       for (Size i = 0; i < string_data_arrays_.size(); ++i)
       {
+        if (string_data_arrays_[i].size() != peaks_old)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" + 
+            String(string_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
+        }
         std::vector<String> mda_tmp;
         mda_tmp.reserve(string_data_arrays_[i].size());
         for (Size j = 0; j < snew; ++j)
@@ -742,6 +762,11 @@ public:
 
       for (Size i = 0; i < integer_data_arrays_.size(); ++i)
       {
+        if (integer_data_arrays_[i].size() != peaks_old)
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" + 
+            String(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
+        }
         std::vector<Int> mda_tmp;
         mda_tmp.reserve(integer_data_arrays_[i].size());
         for (Size j = 0; j < snew; ++j)

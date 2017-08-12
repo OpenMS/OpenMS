@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -96,7 +96,7 @@ START_SECTION(void setEnzymes(const String& filename))
     ptr->setEnzymes(File::find("CHEMISTRY/Enzymes.xml")); // full filename should also work
     TEST_EQUAL(std::distance(ptr->beginEnzyme(), ptr->endEnzyme()), 25); // should be 25 enzymes in "CHEMISTRY/Enzymes.xml"
 END_SECTION
-    
+
 START_SECTION(void addEnzyme(const Enzyme& enzyme))
     Enzyme enzy = Enzyme("MysticalEnzyme","(?<=[])(?!PATT)");
     enzy.addSynonym("VeryMysticalEnzyme");
@@ -104,13 +104,12 @@ START_SECTION(void addEnzyme(const Enzyme& enzyme))
     TEST_EQUAL(ptr->hasEnzyme(enzy.getName()), false)
     TEST_EQUAL(ptr->hasEnzyme("HugelyMysticalEnzyme"), false)
     TEST_EQUAL(ptr->hasRegEx(enzy.getRegEx()), false)
-    
-        
+
     vector<String> names;
     ptr->getAllNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
     TEST_EQUAL(find(names.begin(), names.end(), "Tryptryp") != names.end(), false)
-    
+
     ptr->addEnzyme(enzy);
     TEST_EQUAL(ptr->hasEnzyme(enzy.getName()), true)
     TEST_EQUAL(ptr->hasEnzyme("HugelyMysticalEnzyme"), true)
@@ -130,7 +129,7 @@ START_SECTION(void clear())
   ptr->clear();
   TEST_EQUAL(ptr->beginEnzyme() == ptr->endEnzyme(), true)
   TEST_EQUAL(ptr->hasEnzyme("Trypsin"), false)
-  
+
   // restore old status
   String file = File::find("CHEMISTRY/Enzymes.xml");
   ptr->setEnzymes(file);

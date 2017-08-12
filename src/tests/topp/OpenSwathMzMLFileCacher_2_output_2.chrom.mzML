@@ -20,7 +20,7 @@
 			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="0" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
 		</sample>
 	</sampleList>
-	<softwareList count="5">
+	<softwareList count="4">
 		<software id="so_in_0" version="" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
@@ -33,9 +33,6 @@
 		<software id="so_dp_sp_0_pm_1" version="" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
-		<software id="so_dp_sp_0_pm_2" version="" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
-		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
 		<instrumentConfiguration id="ic_0">
@@ -45,21 +42,11 @@
 	</instrumentConfigurationList>
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
 				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements"/>
-			</processingMethod>
-			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
 				<cvParam cvRef="MS" accession="MS:1000530" name="file format conversion" />
 			</processingMethod>
 		</dataProcessing>
@@ -71,9 +58,18 @@
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="19" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="4" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="500" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="20" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+							<cvParam cvRef="MS" accession="MS:1000242" name="blackbody infrared radiative dissociation" />
 						</activation>
 					</precursor>
 					<product>
@@ -101,9 +97,12 @@
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="8" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
+							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="500" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
+							<cvParam cvRef="MS" accession="MS:1000282" name="sustained off-resonance irradiation" />
 						</activation>
 					</precursor>
 					<product>
@@ -221,13 +220,13 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tr1">4289</offset>
-		<offset idRef="tr3">6836</offset>
-		<offset idRef="tr2">9383</offset>
-		<offset idRef="tr4">11930</offset>
-		<offset idRef="tr5">14477</offset>
+		<offset idRef="tr1">3515</offset>
+		<offset idRef="tr3">6887</offset>
+		<offset idRef="tr2">9920</offset>
+		<offset idRef="tr4">12467</offset>
+		<offset idRef="tr5">15014</offset>
 	</index>
 </indexList>
-<indexListOffset>17054</indexListOffset>
+<indexListOffset>17594</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

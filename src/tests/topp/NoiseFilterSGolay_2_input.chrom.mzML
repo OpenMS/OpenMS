@@ -34,7 +34,7 @@
 		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_default">
 				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
+				<userParam name="default_processing" type="xsd:string" value="just a default processing here" />
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>

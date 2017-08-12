@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,17 +61,18 @@ public:
     */
     //@{
     /// copy constructor
-    Enzyme(const Enzyme & enzyme);
+    Enzyme(const Enzyme& enzyme);
 
     /// detailed constructor
-    explicit Enzyme(const String & name,
-                    const String & cleavage_regex,
-                    const std::set<String> & synonyms = std::set<String>(),
+    explicit Enzyme(const String& name,
+                    const String& cleavage_regex,
+                    const std::set<String>& synonyms = std::set<String>(),
                     String regex_description = "",
                     EmpiricalFormula n_term_gain = EmpiricalFormula("H"),
                     EmpiricalFormula c_term_gain = EmpiricalFormula("OH"),
                     String psi_id = "",
                     String xtandem_id = "",
+                    UInt comet_id = 0,
                     UInt omssa_id = 0,
                     Int msgf_id = -1);
 
@@ -83,32 +84,32 @@ public:
      */
     //@{
     /// assignment operator
-    Enzyme & operator=(const Enzyme & enzyme);
+    Enzyme& operator=(const Enzyme& enzyme);
     //@}
 
     /** Accessors
     */
     //@{
     /// sets the name of the enzyme
-    void setName(const String & name);
+    void setName(const String& name);
 
     /// returns the name of the enzyme
-    const String & getName() const;
+    const String& getName() const;
 
     /// sets the synonyms
-    void setSynonyms(const std::set<String> & synonyms);
+    void setSynonyms(const std::set<String>& synonyms);
 
     /// adds a synonym
-    void addSynonym(const String & synonym);
+    void addSynonym(const String& synonym);
 
     /// returns the synonyms
-    const std::set<String> & getSynonyms() const;
+    const std::set<String>& getSynonyms() const;
 
     /// sets the name as regex
-    void setRegEx(const String & cleavage_regex);
+    void setRegEx(const String& cleavage_regex);
 
     /// returns the name as regex
-    const String & getRegEx() const;
+    const String& getRegEx() const;
 
     /// sets the regex description
     void setRegExDescription(String value);
@@ -128,39 +129,46 @@ public:
     /// returns C-terminal gain
     EmpiricalFormula getCTermGain() const;
 
-    /// sets the PSI id
-    void setPSIid(String value);
+    /// sets the PSI ID
+    void setPSIID(String value);
 
-    /// returns the PSI id
-    String getPSIid() const;
+    /// returns the PSI ID
+    String getPSIID() const;
 
-    /// sets the XTANDEM enzyme id
-    void setXTANDEMid(String value);
+    /// sets the X! Tandem enzyme ID
+    void setXTandemID(String value);
 
-    /// returns the XTANDEM enzyme id
-    String getXTANDEMid() const;
+    /// returns the X! Tandem enzyme ID
+    String getXTandemID() const;
 
-    /// sets the OMSSA enzyme id
-    void setOMSSAid(UInt value);
-
-    /// returns the OMSSA enzyme id
-    UInt getOMSSAid() const;
+    /// returns the Comet enzyme ID
+    UInt getCometID() const;
+    
+    /// sets the Comet enzyme ID
+    void setCometID(UInt value);
 
     /// sets the MSGFPlus enzyme id
-    void setMSGFid(Int value);
+    void setMSGFID(Int value);
 
     /// returns the MSGFPlus enzyme id
-    Int getMSGFid() const;
+    Int getMSGFID() const;
+
+    /// sets the OMSSA enzyme ID
+    void setOMSSAID(UInt value);
+
+    /// returns the OMSSA enzyme ID
+    UInt getOMSSAID() const;
+    
     //@}
 
     /** @name Predicates
     */
     //@{
     /// equality operator
-    bool operator==(const Enzyme & enzyme) const;
+    bool operator==(const Enzyme& enzyme) const;
 
     /// inequality operator
-    bool operator!=(const Enzyme & enzyme) const;
+    bool operator!=(const Enzyme& enzyme) const;
 
     /// equality operator for regex
     bool operator==(String cleavage_regex) const;
@@ -169,11 +177,11 @@ public:
     bool operator!=(String cleavage_regex) const;
 
     /// order operator
-    bool operator<(const Enzyme & enzyme) const;
+    bool operator<(const Enzyme& enzyme) const;
     //@}
 
     /// ostream iterator to write the enzyme to a stream
-    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Enzyme & enzyme);
+    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream& os, const Enzyme& enzyme);
 
 protected:
     /// default constructor
@@ -196,12 +204,14 @@ protected:
 
     String xtandem_id_;
 
+    UInt comet_id_;
+
     UInt omssa_id_;
 
     Int msgf_id_;
   };
 
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Enzyme & enzyme);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Enzyme& enzyme);
 
 }
 

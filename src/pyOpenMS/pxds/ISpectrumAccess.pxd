@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumA
   cdef cppclass ISpectrumAccess:
       # wrap-ignore
       # ABSTRACT class
+      # no-pxd-import
 
       ISpectrumAccess() nogil except +
       ISpectrumAccess(ISpectrumAccess) nogil except +

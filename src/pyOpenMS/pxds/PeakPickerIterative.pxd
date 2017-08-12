@@ -20,22 +20,22 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" names
                   MSSpectrum[Peak1D] & output
                  ) nogil except +
 
-        void pickExperiment(MSExperiment[Peak1D, ChromatogramPeak] & input,
-                            MSExperiment[Peak1D, ChromatogramPeak] & output
+        void pickExperiment(MSExperiment & input,
+                            MSExperiment & output
                            ) nogil except +
 
 
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" namespace "OpenMS":
-
-    cdef cppclass PeakCandidate:
-        PeakCandidate() nogil except +
-        PeakCandidate(PeakCandidate) nogil except +
-        int index
-        double peak_apex_intensity
-
-        double integrated_intensity
-        double leftWidth
-        double rightWidth
-        float mz
-
+# cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" namespace "OpenMS":
+# 
+#     cdef cppclass PeakCandidate:
+#         PeakCandidate() nogil except +
+#         PeakCandidate(PeakCandidate) nogil except +
+#         int index
+#         double peak_apex_intensity
+# 
+#         double integrated_intensity
+#         double leftWidth
+#         double rightWidth
+#         float mz
+# 

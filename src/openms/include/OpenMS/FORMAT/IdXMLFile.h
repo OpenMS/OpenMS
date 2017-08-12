@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,6 +128,19 @@ protected:
       * Can be reused by e.g. ConsensusXML, FeatureXML to write PeptideHit elements  
       */
     static String createPositionXMLString_(const std::vector<PeptideEvidence> & pes);
+
+
+    /**
+      * Helper function to write out fragment annotations as user param fragment_annotation
+      */  
+    static void writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
+                                          std::vector<PeptideHit::PeakAnnotation> annotations, UInt indent); 
+
+    /**
+      * Helper function to parse fragment annotations from string
+      */  
+    static void parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::PeakAnnotation> & annotations);
+    
 
     /// @name members for loading data
     //@{

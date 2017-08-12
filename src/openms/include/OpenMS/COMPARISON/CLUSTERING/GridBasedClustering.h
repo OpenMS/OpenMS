@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
@@ -44,6 +45,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <set>
 #include <queue>
 #include <vector>
 #include <algorithm>
@@ -181,8 +183,10 @@ public:
     void cluster()
     {
       // progress logger
+      // NOTE: for some reason, gcc7 chokes if we remove the OpenMS::String
+      // below, so lets just not change it.
       Size clusters_start = clusters_.size();
-      startProgress(0, clusters_start, "clustering");
+      startProgress(0, clusters_start, OpenMS::String("clustering"));
 
       MinimumDistance zero_distance(-1, -1, 0);
 

@@ -59,12 +59,16 @@ export PATH=${SOURCE_DIRECTORY}/_thirdparty/OMSSA:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/XTandem:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
 export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
+export PATH=${SOURCE_DIRECTORY}/_thirdparty/Comet:$PATH
 
 # if we perform style tests, add cppcheck to path
 if [ "$ENABLE_STYLE_TESTING" = "ON" ]; then
   export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
 fi
 
+# Make sure we use the same python as before to install all the pip packages
+# cmake tends to have a different opinion of where python is...
+export PYTHON_EXE=`which python`
 
 # set os dependent folder for preinstalled libraries
 export OS_PREFIX_PATH=/usr

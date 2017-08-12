@@ -15,6 +15,25 @@ function build_contrib {
   fi
 }
 
+if [ "${PYOPENMS}" = "ON" ]; then
+  # Note: ensure that cmake uses the same python!
+  which pip
+  which python
+
+  # small patch to accelerate build
+  pwd
+  ls src/pyOpenMS/create_cpp_extension.py
+  sed -i 's/import time/import time\nPY_NUM_THREADS=4/g' src/pyOpenMS/create_cpp_extension.py
+
+  pip install -U setuptools
+  pip install -U pip
+  pip install -U nose
+  pip install -U numpy
+  pip install -U wheel
+  pip install -U Cython
+  pip install -U autowrap==0.14
+fi
+
 # fetch contrib and build seqan
 git clone git://github.com/OpenMS/contrib/
 pushd contrib
@@ -28,8 +47,12 @@ build_contrib WILDMAGIC
 # we build Eigen as the versions shipped in Ubuntu are not recent enough
 build_contrib EIGEN
 
+# we build Sqlite as the versions shipped in Ubuntu are not recent enough
+build_contrib SQLITE
+
 # leave contrib
 popd
+
 
 # build custom cppcheck if we want to perform style tests
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
@@ -40,10 +63,8 @@ if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   popd
 else
   # regular builds .. get the search engine executables via githubs SVN interface (as git doesn't allow single folder checkouts)
-  svn checkout https://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty
-  # remove .svn otherwise we can't check out the other search engines into the same directory
-  rm _thirdparty/.svn -R -f || true
-  svn checkout https://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty
+  svn export --force https://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty
+  svn export --force https://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty
 fi
 
 

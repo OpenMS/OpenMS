@@ -1,9 +1,9 @@
 
+
+# Add this to all modules
 PeakSpectrum = MSSpectrum
-RichPeakSpectrum = RichMSSpectrum
 
 Chromatorgram = MSChromatogram
 
 PeakMap = MSExperiment
-RichPeakMap = RichMSExperiment
 

@@ -10,7 +10,6 @@ ConsensusMapNormalizerAlgorithmMedian.h
 ConsensusMapNormalizerAlgorithmQuantile.h
 FeatureDistance.h
 FeatureGroupingAlgorithm.h
-FeatureGroupingAlgorithmIdentification.h
 FeatureGroupingAlgorithmLabeled.h
 FeatureGroupingAlgorithmKD.h
 FeatureGroupingAlgorithmQT.h

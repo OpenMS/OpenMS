@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -159,18 +159,6 @@ END_SECTION
 
 START_SECTION((Size numMaps() const))
   TEST_EQUAL(kd_data_1.numMaps(), 1)
-END_SECTION
-
-START_SECTION((double rtTolerance() const))
-  TEST_REAL_SIMILAR(kd_data_1.rtTolerance(), 100)
-END_SECTION
-
-START_SECTION((double mzTolerance() const))
-  TEST_REAL_SIMILAR(kd_data_1.mzTolerance(), 10)
-END_SECTION
-
-START_SECTION((bool mzPPM() const))
-  TEST_EQUAL(kd_data_1.mzPPM(), true)
 END_SECTION
 
 START_SECTION((void clear()))

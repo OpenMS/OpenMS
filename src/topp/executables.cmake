@@ -5,6 +5,7 @@ set(directory source/APPLICATIONS/TOPP)
 set(TOPP_executables
 AdditiveSeries
 BaselineFilter
+CometAdapter
 CompNovo
 CompNovoCID
 ConsensusID
@@ -43,7 +44,6 @@ InclusionExclusionListCreator
 InspectAdapter
 InternalCalibration
 IsobaricAnalyzer
-ITRAQAnalyzer
 LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
@@ -72,6 +72,7 @@ PeakPickerHiRes
 PeakPickerWavelet
 PepNovoAdapter
 PeptideIndexer
+PercolatorAdapter
 PhosphoScoring
 PrecursorIonSelector
 PrecursorMassCorrector
@@ -95,7 +96,6 @@ SpectraFilterThresholdMower
 SpectraFilterWindowMower
 SpectraMerger
 TextExporter
-TMTAnalyzer
 TOFCalibration
 XTandemAdapter
 )

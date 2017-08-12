@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,17 +95,17 @@ DataFilters::DataFilter filter_12;
 
 START_SECTION(([EXTRA]void DataFilter::fromString(const String& filter)))
 
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "The value '' was used but is not valid! Invalid filter format.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "The value 'not_enough_arguments' was used but is not valid! Invalid filter format.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("invalid_fieldname = 0"), "The value 'invalid_fieldname' was used but is not valid! Invalid field name.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity invalid_operator 5"), "The value 'invalid_operator' was used but is not valid! Invalid operator.")
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Meta::test = string without enclosing quotation marks"), "The value 'string without enclosing quotation marks' was used but is not valid! Invalid value.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString(""), "the value '' was used but is not valid; invalid filter format")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("not_enough_arguments"), "the value 'not_enough_arguments' was used but is not valid; invalid filter format")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("invalid_fieldname = 0"), "the value 'invalid_fieldname' was used but is not valid; invalid field name")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity invalid_operator 5"), "the value 'invalid_operator' was used but is not valid; invalid operator")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Meta::test = string without enclosing quotation marks"), "the value 'string without enclosing quotation marks' was used but is not valid; invalid value")
 	//second argument of binary relation missing:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Charge = "), "The value '=' was used but is not valid! Invalid filter format.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Charge = "), "the value '=' was used but is not valid; invalid filter format")
 	//string value and non-meta field:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Quality = \"a string\""), "The value 'a string' was used but is not valid! Invalid value.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Quality = \"a string\""), "the value 'a string' was used but is not valid; invalid value")
 	//operation "exists" and non-meta field:
-	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity exists"), "The value 'exists' was used but is not valid! Invalid operator.")
+	TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidValue, filter_1.fromString("Intensity exists"), "the value 'exists' was used but is not valid; invalid operator")
 	
 	filter_1.fromString("Intensity <= 201.334");
 	filter_2.fromString("Intensity >= 1000");

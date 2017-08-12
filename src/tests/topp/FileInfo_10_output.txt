@@ -10,9 +10,9 @@ Number of:
   (only hits that differ in the accession)
 
   matched spectra:            0
-  peptide hits:               0
+  peptide hits:               0 (avg. length: 0)
   modified top-hits:          0/0
   non-redundant peptide hits: 0
-  (only hits that differ in sequence and/ or modifications)
+  (only hits that differ in sequence and/or modifications)
 
 
