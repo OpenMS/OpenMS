@@ -46,7 +46,6 @@
       <ITEM name="XTandemID" value="[X]|[BD]" type="string" />
       <ITEM name="OMSSAID" value="12" type="int" />
       <ITEM name="CometID" value="6" type="int" />
-      <ITEM name="MSGFID" value="7" type="int" />
     </NODE>
     <NODE name="Asp-N/B">
       <ITEM name="Name" value="Asp-N/B" type="string" />
@@ -85,7 +84,7 @@
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="XTandemID" value="[FYWL]|[X]" type="string" />
-      <ITEM name="MSGFID" value="[FYWL]|[X]" type="string" />
+      <ITEM name="MSGFID" value="2" type="int" />
     </NODE>
     <NODE name="CNBr">
       <ITEM name="Name" value="CNBr" type="string" />
@@ -219,7 +218,7 @@
       <ITEM name="XTandemID" value="[DE]|[X]" type="string" />
       <ITEM name="OMSSAID" value="20" type="int" />
       <ITEM name="CometID" value="8" type="int" />
-      <ITEM name="MSGFID" value="1" type="int" />
+      <ITEM name="MSGFID" value="5" type="int" />
       <NODE name="Synonyms">
         <ITEM name="Glu-C" value="Glu-C" type="string" />
         <ITEM name="staphylococcal protease" value="staphylococcal protease" type="string" />
