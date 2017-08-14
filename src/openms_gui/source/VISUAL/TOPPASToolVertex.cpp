@@ -1041,23 +1041,23 @@ namespace OpenMS
         for (const QString &input_file : per_round_basenames[r])
         {
           QString fn = path + QFileInfo(input_file).fileName(); // out_path + filename
-          LOG_DEBUG << "Single:" << fn << "\n";
+          LOG_DEBUG << "Single:" << fn.toStdString() << "\n";
           if (list_to_single)
           {
             if (fn.contains(QRegExp(".*_to_.*_mrgd")))
             {
               fn = fn.left(fn.indexOf("_to_"));
-              LOG_DEBUG << "  first merge in merge: " << fn << "\n";
+              LOG_DEBUG << "  first merge in merge: " << fn.toStdString() << "\n";
             }
             QString fn_last = QFileInfo(per_round_basenames[r].last()).fileName();
             if (fn_last.contains(QRegExp(".*_to_.*_mrgd")))
             {
               int i_start = fn_last.indexOf("_to_") + 4;
               fn_last = fn_last.mid(i_start, fn_last.indexOf("_mrgd", i_start) - i_start);
-              LOG_DEBUG << "  last merge in merge: " << fn_last << "\n";
+              LOG_DEBUG << "  last merge in merge: " << fn_last.toStdString() << "\n";
             }
             fn += "_to_" + fn_last + "_mrgd";
-            LOG_DEBUG << "  List: ..." << "_to_" + fn_last + "_mrgd" << "\n";
+            LOG_DEBUG << "  List: ..." << "_to_" + fn_last.toStdString() + "_mrgd" << "\n";
           }
           if (!fn.endsWith(file_suffix.toQString()))
           {
