@@ -90,7 +90,7 @@ namespace OpenMS
        * @param charge The maximal charge of the ions
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge = 1, Size link_pos_2 = 0) const;
+      virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge = 1, Size link_pos_2 = 0) const;
 
       /**
        * @brief Generates fragment ions containing the cross-linker for one peptide.
@@ -132,7 +132,7 @@ namespace OpenMS
        * @param charge The charge of the added peaks
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void addCommonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, int charge = 1, Size link_pos_2 = 0) const;
+      virtual void addLinearPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, int charge = 1, Size link_pos_2 = 0) const;
 
       /**
        * @brief Adds cross-linked ions of a specific ion type and charge to a spectrum and adds ion name and charge annotations to the DataArrays
@@ -155,7 +155,7 @@ namespace OpenMS
 
           The ion_type is a string in this form: "alpha|xi",
           the first word can be either "alpha" or "beta" and indicates the fragmented peptide,
-          the two letters at the end are either "ci" or "xi" for common ion or cross-linked ion.
+          the two letters at the end are either "ci" or "xi" for linear ion or cross-linked ion.
 
        * @param spectrum The spectrum to which the new peak is added
        * @param charges A DataArray collecting the charges of the added peaks

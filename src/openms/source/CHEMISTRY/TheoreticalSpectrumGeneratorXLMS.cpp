@@ -131,7 +131,7 @@ namespace OpenMS
   {
   }
 
-  void TheoreticalSpectrumGeneratorXLMS::getCommonIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge, Size link_pos_2) const
+  void TheoreticalSpectrumGeneratorXLMS::getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge, Size link_pos_2) const
   {
     PeakSpectrum::IntegerDataArray charges;
     PeakSpectrum::StringDataArray ion_names;
@@ -156,27 +156,27 @@ namespace OpenMS
     {
       if (add_b_ions_)
       {
-        addCommonPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::BIon, z, link_pos_2);
+        addLinearPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::BIon, z, link_pos_2);
       }
       if (add_y_ions_)
       {
-        addCommonPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::YIon, z, link_pos_2);
+        addLinearPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::YIon, z, link_pos_2);
       }
       if (add_a_ions_)
       {
-        addCommonPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::AIon, z, link_pos_2);
+        addLinearPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::AIon, z, link_pos_2);
       }
       if (add_x_ions_)
       {
-        addCommonPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::XIon, z, link_pos_2);
+        addLinearPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::XIon, z, link_pos_2);
       }
       if (add_c_ions_)
       {
-        addCommonPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::CIon, z, link_pos_2);
+        addLinearPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::CIon, z, link_pos_2);
       }
       if (add_z_ions_)
       {
-        addCommonPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::ZIon, z, link_pos_2);
+        addLinearPeaks_(spectrum, charges, ion_names, peptide, link_pos, frag_alpha, Residue::ZIon, z, link_pos_2);
       }
     }
 
@@ -204,7 +204,7 @@ namespace OpenMS
     return;
   }
 
-void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, int charge, Size link_pos_2) const
+void TheoreticalSpectrumGeneratorXLMS::addLinearPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, int charge, Size link_pos_2) const
   {
     if (peptide.empty())
     {
