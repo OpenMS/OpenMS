@@ -62,6 +62,10 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         libcpp_vector[IntegerDataArray] getIntegerDataArrays() nogil except +
         libcpp_vector[StringDataArray] getStringDataArrays() nogil except +
 
+        FloatDataArray getFloatDataArrayByName(String name) nogil except +
+        IntegerDataArray getIntegerDataArrayByName(String name) nogil except +
+        StringDataArray getStringDataArrayByName(String name) nogil except +
+
         void setFloatDataArrays(libcpp_vector[FloatDataArray] fda) nogil except +
         void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) nogil except +
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) nogil except +
@@ -76,4 +80,3 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         bool metaValueExists(unsigned int) nogil except +
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
-
