@@ -139,10 +139,12 @@ TEST_EQUAL(vec[0].hasPrefix(OPENMS_GET_TEST_DATA_PATH("")), true);
 TEST_EQUAL(vec[0].hasSuffix("File_test_text.txt"), true);
 END_SECTION
 
-START_SECTION((static String getUniqueName()))
+START_SECTION((static String getUniqueName(bool include_hostname = true)))
 	String unique_name = File::getUniqueName();
-
-	// test if the string consists of three parts
+	String unique_name_no_host = File::getUniqueName(false);
+	TEST_EQUAL(unique_name.size() > unique_name_no_host.size(), true)
+	
+	// test if the string consists of four parts
 	StringList split;
 	unique_name.split('_', split);
 	TEST_EQUAL(split.size() >= 4, true) // if name of machine also contains '_' ...
