@@ -83,16 +83,16 @@ START_SECTION(static void writeXQuestXML(String out_file, String base_name, cons
 
     csm.scan_index_light = i;
     csm.scan_index_heavy = i;
-    csm.matched_common_alpha = 0;
-    csm.matched_common_beta = 0;
+    csm.matched_linear_alpha = 0;
+    csm.matched_linear_beta = 0;
     csm.matched_xlink_alpha = 0;
     csm.matched_xlink_beta = 0;
-    csm.HyperCommon = 0;
+    csm.HyperLinear = 0;
     csm.HyperXlink = 0;
     csm.HyperAlpha = 0;
     csm.HyperBeta = 0;
     csm.HyperBoth = 0;
-    csm.PScoreCommon = 0;
+    csm.PScoreLinear = 0;
     csm.PScoreXlink = 0;
     csm.PScoreAlpha = 0;
     csm.PScoreBeta = 0;
@@ -233,5 +233,3 @@ START_SECTION(static void writeXQuestXML(String out_file, String base_name, cons
 END_SECTION
 
 END_TEST
-
-

@@ -83,9 +83,9 @@ START_SECTION(TheoreticalSpectrumGeneratorXLMS& operator = (const TheoreticalSpe
 END_SECTION
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge = 1, Size link_pos_2 = 0))
+START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge = 1, Size link_pos_2 = 0))
   PeakSpectrum spec;
-  ptr->getCommonIonSpectrum(spec, peptide, 3, true, 2);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, true, 2);
   TEST_EQUAL(spec.size(), 12)
 
   TOLERANCE_ABSOLUTE(0.001)
@@ -97,7 +97,7 @@ START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASeque
   }
 
   spec.clear(true);
-  ptr->getCommonIonSpectrum(spec, peptide, 3, true, 3);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
   TEST_EQUAL(spec.size(), 18)
 
   spec.clear(true);
@@ -110,7 +110,7 @@ START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASeque
   param.setValue("add_z_ions", "true");
   param.setValue("add_metainfo", "false");
   ptr->setParameters(param);
-  ptr->getCommonIonSpectrum(spec, peptide, 3, true, 3);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
   TEST_EQUAL(spec.size(), 54)
 
 
@@ -125,7 +125,7 @@ START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASeque
   param.setValue("add_z_ions", "false");
   param.setValue("add_metainfo", "true");
   ptr->setParameters(param);
-  ptr->getCommonIonSpectrum(spec, peptide, 3, true, 3);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
 
   // 6 ion types with 3 charges each are expected
   TEST_EQUAL(spec.size(), 18)
@@ -149,7 +149,7 @@ START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASeque
 
   // beta annotations
   spec.clear(true);
-  ptr->getCommonIonSpectrum(spec, peptide, 3, false, 3);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, false, 3);
   ion_names.clear();
   ion_names.insert("[beta|ci$b1]");
   ion_names.insert("[beta|ci$b2]");
@@ -180,20 +180,20 @@ START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASeque
 
   // the smallest examples, that make sense for cross-linking
   spec.clear(true);
-  ptr->getCommonIonSpectrum(spec, AASequence::fromString("HA"), 0, true, 1);
+  ptr->getLinearIonSpectrum(spec, AASequence::fromString("HA"), 0, true, 1);
   TEST_EQUAL(spec.size(), 1)
 
   spec.clear(true);
-  ptr->getCommonIonSpectrum(spec, AASequence::fromString("HA"), 1, true, 1);
+  ptr->getLinearIonSpectrum(spec, AASequence::fromString("HA"), 1, true, 1);
   TEST_EQUAL(spec.size(), 1)
 
   // loop link
   spec.clear(true);
-  ptr->getCommonIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 1, true, 1, 14);
+  ptr->getLinearIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 1, true, 1, 14);
   TEST_EQUAL(spec.size(), 2)
 
   spec.clear(true);
-  ptr->getCommonIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 2, false, 1, 14);
+  ptr->getLinearIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 2, false, 1, 14);
   TEST_EQUAL(spec.size(), 3)
 
   // test isotopic peaks
@@ -209,7 +209,7 @@ START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASeque
   param.setValue("add_z_ions", "false");
   param.setValue("add_metainfo", "false");
   ptr->setParameters(param);
-  ptr->getCommonIonSpectrum(spec, peptide, 3, true, 3);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
   // 6 ion types with 3 charges each are expected
   TEST_EQUAL(spec.size(), 18)
 
@@ -217,7 +217,7 @@ START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASeque
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 2); //
   ptr->setParameters(param);
-  ptr->getCommonIonSpectrum(spec, peptide, 3, true, 3);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
   // 6 ion types with 3 charges each are expected, each with a second isotopic peak
   TEST_EQUAL(spec.size(), 36)
 
@@ -225,7 +225,7 @@ START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASeque
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 3); // not supported yet, but it should at least run (with the maximal possible number of peaks)
   ptr->setParameters(param);
-  ptr->getCommonIonSpectrum(spec, peptide, 3, true, 3);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
   // 6 ion types with 3 charges each are expected, each with a second isotopic peak
   TEST_EQUAL(spec.size(), 36)
 
@@ -244,7 +244,7 @@ START_SECTION(virtual void getCommonIonSpectrum(PeakSpectrum & spectrum, AASeque
 //  for (Size i = 0; i != 1e4; ++i)
 //  {
 //    PeakSpectrum spec;
-//    ptr->getCommonIonSpectrum(spec, tmp_peptide, 9, true, 5);
+//    ptr->getLinearIonSpectrum(spec, tmp_peptide, 9, true, 5);
 //  }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -441,4 +441,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 
 END_TEST
-

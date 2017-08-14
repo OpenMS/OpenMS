@@ -53,14 +53,14 @@ param.setValue("y_intensity", 10.0, "Intensity of the y-ions");
 specGen.setParameters(param);
 
 PeakSpectrum theo_spec_1, theo_spec_2, exp_spec_1, exp_spec_2;
-specGen.getCommonIonSpectrum(exp_spec_1, AASequence::fromString("PEPTIDE"), 2, true, 3);
-specGen.getCommonIonSpectrum(exp_spec_2, AASequence::fromString("PEPTEDI"), 3, true, 3);
+specGen.getLinearIonSpectrum(exp_spec_1, AASequence::fromString("PEPTIDE"), 2, true, 3);
+specGen.getLinearIonSpectrum(exp_spec_2, AASequence::fromString("PEPTEDI"), 3, true, 3);
 
 param.setValue("add_metainfo", "true");
 specGen.setParameters(param);
 
-specGen.getCommonIonSpectrum(theo_spec_1, AASequence::fromString("PEPTIDE"), 3, true, 3);
-specGen.getCommonIonSpectrum(theo_spec_2, AASequence::fromString("PEPTEDI"), 4, true, 3);
+specGen.getLinearIonSpectrum(theo_spec_1, AASequence::fromString("PEPTIDE"), 3, true, 3);
+specGen.getLinearIonSpectrum(theo_spec_2, AASequence::fromString("PEPTEDI"), 4, true, 3);
 
 START_SECTION(static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spectrum, PeakSpectrum & second_spectrum))
 

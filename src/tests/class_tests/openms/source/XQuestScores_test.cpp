@@ -52,10 +52,10 @@ param.setValue("add_first_prefix_ion", "false");
 specGen.setParameters(param);
 
 PeakSpectrum theo_spec_1, theo_spec_2, theo_spec_3, theo_spec_4;
-specGen.getCommonIonSpectrum(theo_spec_1, AASequence::fromString("PEPTIDE"), 2, true);
-specGen.getCommonIonSpectrum(theo_spec_2, AASequence::fromString("PEPTEDI"), 4, true);
-specGen.getCommonIonSpectrum(theo_spec_3, AASequence::fromString("PEPTIDE"), 3, true);
-specGen.getCommonIonSpectrum(theo_spec_4, AASequence::fromString("PEPTEDI"), 1, true);
+specGen.getLinearIonSpectrum(theo_spec_1, AASequence::fromString("PEPTIDE"), 2, true);
+specGen.getLinearIonSpectrum(theo_spec_2, AASequence::fromString("PEPTEDI"), 4, true);
+specGen.getLinearIonSpectrum(theo_spec_3, AASequence::fromString("PEPTIDE"), 3, true);
+specGen.getLinearIonSpectrum(theo_spec_4, AASequence::fromString("PEPTEDI"), 1, true);
 std::vector <std::pair <Size, Size> > alignment1;
 std::vector <std::pair <Size, Size> > alignment2;
 
@@ -116,11 +116,11 @@ START_SECTION(static double weightedTICScore(Size alpha_size, Size beta_size, do
     TEST_REAL_SIMILAR(XQuestScores::weightedTICScore(20, 0, 500.0, 0.0, 1500.0, false), 0.33333)
 END_SECTION
 
-START_SECTION(static double matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks))
+START_SECTION(static double matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_linear, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks))
     TEST_REAL_SIMILAR(XQuestScores::matchedCurrentChain(alignment1, alignment1, theo_spec_2, theo_spec_4), 4.0)
 END_SECTION
 
-START_SECTION(static double totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks))
+START_SECTION(static double totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks))
     TEST_REAL_SIMILAR(XQuestScores::totalMatchedCurrent(alignment1, alignment2, alignment1, alignment2, theo_spec_2, theo_spec_4), 6.0)
 END_SECTION
 
@@ -135,4 +135,3 @@ START_SECTION(static std::vector< double > xCorrelation(const PeakSpectrum & spe
 END_SECTION
 
 END_TEST
-

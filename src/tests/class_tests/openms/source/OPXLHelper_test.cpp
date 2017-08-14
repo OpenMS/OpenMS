@@ -213,13 +213,13 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
 
   PeakSpectrum theo_spec, exp_spec;
   // Theoretical Spec with metainfo
-  specGen.getCommonIonSpectrum(theo_spec, AASequence::fromString("PEPTEDI"), 4, true);
+  specGen.getLinearIonSpectrum(theo_spec, AASequence::fromString("PEPTEDI"), 4, true);
 
   param.setValue("add_metainfo", "false");
   specGen.setParameters(param);
 
   // Theoretical Spec without metainfo (Pseudo experimental spectrum)
-  specGen.getCommonIonSpectrum(exp_spec, AASequence::fromString("PEPTIDE"), 3, true);
+  specGen.getLinearIonSpectrum(exp_spec, AASequence::fromString("PEPTIDE"), 3, true);
   std::vector <std::pair <Size, Size> > alignment;
 
   OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment, theo_spec, exp_spec, 50, true);
