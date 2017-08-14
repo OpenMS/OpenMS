@@ -134,16 +134,16 @@ namespace OpenMS
         double xcorrx_max;
         std::vector< double > xcorrc;
         double xcorrc_max;
-        Size matched_common_alpha;
-        Size matched_common_beta;
+        Size matched_linear_alpha;
+        Size matched_linear_beta;
         Size matched_xlink_alpha;
         Size matched_xlink_beta;
-        double HyperCommon;
+        double HyperLinear;
         double HyperXlink;
         double HyperAlpha;
         double HyperBeta;
         double HyperBoth;
-        double PScoreCommon;
+        double PScoreLinear;
         double PScoreXlink;
         double PScoreAlpha;
         double PScoreBeta;
@@ -177,16 +177,16 @@ namespace OpenMS
                      xcorrx_max == other.xcorrx_max &&
                      xcorrc == other.xcorrc &&
                      xcorrc_max == other.xcorrc_max &&
-                     matched_common_alpha == other.matched_common_alpha &&
-                     matched_common_beta == other.matched_common_beta &&
+                     matched_linear_alpha == other.matched_linear_alpha &&
+                     matched_linear_beta == other.matched_linear_beta &&
                      matched_xlink_alpha == other.matched_xlink_alpha &&
                      matched_xlink_beta == other.matched_xlink_beta &&
-                     HyperCommon == other.HyperCommon &&
+                     HyperLinear == other.HyperLinear &&
                      HyperXlink == other.HyperXlink &&
                      HyperAlpha == other.HyperAlpha &&
                      HyperBeta == other.HyperBeta &&
                      HyperBoth == other.HyperBoth &&
-                     PScoreCommon == other.PScoreCommon &&
+                     PScoreLinear == other.PScoreLinear &&
                      PScoreXlink == other.PScoreXlink &&
                      PScoreAlpha == other.PScoreAlpha &&
                      PScoreBeta == other.PScoreBeta &&
@@ -292,8 +292,8 @@ namespace OpenMS
       struct PreprocessedPairSpectra
       {
 
-        MSExperiment spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
-        MSExperiment spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
+        MSExperiment spectra_linear_peaks; // merge spectrum of linear peaks (present in both spectra)
+        MSExperiment spectra_xlink_peaks; // Xlink peaks in the light spectrum (linear peaks between spectra_light_different and spectra heavy_to_light)
         MSExperiment spectra_all_peaks;
 
         // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMaps).
@@ -301,7 +301,7 @@ namespace OpenMS
         {
           for (Size i = 0; i != size; ++i)
           {
-            spectra_common_peaks.addSpectrum(PeakSpectrum());
+            spectra_linear_peaks.addSpectrum(PeakSpectrum());
             spectra_xlink_peaks.addSpectrum(PeakSpectrum());
             spectra_all_peaks.addSpectrum(PeakSpectrum());
           }

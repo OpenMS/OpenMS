@@ -408,7 +408,7 @@ namespace OpenMS
         c_term_linker = true;
       }
     }
-    
+
     vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates;
     for (Size i = 0; i < candidates.size(); ++i)
     {
@@ -826,13 +826,13 @@ namespace OpenMS
       ph_alpha.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
       ph_alpha.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
 
-      ph_alpha.setMetaValue("OpenPepXL:HyperCommon",top_csms_spectrum[i].HyperCommon);
+      ph_alpha.setMetaValue("OpenPepXL:HyperLinear",top_csms_spectrum[i].HyperLinear);
       ph_alpha.setMetaValue("OpenPepXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
       ph_alpha.setMetaValue("OpenPepXL:HyperAlpha", top_csms_spectrum[i].HyperAlpha);
       ph_alpha.setMetaValue("OpenPepXL:HyperBeta", top_csms_spectrum[i].HyperBeta);
       ph_alpha.setMetaValue("OpenPepXL:HyperBoth",top_csms_spectrum[i].HyperBoth);
 
-      ph_alpha.setMetaValue("OpenPepXL:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
+      ph_alpha.setMetaValue("OpenPepXL:PScoreLinear",top_csms_spectrum[i].PScoreLinear);
       ph_alpha.setMetaValue("OpenPepXL:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
       ph_alpha.setMetaValue("OpenPepXL:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
       ph_alpha.setMetaValue("OpenPepXL:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
@@ -869,13 +869,13 @@ namespace OpenMS
         ph_beta.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
         ph_beta.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
 
-        ph_beta.setMetaValue("OpenPepXL:HyperCommon",top_csms_spectrum[i].HyperCommon);
+        ph_beta.setMetaValue("OpenPepXL:HyperLinear",top_csms_spectrum[i].HyperLinear);
         ph_beta.setMetaValue("OpenPepXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
         ph_beta.setMetaValue("OpenPepXL:HyperAlpha",top_csms_spectrum[i].HyperAlpha);
         ph_beta.setMetaValue("OpenPepXL:HyperBeta",top_csms_spectrum[i].HyperBeta);
         ph_beta.setMetaValue("OpenPepXL:HyperBoth",top_csms_spectrum[i].HyperBoth);
 
-        ph_beta.setMetaValue("OpenPepXL:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
+        ph_beta.setMetaValue("OpenPepXL:PScoreLinear",top_csms_spectrum[i].PScoreLinear);
         ph_beta.setMetaValue("OpenPepXL:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
         ph_beta.setMetaValue("OpenPepXL:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
         ph_beta.setMetaValue("OpenPepXL:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
