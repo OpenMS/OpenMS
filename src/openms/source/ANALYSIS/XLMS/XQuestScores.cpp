@@ -50,7 +50,7 @@ namespace OpenMS
       return 0.0;
     }
 
-    // avoid 0 values in multiplication, adds a "dynamic range" among candidates with no matching common peaks to one of the peptides
+    // avoid 0 values in multiplication, adds a "dynamic range" among candidates with no matching linear peaks to one of the peptides
     float matched_alpha_float = matched_alpha;
     if (matched_alpha <= 0)
     {
@@ -176,12 +176,12 @@ namespace OpenMS
     return wTIC;
   }
 
-  double XQuestScores::matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
+  double XQuestScores::matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_linear, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks)
   {
     double intsum = 0;
-    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_common.size()); ++j)
+    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_linear.size()); ++j)
     {
-      intsum += spectrum_common_peaks[matched_spec_common[j].second].getIntensity();
+      intsum += spectrum_linear_peaks[matched_spec_linear[j].second].getIntensity();
     }
     for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks.size()); ++j)
     {
@@ -190,19 +190,19 @@ namespace OpenMS
     return intsum;
   }
 
-  double XQuestScores::totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
+  double XQuestScores::totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks)
   {
     // make vectors of matched peak indices
     double intsum = 0;
-    std::vector< Size > indices_common;
+    std::vector< Size > indices_linear;
     std::vector< Size > indices_xlinks;
-    for (Size j = 0; j < matched_spec_common_alpha.size(); ++j)
+    for (Size j = 0; j < matched_spec_linear_alpha.size(); ++j)
     {
-      indices_common.push_back(matched_spec_common_alpha[j].second);
+      indices_linear.push_back(matched_spec_linear_alpha[j].second);
     }
-    for (Size j = 0; j < matched_spec_common_beta.size(); ++j)
+    for (Size j = 0; j < matched_spec_linear_beta.size(); ++j)
     {
-      indices_common.push_back(matched_spec_common_beta[j].second);
+      indices_linear.push_back(matched_spec_linear_beta[j].second);
     }
     for (Size j = 0; j < matched_spec_xlinks_alpha.size(); ++j)
     {
@@ -214,17 +214,17 @@ namespace OpenMS
     }
 
     // make the indices in the vectors unique, to not sum up peak intensities multiple times
-    sort(indices_common.begin(), indices_common.end());
+    sort(indices_linear.begin(), indices_linear.end());
     sort(indices_xlinks.begin(), indices_xlinks.end());
-    std::vector< Size >::iterator last_unique_common = unique(indices_common.begin(), indices_common.end());
+    std::vector< Size >::iterator last_unique_linear = unique(indices_linear.begin(), indices_linear.end());
     std::vector< Size >::iterator last_unique_xlinks = unique(indices_xlinks.begin(), indices_xlinks.end());
-    indices_common.erase(last_unique_common, indices_common.end());
+    indices_linear.erase(last_unique_linear, indices_linear.end());
     indices_xlinks.erase(last_unique_xlinks, indices_xlinks.end());
 
     // sum over intensities under the unique indices
-    for (Size j = 0; j < indices_common.size(); ++j)
+    for (Size j = 0; j < indices_linear.size(); ++j)
     {
-      intsum += spectrum_common_peaks[indices_common[j]].getIntensity();
+      intsum += spectrum_linear_peaks[indices_linear[j]].getIntensity();
     }
     for (Size j = 0; j < indices_xlinks.size(); ++j)
     {
