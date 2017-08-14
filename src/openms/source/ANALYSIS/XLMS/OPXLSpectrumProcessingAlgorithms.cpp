@@ -498,9 +498,6 @@ namespace OpenMS
         }
         else
         {
-          // add the number of peaks in the isotopic pattern to the data array
-          num_iso_peaks.push_back(iso_peak_count[i]);
-
           // keep all unassigned peaks
           if (features[i] < 0)
           {
@@ -508,6 +505,8 @@ namespace OpenMS
             p.setMZ(old_spectrum[i].getMZ());
             p.setIntensity(old_spectrum[i].getIntensity());
             charge_array.push_back(0);
+            // add the number of peaks in the isotopic pattern to the data array
+            num_iso_peaks.push_back(iso_peak_count[i]);
             out.push_back(p);
             continue;
           }
@@ -515,6 +514,9 @@ namespace OpenMS
           // convert mono-isotopic peak with charge assigned by deisotoping
           if (z != 0)
           {
+            // add the number of peaks in the isotopic pattern to the data array
+            num_iso_peaks.push_back(iso_peak_count[i]);
+
             if (!make_single_charged)
             {
               Peak1D p;
