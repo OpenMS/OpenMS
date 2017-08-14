@@ -164,7 +164,7 @@ protected:
     registerStringOption_("instrument", "<choice>", instruments_[0], "Instrument that generated the data ('low_res'/'high_res' refer to LCQ and LTQ instruments; MS-GF+ parameter '-inst')", false);
     setValidStrings_("instrument", instruments_);
 
-    registerStringOption_("enzyme", "<choice>", enzymes_[6], "Enzyme used for digestion, or type of cleavage (MS-GF+ parameter '-e')", false);
+    registerStringOption_("enzyme", "<choice>", enzymes_[6], "Enzyme used for digestion, or type of cleavage. Note: MS-GF+ does not support blocking rules. (MS-GF+ parameter '-e')", false);
     setValidStrings_("enzyme", enzymes_);
 
     registerStringOption_("protocol", "<choice>", protocols_[0], "Labeling or enrichment protocol used, if any (MS-GF+ parameter '-p')", false);
