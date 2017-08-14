@@ -964,7 +964,10 @@ namespace OpenMS
         String type = FileTypes::typeToName(FileHandler::getTypeByFileName(fn));
         // try to find it -- might not be present, since it could be 'unknown'
         size_t pos = fn.rfind("." + type.toLower());
-        filename.truncate(pos); // if pos==NPOS, i.e. not found, nothing happens
+        if (pos != std::string::npos)
+        {
+          filename.truncate((int)pos);
+        }
       }
       per_round_basenames.push_back(filenames);
       //std::cerr << "  output filenames (round " << i  <<"): " << per_round_basenames.back().join(", ") << std::endl;
@@ -1062,7 +1065,7 @@ namespace OpenMS
           if (!fn.endsWith(file_suffix.toQString()))
           {
             fn += file_suffix.toQString();
-            LOG_DEBUG << "  Suffix-add: " << file_suffix.toQString() << "\n";
+            LOG_DEBUG << "  Suffix-add: " << file_suffix << "\n";
           }
           fn = QDir::toNativeSeparators(fn);
           if (filename_output_set.count(fn) > 0)
