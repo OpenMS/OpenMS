@@ -63,9 +63,9 @@ set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResource
 
 ########################################################### SEARCHENGINES
 set(THIRDPARTY_COMPONENT_GROUP)
+## populates the THIRDPARTY_COMPONENT_GROUP list
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
-
-  ## populates the THIRDPARTY_COMPONENT_GROUP list
+  ## TODO we could think about just recursing over subfolders
   install_thirdparty_folder("Comet")
   install_thirdparty_folder("Fido")
   install_thirdparty_folder("MSGFPlus")
@@ -73,4 +73,7 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   install_thirdparty_folder("XTandem")
   install_thirdparty_folder("LuciPHOr2")
   install_thirdparty_folder("MyriMatch")
+  install_thirdparty_folder("SpectraST")
+  install_thirdparty_folder("Sirius")
+  install_thirdparty_folder("Percolator")
 endif()
