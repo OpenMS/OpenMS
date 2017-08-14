@@ -232,7 +232,7 @@ namespace OpenMS
 
   Int Enzyme::getMSGFID() const
   {
-      return msgf_id_;
+    return msgf_id_;
   }
   
   bool Enzyme::operator==(const Enzyme& enzyme) const
