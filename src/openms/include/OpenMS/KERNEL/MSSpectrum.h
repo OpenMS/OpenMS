@@ -365,6 +365,48 @@ public:
       integer_data_arrays_ = ida;
     }
 
+    /// Returns a mutable reference to the first integer meta data array with the given name
+    inline IntegerDataArray& getIntegerDataArrayByName(String name)
+    {
+      return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+        [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+    }
+
+    /// Returns a mutable reference to the first string meta data array with the given name
+    inline StringDataArray& getStringDataArrayByName(String name)
+    {
+      return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+        [&name](const StringDataArray& da) { return da.getName() == name; } );
+    }
+
+    /// Returns a mutable reference to the first float meta data array with the given name
+    inline FloatDataArray& getFloatDataArrayByName(String name)
+    {
+      return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+        [&name](const FloatDataArray& da) { return da.getName() == name; } );
+    }
+
+    /// Returns a const reference to the first integer meta data array with the given name
+    inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
+    {
+      return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+        [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+    }
+
+    /// Returns a const reference to the first string meta data array with the given name
+    inline const StringDataArray& getStringDataArrayByName(String name) const
+    {
+      return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+        [&name](const StringDataArray& da) { return da.getName() == name; } );
+    }
+
+    /// Returns a const reference to the first float meta data array with the given name
+    inline const FloatDataArray& getFloatDataArrayByName(String name) const
+    {
+      return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+        [&name](const FloatDataArray& da) { return da.getName() == name; } );
+    }
+
     //@}
 
     ///@name Sorting peaks
@@ -714,7 +756,7 @@ public:
 
     */
     MSSpectrum& select(const std::vector<Size>& indices)
-    { 
+    {
       Size snew = indices.size();
       ContainerType tmp;
       tmp.reserve(indices.size());
@@ -731,7 +773,7 @@ public:
       {
         if (float_data_arrays_[i].size() != peaks_old)
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" + 
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" +
             String(float_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
         }
 
@@ -748,7 +790,7 @@ public:
       {
         if (string_data_arrays_[i].size() != peaks_old)
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" + 
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
             String(string_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
         }
         std::vector<String> mda_tmp;
@@ -764,7 +806,7 @@ public:
       {
         if (integer_data_arrays_[i].size() != peaks_old)
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" + 
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
             String(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
         }
         std::vector<Int> mda_tmp;
@@ -780,7 +822,7 @@ public:
     }
 
 protected:
-   
+
     /// Retention time
     double retention_time_;
 
@@ -825,4 +867,3 @@ protected:
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_MSSPECTRUM_H
-
