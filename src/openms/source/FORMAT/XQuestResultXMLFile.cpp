@@ -246,14 +246,14 @@ namespace OpenMS
         xml_file << "<search_hit search_hit_rank=\"" <<top_csm->rank << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << top_csm->cross_link.alpha.toUnmodifiedString() << "\" seq2=\"" << top_csm->cross_link.beta.toUnmodifiedString()
               << "\" prot1=\"" << prot_alpha << "\" prot2=\"" << prot_beta << "\" topology=\"" << topology << "\" xlinkposition=\"" << (top_csm->cross_link.cross_link_position.first+1) << "," << (top_csm->cross_link.cross_link_position.second+1)
               << "\" Mr=\"" << weight << "\" mz=\"" << cl_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << top_csm->cross_link.cross_linker_mass << "\" measured_mass=\"" << precursor_mass << "\" error=\"" << error
-              << "\" error_rel=\"" << rel_error << "\" xlinkions_matched=\"" << (top_csm->matched_xlink_alpha + top_csm->matched_xlink_beta) << "\" backboneions_matched=\"" << (top_csm->matched_common_alpha + top_csm->matched_common_beta)
+              << "\" error_rel=\"" << rel_error << "\" xlinkions_matched=\"" << (top_csm->matched_xlink_alpha + top_csm->matched_xlink_beta) << "\" backboneions_matched=\"" << (top_csm->matched_linear_alpha + top_csm->matched_linear_beta)
               << "\" weighted_matchodds_mean=\"" << "TODO" << "\" weighted_matchodds_sum=\"" << "TODO" << "\" match_error_mean=\"" << "TODO" << "\" match_error_stdev=\"" << "TODO" << "\" xcorrx=\"" << top_csm->xcorrx_max << "\" xcorrb=\"" << top_csm->xcorrc_max << "\" match_odds=\"" <<top_csm->match_odds << "\" prescore=\"" << top_csm->pre_score
               << "\" prescore_alpha=\"" << "TODO" << "\" prescore_beta=\"" << "TODO" << "\" match_odds_alphacommon=\"" << "TODO" << "\" match_odds_betacommon=\"" << "TODO" << "\" match_odds_alphaxlink=\"" << "TODO"
-              << "\" match_odds_betaxlink=\"" << "TODO" << "\" num_of_matched_ions_alpha=\"" << (top_csm->matched_common_alpha + top_csm->matched_xlink_alpha) << "\" num_of_matched_ions_beta=\"" << (top_csm->matched_common_beta + top_csm->matched_xlink_beta) << "\" num_of_matched_common_ions_alpha=\"" << top_csm->matched_common_alpha
-              << "\" num_of_matched_common_ions_beta=\"" << top_csm->matched_common_beta << "\" num_of_matched_xlink_ions_alpha=\"" << top_csm->matched_xlink_alpha << "\" num_of_matched_xlink_ions_beta=\"" << top_csm->matched_xlink_beta << "\" xcorrall=\"" << "TODO" << "\" TIC=\"" << top_csm->percTIC
+              << "\" match_odds_betaxlink=\"" << "TODO" << "\" num_of_matched_ions_alpha=\"" << (top_csm->matched_linear_alpha + top_csm->matched_xlink_alpha) << "\" num_of_matched_ions_beta=\"" << (top_csm->matched_linear_beta + top_csm->matched_xlink_beta) << "\" num_of_matched_common_ions_alpha=\"" << top_csm->matched_linear_alpha
+              << "\" num_of_matched_common_ions_beta=\"" << top_csm->matched_linear_beta << "\" num_of_matched_xlink_ions_alpha=\"" << top_csm->matched_xlink_alpha << "\" num_of_matched_xlink_ions_beta=\"" << top_csm->matched_xlink_beta << "\" xcorrall=\"" << "TODO" << "\" TIC=\"" << top_csm->percTIC
               << "\" TIC_alpha=\"" << "TODO" << "\" TIC_beta=\"" << "TODO" << "\" wTIC=\"" << top_csm->wTIC << "\" wTICold=\"" << top_csm->wTICold << "\" intsum=\"" << top_csm->int_sum * 100 << "\" apriori_match_probs=\"" << "TODO" << "\" apriori_match_probs_log=\"" << "TODO"
-              << "\" HyperCommon=\"" << top_csm->HyperCommon << "\" HyperXLink=\"" << top_csm->HyperXlink << "\" HyperAlpha=\"" << top_csm->HyperAlpha << "\" HyperBeta=\"" << top_csm->HyperBeta << "\" HyperBoth=\"" << top_csm->HyperBoth
-              << "\" PScoreCommon=\"" << top_csm->PScoreCommon << "\" PScoreXLink=\"" << top_csm->PScoreXlink << "\" PScoreAlpha=\"" << top_csm->PScoreAlpha << "\" PScoreBeta=\"" << top_csm->PScoreBeta << "\" PScoreBoth=\"" << top_csm->PScoreBoth
+              << "\" HyperLinear=\"" << top_csm->HyperLinear << "\" HyperXLink=\"" << top_csm->HyperXlink << "\" HyperAlpha=\"" << top_csm->HyperAlpha << "\" HyperBeta=\"" << top_csm->HyperBeta << "\" HyperBoth=\"" << top_csm->HyperBoth
+              << "\" PScoreLinear=\"" << top_csm->PScoreLinear << "\" PScoreXLink=\"" << top_csm->PScoreXlink << "\" PScoreAlpha=\"" << top_csm->PScoreAlpha << "\" PScoreBeta=\"" << top_csm->PScoreBeta << "\" PScoreBoth=\"" << top_csm->PScoreBoth
               << "\" num_iso_peaks_avg=\"" << top_csm->num_iso_peaks_avg << "\" ppm_error_abs_sum=\"" << top_csm->ppm_error_abs_sum << "\" ppm_error_variance=\"" << top_csm->ppm_error_variance
               << "\" series_score_mean=\"" << "TODO" << "\" annotated_spec=\"" << "" << "\" score=\"" << top_csm->score << "\" >" << std::endl;
         xml_file << "</search_hit>" << std::endl;
@@ -304,7 +304,7 @@ namespace OpenMS
       String spectrum_heavy_name = base_name + ".heavy." + scan_index_heavy;
       String spectrum_name = spectrum_light_name + String("_") + spectrum_heavy_name;
 
-      if (scan_index_light < spectra.size() && scan_index_heavy < spectra.size() && i < preprocessed_pair_spectra.spectra_common_peaks.size() && i < preprocessed_pair_spectra.spectra_xlink_peaks.size())
+      if (scan_index_light < spectra.size() && scan_index_heavy < spectra.size() && i < preprocessed_pair_spectra.spectra_linear_peaks.size() && i < preprocessed_pair_spectra.spectra_xlink_peaks.size())
       {
         // 4 Spectra resulting from a light/heavy spectra pair.  Write for each spectrum, that is written to xquest.xml (should be all considered pairs, or better only those with at least one sensible Hit, meaning a score was computed)
         spec_xml_file << "<spectrum filename=\"" << spectrum_light_name << ".dta" << "\" type=\"light\">" << std::endl;
@@ -317,13 +317,13 @@ namespace OpenMS
 
         // the preprocessed pair spectra are sorted by another index
         // because some pairs do not yield any resonable hits, the index from the spectrum matches or spectrum_indices does not address the right pair anymore
-        // use find with the pair of spectrum indices to find the correct index for the preprocessed common and cross-linked ion spectra
+        // use find with the pair of spectrum indices to find the correct index for the preprocessed linear and cross-linked ion spectra
         std::vector<std::pair <Size, Size> >::const_iterator pair_it = std::find(spectrum_pairs.begin(), spectrum_pairs.end(), spectrum_indices[i]);
         Size pair_index = std::distance(spectrum_pairs.begin(), pair_it);
 
         String spectrum_common_name = spectrum_name + String("_common.txt");
         spec_xml_file << "<spectrum filename=\"" << spectrum_common_name << "\" type=\"common\">" << std::endl;
-        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_common_peaks[pair_index], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
+        spec_xml_file << getxQuestBase64EncodedSpectrum_(preprocessed_pair_spectra.spectra_linear_peaks[pair_index], spectrum_light_name + ".dta," + spectrum_heavy_name + ".dta");
         spec_xml_file << "</spectrum>" << std::endl;
 
         String spectrum_xlink_name = spectrum_name + String("_xlinker.txt");

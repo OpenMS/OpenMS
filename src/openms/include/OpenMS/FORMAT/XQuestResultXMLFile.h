@@ -96,7 +96,7 @@ public:
       * @param The unit of the precursor mass tolerance ("Da" or "ppm")
       * @param The unit of the fragment mass tolerance ("Da" or "ppm")
       * @param The precursor mass tolerance
-      * @param The fragment mass tolerance for common ions
+      * @param The fragment mass tolerance for linear ions
       * @param The fragment mass tolerance for cross-linked ions
       * @param The name of the cross-link reagent
       * @param The mass of the cross-link reagent when linking two peptides
