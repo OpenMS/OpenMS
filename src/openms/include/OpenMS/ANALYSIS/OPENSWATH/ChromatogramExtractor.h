@@ -177,8 +177,6 @@ public:
           extraction_coordinates, mz_extraction_window, ppm, filter);
     }
 
-public:
-
     /**
      * @brief Prepare the extraction coordinates from a TargetedExperiment
      *
@@ -200,9 +198,9 @@ public:
      *
      * @throw Exception::IllegalArgument if RT values are expected (depending on @p rt_extraction_window) but not provided
     */
-    void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
-      std::vector< ExtractionCoordinates > & coordinates,
-      const OpenMS::TargetedExperiment & transition_exp,
+    void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >& output_chromatograms,
+      std::vector< ExtractionCoordinates >& coordinates,
+      const OpenMS::TargetedExperiment& transition_exp,
       const double rt_extraction_window,
       const bool ms1) const;
 
@@ -220,11 +218,11 @@ public:
      *
      */
     template <typename TransitionExpT>
-    static void return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > & chromatograms,
-      std::vector< ChromatogramExtractor::ExtractionCoordinates > & coordinates,
+    static void return_chromatogram(std::vector< OpenSwath::ChromatogramPtr >& chromatograms,
+      std::vector< ChromatogramExtractor::ExtractionCoordinates >& coordinates,
       TransitionExpT& transition_exp_used,
       SpectrumSettings settings,
-      std::vector<OpenMS::MSChromatogram<> > & output_chromatograms,
+      std::vector<OpenMS::MSChromatogram<> >& output_chromatograms,
       bool ms1)
     {
       typedef std::map<String, const typename TransitionExpT::Transition* > TransitionMapType;
@@ -467,6 +465,12 @@ public:
     }
 
 private:
+    /**
+     * @brief Generates extraction coordinates for the given data.
+     *
+     * Helper function for prepare_coordinates().
+     */
+    ExtractionCoordinates make_coordinates_(const std::vector<OpenMS::TargetedExperiment::RetentionTime>& rts, double rt_extraction_window, double mz, const String& id, const String& precursor_id = "") const;
 
     /**
      * @brief Extracts id (peptide sequence or compound name) for a compound
@@ -474,7 +478,7 @@ private:
      * @param transition_exp The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
      * @param id The identifier of the compound or peptide
      *
-    */
+     */
     template <typename TransitionExpT>
     static String extract_id_(TransitionExpT& transition_exp_used, String id);
     
