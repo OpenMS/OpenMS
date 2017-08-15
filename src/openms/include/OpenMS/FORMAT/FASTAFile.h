@@ -41,6 +41,7 @@
 #include <functional>
 #include <fstream>
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -77,9 +78,9 @@ public:
       String sequence;
 
       FASTAEntry() :
-        identifier(""),
-        description(""),
-        sequence("")
+        identifier(),
+        description(),
+        sequence()
       {
       }
 
@@ -89,6 +90,31 @@ public:
         sequence(seq)
       {
       }
+      
+      FASTAEntry(const FASTAEntry& rhs)
+        :
+        identifier(rhs.identifier),
+        description(rhs.description),
+        sequence(rhs.sequence)
+      {
+      }
+
+      FASTAEntry(FASTAEntry&& rhs) noexcept
+       :
+        identifier(::std::move(rhs.identifier)),
+        description(::std::move(rhs.description)),
+        sequence(::std::move(rhs.sequence)) 
+      {
+      }
+
+      FASTAEntry& operator=(const FASTAEntry& rhs)
+      {
+        if (*this == rhs) return *this;
+        identifier = rhs.identifier;
+        description = rhs.description;
+        sequence = rhs.sequence;
+        return *this;
+      }
 
       bool operator==(const FASTAEntry& rhs) const
       {
@@ -97,19 +123,19 @@ public:
                && sequence == rhs.sequence;
       }
     
-      bool headerMatches(const FASTAEntry rhs)
+      bool headerMatches(const FASTAEntry& rhs) const
       {
         return identifier == rhs.identifier && 
   	     description == rhs.description;
       }
  
-      bool sequenceMatches(const FASTAEntry rhs)
+      bool sequenceMatches(const FASTAEntry& rhs) const
       {
         return sequence == rhs.sequence;
       }
     };
 
-    /// Copy constructor
+    /// Default constructor
     FASTAFile();
 
     /// Destructor
