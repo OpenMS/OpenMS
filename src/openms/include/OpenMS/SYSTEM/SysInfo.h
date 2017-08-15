@@ -51,12 +51,21 @@ namespace OpenMS
 	{
 		public:
 			/// Get memory consumption in KiloBytes (KB)
-			/// This might be very unreliable, depending on operating system and kernel version
-			///
-			/// @param mem_virtual Total virtual memory allocated by the current process
+      /// On Windows, this is equivalent to 'Peak Working Set (Memory)' in Task Manager.
+      /// On other OS this might be very unreliable, depending on operating system and kernel version.
+      ///
+			/// @param mem_virtual Total virtual memory currently allocated by this process
 			/// @return True on success, false otherwise. If false is returned, then @p mem_virtual is set to 0.
 			static bool getProcessMemoryConsumption(size_t& mem_virtual);
-	};
+  
+      /// Get peak memory consumption in KiloBytes (KB)
+      /// On Windows, this is equivalent to 'Working Set (Memory)' in Task Manager.
+      /// On other OS this might be very unreliable, depending on operating system and kernel version.
+      ///
+      /// @param mem_virtual Total virtual memory allocated by this process
+      /// @return True on success, false otherwise. If false is returned, then @p mem_virtual is set to 0.
+      static bool getProcessPeakMemoryConsumption(size_t& mem_virtual);
+  };
 }
 
 #endif
