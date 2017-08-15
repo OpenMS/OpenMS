@@ -116,6 +116,9 @@ public:
     /// returns all the enzyme names available for OMSSA
     void getAllOMSSANames(std::vector<String>& all_names) const;
 
+    /// returns all the enzyme names available for MSGFPlus
+    void getAllMSGFNames(std::vector<String>& all_names) const;
+
 
     //@}
 
