@@ -40,8 +40,8 @@
       <ITEM name="Name" value="Asp-N" type="string" />
       <ITEM name="RegEx" value="(?=[BD])" type="string" />
       <ITEM name="RegExDescription" value="Asp-N cleaves before B or D." type="string" />
-      <ITEM name="NTermGain" value="OH" type="string" />
-      <ITEM name="CTermGain" value="H" type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001304" type="string" />
       <ITEM name="XTandemID" value="[X]|[BD]" type="string" />
       <ITEM name="OMSSAID" value="12" type="int" />
@@ -51,17 +51,17 @@
       <ITEM name="Name" value="Asp-N/B" type="string" />
       <ITEM name="RegEx" value="(?=[D])" type="string" />
       <ITEM name="RegExDescription" value="Asp-N/B cleaves before D." type="string" />
-      <ITEM name="NTermGain" value="OH" type="string" />
-      <ITEM name="CTermGain" value="H" type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="XTandemID" value="[X]|[D]" type="string" />
       <ITEM name="MSGFID" value="7" type="int" />
     </NODE>
     <NODE name="Asp-N_ambic">
       <ITEM name="Name" value="Asp-N_ambic" type="string" />
       <ITEM name="RegEx" value="(?=[DE])" type="string" />
-      <ITEM name="RegExDescription" value="Asp-N_ambic cleaves before D or E." type="string" />
-      <ITEM name="NTermGain" value="OH" type="string" />
-      <ITEM name="CTermGain" value="H" type="string" />
+      <ITEM name="RegExDescription" value="Asp-N Ammonium bicarbonate cleaves before D or E." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001305" type="string" />
       <ITEM name="XTandemID" value="[X]|[DE]" type="string" />
       <ITEM name="OMSSAID" value="19" type="int" />
@@ -91,7 +91,7 @@
       <ITEM name="RegEx" value="(?&lt;=M)" type="string" />
       <ITEM name="RegExDescription" value="CNBr cleaves following M." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
-      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="CTermGain" value="-SCH3 +O" type="string" />
       <ITEM name="PSIID" value="MS:1001307" type="string" />
       <ITEM name="XTandemID" value="[M]|[X]" type="string" />
       <ITEM name="OMSSAID" value="2" type="int" />
@@ -122,8 +122,8 @@
       <ITEM name="Name" value="Lys-N" type="string" />
       <ITEM name="RegEx" value="(?=K)" type="string" />
       <ITEM name="RegExDescription" value="Lys-N cuts before K" type="string" />
-      <ITEM name="NTermGain" value="OH" type="string" />
-      <ITEM name="CTermGain" value="H" type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="" type="string" />
       <ITEM name="XTandemID" value="[X]|[K]" type="string" />
       <ITEM name="CometID" value="4" type="int" />
