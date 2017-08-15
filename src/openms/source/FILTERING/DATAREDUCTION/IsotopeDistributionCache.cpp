@@ -64,7 +64,7 @@ namespace OpenMS
 
       for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
       {
-        isotope_distributions_[index].intensity.push_back(it->second);
+        isotope_distributions_[index].intensity.push_back(it->getIntensity());
         //log_ << " - " << it->second << std::endl;
       }
 

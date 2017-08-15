@@ -349,7 +349,7 @@ namespace OpenMS
     {
       // TODO: this is usually dominated by 13C-12C mass shift which deviates a bit from neutron mass
       p.setMZ((double)(pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-      p.setIntensity(intensity * it->second);
+      p.setIntensity(intensity * it->getIntensity());
       if (add_metainfo_) // one entry per peak
       {
         ion_names.push_back(ion_name);
@@ -413,7 +413,7 @@ namespace OpenMS
         for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso, ++j)
         {
           p.setMZ((double)(loss_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-          p.setIntensity(intensity * rel_loss_intensity_ * iso->second);
+          p.setIntensity(intensity * rel_loss_intensity_ * iso->getIntensity());
           if (add_metainfo_)
           {
             ion_names.push_back(ion_name);
@@ -588,7 +588,7 @@ namespace OpenMS
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
         p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int_ *  it->second);
+        p.setIntensity(pre_int_ *  it->getIntensity());
         if (add_metainfo_)
         {
             ion_names.push_back(ion_name);
@@ -620,7 +620,7 @@ namespace OpenMS
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
         p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int_H2O_ *  it->second);
+        p.setIntensity(pre_int_H2O_ *  it->getIntensity());
         if (add_metainfo_)
         {
           String ion_name("[M+H]-H2O" + String((Size)charge, '+'));
@@ -653,7 +653,7 @@ namespace OpenMS
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
         p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int_NH3_ *  it->second);
+        p.setIntensity(pre_int_NH3_ *  it->getIntensity());
         if (add_metainfo_)
         {
           String ion_name("[M+H]-NH3" + String((Size)charge, '+'));

@@ -595,7 +595,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
       for (Size j = 0; j != iso_dist.size(); ++j)
       {
-        iso[j] = iso_dist.getContainer()[j].second;
+        iso[j] = iso_dist.getContainer()[j].getIntensity();
       }
       isotope_distributions_[i] = iso;
     }

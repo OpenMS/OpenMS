@@ -125,7 +125,7 @@ namespace OpenMS
     // compute the average mass (-offset)
     for (IsotopeDistribution::iterator iter = isotope_distribution.begin(); iter != isotope_distribution.end(); ++iter)
     {
-      isotopes_exact.push_back(iter->second);
+      isotopes_exact.push_back(iter->getIntensity());
     }
 
     // "stretch" the averagine isotope distribution

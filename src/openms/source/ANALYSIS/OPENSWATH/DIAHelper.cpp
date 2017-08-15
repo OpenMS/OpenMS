@@ -116,7 +116,7 @@ namespace OpenMS
       double mass = product_mz;
       for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
       {
-        isotopesSpec.push_back(std::make_pair(mass, it->second));
+        isotopesSpec.push_back(std::make_pair(mass, it->getIntensity()));
         mass += mannmass;
       }
     } //end of dia_isotope_corr_sub

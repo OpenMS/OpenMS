@@ -270,8 +270,8 @@ namespace OpenMS
     double numerator(0), auto1(0), auto2(0);
     for (Size i = 0; i != iso_dist.size(); ++i)
     {
-      numerator += iso_dist.getContainer()[i].second * iso_pattern[i];
-      auto1 += iso_dist.getContainer()[i].second * iso_dist.getContainer()[i].second;
+      numerator += iso_dist.getContainer()[i].getIntensity() * iso_pattern[i];
+      auto1 += iso_dist.getContainer()[i].getIntensity() * iso_dist.getContainer()[i].getIntensity();
       auto2 += iso_pattern[i] * iso_pattern[i];
     }
 
@@ -371,8 +371,8 @@ namespace OpenMS
     double numerator(0), auto1(0), auto2(0);
     for (Size i = 0; i != iso_dist.size(); ++i)
     {
-      numerator += iso_dist.getContainer()[i].second * iso_pattern[i];
-      auto1 += iso_dist.getContainer()[i].second * iso_dist.getContainer()[i].second;
+      numerator += iso_dist.getContainer()[i].getIntensity() * iso_pattern[i];
+      auto1 += iso_dist.getContainer()[i].getIntensity() * iso_dist.getContainer()[i].getIntensity();
       auto2 += iso_pattern[i] * iso_pattern[i];
     }
 
@@ -399,7 +399,7 @@ namespace OpenMS
 
       for (Size j = 0; j != iso_dist.size(); ++j)
       {
-        iso[j] = iso_dist.getContainer()[j].second;
+        iso[j] = iso_dist.getContainer()[j].getIntensity();
       }
       isotope_distributions_[i] = iso;
     }

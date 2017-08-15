@@ -51,6 +51,31 @@ namespace OpenMS
 
     CoarseID(const IsotopeDistribution& isotope_distribution);
 
+    /// @name Accessors
+    //@{
+    /** @brief sets the maximal isotope with @p max_isotope
+
+            sets the maximal isotope which is included in the distribution
+            and used to limit the calculations. This is useful as distributions
+            with numerous isotopes tend to have a lot of numerical zeros at the end
+    */
+    void setMaxIsotope(Size max_isotope);
+
+    /// returns the currently set maximum isotope
+    Size getMaxIsotope() const;
+    
+    Size getMin() const;
+    Size getMax() const;
+    
+    void clear();
+    //@}
+    /// equality operator, returns true if the @p isotope_distribution is identical to this, false else
+    // bool operator==(const CoarseID& isotope_distribution) const;
+
+    /// inequality operator, returns true if the @p isotope_distribution differs from this, false else
+    bool operator!=(const CoarseID& isotope_distribution) const;
+
+
     /**
        @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
 
@@ -215,17 +240,22 @@ namespace OpenMS
     */
     void calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
 
+    CoarseID& operator=(const CoarseID& iso);
+
+    /// equality operator, returns true if the @p isotope_distribution is identical to this, false else
+    bool operator==(const CoarseID& isotope_distribution) const;
+
     /// operator which adds this distribution and the @p isotope_distribution to return IsotopeDisribution (similar to convolve distributions)
-    IsotopeDistribution operator+(const IsotopeDistribution & isotope_distribution) const;
+    CoarseID operator+(const CoarseID& isotope_distribution) const;
 
     /// operator which adds @p isotope_distribution to this (similar to convolve distributions)
-    IsotopeDistribution & operator+=(const IsotopeDistribution & isotope_distribution);
+    CoarseID& operator+=(const CoarseID& isotope_distribution);
 
     /// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+')
-    IsotopeDistribution operator*(Size factor) const;
+    CoarseID operator*(Size factor) const;
 
     /// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+=')
-    IsotopeDistribution & operator*=(Size factor);
+    CoarseID& operator*=(Size factor);
     
  protected:
     /// convolves the distributions @p left and @p right and stores the result in @p result
@@ -248,6 +278,10 @@ namespace OpenMS
 
     /// fill a gapped isotope pattern (i.e. certain masses are missing), with zero probability masses
     ContainerType fillGaps_(const ContainerType& id) const;
+
+ protected:
+    /// maximal isotopes which is used to calculate the distribution
+    Size max_isotope_;
 
   };
 

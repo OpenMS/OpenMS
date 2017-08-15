@@ -1351,18 +1351,16 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        IsotopeDistribution::ContainerType container;
-        container.push_back(make_pair(12, 1.0 - a));
-        container.push_back(make_pair(13, a));
-        isotopes.set(container);
+        isotopes.insert(12, 1.0 - a);
+        isotopes.insert(13, a);
         e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_carbon + additional_isotopes);
+        CoarseID dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_carbon + additional_isotopes);
         dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
-        container = dist.getContainer();
+        IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
         {
-          intensities.push_back(container[i].second);
+          intensities.push_back(container[i].getIntensity());
         }
         ret.push_back(make_pair(abundance, intensities));
       }
@@ -1375,17 +1373,15 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        IsotopeDistribution::ContainerType container;
-        container.push_back(make_pair(12, 1.0 - a));
-        container.push_back(make_pair(13, a));
-        isotopes.set(container);
+        isotopes.insert(12, 1.0 - a);
+        isotopes.insert(13, a);
         e2->setIsotopeDistribution(isotopes);
         IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
-        container = dist.getContainer();
+        IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
         {
-          intensities.push_back(container[i].second);
+          intensities.push_back(container[i].getIntensity());
         }
         ret.push_back(make_pair(abundance, intensities));
       }
@@ -1393,10 +1389,8 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    IsotopeDistribution::ContainerType container;
-    container.push_back(make_pair(12, 0.9893));
-    container.push_back(make_pair(13, 0.0107));
-    isotopes.set(container);
+    isotopes.insert(12, 0.9893);
+    isotopes.insert(13, 0.0107);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1467,18 +1461,16 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        IsotopeDistribution::ContainerType container;
-        container.push_back(make_pair(14, 1.0 - a));
-        container.push_back(make_pair(15, a));
-        isotopes.set(container);
+        isotopes.insert(14, 1.0 - a);
+        isotopes.insert(15, a);
         e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_nitrogens + additional_isotopes);
+        CoarseID dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_nitrogens + additional_isotopes);
         dist += modification_dist; // calculate convolution with isotope distribution of modification(s)
-        container = dist.getContainer();
+        IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
         {
-          intensities.push_back(container[i].second);
+          intensities.push_back(container[i].getIntensity());
         }
         ret.push_back(make_pair(abundance, intensities));
       }
@@ -1491,27 +1483,23 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        IsotopeDistribution::ContainerType container;
-        container.push_back(make_pair(14, 1.0 - a));
-        container.push_back(make_pair(15, a));
-        isotopes.set(container);
+        isotopes.insert(14, 1.0 - a);
+        isotopes.insert(15, a);
         e2->setIsotopeDistribution(isotopes);
         IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
-        container = dist.getContainer();
+        IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
         {
-          intensities.push_back(container[i].second);
+          intensities.push_back(container[i].getIntensity());
         }
         ret.push_back(make_pair(abundance, intensities));
       }
     }
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    IsotopeDistribution::ContainerType container;
-    container.push_back(make_pair(14, 0.99632));
-    container.push_back(make_pair(15, 0.368));
-    isotopes.set(container);
+    isotopes.insert(14, 0.99632);
+    isotopes.insert(15, 0.368);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1539,18 +1527,16 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        IsotopeDistribution::ContainerType container;
-        container.push_back(make_pair(1, 1.0 - a));
-        container.push_back(make_pair(2, a));
-        isotopes.set(container);
+        isotopes.insert(1, 1.0 - a);
+        isotopes.insert(2, a);
         e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_element + additional_isotopes);
+        CoarseID dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_element + additional_isotopes);
         dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
-        container = dist.getContainer();
+        IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
         {
-          intensities.push_back(container[i].second);
+          intensities.push_back(container[i].getIntensity());
         }
         ret.push_back(make_pair(abundance, intensities));
       }
@@ -1563,17 +1549,15 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        IsotopeDistribution::ContainerType container;
-        container.push_back(make_pair(1, 1.0 - a));
-        container.push_back(make_pair(2, a));
-        isotopes.set(container);
+        isotopes.insert(1, 1.0 - a);
+        isotopes.insert(2, a);
         e2->setIsotopeDistribution(isotopes);
         IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
-        container = dist.getContainer();
+        IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
         {
-          intensities.push_back(container[i].second);
+          intensities.push_back(container[i].getIntensity());
         }
         ret.push_back(make_pair(abundance, intensities));
       }
@@ -1581,10 +1565,8 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    IsotopeDistribution::ContainerType container;
-    container.push_back(make_pair(1, 0.999885));
-    container.push_back(make_pair(2, 0.000115));
-    isotopes.set(container);
+    isotopes.insert(1, 0.999885);
+    isotopes.insert(2, 0.000115);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1611,19 +1593,17 @@ public:
       {
         double a = abundance / 100.0;
         CoarseID isotopes;
-        IsotopeDistribution::ContainerType container;
-        container.push_back(make_pair(1, 1.0 - a));
-        container.push_back(make_pair(2, 0.0)); // 17O is neglectable (=0.038%)
-        container.push_back(make_pair(3, a));
-        isotopes.set(container);
+        isotopes.insert(1, 1.0 - a);
+        isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
+        isotopes.insert(3, a);
         e2->setIsotopeDistribution(isotopes);
         IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_element * 2 + additional_isotopes); // 2 * isotopic traces
         dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
-        container = dist.getContainer();
+        IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
         {
-          intensities.push_back(container[i].second);
+          intensities.push_back(container[i].getIntensity());
         }
         ret.push_back(make_pair(abundance, intensities));
       }
@@ -1636,18 +1616,16 @@ public:
       {
         double a = abundance / 100.0;
         IsotopeDistribution isotopes;
-        IsotopeDistribution::ContainerType container;
-        container.push_back(make_pair(1, 1.0 - a));
-        container.push_back(make_pair(2, 0.0)); // 17O is neglectable (=0.038%)
-        container.push_back(make_pair(3, a));
-        isotopes.set(container);
+        isotopes.insert(1, 1.0 - a);
+        isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
+        isotopes.insert(3, a);
         e2->setIsotopeDistribution(isotopes);
         IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(MAXISOTOPES * 2 + additional_isotopes); // 2 * isotopic traces
-        container = dist.getContainer();
+        IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
         {
-          intensities.push_back(container[i].second);
+          intensities.push_back(container[i].getIntensity());
         }
         ret.push_back(make_pair(abundance, intensities));
       }
@@ -1655,11 +1633,9 @@ public:
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    IsotopeDistribution::ContainerType container;
-    container.push_back(make_pair(1, 0.99757));
-    container.push_back(make_pair(2, 0.00038));
-    container.push_back(make_pair(3, 0.00205));
-    isotopes.set(container);
+    isotopes.insert(1, 0.99757);
+    isotopes.insert(2, 0.00038);
+    isotopes.insert(3, 0.00205);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1679,28 +1655,24 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
-      IsotopeDistribution::ContainerType container;
-      container.push_back(make_pair(14, 1.0 - a));
-      container.push_back(make_pair(15, a));
-      isotopes.set(container);
+      isotopes.insert(14, 1.0 - a);
+      isotopes.insert(15, a);
       e2->setIsotopeDistribution(isotopes);
       CoarseID dist(element_count);
       dist.estimateFromPeptideWeight(mass);
-      container = dist.getContainer();
+      IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
       for (Size i = 0; i != container.size(); ++i)
       {
-        intensities.push_back(container[i].second);
+        intensities.push_back(container[i].getIntensity());
       }
       ret.push_back(make_pair(abundance, intensities));
     }
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    IsotopeDistribution::ContainerType container;
-    container.push_back(make_pair(14, 0.99632));
-    container.push_back(make_pair(15, 0.368));
-    isotopes.set(container);
+    isotopes.insert(14, 0.99632);
+    isotopes.insert(15, 0.368);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1719,28 +1691,24 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
-      IsotopeDistribution::ContainerType container;
-      container.push_back(make_pair(12, 1.0 - a));
-      container.push_back(make_pair(13, a));
-      isotopes.set(container);
+      isotopes.insert(12, 1.0 - a);
+      isotopes.insert(13, a);
       e2->setIsotopeDistribution(isotopes);
       CoarseID dist(element_count);
       dist.estimateFromPeptideWeight(mass);
-      container = dist.getContainer();
+      IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
       for (Size i = 0; i != container.size(); ++i)
       {
-        intensities.push_back(container[i].second);
+        intensities.push_back(container[i].getIntensity());
       }
       ret.push_back(make_pair(abundance, intensities));
     }
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    IsotopeDistribution::ContainerType container;
-    container.push_back(make_pair(12, 0.9893));
-    container.push_back(make_pair(13, 0.0107));
-    isotopes.set(container);
+    isotopes.insert(12, 0.9893);
+    isotopes.insert(13, 0.010);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1759,28 +1727,24 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
-      IsotopeDistribution::ContainerType container;
-      container.push_back(make_pair(1, 1.0 - a));
-      container.push_back(make_pair(2, a));
-      isotopes.set(container);
+      isotopes.insert(1, 1.0 - a);
+      isotopes.insert(2, a);
       e2->setIsotopeDistribution(isotopes);
       CoarseID dist(element_count);
       dist.estimateFromPeptideWeight(mass);
-      container = dist.getContainer();
+      IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
       for (Size i = 0; i != container.size(); ++i)
       {
-        intensities.push_back(container[i].second);
+        intensities.push_back(container[i].getIntensity());
       }
       ret.push_back(make_pair(abundance, intensities));
     }
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    IsotopeDistribution::ContainerType container;
-    container.push_back(make_pair(1, 0.999885));
-    container.push_back(make_pair(2, 0.000115));
-    isotopes.set(container);
+    isotopes.insert(1, 0.999885);
+    isotopes.insert(2, 0.000115);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -1799,30 +1763,26 @@ public:
     {
       double a = abundance / 100.0;
       IsotopeDistribution isotopes;
-      std::vector<IsotopeDistribution::MassAbundance> container;
-      container.push_back(make_pair(1, 1.0 - a));
-      container.push_back(make_pair(2, 0));
-      container.push_back(make_pair(3, a));
-      isotopes.set(container);
+      isotopes.insert(1, 1.0 - a);
+      isotopes.insert(2, 0);
+      isotopes.insert(3, a);
       e2->setIsotopeDistribution(isotopes);
       CoarseID dist(element_count * 2); // spaces are 2 Da between 18O and 16O but we observe isotopic peaks at every (approx.) nominal mass
       dist.estimateFromPeptideWeight(mass);
-      container = dist.getContainer();
+      IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
       for (Size i = 0; i != container.size(); ++i)
       {
-        intensities.push_back(container[i].second);
+        intensities.push_back(container[i].getIntensity());
       }
       ret.push_back(make_pair(abundance, intensities));
     }
 
     // reset to natural occurance
     IsotopeDistribution isotopes;
-    IsotopeDistribution::ContainerType container;
-    container.push_back(make_pair(1, 0.99757));
-    container.push_back(make_pair(2, 0.00038));
-    container.push_back(make_pair(3, 0.00205));
-    isotopes.set(container);
+    isotopes.insert(1, 0.99757);
+    isotopes.insert(2, 0.00038);
+    isotopes.insert(3, 0.00205);
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
@@ -2254,7 +2214,7 @@ protected:
 
       for (Size i = 0; i != averagine_intensities_pairs.size(); ++i)
       {
-        averagine_intensities.push_back(averagine_intensities_pairs[i].second);
+        averagine_intensities.push_back(averagine_intensities_pairs[i].getIntensity());
       }
 
       // zeros to the right

@@ -43,6 +43,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <kiss_fft.h>
 
 
@@ -81,9 +82,7 @@ public:
     /// @name typedefs
     //@{
     /// container type, first holds the weight of the isotope, second the probability
-    typedef std::pair<double, double> MassAbundance;
-    typedef MassAbundance::first_type Mass;
-    typedef MassAbundance::second_type Abundance;
+    typedef Peak1D MassAbundance;
     typedef std::vector<MassAbundance> ContainerType;
     typedef ContainerType::iterator iterator;
     typedef ContainerType::iterator Iterator;
@@ -98,15 +97,6 @@ public:
 
 
     enum Sorted { intensity, mass, undefined};
-    ///TBD if this is more maintainable
-    struct SpectrumFragment
-    {
-     SpectrumFragment(Mass& mass, Abundance& abundance):
-      mw(mass), intensity(abundance)
-      {}
-      Mass& mw; 
-      Abundance& intensity;
-    };
 
 
     /// @name Constructors and Destructors
@@ -128,16 +118,6 @@ public:
 
     /// @name Accessors
     //@{
-    /** @brief sets the maximal isotope with @p max_isotope
-
-            sets the maximal isotope which is included in the distribution
-            and used to limit the calculations. This is useful as distributions
-            with numerous isotopes tend to have a lot of numerical zeros at the end
-    */
-    void setMaxIsotope(Size max_isotope);
-
-    /// returns the currently set maximum isotope
-    Size getMaxIsotope() const;
 
     /// overwrites the container which holds the distribution using @p distribution
     void set(const ContainerType & distribution);
@@ -146,10 +126,10 @@ public:
     const ContainerType & getContainer() const;
 
     /// returns the maximal weight isotope which is stored in the distribution
-    Size getMax() const;
+    Peak1D::CoordinateType getMax() const;
 
     /// returns the minimal weight isotope which is stored in the distribution
-    Size getMin() const;
+    Peak1D::CoordinateType getMin() const;
 
     /// returns the size of the distribution which is the number of isotopes in the distribution
     Size size() const;
@@ -198,6 +178,9 @@ public:
     bool isConvolutionUnit() const;
     //@}
 
+    
+
+
     /// @name Operators
     //@{
     /// Assignment operator
@@ -227,6 +210,11 @@ public:
     inline ConstReverseIterator rbegin() const { return distribution_.rbegin(); }
 
     inline ConstReverseIterator rend() const { return distribution_.rend(); }
+
+    inline void insert(const Peak1D::CoordinateType& mass, const Peak1D::IntensityType& intensity)
+    {
+      distribution_.push_back(Peak1D(mass, intensity));
+    }
     //@}
 
     /// @name Convolutional Dummy Operators
@@ -248,10 +236,7 @@ public:
     /// @name Data Access Operators
     //@{
     /// operator which access a cell of the distribution and wraps it in SpectrumFragment struct
-    SpectrumFragment operator[](const UInt64& index){ return SpectrumFragment(distribution_[index].first, distribution_[index].second);}
-    
-    ///
-    ContainerType& data();
+    Peak1D& operator[](const UInt64& index){ return distribution_[index];}
 
     //@}
 
@@ -261,9 +246,6 @@ protected:
     void sort_(std::function<bool(const MassAbundance& p1, const MassAbundance& p2)> sorter);
 
     void transform_(std::function<void(MassAbundance&)> lambda);
-
-    /// maximal isotopes which is used to calculate the distribution
-    Size max_isotope_;
 
     /// stores the isotope distribution
     ContainerType distribution_;

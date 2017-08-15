@@ -974,7 +974,7 @@ namespace OpenMS
         Size j = 0;
         for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
         {
-          spectrum.push_back(Peak1D(mz_pos + (double)j * Constants::C13C12_MASSDIFF_U / charge, intensity * it->second));
+          spectrum.push_back(Peak1D(mz_pos + (double)j * Constants::C13C12_MASSDIFF_U / charge, intensity * it->getIntensity()));
           if (add_metainfo)
           {
             spectrum.getStringDataArrays()[0].push_back(ion_name);

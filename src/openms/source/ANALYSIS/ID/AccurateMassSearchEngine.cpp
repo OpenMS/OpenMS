@@ -1504,7 +1504,7 @@ namespace OpenMS
     std::vector<double> theoretical_iso_dist;
     for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin(); iso_it != iso_dist.end(); ++iso_it)
     {
-      theoretical_iso_dist.push_back(iso_it->second);
+      theoretical_iso_dist.push_back(iso_it->getIntensity());
     }
     
     // same for observed isotope distribution

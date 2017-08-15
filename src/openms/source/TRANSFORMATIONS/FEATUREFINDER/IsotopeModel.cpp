@@ -141,8 +141,8 @@ namespace OpenMS
       for (IsotopeDistribution::iterator iter = isotope_distribution_.begin();
            iter != isotope_distribution_.end(); ++iter, ++cnt)
       {
-        isotopes_exact.push_back(iter->second);
-        isotopes_mean += iter->second * cnt;
+        isotopes_exact.push_back(iter->getIntensity());
+        isotopes_mean += iter->getIntensity() * cnt;
       }
       isotopes_mean *= isotope_distance_ / charge_;
     }

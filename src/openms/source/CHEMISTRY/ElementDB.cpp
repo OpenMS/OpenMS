@@ -198,10 +198,10 @@ namespace OpenMS
         atomic_numbers_[an] = e;
 
         // add all the individual isotopes as separate elements
-        for (IsotopeDistribution::ConstIterator iit = isotopes.begin(); iit != isotopes.end(); ++iit)
+        for (const auto& isotope : isotopes)
         {
-          UInt mass_number = round(iit->first);
-          double atomic_mass = iit->first;
+          double atomic_mass = isotope.getMZ();
+          UInt mass_number = round(atomic_mass);
           String iso_name = "(" + String(mass_number) + ")" + name;
           String iso_symbol = "(" + String(mass_number) + ")" + symbol;
 
@@ -210,7 +210,7 @@ namespace OpenMS
           double iso_mono_weight = iso_avg_weight;
           IsotopeDistribution iso_isotopes;
           IsotopeDistribution::ContainerType iso_container;
-          iso_container.push_back(make_pair(atomic_mass, 1.0));
+          iso_container.push_back(Peak1D(atomic_mass, 1.0));
           iso_isotopes.set(iso_container);
 
           /*
@@ -301,13 +301,15 @@ namespace OpenMS
     // calculate weighted average
     for (vector<UInt>::iterator it = keys.begin(); it != keys.end(); ++it)
     {
-      dist.push_back(make_pair(Z_to_mass[*it] , Z_to_abundance[*it]));
+      dist.push_back(Peak1D(Z_to_mass[*it] , Z_to_abundance[*it]));
     }
 
 
     IsotopeDistribution iso_dist;
     iso_dist.set(dist);
-    iso_dist.setMaxIsotope(100);
+    
+    //Safe to remove?
+    //iso_dist.setMaxIsotope(100);
 
     return iso_dist;
   }

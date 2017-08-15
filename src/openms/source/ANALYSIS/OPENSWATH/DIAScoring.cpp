@@ -368,7 +368,7 @@ namespace OpenMS
 
     for (IsotopeDistribution::Iterator it = isotope_dist.begin(); it != isotope_dist.end(); ++it)
     {
-      isotopes.intensity.push_back(it->second);
+      isotopes.intensity.push_back(it->getIntensity());
     }
     isotopes.optional_begin = 0;
     isotopes.optional_end = dia_nr_isotopes_;

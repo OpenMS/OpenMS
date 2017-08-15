@@ -47,32 +47,58 @@ using namespace std;
 namespace OpenMS
 {
   CoarseID::CoarseID() : 
-    IsotopeDistribution()
+    IsotopeDistribution(),
+    max_isotope_(0)
   {
+    distribution_.push_back(Peak1D(0, 1));
   }
 
   CoarseID::CoarseID(Size max_isotope) :
-    IsotopeDistribution(max_isotope)
+    IsotopeDistribution(),
+    max_isotope_(max_isotope)
   {
+     distribution_.push_back(Peak1D(0, 1));
   }
 
   CoarseID::CoarseID(const IsotopeDistribution& isotope_distribution) :
-    IsotopeDistribution(isotope_distribution)
+    IsotopeDistribution(isotope_distribution),
+    max_isotope_(0)
   {
+       
   }
 
+  bool CoarseID::operator==(const CoarseID& isotope_distribution) const
+  {
+    return max_isotope_ == isotope_distribution.max_isotope_ &&
+           IsotopeDistribution::operator==(isotope_distribution);
+  }
+  
+  bool CoarseID::operator!=(const CoarseID& isotope_distribution) const
+  {
+    return !(isotope_distribution == *this);
+  }
 
-  IsotopeDistribution CoarseID::operator+(const IsotopeDistribution & iso) const
+  CoarseID & CoarseID::operator=(const CoarseID& iso)
+  {
+    if (this != &iso)
+    {
+      IsotopeDistribution::operator=(iso);
+      max_isotope_ = iso.max_isotope_;
+    }
+    return *this;
+  }
+
+  CoarseID CoarseID::operator+(const CoarseID& iso) const
   {
     ContainerType result;
     convolve_(result, distribution_, iso.getContainer());
-    IsotopeDistribution result_iso;
+    CoarseID result_iso;
     result_iso.setMaxIsotope(max_isotope_);
     result_iso.set(result);
     return result_iso;
   }
 
-  IsotopeDistribution& CoarseID::operator+=(const IsotopeDistribution & iso)
+  CoarseID& CoarseID::operator+=(const CoarseID& iso)
   {
     ContainerType result;
     convolve_(result, distribution_, iso.getContainer());
@@ -80,7 +106,7 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeDistribution & CoarseID::operator*=(Size factor)
+  CoarseID& CoarseID::operator*=(Size factor)
   {
     ContainerType result;
     convolvePow_(result, distribution_, factor);
@@ -88,14 +114,40 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeDistribution CoarseID::operator*(Size factor) const
+  CoarseID CoarseID::operator*(Size factor) const
   {
     ContainerType result;
     convolvePow_(result, distribution_, factor);
-    IsotopeDistribution result_iso;
+    CoarseID result_iso;
     result_iso.setMaxIsotope(max_isotope_);
     result_iso.set(result);
     return result_iso;
+  }
+
+  void CoarseID::setMaxIsotope(Size max_isotope)
+  {
+    max_isotope_ = max_isotope;
+  }
+
+  Size CoarseID::getMaxIsotope() const
+  {
+    return max_isotope_;
+  }
+
+  void CoarseID::clear()
+  {
+    IsotopeDistribution::clear();
+    max_isotope_ = 0;
+  }
+
+  Size CoarseID::getMax() const
+  {
+    return round(IsotopeDistribution::getMax());
+  }
+
+  Size CoarseID::getMin() const
+  {
+    return round(IsotopeDistribution::getMin());
   }
 
   void CoarseID::estimateFromPeptideWeight(double average_weight)
@@ -212,7 +264,7 @@ namespace OpenMS
     result.resize(r_max);
     for (ContainerType::size_type i = 0; i != r_max; ++i)
     {
-      result[i] = make_pair(left_l[0].first + right_l[0].first + i, 0);
+      result[i] = Peak1D(left_l[0].getMZ() + right_l[0].getMZ() + i, 0);
     }
 
     // fill result with probabilities
@@ -221,7 +273,9 @@ namespace OpenMS
     {
       for (SignedSize j = min<SignedSize>(r_max - i, right_l.size()) - 1; j >= 0; --j)
       {
-        result[i + j].second += left_l[i].second * right_l[j].second;
+        Peak1D& peak = result[i + j];
+        Peak1D::IntensityType p_intensity = peak.getIntensity();
+        peak.setIntensity( p_intensity + left_l[i].getIntensity() * right_l[j].getIntensity());
       }
     }
   }
@@ -298,7 +352,7 @@ namespace OpenMS
     result.resize(r_max);
     for (ContainerType::size_type i = 0; i != r_max; ++i)
     {
-      result[i] = make_pair(2 * input[0].first + i, 0);
+      result[i] = Peak1D(2 * input[0].getMZ() + i, 0);
     }
 
     // we loop backwards because then the small products tend to come first
@@ -307,7 +361,7 @@ namespace OpenMS
     {
       for (SignedSize j = min<SignedSize>(r_max - i, input.size()) - 1; j >= 0; --j)
       {
-        result[i + j].second += input[i].second * input[j].second;
+        result[i + j].setIntensity( result[i + j].getIntensity() + input[i].getIntensity() * input[j].getIntensity());
       }
     }
 
@@ -338,7 +392,7 @@ namespace OpenMS
     result.resize(r_max);
     for (ContainerType::size_type i = 0; i != r_max; ++i)
     {
-      result[i] = make_pair(fragment_isotope_dist_l[0].first + i, 0);
+      result[i] = Peak1D(fragment_isotope_dist_l[0].getMZ() + i, 0);
     }
 
     // Example: Let the Precursor formula be C2, and assume precursors M0, M+1, and M+2 were isolated.
@@ -382,23 +436,23 @@ namespace OpenMS
         if (*precursor_itr >= i &&
             (*precursor_itr-i) < comp_fragment_isotope_dist_l.size())
         {
-          result[i].second += comp_fragment_isotope_dist_l[*precursor_itr-i].second;
+          result[i].setIntensity( result[i].getIntensity() + comp_fragment_isotope_dist_l[*precursor_itr-i].getIntensity());
         }
       }
-      result[i].second *= fragment_isotope_dist_l[i].second;
+      result[i].setIntensity(result[i].getIntensity() * fragment_isotope_dist_l[i].getIntensity());
     }
   }
 
   IsotopeDistribution::ContainerType CoarseID::fillGaps_(const IsotopeDistribution::ContainerType& id) const
   {
     ContainerType id_gapless;
-    Size mass = round(id.begin()->first);
+    Size mass = round(id.begin()->getMZ());
     for (ContainerType::const_iterator it = id.begin(); it < id.end(); ++mass) // go through all masses
     {
       //round atomic mass to the mass_number
-      if (round(it->first) != mass)
+      if (round(it->getMZ()) != mass)
       { // missing an entry
-        id_gapless.push_back(make_pair(mass, 0.0));
+        id_gapless.push_back(Peak1D(mass, 0.0));
       }
       else
       { // mass is registered already

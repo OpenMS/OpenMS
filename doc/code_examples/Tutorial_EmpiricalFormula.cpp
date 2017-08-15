@@ -51,7 +51,7 @@ Int main()
 
   for (IsotopeDistribution::ConstIterator it = iso_dist.begin(); it != iso_dist.end(); ++it)
   {
-    cout << it->first << " " << it->second << endl;
+    cout << it->getMZ() << " " << it->getIntensity() << endl;
   }
 
   return 0;

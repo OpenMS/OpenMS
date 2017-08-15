@@ -348,9 +348,9 @@ namespace OpenMS
         max_int = hypo_ints[i];
       }
 
-      if (averagine_dist[i].second > theo_max_int)
+      if (averagine_dist[i].getIntensity() > theo_max_int)
       {
-        theo_max_int = averagine_dist[i].second;
+        theo_max_int = averagine_dist[i].getIntensity();
       }
     }
 
@@ -358,7 +358,7 @@ namespace OpenMS
     std::vector<double> averagine_ratios, hypo_isos;
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
-      averagine_ratios.push_back(averagine_dist[i].second / theo_max_int);
+      averagine_ratios.push_back(averagine_dist[i].getIntensity() / theo_max_int);
       hypo_isos.push_back(hypo_ints[i] / max_int);
     }
 

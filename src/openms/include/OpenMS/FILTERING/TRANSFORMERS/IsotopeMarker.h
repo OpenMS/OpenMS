@@ -115,7 +115,7 @@ public:
             ++j;
             continue;
           }
-          if (std::fabs(id.begin()->second * intensity - curIntensity) < invariation * id.begin()->second * intensity)
+          if (std::fabs(id.begin()->getIntensity() * intensity - curIntensity) < invariation * id.begin()->getIntensity() * intensity)
           {
             isotopemarks[mz]++;
             isotopemarks[curmz]++;

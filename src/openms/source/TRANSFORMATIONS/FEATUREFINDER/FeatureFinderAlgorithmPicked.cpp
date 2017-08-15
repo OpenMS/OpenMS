@@ -191,10 +191,8 @@ namespace OpenMS
     {
       max_isotopes += 1000;
       IsotopeDistribution isotopes;
-      IsotopeDistribution::ContainerType container;
-      container.push_back(std::make_pair(12, abundance_12C / 100.0));
-      container.push_back(std::make_pair(13, 1.0 - (abundance_12C / 100.0)));
-      isotopes.set(container);
+      isotopes.insert(12, abundance_12C / 100.0);
+      isotopes.insert(13, 1.0 - (abundance_12C / 100.0));
       carbon->setIsotopeDistribution(isotopes);
     }
 
@@ -205,10 +203,8 @@ namespace OpenMS
     {
       max_isotopes += 1000;
       IsotopeDistribution isotopes;
-      IsotopeDistribution::ContainerType container;
-      container.push_back(std::make_pair(14, abundance_14N / 100.0));
-      container.push_back(std::make_pair(15, 1.0 - (abundance_14N / 100.0)));
-      isotopes.set(container);
+      isotopes.insert(14, abundance_14N / 100.0);
+      isotopes.insert(15, 1.0 - (abundance_14N / 100.0));
       nitrogen->setIsotopeDistribution(isotopes);
     }
 
@@ -417,7 +413,7 @@ namespace OpenMS
 
         for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
         {
-          isotope_distributions_[index].intensity.push_back(it->second);
+          isotope_distributions_[index].intensity.push_back(it->getIntensity());
           //if(debug_) log_ << " - " << it->second << std::endl;
         }
 

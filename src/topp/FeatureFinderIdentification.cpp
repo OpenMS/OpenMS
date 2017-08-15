@@ -378,11 +378,11 @@ protected:
       transition.setPrecursorMZ(mz);
       transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
                               float(counter) / charge);
-      transition.setLibraryIntensity(iso_it->second);
+      transition.setLibraryIntensity(iso_it->getIntensity());
       transition.setMetaValue("annotation", annotation);
       transition.setPeptideRef(peptide_id);
       library_.addTransition(transition);
-      isotope_probs_[transition_name] = iso_it->second;
+      isotope_probs_[transition_name] = iso_it->getIntensity();
     }
   }
 

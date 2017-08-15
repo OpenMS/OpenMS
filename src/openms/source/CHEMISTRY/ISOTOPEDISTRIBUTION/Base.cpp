@@ -63,44 +63,23 @@ using namespace std;
 namespace OpenMS
 {
 
-  IsotopeDistribution::IsotopeDistribution() :
-    max_isotope_(0)
-  {
-    distribution_.push_back(IsotopeDistribution::MassAbundance(0, 1));
-  }
-
-  IsotopeDistribution::IsotopeDistribution(Size max_isotope) :
-    max_isotope_(max_isotope)
-  {
-    distribution_.push_back(IsotopeDistribution::MassAbundance(0, 1));
-  }
+  IsotopeDistribution::IsotopeDistribution()
+  {}
 
   IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & isotope_distribution) :
-    max_isotope_(isotope_distribution.max_isotope_),
     distribution_(isotope_distribution.distribution_)
-  {
-  }
+  {}
 
   IsotopeDistribution::~IsotopeDistribution()
-  {
-  }
+  {}
 
-  void IsotopeDistribution::setMaxIsotope(Size max_isotope)
-  {
-    max_isotope_ = max_isotope;
-  }
-
-  Size IsotopeDistribution::getMaxIsotope() const
-  {
-    return max_isotope_;
-  }
+  
 
   IsotopeDistribution & IsotopeDistribution::operator=(const IsotopeDistribution & iso)
   {
     if (this != &iso)
     {
       distribution_ = iso.distribution_;
-      max_isotope_ = iso.max_isotope_;
     }
     return *this;
   }
@@ -116,22 +95,22 @@ namespace OpenMS
     return distribution_;
   }
 
-  Size IsotopeDistribution::getMax() const
+  Peak1D::CoordinateType IsotopeDistribution::getMax() const
   {
     if (distribution_.empty())
     {
       return 0;
     }
-    return distribution_[distribution_.size() - 1].first;
+    return distribution_[distribution_.size() - 1].getMZ();
   }
 
-  Size IsotopeDistribution::getMin() const
+  Peak1D::CoordinateType IsotopeDistribution::getMin() const
   {
     if (distribution_.empty())
     {
       return 0;
     }
-    return distribution_[0].first;
+    return distribution_[0].getMZ();
   }
 
 
@@ -143,7 +122,6 @@ namespace OpenMS
   void IsotopeDistribution::clear()
   {
     distribution_.clear();
-    max_isotope_ = 0;
   }
 
   void IsotopeDistribution::trimIntensities(double cutoff)
@@ -153,7 +131,7 @@ namespace OpenMS
                 distribution_.end(),
                 [&cutoff](const MassAbundance& sample)
                 {
-                  return sample.second < cutoff;
+                  return sample.getIntensity() < cutoff;
                 }), distribution_.end());
   }
 
@@ -165,7 +143,7 @@ namespace OpenMS
   void IsotopeDistribution::sortByIntensity()
   {
     sort_([](const MassAbundance& p1, const MassAbundance& p2){
-        return p1.second > p2.second;
+        return p1.getIntensity() > p2.getIntensity();
       });
   }
   
@@ -201,8 +179,7 @@ namespace OpenMS
 
   bool IsotopeDistribution::operator==(const IsotopeDistribution & isotope_distribution) const
   {
-    return max_isotope_ == isotope_distribution.max_isotope_ &&
-           distribution_ == isotope_distribution.distribution_;
+    return distribution_ == isotope_distribution.distribution_;
   }
 
   bool IsotopeDistribution::operator!=(const IsotopeDistribution & isotope_distribution) const
@@ -218,12 +195,12 @@ namespace OpenMS
       // loop backwards as most distributions contains a lot of small values at the end
       for (ContainerType::const_reverse_iterator it = distribution_.rbegin(); it != distribution_.rend(); ++it)
       {
-        sum += it->second;
+        sum += it->getIntensity();
       }
 
       for (Iterator it = distribution_.begin(); it != distribution_.end(); ++it)
       {
-        it->second /= sum;
+        it->setIntensity(it->getIntensity() / sum);
       }
     }
     return;
@@ -236,7 +213,7 @@ namespace OpenMS
     // loop from right to left until an entry is larger than the cutoff
     for (; riter != distribution_.rend(); ++riter)
     {
-      if (riter->second >= cutoff)
+      if (riter->getIntensity() >= cutoff)
         break;
     }
     // trim the container
@@ -247,7 +224,7 @@ namespace OpenMS
   {
     for (ContainerType::iterator iter = distribution_.begin(); iter != distribution_.end(); ++iter)
     {
-      if (iter->second >= cutoff)
+      if (iter->getIntensity() >= cutoff)
       {
         distribution_.erase(distribution_.begin(), iter);
         break;
@@ -257,22 +234,16 @@ namespace OpenMS
 
   bool IsotopeDistribution::isNormalized() const
   {
-    return distribution_.front().second == 1.0 && 
+    return distribution_.front().getIntensity() == 1.0 && 
       is_sorted(distribution_.begin(), distribution_.end(),[](const MassAbundance& fr1, const MassAbundance& fr2){
-          return fr1.second > fr2.second;
+          return fr1.getIntensity() > fr2.getIntensity();
         });
   }
 
   bool IsotopeDistribution::isConvolutionUnit() const
   { 
-    return distribution_.size() == 1  && distribution_.front().first == 0.0;
+    return distribution_.size() == 1  && distribution_.front().getMZ() == 0.0;
   }
-
-  IsotopeDistribution::ContainerType& IsotopeDistribution::data()
-  {
-    return distribution_;
-  }
-
 
   inline bool desc_prob(const struct MIDAsPolynomialID::PMember& p0, const struct MIDAsPolynomialID::PMember& p)
   {
@@ -296,12 +267,12 @@ namespace OpenMS
 
   inline bool lightest(const IsotopeDistribution::MassAbundance& a, const IsotopeDistribution::MassAbundance& b)
   {
-    return a.first < b.first;
+    return a.getMZ() < b.getMZ();
   }
 
   double lightest_element(const Element& el)
   {
-    return min_element(el.getIsotopeDistribution().begin(), el.getIsotopeDistribution().end(), lightest)->first;
+    return min_element(el.getIsotopeDistribution().begin(), el.getIsotopeDistribution().end(), lightest)->getMZ();
   }
 
 
@@ -335,7 +306,7 @@ namespace OpenMS
     LOG_INFO << "raw size " << raw.size() <<endl;
 
     distribution_.clear();
-    distribution_.resize(output_size, make_pair<double, double>(0, 0));
+    distribution_.resize(output_size, Peak1D(0, 0));
 
     for(auto& p : raw)
     {
@@ -347,12 +318,13 @@ namespace OpenMS
         LOG_INFO << index <<endl;
         
       }
-      distribution_[index].first = distribution_[index].first == 0 ?
-                                    raw.front().power * index :
-                                    distribution_[index].first;
-      distribution_[index].second += p.probability;
-    }
+      auto& mass = distribution_[index].getPosition() ;
 
+      mass = mass == 0 ?
+             raw.front().power * index :
+             mass;
+      distribution_[index].setIntensity(distribution_[index].getIntensity() + p.probability);
+    }
   }
 
   void MIDAs::dumpIDToFile(String file)
@@ -360,7 +332,7 @@ namespace OpenMS
     ofstream out(file.c_str());
     for(auto& sample : distribution_)
     {
-      out << sample.first << sample.second << endl;
+      out << sample.getMZ() << " "<<sample.getIntensity() << endl;
     }
     
     out.close();
@@ -467,13 +439,13 @@ namespace OpenMS
 
     for(IsotopeDistribution::ConstIterator iso_it = isotope.begin(); iso_it != isotope.end(); ++iso_it)
     {
-      if(iso_it->second == 0)
+      if(iso_it->getIntensity() == 0)
       {
         continue;
       }
-      addCounter(c, iso_it->second, size, N);
-      base_power.push_back(round(iso_it->first / mw_resolution));
-      log_prob.push_back(log(iso_it->second));
+      addCounter(c, iso_it->getIntensity(), size, N);
+      base_power.push_back(round(iso_it->getMZ() / mw_resolution));
+      log_prob.push_back(log(iso_it->getIntensity()));
     }
 
     for(const CounterSet::ContainerType& counters = c.getCounters(); c.hasNext(); ++c)
@@ -616,8 +588,8 @@ namespace OpenMS
         sample.r = sample.i = 0;
         for(const auto& iso : element.first->getIsotopeDistribution())
         {
-          auto mass = round(iso.first / resolution_);
-          auto& prob = iso.second;
+          auto mass = round(iso.getMZ() / resolution_);
+          auto prob = iso.getIntensity();
           if(!(prob > 0))
           {
             continue;
@@ -848,7 +820,7 @@ namespace OpenMS
       for(const auto& iso : element.first->getIsotopeDistribution())
       {
         //round in resolution grid and weight on probability
-        ave_mw += round(iso.first / resolution) * resolution * iso.second;
+        ave_mw += round(iso.getMZ() / resolution) * resolution * iso.getIntensity();
       }
 
       //calculate variance
@@ -856,7 +828,7 @@ namespace OpenMS
       for(const auto& iso : element.first->getIsotopeDistribution())
       {
         //round in resolution grid
-        var_mw += iso.second * pow(ave_mw - (round(iso.first / resolution) * resolution), 2);
+        var_mw += iso.getIntensity() * pow(ave_mw - (round(iso.getMZ() / resolution) * resolution), 2);
       }
       
       // find the real variance and mean by scaling with the molecule number in the empirical formula

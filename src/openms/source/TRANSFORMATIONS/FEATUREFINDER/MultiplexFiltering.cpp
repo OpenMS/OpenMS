@@ -425,7 +425,7 @@ namespace OpenMS
 
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)
     {
-      averagine_pattern.push_back(it->second);
+      averagine_pattern.push_back(it->getIntensity());
     }
 
     return getPatternSimilarity_(pattern, averagine_pattern);

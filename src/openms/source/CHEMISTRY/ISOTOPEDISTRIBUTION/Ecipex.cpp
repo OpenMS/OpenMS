@@ -19,9 +19,9 @@ namespace OpenMS
 {
   void print(std::string t, IsotopeDistribution& result)
   {
-    for(auto& sample: result.data())
+    for(auto& sample: result.getContainer())
     {
-      cout<<t << sample.first <<" " << sample.second << endl;
+      cout<<t << sample.getMZ() <<" " << sample.getIntensity() << endl;
     }
   }
 
@@ -169,6 +169,7 @@ namespace OpenMS
 
   Ecipex::Ecipex() : IsotopeDistribution()
   {
+    distribution_.push_back(Peak1D(0, 1));
   }
 
   Ecipex::Ecipex(EmpiricalFormula& formula, double threshold, double fft_threshold):
@@ -176,6 +177,7 @@ namespace OpenMS
     fft_threshold_(fft_threshold),
     threshold_(threshold)
   {
+    distribution_.push_back(Peak1D(0, 1));
   }
 
   Ecipex::Ecipex(const IsotopeDistribution& isotope_distribution) :
@@ -205,29 +207,33 @@ namespace OpenMS
   void Ecipex::sortAndNormalize()
   {
     sortByIntensity();
-    double max_intensity = distribution_.front().second;
+    double max_intensity = distribution_.front().getIntensity();
     transform_([&max_intensity](MassAbundance& m){
-        m.second /= max_intensity;
+        m.setIntensity(m.getIntensity() / max_intensity);
       });
     
   }
 
-  Ecipex Ecipex::elementIsotopePattern(const Spectrum& iso_pattern, UInt amount, double threshold)
+  Ecipex Ecipex::elementIsotopePattern(const Spectrum& iso_pattern, 
+                                       UInt amount, 
+                                       double threshold)
   {
     Int dim = iso_pattern.size() - 1;
     if (dim == 0) 
     {
       Ecipex result;
-      result[0].mw = iso_pattern.front().first * amount;
+      result[0].setPosition(iso_pattern.front().getMZ() * amount);
       return result;
     }
 
     if(dim < 0)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid dimension size", String(dim));
+      throw Exception::InvalidValue(__FILE__, 
+                                    __LINE__, 
+                                    OPENMS_PRETTY_FUNCTION, 
+                                    "Invalid dimension size", 
+                                    String(dim));
     }
-
-    
 
     UInt64 edge_len = kiss_fftr_next_fast_size_real(amount + 1);
 
@@ -236,10 +242,10 @@ namespace OpenMS
 
     // array setup
     const auto& iso = iso_pattern;
-    arr.scalar_data()[0] = iso.front().second;
+    arr.scalar_data()[0] = iso.front().getIntensity();
     for (Int i = 0, k = 1; i < dim; i++, k *= edge_len)
     {
-      arr.scalar_data()[k] = iso[dim-i].second;
+      arr.scalar_data()[k] = iso[dim-i].getIntensity();
     }
   
     // forward FFT
@@ -258,7 +264,7 @@ namespace OpenMS
     }
   
     Ecipex result;
-    result.data().clear();
+    result.clear();
 
     vector<UInt64> indices(dim, 0);
     for (UInt64 i = 0; i < arr.size(); ++i) 
@@ -268,15 +274,14 @@ namespace OpenMS
       double mass = 0.0;
       for (k = 0; k < indices.size(); ++k) 
       {
-        mass += iso_pattern[k + 1].first * indices[k];
+        mass += iso_pattern[k + 1].getMZ() * indices[k];
         n += indices[k];
       }
 
       if (n <= amount && arr.scalar_data()[i] >= threshold) 
       {
-        mass += (amount - n) * iso_pattern[0].first;
-
-        result.data().push_back(make_pair(mass,arr.scalar_data()[i]));
+        mass += (amount - n) * iso_pattern[0].getMZ();
+        result.insert(mass, arr.scalar_data()[i]);
       }
 
       if (i == arr.size() - 1) 
@@ -329,17 +334,17 @@ namespace OpenMS
     
     Ecipex result;
     // remove convolution unit vector
-    result.data().clear();
+    result.clear();
     
     UInt64 n1 = p1.size(), n2 = p2.size();
 
     for(UInt64 i = 0; i < n1; i++)
       for(UInt64 j = 0; j < n2; j++) 
       {
-        auto abundance = p1[i].intensity * p2[j].intensity;
+        auto abundance = p1[i].getIntensity() * p2[j].getIntensity();
         if (abundance > threshold) 
         {
-          result.data().push_back(make_pair(p1[i].mw + p2[j].mw, abundance));
+          result.insert(p1[i].getMZ() + p2[j].getMZ(), abundance);
         } 
         else 
         {
