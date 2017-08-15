@@ -195,14 +195,14 @@ protected:
   PeakMap ms_data_; // input LC-MS data
   PeakMap chrom_data_; // accumulated chromatograms (XICs)
   bool keep_chromatograms_; // keep chromatogram data for output?
-  TargetedExperiment library_; // accumulated assays for peptides
+  TargetedExperiment library_; // accumulated assays for targets
   bool keep_library_; // keep assay data for output?
   CVTerm rt_term_; // controlled vocabulary term for reference RT
   double rt_window_; // RT window width
   double mz_window_; // m/z window width
   bool mz_window_ppm_; // m/z window width is given in PPM (not Da)?
-  double isotope_pmin_; // min. isotope probability for peptide assay
-  Size n_isotopes_; // number of isotopes for peptide assay
+  double isotope_pmin_; // min. isotope probability for MS1 assay
+  Size n_isotopes_; // number of isotopes for MS1 assay
   map<String, double> isotope_probs_; // isotope probabilities of transitions
   map<String, double> target_rts_; // RTs of targets (assays)
   MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
@@ -280,13 +280,13 @@ protected:
       return;
     }
     // @TODO: detect entries with same RT and m/z ("collisions")
-    TargetedExperiment::Peptide target;
+    TargetedExperiment::Compound target;
+    target.molecular_formula = formula;
     EmpiricalFormula emp_formula(formula);
-    float weight = (mass > 0) ? mass : emp_formula.getMonoWeight();
-    // this gives an "unexpected internal error" (mod. "UniMod:-1" not found):
-    // target.sequence = "X[" + String(weight) + "]";
-    String target_id = name + "_m" + String(weight);
-    target.setPeptideGroupLabel(target_id);
+    bool mass_given = (mass > 0);
+    if (!mass_given) mass = emp_formula.getMonoWeight();
+    target.theoretical_mass = mass;
+    String target_id = name + "_m" + String(float(mass));
 
     // get isotope distribution for target:
     IsotopeDistribution iso_dist;
@@ -298,7 +298,7 @@ protected:
         LOG_ERROR << "Error: No sum formula given for target '" << name
                   << "'; cannot calculate isotope distribution"
                   << " - using estimation method for peptides." << endl;
-        iso_dist.estimateFromPeptideWeight(weight);
+        iso_dist.estimateFromPeptideWeight(mass);
       }
       else
       {
@@ -335,7 +335,7 @@ protected:
       }
       target.setChargeState(*z_it);
       double mz = 0.0;
-      if (mass <= 0) // calculate m/z from formula
+      if (!mass_given) // calculate m/z from formula
       {
         emp_formula.setCharge(*z_it);
         mz = emp_formula.getMonoWeight() / *z_it;
@@ -368,7 +368,7 @@ protected:
         target.rts.clear();
         addTargetRT_(target, rts[i] - rt_tol);
         addTargetRT_(target, rts[i] + rt_tol);
-        library_.addPeptide(target);
+        library_.addCompound(target);
         generateTransitions_(target.id, mz, *z_it, iso_dist);
       }
     }
@@ -394,14 +394,14 @@ protected:
                               float(counter) / charge);
       transition.setLibraryIntensity(iso_it->second);
       // transition.setMetaValue("annotation", annotation); // ???
-      transition.setPeptideRef(target_id);
+      transition.setCompoundRef(target_id);
       library_.addTransition(transition);
       isotope_probs_[transition_name] = iso_it->second;
     }
   }
 
 
-  void addTargetRT_(TargetedExperiment::Peptide& target, double rt)
+  void addTargetRT_(TargetedExperiment::Compound& target, double rt)
   {
     rt_term_.setValue(rt);
     TargetedExperiment::RetentionTime te_rt;
@@ -417,7 +417,7 @@ protected:
     {
       feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
       String ref = feat_it->getMetaValue("PeptideRef");
-      Int z = library_.getPeptideByRef(ref).getChargeState();
+      Int z = library_.getCompoundByRef(ref).getChargeState();
       feat_it->setCharge(z);
       ensureConvexHulls_(*feat_it);
       feat_it->getPeptideIdentifications().clear();
@@ -696,9 +696,9 @@ protected:
     //-------------------------------------------------------------
 
     LOG_INFO << "\nSummary statistics:\n"
-             << library_.getPeptides().size() << " targets specified\n"
+             << library_.getCompounds().size() << " targets specified\n"
              << features.size() << " features found\n"
-             << library_.getPeptides().size() - features.size()
+             << library_.getCompounds().size() - features.size()
              << " targets without features\n" << endl;
 
     return EXECUTION_OK;
