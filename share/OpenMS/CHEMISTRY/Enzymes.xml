@@ -91,7 +91,7 @@
       <ITEM name="RegEx" value="(?&lt;=M)" type="string" />
       <ITEM name="RegExDescription" value="CNBr cleaves following M." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
-      <ITEM name="CTermGain" value="-SCH3 +O" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIID" value="MS:1001307" type="string" />
       <ITEM name="XTandemID" value="[M]|[X]" type="string" />
       <ITEM name="OMSSAID" value="2" type="int" />
