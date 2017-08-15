@@ -376,7 +376,7 @@ protected:
 
       transition.setNativeID(transition_name);
       transition.setPrecursorMZ(mz);
-      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
+      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U *
                               float(counter) / charge);
       transition.setLibraryIntensity(iso_it->second);
       transition.setMetaValue("annotation", annotation);
@@ -755,7 +755,7 @@ protected:
 
       // get isotope distribution for peptide:
       Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
-      IsotopeDistribution iso_dist = 
+      IsotopeDistribution iso_dist =
         seq.getFormula(Residue::Full, 0).getIsotopeDistribution(n_isotopes);
       if (isotope_pmin_ > 0.0)
       {
@@ -816,7 +816,7 @@ protected:
     }
 
     // add proteins to library:
-    for (set<String>::iterator acc_it = protein_accessions.begin(); 
+    for (set<String>::iterator acc_it = protein_accessions.begin();
          acc_it != protein_accessions.end(); ++acc_it)
     {
       TargetedExperiment::Protein protein;
@@ -851,16 +851,16 @@ protected:
   {
     if (n_pos < n_parts_)
     {
-      String msg = "Not enough positive observations for " + 
+      String msg = "Not enough positive observations for " +
         String(n_parts_) + "-fold cross-validation" + note + ".";
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
+      throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
     if (n_neg < n_parts_)
     {
-      String msg = "Not enough negative observations for " + 
+      String msg = "Not enough negative observations for " +
         String(n_parts_) + "-fold cross-validation" + note + ".";
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
+      throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
   }
@@ -882,7 +882,7 @@ protected:
     if (valid_obs.size() < half_win_size + 1)
     {
       String msg = "Not enough observations for intensity-bias filtering.";
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
+      throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
     srand(time(0)); // seed random number generator
@@ -1001,7 +1001,7 @@ protected:
          pred_it != predictor_names.end(); ++pred_it)
     {
       predictors[*pred_it].reserve(features.size());
-      for (FeatureMap::Iterator feat_it = features.begin(); 
+      for (FeatureMap::Iterator feat_it = features.begin();
            feat_it < features.end(); ++feat_it)
       {
         if (!feat_it->metaValueExists(*pred_it))
@@ -1083,7 +1083,7 @@ protected:
 
     vector<SimpleSVM::Prediction> predictions;
     svm.predict(predictions);
-    OPENMS_POSTCONDITION(predictions.size() == features.size(), 
+    OPENMS_POSTCONDITION(predictions.size() == features.size(),
                          "SVM predictions for all features expected");
     for (Size i = 0; i < features.size(); ++i)
     {
@@ -1112,7 +1112,7 @@ protected:
     else if (feature_class == "unknown")
     {
       svm_probs_external_.insert(best_quality);
-      if (best_quality >= quality_cutoff) 
+      if (best_quality >= quality_cutoff)
       {
         best_feature.setOverallQuality(best_quality);
         ++n_external_features_;
@@ -1215,7 +1215,7 @@ protected:
                                                    prob_it->second.second);
       LOG_INFO << "Estimated FDR of features detected based on 'external' IDs: "
                << fdr * 100.0 << "%" << endl;
-      fdr = (fdr * n_external_features_) / (n_external_features_ + 
+      fdr = (fdr * n_external_features_) / (n_external_features_ +
                                             n_internal_features_);
       LOG_INFO << "Estimated FDR of all detected features: " << fdr * 100.0
                << "%" << endl;
@@ -1270,7 +1270,7 @@ protected:
 
     // @TODO: should we use "1 - qvalue" as overall quality for features?
     // assign q-values to features:
-    for (FeatureMap::iterator feat_it = features.begin(); 
+    for (FeatureMap::iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
       if (feat_it->getMetaValue("feature_class") == "positive")
@@ -1509,7 +1509,7 @@ protected:
       FeatureXMLFile().load(candidates_in, features);
       LOG_INFO << "Found " << features.size() << " feature candidates in total."
                << endl;
-      with_external_ids = (!features.empty() && 
+      with_external_ids = (!features.empty() &&
                            features[0].metaValueExists("predicted_class"));
 
       // extract ID information for statistics:
@@ -1573,11 +1573,11 @@ protected:
     }
     else if (!candidates_out.empty()) // hulls not needed, remove them
     {
-      for (FeatureMap::Iterator feat_it = features.begin(); 
+      for (FeatureMap::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
         for (vector<Feature>::iterator sub_it =
-               feat_it->getSubordinates().begin(); sub_it != 
+               feat_it->getSubordinates().begin(); sub_it !=
                feat_it->getSubordinates().end(); ++sub_it)
         {
           sub_it->getConvexHulls().clear();
