@@ -35,6 +35,7 @@
 #ifndef OPENMS_FORMAT_IDXMLFILE_H
 #define OPENMS_FORMAT_IDXMLFILE_H
 
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -50,11 +51,11 @@ namespace OpenMS
     This class is used to load and store documents that implement
     the schema of idXML files.
 
-        A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+    A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
 
-        One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in
-        PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
-        hits are connected via a string identifier. We use the search engine and the date as identifier.
+    One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in
+    PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein
+    hits are connected via a string identifier. We use the search engine and the date as identifier.
 
     @note This format will eventually be replaced by the HUPO-PSI (mzIdentML and mzQuantML)) AnalysisXML formats!
 
@@ -62,7 +63,8 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI IdXMLFile :
     protected Internal::XMLHandler,
-    public Internal::XMLFile
+    public Internal::XMLFile,
+    public ProgressLogger
   {
 public:
     // both ConsensusXMLFile and FeatureXMLFile use some protected IdXML helper functions to parse identifications without code duplication

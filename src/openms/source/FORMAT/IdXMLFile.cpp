@@ -66,6 +66,7 @@ namespace OpenMS
   void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids,
                        std::vector<PeptideIdentification>& peptide_ids, String& document_id)
   {
+    startProgress(0, 0, "Loading idXML");
     //Filename for error messages in XMLHandler
     file_ = filename;
 
@@ -90,6 +91,8 @@ namespace OpenMS
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
+    
+    endProgress();
   }
 
   void IdXMLFile::store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id)
@@ -105,6 +108,8 @@ namespace OpenMS
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
+
+    startProgress(0, peptide_ids.size(), "Storing idXML");
 
     os.precision(writtenDigits<double>(0.0));
 
@@ -219,11 +224,12 @@ namespace OpenMS
       //write protein hits
       for (Size j = 0; j < protein_ids[i].getHits().size(); ++j)
       {
-        os << "\t\t\t<ProteinHit ";
-        os << "id=\"PH_" << prot_count << "\" ";
-        accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count++;
-        os << "accession=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getAccession()) << "\" ";
-        os << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
+        os << "\t\t\t<ProteinHit "
+           << "id=\"PH_" << prot_count << "\" "
+           << "accession=\"" << writeXMLEscape(protein_ids[i].getHits()[j].getAccession()) << "\" "
+           << "score=\"" << protein_ids[i].getHits()[j].getScore() << "\" ";
+        accession_to_id[protein_ids[i].getHits()[j].getAccession()] = prot_count;
+        ++prot_count;
 
         double coverage = protein_ids[i].getHits()[j].getCoverage();
         if (coverage != ProteinHit::COVERAGE_UNKNOWN)
@@ -253,6 +259,8 @@ namespace OpenMS
 
       for (Size l = 0; l < peptide_ids.size(); ++l)
       {
+        setProgress(l);
+
         if (peptide_ids[l].getIdentifier() != protein_ids[i].getIdentifier())
         {
           ++count_wrong_id;
@@ -264,8 +272,8 @@ namespace OpenMS
           continue;
         }
 
-        os << "\t\t<PeptideIdentification ";
-        os << "score_type=\"" << writeXMLEscape(peptide_ids[l].getScoreType()) << "\" ";
+        os << "\t\t<PeptideIdentification "
+           << "score_type=\"" << writeXMLEscape(peptide_ids[l].getScoreType()) << "\" ";
         if (peptide_ids[l].isHigherScoreBetter())
         {
           os << "higher_score_better=\"true\" ";
@@ -286,7 +294,7 @@ namespace OpenMS
           os << "RT=\"" << peptide_ids[l].getRT() << "\" ";
         }
         // spectrum_reference
-        DataValue dv = peptide_ids[l].getMetaValue("spectrum_reference");
+        const DataValue& dv = peptide_ids[l].getMetaValue("spectrum_reference");
         if (dv != DataValue::EMPTY)
         {
           os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
@@ -294,15 +302,16 @@ namespace OpenMS
         os << ">\n";
 
         // write peptide hits
+        std::vector<String> protein_accessions;
         for (Size j = 0; j < peptide_ids[l].getHits().size(); ++j)
         {
           const PeptideHit& p_hit = peptide_ids[l].getHits()[j];
-          os << "\t\t\t<PeptideHit";
-          os << " score=\"" << precisionWrapper(p_hit.getScore()) << "\"";
-          os << " sequence=\"" << writeXMLEscape(p_hit.getSequence().toString()) << "\"";
-          os << " charge=\"" << p_hit.getCharge() << "\"";
+          os << "\t\t\t<PeptideHit"
+             << " score=\"" << precisionWrapper(p_hit.getScore()) << "\""
+             << " sequence=\"" << writeXMLEscape(p_hit.getSequence().toString()) << "\""
+             << " charge=\"" << p_hit.getCharge() << "\"";
 
-          std::vector<PeptideEvidence> pes = p_hit.getPeptideEvidences();
+          const std::vector<PeptideEvidence>& pes = p_hit.getPeptideEvidences();
 
           os << createFlankingAAXMLString_(pes);
           os << createPositionXMLString_(pes);
@@ -311,7 +320,8 @@ namespace OpenMS
           // Note: protein accessions correspond to neighboring AAs and start/end
           // positions, so we have to keep the same order and allow duplicates
           // (for peptides matching multiple times in the same protein)
-          std::vector<String> protein_accessions;
+
+          protein_accessions.clear();
           for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
           {
             const String& protein_accession = pe->getProteinAccession();
@@ -319,30 +329,13 @@ namespace OpenMS
             // empty accessions are not written out (legacy code)
             if (!protein_accession.empty())
             {
-              protein_accessions.push_back(protein_accession);
+              protein_accessions.push_back("PH_" + String(accession_to_id[protein_accession]));
             }
           }
 
-          // map accessions to indices          
-          std::vector<UInt> ids;
-          for (std::vector<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+          if (!protein_accessions.empty())
           {
-            ids.push_back(accession_to_id[*s_it]);
-          }
-
-          if (!ids.empty())
-          {
-            String accs;
-            for (std::vector<UInt>::const_iterator s_it = ids.begin(); s_it != ids.end(); ++s_it)
-            {
-              if (!accs.empty())
-              {
-                accs += " ";
-              }
-              accs += "PH_";
-              accs += String(*s_it);
-            }
-            os << " protein_refs=\"" << accs << "\"";
+            os << " protein_refs=\"" << ListUtils::concatenate(protein_accessions, " ") << "\"";
           }
 
           os << " >\n";
@@ -363,9 +356,7 @@ namespace OpenMS
       if (count_wrong_id && protein_ids.size() == 1) LOG_WARN << "Omitted writing of " << count_wrong_id << " peptide identifications due to wrong protein mapping." << std::endl;
       if (count_empty) LOG_WARN << "Omitted writing of " << count_empty << " peptide identifications due to empty hits." << std::endl;
     }
-
-
-
+    
     //empty protein ids  parameters
     if (protein_ids.empty())
     {
@@ -384,6 +375,8 @@ namespace OpenMS
 
     //close stream
     os.close();
+
+    endProgress();
 
     //reset members
     prot_ids_ = 0;
