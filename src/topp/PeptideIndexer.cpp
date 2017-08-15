@@ -41,6 +41,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/System/StopWatch.h>
 
 using namespace OpenMS;
 
@@ -149,18 +150,20 @@ protected:
     // we stream the Fasta file
     std::vector<FASTAFile::FASTAEntry> proteins;
     
-    LOG_INFO << "Loading FASTA ..." << std::endl;
+    LOG_INFO << "Loading FASTA ... ";
+    StopWatch s;
+    s.start();
     FASTAFile fa;
     fa.load(db_name, proteins);
-    LOG_INFO << "done" << std::endl;
+    s.stop();
+    LOG_INFO << "done (" << s.toString() << ")\n" << std::endl;
 
     std::vector<ProteinIdentification> prot_ids;
     std::vector<PeptideIdentification> pep_ids;
 
-    IdXMLFile fi;
-    LOG_INFO << "Loading idXML ..." << std::endl;
-    fi.load(in, prot_ids, pep_ids);
-    LOG_INFO << "done" << std::endl;
+    IdXMLFile idxmlfile;
+    idxmlfile.setLogType(this->log_type_);
+    idxmlfile.load(in, prot_ids, pep_ids);
 
     //-------------------------------------------------------------
     // calculations
@@ -182,9 +185,7 @@ protected:
 	  //-------------------------------------------------------------
 	  // writing output
 	  //-------------------------------------------------------------
-    LOG_INFO << "Storing idXML ..." << std::endl;
-    IdXMLFile().store(out, prot_ids, pep_ids);
-    LOG_INFO << "done" << std::endl;
+    idxmlfile.store(out, prot_ids, pep_ids);
 
 	  //std::cin.get(); // press any key
     if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
