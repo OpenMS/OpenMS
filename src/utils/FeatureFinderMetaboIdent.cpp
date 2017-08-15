@@ -390,7 +390,7 @@ protected:
 
       transition.setNativeID(transition_name);
       transition.setPrecursorMZ(mz);
-      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
+      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U *
                               float(counter) / charge);
       transition.setLibraryIntensity(iso_it->second);
       // transition.setMetaValue("annotation", annotation); // ???
@@ -672,11 +672,11 @@ protected:
     }
     else if (!candidates_out.empty()) // hulls not needed, remove them
     {
-      for (FeatureMap::Iterator feat_it = features.begin(); 
+      for (FeatureMap::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
         for (vector<Feature>::iterator sub_it =
-               feat_it->getSubordinates().begin(); sub_it != 
+               feat_it->getSubordinates().begin(); sub_it !=
                feat_it->getSubordinates().end(); ++sub_it)
         {
           sub_it->getConvexHulls().clear();
