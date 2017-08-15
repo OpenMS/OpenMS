@@ -865,7 +865,7 @@ START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment
 
   for (Size i = 0; i < 5; ++i)
   {
-    experiment.addSpectrum(MSSpectrum<>());
+    experiment.addSpectrum(MSSpectrum());
   }
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(ids);
@@ -908,7 +908,7 @@ START_SECTION((template <class PeakT> static void filterHitsBySignificance(MSExp
 
   for (Size i = 0; i < 5; ++i)
   {
-    experiment.addSpectrum(MSSpectrum<>());
+    experiment.addSpectrum(MSSpectrum());
   }
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(ids);
@@ -951,7 +951,7 @@ START_SECTION((template <class PeakT> static void keepNBestHits(MSExperiment<Pea
 
   for (Size i = 0; i < 5; ++i)
   {
-    experiment.addSpectrum(MSSpectrum<>());
+    experiment.addSpectrum(MSSpectrum());
   }
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(ids);
@@ -990,7 +990,7 @@ START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSExpe
 
   for (Size i = 0; i < 5; ++i)
   {
-    experiment.addSpectrum(MSSpectrum<>());
+    experiment.addSpectrum(MSSpectrum());
   }
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(peptides);

@@ -18,14 +18,14 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" nam
         # OpenSwathDataAccessHelper(OpenSwathDataAccessHelper) nogil except + # wrap-ignore
 
         # Convert a SpectrumPtr to an OpenMS Spectrum
-        void convertToOpenMSSpectrum(shared_ptr[OSSpectrum] sptr, MSSpectrum[Peak1D] & spectrum) nogil except +
+        void convertToOpenMSSpectrum(shared_ptr[OSSpectrum] sptr, MSSpectrum & spectrum) nogil except +
 
         # Convert an OpenMS Spectrum to an SpectrumPtr
-        shared_ptr[OSSpectrum] convertToSpectrumPtr(MSSpectrum[Peak1D] spectrum) nogil except + # wrap-ignore
+        shared_ptr[OSSpectrum] convertToSpectrumPtr(MSSpectrum spectrum) nogil except + # wrap-ignore
 
         # Convert a ChromatogramPtr to an OpenMS Chromatogram
-        void convertToOpenMSChromatogram(shared_ptr[OSChromatogram] cptr, MSChromatogram[ChromatogramPeak] & chromatogram) nogil except +
-        void convertToOpenMSChromatogramFilter(MSChromatogram[ChromatogramPeak] & chromatogram, shared_ptr[OSChromatogram] cptr,
+        void convertToOpenMSChromatogram(shared_ptr[OSChromatogram] cptr, MSChromatogram & chromatogram) nogil except +
+        void convertToOpenMSChromatogramFilter(MSChromatogram & chromatogram, shared_ptr[OSChromatogram] cptr,
                                                double rt_min, double rt_max) nogil except +
 
         # convert from the OpenMS Targeted experiment to the light Targeted Experiment

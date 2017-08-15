@@ -201,7 +201,7 @@ namespace OpenMS
 
 
     private:
-      MSSpectrum<RichPeak2D> data_; //< calibration points
+      std::vector<RichPeak2D> data_; //< calibration points
       bool use_ppm_; //< return ppm values as y-values for the model instead of absolute delta in [Th]
       std::set<int> groups_; //< peak groups present in this data
     };

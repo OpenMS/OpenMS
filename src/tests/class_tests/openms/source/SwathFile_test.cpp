@@ -57,7 +57,7 @@ void storeSwathFile(String filename, int nr_swathes=32)
 {
   PeakMap exp;
   {
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(1);
     Peak1D p; p.setMZ(101); p.setIntensity(201);
     s.push_back(p);
@@ -65,7 +65,7 @@ void storeSwathFile(String filename, int nr_swathes=32)
   }
   for (int i = 0; i< nr_swathes; i++)
   {
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(2);
     std::vector<Precursor> prec(1);
     prec[0].setIsolationWindowLowerOffset(12.5);
@@ -83,7 +83,7 @@ void storeSplitSwathFile(std::vector<String> filenames)
 {
   {
     PeakMap exp;
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(1);
     Peak1D p; p.setMZ(101); p.setIntensity(201);
     s.push_back(p);
@@ -93,7 +93,7 @@ void storeSplitSwathFile(std::vector<String> filenames)
   for (Size i = 0; i< filenames.size() -1; i++)
   {
     PeakMap exp;
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(2);
     std::vector<Precursor> prec(1);
     prec[0].setIsolationWindowLowerOffset(12.5);

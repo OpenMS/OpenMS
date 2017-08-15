@@ -18,8 +18,8 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
 
         shared_ptr[const ExperimentalSettings] getExperimentalSettings() nogil except +
 
-        MSSpectrum[Peak1D] getSpectrum(Size id) nogil except +
-        MSChromatogram[ChromatogramPeak] getChromatogram(Size id) nogil except +
+        MSSpectrum getSpectrum(Size id) nogil except +
+        MSChromatogram getChromatogram(Size id) nogil except +
 
         # TODO decide for 1.12 whether to include those ... 
         shared_ptr[Spectrum] getSpectrumById(int id_) nogil except +

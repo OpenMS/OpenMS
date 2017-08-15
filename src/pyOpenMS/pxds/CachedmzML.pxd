@@ -22,10 +22,10 @@ cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS":
 
         void readMemdump(MSExperiment exp, String filename) nogil except +
 
-        # void readSingleSpectrum(MSSpectrum[ Peak1D ] & spectrum, String & filename, Size & idx) nogil except +
+        # void readSingleSpectrum(MSSpectrum & spectrum, String & filename, Size & idx) nogil except +
         libcpp_vector[ streampos ]  getSpectraIndex() nogil except +
         libcpp_vector[ streampos ]  getChromatogramIndex() nogil except +
         void createMemdumpIndex(String filename) nogil except +
-        # NAMESPACE # void readSingleSpectrum(MSSpectrum[ Peak1D ] & spectrum, std::ifstream & ifs, Size & idx)
+        # NAMESPACE # void readSingleSpectrum(MSSpectrum & spectrum, std::ifstream & ifs, Size & idx)
         # NAMESPACE # void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1, OpenSwath::BinaryDataArrayPtr data2, std::ifstream & ifs, int ms_level, double rt)
         # NAMESPACE # void readChromatogramFast(OpenSwath::BinaryDataArrayPtr data1, OpenSwath::BinaryDataArrayPtr data2, std::ifstream & ifs)

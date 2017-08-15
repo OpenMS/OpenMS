@@ -35,15 +35,17 @@
 #ifndef OPENMS_KERNEL_MSSPECTRUM_H
 #define OPENMS_KERNEL_MSSPECTRUM_H
 
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/METADATA/DataArrays.h>
+#include <OpenMS/METADATA/MetaInfoDescription.h>
 
 namespace OpenMS
 {
+  class Peak1D;
   /**
     @brief The representation of a 1D spectrum.
 
@@ -62,29 +64,23 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  template <typename PeakT>
-  class MSSpectrum :
-    private std::vector<PeakT>,
+  class OPENMS_DLLAPI MSSpectrum :
+    private std::vector<Peak1D>,
     public RangeManager<1>,
     public SpectrumSettings
   {
 public:
 
     /// Comparator for the retention time.
-    struct RTLess :
-      public std::binary_function<MSSpectrum, MSSpectrum, bool>
+    struct OPENMS_DLLAPI RTLess : public std::binary_function<MSSpectrum, MSSpectrum, bool>
     {
-      inline bool operator()(const MSSpectrum& a, const MSSpectrum& b) const
-      {
-        return a.getRT() < b.getRT();
-      }
-
+      bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
     };
 
     ///@name Base type definitions
     //@{
     /// Peak type
-    typedef PeakT PeakType;
+    typedef OpenMS::Peak1D PeakType;
     /// Coordinate (m/z) type
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Spectrum base type
@@ -112,7 +108,7 @@ public:
     typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
-    ///@name Export methods from std::vector<PeakT>
+    ///@name Export methods from std::vector<Peak1D>
     //@{
     using ContainerType::operator[];
     using ContainerType::begin;
@@ -143,82 +139,23 @@ public:
 
 
     /// Constructor
-    MSSpectrum() :
-      ContainerType(),
-      RangeManager<1>(),
-      SpectrumSettings(),
-      retention_time_(-1),
-      drift_time_(-1),
-      ms_level_(1),
-      name_(),
-      float_data_arrays_(),
-      string_data_arrays_(),
-      integer_data_arrays_()
-    {}
+    MSSpectrum();
 
     /// Copy constructor
-    MSSpectrum(const MSSpectrum& source) :
-      ContainerType(source),
-      RangeManager<1>(source),
-      SpectrumSettings(source),
-      retention_time_(source.retention_time_),
-      drift_time_(source.drift_time_),
-      ms_level_(source.ms_level_),
-      name_(source.name_),
-      float_data_arrays_(source.float_data_arrays_),
-      string_data_arrays_(source.string_data_arrays_),
-      integer_data_arrays_(source.integer_data_arrays_)
-    {}
+    MSSpectrum(const MSSpectrum& source);
 
     /// Destructor
     ~MSSpectrum()
     {}
 
     /// Assignment operator
-    MSSpectrum& operator=(const MSSpectrum& source)
-    {
-      if (&source == this) return *this;
-
-      ContainerType::operator=(source);
-      RangeManager<1>::operator=(source);
-      SpectrumSettings::operator=(source);
-
-      retention_time_ = source.retention_time_;
-      drift_time_ = source.drift_time_;
-      ms_level_ = source.ms_level_;
-      name_ = source.name_;
-      float_data_arrays_ = source.float_data_arrays_;
-      string_data_arrays_ = source.string_data_arrays_;
-      integer_data_arrays_ = source.integer_data_arrays_;
-
-      return *this;
-    }
+    MSSpectrum& operator=(const MSSpectrum& source);
 
     /// Assignment operator
-    MSSpectrum& operator=(const SpectrumSettings & source)
-    {
-      SpectrumSettings::operator=(source);
-      return *this;
-    }
+    MSSpectrum& operator=(const SpectrumSettings & source);
 
     /// Equality operator
-    bool operator==(const MSSpectrum& rhs) const
-    {
-      //name_ can differ => it is not checked
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return std::operator==(*this, rhs) &&
-             RangeManager<1>::operator==(rhs) &&
-             SpectrumSettings::operator==(rhs) &&
-             retention_time_ == rhs.retention_time_ &&
-             drift_time_ == rhs.drift_time_ &&
-             ms_level_ == rhs.ms_level_ &&
-             float_data_arrays_ == rhs.float_data_arrays_ &&
-             string_data_arrays_ == rhs.string_data_arrays_ &&
-             integer_data_arrays_ == rhs.integer_data_arrays_;
-
-#pragma clang diagnostic pop
-    }
+    bool operator==(const MSSpectrum& rhs) const;
 
     /// Equality operator
     bool operator!=(const MSSpectrum& rhs) const
@@ -227,25 +164,15 @@ public:
     }
 
     // Docu in base class (RangeManager)
-    virtual void updateRanges()
-    {
-      this->clearRanges();
-      updateRanges_(ContainerType::begin(), ContainerType::end());
-    }
+    virtual void updateRanges();
 
     ///@name Accessors for meta information
     ///@{
     /// Returns the absolute retention time (in seconds)
-    inline double getRT() const
-    {
-      return retention_time_;
-    }
+    double getRT() const;
 
     /// Sets the absolute retention time (in seconds)
-    inline void setRT(double rt)
-    {
-      retention_time_ = rt;
-    }
+    void setRT(double rt);
 
     /**
       @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
@@ -255,46 +182,28 @@ public:
       spectra, the drift time of the spectrum will always be set here while the
       drift times attribute in the Precursor class may often be unpopulated.
     */
-    inline double getDriftTime() const
-    {
-      return drift_time_;
-    }
+    double getDriftTime() const;
 
     /**
       @brief Returns the ion mobility drift time in milliseconds
     */
-    inline void setDriftTime(double dt)
-    {
-      drift_time_ = dt;
-    }
+    void setDriftTime(double dt);
 
     /**
       @brief Returns the MS level.
 
       For survey scans this is 1, for MS/MS scans 2, ...
     */
-    inline UInt getMSLevel() const
-    {
-      return ms_level_;
-    }
+    UInt getMSLevel() const;
 
     /// Sets the MS level.
-    inline void setMSLevel(UInt ms_level)
-    {
-      ms_level_ = ms_level;
-    }
+    void setMSLevel(UInt ms_level);
 
     /// Returns the name
-    inline const String& getName() const
-    {
-      return name_;
-    }
+    const String& getName() const;
 
     /// Sets the name
-    inline void setName(const String& name)
-    {
-      name_ = name;
-    }
+    void setName(const String& name);
 
     //@}
 
@@ -312,58 +221,34 @@ public:
     */
     //@{
     /// Returns a const reference to the float meta data arrays
-    inline const FloatDataArrays& getFloatDataArrays() const
-    {
-      return float_data_arrays_;
-    }
+    const FloatDataArrays& getFloatDataArrays() const;
 
     /// Returns a mutable reference to the float meta data arrays
-    inline FloatDataArrays& getFloatDataArrays()
+    FloatDataArrays& getFloatDataArrays()
     {
       return float_data_arrays_;
     }
 
     /// Sets the float meta data arrays
-    inline void setFloatDataArrays(const FloatDataArrays& fda)
-    {
-      float_data_arrays_ = fda;
-    }
+    void setFloatDataArrays(const FloatDataArrays& fda);
 
     /// Returns a const reference to the string meta data arrays
-    inline const StringDataArrays& getStringDataArrays() const
-    {
-      return string_data_arrays_;
-    }
+    const StringDataArrays& getStringDataArrays() const;
 
     /// Returns a mutable reference to the string meta data arrays
-    inline StringDataArrays& getStringDataArrays()
-    {
-      return string_data_arrays_;
-    }
+    StringDataArrays& getStringDataArrays();
 
     /// Sets the string meta data arrays
-    inline void setStringDataArrays(const StringDataArrays& sda)
-    {
-      string_data_arrays_ = sda;
-    }
+    void setStringDataArrays(const StringDataArrays& sda);
 
     /// Returns a const reference to the integer meta data arrays
-    inline const IntegerDataArrays& getIntegerDataArrays() const
-    {
-      return integer_data_arrays_;
-    }
+    const IntegerDataArrays& getIntegerDataArrays() const;
 
     /// Returns a mutable reference to the integer meta data arrays
-    inline IntegerDataArrays& getIntegerDataArrays()
-    {
-      return integer_data_arrays_;
-    }
+    IntegerDataArrays& getIntegerDataArrays();
 
     /// Sets the integer meta data arrays
-    inline void setIntegerDataArrays(const IntegerDataArrays& ida)
-    {
-      integer_data_arrays_ = ida;
-    }
+    void setIntegerDataArrays(const IntegerDataArrays& ida);
 
     /// Returns a mutable reference to the first integer meta data array with the given name
     inline IntegerDataArray& getIntegerDataArrayByName(String name)
@@ -416,93 +301,17 @@ public:
 
       Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly.
     */
-    void sortByIntensity(bool reverse = false)
-    {
-      if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
-      {
-        if (reverse)
-        {
-          std::stable_sort(ContainerType::begin(), ContainerType::end(), reverseComparator(typename PeakType::IntensityLess()));
-        }
-        else
-        {
-          std::stable_sort(ContainerType::begin(), ContainerType::end(), typename PeakType::IntensityLess());
-        }
-      }
-      else
-      {
-        // sort index list
-        std::vector<std::pair<typename PeakType::IntensityType, Size> > sorted_indices;
-        sorted_indices.reserve(ContainerType::size());
-        for (Size i = 0; i < ContainerType::size(); ++i)
-        {
-          sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getIntensity(), i));
-        }
-
-        if (reverse)
-        {
-          std::stable_sort(sorted_indices.begin(), sorted_indices.end(), reverseComparator(PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >()));
-        }
-        else
-        {
-          std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::IntensityType, Size> >());
-        }
-
-        // extract list of indices
-        std::vector<Size> select_indices;
-        select_indices.reserve(sorted_indices.size());
-        for (Size i = 0; i < sorted_indices.size(); ++i)
-        {
-          select_indices.push_back(sorted_indices[i].second);
-        }
-        select(select_indices);
-      }
-    }
+    void sortByIntensity(bool reverse = false);
 
     /**
       @brief Lexicographically sorts the peaks by their position.
 
       The spectrum is sorted with respect to position. Meta data arrays will be sorted accordingly.
     */
-    void sortByPosition()
-    {
-      if (float_data_arrays_.empty() && string_data_arrays_.empty() && integer_data_arrays_.empty())
-      {
-        std::stable_sort(ContainerType::begin(), ContainerType::end(), typename PeakType::PositionLess());
-      }
-      else
-      {
-        //sort index list
-        std::vector<std::pair<typename PeakType::PositionType, Size> > sorted_indices;
-        sorted_indices.reserve(ContainerType::size());
-        for (Size i = 0; i < ContainerType::size(); ++i)
-        {
-          sorted_indices.push_back(std::make_pair(ContainerType::operator[](i).getPosition(), i));
-        }
-        std::stable_sort(sorted_indices.begin(), sorted_indices.end(), PairComparatorFirstElement<std::pair<typename PeakType::PositionType, Size> >());
-
-        // extract list of indices
-        std::vector<Size> select_indices;
-        select_indices.reserve(sorted_indices.size());
-        for (Size i = 0; i < sorted_indices.size(); ++i)
-        {
-          select_indices.push_back(sorted_indices[i].second);
-        }
-        select(select_indices);
-      }
-    }
+    void sortByPosition();
 
     /// Checks if all peaks are sorted with respect to ascending m/z
-    bool isSorted() const
-    {
-      if (this->size() < 2) return true;
-
-      for (Size i = 1; i < this->size(); ++i)
-      {
-        if (this->operator[](i - 1).getMZ() > this->operator[](i).getMZ()) return false;
-      }
-      return true;
-    }
+    bool isSorted() const;
 
     //@}
 
@@ -518,30 +327,7 @@ public:
 
       @exception Exception::Precondition is thrown if the spectrum is empty (not only in debug mode)
     */
-    Size findNearest(CoordinateType mz) const
-    {
-      // no peak => no search
-      if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
-
-      // search for position for inserting
-      ConstIterator it = MZBegin(mz);
-      // border cases
-      if (it == ContainerType::begin()) return 0;
-
-      if (it == ContainerType::end()) return ContainerType::size() - 1;
-
-      // the peak before or the current peak are closest
-      ConstIterator it2 = it;
-      --it2;
-      if (std::fabs(it->getMZ() - mz) < std::fabs(it2->getMZ() - mz))
-      {
-        return Size(it - ContainerType::begin());
-      }
-      else
-      {
-        return Size(it2 - ContainerType::begin());
-      }
-    }
+    Size findNearest(CoordinateType mz) const;
 
     /**
       @brief Binary search for the peak nearest to a specific m/z given a +/- tolerance windows in Th
@@ -554,20 +340,7 @@ public:
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
       @note Peaks exactly on borders are considered in tolerance window.
     */
-    Int findNearest(CoordinateType mz, CoordinateType tolerance) const
-    {
-      if (ContainerType::empty()) return -1;
-      Size i = findNearest(mz);
-      const double found_mz = this->operator[](i).getMZ();
-      if (found_mz >= mz - tolerance && found_mz <= mz + tolerance)
-      {
-        return static_cast<Int>(i);
-      }
-      else
-      {
-        return -1;
-      }
-    }
+    Int findNearest(CoordinateType mz, CoordinateType tolerance) const;
 
     /**
       @brief Search for the peak nearest to a specific m/z given two +/- tolerance windows in Th
@@ -582,145 +355,63 @@ public:
       @note Peaks exactly on borders are considered in tolerance window.
       @note Search for the left border is done using a binary search followed by a linear scan
     */
-    Int findNearest(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const
-    {
-      if (ContainerType::empty()) return -1;
-
-      // do a binary search for nearest peak first
-      Size i = findNearest(mz);
-
-      const double nearest_mz = this->operator[](i).getMZ();
-
-      if (nearest_mz < mz)
-      {
-        if (nearest_mz >= mz - tolerance_left)
-        {
-          return i; // success: nearest peak is in left tolerance window
-        }
-        else
-        {
-          if (i == this->size() - 1) return -1; // we are at the last peak which is too far left
-          // Nearest peak is too far left so there can't be a closer peak in the left window.
-          // There still might be a peak to the right of mz that falls in the right window
-          ++i;  // now we are at a peak exactly on or to the right of mz
-          const double next_mz = this->operator[](i).getMZ();
-          if (next_mz <= mz + tolerance_right) return i;
-        }
-      }
-      else
-      {
-        if (nearest_mz <= mz + tolerance_right)
-        {
-          return i; // success: nearest peak is in right tolerance window
-        }
-        else
-        {
-          if (i == 0) return -1; // we are at the first peak which is too far right
-          --i;  // now we are at a peak exactly on or to the right of mz
-          const double next_mz = this->operator[](i).getMZ();
-          if (next_mz >= mz - tolerance_left) return i;
-        }
-      }
-
-      // neither in the left nor the right tolerance window
-      return -1;
-    }
+    Int findNearest(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const;
 
     /**
       @brief Binary search for peak range begin
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
     */
-    Iterator MZBegin(CoordinateType mz)
-    {
-      PeakType p;
-      p.setPosition(mz);
-      return lower_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
-    }
+    Iterator MZBegin(CoordinateType mz);
 
     /**
       @brief Binary search for peak range begin
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
     */
-    Iterator MZBegin(Iterator begin, CoordinateType mz, Iterator end)
-    {
-      PeakType p;
-      p.setPosition(mz);
-      return lower_bound(begin, end, p, typename PeakType::PositionLess());
-    }
+    Iterator MZBegin(Iterator begin, CoordinateType mz, Iterator end);
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
 
       @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
     */
-    Iterator MZEnd(CoordinateType mz)
-    {
-      PeakType p;
-      p.setPosition(mz);
-      return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
-    }
+    Iterator MZEnd(CoordinateType mz);
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
 
       @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
     */
-    Iterator MZEnd(Iterator begin, CoordinateType mz, Iterator end)
-    {
-      PeakType p;
-      p.setPosition(mz);
-      return upper_bound(begin, end, p, typename PeakType::PositionLess());
-    }
+    Iterator MZEnd(Iterator begin, CoordinateType mz, Iterator end);
 
     /**
       @brief Binary search for peak range begin
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
     */
-    ConstIterator MZBegin(CoordinateType mz) const
-    {
-      PeakType p;
-      p.setPosition(mz);
-      return lower_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
-    }
+    ConstIterator MZBegin(CoordinateType mz) const;
 
     /**
       @brief Binary search for peak range begin
 
       @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
     */
-    ConstIterator MZBegin(ConstIterator begin, CoordinateType mz, ConstIterator end) const
-    {
-      PeakType p;
-      p.setPosition(mz);
-      return lower_bound(begin, end, p, typename PeakType::PositionLess());
-    }
+    ConstIterator MZBegin(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
 
       @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
     */
-    ConstIterator MZEnd(CoordinateType mz) const
-    {
-      PeakType p;
-      p.setPosition(mz);
-      return upper_bound(ContainerType::begin(), ContainerType::end(), p, typename PeakType::PositionLess());
-    }
+    ConstIterator MZEnd(CoordinateType mz) const;
 
     /**
       @brief Binary search for peak range end (returns the past-the-end iterator)
 
       @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
     */
-    ConstIterator MZEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const
-    {
-      PeakType p;
-      p.setPosition(mz);
-      return upper_bound(begin, end, p, typename PeakType::PositionLess());
-    }
+    ConstIterator MZEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
 
     //@}
 
@@ -730,23 +421,7 @@ public:
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
-    void clear(bool clear_meta_data)
-    {
-      ContainerType::clear();
-
-      if (clear_meta_data)
-      {
-        clearRanges();
-        this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
-        retention_time_ = -1.0;
-        drift_time_ = -1.0;
-        ms_level_ = 1;
-        name_.clear();
-        float_data_arrays_.clear();
-        string_data_arrays_.clear();
-        integer_data_arrays_.clear();
-      }
-    }
+    void clear(bool clear_meta_data);
 
     /*
       @brief Select a (subset of) spectrum and its data_arrays, only retaining the indices given in @p indices
@@ -755,71 +430,7 @@ public:
       @return Reference to this MSSpectrum
 
     */
-    MSSpectrum& select(const std::vector<Size>& indices)
-    {
-      Size snew = indices.size();
-      ContainerType tmp;
-      tmp.reserve(indices.size());
-
-      const Size peaks_old = size();
-
-      for (Size i = 0; i < snew; ++i)
-      {
-        tmp.push_back(*(ContainerType::begin() + indices[i]));
-      }
-      ContainerType::swap(tmp);
-
-      for (Size i = 0; i < float_data_arrays_.size(); ++i)
-      {
-        if (float_data_arrays_[i].size() != peaks_old)
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FloatDataArray[" + String(i) + "] size (" +
-            String(float_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
-        }
-
-        std::vector<float> mda_tmp;
-        mda_tmp.reserve(float_data_arrays_[i].size());
-        for (Size j = 0; j < snew; ++j)
-        {
-          mda_tmp.push_back(*(float_data_arrays_[i].begin() + indices[j]));
-        }
-        std::swap(float_data_arrays_[i], mda_tmp);
-      }
-
-      for (Size i = 0; i < string_data_arrays_.size(); ++i)
-      {
-        if (string_data_arrays_[i].size() != peaks_old)
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "StringDataArray[" + String(i) + "] size (" +
-            String(string_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
-        }
-        std::vector<String> mda_tmp;
-        mda_tmp.reserve(string_data_arrays_[i].size());
-        for (Size j = 0; j < snew; ++j)
-        {
-          mda_tmp.push_back(*(string_data_arrays_[i].begin() + indices[j]));
-        }
-        std::swap(string_data_arrays_[i], mda_tmp);
-      }
-
-      for (Size i = 0; i < integer_data_arrays_.size(); ++i)
-      {
-        if (integer_data_arrays_[i].size() != peaks_old)
-        {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IntegerDataArray[" + String(i) + "] size (" +
-            String(integer_data_arrays_[i].size()) + ") does not match spectrum size (" + String(peaks_old) + ")");
-        }
-        std::vector<Int> mda_tmp;
-        mda_tmp.reserve(integer_data_arrays_[i].size());
-        for (Size j = 0; j < snew; ++j)
-        {
-          mda_tmp.push_back(*(integer_data_arrays_[i].begin() + indices[j]));
-        }
-        std::swap(integer_data_arrays_[i], mda_tmp);
-      }
-
-      return *this;
-    }
+    MSSpectrum& select(const std::vector<Size>& indices);
 
 protected:
 
@@ -845,17 +456,15 @@ protected:
     IntegerDataArrays integer_data_arrays_;
   };
 
-  /// Print the contents to a stream.
-  template <typename PeakT>
-  std::ostream& operator<<(std::ostream& os, const MSSpectrum<PeakT>& spec)
+  inline std::ostream& operator<<(std::ostream& os, const MSSpectrum& spec)
   {
     os << "-- MSSPECTRUM BEGIN --" << std::endl;
 
-    //spectrum settings
+    // spectrum settings
     os << static_cast<const SpectrumSettings&>(spec);
 
-    //peaklist
-    for (typename MSSpectrum<PeakT>::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+    // peaklist
+    for (MSSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
     {
       os << *it << std::endl;
     }

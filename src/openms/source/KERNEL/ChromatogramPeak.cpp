@@ -42,6 +42,4 @@ namespace OpenMS
     os << "POS: " << point.getRT() << " INT: " << point.getIntensity();
     return os;
   }
-
-  MSSpectrum<ChromatogramPeak> spec_cp; // required for VS to avoid missing symbols in DLL (hard to see why)  
 }

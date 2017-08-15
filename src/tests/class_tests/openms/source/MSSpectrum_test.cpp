@@ -67,10 +67,10 @@ p3.setMZ(30.0);
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MSSpectrum<>* ptr = 0;
-MSSpectrum<>* nullPointer = 0;
+MSSpectrum* ptr = 0;
+MSSpectrum* nullPointer = 0;
 START_SECTION((MSSpectrum()))
-  ptr = new MSSpectrum<>();
+  ptr = new MSSpectrum();
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
@@ -78,8 +78,8 @@ START_SECTION((~MSSpectrum()))
   delete ptr;
 END_SECTION
 
-START_SECTION(([EXTRA] MSSpectrum<>()))
-  MSSpectrum<Peak1D > tmp;
+START_SECTION(([EXTRA] MSSpectrum()))
+  MSSpectrum tmp;
   Peak1D peak;
   peak.getPosition()[0] = 47.11;
   tmp.push_back(peak);
@@ -91,84 +91,84 @@ END_SECTION
 // Member accessors
 
 START_SECTION((UInt getMSLevel() const))
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   TEST_EQUAL(spec.getMSLevel(),1)
 END_SECTION
 
 START_SECTION((void setMSLevel(UInt ms_level)))
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   spec.setMSLevel(17);
   TEST_EQUAL(spec.getMSLevel(),17)
 END_SECTION
 
 START_SECTION((const String& getName() const))
-  MSSpectrum<> s;
+  MSSpectrum s;
   TEST_STRING_EQUAL(s.getName(),"")
 END_SECTION
 
 START_SECTION((void setName(const String &name)))
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.setName("bla");
   TEST_STRING_EQUAL(s.getName(),"bla")
 END_SECTION
 
 START_SECTION((double getRT() const ))
-  MSSpectrum<> s;
+  MSSpectrum s;
   TEST_REAL_SIMILAR(s.getRT(),-1.0)
 END_SECTION
 
 START_SECTION((void setRT(double rt)))
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.setRT(0.451);
   TEST_REAL_SIMILAR(s.getRT(),0.451)
 END_SECTION
 
 START_SECTION((double getDriftTime() const ))
-  MSSpectrum<> s;
+  MSSpectrum s;
   TEST_REAL_SIMILAR(s.getDriftTime(),-1.0)
 END_SECTION
 
 START_SECTION((void setDriftTime(double dt)))
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.setDriftTime(0.451);
   TEST_REAL_SIMILAR(s.getDriftTime(),0.451)
 END_SECTION
 
 START_SECTION((const FloatDataArrays& getFloatDataArrays() const))
-  MSSpectrum<> s;
+  MSSpectrum s;
   TEST_EQUAL(s.getFloatDataArrays().size(),0)
 END_SECTION
 
 START_SECTION((FloatDataArrays& getFloatDataArrays()))
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.getFloatDataArrays().resize(2);
   TEST_EQUAL(s.getFloatDataArrays().size(),2)
 END_SECTION
 
 START_SECTION((const StringDataArrays& getStringDataArrays() const))
-  MSSpectrum<> s;
+  MSSpectrum s;
   TEST_EQUAL(s.getStringDataArrays().size(),0)
 END_SECTION
 
 START_SECTION((StringDataArrays& getStringDataArrays()))
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.getStringDataArrays().resize(2);
   TEST_EQUAL(s.getStringDataArrays().size(),2)
 END_SECTION
 
 START_SECTION((const IntegerDataArrays& getIntegerDataArrays() const))
-  MSSpectrum<> s;
+  MSSpectrum s;
   TEST_EQUAL(s.getIntegerDataArrays().size(),0)
 END_SECTION
 
 START_SECTION((IntegerDataArrays& getIntegerDataArrays()))
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.getIntegerDataArrays().resize(2);
   TEST_EQUAL(s.getIntegerDataArrays().size(),2)
 END_SECTION
 
 START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.push_back(p1);
   s.push_back(p2);
   s.push_back(p3);
@@ -179,15 +179,15 @@ START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
   float afr[] = {1.0, 2.0, 3.0, 4.0, 5.0};
   String asr[] = {"1", "2" , "3", "4", "5"};
   std::vector<int> ai(&air[0], &air[5]);
-  MSSpectrum<>::IntegerDataArray aia;
+  MSSpectrum::IntegerDataArray aia;
   swap(aia, ai);
   std::vector<float> af(&afr[0], &afr[5]);
-  MSSpectrum<>::FloatDataArray afa;
+  MSSpectrum::FloatDataArray afa;
   swap(afa, af);
   std::vector<String> as(&asr[0], &asr[5]);
-  MSSpectrum<>::StringDataArray asa;
+  MSSpectrum::StringDataArray asa;
   swap(asa, as);
-  //MSSpectrum<>::IntegerDataArray
+  //MSSpectrum::IntegerDataArray
   s.getFloatDataArrays().push_back(afa);
   s.getIntegerDataArrays().push_back(aia);
   s.getStringDataArrays().push_back(asa);
@@ -205,7 +205,7 @@ START_SECTION((MSSpectrum& select(const std::vector<Size>& indices)))
   TEST_EQUAL(s.getStringDataArrays()[0].size(), 5)
 
   // re-order
-  MSSpectrum<> s2 = s;
+  MSSpectrum s2 = s;
   Size order[] = {4, 2, 3, 1, 0};
   s2.select(std::vector<Size>(&order[0], &order[5]));
   TEST_REAL_SIMILAR(s2[0].getIntensity(), 2.0)
@@ -248,7 +248,7 @@ END_SECTION
 // RangeManager
 
 START_SECTION((virtual void updateRanges()))
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.push_back(p1);
   s.push_back(p2);
   s.push_back(p1);
@@ -277,7 +277,7 @@ END_SECTION
 // Copy constructor, assignement operator, equality
 
 START_SECTION((MSSpectrum(const MSSpectrum& source)))
-  MSSpectrum<> tmp;
+  MSSpectrum tmp;
   tmp.getInstrumentSettings().getScanWindows().resize(1);
   tmp.setMetaValue("label",5.0);
   tmp.setMSLevel(17);
@@ -285,11 +285,11 @@ START_SECTION((MSSpectrum(const MSSpectrum& source)))
   tmp.setDriftTime(8.0);
   tmp.setName("bla");
   //peaks
-  MSSpectrum<>::PeakType peak;
+  MSSpectrum::PeakType peak;
   peak.getPosition()[0] = 47.11;
   tmp.push_back(peak);
-
-  MSSpectrum<> tmp2(tmp);
+  
+  MSSpectrum tmp2(tmp);
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),1);
   TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
   TEST_EQUAL(tmp2.getMSLevel(), 17)
@@ -303,7 +303,7 @@ END_SECTION
 
 
 START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
-  MSSpectrum<> tmp;
+  MSSpectrum tmp;
   tmp.getInstrumentSettings().getScanWindows().resize(1);
   tmp.setMetaValue("label",5.0);
   tmp.setMSLevel(17);
@@ -311,12 +311,12 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
   tmp.setDriftTime(8.0);
   tmp.setName("bla");
   //peaks
-  MSSpectrum<>::PeakType peak;
+  MSSpectrum::PeakType peak;
   peak.getPosition()[0] = 47.11;
   tmp.push_back(peak);
 
   //normal assignment
-  MSSpectrum<> tmp2;
+  MSSpectrum tmp2;
   tmp2 = tmp;
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),1);
   TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
@@ -329,7 +329,7 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
 
   //Assignment of empty object
   //normal assignment
-  tmp2 = MSSpectrum<>();
+  tmp2 = MSSpectrum();
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),0);
   TEST_EQUAL(tmp2.metaValueExists("label"), false)
   TEST_EQUAL(tmp2.getMSLevel(),1)
@@ -340,8 +340,8 @@ START_SECTION((MSSpectrum& operator= (const MSSpectrum& source)))
 END_SECTION
 
 START_SECTION((bool operator== (const MSSpectrum& rhs) const))
-  MSSpectrum<> edit, empty;
-
+  MSSpectrum edit, empty;
+  
   TEST_EQUAL(edit==empty,true);
 
   edit = empty;
@@ -394,8 +394,8 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
 END_SECTION
 
 START_SECTION((bool operator!= (const MSSpectrum& rhs) const))
-  MSSpectrum<> edit, empty;
-
+  MSSpectrum edit, empty;
+  
   TEST_EQUAL(edit!=empty,false);
 
   edit = empty;
@@ -454,13 +454,13 @@ END_SECTION
 
 
 START_SECTION((void sortByIntensity(bool reverse=false)))
-  MSSpectrum<> ds;
+  MSSpectrum ds;
   Peak1D p;
-  MSSpectrum<>::FloatDataArray float_array;
-  MSSpectrum<>::StringDataArray string_array;
-  MSSpectrum<>::IntegerDataArray int_array;
+  MSSpectrum::FloatDataArray float_array;
+  MSSpectrum::StringDataArray string_array;
+  MSSpectrum::IntegerDataArray int_array;
   std::vector<double> mzs, intensities;
-  MSSpectrum<>::IntegerDataArray in_array;
+  MSSpectrum::IntegerDataArray in_array;
   intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(420.130f); string_array.push_back("420.13"); int_array.push_back(420);
   intensities.push_back(60);  mzs.push_back(412.824); float_array.push_back(412.824f); string_array.push_back("412.82"); int_array.push_back(412);
   intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(423.269f); string_array.push_back("423.27"); int_array.push_back(423);
@@ -480,7 +480,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   ds.sortByIntensity();
   std::vector<double> intensities_copy(intensities);
   std::sort(intensities_copy.begin(),intensities_copy.end());
-  MSSpectrum<>::iterator it_ds = ds.begin();
+  MSSpectrum::iterator it_ds = ds.begin();
   for(std::vector<double>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
   {
     if(it_ds == ds.end())
@@ -499,16 +499,16 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   intensities_copy = intensities;
   std::sort(intensities_copy.begin(),intensities_copy.end());
 
-  ds.getFloatDataArrays() = std::vector<MSSpectrum<>::FloatDataArray>(3,float_array);
+  ds.getFloatDataArrays() = std::vector<MSSpectrum::FloatDataArray>(3,float_array);
   ds.getFloatDataArrays()[0].setName("f1");
   ds.getFloatDataArrays()[1].setName("f2");
   ds.getFloatDataArrays()[2].setName("f3");
 
-  ds.getStringDataArrays() = std::vector<MSSpectrum<>::StringDataArray>(2, string_array);
+  ds.getStringDataArrays() = std::vector<MSSpectrum::StringDataArray>(2, string_array);
   ds.getStringDataArrays()[0].setName("s1");
   ds.getStringDataArrays()[1].setName("s2");
 
-  ds.getIntegerDataArrays() = std::vector<MSSpectrum<>::IntegerDataArray>(1, int_array);
+  ds.getIntegerDataArrays() = std::vector<MSSpectrum::IntegerDataArray>(1, int_array);
   ds.getIntegerDataArrays()[0].setName("i1");
 
   ds.sortByIntensity();
@@ -521,11 +521,11 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   TEST_STRING_EQUAL(ds.getStringDataArrays()[1].getName(),"s2")
 
   TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
-
-  MSSpectrum<>::iterator it1 = ds.begin();
-  MSSpectrum<>::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
-  MSSpectrum<>::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
-  MSSpectrum<>::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
+  
+  MSSpectrum::iterator it1 = ds.begin();
+  MSSpectrum::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
+  MSSpectrum::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
+  MSSpectrum::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
   TOLERANCE_ABSOLUTE(0.0001)
   for(std::vector<double>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
   {
@@ -549,11 +549,11 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 END_SECTION
 
 START_SECTION((void sortByPosition()))
-  MSSpectrum<> ds;
+  MSSpectrum ds;
   Peak1D p;
-  MSSpectrum<>::FloatDataArray float_array;
-  MSSpectrum<>::StringDataArray string_array;
-  MSSpectrum<>::IntegerDataArray int_array;
+  MSSpectrum::FloatDataArray float_array;
+  MSSpectrum::StringDataArray string_array;
+  MSSpectrum::IntegerDataArray int_array;
   std::vector<double> mzs, intensities;
   intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(56);  string_array.push_back("56");  int_array.push_back(56);
   intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(201); string_array.push_back("201"); int_array.push_back(201);
@@ -572,7 +572,7 @@ START_SECTION((void sortByPosition()))
     ds.push_back(p);
   }
   ds.sortByPosition();
-  MSSpectrum<>::iterator it = ds.begin();
+  MSSpectrum::iterator it = ds.begin();
   for(std::vector<double>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
   {
     if(it == ds.end())
@@ -588,16 +588,16 @@ START_SECTION((void sortByPosition()))
     p.setIntensity(intensities[i]); p.setMZ(mzs[i]);
     ds.push_back(p);
   }
-  ds.getFloatDataArrays() = std::vector<MSSpectrum<>::FloatDataArray>(3,float_array);
+  ds.getFloatDataArrays() = std::vector<MSSpectrum::FloatDataArray>(3,float_array);
   ds.getFloatDataArrays()[0].setName("f1");
   ds.getFloatDataArrays()[1].setName("f2");
   ds.getFloatDataArrays()[2].setName("f3");
-
-  ds.getStringDataArrays() = std::vector<MSSpectrum<>::StringDataArray>(2, string_array);
+  
+  ds.getStringDataArrays() = std::vector<MSSpectrum::StringDataArray>(2, string_array);
   ds.getStringDataArrays()[0].setName("s1");
   ds.getStringDataArrays()[1].setName("s2");
 
-  ds.getIntegerDataArrays() = std::vector<MSSpectrum<>::IntegerDataArray>(2, int_array);
+  ds.getIntegerDataArrays() = std::vector<MSSpectrum::IntegerDataArray>(2, int_array);
   ds.getIntegerDataArrays()[0].setName("i1");
 
   ds.sortByPosition();
@@ -611,10 +611,10 @@ START_SECTION((void sortByPosition()))
 
   TEST_STRING_EQUAL(ds.getIntegerDataArrays()[0].getName(),"i1")
 
-  MSSpectrum<>::iterator it1 = ds.begin();
-  MSSpectrum<>::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
-  MSSpectrum<>::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
-  MSSpectrum<>::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
+  MSSpectrum::iterator it1 = ds.begin();
+  MSSpectrum::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
+  MSSpectrum::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
+  MSSpectrum::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
   for(std::vector<double>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
   {
     if(it1 != ds.end() && it2 != ds.getFloatDataArrays()[1].end() && it3 != ds.getStringDataArrays()[0].end())
@@ -639,7 +639,7 @@ END_SECTION
 
 START_SECTION(bool isSorted() const)
   //make test dataset
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   Peak1D p;
   p.setIntensity(1.0);
   p.setMZ(1000.0);
@@ -663,8 +663,8 @@ END_SECTION
 // Finding peaks or peak ranges
 
 START_SECTION((Iterator MZEnd(CoordinateType mz)))
-  MSSpectrum<> tmp;
-  MSSpectrum<>::PeakType rdp;
+  MSSpectrum tmp;
+  MSSpectrum::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -680,7 +680,7 @@ START_SECTION((Iterator MZEnd(CoordinateType mz)))
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSSpectrum<>::Iterator it;
+  MSSpectrum::Iterator it;
 
   it = tmp.MZBegin(4.5);
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -691,8 +691,8 @@ START_SECTION((Iterator MZEnd(CoordinateType mz)))
 END_SECTION
 
 START_SECTION((Iterator MZBegin(CoordinateType mz)))
-  MSSpectrum<> tmp;
-  MSSpectrum<>::PeakType rdp;
+  MSSpectrum tmp;
+  MSSpectrum::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -708,7 +708,7 @@ START_SECTION((Iterator MZBegin(CoordinateType mz)))
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSSpectrum<>::Iterator it;
+  MSSpectrum::Iterator it;
 
   it = tmp.MZEnd(4.5);
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -719,8 +719,8 @@ START_SECTION((Iterator MZBegin(CoordinateType mz)))
 END_SECTION
 
 START_SECTION((Iterator MZBegin(Iterator begin, CoordinateType mz, Iterator end)))
-  MSSpectrum<> tmp;
-  MSSpectrum<>::PeakType rdp;
+  MSSpectrum tmp;
+  MSSpectrum::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -736,7 +736,7 @@ START_SECTION((Iterator MZBegin(Iterator begin, CoordinateType mz, Iterator end)
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSSpectrum<>::Iterator it;
+  MSSpectrum::Iterator it;
 
   it = tmp.MZBegin(tmp.begin(), 4.5, tmp.end());
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -747,8 +747,8 @@ START_SECTION((Iterator MZBegin(Iterator begin, CoordinateType mz, Iterator end)
 END_SECTION
 
 START_SECTION((ConstIterator MZBegin(ConstIterator begin, CoordinateType mz, ConstIterator end) const))
-  MSSpectrum<> tmp;
-  MSSpectrum<>::PeakType rdp;
+  MSSpectrum tmp;
+  MSSpectrum::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -764,7 +764,7 @@ START_SECTION((ConstIterator MZBegin(ConstIterator begin, CoordinateType mz, Con
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSSpectrum<>::ConstIterator it;
+  MSSpectrum::ConstIterator it;
 
   it = tmp.MZBegin(tmp.begin(), 4.5, tmp.end());
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -775,8 +775,8 @@ START_SECTION((ConstIterator MZBegin(ConstIterator begin, CoordinateType mz, Con
 END_SECTION
 
 START_SECTION((Iterator MZEnd(Iterator begin, CoordinateType mz, Iterator end)))
-  MSSpectrum<> tmp;
-  MSSpectrum<>::PeakType rdp;
+  MSSpectrum tmp;
+  MSSpectrum::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -792,7 +792,7 @@ START_SECTION((Iterator MZEnd(Iterator begin, CoordinateType mz, Iterator end)))
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSSpectrum<>::Iterator it;
+  MSSpectrum::Iterator it;
 
   it = tmp.MZEnd(tmp.begin(), 4.5, tmp.end());
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -803,8 +803,8 @@ START_SECTION((Iterator MZEnd(Iterator begin, CoordinateType mz, Iterator end)))
 END_SECTION
 
 START_SECTION((ConstIterator MZEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const))
-  MSSpectrum<> tmp;
-  MSSpectrum<>::PeakType rdp;
+  MSSpectrum tmp;
+  MSSpectrum::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -820,7 +820,7 @@ START_SECTION((ConstIterator MZEnd(ConstIterator begin, CoordinateType mz, Const
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSSpectrum<>::ConstIterator it;
+  MSSpectrum::ConstIterator it;
 
   it = tmp.MZEnd(tmp.begin(), 4.5, tmp.end());
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -831,8 +831,8 @@ START_SECTION((ConstIterator MZEnd(ConstIterator begin, CoordinateType mz, Const
 END_SECTION
 
 START_SECTION((ConstIterator MZEnd(CoordinateType mz) const))
-  MSSpectrum<> tmp;
-  MSSpectrum<>::PeakType rdp;
+  MSSpectrum tmp;
+  MSSpectrum::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -848,7 +848,7 @@ START_SECTION((ConstIterator MZEnd(CoordinateType mz) const))
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSSpectrum<>::ConstIterator it;
+  MSSpectrum::ConstIterator it;
 
   it = tmp.MZBegin(4.5);
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -859,8 +859,8 @@ START_SECTION((ConstIterator MZEnd(CoordinateType mz) const))
 END_SECTION
 
 START_SECTION((ConstIterator MZBegin(CoordinateType mz) const))
-  MSSpectrum<> tmp;
-  MSSpectrum<>::PeakType rdp;
+  MSSpectrum tmp;
+  MSSpectrum::PeakType rdp;
   rdp.getPosition()[0] = 1.0;
   tmp.push_back(rdp);
   rdp.getPosition()[0] = 2.0;
@@ -876,7 +876,7 @@ START_SECTION((ConstIterator MZBegin(CoordinateType mz) const))
   rdp.getPosition()[0] = 7.0;
   tmp.push_back(rdp);
 
-  MSSpectrum<>::ConstIterator it;
+  MSSpectrum::ConstIterator it;
 
   it = tmp.MZEnd(4.5);
   TEST_EQUAL(it->getPosition()[0],5.0)
@@ -887,7 +887,7 @@ START_SECTION((ConstIterator MZBegin(CoordinateType mz) const))
 END_SECTION
 
 START_SECTION((Size findNearest(CoordinateType mz) const))
-  MSSpectrum<> tmp;
+  MSSpectrum tmp;
   Peak1D p;
   p.setIntensity(29.0f); p.setMZ(412.321); tmp.push_back(p); //0
   p.setIntensity(60.0f); p.setMZ(412.824); tmp.push_back(p); //1
@@ -924,12 +924,12 @@ START_SECTION((Size findNearest(CoordinateType mz) const))
   TEST_EQUAL(tmp.findNearest(427.3),11);
 
   //empty spectrum
-  MSSpectrum<> tmp2;
+  MSSpectrum tmp2;
   TEST_PRECONDITION_VIOLATED(tmp2.findNearest(427.3));
 END_SECTION
 
 START_SECTION((Size findNearest(CoordinateType mz, CoordinateType tolerance) const))
-  MSSpectrum<> tmp;
+  MSSpectrum tmp;
   Peak1D p;
   p.setIntensity(29.0f); p.setMZ(412.321); tmp.push_back(p); //0
   p.setIntensity(60.0f); p.setMZ(412.824); tmp.push_back(p); //1
@@ -971,11 +971,11 @@ START_SECTION((Size findNearest(CoordinateType mz, CoordinateType tolerance) con
   TEST_EQUAL(tmp.findNearest(427.3, 0.001), -1);
 
   //empty spectrum
-  MSSpectrum<> tmp2;
+  MSSpectrum tmp2;
   TEST_EQUAL(tmp2.findNearest(427.3, 1.0, 1.0), -1);
 END_SECTION
 START_SECTION((Size findNearest(CoordinateType mz, CoordinateType left_tolerance, CoordinateType right_tolerance) const))
-  MSSpectrum<> tmp;
+  MSSpectrum tmp;
   Peak1D p;
   p.setIntensity(29.0f); p.setMZ(412.321); tmp.push_back(p); //0
   p.setIntensity(60.0f); p.setMZ(412.824); tmp.push_back(p); //1
@@ -1021,12 +1021,12 @@ START_SECTION((Size findNearest(CoordinateType mz, CoordinateType left_tolerance
   TEST_EQUAL(tmp.findNearest(427.3, 0.001, 1.1), 12);
 
   //empty spectrum
-  MSSpectrum<> tmp2;
+  MSSpectrum tmp2;
   TEST_EQUAL(tmp2.findNearest(427.3, 1.0, 1.0), -1);
 END_SECTION
 
 START_SECTION(void clear(bool clear_meta_data))
-  MSSpectrum<> edit;
+  MSSpectrum edit;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   edit.resize(1);
   edit.setMetaValue("label",String("bla"));
@@ -1039,48 +1039,48 @@ START_SECTION(void clear(bool clear_meta_data))
 
   edit.clear(false);
   TEST_EQUAL(edit.size(),0)
-  TEST_EQUAL(edit==MSSpectrum<>(),false)
+  TEST_EQUAL(edit==MSSpectrum(),false)
 
   edit.clear(true);
-  TEST_EQUAL(edit==MSSpectrum<>(),true)
+  TEST_EQUAL(edit==MSSpectrum(),true)
 END_SECTION
 
 START_SECTION(([MSSpectrum::RTLess] bool operator()(const MSSpectrum &a, const MSSpectrum &b) const))
-  vector< MSSpectrum<> > v;
+  vector< MSSpectrum> v;
 
-  MSSpectrum<> sp1;
+  MSSpectrum sp1;
   sp1.setRT(3.0f);
   v.push_back(sp1);
 
-  MSSpectrum<> sp2;
+  MSSpectrum sp2;
   sp2.setRT(2.0f);
   v.push_back(sp2);
 
-  MSSpectrum<> sp3;
+  MSSpectrum sp3;
   sp3.setRT(1.0f);
   v.push_back(sp3);
 
-  std::sort(v.begin(),v.end(), MSSpectrum<>::RTLess());
+  std::sort(v.begin(),v.end(), MSSpectrum::RTLess());
 
   TEST_REAL_SIMILAR(v[0].getRT(), 1.0);
   TEST_REAL_SIMILAR(v[1].getRT(), 2.0);
   TEST_REAL_SIMILAR(v[2].getRT(), 3.0);
 
   ///
-  MSSpectrum<> s1;
+  MSSpectrum s1;
   s1.setRT(0.451);
 
-  MSSpectrum<> s2;
+  MSSpectrum s2;
   s2.setRT(0.5);
 
-  TEST_EQUAL(MSSpectrum<>::RTLess()(s1,s2), true);
-  TEST_EQUAL(MSSpectrum<>::RTLess()(s2,s1), false);
-  TEST_EQUAL(MSSpectrum<>::RTLess()(s2,s2), false);
+  TEST_EQUAL(MSSpectrum::RTLess()(s1,s2), true);
+  TEST_EQUAL(MSSpectrum::RTLess()(s2,s1), false);
+  TEST_EQUAL(MSSpectrum::RTLess()(s2,s2), false);
 END_SECTION
 
-START_SECTION(([EXTRA] std::ostream& operator << (std::ostream& os, const MSSpectrum<PeakT>& spec)))
+START_SECTION(([EXTRA] std::ostream& operator << (std::ostream& os, const MSSpectrum& spec)))
 {
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   Peak1D p;
   p.setIntensity(29.0f); p.setMZ(412.321); spec.push_back(p); //0
   p.setIntensity(60.0f); p.setMZ(412.824); spec.push_back(p); //1
@@ -1124,11 +1124,11 @@ END_SECTION
 
 START_SECTION(inline IntegerDataArray& getIntegerDataArrayByName(String name))
 {
-  MSSpectrum<> ds;
+  MSSpectrum ds;
   Peak1D p;
-  MSSpectrum<>::FloatDataArray float_array;
-  MSSpectrum<>::StringDataArray string_array;
-  MSSpectrum<>::IntegerDataArray int_array;
+  MSSpectrum::FloatDataArray float_array;
+  MSSpectrum::StringDataArray string_array;
+  MSSpectrum::IntegerDataArray int_array;
   std::vector<double> mzs, intensities;
   intensities.push_back(56);  mzs.push_back(423.269); float_array.push_back(56);  string_array.push_back("56");  int_array.push_back(56);
   intensities.push_back(201); mzs.push_back(420.130); float_array.push_back(201); string_array.push_back("201"); int_array.push_back(201);
@@ -1147,16 +1147,16 @@ START_SECTION(inline IntegerDataArray& getIntegerDataArrayByName(String name))
     ds.push_back(p);
   }
 
-  ds.getFloatDataArrays() = std::vector<MSSpectrum<>::FloatDataArray>(3,float_array);
+  ds.getFloatDataArrays() = std::vector<MSSpectrum::FloatDataArray>(3,float_array);
   ds.getFloatDataArrays()[0].setName("f1");
   ds.getFloatDataArrays()[1].setName("f2");
   ds.getFloatDataArrays()[2].setName("f3");
 
-  ds.getStringDataArrays() = std::vector<MSSpectrum<>::StringDataArray>(2, string_array);
+  ds.getStringDataArrays() = std::vector<MSSpectrum::StringDataArray>(2, string_array);
   ds.getStringDataArrays()[0].setName("s1");
   ds.getStringDataArrays()[1].setName("s2");
 
-  ds.getIntegerDataArrays() = std::vector<MSSpectrum<>::IntegerDataArray>(2, int_array);
+  ds.getIntegerDataArrays() = std::vector<MSSpectrum::IntegerDataArray>(2, int_array);
   ds.getIntegerDataArrays()[0].setName("i1");
 
   ds.sortByPosition();

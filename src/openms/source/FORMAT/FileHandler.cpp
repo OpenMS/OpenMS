@@ -590,7 +590,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       f.getOptions() = options_;
       f.setLogType(log);
       f.load(filename, exp);
-      ChromatogramTools().convertSpectraToChromatograms<PeakMap >(exp, true);
+      ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true);
     }
     break;
 

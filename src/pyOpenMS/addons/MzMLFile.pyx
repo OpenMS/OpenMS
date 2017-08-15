@@ -1,5 +1,4 @@
 
-
     def transform(self, bytes path, transformer):
         cdef _String path_string = _String(<char *>path)
         assert hasattr(transformer, "consumeSpectrum"), "expected method consumeSpectrum"
@@ -18,15 +17,15 @@
             del consumer
 
 
-cdef _wrap_MSSpectrum_mzml(const _MSSpectrum[_Peak1D] & _spec):
+cdef _wrap_MSSpectrum_mzml(const _MSSpectrum & _spec):
     cdef MSSpectrum spec = MSSpectrum.__new__(MSSpectrum)
-    spec.inst = shared_ptr[_MSSpectrum[_Peak1D]](new _MSSpectrum[_Peak1D](_spec))
+    spec.inst = shared_ptr[_MSSpectrum](new _MSSpectrum(_spec))
     return spec
 
 
-cdef _wrap_MSChromatogram_mzml(const _MSChromatogram[_ChromatogramPeak] & _chromo):
+cdef _wrap_MSChromatogram_mzml(const _MSChromatogram & _chromo):
     cdef MSChromatogram chromo = MSChromatogram.__new__(MSChromatogram)
-    chromo.inst = shared_ptr[_MSChromatogram[_ChromatogramPeak]](new _MSChromatogram[_ChromatogramPeak](_chromo))
+    chromo.inst = shared_ptr[_MSChromatogram](new _MSChromatogram(_chromo))
     return chromo
 
 

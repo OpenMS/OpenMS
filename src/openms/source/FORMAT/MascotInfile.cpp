@@ -304,7 +304,7 @@ namespace OpenMS
 
     for (Size i = 0; i < experiment.size(); i++)
     {
-      MSSpectrum<> peaks = experiment[i];
+      MSSpectrum peaks = experiment[i];
       peaks.sortByPosition();
       Precursor precursor_peak;
       if (experiment[i].getPrecursors().size() > 0)

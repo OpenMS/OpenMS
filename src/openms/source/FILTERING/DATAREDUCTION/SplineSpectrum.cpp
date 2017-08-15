@@ -57,11 +57,11 @@ namespace OpenMS
     SplineSpectrum::init_(mz, intensity, scaling);
   }
 
-  SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum)
+  SplineSpectrum::SplineSpectrum(MSSpectrum& raw_spectrum)
   {
     std::vector<double> mz;
     std::vector<double> intensity;
-    for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
+    for (MSSpectrum::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
     {
       mz.push_back(it->getMZ());
       intensity.push_back(it->getIntensity());
@@ -69,11 +69,11 @@ namespace OpenMS
     SplineSpectrum::init_(mz, intensity, 0.7);
   }
 
-  SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling)
+  SplineSpectrum::SplineSpectrum(MSSpectrum& raw_spectrum, double scaling)
   {
     std::vector<double> mz;
     std::vector<double> intensity;
-    for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
+    for (MSSpectrum::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
     {
       mz.push_back(it->getMZ());
       intensity.push_back(it->getIntensity());

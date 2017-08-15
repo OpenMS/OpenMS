@@ -82,9 +82,9 @@ namespace OpenMS
   {
 public:
     /// Raw data iterator type
-    typedef MSSpectrum<>::iterator PeakIterator;
+    typedef MSSpectrum::iterator PeakIterator;
     /// Const raw data iterator type
-    typedef MSSpectrum<>::const_iterator ConstPeakIterator;
+    typedef MSSpectrum::const_iterator ConstPeakIterator;
 
     /// Constructor
     PeakPickerCWT();
@@ -97,7 +97,7 @@ public:
 
                 Picks the peaks in the input spectrum and writes the resulting peaks to the output container.
     */
-    void pick(const MSSpectrum<> & input, MSSpectrum<> & output) const;
+    void pick(const MSSpectrum & input, MSSpectrum & output) const;
 
     /**
                 @brief Picks the peaks in an MSExperiment.
@@ -170,7 +170,7 @@ protected:
     */
     struct OPENMS_DLLAPI PeakArea_
     {
-      typedef MSSpectrum<>::iterator PeakIterator;
+      typedef MSSpectrum::iterator PeakIterator;
       PeakIterator left;  //< iterator to the leftmost valid point
       PeakIterator max;   //< iterator to the maximum position
       PeakIterator right; //< iterator to the rightmost valid point (inclusive)

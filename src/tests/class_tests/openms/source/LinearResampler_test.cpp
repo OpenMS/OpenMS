@@ -62,9 +62,9 @@ START_SECTION((~LinearResampler()))
   delete lr_ptr;
 END_SECTION
 
-START_SECTION((template<typename PeakType> void raster(MSSpectrum<PeakType>& spectrum)))
+START_SECTION((template<typename PeakType> void raster(MSSpectrum& spectrum)))
 {
-  MSSpectrum< Peak1D > spec;
+  MSSpectrum spec;
   spec.resize(5);
   spec[0].setMZ(0);
   spec[0].setIntensity(3.0f);
@@ -93,7 +93,7 @@ START_SECTION((template<typename PeakType> void raster(MSSpectrum<PeakType>& spe
 
 /////////// test raster with a spacing of 0.75
 {
-  MSSpectrum< Peak1D > spec;
+  MSSpectrum spec;
   spec.resize(5);
   spec[0].setMZ(0);
   spec[0].setIntensity(3.0f);
@@ -131,7 +131,7 @@ END_SECTION
 
 START_SECTION(( template <typename PeakType > void rasterExperiment(MSExperiment<PeakType>& exp)))
 {
-  MSSpectrum< Peak1D > spec;
+  MSSpectrum spec;
   spec.resize(5);
   spec[0].setMZ(0);
   spec[0].setIntensity(3.0f);

@@ -17,5 +17,5 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/DeNovoAlgorithm.h>" namespace "OpenMS"
                                 MSExperiment &exp) nogil except +
         void generateCandidates(PeptideIdentification &candidates,
                                 libcpp_vector[ DeNovoIonScore ] & ion_scores,
-                                MSSpectrum[Peak1D] & spec) nogil except +
+                                MSSpectrum & spec) nogil except +
 

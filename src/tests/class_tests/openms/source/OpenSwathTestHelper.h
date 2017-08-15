@@ -47,22 +47,9 @@ namespace OpenSWATH_Test
 
   using namespace OpenMS;
 
-  // Above are the definitions using real chromatograms.
-  // Below are the definitions using spectra objects to store the data.
-  //
-  // This is necessary as long as peak picking cannot be done on chromatograms
-  // natively.  the classes needed at the moment are SavitzkyGolayFilter,
-  // GaussFilter, PeakPickerHiRes -- SignalToNoiseEstimatorMedian seems to work
-  // already.
-#if 0
-  typedef MSChromatogram<ChromatogramPeak> RichPeakChromatogram;
-  typedef MRMTransitionGroup<MSChromatogram, ChromatogramPeak> MRMTransitionGroupType;
-#else
-  typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
   typedef OpenSwath::LightTransition TransitionType;
   //typedef ReactionMonitoringTransition TransitionType;
-  typedef MRMTransitionGroup<RichPeakChromatogram, TransitionType> MRMTransitionGroupType;
-#endif
+  typedef MRMTransitionGroup<MSChromatogram, TransitionType> MRMTransitionGroupType;
 
   MRMFeature createMockFeature()
   {
@@ -218,7 +205,7 @@ namespace OpenSWATH_Test
     MRMTransitionGroupType transition_group;
     {
       String native_id = "tr3";
-      RichPeakChromatogram chrom;
+      MSChromatogram chrom;
       chrom.setNativeID(native_id);
       transition_group.addChromatogram(chrom, native_id );
 
@@ -231,7 +218,7 @@ namespace OpenSWATH_Test
     }
     {
       String native_id = "tr1";
-      RichPeakChromatogram chrom;
+      MSChromatogram chrom;
       chrom.setNativeID(native_id);
       transition_group.addChromatogram(chrom, native_id );
 
@@ -244,7 +231,7 @@ namespace OpenSWATH_Test
     }
     {
       String native_id = "tr5";
-      RichPeakChromatogram chrom;
+      MSChromatogram chrom;
       chrom.setNativeID(native_id);
       transition_group.addChromatogram(chrom, native_id );
 

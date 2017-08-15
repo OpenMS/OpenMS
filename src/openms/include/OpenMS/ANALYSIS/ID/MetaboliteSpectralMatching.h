@@ -54,7 +54,7 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI PrecursorMassComparator
   {
-    bool operator() (const MSSpectrum<Peak1D>& a, const MSSpectrum<Peak1D>& b)
+    bool operator() (const MSSpectrum& a, const MSSpectrum& b)
     {
       return a.getPrecursors()[0].getMZ() < b.getPrecursors()[0].getMZ();
     }
@@ -160,7 +160,7 @@ namespace OpenMS
     virtual ~MetaboliteSpectralMatching();
 
     /// hyperscore computation
-    double computeHyperScore(MSSpectrum<Peak1D>, MSSpectrum<Peak1D>, const double&, const double&);
+    double computeHyperScore(MSSpectrum, MSSpectrum, const double&, const double&);
 
     /// main method of MetaboliteSpectralMatching
     void run(PeakMap &, PeakMap &, MzTab &);

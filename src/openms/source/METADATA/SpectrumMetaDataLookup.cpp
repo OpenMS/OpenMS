@@ -55,7 +55,7 @@ namespace OpenMS
 
 
   void SpectrumMetaDataLookup::getSpectrumMetaData(
-    const MSSpectrum<>& spectrum, SpectrumMetaData& meta, 
+    const MSSpectrum& spectrum, SpectrumMetaData& meta,
     const boost::regex& scan_regexp, const map<Size, double>& precursor_rts)
   {
     meta.native_id = spectrum.getNativeID();

@@ -52,10 +52,10 @@ using namespace std;
 
 //InRTRange
 
-InRTRange<MSSpectrum<> >* ptr = 0;
-InRTRange<MSSpectrum<> >* nullPointer = 0;
+InRTRange<MSSpectrum>* ptr = 0;
+InRTRange<MSSpectrum>* nullPointer = 0;
 START_SECTION((InRTRange(double min, double max, bool reverse = false)))
-	ptr = new InRTRange<MSSpectrum<> >(5,10,false);
+	ptr = new InRTRange<MSSpectrum>(5,10,false);
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
@@ -64,9 +64,9 @@ START_SECTION(([EXTRA]~InRTRange()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	InRTRange<MSSpectrum<> > r(5,10,false);
-	InRTRange<MSSpectrum<> > r2(5,10,true);
-	MSSpectrum<> s;
+	InRTRange<MSSpectrum> r(5,10,false);
+	InRTRange<MSSpectrum> r2(5,10,true);
+	MSSpectrum s;
 	s.setRT(4.9);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);
@@ -87,11 +87,11 @@ END_SECTION
 
 //MSLevelRange
 
-InMSLevelRange<MSSpectrum<> >* ptr2 = 0;
-InMSLevelRange<MSSpectrum<> >* nullPointer2 = 0;
+InMSLevelRange<MSSpectrum>* ptr2 = 0;
+InMSLevelRange<MSSpectrum>* nullPointer2 = 0;
 START_SECTION((MSLevelRange(const IntList& levels, bool reverse = false)))
 	IntList tmp;
-	ptr2 = new InMSLevelRange<MSSpectrum<> >(tmp,false);
+	ptr2 = new InMSLevelRange<MSSpectrum>(tmp,false);
   TEST_NOT_EQUAL(ptr2, nullPointer2)
 END_SECTION
 
@@ -104,9 +104,9 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 	tmp.push_back(2);
 	tmp.push_back(3);
 	tmp.push_back(4);
-	InMSLevelRange<MSSpectrum<> > r(tmp,false);
-	InMSLevelRange<MSSpectrum<> > r2(tmp,true);
-	MSSpectrum<> s;
+	InMSLevelRange<MSSpectrum> r(tmp,false);
+	InMSLevelRange<MSSpectrum> r2(tmp,true);
+	MSSpectrum s;
 	s.setMSLevel(1);
 	TEST_EQUAL(r(s), false);
 	TEST_EQUAL(r2(s), true);
@@ -126,10 +126,10 @@ END_SECTION
 
 //HasScanMode
 
-HasScanMode<MSSpectrum<> >* ptr2_1 = 0;
-HasScanMode<MSSpectrum<> >* nullPointer2_1 = 0;
+HasScanMode<MSSpectrum>* ptr2_1 = 0;
+HasScanMode<MSSpectrum>* nullPointer2_1 = 0;
 START_SECTION((HasScanMode(Int mode, bool reverse = false)))
-	ptr2_1 = new HasScanMode<MSSpectrum<> >(1,false);
+	ptr2_1 = new HasScanMode<MSSpectrum>(1,false);
   TEST_NOT_EQUAL(ptr2_1, nullPointer2_1)
 END_SECTION
 
@@ -138,9 +138,9 @@ START_SECTION(([EXTRA]~HasScanMode()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasScanMode<MSSpectrum<> > r(InstrumentSettings::SIM,false);
-	HasScanMode<MSSpectrum<> > r2(InstrumentSettings::MASSSPECTRUM,true);
-	MSSpectrum<> s;
+	HasScanMode<MSSpectrum> r(InstrumentSettings::SIM,false);
+	HasScanMode<MSSpectrum> r2(InstrumentSettings::MASSSPECTRUM,true);
+	MSSpectrum s;
 	s.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
 	TEST_EQUAL(r(s), true);
 	TEST_EQUAL(r2(s), true);
@@ -220,10 +220,10 @@ END_SECTION
 
 //IsEmptySpectrum
 
-IsEmptySpectrum<MSSpectrum<> >* ptr47 = 0;
-IsEmptySpectrum<MSSpectrum<> >* nullPointer47 = 0;
+IsEmptySpectrum<MSSpectrum>* ptr47 = 0;
+IsEmptySpectrum<MSSpectrum>* nullPointer47 = 0;
 START_SECTION((IsEmptySpectrum(bool reverse = false)))
-	ptr47 = new IsEmptySpectrum<MSSpectrum<> >();
+	ptr47 = new IsEmptySpectrum<MSSpectrum>();
   TEST_NOT_EQUAL(ptr47, nullPointer47)
 END_SECTION
 
@@ -232,9 +232,9 @@ START_SECTION(([EXTRA]~IsEmptySpectrum()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	IsEmptySpectrum<MSSpectrum<> > s;
-	IsEmptySpectrum<MSSpectrum<> > s2(true);
-	MSSpectrum<> spec;
+	IsEmptySpectrum<MSSpectrum> s;
+	IsEmptySpectrum<MSSpectrum> s2(true);
+	MSSpectrum spec;
 	TEST_EQUAL(s(spec), true);
 	TEST_EQUAL(s2(spec), false);
 	spec.resize(5);
@@ -244,10 +244,10 @@ END_SECTION
 
 //IsZoomSpectrum
 
-IsZoomSpectrum<MSSpectrum<> >* ptr48 = 0;
-IsZoomSpectrum<MSSpectrum<> >* nullPointer48 = 0;
+IsZoomSpectrum<MSSpectrum>* ptr48 = 0;
+IsZoomSpectrum<MSSpectrum>* nullPointer48 = 0;
 START_SECTION((IsZoomSpectrum(bool reverse = false)))
-	ptr48 = new IsZoomSpectrum<MSSpectrum<> >();
+	ptr48 = new IsZoomSpectrum<MSSpectrum>();
   TEST_NOT_EQUAL(ptr48, nullPointer48)
 END_SECTION
 
@@ -256,9 +256,9 @@ START_SECTION(([EXTRA]~IsZoomSpectrum()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	IsZoomSpectrum<MSSpectrum<> > s;
-	IsZoomSpectrum<MSSpectrum<> > s2(true);
-	MSSpectrum<> spec;
+	IsZoomSpectrum<MSSpectrum> s;
+	IsZoomSpectrum<MSSpectrum> s2(true);
+	MSSpectrum spec;
 	TEST_EQUAL(s(spec), false);
 	TEST_EQUAL(s2(spec), true);
 	spec.getInstrumentSettings().setZoomScan(true);
@@ -268,10 +268,10 @@ END_SECTION
 
 //HasActivationMethod
 
-HasActivationMethod<MSSpectrum<> >* ptr49 = 0;
-HasActivationMethod<MSSpectrum<> >* nullPointer49 = 0;
+HasActivationMethod<MSSpectrum>* ptr49 = 0;
+HasActivationMethod<MSSpectrum>* nullPointer49 = 0;
 START_SECTION((HasActivationMethod(const StringList& methods, bool reverse = false)))
-	ptr49 = new HasActivationMethod<MSSpectrum<> >(ListUtils::create<String>(""));
+	ptr49 = new HasActivationMethod<MSSpectrum>(ListUtils::create<String>(""));
   TEST_NOT_EQUAL(ptr49, nullPointer49)
 END_SECTION
 
@@ -280,9 +280,9 @@ START_SECTION(([EXTRA]~HasActivationMethod()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	HasActivationMethod<MSSpectrum<> > s(ListUtils::create<String>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]));
-	HasActivationMethod<MSSpectrum<> > s2(ListUtils::create<String>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]),true);
-	MSSpectrum<> spec;
+	HasActivationMethod<MSSpectrum> s(ListUtils::create<String>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]));
+	HasActivationMethod<MSSpectrum> s2(ListUtils::create<String>(Precursor::NamesOfActivationMethod[1]+","+Precursor::NamesOfActivationMethod[2]),true);
+	MSSpectrum spec;
 	std::vector<Precursor> pc;
 	Precursor p;
 	set <Precursor::ActivationMethod> sa1;
@@ -333,10 +333,10 @@ END_SECTION
 
 //InPrecursorMZRange
 
-InPrecursorMZRange<MSSpectrum<> >* ptr50 = 0;
-InPrecursorMZRange<MSSpectrum<> >* nullPointer50 = 0;
+InPrecursorMZRange<MSSpectrum>* ptr50 = 0;
+InPrecursorMZRange<MSSpectrum>* nullPointer50 = 0;
 START_SECTION((InPrecursorMZRange(const double& mz_left, const double& mz_right, bool reverse = false)))
-	ptr50 = new InPrecursorMZRange<MSSpectrum<> >(100.0, 200.0);
+	ptr50 = new InPrecursorMZRange<MSSpectrum>(100.0, 200.0);
   TEST_NOT_EQUAL(ptr50, nullPointer50)
 END_SECTION
 
@@ -345,9 +345,9 @@ START_SECTION(([EXTRA]~InPrecursorMZRange()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-	InPrecursorMZRange<MSSpectrum<> > s(100.0, 200.0);
-	InPrecursorMZRange<MSSpectrum<> > s2(100.0, 200.0,true);
-	MSSpectrum<> spec;
+	InPrecursorMZRange<MSSpectrum> s(100.0, 200.0);
+	InPrecursorMZRange<MSSpectrum> s2(100.0, 200.0,true);
+	MSSpectrum spec;
 	std::vector<Precursor> pc;
 	Precursor p;
   p.setMZ(150.0);
@@ -382,10 +382,10 @@ END_SECTION
 
 //InPrecursorMZRange
 
-IsInIsolationWindow<MSSpectrum<> >* ptr500 = 0;
-IsInIsolationWindow<MSSpectrum<> >* nullPointer500 = 0;
+IsInIsolationWindow<MSSpectrum>* ptr500 = 0;
+IsInIsolationWindow<MSSpectrum>* nullPointer500 = 0;
 START_SECTION((IsInIsolationWindow(const double& mz_left, const double& mz_right, bool reverse = false)))
-  ptr500 = new IsInIsolationWindow<MSSpectrum<> >(ListUtils::create<double>("100.0, 200.0"));
+  ptr500 = new IsInIsolationWindow<MSSpectrum>(ListUtils::create<double>("100.0, 200.0"));
   TEST_NOT_EQUAL(ptr500, nullPointer500)
 END_SECTION
 
@@ -394,10 +394,10 @@ START_SECTION(([EXTRA]~IsInIsolationWindow()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-  IsInIsolationWindow<MSSpectrum<> > s(ListUtils::create<double>("300.0, 100.0, 200.0, 400.0"));    // unsorted on purpose
-  IsInIsolationWindow<MSSpectrum<> > s2(ListUtils::create<double>("300.0, 100.0, 200.0, 400.0"), true);
+  IsInIsolationWindow<MSSpectrum> s(ListUtils::create<double>("300.0, 100.0, 200.0, 400.0"));    // unsorted on purpose
+  IsInIsolationWindow<MSSpectrum> s2(ListUtils::create<double>("300.0, 100.0, 200.0, 400.0"), true);
   
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   spec.setMSLevel(2);
   std::vector<Precursor> pc;
   Precursor p;
@@ -432,10 +432,10 @@ END_SECTION
 
 //HasScanPolarity
 
-HasScanPolarity<MSSpectrum<> >* ptr51 = 0;
-HasScanPolarity<MSSpectrum<> >* nullPointer51 = 0;
+HasScanPolarity<MSSpectrum>* ptr51 = 0;
+HasScanPolarity<MSSpectrum>* nullPointer51 = 0;
 START_SECTION((HasScanPolarity(Int polarity,bool reverse = false)))
-  ptr51 = new HasScanPolarity<MSSpectrum<> >(0);
+  ptr51 = new HasScanPolarity<MSSpectrum>(0);
   TEST_NOT_EQUAL(ptr48, nullPointer51)
 END_SECTION
 
@@ -444,9 +444,9 @@ START_SECTION(([EXTRA]~HasScanPolarity()))
 END_SECTION
 
 START_SECTION((bool operator()(const SpectrumType& s) const))
-  HasScanPolarity<MSSpectrum<> > s(IonSource::POSITIVE);
-  HasScanPolarity<MSSpectrum<> > s2(IonSource::POSITIVE, true);
-  MSSpectrum<> spec;
+  HasScanPolarity<MSSpectrum> s(IonSource::POSITIVE);
+  HasScanPolarity<MSSpectrum> s2(IonSource::POSITIVE, true);
+  MSSpectrum spec;
   TEST_EQUAL(s(spec), false);
   TEST_EQUAL(s2(spec), true);
   spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);

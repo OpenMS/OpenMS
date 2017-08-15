@@ -199,9 +199,9 @@ public:
     setValidFormats_("out", ListUtils::create<String>("csv"));
   }
 
-  MSChromatogram<> toChromatogram(const MSSpectrum<>& in)
+  MSChromatogram toChromatogram(const MSSpectrum& in)
   {
-    MSChromatogram<> out;
+    MSChromatogram out;
     for (Size ic = 0; ic < in.size(); ++ic)
     {
       ChromatogramPeak peak;
@@ -288,8 +288,8 @@ public:
         cm.clear(false); // reset global list (about to be filled)
 
         // compute TIC
-        MSChromatogram<> tic = exp.getTIC();
-        MSSpectrum<> tics, tic_gf, tics_pp, tics_sn;
+        MSChromatogram tic = exp.getTIC();
+        MSSpectrum tics, tic_gf, tics_pp, tics_sn;
         for (Size ic = 0; ic < tic.size(); ++ic)
         { // rewrite Chromatogram to MSSpectrum (GaussFilter requires it)
           Peak1D peak;
@@ -330,7 +330,7 @@ public:
           out_debug.addChromatogram(toChromatogram(tics));
           out_debug.addChromatogram(toChromatogram(tic_gf));
 
-          SignalToNoiseEstimatorMedian<MSSpectrum<> > snt;
+          SignalToNoiseEstimatorMedian<MSSpectrum> snt;
           snt.init(tics);
           for (Size is = 0; is < tics.size(); ++is)
           {
@@ -369,7 +369,7 @@ public:
             }
 
             ConsensusMap cm_RT_multiplex;
-            for (MSSpectrum<>::ConstIterator itp = tics_pp.begin(); itp != tics_pp.end(); ++itp)
+            for (MSSpectrum::ConstIterator itp = tics_pp.begin(); itp != tics_pp.end(); ++itp)
             {
               ConsensusFeature f = *cit;
               f.setRT(itp->getMZ());

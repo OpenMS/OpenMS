@@ -158,8 +158,8 @@ namespace OpenMS
         std::pair<Size, Size> end;
         bool start_found = false;
         bool end_found = false;
-        MSSpectrum<Peak1D>::ConstIterator mz_iter = experiment[rt].MZBegin(features[f].getMZ());
-        MSSpectrum<Peak1D>::ConstIterator mz_end = mz_iter;
+        MSSpectrum::ConstIterator mz_iter = experiment[rt].MZBegin(features[f].getMZ());
+        MSSpectrum::ConstIterator mz_end = mz_iter;
         if (mz_iter == experiment[rt].end())
           continue;
         // check to the left
@@ -243,7 +243,7 @@ namespace OpenMS
         start.first = distance(experiment.begin(), spec_iter);
         end.first = start.first;
 
-        MSSpectrum<Peak1D>::ConstIterator mz_iter = spec_iter->MZBegin(features[f].getMZ());
+        MSSpectrum::ConstIterator mz_iter = spec_iter->MZBegin(features[f].getMZ());
         if (spec_iter->begin() == spec_iter->end())
         {
           indices.push_back(vec);
@@ -259,7 +259,7 @@ namespace OpenMS
             break;
         }
         start.second = distance(spec_iter->begin(), mz_iter);
-        MSSpectrum<Peak1D>::ConstIterator mz_end = mz_iter;
+        MSSpectrum::ConstIterator mz_end = mz_iter;
 #ifdef DEBUG_OPS
         std::cout << features[f].getMZ() << " Start: " << experiment[start.first].getRT() << " " << experiment[start.first][start.second].getMZ();
 #endif
@@ -474,7 +474,7 @@ namespace OpenMS
         // decrease scan counter by 1, and remove if entry on time-out
         updateExclusionList_(exclusion_list); 
 
-        MSSpectrum<Peak1D> scan = experiment[i]; // copy & sort
+        MSSpectrum scan = experiment[i]; // copy & sort
         scan.sortByIntensity(true);
         Size selected_peaks = 0;
 

@@ -152,7 +152,7 @@ START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
     PeakMap exp;
     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
     TEST_EQUAL(exp.getNrSpectra() > 0, true)
-    MSSpectrum<> first_spectrum = exp.getSpectrum(0);
+    MSSpectrum first_spectrum = exp.getSpectrum(0);
 
     cached_consumer->setExpectedSize(2,0);
 
@@ -173,7 +173,7 @@ START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
     PeakMap exp;
     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
     TEST_EQUAL(exp.getNrSpectra() > 0, true)
-    MSSpectrum<> first_spectrum = exp.getSpectrum(0);
+    MSSpectrum first_spectrum = exp.getSpectrum(0);
 
     cached_consumer->setExpectedSize(2,0);
 

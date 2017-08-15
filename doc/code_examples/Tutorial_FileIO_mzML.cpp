@@ -46,8 +46,9 @@ int main(int argc, const char** argv)
   // load data from an indexed MzML file
   OnDiscPeakMap map;
   imzml.load(tutorial_data_path + "/data/Tutorial_FileIO_indexed.mzML", map);
-  // Get the first spectrum in memory, do some constant (non-changing) data processing
-  MSSpectrum<> s = map.getSpectrum(0);
+
+  // get the first spectrum in memory, do some constant (non-changing) data processing
+  MSSpectrum s = map.getSpectrum(0);
   std::cout << "There are " << map.getNrSpectra() << " spectra in the input file." << std::endl;
   std::cout << "The first spectrum has " << s.size() << " peaks." << std::endl;
 

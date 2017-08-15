@@ -1304,7 +1304,7 @@ namespace OpenMS
           if (pa != nullptr)
           {
             // check if present in current fragment annotation vector and also delete from there
-            MSSpectrum<> & spectrum = getCurrentLayer_().getCurrentSpectrum();
+            MSSpectrum & spectrum = getCurrentLayer_().getCurrentSpectrum();
 
             // store user fragment annotations
             vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();

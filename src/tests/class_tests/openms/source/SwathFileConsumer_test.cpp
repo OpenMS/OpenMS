@@ -58,7 +58,7 @@ void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true)
 {
   if (ms1)
   {
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(1);
     Peak1D p; p.setMZ(100); p.setIntensity(200);
     s.push_back(p);
@@ -66,7 +66,7 @@ void getSwathFile(PeakMap& exp, int nr_swathes=32, bool ms1=true)
   }
   for (int i = 0; i< nr_swathes; i++)
   {
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setMSLevel(2);
     std::vector<Precursor> prec(1);
     prec[0].setIsolationWindowLowerOffset(12.5);
@@ -373,7 +373,7 @@ END_SECTION
 START_SECTION(([EXTRA] void consumeChromatogram(MapType::ChromatogramType &) )) 
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSChromatogram<> c;
+  MSChromatogram c;
   regular_sfc_ptr->consumeChromatogram(c);
   TEST_EQUAL(true, true)
   delete regular_sfc_ptr;
@@ -383,7 +383,7 @@ END_SECTION
 START_SECTION(([EXTRA] void consumeSpectrum(MapType::SpectrumType & s))) 
 {
   regular_sfc_ptr = new RegularSwathFileConsumer();
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.setMSLevel(1);
   regular_sfc_ptr->consumeSpectrum(s);
 

@@ -67,7 +67,7 @@ START_SECTION((virtual ~PeakPickerSH()))
 }
 END_SECTION
 
-START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &input, MSSpectrum< PeakType > &output, float fWindowWidth)))
+START_SECTION((template < typename PeakType > void pick(const MSSpectrum &input, MSSpectrum &output, float fWindowWidth)))
 {
   // TODO
 }

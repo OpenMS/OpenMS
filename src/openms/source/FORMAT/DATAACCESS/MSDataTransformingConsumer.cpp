@@ -36,8 +36,8 @@
 
 namespace OpenMS
 {
-    void OPENMS_DLLAPI FunctionSpectrumNOP (MSSpectrum<Peak1D> & /* s */) {;}
+    void OPENMS_DLLAPI FunctionSpectrumNOP (MSSpectrum & /* s */) {;}
 
-    void OPENMS_DLLAPI FunctionChromatogramNOP (MSChromatogram<ChromatogramPeak> & /* s */) {;}
+    void OPENMS_DLLAPI FunctionChromatogramNOP (MSChromatogram & /* s */) {;}
 
 } // namespace OpenMS

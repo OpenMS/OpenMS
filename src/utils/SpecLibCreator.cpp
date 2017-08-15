@@ -235,7 +235,7 @@ protected:
           cout << "Found Peptide " << list[i][peptide] << " with id: " << list[i][Experimental_id] << "\n";
           cout << "rt: " << it->getRT() << " and mz: " << it->getPrecursors()[0].getMZ() << "\n";
 
-          MSSpectrum<Peak1D> speci;
+          MSSpectrum speci;
           speci.setRT(it->getRT());
           speci.setMSLevel(2);
           speci.setPrecursors(it->getPrecursors());

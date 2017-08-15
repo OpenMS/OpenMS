@@ -76,7 +76,7 @@ namespace OpenMS
       vector<BlackListEntry> blacklist_spec;
       registry_spec.reserve(it_rt->size());
       blacklist_spec.reserve(it_rt->size());
-      for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (MSSpectrum::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
         const double scaling = 3.0; // mz_tolerance_ is the tolerance when searching for peak patterns. Let's be more generous when searching for corresponding peaks in neighbouring spectra.
         const double tolerance_th = mz_tolerance_unit_ ? (scaling * mz_tolerance_ / 1000000) * it_mz->getMZ() : scaling * mz_tolerance_;
@@ -148,7 +148,7 @@ namespace OpenMS
         vector<double> peak_intensity;
         peak_position.reserve(it_rt_picked->size());
         peak_intensity.reserve(it_rt_picked->size());
-        for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt_picked->begin(); it_mz < it_rt_picked->end(); ++it_mz)
+        for (MSSpectrum::Iterator it_mz = it_rt_picked->begin(); it_mz < it_rt_picked->end(); ++it_mz)
         {
           peak_position.push_back(it_mz->getMZ());
           peak_intensity.push_back(it_mz->getIntensity());

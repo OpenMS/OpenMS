@@ -11,14 +11,14 @@ cdef extern from "python_ms_data_consumer.hpp":
         # no-pxd-import
 
         PythonMSDataConsumer(object py_consumer,
-                             object (*spectrum_wrapper)(const MSSpectrum[Peak1D] &),
-                             object (*chromatogram_wrapper)(const MSChromatogram[ChromatogramPeak] &),
+                             object (*spectrum_wrapper)(const MSSpectrum &),
+                             object (*chromatogram_wrapper)(const MSChromatogram &),
                              object (*experimental_settings_wrapper)(const ExperimentalSettings &)
                             )
 
-        void consumeSpectrum(MSSpectrum[Peak1D] &) except +
+        void consumeSpectrum(MSSpectrum &) except +
 
-        void consumeChromatogram(MSChromatogram[ChromatogramPeak] &) except +
+        void consumeChromatogram(MSChromatogram &) except +
 
         void setExpectedSize(Size ns, Size, nc) except +
 

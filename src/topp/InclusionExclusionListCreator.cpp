@@ -247,7 +247,7 @@ protected:
           IntList levels;
           levels.push_back(1);
           exp.getSpectra().erase(remove_if(exp.begin(), exp.end(),
-                                           InMSLevelRange<MSSpectrum<> >(levels, true)), exp.end());
+                                           InMSLevelRange<MSSpectrum>(levels, true)), exp.end());
           exp.sortSpectra(true);
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);

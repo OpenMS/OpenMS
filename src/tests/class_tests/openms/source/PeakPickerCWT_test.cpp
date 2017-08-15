@@ -78,8 +78,8 @@ param.setValue("peak_width", 0.15);
 param.setValue("signal_to_noise", 3.);
 pp.setParameters(param);   
 
-START_SECTION((void pick(const MSSpectrum<> &input, MSSpectrum<> &output) const))
-  MSSpectrum<> spec;
+START_SECTION((void pick(const MSSpectrum &input, MSSpectrum &output) const))
+  MSSpectrum spec;
   pp.pick(input[0],spec);
   //updating results: PeakMap sp; sp.addSpectrum(spec); MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("PeakPickerCWT_test_output.mzML"), sp);
 
@@ -114,8 +114,8 @@ START_SECTION(double estimatePeakWidth(const PeakMap& input))
   double peak_width = pp.estimatePeakWidth(input);
   TEST_REAL_SIMILAR(peak_width, 0.155283369123936)
   // add empty spectra.. make sure that the algorithm does not stumble
-  input.addSpectrum(MSSpectrum<>());
-  input.addSpectrum(MSSpectrum<>());
+  input.addSpectrum(MSSpectrum());
+  input.addSpectrum(MSSpectrum());
   peak_width = pp.estimatePeakWidth(input);
   TEST_REAL_SIMILAR(peak_width, 0.155283369123936)
   // test on empty container

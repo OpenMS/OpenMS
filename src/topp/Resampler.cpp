@@ -185,7 +185,7 @@ protected:
     {
       for (Size i = 0; i < exp.size(); ++i)
       {
-        MSSpectrum<> tmp = exp[i];
+        MSSpectrum tmp = exp[i];
         tmp.clear(false);
         for (Size j = 0; j < exp[i].size(); j++)
         {

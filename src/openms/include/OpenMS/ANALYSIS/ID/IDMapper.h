@@ -305,7 +305,7 @@ public:
       SpectraIdentificationState ret;
       for (Size spectrum_index = 0; spectrum_index < spectra.size(); ++spectrum_index)
       {
-        const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+        const MSSpectrum& spectrum = spectra[spectrum_index];
         if (!spectrum.getPrecursors().empty())
         {
           bool identified(false);

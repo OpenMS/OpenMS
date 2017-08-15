@@ -23,6 +23,6 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>" names
 
         void run(libcpp_vector[Kernel_MassTrace] input_mtraces,
                  FeatureMap & output_featmap,
-                 libcpp_vector[ libcpp_vector[ MSChromatogram[ChromatogramPeak] ] ] & output_chromatograms
+                 libcpp_vector[ libcpp_vector[ MSChromatogram ] ] & output_chromatograms
                  ) nogil except +
 

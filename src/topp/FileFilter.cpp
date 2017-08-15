@@ -616,7 +616,7 @@ protected:
       bool remove_chromatograms(getFlag_("peak_options:remove_chromatograms"));
       if (remove_chromatograms)
       {
-        exp.setChromatograms(vector<MSChromatogram<> >());
+        exp.setChromatograms(vector<MSChromatogram >());
       }
 
       //-------------------------------------------------------------

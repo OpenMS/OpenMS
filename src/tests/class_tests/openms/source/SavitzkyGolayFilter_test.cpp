@@ -64,10 +64,10 @@ Param param;
 param.setValue("polynomial_order",2);
 param.setValue("frame_length",3);
 
-START_SECTION((template < typename PeakType > void filter(MSSpectrum< PeakType > &spectrum)))
-  MSSpectrum<Peak1D> spectrum;
+START_SECTION((template < typename PeakType > void filter(MSSpectrum &spectrum)))
+  MSSpectrum spectrum;
   spectrum.resize(5);
-  MSSpectrum<Peak1D>::Iterator it = spectrum.begin();
+  MSSpectrum::Iterator it = spectrum.begin();
   for (int i=0; i<5; ++i, ++it)
   {
   	it->setIntensity(0.0f);

@@ -14,5 +14,5 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/DeNovoPostScoring.h>" namespace "OpenM
         DeNovoPostScoring() nogil except +
         DeNovoPostScoring(DeNovoPostScoring) nogil except +
         void apply(libcpp_vector[ PeptideIdentification ] &identifications, MSExperiment &exp) nogil except +
-        void apply(PeptideIdentification &identification, MSSpectrum[Peak1D] &spec) nogil except +
+        void apply(PeptideIdentification &identification, MSSpectrum &spec) nogil except +
 

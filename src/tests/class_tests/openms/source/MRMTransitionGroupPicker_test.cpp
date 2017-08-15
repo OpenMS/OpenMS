@@ -50,7 +50,7 @@
 using namespace OpenMS;
 using namespace std;
 
-typedef MSChromatogram<> RichPeakChromatogram;
+typedef MSChromatogram RichPeakChromatogram;
 // TODO also test the picker with the LightTransition interface
 // typedef MRMTransitionGroup<RichPeakChromatogram, OpenSwath::LightTransition> MRMTransitionGroupType;
 typedef MRMTransitionGroup<RichPeakChromatogram, ReactionMonitoringTransition> MRMTransitionGroupType;

@@ -41,10 +41,7 @@ namespace OpenMS
   class Peak1D;
   class ChromatogramPeak;
 
-  template <typename PeakT = Peak1D>
   class MSSpectrum;
-
-  template <typename PeakT = ChromatogramPeak>
   class MSChromatogram;
 
   class MSExperiment;

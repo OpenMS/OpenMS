@@ -102,12 +102,12 @@ namespace OpenMS
       consumer.setOptions(options_);
       for (Size i = 0; i < exp.getNrSpectra(); i++)
       {
-        MSSpectrum<> s = exp.getSpectrum(i);
+        MSSpectrum s = exp.getSpectrum(i);
         consumer.consumeSpectrum(s);
       }
       for (Size i = 0; i < exp.getNrChromatograms(); i++)
       {
-        MSChromatogram<> c = exp.getChromatogram(i);
+        MSChromatogram c = exp.getChromatogram(i);
         consumer.consumeChromatogram(c);
       }
     }

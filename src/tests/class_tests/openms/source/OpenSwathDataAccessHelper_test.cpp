@@ -70,7 +70,7 @@ END_SECTION
 START_SECTION(OpenSwathDataAccessHelper::convertToSpectrumPtr(sptr))
 {
 
-  MSSpectrum<> sptr,omsptr;
+  MSSpectrum sptr,omsptr;
   Peak1D p1;
   p1.setIntensity(1.0f);
   p1.setMZ(2.0);
@@ -103,7 +103,7 @@ END_SECTION
 
 START_SECTION(OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram))
 {
-  //void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram,
+  //void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram & chromatogram,
   //                                                          const OpenSwath::ChromatogramPtr cptr)
   OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram());
   cptr->getTimeArray()->data.push_back(1.0);
@@ -116,7 +116,7 @@ START_SECTION(OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chrom
   cptr->getIntensityArray()->data.push_back(2.0);
   cptr->getIntensityArray()->data.push_back(1.0);
 
-  MSChromatogram<> chromatogram;
+  MSChromatogram chromatogram;
   OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram);
 
   TEST_REAL_SIMILAR(chromatogram[0].getRT(),1.);
@@ -142,7 +142,7 @@ START_SECTION(convertToOpenMSSpectrum(spectrum,sptr))
   cptr->getIntensityArray()->data.push_back(2.0);
   cptr->getIntensityArray()->data.push_back(1.0);
 
-  MSSpectrum<> spectrum;
+  MSSpectrum spectrum;
   OpenSwathDataAccessHelper::convertToOpenMSSpectrum(cptr, spectrum);
 
   TEST_REAL_SIMILAR(spectrum[0].getMZ(),1.);

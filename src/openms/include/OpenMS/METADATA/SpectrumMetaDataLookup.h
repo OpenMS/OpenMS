@@ -212,7 +212,7 @@ namespace OpenMS
       std::map<Size, double> precursor_rts;
       for (Size i = 0; i < n_spectra_; ++i)
       {
-        const MSSpectrum<>& spectrum = spectra[i];
+        const MSSpectrum& spectrum = spectra[i];
         SpectrumMetaData meta;
         getSpectrumMetaData(spectrum, meta, scan_regexp_, precursor_rts);
         if (get_precursor_rt) precursor_rts[meta.ms_level] = meta.rt;
@@ -252,7 +252,7 @@ namespace OpenMS
        Scan number and precursor RT, respectively, are only extracted if @p scan_regexp/@p precursor_rts are not empty.
     */
     static void getSpectrumMetaData(
-      const MSSpectrum<>& spectrum, SpectrumMetaData& meta, 
+      const MSSpectrum& spectrum, SpectrumMetaData& meta,
       const boost::regex& scan_regexp = boost::regex(),
       const std::map<Size, double>& precursor_rts = (std::map<Size, double>()));
 

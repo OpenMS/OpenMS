@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
 
     void applyTransformation(libcpp_vector[Precursor]& pcs,
                              MZTrafoModel& trafo) nogil except + # wrap-attach:InternalCalibration
-    void applyTransformation(MSSpectrum[Peak1D] & spec, IntList& target_mslvl,
+    void applyTransformation(MSSpectrum & spec, IntList& target_mslvl,
                              MZTrafoModel & trafo) nogil except + # wrap-attach:InternalCalibration
     void applyTransformation(MSExperiment & exp,
                              IntList& target_mslvl, MZTrafoModel& trafo) nogil except + # wrap-attach:InternalCalibration

@@ -63,7 +63,7 @@ START_TEST(MzMLFile, "$Id$")
 //Note: This code generates the test files for meta data arrays of different types. Do not delete it!
 
 ////template spectrum with 100 peaks
-//MSSpectrum<> template_spec;
+//MSSpectrum template_spec;
 //for (Size i=0; i<100; ++i)
 //{
 //  Peak1D p;
@@ -72,7 +72,7 @@ START_TEST(MzMLFile, "$Id$")
 //  template_spec.push_back(p);
 //}
 //
-//MSSpectrum<> spec;
+//MSSpectrum spec;
 //PeakMap exp;
 //Size spectrum_number = 0;
 //Size array_number = 1;
@@ -302,7 +302,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
   //-------------------------- spectrum 0 --------------------------
   {
-    const MSSpectrum<>& spec = exp[0];
+    const MSSpectrum& spec = exp[0];
     //peaks
     TEST_EQUAL(spec.size(),15)
     for (UInt i=0; i<15; ++i)
@@ -353,7 +353,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
   //-------------------------- spectrum 1 --------------------------
   {
-    const MSSpectrum<>& spec = exp[1];
+    const MSSpectrum& spec = exp[1];
     //peaks
     TEST_EQUAL(spec.size(),10)
     for (Size i=0; i<10; ++i)
@@ -449,7 +449,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
   //-------------------------- spectrum 2 --------------------------
   {
-    const MSSpectrum<>& spec = exp[2];
+    const MSSpectrum& spec = exp[2];
     //peaks
     TEST_EQUAL(spec.size(),15)
     for (UInt i=0; i<15; ++i)
@@ -501,7 +501,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 
   //-------------------------- spectrum 3 (no peaks) --------------------------
   {
-    const MSSpectrum<>& spec = exp[3];
+    const MSSpectrum& spec = exp[3];
     //peaks
     TEST_EQUAL(spec.size(),0)
     //general info
@@ -792,8 +792,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   {
     //Testing automated sorting of files
     PeakMap exp_inverse;
-    MSSpectrum<> spec;
-    MSChromatogram<> chrom;
+    MSSpectrum spec;
+    MSChromatogram chrom;
     Peak1D sp;
     ChromatogramPeak cp;
     // create spectrum and chromatogram in inversed order

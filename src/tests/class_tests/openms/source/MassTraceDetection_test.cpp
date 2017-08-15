@@ -140,7 +140,7 @@ START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
     // Test by adding MS2 spectra to the input
     {
       PeakMap input_new;
-      MSSpectrum<> s;
+      MSSpectrum s;
       s.setMSLevel(2);
       {
         Peak1D p;

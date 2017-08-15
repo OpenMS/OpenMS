@@ -67,7 +67,7 @@ START_SECTION((virtual ~MetaboliteSpectralMatching()))
 }
 END_SECTION
 
-START_SECTION((double computeHyperScore(MSSpectrum< Peak1D >, MSSpectrum< Peak1D >, const double &, const double &)))
+START_SECTION((double computeHyperScore(MSSpectrum, MSSpectrum, const double &, const double &)))
 {
   // TODO
 }
