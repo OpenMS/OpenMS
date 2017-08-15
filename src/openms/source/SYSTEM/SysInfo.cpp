@@ -107,7 +107,7 @@ namespace OpenMS
     {
       return false;
     }
-    mem_virtual = pmc.PrivateUsage / 1024; // byte to KB
+    mem_virtual = pmc.WorkingSetSize / 1024; // byte to KB
 #elif __APPLE__
     struct task_basic_info_64 t_info;
     mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_64_COUNT;
@@ -129,5 +129,42 @@ namespace OpenMS
 #endif
     return true;
   }
+
+  bool SysInfo::getProcessPeakMemoryConsumption(size_t& mem_virtual)
+  {
+    mem_virtual = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    if (!GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
+    {
+      return false;
+    }
+    mem_virtual = pmc.PeakWorkingSetSize / 1024; // byte to KB
+#elif __APPLE__
+    struct task_basic_info_64 t_info;
+    mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_64_COUNT;
+
+    if (KERN_SUCCESS != task_info(mach_task_self(),
+      TASK_BASIC_INFO_64, (task_info_t)&t_info,
+      &t_info_count))
+    {
+      return false;
+    }
+    //todo: find correct member
+    return false;
+    mem_virtual = t_info.resident_size / 1024; // byte to KB
+#else // Linux
+    statm_t mem;
+    if (!read_off_memory_status_linux(mem))
+    {
+      return false;
+    }
+    //todo: find correct member
+    return false;
+    mem_virtual = (size_t)mem.resident * (size_t)sysconf(_SC_PAGESIZE) / 1024; // byte to KB
+#endif
+    return true;
+  }
+
 
 } // namespace OpenMS
