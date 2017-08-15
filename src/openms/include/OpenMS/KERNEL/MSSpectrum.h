@@ -366,51 +366,45 @@ public:
     }
 
     /// Returns a mutable reference to the first integer meta data array with the given name
-    /// if none with the given name exists, an empty array is returned
     inline IntegerDataArray& getIntegerDataArrayByName(String name)
     {
-      Size n_arrays = integer_data_arrays_.size();
-      for (Size i = 0; i < n_arrays; i++)
-      {
-        if (integer_data_arrays_[i].getName() == name)
-        {
-          return integer_data_arrays_[i];
-        }
-      }
-      OpenMS::DataArrays::IntegerDataArray empty_array;
-      return empty_array;
+      return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+        [&name](const IntegerDataArray& da) { return da.getName() == name; } );
     }
 
     /// Returns a mutable reference to the first string meta data array with the given name
-    /// if none with the given name exists, an empty array is returned
     inline StringDataArray& getStringDataArrayByName(String name)
     {
-      Size n_arrays = string_data_arrays_.size();
-      for (Size i = 0; i < n_arrays; i++)
-      {
-        if (string_data_arrays_[i].getName() == name)
-        {
-          return string_data_arrays_[i];
-        }
-      }
-      OpenMS::DataArrays::StringDataArray empty_array;
-      return empty_array;
+      return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+        [&name](const StringDataArray& da) { return da.getName() == name; } );
     }
 
     /// Returns a mutable reference to the first float meta data array with the given name
-    /// if none with the given name exists, an empty array is returned
     inline FloatDataArray& getFloatDataArrayByName(String name)
     {
-      Size n_arrays = float_data_arrays_.size();
-      for (Size i = 0; i < n_arrays; i++)
-      {
-        if (float_data_arrays_[i].getName() == name)
-        {
-          return float_data_arrays_[i];
-        }
-      }
-      OpenMS::DataArrays::FloatDataArray empty_array;
-      return empty_array;
+      return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+        [&name](const FloatDataArray& da) { return da.getName() == name; } );
+    }
+
+    /// Returns a const reference to the first integer meta data array with the given name
+    inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
+    {
+      return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+        [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+    }
+
+    /// Returns a const reference to the first string meta data array with the given name
+    inline const StringDataArray& getStringDataArrayByName(String name) const
+    {
+      return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+        [&name](const StringDataArray& da) { return da.getName() == name; } );
+    }
+
+    /// Returns a const reference to the first float meta data array with the given name
+    inline const FloatDataArray& getFloatDataArrayByName(String name) const
+    {
+      return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+        [&name](const FloatDataArray& da) { return da.getName() == name; } );
     }
 
     //@}

@@ -427,11 +427,13 @@ class FragmentAnnotationHelper
 
   static String shiftedIonsToString(const vector<PeptideHit::PeakAnnotation>& as)
   {
+    vector<PeptideHit::PeakAnnotation> sorted(as);
+    stable_sort(sorted.begin(), sorted.end());
     String fas;
-    for (auto&  a : as)
+    for (auto&  a : sorted)
     {
       fas += String("(") + String::number(a.mz, 3) + "," + String::number(100.0 * a.intensity, 1) + ",\"" + a.annotation + "\")";    
-      if (&a != &as.back()) { fas += "|"; }     
+      if (&a != &sorted.back()) { fas += "|"; }     
     }
     return fas;
   }
@@ -1332,7 +1334,6 @@ protected:
 
           if (alignment.empty()) 
           {
-            std::sort(fa_strings.begin(), fa_strings.end());
             a_it->fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
             a_it->fragment_annotations = fas;
             continue;
@@ -1662,7 +1663,6 @@ protected:
             fas.insert(fas.end(), annotated_precursor_ions.begin(), annotated_precursor_ions.end());
           }
 
-          std::sort(fa_strings.begin(), fa_strings.end());
           a_it->fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
           a_it->fragment_annotations = fas;
 

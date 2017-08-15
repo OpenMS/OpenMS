@@ -334,7 +334,7 @@ namespace OpenMS
     return File::find(filename, search_dirs);
   }
 
-  String File::getUniqueName()
+  String File::getUniqueName(bool include_hostname)
   {
     DateTime now = DateTime::now();
     String pid;
@@ -344,7 +344,7 @@ namespace OpenMS
     pid = (String)getpid();
 #endif
     static int number = 0;
-    return now.getDate() + "_" + now.getTime().remove(':') + "_" + String(QHostInfo::localHostName()) + "_" + pid + "_" + (++number);
+    return now.getDate().remove('-') + "_" + now.getTime().remove(':') + "_" + (include_hostname ? String(QHostInfo::localHostName()) + "_" : "")  + pid + "_" + (++number);
   }
 
   String File::getOpenMSDataPath()
