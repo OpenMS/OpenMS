@@ -146,8 +146,13 @@ public:
     */
     static String findDoc(const String& filename);
     
-    /// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
-    static String getUniqueName();
+    /**
+      @brief Returns a string, consisting of date, time, hostname, process id, and a incrementing number. This can be used for temporary files.
+
+      @param include_hostname add hostname into result - potentially a long string
+      @return a unique name
+    */
+    static String getUniqueName(bool include_hostname = true);
 
     /// Returns the OpenMS data path (environment variable overwrites the default installation path)
     static String getOpenMSDataPath();
