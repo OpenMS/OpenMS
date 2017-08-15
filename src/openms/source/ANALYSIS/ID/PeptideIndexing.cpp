@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -145,7 +146,7 @@ public:
 				        const OpenMS::String& seq_prot,
                 OpenMS::Int position)
     {
-      if (enzyme_.isValidProduct(protein, position,
+      if (enzyme_.isValidProduct(seq_prot, position,
                                  seq_pep.length(), true))
       {
         PeptideProteinMatchInformation match;
