@@ -137,20 +137,9 @@ namespace OpenMS
     slope_ = 1.0 / slope_;
     
     // invert the weights:
-    double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
-    std::string x_weight, y_weight;
-    x_weight = x_weight_;
-    y_weight = y_weight_;
-    x_datum_min = x_datum_min_;
-    x_datum_max = x_datum_max_;
-    y_datum_min = y_datum_min_;
-    y_datum_max = y_datum_max_;
-    x_weight_ = y_weight;
-    y_weight_ = x_weight;
-    x_datum_min_ = y_datum_min;
-    x_datum_max_ = y_datum_max;
-    y_datum_min_ = x_datum_min;
-    y_datum_max_ = x_datum_max;
+    std::swap(x_datum_min_,y_datum_min_);
+    std::swap(x_datum_max_,y_datum_max_);
+    std::swap(x_weight_,y_weight_);
 
     // update parameters:
     params_.setValue("slope", slope_);
