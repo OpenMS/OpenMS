@@ -52,6 +52,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 
 // TESTING SCORES
@@ -625,7 +626,8 @@ protected:
         PeakSpectrum theoretical_spec_linear = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_linear_beta);
         LOG_DEBUG << "Pre-scoring | theo spectra sizes: " << theoretical_spec_linear_alpha.size() << " | " << theoretical_spec_linear_beta.size() << " | " << theoretical_spec_linear.size() << " | exp spectrum size: " << spectrum.size() <<endl;
         vector< pair< Size, Size > > matched_spec_linear;
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear, theoretical_spec_linear, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+        DataArrays::FloatDataArray dummy_array;
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear, theoretical_spec_linear, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, dummy_array);
 
         LOG_DEBUG << "Pre-scoring | matches: " << matched_spec_linear.size() << endl;
 
@@ -714,10 +716,15 @@ protected:
         vector< pair< Size, Size > > matched_spec_xlinks_alpha;
         vector< pair< Size, Size > > matched_spec_xlinks_beta;
 
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_alpha, theoretical_spec_linear_alpha, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_beta, theoretical_spec_linear_beta, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+        DataArrays::FloatDataArray ppm_error_array_linear_alpha;
+        DataArrays::FloatDataArray ppm_error_array_xlinks_alpha;
+        DataArrays::FloatDataArray ppm_error_array_linear_beta;
+        DataArrays::FloatDataArray ppm_error_array_xlinks_beta;
+
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_alpha, theoretical_spec_linear_alpha, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_alpha);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_beta, theoretical_spec_linear_beta, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_beta);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_alpha);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_beta);
 
         LOG_DEBUG << "Spectrum sizes: " << spectrum.size() << " || " << theoretical_spec_linear_alpha.size() <<  " | " << theoretical_spec_linear_beta.size()
                               <<  " | " << theoretical_spec_xlinks_alpha.size() <<  " | " << theoretical_spec_xlinks_beta.size() << endl;
@@ -869,17 +876,88 @@ protected:
         // scan_index_heavy is of type Size, so this index will be UINT_MAX - 1 and hopefully out of range for all spectrum maps
         csm.scan_index_heavy = -1;
 
+        // num_iso_peaks array from deisotoping
+        // TODO do not use deisotope_spectra here, but instead the return value from getIntegerDataArrayByName, when that is possible
+        DataArrays::IntegerDataArray num_iso_peaks_array;
+        bool deisotope_spectra = fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100);
+        if (deisotope_spectra)
+        {
+          num_iso_peaks_array = spectrum.getIntegerDataArrayByName(String("NumIsoPeaks"));
+          csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
+        }
+        else
+        {
+          csm.num_iso_peaks_mean = 0;
+        }
 
-        // matched_spec_linear_alpha
-        // matched_spec_xlinks_alpha
-        // matched_spec_linear_beta
-        // matched_spec_xlinks_beta
+        // TODO find a better way to compute the absolute sum
+        if (ppm_error_array_linear_alpha.size() > 0)
+        {
+          csm.ppm_error_abs_sum_linear_alpha = 0;
+          for (Size i = 0; i < ppm_error_array_linear_alpha.size(); ++i)
+          {
+            csm.ppm_error_abs_sum_linear_alpha += abs(ppm_error_array_linear_alpha[i]);
+          }
+          csm.ppm_error_sum_linear_alpha = Math::sum(ppm_error_array_linear_alpha.begin(), ppm_error_array_linear_alpha.end());
+          csm.ppm_error_variance_linear_alpha = Math::variance(ppm_error_array_linear_alpha.begin(), ppm_error_array_linear_alpha.end());
+        }
+        else
+        {
+          csm.ppm_error_abs_sum_linear_alpha = 0;
+          csm.ppm_error_sum_linear_alpha = 0;
+          csm.ppm_error_variance_linear_alpha = 0;
+        }
 
-        // TODO compute from named data arrays
-        csm.num_iso_peaks_avg = 0;
-        csm.ppm_error_abs_sum = 0;
-        csm.ppm_error_variance = 0;
+        if (ppm_error_array_linear_beta.size() > 0)
+        {
+          csm.ppm_error_abs_sum_linear_beta = 0;
+          for (Size i = 0; i < ppm_error_array_linear_beta.size(); ++i)
+          {
+            csm.ppm_error_abs_sum_linear_beta += abs(ppm_error_array_linear_beta[i]);
+          }
+          csm.ppm_error_sum_linear_beta = Math::sum(ppm_error_array_linear_beta.begin(), ppm_error_array_linear_beta.end());
+          csm.ppm_error_variance_linear_beta = Math::variance(ppm_error_array_linear_beta.begin(), ppm_error_array_linear_beta.end());
+        }
+        else
+        {
+          csm.ppm_error_abs_sum_linear_beta = 0;
+          csm.ppm_error_sum_linear_beta = 0;
+          csm.ppm_error_variance_linear_beta = 0;
+        }
 
+        if (ppm_error_array_xlinks_alpha.size() > 0)
+        {
+          csm.ppm_error_abs_sum_xlinks_alpha = 0;
+          for (Size i = 0; i < ppm_error_array_xlinks_alpha.size(); ++i)
+          {
+            csm.ppm_error_abs_sum_xlinks_alpha += abs(ppm_error_array_xlinks_alpha[i]);
+          }
+          csm.ppm_error_sum_xlinks_alpha = Math::sum(ppm_error_array_xlinks_alpha.begin(), ppm_error_array_xlinks_alpha.end());
+          csm.ppm_error_variance_xlinks_alpha = Math::variance(ppm_error_array_xlinks_alpha.begin(), ppm_error_array_xlinks_alpha.end());
+        }
+        else
+        {
+          csm.ppm_error_abs_sum_xlinks_alpha = 0;
+          csm.ppm_error_sum_xlinks_alpha = 0;
+          csm.ppm_error_variance_xlinks_alpha = 0;
+        }
+
+        if (ppm_error_array_xlinks_beta.size() > 0)
+        {
+          csm.ppm_error_abs_sum_xlinks_beta = 0;
+          for (Size i = 0; i < ppm_error_array_xlinks_beta.size(); ++i)
+          {
+            csm.ppm_error_abs_sum_xlinks_beta += abs(ppm_error_array_xlinks_beta[i]);
+          }
+          csm.ppm_error_sum_xlinks_beta = Math::sum(ppm_error_array_xlinks_beta.begin(), ppm_error_array_xlinks_beta.end());
+          csm.ppm_error_variance_xlinks_beta = Math::variance(ppm_error_array_xlinks_beta.begin(), ppm_error_array_xlinks_beta.end());
+        }
+        else
+        {
+          csm.ppm_error_abs_sum_xlinks_beta = 0;
+          csm.ppm_error_sum_xlinks_beta = 0;
+          csm.ppm_error_variance_xlinks_beta = 0;
+        }
 
         // write fragment annotations
         LOG_DEBUG << "Start writing annotations" << endl;

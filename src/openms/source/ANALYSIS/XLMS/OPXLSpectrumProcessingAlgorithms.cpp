@@ -176,12 +176,14 @@ namespace OpenMS
     return filtered_spectra;
   }
 
-  void OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff)
+  void OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, DataArrays::FloatDataArray & ppm_error_array, double intensity_cutoff)
   {
     if (!s1.isSorted() || !s2.isSorted())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input to SpectrumAlignment is not sorted!");
     }
+
+    std::map<Size, std::map<Size, double> > ppm_error_matrix;
 
     vector<double> max_dists1;
     vector<double> max_dists2;
@@ -334,6 +336,7 @@ namespace OpenMS
             traceback[i][j] = std::make_pair(i - 1, j - 1);
             last_i = i;
             last_j = j;
+            ppm_error_matrix[i][j] = (pos1 - pos2) / pos1 / 1e-6;
           }
           else
           {
@@ -365,6 +368,7 @@ namespace OpenMS
         if (traceback[i][j].first == i - 1 && traceback[i][j].second == j - 1)
         {
           alignment.push_back(std::make_pair(i - 1, j - 1));
+          ppm_error_array.push_back(ppm_error_matrix[i][j]);
         }
         Size new_i = traceback[i][j].first;
         Size new_j = traceback[i][j].second;
@@ -374,6 +378,7 @@ namespace OpenMS
       }
 
       std::reverse(alignment.begin(), alignment.end());
+      std::reverse(ppm_error_array.begin(), ppm_error_array.end());
   }
 
     PeakSpectrum OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped, Size min_isopeaks, Size max_isopeaks, bool make_single_charged)
@@ -386,7 +391,7 @@ namespace OpenMS
 
       vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
       vector<double> mono_iso_peak_intensity(old_spectrum.size(), 0);
-      vector<Size> iso_peak_count(old_spectrum.size(), 0);
+      vector<Size> iso_peak_count(old_spectrum.size(), 1);
       if (old_spectrum.empty())
       {
         return out;
@@ -443,7 +448,7 @@ namespace OpenMS
                 // averagine check passed
                 extensions.push_back(p);
                 mono_iso_peak_intensity[current_peak] += old_spectrum[p].getIntensity();
-                iso_peak_count[current_peak] = i;
+                iso_peak_count[current_peak] = i + 1;
               }
             }
 

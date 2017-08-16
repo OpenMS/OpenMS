@@ -148,9 +148,22 @@ namespace OpenMS
         double PScoreAlpha;
         double PScoreBeta;
         double PScoreBoth;
-        double num_iso_peaks_avg;
-        double ppm_error_abs_sum;
-        double ppm_error_variance;
+        double num_iso_peaks_mean;
+
+        double ppm_error_sum_linear_alpha;
+        double ppm_error_sum_linear_beta;
+        double ppm_error_sum_xlinks_alpha;
+        double ppm_error_sum_xlinks_beta;
+
+        double ppm_error_variance_linear_alpha;
+        double ppm_error_variance_linear_beta;
+        double ppm_error_variance_xlinks_alpha;
+        double ppm_error_variance_xlinks_beta;
+
+        double ppm_error_abs_sum_linear_alpha;
+        double ppm_error_abs_sum_linear_beta;
+        double ppm_error_abs_sum_xlinks_alpha;
+        double ppm_error_abs_sum_xlinks_beta;
 
         std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 

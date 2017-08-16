@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/METADATA/DataArrays.h>
 #include <numeric>
 #include <vector>
 
@@ -83,7 +84,7 @@ namespace OpenMS
        * @param relative_tolerance True if the given tolerance is a ppm tolerance, false if tolerance is in Da
        * @param intensity_cutoff Peaks will only be aligned if intensity1 / intensity2 > intensity_cutoff, with intensity1 being the lower of the two compared peaks and intensity2 the higher one. Set to 0 to ignore intensity differences.
        */
-      static void getSpectrumAlignment(std::vector <std::pair <Size, Size> >& alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, double intensity_cutoff = 0.0);
+      static void getSpectrumAlignment(std::vector <std::pair <Size, Size> >& alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, DataArrays::FloatDataArray & ppm_error_array, double intensity_cutoff = 0.0);
 
       /**
        * @brief Deisotopes a spectrum and stores the determined charges in an IntegerDataArray
