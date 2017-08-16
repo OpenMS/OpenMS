@@ -43,7 +43,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
-// #include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
@@ -125,9 +125,9 @@ protected:
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
+    registerOutputFile_("trafo_out", "<file>", "", "Output file: Retention times (expected vs. observed)", false);
+    setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
-    registerInputFile_("candidates_in", "<file>", "", "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.", false, true);
-    setValidFormats_("candidates_in", ListUtils::create<String>("featureXML"));
 
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
     registerDoubleOption_("extract:mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
@@ -528,137 +528,122 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
+    String in = getStringOption_("in");
+    String id = getStringOption_("id");
     String out = getStringOption_("out");
     String candidates_out = getStringOption_("candidates_out");
+    String lib_out = getStringOption_("lib_out");
+    String chrom_out = getStringOption_("chrom_out");
+    String trafo_out = getStringOption_("trafo_out");
+    rt_window_ = getDoubleOption_("extract:rt_window");
+    mz_window_ = getDoubleOption_("extract:mz_window");
+    mz_window_ppm_ = mz_window_ >= 1;
+    isotope_pmin_ = getDoubleOption_("extract:isotope_pmin");
+    n_isotopes_ = getIntOption_("extract:n_isotopes");
+    double peak_width = getDoubleOption_("detect:peak_width");
+    double min_peak_width = getDoubleOption_("detect:min_peak_width");
+    double signal_to_noise = getDoubleOption_("detect:signal_to_noise");
     String elution_model = getStringOption_("model:type");
     prog_log_.setLogType(log_type_);
 
-    String candidates_in = getStringOption_("candidates_in");
-    if (candidates_in.empty())
+    if (rt_window_ == 0.0)
     {
-      String in = getStringOption_("in");
-      String id = getStringOption_("id");
-      String lib_out = getStringOption_("lib_out");
-      String chrom_out = getStringOption_("chrom_out");
-      rt_window_ = getDoubleOption_("extract:rt_window");
-      mz_window_ = getDoubleOption_("extract:mz_window");
-      mz_window_ppm_ = mz_window_ >= 1;
-      isotope_pmin_ = getDoubleOption_("extract:isotope_pmin");
-      n_isotopes_ = getIntOption_("extract:n_isotopes");
-      double peak_width = getDoubleOption_("detect:peak_width");
-      double min_peak_width = getDoubleOption_("detect:min_peak_width");
-      double signal_to_noise = getDoubleOption_("detect:signal_to_noise");
-
-      //-------------------------------------------------------------
-      // load input
-      //-------------------------------------------------------------
-      LOG_INFO << "Loading input data..." << endl;
-      MzMLFile mzml;
-      mzml.setLogType(log_type_);
-      mzml.getOptions().addMSLevel(1);
-      mzml.load(in, ms_data_);
-
-      // initialize algorithm classes needed later:
-      Param params = feat_finder_.getParameters();
-      params.setValue("stop_report_after_feature", -1); // return all features
-      params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
-      if ((elution_model != "none") || (!candidates_out.empty()))
-      {
-        params.setValue("write_convex_hull", "true");
-      }
-      if (min_peak_width < 1.0) min_peak_width *= peak_width;
-      params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
-                      peak_width);
-      params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width);
-      // disabling the signal-to-noise threshold (setting the parameter to zero)
-      // totally breaks the OpenSWATH feature detection (no features found)!
-      params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
-                      signal_to_noise);
-      params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
-      params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
-      params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
-                      "corrected");
-      feat_finder_.setParameters(params);
-      feat_finder_.setLogType(ProgressLogger::NONE);
-      feat_finder_.setStrictFlag(false);
-
-      if (rt_window_ == 0.0)
-      {
-        // calculate RT window based on other parameters:
-        rt_window_ = 4 * peak_width;
-        LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds."
-                 << endl;
-      }
-
-      // read target IDs and create assay library:
-      LOG_INFO << "Creating assay library..." << endl;
-      readTargets_(id);
-
-      //-------------------------------------------------------------
-      // run feature detection
-      //-------------------------------------------------------------
-      keep_library_ = !lib_out.empty();
-      keep_chromatograms_ = !chrom_out.empty();
-
-      LOG_INFO << "Extracting chromatograms..." << endl;
-      ChromatogramExtractor extractor;
-      // extractor.setLogType(ProgressLogger::NONE);
-      vector<OpenSwath::ChromatogramPtr> chrom_temp;
-      vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-      extractor.prepare_coordinates(chrom_temp, coords, library_,
-                                    numeric_limits<double>::quiet_NaN(), false);
-
-      boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
-      OpenSwath::SpectrumAccessPtr spec_temp =
-        SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
-      extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
-                                     mz_window_ppm_, "tophat");
-      extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
-                                    chrom_data_.getChromatograms(), false);
-
-      LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
-                << " chromatogram(s)." << endl;
-
-      LOG_INFO << "Detecting chromatographic peaks..." << endl;
-      Log_info.remove(cout); // suppress status output from OpenSWATH
-      feat_finder_.pickExperiment(chrom_data_, features, library_,
-                                  TransformationDescription(), ms_data_);
-      Log_info.insert(cout);
-      LOG_INFO << "Found " << features.size() << " feature candidates in total."
-               << endl;
-      ms_data_.reset(); // not needed anymore, free up the memory
-
-      // complete feature annotation:
-      annotateFeatures_(features);
-
-      // write auxiliary output:
-      if (keep_library_)
-      {
-        TraMLFile().store(lib_out, library_);
-      }
-      if (keep_chromatograms_)
-      {
-        addDataProcessing_(chrom_data_,
-                           getProcessingInfo_(DataProcessing::FILTERING));
-        MzMLFile().store(chrom_out, chrom_data_);
-        chrom_data_.clear(true);
-      }
-
-      // features.setProteinIdentifications(proteins);
-      features.ensureUniqueId();
-      addDataProcessing_(features,
-                         getProcessingInfo_(DataProcessing::QUANTITATION));
-    }
-    else
-    {
-      //-------------------------------------------------------------
-      // load feature candidates
-      //-------------------------------------------------------------
-      LOG_INFO << "Reading feature candidates from a previous run..." << endl;
-      FeatureXMLFile().load(candidates_in, features);
-      LOG_INFO << "Found " << features.size() << " feature candidates in total."
+      // calculate RT window based on other parameters:
+      rt_window_ = 4 * peak_width;
+      LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds."
                << endl;
     }
+
+    //-------------------------------------------------------------
+    // load input
+    //-------------------------------------------------------------
+    LOG_INFO << "Loading targets and creating assay library..." << endl;
+    readTargets_(id);
+
+    LOG_INFO << "Loading input LC-MS data..." << endl;
+    MzMLFile mzml;
+    mzml.setLogType(log_type_);
+    mzml.getOptions().addMSLevel(1);
+    mzml.load(in, ms_data_);
+
+    // initialize algorithm classes needed later:
+    Param params = feat_finder_.getParameters();
+    params.setValue("stop_report_after_feature", -1); // return all features
+    params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
+    if ((elution_model != "none") || (!candidates_out.empty()))
+    {
+      params.setValue("write_convex_hull", "true");
+    }
+    if (min_peak_width < 1.0) min_peak_width *= peak_width;
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
+                    peak_width);
+    params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width);
+    // disabling the signal-to-noise threshold (setting the parameter to zero)
+    // totally breaks the OpenSWATH feature detection (no features found)!
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
+                    signal_to_noise);
+    params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:method",
+                    "corrected");
+    feat_finder_.setParameters(params);
+    feat_finder_.setLogType(ProgressLogger::NONE);
+    feat_finder_.setStrictFlag(false);
+
+    //-------------------------------------------------------------
+    // run feature detection
+    //-------------------------------------------------------------
+    keep_library_ = !lib_out.empty();
+    keep_chromatograms_ = !chrom_out.empty();
+
+    LOG_INFO << "Extracting chromatograms..." << endl;
+    ChromatogramExtractor extractor;
+    // extractor.setLogType(ProgressLogger::NONE);
+    vector<OpenSwath::ChromatogramPtr> chrom_temp;
+    vector<ChromatogramExtractor::ExtractionCoordinates> coords;
+    extractor.prepare_coordinates(chrom_temp, coords, library_,
+                                  numeric_limits<double>::quiet_NaN(), false);
+
+    boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
+    OpenSwath::SpectrumAccessPtr spec_temp =
+      SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
+    extractor.extractChromatograms(spec_temp, chrom_temp, coords, mz_window_,
+                                   mz_window_ppm_, "tophat");
+    extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
+                                  chrom_data_.getChromatograms(), false);
+
+    LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
+              << " chromatogram(s)." << endl;
+
+    LOG_INFO << "Detecting chromatographic peaks..." << endl;
+    Log_info.remove(cout); // suppress status output from OpenSWATH
+    feat_finder_.pickExperiment(chrom_data_, features, library_,
+                                TransformationDescription(), ms_data_);
+    Log_info.insert(cout);
+    LOG_INFO << "Found " << features.size() << " feature candidates in total."
+             << endl;
+    ms_data_.reset(); // not needed anymore, free up the memory
+
+    // complete feature annotation:
+    annotateFeatures_(features);
+
+    // write auxiliary output:
+    if (keep_library_)
+    {
+      TraMLFile().store(lib_out, library_);
+    }
+    if (keep_chromatograms_)
+    {
+      addDataProcessing_(chrom_data_,
+                         getProcessingInfo_(DataProcessing::FILTERING));
+      MzMLFile().store(chrom_out, chrom_data_);
+      chrom_data_.clear(true);
+    }
+
+    // features.setProteinIdentifications(proteins);
+    features.ensureUniqueId();
+    addDataProcessing_(features,
+                       getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // sort features:
     sort(features.begin(), features.end(), feature_compare_);
@@ -701,6 +686,20 @@ protected:
 
     LOG_INFO << "Writing final results..." << endl;
     FeatureXMLFile().store(out, features);
+
+    // expected vs. observed retention times:
+    TransformationDescription trafo;
+    TransformationDescription::DataPoints points;
+    for (FeatureMap::ConstIterator it = features.begin(); it != features.end();
+         ++it)
+    {
+      const String& ref = it->getMetaValue("PeptideRef");
+      double rt1 = library_.getCompoundByRef(ref).getMetaValue("expected_RT");
+      double rt2 = it->getRT();
+      points.push_back(make_pair(rt1, rt2));
+    }
+    trafo.setDataPoints(points);
+    TransformationXMLFile().store(trafo_out, trafo);
 
     //-------------------------------------------------------------
     // statistics
