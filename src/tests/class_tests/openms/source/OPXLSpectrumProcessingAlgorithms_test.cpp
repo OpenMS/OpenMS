@@ -90,26 +90,56 @@ START_SECTION(static void getSpectrumAlignment(std::vector <std::pair <Size, Siz
 
   theo_spec_1.sortByPosition();
 
-  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment1, theo_spec_1, exp_spec_1, 50, true);
-  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment2, theo_spec_2, exp_spec_2, 50, true);
+  // slightly shift one of the exp spectra to get non-zero ppm error values
+  PeakSpectrum exp_spec_3;
+  for (Peak1D p : exp_spec_2)
+  {
+    p.setMZ(p.getMZ() + 0.00001);
+    exp_spec_3.push_back(p);
+  }
+
+  DataArrays::FloatDataArray dummy_array;
+  DataArrays::FloatDataArray ppm_error_array;
+  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment1, theo_spec_1, exp_spec_1, 50, true, dummy_array);
+  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment2, theo_spec_2, exp_spec_3, 50, true, ppm_error_array);
 
   TEST_EQUAL(alignment1.size(), 15)
   TEST_EQUAL(alignment2.size(), 15)
   for (Size i = 0; i < alignment2.size(); i++)
   {
-    TEST_REAL_SIMILAR(theo_spec_2[alignment2[i].first].getMZ(), exp_spec_2[alignment2[i].second].getMZ())
+    TEST_REAL_SIMILAR(theo_spec_2[alignment2[i].first].getMZ(), exp_spec_3[alignment2[i].second].getMZ())
+    TEST_REAL_SIMILAR((theo_spec_2[alignment2[i].first].getMZ() - exp_spec_3[alignment2[i].second].getMZ()) / theo_spec_2[alignment2[i].first].getMZ() / 1e-6, ppm_error_array[i])
   }
 
 END_SECTION
 
 START_SECTION(static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectrum& old_spectrum, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_tolerance_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = false))
 
-  // this is basically testing, that nothing weird happens to an already deisotoped spectrum
-  // TODO expand tests, use spectra with isotopic patterns
-  // maybe read in one of the OPXL test files?
-  PeakSpectrum deisotoped_spec = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(theo_spec_2, 1, 3, 50, true);
+  Param param = specGen.getParameters();
+  param.setValue("add_isotopes", "true");
+  // TODO more than 2 not possible yet, update test after that is implemented
+  param.setValue("max_isotope", 3);
+  specGen.setParameters(param);
 
-  TEST_EQUAL(deisotoped_spec.size(), theo_spec_2.size())
+  PeakSpectrum theo_spec_3;
+  specGen.getLinearIonSpectrum(theo_spec_3, AASequence::fromString("PEPTIDEVIDER"), 3, true, 5);
+
+  PeakSpectrum deisotoped_spec = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(theo_spec_3, 1, 5, 50, true, true, 2);
+  std::vector<int> charge_counts(5, 0);
+
+  // since only two isotopic peaks are possible, the deisotoped spectrum must be half the size
+  TEST_EQUAL(deisotoped_spec.size(), theo_spec_3.size() / 2)
+  for (Size i = 0; i < deisotoped_spec.size(); ++i)
+  {
+    charge_counts[deisotoped_spec.getIntegerDataArrayByName("Charges")[i]-1]++;
+    TEST_EQUAL(deisotoped_spec.getIntegerDataArrayByName("NumIsoPeaks")[i], 2)
+  }
+  // 55 peaks, 11 for each charge from 1 to 5
+  TEST_EQUAL(charge_counts[0], 11)
+  TEST_EQUAL(charge_counts[1], 11)
+  TEST_EQUAL(charge_counts[2], 11)
+  TEST_EQUAL(charge_counts[3], 11)
+  TEST_EQUAL(charge_counts[4], 11)
 
 END_SECTION
 

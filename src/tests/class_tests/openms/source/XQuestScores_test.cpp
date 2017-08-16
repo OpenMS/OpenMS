@@ -59,8 +59,9 @@ specGen.getLinearIonSpectrum(theo_spec_4, AASequence::fromString("PEPTEDI"), 1, 
 std::vector <std::pair <Size, Size> > alignment1;
 std::vector <std::pair <Size, Size> > alignment2;
 
-OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment1, theo_spec_1, theo_spec_2, 50, true);
-OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment2, theo_spec_3, theo_spec_4, 50, true);
+DataArrays::FloatDataArray dummy_array;
+OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment1, theo_spec_1, theo_spec_2, 50, true, dummy_array);
+OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment2, theo_spec_3, theo_spec_4, 50, true, dummy_array);
 
 START_SECTION(static float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta))
 	TEST_REAL_SIMILAR(XQuestScores::preScore(1, 1, 1, 1), 1.0)

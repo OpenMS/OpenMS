@@ -222,7 +222,8 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
   specGen.getLinearIonSpectrum(exp_spec, AASequence::fromString("PEPTIDE"), 3, true);
   std::vector <std::pair <Size, Size> > alignment;
 
-  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment, theo_spec, exp_spec, 50, true);
+  DataArrays::FloatDataArray dummy_array;
+  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment, theo_spec, exp_spec, 50, true, dummy_array);
 
   std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 
