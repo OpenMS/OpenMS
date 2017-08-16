@@ -575,4 +575,194 @@ void TheoreticalSpectrumGeneratorXLMS::addLinearPeaks_(PeakSpectrum & spectrum, 
     pre_int_H2O_ = static_cast<double>(param_.getValue("precursor_H2O_intensity"));
     pre_int_NH3_ = static_cast<double>(param_.getValue("precursor_NH3_intensity"));
   }
+
+  // void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, ProteinProteinCrossLink crosslink, int mincharge, int maxcharge) const
+  // {
+  //   double precursor_mass = crosslink.alpha.getMonoWeight() + crosslink.beta.getMonoWeight() + crosslink.cross_linker_mass;
+  //
+  //   // normal b- and y- ion fragmentation
+  //   if (crosslink.beta.empty())
+  //   {
+  //     getXLinkIonSpectrum(spectrum, crosslink.alpha, crosslink.cross_link_position.first, precursor_mass, true, mincharge, maxcharge, crosslink.cross_link_position.second);
+  //   }
+  //   else
+  //   {
+  //     getXLinkIonSpectrum(spectrum, crosslink.alpha, crosslink.cross_link_position.first, precursor_mass, true, mincharge, maxcharge);
+  //     getXLinkIonSpectrum(spectrum, crosslink.beta, crosslink.cross_link_position.second, precursor_mass, false, mincharge, maxcharge);
+  //   }
+  //
+  //   // TODO the above may not be necessary, just let those functions do the job and add the more complex stuff as an additional spectrum
+  //   // TODO generate additional peaks
+  //
+  // }
+
+  // void TheoreticalSpectrumGenerator::addLosses_(PeakSpectrum & spectrum, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, const AASequence & ion1, const AASequence & ion2, double intensity, double lossless_mass, int charge) const
+  // {
+  //   Peak1D p;
+  //
+  //   set<String> losses;
+  //   for (AASequence::ConstIterator it = ion.begin(); it != ion.end(); ++it)
+  //   {
+  //     if (it->hasNeutralLoss())
+  //     {
+  //       vector<EmpiricalFormula> loss_formulas = it->getLossFormulas();
+  //       for (Size i = 0; i != loss_formulas.size(); ++i)
+  //       {
+  //         losses.insert(loss_formulas[i].toString());
+  //       }
+  //     }
+  //   }
+  //
+  //   p.setIntensity(intensity * rel_loss_intensity_);
+  //
+  //   for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
+  //   {
+  //     EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - EmpiricalFormula(*it);
+  //     // thanks to Chris and Sandro
+  //     // check for negative element frequencies (might happen if losses are not allowed for specific ions)
+  //     bool negative_elements(false);
+  //     for (EmpiricalFormula::ConstIterator eit = loss_ion.begin(); eit != loss_ion.end(); ++eit)
+  //     {
+  //       if (eit->second < 0)
+  //       {
+  //         negative_elements = true;
+  //         break;
+  //       }
+  //     }
+  //     if (negative_elements)
+  //     {
+  //       continue;
+  //     }
+  //     double loss_pos = loss_ion.getMonoWeight();
+  //     const String& loss_name = *it;
+  //
+  //     p.setMZ(loss_pos / (double)charge);
+  //     if (add_metainfo_)
+  //     {
+  //       // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
+  //       String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
+  //       ion_names.push_back(ion_name);
+  //       charges.push_back(charge);
+  //     }
+  //     spectrum.push_back(p);
+  //
+  //   }
+  // }
+
+  void TheoreticalSpectrumGeneratorXLMS::addPrecursorPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double precursor_mass, int charge) const
+  {
+    // TODO precursors, mostly 4+ and 5+  (derive this and all other charges from precursor charges?)
+    Peak1D p;
+    String ion_name("[M+H]+" + String(charge));
+
+    // precursor peak
+    double mono_pos = precursor_mass + (Constants::PROTON_MASS_U * static_cast<double>(charge));
+    p.setMZ(mono_pos / static_cast<double>(charge));
+    p.setIntensity(pre_int_);
+    if (add_metainfo_)
+    {
+      ion_names.push_back(ion_name);
+      charges.push_back(charge);
+    }
+    spectrum.push_back(p);
+    if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
+    {
+      double pos = mono_pos + (Constants::C13C12_MASSDIFF_U / static_cast<double>(charge));
+      p.setMZ(pos);
+      p.setIntensity(pre_int_);
+      if (add_metainfo_)
+      {
+        ion_names.push_back(ion_name);
+        charges.push_back(charge);
+      }
+      spectrum.push_back(p);
+    }
+
+    // loss peaks of the precursor
+    // loss of water
+    mono_pos = precursor_mass + (Constants::PROTON_MASS_U * static_cast<double>(charge)) - EmpiricalFormula("H2O").getMonoWeight();
+    p.setMZ(mono_pos / static_cast<double>(charge));
+    p.setIntensity(pre_int_H2O_);
+    if (add_metainfo_)
+    {
+      String ion_name("[M+H]-H2O+" + String(charge));
+      ion_names.push_back(ion_name);
+      charges.push_back(charge);
+    }
+    spectrum.push_back(p);
+    if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
+    {
+      double pos = mono_pos + (Constants::C13C12_MASSDIFF_U / static_cast<double>(charge));
+      p.setMZ(pos);
+      p.setIntensity(pre_int_H2O_);
+      if (add_metainfo_)
+      {
+        ion_names.push_back(ion_name);
+        charges.push_back(charge);
+      }
+      spectrum.push_back(p);
+    }
+
+    //loss of ammonia
+    mono_pos = precursor_mass + (Constants::PROTON_MASS_U * static_cast<double>(charge)) - EmpiricalFormula("NH3").getMonoWeight();
+    p.setMZ(mono_pos / static_cast<double>(charge));
+    p.setIntensity(pre_int_NH3_);
+    if (add_metainfo_)
+    {
+      String ion_name("[M+H]-NH3+" + String(charge));
+      ion_names.push_back(ion_name);
+      charges.push_back(charge);
+    }
+    spectrum.push_back(p);
+    if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
+    {
+      double pos = mono_pos + (Constants::C13C12_MASSDIFF_U / static_cast<double>(charge));
+      p.setMZ(pos);
+      p.setIntensity(pre_int_NH3_);
+      if (add_metainfo_)
+      {
+        ion_names.push_back(ion_name);
+        charges.push_back(charge);
+      }
+      spectrum.push_back(p);
+    }
+  }
+
+  void TheoreticalSpectrumGeneratorXLMS::addKLinkedIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int charge) const
+  {
+    double mono_weight = precursor_mass;
+    mono_weight -= peptide.getPrefix(link_pos-1).getMonoWeight(Residue::BIon);
+    mono_weight -= peptide.getSuffix(peptide.size() - link_pos).getMonoWeight(Residue::XIon);
+
+    mono_weight += Constants::PROTON_MASS_U * static_cast<double>(charge);
+    double pos(mono_weight / static_cast<double>(charge));
+
+    Peak1D p;
+    p.setMZ(pos);
+    p.setIntensity(1.0);
+    spectrum.push_back(p);
+    String ion_type = "beta";
+    if (frag_alpha)
+    {
+      ion_type = "alpha";
+    }
+
+    if (add_metainfo_)
+    {
+      String ion_name = "[" + peptide[link_pos-1].getOneLetterCode() + "-linked-" + ion_type + "]"; //+ String(charge, '+');
+      ion_names.push_back(ion_name);
+      charges.push_back(charge);
+    }
+  }
+
+  // void TheoreticalSpectrumGeneratorXLMS::addComplexXLinkIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, Residue::ResidueType res_type, int charge, Size link_pos_2) const
+  // {
+  //   // TODO fragment losses
+  //   // TODO yb, ya, all combos except alpha-beta aa, yy, bb,   only +1
+  //
+  //   // Notes: b+1, y+1, a+1 and ya+1 : only linear
+  //   //        b+2, b+3, a+2, y+3 : only xlinked
+  //   //        y+2, yb+1 : both linear and xlinked
+  //
+  // }
 }

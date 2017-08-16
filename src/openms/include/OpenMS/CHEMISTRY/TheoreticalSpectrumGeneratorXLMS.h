@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/DataArrays.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 
 
 namespace OpenMS
@@ -115,6 +116,8 @@ namespace OpenMS
        */
       virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2 = 0) const;
 
+      //virtual void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, ProteinProteinCrossLink crosslink, int mincharge, int maxcharge) const;
+
       /// overwrite
       void updateMembers_();
 
@@ -167,14 +170,18 @@ namespace OpenMS
        * @param charge The charge of the ion
        * @param ion_type Another cross-linking specific ion-type
        */
-      void addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge, String ion_type) const;
+      virtual void addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge, String ion_type) const;
+
+      virtual void addPrecursorPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double precursor_mass, int charge) const;
+
+      virtual void addKLinkedIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int charge) const;
 
       // TODO copied from normal TSG, but it is protected over there. Move it to Residue class maybe?
       /// helper for mapping residue type to letter
       char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
 
 //      /// TODO helper to add full neutral loss ladders
-//      //void addLosses_(RichPeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge, bool fragment_alpha_chain) const;
+      // void addLosses_(PeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge, bool fragment_alpha_chain) const;
 
       bool add_b_ions_;
       bool add_y_ions_;
