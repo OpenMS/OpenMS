@@ -36,7 +36,7 @@ Features
 --------
 - Core C++ library
 - TOPP Tools, 150+ analysis tools (150+), covering most MS and LC-MS data processing and mining tasks. 
-- Support for all major platforms (Windows [XP, 7, 8, 10], Linux and macOS).
+- Support for all major platforms (Windows [XP, 7, 8, 10], macOS and Linux).
 
 Licence
 -------
