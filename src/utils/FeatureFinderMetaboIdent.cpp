@@ -34,18 +34,16 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+// #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+// #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
@@ -54,10 +52,6 @@
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
-
-#include <cstdlib> // for "rand"
-#include <ctime> // for "time" (seeding of random number generator)
-#include <iterator> // for "inserter", "back_inserter"
 
 using namespace OpenMS;
 using namespace std;
@@ -228,16 +222,21 @@ protected:
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   line, msg);
     }
-    String name, formula, temp_charge, temp_rt, temp_range, temp_iso;
-    double mass;
     Size line_count = 1;
     set<String> names;
     while (getline(source, line))
     {
       line_count++;
       if (line[0] == '#') continue; // skip comments
-      stringstream ss(line);
-      ss >> name;
+      vector<String> parts = ListUtils::create<String>(line, '\t'); // split
+      if (parts.size() < 7)
+      {
+        LOG_ERROR << "Error: Expected 7 tab-separated fields, found only "
+                  << parts.size() << " in line " << line_count
+                  << " - skipping this line." << endl;
+        continue;
+      }
+      String name = parts[0];
       if (name.empty())
       {
         LOG_ERROR << "Error: Empty name field in input line " << line_count
@@ -250,11 +249,12 @@ protected:
                   << line_count << " - skipping this line." << endl;
         continue;
       }
-      ss >> formula >> mass >> temp_charge >> temp_rt >> temp_range >> temp_iso;
-      vector<Int> charges = ListUtils::create<Int>(temp_charge);
-      vector<double> rts = ListUtils::create<double>(temp_rt);
-      vector<double> rt_ranges = ListUtils::create<double>(temp_range);
-      vector<double> iso_distrib = ListUtils::create<double>(temp_iso);
+      String formula = parts[1];
+      double mass = parts[2].toDouble();
+      vector<Int> charges = ListUtils::create<Int>(parts[3]);
+      vector<double> rts = ListUtils::create<double>(parts[4]);
+      vector<double> rt_ranges = ListUtils::create<double>(parts[5]);
+      vector<double> iso_distrib = ListUtils::create<double>(parts[6]);
       addTargetToLibrary_(name, formula, mass, charges, rts, rt_ranges,
                           iso_distrib);
     }
@@ -281,6 +281,7 @@ protected:
     }
     // @TODO: detect entries with same RT and m/z ("collisions")
     TargetedExperiment::Compound target;
+    target.setMetaValue("name", name);
     target.molecular_formula = formula;
     EmpiricalFormula emp_formula(formula);
     bool mass_given = (mass > 0);
@@ -359,6 +360,7 @@ protected:
       {
         target.id = target_id + "_z" + String(*z_it) + "_rt" +
           String(float(rts[i]));
+        target.setMetaValue("expected_RT", rts[i]);
         target_rts_[target.id] = rts[i];
 
         double rt_tol = rt_ranges[i] / 2.0;
@@ -507,6 +509,15 @@ protected:
     }
     features.erase(remove_if(features.begin(), features.end(),
                              feature_filter_), features.end());
+  }
+
+
+  String prettyPrintCompound_(const TargetedExperiment::Compound& compound)
+  {
+    return (String(compound.getMetaValue("name")) + " (m=" +
+            String(float(compound.theoretical_mass)) + ", z=" +
+            String(compound.getChargeState()) + ", rt=" +
+            String(float(double(compound.getMetaValue("expected_RT")))) + ")");
   }
 
 
@@ -695,11 +706,44 @@ protected:
     // statistics
     //-------------------------------------------------------------
 
+    set<String> found_refs;
+    for (FeatureMap::ConstIterator it = features.begin(); it != features.end();
+         ++it)
+    {
+      found_refs.insert(it->getMetaValue("PeptideRef"));
+    }
+    Size n_missing = library_.getCompounds().size() - found_refs.size();
+    const Size n_examples = 5;
+    vector<String> missing_examples;
+    for (vector<TargetedExperiment::Compound>::const_iterator it =
+           library_.getCompounds().begin();
+         (it != library_.getCompounds().end()) &&
+           (missing_examples.size() <= n_examples); ++it)
+    {
+      if (!found_refs.count(it->id))
+      {
+        missing_examples.push_back(prettyPrintCompound_(*it));
+      }
+    }
+
     LOG_INFO << "\nSummary statistics:\n"
              << library_.getCompounds().size() << " targets specified\n"
              << features.size() << " features found\n"
-             << library_.getCompounds().size() - features.size()
-             << " targets without features\n" << endl;
+             << n_missing << " targets without features";
+    if (!missing_examples.empty())
+    {
+      LOG_INFO << ":";
+      for (vector<String>::iterator it = missing_examples.begin();
+           it != missing_examples.end(); ++it)
+      {
+        LOG_INFO << "\n- " << *it;
+      }
+      if (n_missing > n_examples)
+      {
+        LOG_INFO << "\n- ... (" << n_missing - n_examples << " more)";
+      }
+    }
+    LOG_INFO << "\n" << endl;
 
     return EXECUTION_OK;
   }
