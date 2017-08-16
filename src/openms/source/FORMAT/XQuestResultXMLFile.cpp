@@ -254,7 +254,10 @@ namespace OpenMS
               << "\" TIC_alpha=\"" << "TODO" << "\" TIC_beta=\"" << "TODO" << "\" wTIC=\"" << top_csm->wTIC << "\" wTICold=\"" << top_csm->wTICold << "\" intsum=\"" << top_csm->int_sum * 100 << "\" apriori_match_probs=\"" << "TODO" << "\" apriori_match_probs_log=\"" << "TODO"
               << "\" HyperLinear=\"" << top_csm->HyperLinear << "\" HyperXLink=\"" << top_csm->HyperXlink << "\" HyperAlpha=\"" << top_csm->HyperAlpha << "\" HyperBeta=\"" << top_csm->HyperBeta << "\" HyperBoth=\"" << top_csm->HyperBoth
               << "\" PScoreLinear=\"" << top_csm->PScoreLinear << "\" PScoreXLink=\"" << top_csm->PScoreXlink << "\" PScoreAlpha=\"" << top_csm->PScoreAlpha << "\" PScoreBeta=\"" << top_csm->PScoreBeta << "\" PScoreBoth=\"" << top_csm->PScoreBoth
-              << "\" num_iso_peaks_avg=\"" << top_csm->num_iso_peaks_avg << "\" ppm_error_abs_sum=\"" << top_csm->ppm_error_abs_sum << "\" ppm_error_variance=\"" << top_csm->ppm_error_variance
+              << "\" num_iso_peaks_mean=\"" << top_csm->num_iso_peaks_mean
+              << "\" ppm_error_sum_linear_alpha=\"" << top_csm->ppm_error_sum_linear_alpha << "\" ppm_error_sum_linear_beta=\"" << top_csm->ppm_error_sum_linear_beta << "\" ppm_error_sum_xlinks_alpha=\"" << top_csm->ppm_error_sum_xlinks_alpha << "\" ppm_error_sum_xlinks_beta=\"" << top_csm->ppm_error_sum_xlinks_beta
+              << "\" ppm_error_variance_linear_alpha=\"" << top_csm->ppm_error_variance_linear_alpha << "\" ppm_error_variance_linear_beta=\"" << top_csm->ppm_error_variance_linear_beta << "\" ppm_error_variance_xlinks_alpha=\"" << top_csm->ppm_error_variance_xlinks_alpha << "\" ppm_error_variance_xlinks_beta=\"" << top_csm->ppm_error_variance_xlinks_beta
+              << "\" ppm_error_abs_sum_linear_alpha=\"" << top_csm->ppm_error_abs_sum_linear_alpha << "\" ppm_error_abs_sum_linear_beta=\"" << top_csm->ppm_error_abs_sum_linear_beta << "\" ppm_error_abs_sum_xlinks_alpha=\"" << top_csm->ppm_error_abs_sum_xlinks_alpha << "\" ppm_error_abs_sum_xlinks_beta=\"" << top_csm->ppm_error_abs_sum_xlinks_beta
               << "\" series_score_mean=\"" << "TODO" << "\" annotated_spec=\"" << "" << "\" score=\"" << top_csm->score << "\" >" << std::endl;
         xml_file << "</search_hit>" << std::endl;
       }
