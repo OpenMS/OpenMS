@@ -44,7 +44,7 @@ OpenMS is released under the [three clause BSD licence](LICENSE).
 
 Authors
 -------
-The file [AUTHORS](AUTHORS) contains a full list of all authors who worked on OpenMS.
+The file [AUTHORS](AUTHORS) contains a list of all authors who worked on OpenMS.
 
 Documentation
 -------------
