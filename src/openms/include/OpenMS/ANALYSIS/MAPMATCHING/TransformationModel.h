@@ -65,6 +65,18 @@ namespace OpenMS
       DataPoint(const std::pair<double, double>& pair):
         first(pair.first), second(pair.second), note("")
       {}
+
+      bool operator<(const DataPoint& other) const
+      {
+        return (std::tie(first, second, note) <
+                std::tie(other.first, other.second, other.note));
+      }
+
+      bool operator==(const DataPoint& other) const
+      {
+        return (std::tie(first, second, note) ==
+                std::tie(other.first, other.second, other.note));
+      }
     };
     /// Vector of coordinate pairs
     typedef std::vector<DataPoint> DataPoints;
