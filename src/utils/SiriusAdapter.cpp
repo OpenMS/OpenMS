@@ -156,12 +156,24 @@ protected:
     QString ppm_max = QString::number(getIntOption_("ppm_max"));
     QString candidates = QString::number(getIntOption_("candidates"));
 
-    QString path_to_executable = File::path(getStringOption_("executable")).toQString();
 
     bool auto_charge = getFlag_("auto_charge");
     bool no_recalibration = getFlag_("no_recalibration");
     bool fingerid = getFlag_("fingerid");
     bool iontree = getFlag_("iontree");
+
+    //-------------------------------------------------------------
+    // Determination of the Executable
+    //-------------------------------------------------------------
+
+    // Parameter executable not provided
+    if (executable.isEmpty())
+    {
+      QProcessEnvironment env;
+      const QString & qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
+      executable = qsiriuspathenv.isEmpty() ? "sirius" : qsiriuspathenv;
+    }
+    const QString & path_to_executable = File::path(executable).toQString();
 
     //-------------------------------------------------------------
     // Calculations
@@ -182,17 +194,6 @@ protected:
 
     //Write msfile
     SiriusMSFile::store(spectra, tmp_ms_file);
-
-    //Knime hack
-    QProcessEnvironment env;
-    String siriuspath = "SIRIUS_PATH";
-    QString qsiriuspath = env.systemEnvironment().value(siriuspath.toQString());
-
-    // TODO Is it correct that the executable argument is ignored if the SIRIUS_PATH is not empty?
-    if (!qsiriuspath.isEmpty())
-    {
-      executable = qsiriuspath;
-    }
 
     //Start Sirius
     QStringList process_params; // the actual process
