@@ -199,7 +199,7 @@ START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimType
   FeatureMap fm1;
 
   SimTypes::MSSimExperiment exp;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   IntList il;
   il.push_back(0);
   spec.setMetaValue("parent_feature_ids",  il);
@@ -245,7 +245,7 @@ START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimType
   TEST_EQUAL(exp.size(), 1)
   Size count(0);
   double expected_val4[4] = {0, 100, 100, 0};
-  for (MSSpectrum<>::const_iterator it=exp[0].begin(); it!=exp[0].end() && it->getMZ()<118.0; ++it)
+  for (MSSpectrum::const_iterator it=exp[0].begin(); it!=exp[0].end() && it->getMZ()<118.0; ++it)
   {
     TEST_REAL_SIMILAR(it->getIntensity(), expected_val4[count]);
     ++count;
@@ -282,7 +282,7 @@ START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimType
   TEST_EQUAL(exp.size(), 1)
   count=0;
   double expected_val8[8] = {0, 125, 25, 0, 50, 0, 100, 0};
-  MSSpectrum<>::const_iterator it=exp[0].begin();
+  MSSpectrum::const_iterator it=exp[0].begin();
   for (; it!=exp[0].end(); ++it)
   {
     TEST_REAL_SIMILAR(it->getIntensity(),  expected_val8[count]);

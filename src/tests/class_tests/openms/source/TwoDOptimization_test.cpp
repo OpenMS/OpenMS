@@ -130,7 +130,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 // test for 2D optimization
   TOLERANCE_ABSOLUTE(0.04)
   TOLERANCE_RELATIVE(1.001)
-  MSSpectrum<> peaks;
+  MSSpectrum peaks;
   peaks.getFloatDataArrays().resize(6);
   peaks.getFloatDataArrays()[1].setName("maximumIntensity");
   peaks.getFloatDataArrays()[1].push_back(700.); //intensity
@@ -144,7 +144,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	peaks.getFloatDataArrays()[3].push_back(12.5f); //left width
 	peaks.getFloatDataArrays()[4].push_back(12.5f); //right width
 	peaks.getFloatDataArrays()[5].push_back(0); //shape
-  MSSpectrum<> peaks2;
+  MSSpectrum peaks2;
   peaks2.getFloatDataArrays().resize(6);
   peaks2.getFloatDataArrays()[1].setName("maximumIntensity");
   peaks2.getFloatDataArrays()[1].push_back(700.); //intensity
@@ -187,7 +187,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   float origin = 499;
   float spacing = 0.1f;
 
-	MSSpectrum<Peak1D >	 raw_spec;
+	MSSpectrum	 raw_spec;
   for (Size i = 0; i < 20 ;++i)
   {
 		Peak1D data_point;
@@ -218,7 +218,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 	ms_exp.addSpectrum(peaks2);
  (ms_exp.begin()+1)->setRT(101);
 
-  MSSpectrum<Peak1D >	 raw_spec2;
+  MSSpectrum	 raw_spec2;
   for (Size i = 0; i < 20 ;++i)
   {
 		Peak1D data_point;

@@ -245,8 +245,18 @@ protected:
     {
       ConsensusMap out;
       ConsensusXMLFile fh;
+      // load the metadata from the first file
       fh.load(file_list[0], out);
-      // skip first file
+      // but annotate the origins
+      if (annotate_file_origin)
+      {
+        for (ConsensusMap::iterator it = out.begin(); it != out.end(); ++it)
+        {
+          it->setMetaValue("file_origin", DataValue(file_list[0]));
+        }
+      }
+
+      // skip first file for adding
       for (Size i = 1; i < file_list.size(); ++i)
       {
         ConsensusMap map;
@@ -444,7 +454,7 @@ protected:
           out.addSpectrum(*spec_it);
         }
         // also add the chromatograms
-        for (vector<MSChromatogram<ChromatogramPeak> >::const_iterator
+        for (vector<MSChromatogram >::const_iterator
                chrom_it = in.getChromatograms().begin(); chrom_it != 
                in.getChromatograms().end(); ++chrom_it)
         {
