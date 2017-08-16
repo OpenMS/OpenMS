@@ -9,7 +9,7 @@ OpenMS
 
 <a href="http://www.openms.org/" target="_blank">OpenMS</a> 
 is an open-source software C++ library for LC-MS data management and
-analyses. It offers an infrastructure for the rapid development of mass
+analyses. It offers an infrastructure for rapid development of mass
 spectrometry related software. OpenMS is free software available under the
 three clause BSD license and runs under Windows, macOS and Linux. 
 
