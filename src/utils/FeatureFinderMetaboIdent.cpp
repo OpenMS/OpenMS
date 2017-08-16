@@ -694,9 +694,11 @@ protected:
          ++it)
     {
       const String& ref = it->getMetaValue("PeptideRef");
-      double rt1 = library_.getCompoundByRef(ref).getMetaValue("expected_RT");
-      double rt2 = it->getRT();
-      points.push_back(make_pair(rt1, rt2));
+      TransformationDescription::DataPoint point;
+      point.first = library_.getCompoundByRef(ref).getMetaValue("expected_RT");
+      point.second = it->getRT();
+      point.note = ref;
+      points.push_back(point);
     }
     trafo.setDataPoints(points);
     TransformationXMLFile().store(trafo_out, trafo);
