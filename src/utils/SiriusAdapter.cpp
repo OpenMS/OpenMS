@@ -235,6 +235,7 @@ protected:
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input" );
+      return EXTERNAL_PROGRAM_ERROR;
     }
 
     //-------------------------------------------------------------
