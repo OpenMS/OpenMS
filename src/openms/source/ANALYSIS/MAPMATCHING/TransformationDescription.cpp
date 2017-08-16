@@ -154,6 +154,18 @@ namespace OpenMS
     model_ = new TransformationModel();
   }
 
+  void TransformationDescription::setDataPoints(const vector<pair<double, double> >& data)
+  {
+    data_.resize(data.size());
+    for (Size i = 0; i < data.size(); ++i)
+    {
+      data_[i] = data[i];
+    }
+    model_type_ = "none"; // reset the model even if it was "identity"
+    delete model_;
+    model_ = new TransformationModel();
+  }
+
   const TransformationDescription::DataPoints&
   TransformationDescription::getDataPoints() const
   {
@@ -170,7 +182,8 @@ namespace OpenMS
     for (TransformationDescription::DataPoints::iterator it = data_.begin();
          it != data_.end(); ++it)
     {
-      *it = make_pair(it->second, it->first);
+      *it = TransformationDescription::DataPoint(it->second, it->first,
+                                                 it->note);
     }
     // ugly hack for linear model with explicit slope/intercept parameters:
     if ((model_type_ == "linear") && data_.empty())
