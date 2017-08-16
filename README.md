@@ -18,7 +18,7 @@ and metabolomics data analysis (TOPPTools) and powerful 2D and 3D
 visualization(TOPPView).
 
 OpenMS offers analyses for various quantitation protocols, including label-free
-quantitation, SILAC, iTRAQ, SRM, SWATH, etc.
+quantitation, SILAC, iTRAQ, TMT, SRM, SWATH, etc.
 
 It provides built-in algorithms for de-novo identification and database search,
 as well as adapters to other state-of-the art tools like X!Tandem, Mascot,
