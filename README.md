@@ -14,7 +14,7 @@ spectrometry related software. OpenMS is free software available under the
 three clause BSD license and runs under Windows, macOS, and Linux. 
 
 It comes with a vast variety of pre-built and ready-to-use tools for proteomics
-and metabolomics data analysis (TOPPTools) and powerful 2D and 3D
+and metabolomics data analysis (TOPPTools) as well as powerful 2D and 3D
 visualization (TOPPView).
 
 OpenMS offers analyses for various quantitation protocols, including label-free
