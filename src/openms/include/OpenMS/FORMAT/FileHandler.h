@@ -43,6 +43,7 @@
 namespace OpenMS
 {
   class PeakFileOptions;
+  class MSSpectrum;
   class MSExperiment;
   class FeatureMap;
 

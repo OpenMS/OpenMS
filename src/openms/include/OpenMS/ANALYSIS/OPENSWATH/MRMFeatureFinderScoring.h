@@ -106,7 +106,7 @@ public:
     typedef OpenSwath::LightModification ModificationType;
     // a transition group holds the chromatographic data and peaks across
     // multiple chromatograms from the same compound
-    typedef MRMTransitionGroup< MSChromatogram<>, TransitionType> MRMTransitionGroupType;
+    typedef MRMTransitionGroup< MSChromatogram, TransitionType> MRMTransitionGroupType;
     typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
 
     //@}

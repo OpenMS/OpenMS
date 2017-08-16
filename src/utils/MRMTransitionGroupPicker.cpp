@@ -122,7 +122,7 @@ protected:
 
   typedef ReactionMonitoringTransition TransitionType;
   typedef TargetedExperiment TargetedExpType;
-  typedef MRMTransitionGroup<MSChromatogram<>, TransitionType> MRMTransitionGroupType;
+  typedef MRMTransitionGroup<MSChromatogram, TransitionType> MRMTransitionGroupType;
 
   void registerOptionsAndFlags_()
   {
@@ -205,7 +205,7 @@ protected:
         }
 
         OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-        MSChromatogram<ChromatogramPeak> chromatogram;
+        MSChromatogram chromatogram;
         OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram);
 
         chromatogram.setMetaValue("product_mz", transition->getProductMZ());

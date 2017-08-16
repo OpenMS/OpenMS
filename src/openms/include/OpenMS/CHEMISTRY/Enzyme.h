@@ -73,6 +73,7 @@ public:
                     String psi_id = "",
                     String xtandem_id = "",
                     UInt comet_id = 0,
+                    Int msgf_id = -1,
                     UInt omssa_id = 0);
 
     /// destructor
@@ -140,17 +141,24 @@ public:
     /// returns the X! Tandem enzyme ID
     String getXTandemID() const;
 
+    /// returns the Comet enzyme ID
+    UInt getCometID() const;
+    
     /// sets the Comet enzyme ID
     void setCometID(UInt value);
 
-    /// returns the Comet enzyme ID
-    UInt getCometID() const;
+    /// sets the MSGFPlus enzyme id
+    void setMSGFID(Int value);
+
+    /// returns the MSGFPlus enzyme id
+    Int getMSGFID() const;
 
     /// sets the OMSSA enzyme ID
     void setOMSSAID(UInt value);
 
     /// returns the OMSSA enzyme ID
     UInt getOMSSAID() const;
+    
     //@}
 
     /** @name Predicates
@@ -198,7 +206,10 @@ protected:
 
     UInt comet_id_;
 
+    Int msgf_id_;
+    
     UInt omssa_id_;
+
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Enzyme& enzyme);

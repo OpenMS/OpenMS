@@ -882,7 +882,7 @@ protected:
 
         Size num_chrom_peaks(0);
         Map<ChromatogramSettings::ChromatogramType, Size> chrom_types;
-        for (vector<MSChromatogram<>>::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+        for (vector<MSChromatogram>::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
         {
           num_chrom_peaks += it->size();
           if (chrom_types.has(it->getChromatogramType()))
@@ -915,7 +915,7 @@ protected:
              << "\n";
           os << "Q1 Q3 RT_begin RT_end name comment"
              << "\n";
-          for (vector<MSChromatogram<>>::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+          for (vector<MSChromatogram>::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
           {
             if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
             {

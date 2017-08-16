@@ -67,7 +67,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
 {
   MSDataStoringConsumer * storing_consumer = new MSDataStoringConsumer();
 
-  MSSpectrum<> s;
+  MSSpectrum s;
   s.setName("spec1");
   s.setComment("comm1");
   s.setRT(5);
@@ -101,7 +101,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
 {
   MSDataStoringConsumer * storing_consumer = new MSDataStoringConsumer();
 
-  MSChromatogram<> c;
+  MSChromatogram c;
   c.setNativeID("testid");
   storing_consumer->consumeChromatogram(c);
 
@@ -122,11 +122,11 @@ START_SECTION((void setExperimentalSettings(const ExperimentalSettings&)))
   MSDataStoringConsumer * storing_consumer = new MSDataStoringConsumer();
   storing_consumer->setExpectedSize(1,1);
 
-  MSChromatogram<> c;
+  MSChromatogram c;
   c.setNativeID("testid");
   storing_consumer->consumeChromatogram(c);
 
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   spec.setName("spec1");
   spec.setRT(5);
   storing_consumer->consumeSpectrum(spec);

@@ -143,7 +143,7 @@ protected:
     // copy all meta data from old chromatogram
     output = chromatogram_map;
     output.clear(false);
-    std::vector<MSChromatogram<ChromatogramPeak> > empty_chromats;
+    std::vector<MSChromatogram > empty_chromats;
     output.setChromatograms(empty_chromats);
 
     int notmapped = 0;
@@ -151,7 +151,7 @@ protected:
     {
       // try to find the best matching transition for this chromatogram
       bool mapped_already = false;
-      MSChromatogram<ChromatogramPeak> chromatogram = chromatogram_map.getChromatograms()[i];
+      MSChromatogram chromatogram = chromatogram_map.getChromatograms()[i];
 
       if (chromatogram.getPrecursor().getMZ() == 0.0 && chromatogram.getProduct().getMZ() == 0.0)
       {
@@ -226,7 +226,7 @@ protected:
     // add all data processing information to all the chromatograms
     DataProcessing dp_ = getProcessingInfo_(DataProcessing::FORMAT_CONVERSION);
     DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing(dp_));
-    std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = output.getChromatograms();
+    std::vector<MSChromatogram > chromatograms = output.getChromatograms();
     for (Size i=0; i<chromatograms.size(); ++i)
     {
       chromatograms[i].getDataProcessing().push_back(dp);

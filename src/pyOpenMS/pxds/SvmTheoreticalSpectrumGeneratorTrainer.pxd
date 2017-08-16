@@ -17,5 +17,5 @@ cdef extern from "<OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorTrainer.h>" n
         SvmTheoreticalSpectrumGeneratorTrainer(SvmTheoreticalSpectrumGeneratorTrainer) nogil except +
 
         void trainModel(MSExperiment & spectra, libcpp_vector[AASequence] & annotations, String filename, int precursor_charge) nogil except +
-        void normalizeIntensity(MSSpectrum[Peak1D] & S) nogil except +
+        void normalizeIntensity(MSSpectrum & S) nogil except +
 
