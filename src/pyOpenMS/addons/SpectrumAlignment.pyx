@@ -4,16 +4,16 @@
         # TODO: use autowrap for this directly
         assert isinstance(spec1, (MSSpectrum))
         assert isinstance(spec2, (MSSpectrum))
-        cdef _MSSpectrum[_Peak1D] * _new_spec1 = new _MSSpectrum[_Peak1D]()
-        cdef _MSSpectrum[_Peak1D] * _new_spec2 = new _MSSpectrum[_Peak1D]()
+        cdef _MSSpectrum * _new_spec1 = new _MSSpectrum()
+        cdef _MSSpectrum * _new_spec2 = new _MSSpectrum()
         cdef _Peak1D _peak
 
         if True:
-            for _peak in deref(<_MSSpectrum[_Peak1D] *>(<MSSpectrum>spec1).inst.get()):
+            for _peak in deref(<_MSSpectrum *>(<MSSpectrum>spec1).inst.get()):
                 _new_spec1.push_back(<_Peak1D>_peak)
 
         if True:
-            for _peak in deref(<_MSSpectrum[_Peak1D] *>(<MSSpectrum>spec2).inst.get()):
+            for _peak in deref(<_MSSpectrum *>(<MSSpectrum>spec2).inst.get()):
                 _new_spec2.push_back(<_Peak1D>_peak)
 
         cdef libcpp_vector[libcpp_pair[Size, Size]] _result

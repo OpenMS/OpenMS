@@ -618,9 +618,9 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 }
 END_SECTION
 
-START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& spectrum)))
+START_SECTION((template <typename PeakType> void filter(MSSpectrum& spectrum)))
 {
-   MSSpectrum<Peak1D> raw;
+  MSSpectrum raw;
   Peak1D peak;
   double spacing = 0.25;
   for ( UInt i = 0; i < data_size; ++i )
@@ -632,7 +632,7 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& sp
   MorphologicalFilter mf;
   for ( double struc_size = .5; struc_size <= 2; struc_size += .1 )
   {
-    MSSpectrum<Peak1D> filtered(raw);
+    MSSpectrum filtered(raw);
 
     Param parameters;
     parameters.setValue("method","dilation");
@@ -656,7 +656,7 @@ END_SECTION
 
 START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment< PeakType > &exp)))
 {
-   MSSpectrum<Peak1D> raw;
+  MSSpectrum raw;
   raw.setComment("Let's see if this comment is copied by the filter.");
   Peak1D peak;
   double spacing = 0.25;

@@ -103,9 +103,9 @@ public:
     /// RangeManager type
     typedef RangeManager<2> RangeManagerType;
     /// Spectrum Type
-    typedef MSSpectrum<PeakType> SpectrumType;
+    typedef MSSpectrum SpectrumType;
     /// Chromatogram type
-    typedef MSChromatogram<ChromatogramPeakType> ChromatogramType;
+    typedef MSChromatogram ChromatogramType;
     /// STL base class type
     typedef std::vector<SpectrumType> Base;
     //@}
@@ -822,49 +822,49 @@ public:
     }
 
     /// sets the spectrum list
-    void setSpectra(const std::vector<MSSpectrum<PeakT> > & spectra)
+    void setSpectra(const std::vector<MSSpectrum> & spectra)
     {
       spectra_ = spectra;
     }
 
     /// adds a spectrum to the list
-    void addSpectrum(const MSSpectrum<PeakT> & spectrum)
+    void addSpectrum(const MSSpectrum & spectrum)
     {
       spectra_.push_back(spectrum);
     }
 
     /// returns the spectrum list
-    const std::vector<MSSpectrum<PeakT> > & getSpectra() const
+    const std::vector<MSSpectrum> & getSpectra() const
     {
       return spectra_;
     }
 
     /// returns the spectrum list (mutable)
-    std::vector<MSSpectrum<PeakT> > & getSpectra()
+    std::vector<MSSpectrum> & getSpectra()
     {
       return spectra_;
     }
 
     /// sets the chromatogram list
-    void setChromatograms(const std::vector<MSChromatogram<ChromatogramPeakType> > & chromatograms)
+    void setChromatograms(const std::vector<MSChromatogram > & chromatograms)
     {
       chromatograms_ = chromatograms;
     }
 
     /// adds a chromatogram to the list
-    void addChromatogram(const MSChromatogram<ChromatogramPeakType> & chromatogram)
+    void addChromatogram(const MSChromatogram & chromatogram)
     {
       chromatograms_.push_back(chromatogram);
     }
 
     /// returns the chromatogram list
-    const std::vector<MSChromatogram<ChromatogramPeakType> > & getChromatograms() const
+    const std::vector<MSChromatogram > & getChromatograms() const
     {
       return chromatograms_;
     }
 
     /// returns the chromatogram list (mutable)
-    std::vector<MSChromatogram<ChromatogramPeakType> > & getChromatograms()
+    std::vector<MSChromatogram > & getChromatograms()
     {
       return chromatograms_;
     }
@@ -872,13 +872,13 @@ public:
     /// @name Easy Access interface
     //@{
     /// returns a single chromatogram 
-    MSChromatogram<ChromatogramPeakType> & getChromatogram(Size id) 
+    MSChromatogram & getChromatogram(Size id)
     {
       return chromatograms_[id];
     }
 
     /// returns a single spectrum 
-    MSSpectrum<PeakT> & getSpectrum(Size id) 
+    MSSpectrum & getSpectrum(Size id)
     {
       return spectra_[id];
     }
@@ -897,10 +897,10 @@ public:
     //@}
 
     /// returns the total ion chromatogram (TIC)
-    const MSChromatogram<ChromatogramPeakType> getTIC() const
+    const MSChromatogram getTIC() const
     {
       // The TIC is (re)calculated from the MS1 spectra. Even if MSExperiment does not contain a TIC chromatogram explicitly, it can be reported.
-      MSChromatogram<ChromatogramPeakType> TIC;
+      MSChromatogram TIC;
       for (Base::const_iterator spec_it = spectra_.begin(); spec_it != spectra_.end(); ++spec_it)
       {
         if (spec_it->getMSLevel() == 1)
@@ -949,7 +949,7 @@ protected:
     UInt64 total_size_;
 
     /// chromatograms
-    std::vector<MSChromatogram<ChromatogramPeakType> > chromatograms_;
+    std::vector<MSChromatogram > chromatograms_;
 
     /// spectra
     std::vector<SpectrumType> spectra_;
@@ -1046,7 +1046,7 @@ private:
       StringList::const_iterator itm = metadata_names.begin();
       for (; itm != metadata_names.end(); ++itm)
       {
-        spectrum->getFloatDataArrays().push_back(MSSpectrum<>::FloatDataArray());
+        spectrum->getFloatDataArrays().push_back(MSSpectrum::FloatDataArray());
         spectrum->getFloatDataArrays().back().setName(*itm);
       }
       return spectrum;
@@ -1063,13 +1063,13 @@ private:
     os << static_cast<const ExperimentalSettings &>(exp);
 
     //spectra
-    for (std::vector<MSSpectrum<> >::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
+    for (std::vector<MSSpectrum>::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
     {
       os << *it;
     }
 
     //chromatograms
-    for (std::vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+    for (std::vector<MSChromatogram >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
     {
       os << *it;
     }

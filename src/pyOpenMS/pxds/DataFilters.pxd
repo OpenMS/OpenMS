@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
         bool isActive() nogil except +
         bool passes(Feature & feature) nogil except +
         bool passes(ConsensusFeature & consensus_feature) nogil except +
-        bool passes(MSSpectrum[ Peak1D ] & spectrum, Size peak_index) nogil except +
+        bool passes(MSSpectrum & spectrum, Size peak_index) nogil except +
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
 

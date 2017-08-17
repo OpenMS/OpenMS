@@ -70,7 +70,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
     MSDataStoringConsumer * storage = new MSDataStoringConsumer();
     MSDataAggregatingConsumer * agg_consumer = new MSDataAggregatingConsumer(storage);
 
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setName("spec1");
     s.setRT(5);
     agg_consumer->consumeSpectrum(s);
@@ -100,7 +100,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
     MSDataStoringConsumer * storage = new MSDataStoringConsumer();
     MSDataAggregatingConsumer * agg_consumer = new MSDataAggregatingConsumer(storage);
 
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setName("spec1");
     s.setComment("comm1");
     s.setRT(5);
@@ -145,7 +145,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
     MSDataStoringConsumer * storage = new MSDataStoringConsumer();
     MSDataAggregatingConsumer * agg_consumer = new MSDataAggregatingConsumer(storage);
 
-    MSSpectrum<> s;
+    MSSpectrum s;
     s.setName("spec1");
     s.setComment("comm1");
     s.setRT(5);
@@ -197,7 +197,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
     TEST_EQUAL(storage->getData().getSpectra()[1].getComment(), "comm3")
     TEST_EQUAL(storage->getData().getSpectra()[2].getComment(), "comm5")
 
-    MSSpectrum<> snew = storage->getData().getSpectra()[0];
+    MSSpectrum snew = storage->getData().getSpectra()[0];
 
     TEST_EQUAL(snew.size(), 3)
     TEST_REAL_SIMILAR(snew[0].getMZ(), 5)
@@ -217,7 +217,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
   MSDataStoringConsumer * storage = new MSDataStoringConsumer();
   MSDataAggregatingConsumer * agg_consumer = new MSDataAggregatingConsumer(storage);
 
-  MSChromatogram<> c;
+  MSChromatogram c;
   c.setNativeID("testid");
   agg_consumer->consumeChromatogram(c);
 

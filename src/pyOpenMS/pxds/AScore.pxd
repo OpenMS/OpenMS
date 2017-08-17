@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AScore.h>" namespace "OpenMS":
         AScore(AScore) nogil except + # wrap-ignore
 
         PeptideHit compute(PeptideHit & hit,
-                           MSSpectrum[Peak1D] & real_spectrum, 
+                           MSSpectrum & real_spectrum,
                            double fragment_mass_tolerance, 
                            bool fragment_mass_unit_ppm) nogil except +
 
