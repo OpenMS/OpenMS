@@ -78,6 +78,7 @@ namespace OpenMS
                 std::tie(other.first, other.second, other.note));
       }
     };
+
     /// Vector of coordinate pairs
     typedef std::vector<DataPoint> DataPoints;
 
