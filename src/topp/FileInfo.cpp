@@ -411,13 +411,13 @@ protected:
 
       for (auto loopiter = entries.begin(); loopiter != entries.end(); ++loopiter)
       {
-        auto iter = find_if(entries.begin(), loopiter, [&loopiter](auto& entry) { return entry.headerMatches(*loopiter); });
+        auto iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.headerMatches(*loopiter); });
         if (iter != loopiter)
         {
           os << "Warning: Duplicate header, Number: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
         }
 
-        iter = find_if(entries.begin(), loopiter, [&loopiter](auto& entry) { return entry.sequenceMatches(*loopiter); });
+        iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.sequenceMatches(*loopiter); });
         if (iter != loopiter && iter != entries.end())
         {
           os << "Warning: Duplicate sequence, Number: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
