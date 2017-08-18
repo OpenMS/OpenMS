@@ -157,6 +157,61 @@ namespace OpenMS
       }
     }
   }
+  
+  void MRMTransitionGroupPicker::calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
+    double best_left, double best_right, double peak_height, double peak_apex,
+    double & width_at_5,
+    double & width_at_10,
+    double & width_at_50,
+    double & start_time_at_10,
+    double & start_time_at_5,
+    double & end_time_at_10,
+    double & end_time_at_5,
+    double & total_width,
+    double & tailing_factor,
+    double & asymmetry_factor,
+    double & baseline_delta_2_height,
+    double & slope_of_baseline,
+    double & points_across_baseline,
+    double & points_across_half_height,
+  ){
+    
+    ConvexHull2D::PointArrayType hull_points;
+    total_width = best_right - best_left;
+    int n_points_left = 0;
+    int n_points_right = 0;
+    std:vector<double> mzLeft, mzRight, intensityLeft, intensityRight;
+    for (typename SpectrumT::const_iterator it = used_chromatogram.begin(); it != used_chromatogram.end(); it++)
+    {
+      if (it->getMZ() > best_left && it->getMZ() < best_right)
+      {
+        if (it->getMZ() < peak_apex)
+        {
+          n_points_left += 1;
+          mzLeft.push_back(it->getMZ());
+          intensityLeft.push_back(it->it->getIntensity());
+        } 
+        else if (it->getMZ() > peak_apex)
+        {
+          n_points_right += 1;
+          mzRight.push_back(it->getMZ());
+          intensityRight.push_back(it->it->getIntensity());
+        } 
+        else 
+        {
+          n_points_left += 1;
+          n_points_right += 1;
+          mzRight.push_back(it->getMZ());
+          intensityRight.push_back(it->it->getIntensity());
+          mzLeft.push_back(it->getMZ());
+          intensityLeft.push_back(it->it->getIntensity());
+        }
+      }
+    }
+    points_across_baseline = n_points_left + n_points_right - 1;
+    points_across_half_height = points_across_baseline / 2;
+
+  }
 
 }
 

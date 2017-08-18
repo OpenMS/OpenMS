@@ -368,6 +368,60 @@ public:
           total_intensity += intensity_sum;
           total_peak_apices += peak_apex_int;
         }
+		
+        // Calculate peak shape metrics that will be used for later QC
+        double width_at_5 = 0;
+        double width_at_10 = 0;
+        double width_at_50 = 0;
+        // double area_2_height = 0;
+        double start_time_at_10 = 0;
+        double start_time_at_5 = 0;
+        double end_time_at_10 = 0;
+        double end_time_at_5 = 0;
+        double total_width = 0;
+        double tailing_factor = 0;
+        double asymmetry_factor = 0;
+        double baseline_delta_2_height = 0;
+        double slope_of_baseline = 0;
+        double points_across_baseline = 0;
+        double points_across_half_height = 0;
+        
+        calculatePeakQCMetrics_(used_chromatogram, 
+          best_left, best_right, peak_apex_int, peak_apex,
+          width_at_5,
+          width_at_10,
+          width_at_50,
+          start_time_at_10,
+          start_time_at_5,
+          end_time_at_10,
+          end_time_at_5,
+          total_width,
+          tailing_factor,
+          asymmetry_factor,
+          baseline_delta_2_height,
+          slope_of_baseline,
+          points_across_baseline,
+          points_across_half_height,
+        );    
+
+        f.setMetaValue("width_at_5", width_at_5);    
+        f.setMetaValue("width_at_10", width_at_10);
+        f.setMetaValue("width_at_50", width_at_50);
+        // f.setMetaValue("area_2_height", area_2_height);
+        f.setMetaValue("start_time_at_10", start_time_at_10);
+        f.setMetaValue("start_time_at_5", start_time_at_5);
+        f.setMetaValue("end_time_at_10", end_time_at_10);
+        f.setMetaValue("area_background_level", background);
+        f.setMetaValue("area_background_level", background);
+        f.setMetaValue("area_background_level", background);
+        f.setMetaValue("area_background_level", background);
+        f.setMetaValue("area_background_level", background);
+        f.setMetaValue("area_background_level", background);
+    
+        // double area_ratio
+        // double height_ratio
+          
+
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
       }
 
@@ -863,6 +917,29 @@ protected:
     */
     void calculateBgEstimation_(const MSChromatogram& chromatogram,
                                   double best_left, double best_right, double & background, double & avg_noise_level);
+
+    /**
+      @brief Calculates standard peak shape quality metrics
+
+      Standard peak shape quality metrics are calculated for down stream QC/QA.
+    */
+    void calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
+      double best_left, double best_right, double peak_height, double peak_apex,
+      double & width_at_5,
+      double & width_at_10,
+      double & width_at_50,
+      double & start_time_at_10,
+      double & start_time_at_5,
+      double & end_time_at_10,
+      double & end_time_at_5,
+      double & total_width,
+      double & tailing_factor,
+      double & asymmetry_factor,
+      double & baseline_delta_2_height,
+      double & slope_of_baseline,
+      double & points_across_baseline,
+      double & points_across_half_height,
+    );    
 
     // Members
     String background_subtraction_;
