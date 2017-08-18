@@ -111,7 +111,7 @@ namespace OpenMS
        * @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
        * @param frag_alpha True, if the fragmented peptide is the Alpha peptide. Used for ion-name annotation.
        * @param mincharge The minimal charge of the ions
-       * @param maxcharge The maximal charge of the ions
+       * @param maxcharge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
       virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2 = 0) const;
@@ -172,8 +172,48 @@ namespace OpenMS
        */
       virtual void addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double pos, double intensity, Residue::ResidueType res_type, Size ion_index, int charge, String ion_type) const;
 
+      /**
+       * @brief Adds precursor masses including neutral losses for the given charge and adds charge and ion name to the given DataArrays
+
+       * @param spectrum The spectrum to which the peaks are added
+       * @param charges A DataArray collecting the charges of the added peaks
+       * @param ion_names A DataArray collecting the ion names of the added peaks
+       * @param precursor_mass The mass of the uncharged precursor
+       * @param charge The charge of the precursor
+       */
       virtual void addPrecursorPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double precursor_mass, int charge) const;
 
+      /**
+       * @brief Adds losses for a linear ion
+
+       * @param spectrum The spectrum to which the new peak is added
+       * @param charges A DataArray collecting the charges of the added peaks
+       * @param ion_names A DataArray collecting the ion names of the added peaks
+       * @param ion
+       * @param res_type The ion type of the added peak
+       * @param frag_index The index of the ion (fragmentation position)
+       * @param intensity
+       * @param charge The charge of the ion
+       * @param ion_type Another cross-linking specific ion-type
+       */
+      virtual void addLinearIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, const AASequence & ion, Residue::ResidueType res_type, Size frag_index, double intensity, int charge, String ion_type) const;
+
+      /**
+       * @brief Adds one-residue-linked ion peaks, that are specific to XLMS
+
+          These fragments consist of one whole peptide, the cross-linker and a part of the linked residue from the second peptide.
+          The residue fragment on the linker is an internal ion from a y- and an a-fragmentation with the length of one residue.
+          The function is called KLinked for now, but instead of K it is whatever the linker is attached to.
+
+       * @param spectrum The spectrum to which the peaks are added
+       * @param charges A DataArray collecting the charges of the added peaks
+       * @param ion_names A DataArray collecting the ion names of the added peaks
+       * @param peptide The fragmented peptide
+       * @param link_pos position of the linker on the fragmented peptide
+       * @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
+       * @param frag_alpha True, if the fragmented peptide is the Alpha peptide. Used for ion-name annotation.
+       * @param charge The charge of the ion
+       */
       virtual void addKLinkedIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int charge) const;
 
       // TODO copied from normal TSG, but it is protected over there. Move it to Residue class maybe?
@@ -207,6 +247,7 @@ namespace OpenMS
       double pre_int_;
       double pre_int_H2O_;
       double pre_int_NH3_;
+      bool add_k_linked_ions_;
   };
 }
 
