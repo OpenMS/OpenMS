@@ -653,6 +653,10 @@ protected:
     specGenParams.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
     specGenParams.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
     specGenParams.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    specGenParams.setValue("add_a_ions", "true");
+    specGenParams.setValue("add_losses", "true");
+    specGenParams.setValue("add_precursor_peaks", "true");
+    specGenParams.setValue("add_k_linked_ions", "true");
     // TODO does nothing yet
     specGenParams.setValue("multiple_fragmentation_mode" , "false", "If set to true, multiple fragmentation events on the same cross-linked peptide pair are considered (HCD fragmentation)");
     specGen.setParameters(specGenParams);
@@ -1039,16 +1043,79 @@ protected:
 
           // num_iso_peaks array from deisotoping
           // TODO do not use deisotope_spectra here, but instead the return value from getIntegerDataArrayByName, when that is possible
-          DataArrays::IntegerDataArray num_iso_peaks_array;
           bool deisotope_spectra = fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100);
           if (deisotope_spectra)
           {
-            num_iso_peaks_array = all_peaks.getIntegerDataArrayByName(String("NumIsoPeaks"));
+            DataArrays::IntegerDataArray num_iso_peaks_array = all_peaks.getIntegerDataArrayByName(String("NumIsoPeaks"));
             csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
+
+            DataArrays::IntegerDataArray num_iso_peaks_array_linear = linear_peaks.getIntegerDataArrayByName(String("NumIsoPeaks"));
+            DataArrays::IntegerDataArray num_iso_peaks_array_xlinks = xlink_peaks.getIntegerDataArrayByName(String("NumIsoPeaks"));
+
+            vector< double > iso_peaks_linear_alpha;
+            vector< double > iso_peaks_linear_beta;
+            vector< double > iso_peaks_xlinks_alpha;
+            vector< double > iso_peaks_xlinks_beta;
+
+            if (!matched_spec_linear_alpha.empty())
+            {
+              for (auto match : matched_spec_linear_alpha)
+              {
+                iso_peaks_linear_alpha.push_back(num_iso_peaks_array_linear[match.second]);
+              }
+              csm.num_iso_peaks_mean_linear_alpha = Math::mean(iso_peaks_linear_alpha.begin(), iso_peaks_linear_alpha.end());
+            }
+            else
+            {
+              csm.num_iso_peaks_mean_linear_alpha = 0;
+            }
+
+            if (!matched_spec_linear_beta.empty())
+            {
+              for (auto match : matched_spec_linear_beta)
+              {
+                iso_peaks_linear_beta.push_back(num_iso_peaks_array_linear[match.second]);
+              }
+              csm.num_iso_peaks_mean_linear_beta = Math::mean(iso_peaks_linear_beta.begin(), iso_peaks_linear_beta.end());
+            }
+            else
+            {
+              csm.num_iso_peaks_mean_linear_beta = 0;
+            }
+
+            if (!matched_spec_xlinks_alpha.empty())
+            {
+              for (auto match : matched_spec_xlinks_alpha)
+              {
+                iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array_xlinks[match.second]);
+              }
+              csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());
+            }
+            else
+            {
+              csm.num_iso_peaks_mean_xlinks_alpha = 0;
+            }
+
+            if (!matched_spec_xlinks_beta.empty())
+            {
+              for (auto match : matched_spec_xlinks_beta)
+              {
+                iso_peaks_xlinks_beta.push_back(num_iso_peaks_array_xlinks[match.second]);
+              }
+              csm.num_iso_peaks_mean_xlinks_beta = Math::mean(iso_peaks_xlinks_beta.begin(), iso_peaks_xlinks_beta.end());
+            }
+            else
+            {
+              csm.num_iso_peaks_mean_xlinks_beta = 0;
+            }
           }
           else
           {
             csm.num_iso_peaks_mean = 0;
+            csm.num_iso_peaks_mean_linear_alpha = 0;
+            csm.num_iso_peaks_mean_linear_beta = 0;
+            csm.num_iso_peaks_mean_xlinks_alpha = 0;
+            csm.num_iso_peaks_mean_xlinks_beta = 0;
           }
 
           // TODO find a better way to compute the absolute sum
