@@ -86,19 +86,20 @@ END_SECTION
 START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge = 1, Size link_pos_2 = 0))
   PeakSpectrum spec;
   ptr->getLinearIonSpectrum(spec, peptide, 3, true, 2);
-  TEST_EQUAL(spec.size(), 12)
+  TEST_EQUAL(spec.size(), 18)
 
   TOLERANCE_ABSOLUTE(0.001)
 
-  double result[] = {57.54930, 74.06004, 102.57077, 114.09134, 131.08351, 147.11280, 152.10497, 174.59953, 204.13426, 261.15975, 303.20268, 348.19178};
+  double result[] = {43.55185, 57.54930, 74.06004, 86.09642, 102.57077, 114.09134, 117.08605, 131.08351, 147.11280, 152.10497, 160.60207, 174.59953, 204.13426, 233.16484, 261.15975, 303.20268, 320.19686, 348.19178};
   for (Size i = 0; i != spec.size(); ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
+    // TEST_EQUAL(spec.getStringDataArrayByName("IonNames")[i], "test")
   }
 
   spec.clear(true);
   ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
-  TEST_EQUAL(spec.size(), 18)
+  TEST_EQUAL(spec.size(), 27)
 
   spec.clear(true);
   Param param(ptr->getParameters());
@@ -216,10 +217,13 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   spec.clear(true);
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 2); //
+  // param.setValue("add_metainfo", "true");
   ptr->setParameters(param);
   ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
   // 6 ion types with 3 charges each are expected, each with a second isotopic peak
-  TEST_EQUAL(spec.size(), 36)
+  // + a few losses with their second isotopic peaks
+  TEST_EQUAL(spec.size(), 60)
+
 
   spec.clear(true);
   param.setValue("add_isotopes", "true");
@@ -227,7 +231,8 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   ptr->setParameters(param);
   ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
   // 6 ion types with 3 charges each are expected, each with a second isotopic peak
-  TEST_EQUAL(spec.size(), 36)
+  // should be the same result as above for now
+  TEST_EQUAL(spec.size(), 60)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  // for quick benchmarking of implementation chances
@@ -267,19 +272,20 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
 
   PeakSpectrum spec;
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, true, 2, 3);
-  TEST_EQUAL(spec.size(), 12)
+  TEST_EQUAL(spec.size(), 17)
 
   TOLERANCE_ABSOLUTE(0.001)
 
-  double result[] = {551.94577, 566.94214, 580.95645, 599.96494, 618.97210, 629.97925, 827.41502, 849.90957, 870.93103, 899.44378, 927.95451, 944.46524};
+  double result[] = {428.87870, 551.94577, 566.94214, 580.95645, 599.96494, 618.97210, 629.97925, 642.81441, 661.67042, 661.99842, 667.67394, 827.41502, 849.90957, 870.93103, 899.44378, 927.95451, 944.46524};
   for (Size i = 0; i != spec.size(); ++i)
   {
     TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
+    // TEST_EQUAL(spec.getStringDataArrayByName("IonNames")[i], "test")
   }
 
   spec.clear(true);
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, true, 2, 4);
-  TEST_EQUAL(spec.size(), 18)
+  TEST_EQUAL(spec.size(), 24)
 
   spec.clear(true);
 //  Param param(ptr->getParameters());
@@ -292,7 +298,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   param.setValue("add_metainfo", "false");
   ptr->setParameters(param);
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, true, 2, 4);
-  TEST_EQUAL(spec.size(), 54)
+  TEST_EQUAL(spec.size(), 60)
 
 
 //  // test annotation
@@ -309,7 +315,8 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, true, 2, 5);
 
   // 6 ion types with 4 charges each are expected
-  TEST_EQUAL(spec.size(), 24)
+  // + KLinked ions and precursors
+  TEST_EQUAL(spec.size(), 31)
 
   set<String> ion_names;
   ion_names.insert("[alpha|xi$b4]");
@@ -318,6 +325,10 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   ion_names.insert("[alpha|xi$x4]");
   ion_names.insert("[alpha|xi$x5]");
   ion_names.insert("[alpha|xi$x6]");
+  ion_names.insert("[S-linked-beta]");
+  ion_names.insert("[M+H]");
+  ion_names.insert("[M+H]-H2O");
+  ion_names.insert("[M+H]-NH3");
 
   PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
 
@@ -338,6 +349,10 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   ion_names.insert("[beta|xi$x4]");
   ion_names.insert("[beta|xi$x5]");
   ion_names.insert("[beta|xi$x6]");
+  ion_names.insert("[S-linked-alpha]");
+  ion_names.insert("[M+H]");
+  ion_names.insert("[M+H]-H2O");
+  ion_names.insert("[M+H]-NH3");
 
   string_array = spec.getStringDataArrays().at(0);
 
@@ -356,10 +371,23 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
     charge_counts[charge_array[i]-1]++;
   }
   TEST_EQUAL(charge_counts[0], 0)
-  TEST_EQUAL(charge_counts[1], 6)
-  TEST_EQUAL(charge_counts[2], 6)
-  TEST_EQUAL(charge_counts[3], 6)
+  TEST_EQUAL(charge_counts[1], 7)
+  TEST_EQUAL(charge_counts[2], 7)
+  TEST_EQUAL(charge_counts[3], 10)
   TEST_EQUAL(charge_counts[4], 0)
+
+  param = ptr->getParameters();
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_b_ions", "true");
+  param.setValue("add_c_ions", "false");
+  param.setValue("add_x_ions", "false");
+  param.setValue("add_y_ions", "true");
+  param.setValue("add_z_ions", "false");
+  param.setValue("add_metainfo", "true");
+  param.setValue("add_losses", "false");
+  param.setValue("add_precursor_peaks", "false");
+  param.setValue("add_k_linked_ions", "false");
+  ptr->setParameters(param);
 
   // the smallest examples, that make sense for cross-linking
   spec.clear(true);

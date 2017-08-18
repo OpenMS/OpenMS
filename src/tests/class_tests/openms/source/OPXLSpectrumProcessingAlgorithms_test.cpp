@@ -50,6 +50,10 @@ param.setValue("add_isotopes", "false");
 param.setValue("add_metainfo", "false");
 param.setValue("add_first_prefix_ion", "false");
 param.setValue("y_intensity", 10.0, "Intensity of the y-ions");
+param.setValue("add_a_ions", "false");
+param.setValue("add_losses", "false");
+param.setValue("add_precursor_peaks", "false");
+param.setValue("add_k_linked_ions", "false");
 specGen.setParameters(param);
 
 PeakSpectrum theo_spec_1, theo_spec_2, exp_spec_1, exp_spec_2;
@@ -119,6 +123,10 @@ START_SECTION(static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectru
   param.setValue("add_isotopes", "true");
   // TODO more than 2 not possible yet, update test after that is implemented
   param.setValue("max_isotope", 3);
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_losses", "false");
+  param.setValue("add_precursor_peaks", "false");
+  param.setValue("add_k_linked_ions", "false");
   specGen.setParameters(param);
 
   PeakSpectrum theo_spec_3;

@@ -49,6 +49,10 @@ Param param = specGen.getParameters();
 param.setValue("add_isotopes", "false");
 param.setValue("add_metainfo", "true");
 param.setValue("add_first_prefix_ion", "false");
+param.setValue("add_a_ions", "false");
+param.setValue("add_losses", "false");
+param.setValue("add_precursor_peaks", "false");
+param.setValue("add_k_linked_ions", "false");
 specGen.setParameters(param);
 
 PeakSpectrum theo_spec_1, theo_spec_2, theo_spec_3, theo_spec_4;
