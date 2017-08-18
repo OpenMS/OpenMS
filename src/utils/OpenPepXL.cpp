@@ -282,11 +282,20 @@ protected:
       // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
       PeakSpectrum xlink_peaks;
       PeakSpectrum::IntegerDataArray spectrum_heavy_charges;
+      PeakSpectrum::IntegerDataArray spectrum_heavy_iso_peaks;
       if (spectrum_heavy.getIntegerDataArrays().size() > 0)
       {
-        spectrum_heavy_charges = spectrum_heavy.getIntegerDataArrays()[0];
+        spectrum_heavy_charges = spectrum_heavy.getIntegerDataArrayByName("Charges");
+        spectrum_heavy_iso_peaks = spectrum_heavy.getIntegerDataArrayByName("NumIsoPeaks");
       }
+      bool deisotoped = spectrum_heavy_charges.size() == spectrum_heavy.size();
       xlink_peaks.getIntegerDataArrays().resize(1);
+      xlink_peaks.getIntegerDataArrays()[0].setName("Charges");
+      if (deisotoped)
+      {
+        xlink_peaks.getIntegerDataArrays().resize(2);
+        xlink_peaks.getIntegerDataArrays()[1].setName("NumIsoPeaks");
+      }
 
       // keep track of matched peaks
       vector<Size> used_peaks;
@@ -296,6 +305,7 @@ protected:
       {
         PeakSpectrum spectrum_heavy_to_light;
         PeakSpectrum::IntegerDataArray spectrum_heavy_to_light_charges;
+        spectrum_heavy_to_light_charges.setName("Charges");
         double mass_shift = cross_link_mass_iso_shift / charge;
 
         // transform heavy spectrum
@@ -303,7 +313,7 @@ protected:
         {
           bool charge_fits = true;
           // check if the charge for the heavy peak determined by deisotoping matches the currently considered charge
-          if (spectrum_heavy_charges.size() == spectrum_heavy.size() && spectrum_heavy_charges[i] != 0 && static_cast<unsigned int>(spectrum_heavy_charges[i]) != charge)
+          if (deisotoped && spectrum_heavy_charges[i] != 0 && static_cast<unsigned int>(spectrum_heavy_charges[i]) != charge)
           {
             charge_fits = false;
           }
@@ -342,6 +352,10 @@ protected:
               xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
               xlink_peaks.getIntegerDataArrays()[0].push_back(charge);
               used_peaks.push_back(matched_fragments_with_shift[i].first);
+              if (deisotoped)
+              {
+                xlink_peaks.getIntegerDataArrays()[1].push_back(spectrum_heavy_iso_peaks[matched_fragments_with_shift[i].first]);
+              }
             }
           }
         }
@@ -353,10 +367,14 @@ protected:
       PeakSpectrum linear_peaks;
 
       PeakSpectrum::IntegerDataArray spectrum_light_charges;
+      PeakSpectrum::IntegerDataArray spectrum_light_iso_peaks;
       if (spectrum_light.getIntegerDataArrays().size() > 0)
       {
-        spectrum_light_charges = spectrum_light.getIntegerDataArrays()[0];
-        linear_peaks.getIntegerDataArrays().resize(1);
+        spectrum_light_charges = spectrum_light.getIntegerDataArrayByName("Charges");
+        spectrum_light_iso_peaks = spectrum_light.getIntegerDataArrayByName("NumIsoPeaks");
+        linear_peaks.getIntegerDataArrays().resize(2);
+        linear_peaks.getIntegerDataArrays()[0].setName("Charges");
+        linear_peaks.getIntegerDataArrays()[1].setName("NumIsoPeaks");
       }
       for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
       {
@@ -364,6 +382,7 @@ protected:
         if (spectrum_light_charges.size() > 0)
         {
           linear_peaks.getIntegerDataArrays()[0].push_back(spectrum_light_charges[matched_fragments_without_shift[i].first]);
+          linear_peaks.getIntegerDataArrays()[1].push_back(spectrum_light_iso_peaks[matched_fragments_without_shift[i].first]);
         }
       }
       LOG_DEBUG << "done creating linear ion spectrum, total linear peaks: " << linear_peaks.size() << endl;

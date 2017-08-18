@@ -61,6 +61,7 @@ namespace OpenMS
         float_array.insert(float_array.end(), first_spectrum.getFloatDataArrays()[i].begin(), first_spectrum.getFloatDataArrays()[i].end());
         float_array.insert(float_array.end(), second_spectrum.getFloatDataArrays()[i].begin(), second_spectrum.getFloatDataArrays()[i].end());
         resulting_spectrum.getFloatDataArrays().push_back(float_array);
+        resulting_spectrum.getFloatDataArrays()[i].setName(first_spectrum.getFloatDataArrays()[i].getName());
       }
     }
 
@@ -72,6 +73,7 @@ namespace OpenMS
         string_array.insert(string_array.end(), first_spectrum.getStringDataArrays()[i].begin(), first_spectrum.getStringDataArrays()[i].end());
         string_array.insert(string_array.end(), second_spectrum.getStringDataArrays()[i].begin(), second_spectrum.getStringDataArrays()[i].end());
         resulting_spectrum.getStringDataArrays().push_back(string_array);
+        resulting_spectrum.getStringDataArrays()[i].setName(first_spectrum.getStringDataArrays()[i].getName());
       }
     }
 
@@ -83,6 +85,7 @@ namespace OpenMS
         integer_array.insert(integer_array.end(), first_spectrum.getIntegerDataArrays()[i].begin(), first_spectrum.getIntegerDataArrays()[i].end());
         integer_array.insert(integer_array.end(), second_spectrum.getIntegerDataArrays()[i].begin(), second_spectrum.getIntegerDataArrays()[i].end());
         resulting_spectrum.getIntegerDataArrays().push_back(integer_array);
+        resulting_spectrum.getIntegerDataArrays()[i].setName(first_spectrum.getIntegerDataArrays()[i].getName());
       }
     }
 
