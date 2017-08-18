@@ -57,6 +57,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/DATASTRUCTURES/Polynomial.h>
+#include <OpenMS/MATH/MISC/MIDAsFFT.h>
 
 using namespace std;
 
@@ -619,69 +620,6 @@ namespace OpenMS
     
   }
 
-  void four1(double *Data, int nn, int isign)
-  {
-    unsigned long i, j, m, n, mmax, istep;
-    double wr, wpr, wpi, wi, theta;
-    double wtemp, tempr, tempi;
-    double one_pi = acos(-1);
-    double two_pi= 2*one_pi;
-
-    /* Perform bit reversal of Data[] */
-    n = nn << 1;
-    j=1;
-    for (i=1; i<n; i+=2)
-      {
-        if (j > i)
-          {
-            wtemp = Data[i];
-            Data[i] = Data[j];
-            Data[j] = wtemp;
-            wtemp = Data[i+1];
-            Data[i+1] = Data[j+1];
-            Data[j+1] = wtemp;
-          }
-        m = n >> 1;
-        while (m >= 2 && j > m)
-          {
-            j -= m;
-            m >>= 1;
-          }
-        j += m;
-      }
- 
-    /* Perform Danielson-Lanczos section of FFT */
-    n = nn << 1;
-    mmax = 2;
-    while (n > mmax)  /* Loop executed log(2)nn times */
-      {
-	istep = mmax << 1;
-	theta = isign * (two_pi/mmax);  
-	wtemp = sin(0.5*theta);
-	wpr = -2.0*wtemp*wtemp;
-	wpi = sin(theta);
-	wr = 1.0;
-	wi = 0.0;
-	for (m=1; m<mmax; m+=2)
-	  {
-	    for (i=m; i<=n; i+=istep)
-	      {
-		j = i+mmax;                      
-
-		tempr = wr*Data[j]-wi*Data[j+1];
-		tempi = wr*Data[j+1]+wi*Data[j];
-		Data[j] = Data[i]-tempr;
-		Data[j+1] = Data[i+1]-tempi;
-		Data[i] += tempr;
-		Data[i+1] += tempi;
-	      }
-	    wr = (wtemp=wr)*wpr-wi*wpi+wr;
-	    wi = wi*wpr+wtemp*wpi+wi;
-	  }
-	mmax = istep;
-      }
-  }
-
   void MIDAsFFTID::run()
   {
     
@@ -709,7 +647,7 @@ namespace OpenMS
         k++;
       }
 
-      four1(input, size/2, -1);
+      fft(input, size/2);
     
       k = 1;
       for(auto& sample : output_)
@@ -736,10 +674,10 @@ namespace OpenMS
                     return (item1.r < item2.r);
                   })->r;
     
-    for(auto& sample : output_)
-    {
-      //LOG_INFO << sample.r << endl ;//<< " "<< sample.i << endl; 
-    }
+    // for(auto& sample : output_)
+    // {
+    //   //LOG_INFO << sample.r << endl ;//<< " "<< sample.i << endl; 
+    // }
 
     // double avg_prob= 0;
     // int k = 0;
@@ -755,6 +693,7 @@ namespace OpenMS
     // if(k!=0){
     //   avg_prob/=k;
     // }
+
     LOG_INFO << "Resolution: " << resolution_ << endl;
 
     Stats coarse(formulaMeanAndVariance()), fine(formulaMeanAndVariance(resolution_));

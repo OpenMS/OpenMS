@@ -8,6 +8,7 @@ BSpline2d.h
 CubicSpline2d.h
 LinearInterpolation.h
 MathFunctions.h
+MIDAsFFT.h
 NonNegativeLeastSquaresSolver.h
 MSNumpress.h
 RANSAC.h

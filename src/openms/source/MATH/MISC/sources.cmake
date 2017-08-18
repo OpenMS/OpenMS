@@ -8,6 +8,7 @@ BSpline2d.cpp
 CubicSpline2d.cpp
 LinearInterpolation.cpp
 MathFunctions.cpp
+MIDAsFFT.cpp
 NonNegativeLeastSquaresSolver.cpp
 MSNumpress.cpp
 RANSAC.cpp
