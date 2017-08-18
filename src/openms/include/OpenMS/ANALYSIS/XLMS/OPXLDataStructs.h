@@ -150,6 +150,11 @@ namespace OpenMS
         double PScoreBoth;
         double num_iso_peaks_mean;
 
+        double num_iso_peaks_mean_linear_alpha;
+        double num_iso_peaks_mean_linear_beta;
+        double num_iso_peaks_mean_xlinks_alpha;
+        double num_iso_peaks_mean_xlinks_beta;
+
         double ppm_error_sum_linear_alpha;
         double ppm_error_sum_linear_beta;
         double ppm_error_sum_xlinks_alpha;
