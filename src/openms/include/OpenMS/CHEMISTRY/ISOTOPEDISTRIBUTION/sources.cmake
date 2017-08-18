@@ -4,7 +4,7 @@ set(directory include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION)
 
 ### list all header files of the directory here
 set(sources_list_h
-  CoarseID.h
+  CoarseIsotopeDistribution.h
   Ecipex.h
   Base.h
 )

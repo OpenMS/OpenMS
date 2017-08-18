@@ -41,7 +41,7 @@
 #include <algorithm>
 
 #include <OpenMS/CONCEPT/Types.h>
-//#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Base.h>
+//#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
 
 namespace OpenMS
 {

@@ -4,8 +4,8 @@ set(directory source/CHEMISTRY/ISOTOPEDISTRIBUTION)
 
 ### list all filenames of the directory here
 set(sources_list
-  Base.cpp
-  CoarseID.cpp
+  Container.cpp
+  CoarseIsotopeDistribution.cpp
   Ecipex.cpp
 )
 

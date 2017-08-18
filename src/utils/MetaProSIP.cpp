@@ -54,7 +54,7 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 
 #include <boost/math/distributions/normal.hpp>
 
@@ -1354,7 +1354,7 @@ public:
         isotopes.insert(12, 1.0 - a);
         isotopes.insert(13, a);
         e2->setIsotopeDistribution(isotopes);
-        CoarseID dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_carbon + additional_isotopes);
+        CoarseIsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_carbon + additional_isotopes);
         dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1464,7 +1464,7 @@ public:
         isotopes.insert(14, 1.0 - a);
         isotopes.insert(15, a);
         e2->setIsotopeDistribution(isotopes);
-        CoarseID dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_nitrogens + additional_isotopes);
+        CoarseIsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_nitrogens + additional_isotopes);
         dist += modification_dist; // calculate convolution with isotope distribution of modification(s)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1530,7 +1530,7 @@ public:
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, a);
         e2->setIsotopeDistribution(isotopes);
-        CoarseID dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_element + additional_isotopes);
+        CoarseIsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_element + additional_isotopes);
         dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
@@ -1592,7 +1592,7 @@ public:
       for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / static_cast<double>(max_labeling_element * 2.0))
       {
         double a = abundance / 100.0;
-        CoarseID isotopes;
+        CoarseIsotopeDistribution isotopes;
         isotopes.insert(1, 1.0 - a);
         isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
         isotopes.insert(3, a);
@@ -1658,7 +1658,7 @@ public:
       isotopes.insert(14, 1.0 - a);
       isotopes.insert(15, a);
       e2->setIsotopeDistribution(isotopes);
-      CoarseID dist(element_count);
+      CoarseIsotopeDistribution dist(element_count);
       dist.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1694,7 +1694,7 @@ public:
       isotopes.insert(12, 1.0 - a);
       isotopes.insert(13, a);
       e2->setIsotopeDistribution(isotopes);
-      CoarseID dist(element_count);
+      CoarseIsotopeDistribution dist(element_count);
       dist.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1730,7 +1730,7 @@ public:
       isotopes.insert(1, 1.0 - a);
       isotopes.insert(2, a);
       e2->setIsotopeDistribution(isotopes);
-      CoarseID dist(element_count);
+      CoarseIsotopeDistribution dist(element_count);
       dist.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -1767,7 +1767,7 @@ public:
       isotopes.insert(2, 0);
       isotopes.insert(3, a);
       e2->setIsotopeDistribution(isotopes);
-      CoarseID dist(element_count * 2); // spaces are 2 Da between 18O and 16O but we observe isotopic peaks at every (approx.) nominal mass
+      CoarseIsotopeDistribution dist(element_count * 2); // spaces are 2 Da between 18O and 16O but we observe isotopic peaks at every (approx.) nominal mass
       dist.estimateFromPeptideWeight(mass);
       IsotopeDistribution::ContainerType container = dist.getContainer();
       vector<double> intensities;
@@ -2204,7 +2204,7 @@ protected:
       // calculate isotope distribution of averagine peptide as this will be used to detect spurious correlations with coeluting peptides
       // Note: actually it would be more accurate to use 15N-14N or 13C-12C distances. This doesn't affect averagine distribution much so this approximation is sufficient. (see TODO)
       double current_weight = peptide_weight + ii * 1.0; // TODO: use 13C-12C or 15N-14N instead of 1.0 as mass distance to be super accurate
-      CoarseID averagine = CoarseID(10);
+      CoarseIsotopeDistribution averagine = CoarseIsotopeDistribution(10);
       averagine.estimateFromPeptideWeight(current_weight);
 
       IsotopeDistribution::ContainerType averagine_intensities_pairs = averagine.getContainer();

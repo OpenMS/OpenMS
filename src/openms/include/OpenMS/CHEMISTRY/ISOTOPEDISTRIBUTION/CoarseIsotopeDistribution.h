@@ -35,21 +35,21 @@
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_COARSEID_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_COARSEID_H
 
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Base.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
 
 
 namespace OpenMS
 {
 
-  class OPENMS_DLLAPI CoarseID : public IsotopeDistribution
+  class OPENMS_DLLAPI CoarseIsotopeDistribution : public IsotopeDistribution
   {
 
  public:
-    CoarseID();
+    CoarseIsotopeDistribution();
 
-    CoarseID(Size max_isotope);
+    CoarseIsotopeDistribution(Size max_isotope);
 
-    CoarseID(const IsotopeDistribution& isotope_distribution);
+    CoarseIsotopeDistribution(const IsotopeDistribution& isotope_distribution);
 
     /// @name Accessors
     //@{
@@ -70,10 +70,10 @@ namespace OpenMS
     void clear();
     //@}
     /// equality operator, returns true if the @p isotope_distribution is identical to this, false else
-    // bool operator==(const CoarseID& isotope_distribution) const;
+    // bool operator==(const CoarseIsotopeDistribution& isotope_distribution) const;
 
     /// inequality operator, returns true if the @p isotope_distribution differs from this, false else
-    bool operator!=(const CoarseID& isotope_distribution) const;
+    bool operator!=(const CoarseIsotopeDistribution& isotope_distribution) const;
 
 
     /**
@@ -240,22 +240,22 @@ namespace OpenMS
     */
     void calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
 
-    CoarseID& operator=(const CoarseID& iso);
+    CoarseIsotopeDistribution& operator=(const CoarseIsotopeDistribution& iso);
 
     /// equality operator, returns true if the @p isotope_distribution is identical to this, false else
-    bool operator==(const CoarseID& isotope_distribution) const;
+    bool operator==(const CoarseIsotopeDistribution& isotope_distribution) const;
 
     /// operator which adds this distribution and the @p isotope_distribution to return IsotopeDisribution (similar to convolve distributions)
-    CoarseID operator+(const CoarseID& isotope_distribution) const;
+    CoarseIsotopeDistribution operator+(const CoarseIsotopeDistribution& isotope_distribution) const;
 
     /// operator which adds @p isotope_distribution to this (similar to convolve distributions)
-    CoarseID& operator+=(const CoarseID& isotope_distribution);
+    CoarseIsotopeDistribution& operator+=(const CoarseIsotopeDistribution& isotope_distribution);
 
     /// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+')
-    CoarseID operator*(Size factor) const;
+    CoarseIsotopeDistribution operator*(Size factor) const;
 
     /// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+=')
-    CoarseID& operator*=(Size factor);
+    CoarseIsotopeDistribution& operator*=(Size factor);
     
  protected:
     /// convolves the distributions @p left and @p right and stores the result in @p result

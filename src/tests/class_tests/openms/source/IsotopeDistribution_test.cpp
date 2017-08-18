@@ -36,8 +36,8 @@
 ///////////////////////////
 
 // This one is going to be tested.
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Base.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Ecipex.h>
 
 ///////////////////////////
@@ -67,27 +67,27 @@ using namespace std;
 
 IsotopeDistribution* nullPointer = 0;
 
-START_SECTION(CoarseID())
-	CoarseID* ptr = 0;
-	ptr = new CoarseID();
+START_SECTION(CoarseIsotopeDistribution())
+	CoarseIsotopeDistribution* ptr = 0;
+	ptr = new CoarseIsotopeDistribution();
 	Size max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 0)
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;
 END_SECTION
 
-START_SECTION(CoarseID(Size max_isotope))
-	CoarseID* ptr = new CoarseID(117);
+START_SECTION(CoarseIsotopeDistribution(Size max_isotope))
+	CoarseIsotopeDistribution* ptr = new CoarseIsotopeDistribution(117);
 	Size max_isotope = ptr->getMaxIsotope();
   TEST_EQUAL(max_isotope, 117)
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;
 END_SECTION
 
-CoarseID* iso = new CoarseID();
+CoarseIsotopeDistribution* iso = new CoarseIsotopeDistribution();
 
-START_SECTION(CoarseID(const CoarseID& isotope_distribution))
-	CoarseID copy;
+START_SECTION(CoarseIsotopeDistribution(const CoarseIsotopeDistribution& isotope_distribution))
+	CoarseIsotopeDistribution copy;
 	copy = *iso;
   for (Size i = 0; i != copy.getContainer().size(); ++i)
   {
@@ -100,13 +100,13 @@ START_SECTION(CoarseID(const CoarseID& isotope_distribution))
 	TEST_EQUAL(copy.getMaxIsotope(), iso->getMaxIsotope())
 END_SECTION
 
-START_SECTION(~CoarseID())
-	CoarseID* ptr = new CoarseID(117);
+START_SECTION(~CoarseIsotopeDistribution())
+	CoarseIsotopeDistribution* ptr = new CoarseIsotopeDistribution(117);
 	delete ptr;
 END_SECTION
 
-START_SECTION(CoarseID& operator = (const CoarseID& isotope_distribution))
-	CoarseID copy;
+START_SECTION(CoarseIsotopeDistribution& operator = (const CoarseIsotopeDistribution& isotope_distribution))
+	CoarseIsotopeDistribution copy;
 	copy = *iso;
 	for (Size i = 0; i != copy.getContainer().size(); ++i)
 	{
@@ -120,7 +120,7 @@ START_SECTION(CoarseID& operator = (const CoarseID& isotope_distribution))
 END_SECTION
 
 START_SECTION(void setMaxIsotope(Size max_isotope))
-	CoarseID iso2;
+	CoarseIsotopeDistribution iso2;
 	iso2.estimateFromPeptideWeight(1234.2);
 	TEST_EQUAL(iso2.getMaxIsotope(), 0)
 	TEST_EQUAL(iso2.getContainer().size(), 317)
@@ -132,30 +132,30 @@ START_SECTION(Size getMaxIsotope() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(CoarseID operator + (const CoarseID& isotope_distribution) const)
-	CoarseID iso1(1), iso2(1);
-	CoarseID result = iso1 + iso2;
+START_SECTION(CoarseIsotopeDistribution operator + (const CoarseIsotopeDistribution& isotope_distribution) const)
+	CoarseIsotopeDistribution iso1(1), iso2(1);
+	CoarseIsotopeDistribution result = iso1 + iso2;
 	TEST_EQUAL(result.size(), 1)
-	CoarseID::ContainerType container = result.getContainer();
+	CoarseIsotopeDistribution::ContainerType container = result.getContainer();
 	TEST_EQUAL(container[0].getMZ(), 0)
 	TEST_EQUAL(container[0].getIntensity(), 1)
 END_SECTION
 
-START_SECTION(CoarseID& operator *= (Size factor))
+START_SECTION(CoarseIsotopeDistribution& operator *= (Size factor))
 	EmpiricalFormula ef("C222N190O110");
-	CoarseID id = ef.getIsotopeDistribution(11);
-	CoarseID::ContainerType container;
-	container.push_back(CoarseID::MassAbundance(7084, 0.0349429));
-	container.push_back(CoarseID::MassAbundance(7085, 0.109888));
-	container.push_back(CoarseID::MassAbundance(7086, 0.180185));
-	container.push_back(CoarseID::MassAbundance(7087, 0.204395));
-	container.push_back(CoarseID::MassAbundance(7088, 0.179765));
-	container.push_back(CoarseID::MassAbundance(7089, 0.130358));
-	container.push_back(CoarseID::MassAbundance(7090, 0.0809864));
-	container.push_back(CoarseID::MassAbundance(7091, 0.0442441));
-	container.push_back(CoarseID::MassAbundance(7092, 0.0216593));
-	container.push_back(CoarseID::MassAbundance(7093, 0.00963707));
-	container.push_back(CoarseID::MassAbundance(7094, 0.0039406));
+	CoarseIsotopeDistribution id = ef.getIsotopeDistribution(11);
+	CoarseIsotopeDistribution::ContainerType container;
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7084, 0.0349429));
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7085, 0.109888));
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7086, 0.180185));
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7087, 0.204395));
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7088, 0.179765));
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7089, 0.130358));
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7090, 0.0809864));
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7091, 0.0442441));
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7092, 0.0216593));
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7093, 0.00963707));
+	container.push_back(CoarseIsotopeDistribution::MassAbundance(7094, 0.0039406));
 
 	for (Size i = 0; i != id.size(); ++i)
 	{
@@ -166,18 +166,18 @@ START_SECTION(CoarseID& operator *= (Size factor))
   // test gapped isotope distributions, e.g. bromide 79,81 (missing 80)
   {
     EmpiricalFormula ef("Br2");
-    CoarseID id = ef.getIsotopeDistribution(5);
+    CoarseIsotopeDistribution id = ef.getIsotopeDistribution(5);
     container.clear();
     // the expected results as pairs of
     // [nominal mass, probability]
     // derived via convolution of elemental probabilities; the sum of all probabilities is 1
     // For Br2, this is simply the product of Bromine x Bromine, which
     // has a light isotope (79 Da, ~50% probability) and a heavy isotope (81 Da, ~50% probability)
-    container.push_back(CoarseID::MassAbundance(158, 0.2569476));  // 79+79, ~ 0.5 * 0.5
-    container.push_back(CoarseID::MassAbundance(159, 0.0));        // this mass cannot be explained by two Br atoms
-    container.push_back(CoarseID::MassAbundance(160, 0.49990478)); // 79+81 (or 81+79), ~ 0.5 * 0.5 + 0.5 * 0.5
-    container.push_back(CoarseID::MassAbundance(161, 0.0));        // same as mass 159
-    container.push_back(CoarseID::MassAbundance(162, 0.24314761)); // 81+81, ~ 0.5 * 0.5
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(158, 0.2569476));  // 79+79, ~ 0.5 * 0.5
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(159, 0.0));        // this mass cannot be explained by two Br atoms
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(160, 0.49990478)); // 79+81 (or 81+79), ~ 0.5 * 0.5 + 0.5 * 0.5
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(161, 0.0));        // same as mass 159
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(162, 0.24314761)); // 81+81, ~ 0.5 * 0.5
     for (Size i = 0; i != id.size(); ++i)
     {
       TEST_EQUAL(round(id.getContainer()[i].getMZ()), container[i].getMZ())
@@ -188,14 +188,14 @@ START_SECTION(CoarseID& operator *= (Size factor))
     // testing a formula which has more than one element (here: C and Br), since the internal computation is different
     // The convolution is similar to the one above, but add another convolution step with Carbon (hence the lightest mass is 12 Da heavier)
     EmpiricalFormula ef("CBr2");
-    CoarseID id = ef.getIsotopeDistribution(7);
+    CoarseIsotopeDistribution id = ef.getIsotopeDistribution(7);
     container.clear();
-    container.push_back(CoarseID::MassAbundance(170, 0.254198270573));
-    container.push_back(CoarseID::MassAbundance(171, 0.002749339427));
-    container.push_back(CoarseID::MassAbundance(172, 0.494555798854));
-    container.push_back(CoarseID::MassAbundance(173, 0.005348981146));
-    container.push_back(CoarseID::MassAbundance(174, 0.240545930573));
-    container.push_back(CoarseID::MassAbundance(175, 0.002601679427));
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(170, 0.254198270573));
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(171, 0.002749339427));
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(172, 0.494555798854));
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(173, 0.005348981146));
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(174, 0.240545930573));
+    container.push_back(CoarseIsotopeDistribution::MassAbundance(175, 0.002601679427));
     for (Size i = 0; i != id.size(); ++i)
     {
       TEST_EQUAL(round(id.getContainer()[i].getMZ()), container[i].getMZ())
@@ -205,19 +205,19 @@ START_SECTION(CoarseID& operator *= (Size factor))
 
 END_SECTION
 
-START_SECTION(bool operator==(const CoarseID &isotope_distribution) const)
-	CoarseID iso1(1);
-	CoarseID iso2(2);
+START_SECTION(bool operator==(const CoarseIsotopeDistribution &isotope_distribution) const)
+	CoarseIsotopeDistribution iso1(1);
+	CoarseIsotopeDistribution iso2(2);
 	TEST_EQUAL(iso1 == iso2, false)
 	iso2.setMaxIsotope(1);
 	TEST_EQUAL(iso1 == iso2, true)
-	CoarseID iso3(EmpiricalFormula("C4").getIsotopeDistribution(11)),
+	CoarseIsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(11)),
     iso4(EmpiricalFormula("C4").getIsotopeDistribution(11));
 	TEST_EQUAL(iso3 == iso4, true)
 END_SECTION
 
 START_SECTION(void set(const ContainerType &distribution))
-	CoarseID iso1(EmpiricalFormula("C4").getIsotopeDistribution(11)), iso2;
+	CoarseIsotopeDistribution iso1(EmpiricalFormula("C4").getIsotopeDistribution(11)), iso2;
 	TEST_EQUAL(iso1 == iso2, false)
 	IsotopeDistribution::ContainerType container = iso1.getContainer();
 	iso2.set(container);
@@ -231,25 +231,25 @@ START_SECTION(const ContainerType& getContainer() const)
 END_SECTION
 
 START_SECTION(Size getMax() const)
-	CoarseID iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
+	CoarseIsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
 	TEST_EQUAL(iso.getMax(), 6)
 END_SECTION
 
 START_SECTION(Size getMin() const)
-	CoarseID iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
+	CoarseIsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(11));
 	TEST_EQUAL(iso.getMin(), 2)
-	CoarseID iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
+	CoarseIsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
 	TEST_EQUAL(iso2.getMin(), 48)
 END_SECTION
 
 START_SECTION(Size size() const)
-	CoarseID iso1, iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
+	CoarseIsotopeDistribution iso1, iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
 	TEST_EQUAL(iso1.size(), 1)
 	TEST_EQUAL(iso2.size(), 5)
 END_SECTION
 
 START_SECTION(void clear())
-	CoarseID iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
+	CoarseIsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(11));
 	TEST_EQUAL(iso2.size(), 5)
 	iso2.clear();
 	TEST_EQUAL(iso2.size(), 0)
@@ -257,7 +257,7 @@ END_SECTION
 
 START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	// hard to test as this is an rough estimate
-	CoarseID iso(3);
+	CoarseIsotopeDistribution iso(3);
 	iso.estimateFromPeptideWeight(100.0);
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.949735)
 
@@ -268,9 +268,9 @@ START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.046495)
 END_SECTION
 
-START_SECTION(void CoarseID::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::vector<UInt>& precursor_isotopes))
-	CoarseID iso;
-	CoarseID iso2;
+START_SECTION(void CoarseIsotopeDistribution::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::vector<UInt>& precursor_isotopes))
+	CoarseIsotopeDistribution iso;
+	CoarseIsotopeDistribution iso2;
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M+2 precursor isotopes
 	precursor_isotopes.insert(2);
@@ -287,7 +287,7 @@ START_SECTION(void CoarseID::estimateForFragmentFromPeptideWeightAndS(double ave
 	iso2.estimateForFragmentFromPeptideWeight(200.0, 100.0, precursor_isotopes);
 	iso2.renormalize();
 
-	CoarseID::ConstIterator it1(iso.begin()), it2(iso2.begin());
+	CoarseIsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso2.begin());
 	for (; it1 != iso.end(); ++it1, ++it2)
 	{
 		TEST_EQUAL(it1->getMZ(), it2->getMZ())
@@ -311,9 +311,9 @@ START_SECTION(void CoarseID::estimateForFragmentFromPeptideWeightAndS(double ave
 
 END_SECTION
 
-START_SECTION(void CoarseID::estimateFromPeptideWeightAndS(double average_weight_precursor, UInt S))
-	CoarseID iso(3);
-	CoarseID iso2(3);
+START_SECTION(void CoarseIsotopeDistribution::estimateFromPeptideWeightAndS(double average_weight_precursor, UInt S))
+	CoarseIsotopeDistribution iso(3);
+	CoarseIsotopeDistribution iso2(3);
 	// These are regression tests, but the results also follow an expected pattern.
 
 	// With 0 sulfurs, it should be very unlikely for this tiny peptide to be M+2.
@@ -327,7 +327,7 @@ START_SECTION(void CoarseID::estimateFromPeptideWeightAndS(double average_weight
 	iso2.estimateFromPeptideWeightAndS(100.0, 0);
 	iso2.renormalize();
 
-	CoarseID::ConstIterator it1(iso.begin()), it2(iso2.begin());
+	CoarseIsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso2.begin());
 	for (; it1 != iso.end(); ++it1, ++it2)
 	{
 		TEST_EQUAL(it1->getMZ(), it2->getMZ());
@@ -352,7 +352,7 @@ END_SECTION
 
 START_SECTION(void estimateFromRNAWeight(double average_weight))
     // hard to test as this is an rough estimate
-    CoarseID iso(3);
+    CoarseIsotopeDistribution iso(3);
     iso.estimateFromRNAWeight(100.0);
     TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.958166)
 
@@ -366,7 +366,7 @@ END_SECTION
 
 START_SECTION(void estimateFromDNAWeight(double average_weight))
     // hard to test as this is an rough estimate
-    CoarseID iso(3);
+    CoarseIsotopeDistribution iso(3);
     iso.estimateFromDNAWeight(100.0);
     TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.958166)
 
@@ -378,7 +378,7 @@ START_SECTION(void estimateFromDNAWeight(double average_weight))
 END_SECTION
 
 START_SECTION(void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
-	CoarseID iso;
+	CoarseIsotopeDistribution iso;
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
 	precursor_isotopes.insert(0);
@@ -433,9 +433,9 @@ START_SECTION(void estimateForFragmentFromPeptideWeight(double average_weight_pr
 	// If the fragment is identical to the precursor, then the distribution
 	// should be the same as if it was just a precursor that wasn't isolated.
 	iso.estimateForFragmentFromPeptideWeight(200.0, 200.0, precursor_isotopes);
-	CoarseID iso_precursor(2);
+	CoarseIsotopeDistribution iso_precursor(2);
 	iso_precursor.estimateFromPeptideWeight(200.0);
-	CoarseID::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
+	CoarseIsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
 
 	for (; it1 != iso.end(); ++it1, ++it2)
 	{
@@ -446,7 +446,7 @@ START_SECTION(void estimateForFragmentFromPeptideWeight(double average_weight_pr
 END_SECTION
 
 START_SECTION(void estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
-	CoarseID iso;
+	CoarseIsotopeDistribution iso;
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
 	precursor_isotopes.insert(0);
@@ -479,9 +479,9 @@ START_SECTION(void estimateForFragmentFromDNAWeight(double average_weight_precur
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.555730613643729)
 
 	iso.estimateForFragmentFromDNAWeight(200.0, 200.0, precursor_isotopes);
-	CoarseID iso_precursor(2);
+	CoarseIsotopeDistribution iso_precursor(2);
 	iso_precursor.estimateFromDNAWeight(200.0);
-	CoarseID::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
+	CoarseIsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
 
 	for (; it1 != iso.end(); ++it1, ++it2)
 	{
@@ -492,7 +492,7 @@ START_SECTION(void estimateForFragmentFromDNAWeight(double average_weight_precur
 END_SECTION
 
 START_SECTION(void estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
-	CoarseID iso;
+	CoarseIsotopeDistribution iso;
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
 	precursor_isotopes.insert(0);
@@ -525,9 +525,9 @@ START_SECTION(void estimateForFragmentFromRNAWeight(double average_weight_precur
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.558201381343203)
 
 	iso.estimateForFragmentFromRNAWeight(200.0, 200.0, precursor_isotopes);
-	CoarseID iso_precursor(2);
+	CoarseIsotopeDistribution iso_precursor(2);
 	iso_precursor.estimateFromRNAWeight(200.0);
-	CoarseID::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
+	CoarseIsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
 
 	for (; it1 != iso.end(); ++it1, ++it2)
 	{
@@ -539,8 +539,8 @@ END_SECTION
 
 START_SECTION(void estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes, double C, double H, double N, double O, double S, double P))
 	// We are testing that the parameterized version matches the hardcoded version.
-	CoarseID iso(3);
-	CoarseID iso2(3);
+	CoarseIsotopeDistribution iso(3);
+	CoarseIsotopeDistribution iso2(3);
 	std::set<UInt> precursor_isotopes;
 	precursor_isotopes.insert(0);
 	precursor_isotopes.insert(1);
@@ -553,29 +553,29 @@ END_SECTION
 
 START_SECTION(void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P))
     // We are testing that the parameterized version matches the hardcoded version.
-    CoarseID iso(3);
-    CoarseID iso2(3);
+    CoarseIsotopeDistribution iso(3);
+    CoarseIsotopeDistribution iso2(3);
     iso.estimateFromWeightAndComp(1000.0, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0.0);
     iso2.estimateFromPeptideWeight(1000.0);
     TEST_EQUAL(iso.begin()->getIntensity(),iso2.begin()->getIntensity());
 END_SECTION
 
 START_SECTION(void trimRight(double cutoff))
-	CoarseID iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
+	CoarseIsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
 	TEST_NOT_EQUAL(iso.size(),3)
 	iso.trimRight(0.2);
 	TEST_EQUAL(iso.size(),3)
 END_SECTION
 
 START_SECTION(void trimLeft(double cutoff))
-	CoarseID iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
+	CoarseIsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
 	iso.trimRight(0.2);
 	iso.trimLeft(0.2);
 	TEST_EQUAL(iso.size(),2)
 END_SECTION
 
 START_SECTION(void renormalize())
-	CoarseID iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
+	CoarseIsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
 	iso.trimRight(0.2);
 	iso.trimLeft(0.2);
 	iso.renormalize();
@@ -588,11 +588,11 @@ START_SECTION(void renormalize())
 	TEST_REAL_SIMILAR(sum, 1.0)
 END_SECTION
 
-START_SECTION(IsotopeDistribution& operator+=(const CoarseID &isotope_distribution))
-	CoarseID iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)),
+START_SECTION(IsotopeDistribution& operator+=(const CoarseIsotopeDistribution &isotope_distribution))
+	CoarseIsotopeDistribution iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)),
 											iso2(EmpiricalFormula("H2").getIsotopeDistribution(11));
 	TEST_EQUAL(iso1 == iso2, false)
-	iso1 += CoarseID(EmpiricalFormula("H1").getIsotopeDistribution(11));
+	iso1 += CoarseIsotopeDistribution(EmpiricalFormula("H1").getIsotopeDistribution(11));
 	TEST_EQUAL(iso1.size() == iso2.size(), true)
 	IsotopeDistribution::ConstIterator it1(iso1.begin()), it2(iso2.begin());
 
@@ -604,11 +604,11 @@ START_SECTION(IsotopeDistribution& operator+=(const CoarseID &isotope_distributi
 
 END_SECTION
 
-START_SECTION(CoarseID operator *(Size factor) const)
-	CoarseID iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)),
+START_SECTION(CoarseIsotopeDistribution operator *(Size factor) const)
+	CoarseIsotopeDistribution iso1(EmpiricalFormula("H1").getIsotopeDistribution(11)),
 											iso2(EmpiricalFormula("H5").getIsotopeDistribution(11));
 	TEST_EQUAL(iso1 == iso2, false)
-	CoarseID iso3 = iso1 * 5;
+	CoarseIsotopeDistribution iso3 = iso1 * 5;
 	iso3.renormalize();
 	iso2.renormalize();
 
@@ -622,27 +622,27 @@ START_SECTION(CoarseID operator *(Size factor) const)
 	}
 END_SECTION
 
-START_SECTION(bool operator!=(const CoarseID &isotope_distribution) const)
-  CoarseID iso1(1);
-  CoarseID iso2(2);
+START_SECTION(bool operator!=(const CoarseIsotopeDistribution &isotope_distribution) const)
+  CoarseIsotopeDistribution iso1(1);
+  CoarseIsotopeDistribution iso2(2);
   TEST_EQUAL(iso1 != iso2, true)
   iso2.setMaxIsotope(1);
   TEST_EQUAL(iso1 != iso2, false)
-  CoarseID iso3(EmpiricalFormula("C4").getIsotopeDistribution(11)),
+  CoarseIsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(11)),
                       iso4(EmpiricalFormula("C4").getIsotopeDistribution(11));
   TEST_EQUAL(iso3 != iso4, false)
 END_SECTION
 
-START_SECTION(CoarseID calcFragmentIsotopeDist(const CoarseID & comp_fragment_isotope_distribution, const std::set<UInt>& precursor_isotopes))
-  CoarseID iso1(EmpiricalFormula("C1").getIsotopeDistribution(11)); // fragment
-  CoarseID iso2(EmpiricalFormula("C2").getIsotopeDistribution(11)); // complementary fragment
+START_SECTION(CoarseIsotopeDistribution calcFragmentIsotopeDist(const CoarseIsotopeDistribution & comp_fragment_isotope_distribution, const std::set<UInt>& precursor_isotopes))
+  CoarseIsotopeDistribution iso1(EmpiricalFormula("C1").getIsotopeDistribution(11)); // fragment
+  CoarseIsotopeDistribution iso2(EmpiricalFormula("C2").getIsotopeDistribution(11)); // complementary fragment
 
   std::set<UInt> precursor_isotopes;
   precursor_isotopes.insert(0);
   precursor_isotopes.insert(1);
 
   precursor_isotopes.insert(2);
-  CoarseID iso3;
+  CoarseIsotopeDistribution iso3;
   iso3.calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
   iso3.renormalize();
 
@@ -657,7 +657,7 @@ START_SECTION(CoarseID calcFragmentIsotopeDist(const CoarseID & comp_fragment_is
   }
 
   precursor_isotopes.erase(precursor_isotopes.find(2));
-  CoarseID iso4;
+  CoarseIsotopeDistribution iso4;
   iso4.calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
   iso4.renormalize();
 

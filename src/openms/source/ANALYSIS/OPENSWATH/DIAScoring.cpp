@@ -35,7 +35,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseID.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
@@ -351,7 +351,7 @@ namespace OpenMS
     typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
 
     TheoreticalIsotopePattern isotopes;
-    CoarseID isotope_dist;
+    CoarseIsotopeDistribution isotope_dist;
     if (!sum_formula.empty())
     {
       // create the theoretical distribution from the sum formula

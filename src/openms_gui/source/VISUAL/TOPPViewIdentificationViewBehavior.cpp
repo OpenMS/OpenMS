@@ -32,7 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Base.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/Spectrum1DWidget.h>
