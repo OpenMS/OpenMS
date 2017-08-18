@@ -325,7 +325,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   ion_names.insert("[alpha|xi$x4]");
   ion_names.insert("[alpha|xi$x5]");
   ion_names.insert("[alpha|xi$x6]");
-  ion_names.insert("[S-linked-beta]");
+  ion_names.insert("[Q-linked-beta]");
   ion_names.insert("[M+H]");
   ion_names.insert("[M+H]-H2O");
   ion_names.insert("[M+H]-NH3");
@@ -337,6 +337,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   {
     String name = string_array[i];
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
+    // TEST_EQUAL(spec.getStringDataArrayByName("IonNames")[i], "test")
   }
 
   // beta annotations
@@ -349,7 +350,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   ion_names.insert("[beta|xi$x4]");
   ion_names.insert("[beta|xi$x5]");
   ion_names.insert("[beta|xi$x6]");
-  ion_names.insert("[S-linked-alpha]");
+  ion_names.insert("[Q-linked-alpha]");
   ion_names.insert("[M+H]");
   ion_names.insert("[M+H]-H2O");
   ion_names.insert("[M+H]-NH3");
@@ -360,6 +361,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   {
     String name = string_array[i];
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
+    // TEST_EQUAL(spec.getStringDataArrayByName("IonNames")[i], "test")
   }
 
   // test for charges stored in IntegerDataArray
