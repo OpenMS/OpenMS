@@ -58,6 +58,8 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/DATASTRUCTURES/Polynomial.h>
 #include <OpenMS/MATH/MISC/MIDAsFFT.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+
 
 using namespace std;
 
@@ -246,24 +248,24 @@ namespace OpenMS
     return distribution_.size() == 1  && distribution_.front().getMZ() == 0.0;
   }
 
-  inline bool desc_prob(const struct MIDAsPolynomialID::PMember& p0, const struct MIDAsPolynomialID::PMember& p)
+  inline bool desc_prob(const Peak1D& p0, const Peak1D& p)
   {
-    return p0.probability > p.probability;
+    return p0.getIntensity() > p.getIntensity();
   }
 
-  inline bool by_power(const struct MIDAsPolynomialID::PMember& p0, const struct MIDAsPolynomialID::PMember& p)
+  inline bool by_power(const Peak1D& p0, const Peak1D& p)
   {
-    return p0.power < p.power;
+    return p0.getMZ() < p.getMZ();
   }
 
-  inline bool zero_prob(const MIDAsPolynomialID::PMember& m)
+  inline bool zero_prob(const Peak1D& m)
   {
-    return m.probability == 0;
+    return m.getIntensity() == 0;
   }
 
-  inline bool zero_power(const MIDAsPolynomialID::PMember& m)
+  inline bool zero_power(const Peak1D& m)
   {
-    return m.power == 0;
+    return m.getMZ() == 0;
   }
 
   inline bool lightest(const IsotopeDistribution::MassAbundance& a, const IsotopeDistribution::MassAbundance& b)
@@ -302,7 +304,7 @@ namespace OpenMS
   {
     //raw must be ordered to work correctly ascending order on power field
 
-    UInt output_size = ceil((raw.back().power - raw.front().power)/resolution);
+    UInt output_size = ceil((raw.back().getMZ() - raw.front().getMZ())/resolution);
     LOG_INFO << "output size " << output_size << endl;
     LOG_INFO << "raw size " << raw.size() <<endl;
 
@@ -313,7 +315,7 @@ namespace OpenMS
     {
       // Is this the case?
       
-      UInt index = round((p.power - raw.front().power)/resolution);
+      UInt index = round((p.getMZ() - raw.front().getMZ())/resolution);
       if(index >= distribution_.size()){
 
         LOG_INFO << index <<endl;
@@ -322,9 +324,9 @@ namespace OpenMS
       auto& mass = distribution_[index].getPosition() ;
 
       mass = mass == 0 ?
-             raw.front().power * index :
+             raw.front().getMZ() * index :
              mass;
-      distribution_[index].setIntensity(distribution_[index].getIntensity() + p.probability);
+      distribution_[index].setIntensity(distribution_[index].getIntensity() + p.getIntensity());
     }
   }
 
@@ -389,14 +391,14 @@ namespace OpenMS
     for(Polynomial::const_iterator it = T.begin(); it != T.end(); ++it)
     {
       //LOG_INFO << it->power*mw_resolution << " " << it->probability << endl;
-      probability += it->probability;
+      probability += it->getIntensity();
     }
     LOG_INFO << "probability sum " << probability <<endl;
 
     sort(T.begin(), T.end(), by_power);
     for(auto& pmember : T)
     {
-      pmember.power *= mw_resolution;
+      pmember.setMZ(pmember.getMZ() * mw_resolution);
     }
 
     merge(T, 0.0001);
@@ -451,19 +453,19 @@ namespace OpenMS
 
     for(const CounterSet::ContainerType& counters = c.getCounters(); c.hasNext(); ++c)
     {
-      MIDAsPolynomialID::PMember member;
+      Peak1D member;
       // UInt s = 0;
-      member.power = 0;
-      member.probability = fact_ln(size);
+      member.setMZ(0);
+      member.setIntensity(fact_ln(size));
       UInt index = 0;
       for(CounterSet::ContainerType::const_iterator iso_count = counters.begin(); iso_count != counters.end(); ++iso_count, ++index)
       {
-        member.probability += ((*iso_count) * log_prob[index]) - fact_ln((*iso_count));
+        member.setIntensity(member.getIntensity() + ((*iso_count) * log_prob[index]) - fact_ln((*iso_count)));
       }
 
-      member.probability = exp(member.probability);
+      member.setIntensity(exp(member.getIntensity()));
 
-      if(member.probability < min_prob)
+      if(member.getIntensity() < min_prob)
       {
         continue;
       }
@@ -472,7 +474,7 @@ namespace OpenMS
       for(CounterSet::ContainerType::const_iterator iso_count = counters.begin(); iso_count != counters.end(); ++iso_count, ++index)
       {
         //LOG_INFO << *iso_count <<" "<<base_power[index]<<endl;
-        member.power += (*iso_count)*base_power[index];
+        member.setMZ( member.getMZ() + (*iso_count)*base_power[index]);
       }
 //      LOG_INFO << member.power <<" "<<member.probability<<endl;
 
@@ -492,25 +494,25 @@ namespace OpenMS
     sort(g.begin(), g.end(), desc_prob);
 
     LOG_INFO << "Multiplying polynomial" << f.size() << " and " << g.size() <<endl;
-    double min_mass = min_element(g.begin(), g.end(), by_power)->power
-                      + min_element(f.begin(), f.end(), by_power)->power;
-    double max_mass = max_element(g.begin(), g.end(), by_power)->power
-                      + max_element(f.begin(), f.end(), by_power)->power;
+    double min_mass = min_element(g.begin(), g.end(), by_power)->getMZ()
+                      + min_element(f.begin(), f.end(), by_power)->getMZ();
+    double max_mass = max_element(g.begin(), g.end(), by_power)->getMZ()
+                      + max_element(f.begin(), f.end(), by_power)->getMZ();
     double delta_mass = resolution_/mw_resolution;
     UInt size = round((max_mass-min_mass)/delta_mass);
-    Polynomial fgid(size, PMember());
+    Polynomial fgid(size, Peak1D(0, 0));
 
     for(Polynomial::iterator g_it = g.begin(); g_it != g.end(); ++g_it)
     {
       for(Polynomial::iterator f_it = f.begin(); f_it != f.end(); ++f_it)
       {
-        double prob = f_it->probability*g_it->probability;
+        double prob = f_it->getIntensity() * g_it->getIntensity();
         if(prob > min_prob)
         {
-          double mass = f_it->power + g_it->power;
+          double mass = f_it->getMZ() + g_it->getMZ();
           UInt bin = round((mass - min_mass) / delta_mass);
-          fgid[bin].probability += prob;
-          fgid[bin].power += mass * prob;
+          fgid[bin].setIntensity( fgid[bin].getIntensity() + prob);
+          fgid[bin].setMZ( fgid[bin].getMZ() + mass * prob);
         }
         else
         {
@@ -523,7 +525,7 @@ namespace OpenMS
     fgid.erase(remove_if(fgid.begin(), fgid.end(), zero_prob), fgid.end());
     for(Polynomial::iterator f_it = fgid.begin(); f_it != fgid.end(); ++f_it)
     {
-      f_it->power /= f_it->probability;
+      f_it->setMZ(f_it->getMZ() / f_it->getIntensity());
     }
     f = fgid ;
   }
@@ -710,19 +712,19 @@ namespace OpenMS
     //for(auto& sample : boost::adaptors::reverse(output_))
     for(auto& sample : output_)
     {
-      PMember member;
-      member.probability = sample.r;
+      Peak1D member;
+      member.setIntensity(sample.r);
       Int j = k > output_.size()/2 ?  k++ - output_.size() : k++;
       
-      if(member.probability > min_prob)
+      if(member.getIntensity() > min_prob)
       {
       
-        p_sum += member.probability;
-        member.power = ratio*
-                       ( (j  + average_mass_) * resolution_ - coarse.mean) + fine.mean;
+        p_sum += member.getIntensity();
+        member.setMZ(ratio*
+                       ( (j  + average_mass_) * resolution_ - coarse.mean) + fine.mean);
         
         pol.push_back(member);
-        LOG_INFO << member.power << " " << member.probability << endl;
+        LOG_INFO << member.getMZ() << " " << member.getIntensity() << endl;
       }
       
       
@@ -735,8 +737,8 @@ namespace OpenMS
     // // //normalize
     for(auto& point : pol)
     {
-       point.probability /= p_sum;
-       LOG_INFO << point.power <<" "<<point.probability << endl;
+       point.setIntensity( point.getIntensity() / p_sum);
+       LOG_INFO << point.getMZ() <<" "<<point.getIntensity() << endl;
     }
 
     // // sort(pol.begin(), pol.end(), by_power);

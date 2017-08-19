@@ -258,13 +258,7 @@ protected:
   {
  public:
     
-    struct PMember
-    {
-      double power;
-      double probability;
-      PMember():power(0), probability(0) {}
-    };
-    typedef std::deque<struct PMember> Polynomial;
+    typedef std::deque<Peak1D> Polynomial;
   
     MIDAs(EmpiricalFormula&, double, UInt);
     MIDAs();
