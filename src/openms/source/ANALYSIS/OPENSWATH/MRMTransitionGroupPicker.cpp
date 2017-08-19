@@ -172,8 +172,8 @@ namespace OpenMS
     double & asymmetry_factor,
     double & baseline_delta_2_height,
     double & slope_of_baseline,
-    double & points_across_baseline,
-    double & points_across_half_height,
+    int & points_across_baseline,
+    int & points_across_half_height,
   ){
     
     ConvexHull2D::PointArrayType hull_points;
@@ -185,6 +185,7 @@ namespace OpenMS
     {
       if (it->getMZ() > best_left && it->getMZ() < best_right)
       {
+        points_across_baseline += 1;
         if (it->getMZ() < peak_apex)
         {
           n_points_left += 1;
@@ -208,8 +209,7 @@ namespace OpenMS
         }
       }
     }
-    points_across_baseline = n_points_left + n_points_right - 1;
-    points_across_half_height = points_across_baseline / 2;
+    total_width = mzRight[mzRight.size() - 1] - mzLeft[0];
 
   }
 
