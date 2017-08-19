@@ -292,25 +292,8 @@ public:
         ConvexHull2D::PointArrayType hull_points;
         double intensity_sum(0.0), rt_sum(0.0);
         double peak_apex_int = -1;
-        double peak_apex_dist = std::fabs(used_chromatogram.begin()->getMZ() - peak_apex);
-        // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
-        for (typename SpectrumT::const_iterator it = used_chromatogram.begin(); it != used_chromatogram.end(); it++)
-        {
-          if (it->getMZ() > best_left && it->getMZ() < best_right)
-          {
-            DPosition<2> p;
-            p[0] = it->getMZ();
-            p[1] = it->getIntensity();
-            hull_points.push_back(p);
-            if (std::fabs(it->getMZ() - peak_apex) <= peak_apex_dist)
-            {
-              peak_apex_int = p[1];
-              peak_apex_dist = std::fabs(it->getMZ() - peak_apex);
-            }
-            rt_sum += it->getMZ();
-            intensity_sum += it->getIntensity();
-          }
-        }
+        calculatePeakApexInt_(used_chromatogram,hull_points,intensity_sum,rt_sum,peak_apex_int);
+        double peak_apex_int_copy = peak_apex_int; //copy of the max peak intensity before background subtraction
 
         double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
@@ -383,11 +366,11 @@ public:
         double asymmetry_factor = 0;
         double baseline_delta_2_height = 0;
         double slope_of_baseline = 0;
-        double points_across_baseline = 0;
-        double points_across_half_height = 0;
+        int points_across_baseline = 0;
+        int points_across_half_height = 0;
         
         calculatePeakQCMetrics_(used_chromatogram, 
-          best_left, best_right, peak_apex_int, peak_apex,
+          best_left, best_right, peak_apex_int, peak_apex, peak_apex_int_copy,
           width_at_5,
           width_at_10,
           width_at_50,
@@ -411,12 +394,14 @@ public:
         f.setMetaValue("start_time_at_10", start_time_at_10);
         f.setMetaValue("start_time_at_5", start_time_at_5);
         f.setMetaValue("end_time_at_10", end_time_at_10);
-        f.setMetaValue("area_background_level", background);
-        f.setMetaValue("area_background_level", background);
-        f.setMetaValue("area_background_level", background);
-        f.setMetaValue("area_background_level", background);
-        f.setMetaValue("area_background_level", background);
-        f.setMetaValue("area_background_level", background);
+        f.setMetaValue("end_time_at_5", end_time_at_5);
+        f.setMetaValue("total_width", total_width);
+        f.setMetaValue("tailing_factor", tailing_factor);
+        f.setMetaValue("asymmetry_factor", asymmetry_factor);
+        f.setMetaValue("baseline_delta_2_height", baseline_delta_2_height);
+        f.setMetaValue("slope_of_baseline", slope_of_baseline);
+        f.setMetaValue("points_across_baseline", points_across_baseline);
+        f.setMetaValue("points_across_half_height", points_across_half_height);
     
         // double area_ratio
         // double height_ratio
@@ -907,7 +892,19 @@ protected:
       return resampled_peak_container;
     }
 
-    //@}
+    //@}	
+
+    /**
+      @brief Will use the chromatogram to get the maximum peak intensity
+
+      The maximum peak intensity/height is calculated.  The convex hull points,
+      intensity_sum, and rt_sum are also calculated.
+    */
+    void calculatePeakApexInt_(const MSChromatogram& chromatogram,
+      ConvexHull2D::PointArrayType & hull_points,
+      double & intensity_sum, 
+      double & rt_sum,
+      double & peak_apex_int);
 
     /**
       @brief Will use the chromatogram to estimate the background noise and then subtract it
@@ -924,7 +921,8 @@ protected:
       Standard peak shape quality metrics are calculated for down stream QC/QA.
     */
     void calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
-      double best_left, double best_right, double peak_height, double peak_apex,
+      double best_left, double best_right, 
+      double peak_height, double peak_apex, double peak_intensity,
       double & width_at_5,
       double & width_at_10,
       double & width_at_50,
@@ -937,8 +935,8 @@ protected:
       double & asymmetry_factor,
       double & baseline_delta_2_height,
       double & slope_of_baseline,
-      double & points_across_baseline,
-      double & points_across_half_height,
+      int & points_across_baseline,
+      int & points_across_half_height,
     );    
 
     // Members

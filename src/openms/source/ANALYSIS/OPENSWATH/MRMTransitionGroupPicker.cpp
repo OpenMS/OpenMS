@@ -157,9 +157,42 @@ namespace OpenMS
       }
     }
   }
+
+  
+  void calculatePeakApexInt_(const MSChromatogram& chromatogram,
+    ConvexHull2D::PointArrayType & hull_points,
+    double & intensity_sum, 
+    double & rt_sum,
+    double & peak_apex_int)
+  {  
+    ConvexHull2D::PointArrayType hull_points;
+    intensity_sum = 0.0;
+    rt_sum = 0.0;
+    peak_apex_int = -1;
+    double peak_apex_dist = std::fabs(chromatogram.begin()->getMZ() - peak_apex);
+    // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
+    for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
+    {
+      if (it->getMZ() > best_left && it->getMZ() < best_right)
+      {
+        DPosition<2> p;
+        p[0] = it->getMZ();
+        p[1] = it->getIntensity();
+        hull_points.push_back(p);
+        if (std::fabs(it->getMZ() - peak_apex) <= peak_apex_dist)
+        {
+          peak_apex_int = p[1];
+          peak_apex_dist = std::fabs(it->getMZ() - peak_apex);
+        }
+        rt_sum += it->getMZ();
+        intensity_sum += it->getIntensity();
+      }
+    }
+  }
   
   void MRMTransitionGroupPicker::calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
-    double best_left, double best_right, double peak_height, double peak_apex,
+    double best_left, double best_right, 
+    double peak_height, double peak_apex, double peak_intensity,
     double & width_at_5,
     double & width_at_10,
     double & width_at_50,
@@ -175,42 +208,110 @@ namespace OpenMS
     int & points_across_baseline,
     int & points_across_half_height,
   ){
-    
-    ConvexHull2D::PointArrayType hull_points;
-    total_width = best_right - best_left;
-    int n_points_left = 0;
-    int n_points_right = 0;
-    std:vector<double> mzLeft, mzRight, intensityLeft, intensityRight;
-    for (typename SpectrumT::const_iterator it = used_chromatogram.begin(); it != used_chromatogram.end(); it++)
+    points_across_baseline = 0;
+    double pi = 3.14159265;
+    double startIntensity, endIntensity;
+    double start_time_at_50, end_time_at_50;
+    double base, height, height_5, height_10, height_50;
+    for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
     {
       if (it->getMZ() > best_left && it->getMZ() < best_right)
       {
-        points_across_baseline += 1;
+        // start and end intensities
+        if (it == chromatogram.begin())
+        {
+          startIntensity = it->getIntensity();
+        }
+        else if (it == std::prev(chromatogram.end()))
+        {
+          endIntensity = it->getIntensity();
+        }
+
+        //start and end retention times
         if (it->getMZ() < peak_apex)
         {
-          n_points_left += 1;
-          mzLeft.push_back(it->getMZ());
-          intensityLeft.push_back(it->it->getIntensity());
+          // start_time_at_5
+          if (it->getIntensity() >= 0.05*peak_intensity && \
+            std::prev(it->getIntensity()) < 0.05*peak_intensity && \
+            points_across_baseline > 1)
+          {
+            base = it->getMZ() - std::prev(it->getMZ());
+            height = it->getIntensity() - std::prev(it->getIntensity());
+            height_5 = it->getIntensity() - 0.05*peak_intensity;
+            start_time_at_5 = it->getMZ() - height*base/height_5;
+          }
+          // start_time_at_10
+          else if (it->getIntensity() >= 0.1*peak_intensity && \
+            std::prev(it->getIntensity()) < 0.1*peak_intensity && \
+            points_across_baseline > 1)
+          {
+            base = it->getMZ() - std::prev(it->getMZ());
+            height = it->getIntensity() - std::prev(it->getIntensity());
+            height_10 = it->getIntensity() - 0.1*peak_intensity;
+            start_time_at_10 = it->getMZ() - height*base/height_10;
+          }
+          // start_time_at_50
+          else if (it->getIntensity() >= 0.5*peak_intensity && \
+            std::prev(it->getIntensity()) < 0.5*peak_intensity && \
+            points_across_baseline > 1)
+          {
+            base = it->getMZ() - std::prev(it->getMZ());
+            height = it->getIntensity() - std::prev(it->getIntensity());
+            height_50 = it->getIntensity() - 0.5*peak_intensity;
+            start_time_at_50 = it->getMZ() - height*base/height_50;
+          }
         } 
         else if (it->getMZ() > peak_apex)
         {
-          n_points_right += 1;
-          mzRight.push_back(it->getMZ());
-          intensityRight.push_back(it->it->getIntensity());
+          // end_time_at_5
+          if (it->getIntensity() <= 0.05*peak_intensity && \
+            std::prev(it->getIntensity()) > 0.05*peak_intensity)
+          {
+            base = it->getMZ() - std::prev(it->getMZ());
+            height = std::prev(it->getIntensity()) - it->getIntensity();
+            height_5 = 0.05*getIntensity - it->getMZ();
+            end_time_at_5 = it->getMZ() - height*base/height_5;
+          }
+          // start_time_at_10
+          else if (it->getIntensity() >= 0.1*peak_intensity && \
+            std::prev(it->getIntensity()) < 0.1*peak_intensity)
+          {
+            base = it->getMZ() - std::prev(it->getMZ());
+            height = std::prev(it->getIntensity()) - it->getIntensity();
+            height_10 = 0.1*peak_intensity - it->getIntensity();
+            end_time_at_10 = it->getMZ() - height*base/height_10;
+          }
+          // end_time_at_50
+          else if (it->getIntensity() >= 0.5*peak_intensity && \
+          std::prev(it->getIntensity()) < 0.5*peak_intensity)
+          {
+            base = it->getMZ() - std::prev(it->getMZ());
+            height = std::prev(it->getIntensity()) - it->getIntensity();
+            height_50 = 0.5*peak_intensity - it->getIntensity();
+            end_time_at_50 = it->getMZ() - height*base/height_50;
+          }
         } 
-        else 
+
+        // points across the peak
+        points_across_baseline += 1;
+        if (it->getIntensity() >= 0.5*peak_intensity)
         {
-          n_points_left += 1;
-          n_points_right += 1;
-          mzRight.push_back(it->getMZ());
-          intensityRight.push_back(it->it->getIntensity());
-          mzLeft.push_back(it->getMZ());
-          intensityLeft.push_back(it->it->getIntensity());
+          points_across_half_height += 1;
         }
       }
     }
-    total_width = mzRight[mzRight.size() - 1] - mzLeft[0];
 
+    // peak widths
+    width_at_5 = end_time_at_5 - start_time_at_5;
+    width_at_10 = end_time_at_10 - start_time_at_10;
+    width_at_50 = end_time_at_50 - start_time_at_50;
+    total_width = best_right - best_left;
+    slope_of_baseline = endIntensity - startIntensity;
+    baseline_delta_2_height = slope_of_baseline / peak_height;
+
+    // other
+    tailing_factor = width_at_5 / std::min(peak_apex - start_time_at_5, end_time_at_5 - peak_apex);
+    asymmetry_factor = std::min(peak_apex - start_time_at_10, end_time_at_10 - peak_apex) / std::max(peak_apex - start_time_at_10, end_time_at_10 - peak_apex);
   }
 
 }
