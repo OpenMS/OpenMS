@@ -32,24 +32,16 @@
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_BASE_H
-#define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_BASE_H
-
-// defines required for kissfft
-#define kiss_fft_scalar double
-#define INVERSE true
+#ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_CONTAINER_H
+#define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_CONTAINER_H
 
 
-
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <kiss_fft.h>
-
 
 #include <utility>
 #include <functional>
-#include <deque>
+
 #include <vector>
 #include <set>
 #include <map>
@@ -178,9 +170,6 @@ public:
     bool isConvolutionUnit() const;
     //@}
 
-    
-
-
     /// @name Operators
     //@{
     /// Assignment operator
@@ -254,76 +243,7 @@ protected:
     Sorted sort_type;
   };
 
-  class OPENMS_DLLAPI MIDAs : public IsotopeDistribution
-  {
- public:
-    
-    typedef std::deque<Peak1D> Polynomial;
-  
-    MIDAs(EmpiricalFormula&, double, UInt);
-    MIDAs();
-    MIDAs(const IsotopeDistribution& isotope_distribution);
-    virtual void run() = 0;
-    void merge(Polynomial&, double);
-    void dumpIDToFile(String file);
- protected:
-    double min_prob;
-    EmpiricalFormula formula_;
-    double resolution_;
-    UInt N;
-
-  };
-
-  class OPENMS_DLLAPI MIDAsPolynomialID : public MIDAs
-  {
- public:
-
-    MIDAsPolynomialID(EmpiricalFormula&, double);
-    void run();
-    
- private:
-    Polynomial generatePolynomial(const Element&, const SignedSize);
-    double lightest_mass();
-    void multiplyPolynomials(Polynomial&, Polynomial&);
-    void merge_polynomial(Polynomial&);
-    void dumpID(Polynomial&);
-    double fact_ln(UInt);
-    
-    //Polynomial fgid;
-    double fine_resolution;
-
-    double lighter_isotope;
-    
-    double mw_resolution;
-    double resolution;
-    double min_resolution;
-    
-  };
-
-  class OPENMS_DLLAPI MIDAsFFTID : public MIDAs
-  {
- public:
-    typedef kiss_fft_cpx fft_complex;
-    typedef std::vector<fft_complex> FFT_Spectrum;
-    typedef struct {double mean; double variance;} Stats;
-    MIDAsFFTID(EmpiricalFormula&, double);
-    void init();
-    void run();
- private:
-    FFT_Spectrum input_, output_;
-   
-    double cutoff_amplitude_factor_;
-    double average_mass_;
-
-    double delta_;
-    double mass_range_;
-    //void (double);
-    Stats formulaMeanAndVariance(double resolution = 1.0);
-   
-  };
-
-
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_BASE_H
+#endif // OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_CONTAINER_H

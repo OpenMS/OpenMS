@@ -7,6 +7,9 @@ set(sources_list
   Container.cpp
   CoarseIsotopeDistribution.cpp
   Ecipex.cpp
+  IsotopePatternSolver.cpp
+  MIDAsFFTID.cpp
+  MIDAsPolynomialID.cpp
 )
 
 ### add path to the filenames
