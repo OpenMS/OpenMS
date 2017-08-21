@@ -9,6 +9,8 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
+#define kiss_fft_scalar double 
+
 #include <kiss_fft.h>
 #include <kiss_fftndr.h>
 #include <kiss_fftr.h>
@@ -167,7 +169,7 @@ namespace OpenMS
 
   };
 
-  Ecipex::Ecipex() : IsotopeDistribution()
+  Ecipex::Ecipex() : IsotopePatternSolver()
   {
     distribution_.push_back(Peak1D(0, 1));
   }
@@ -181,7 +183,7 @@ namespace OpenMS
   }
 
   Ecipex::Ecipex(const IsotopeDistribution& isotope_distribution) :
-    IsotopeDistribution(isotope_distribution)
+    IsotopePatternSolver(isotope_distribution)
   {
   }
   
@@ -309,10 +311,6 @@ namespace OpenMS
       
     auto& p1 = *this;
     auto& p2 = distribution;
-      
-    
-
-
     
     if(!p1.isNormalized() || !p2.isNormalized())
     {
@@ -325,7 +323,6 @@ namespace OpenMS
       p1.set(p2.getContainer());
       return;
     }
-    
 
     if(p2.isConvolutionUnit())
     {
@@ -356,6 +353,4 @@ namespace OpenMS
     p1.set(result.getContainer());
   }
 
-
 }
-

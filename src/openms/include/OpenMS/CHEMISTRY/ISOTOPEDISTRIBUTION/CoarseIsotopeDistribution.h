@@ -35,13 +35,13 @@
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_COARSEID_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_COARSEID_H
 
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternSolver.h>
 
 
 namespace OpenMS
 {
 
-  class OPENMS_DLLAPI CoarseIsotopeDistribution : public IsotopeDistribution
+  class OPENMS_DLLAPI CoarseIsotopeDistribution : public IsotopePatternSolver
   {
 
  public:
@@ -75,6 +75,8 @@ namespace OpenMS
     /// inequality operator, returns true if the @p isotope_distribution differs from this, false else
     bool operator!=(const CoarseIsotopeDistribution& isotope_distribution) const;
 
+
+    void run();
 
     /**
        @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported

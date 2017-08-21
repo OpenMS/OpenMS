@@ -41,27 +41,29 @@
 #include <numeric>
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 using namespace std;
 
 namespace OpenMS
 {
   CoarseIsotopeDistribution::CoarseIsotopeDistribution() : 
-    IsotopeDistribution(),
+    IsotopePatternSolver(),
     max_isotope_(0)
   {
     distribution_.push_back(Peak1D(0, 1));
   }
 
   CoarseIsotopeDistribution::CoarseIsotopeDistribution(Size max_isotope) :
-    IsotopeDistribution(),
+    IsotopePatternSolver(),
     max_isotope_(max_isotope)
   {
      distribution_.push_back(Peak1D(0, 1));
   }
 
   CoarseIsotopeDistribution::CoarseIsotopeDistribution(const IsotopeDistribution& isotope_distribution) :
-    IsotopeDistribution(isotope_distribution),
+    IsotopePatternSolver(isotope_distribution),
     max_isotope_(0)
   {
        
@@ -150,6 +152,20 @@ namespace OpenMS
     return round(IsotopeDistribution::getMin());
   }
 
+  void CoarseIsotopeDistribution::run()
+  {
+    CoarseIsotopeDistribution result(getMaxIsotope());
+    auto it = formula_.begin();
+    for (; it != formula_.end(); ++it)
+    {
+      CoarseIsotopeDistribution tmp = it->first->getIsotopeDistribution();
+      tmp.setMaxIsotope(getMaxIsotope());
+      result += tmp * it->second;
+    }
+    result.renormalize();
+    set(result.getContainer());
+  }
+
   void CoarseIsotopeDistribution::estimateFromPeptideWeight(double average_weight)
   {
     // Element counts are from Senko's Averagine model
@@ -176,14 +192,14 @@ namespace OpenMS
   {
     EmpiricalFormula ef;
     ef.estimateFromWeightAndComp(average_weight, C, H, N, O, S, P);
-    distribution_ = ef.getIsotopeDistribution(max_isotope_).getContainer();
+    distribution_ = ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_isotope_)).getContainer();
   }
 
   void CoarseIsotopeDistribution::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
   {
     EmpiricalFormula ef;
     ef.estimateFromWeightAndCompAndS(average_weight, S, C, H, N, O, P);
-    distribution_ = ef.getIsotopeDistribution(max_isotope_).getContainer();
+    distribution_ = ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_isotope_)).getContainer();
   }
 
   void CoarseIsotopeDistribution::estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes)
@@ -223,11 +239,11 @@ namespace OpenMS
 
     EmpiricalFormula ef_fragment;
     ef_fragment.estimateFromWeightAndComp(average_weight_fragment, C, H, N, O, S, P);
-    IsotopeDistribution id_fragment = ef_fragment.getIsotopeDistribution(max_depth);
+    IsotopeDistribution id_fragment = ef_fragment.getIsotopeDistribution(new CoarseIsotopeDistribution(max_depth));
 
     EmpiricalFormula ef_comp_frag;
     ef_comp_frag.estimateFromWeightAndComp(average_weight_precursor-average_weight_fragment, C, H, N, O, S, P);
-    IsotopeDistribution id_comp_fragment = ef_comp_frag.getIsotopeDistribution(max_depth);
+    IsotopeDistribution id_comp_fragment = ef_comp_frag.getIsotopeDistribution(new CoarseIsotopeDistribution(max_depth));
 
     calcFragmentIsotopeDist(id_fragment, id_comp_fragment, precursor_isotopes);
   }

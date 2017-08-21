@@ -356,7 +356,7 @@ namespace OpenMS
     {
       // create the theoretical distribution from the sum formula
       EmpiricalFormula empf(sum_formula);
-      isotope_dist = empf.getIsotopeDistribution(dia_nr_isotopes_);
+      isotope_dist = empf.getIsotopeDistribution(new CoarseIsotopeDistribution(dia_nr_isotopes_));
     }
     else 
     {

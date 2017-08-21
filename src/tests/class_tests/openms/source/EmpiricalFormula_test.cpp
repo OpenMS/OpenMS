@@ -37,7 +37,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -348,7 +348,7 @@ END_SECTION
 
 START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   EmpiricalFormula ef("C");
-  IsotopeDistribution iso = ef.getIsotopeDistribution(20);
+  IsotopeDistribution iso = ef.getIsotopeDistribution(new CoarseIsotopeDistribution(20));
   double result[] = { 0.9893, 0.0107};
   Size i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)

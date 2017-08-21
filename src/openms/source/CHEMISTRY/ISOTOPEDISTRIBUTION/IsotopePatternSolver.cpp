@@ -1,4 +1,5 @@
 
+
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternSolver.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -10,6 +11,14 @@ using namespace std;
 
 namespace OpenMS
 {
+  IsotopePatternSolver::IsotopePatternSolver() : IsotopeDistribution()
+  {}
+
+  IsotopePatternSolver::IsotopePatternSolver(const IsotopeDistribution& rhs) :
+    IsotopeDistribution(rhs)
+  {
+    
+  }
   void IsotopePatternSolver::merge(ContainerType& raw, double resolution)
   {
     //raw must be ordered to work correctly ascending order on power field
@@ -40,6 +49,12 @@ namespace OpenMS
     }
   }
   
+  void IsotopePatternSolver::setEmpiricalFormula(const EmpiricalFormula& formula)
+  {
+    formula_ = formula;
+  }
+
+
 
   void IsotopePatternSolver::dumpIDToFile(String file)
   {

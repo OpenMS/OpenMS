@@ -42,6 +42,7 @@
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -756,7 +757,7 @@ protected:
       // get isotope distribution for peptide:
       Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
       IsotopeDistribution iso_dist = 
-        seq.getFormula(Residue::Full, 0).getIsotopeDistribution(n_isotopes);
+        seq.getFormula(Residue::Full, 0).getIsotopeDistribution(new CoarseIsotopeDistribution(n_isotopes));
       if (isotope_pmin_ > 0.0)
       {
         iso_dist.trimLeft(isotope_pmin_);

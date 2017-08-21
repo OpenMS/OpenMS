@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -1500,7 +1501,7 @@ namespace OpenMS
     Size common_size = std::min(num_traces, MAX_THEORET_ISOS);
 
     // compute theoretical isotope distribution
-    IsotopeDistribution iso_dist(form.getIsotopeDistribution((UInt)common_size));
+    IsotopeDistribution iso_dist(form.getIsotopeDistribution(new CoarseIsotopeDistribution((UInt)common_size)));
     std::vector<double> theoretical_iso_dist;
     for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin(); iso_it != iso_dist.end(); ++iso_it)
     {

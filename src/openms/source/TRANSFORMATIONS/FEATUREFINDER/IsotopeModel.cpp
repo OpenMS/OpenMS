@@ -34,6 +34,7 @@
 
 #include <boost/math/distributions/cauchy.hpp>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -129,7 +130,7 @@ namespace OpenMS
     typedef std::vector<double> ContainerType;
     ContainerType isotopes_exact;
 
-    isotope_distribution_ = formula.getIsotopeDistribution(max_isotope_);
+    isotope_distribution_ = formula.getIsotopeDistribution(new CoarseIsotopeDistribution(max_isotope_));
 
     isotope_distribution_.trimRight(trim_right_cutoff_);
     isotope_distribution_.renormalize();

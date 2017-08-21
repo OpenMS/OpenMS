@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -340,7 +341,7 @@ namespace OpenMS
   {
     double pos = ion.getMonoWeight(res_type, charge);
     Peak1D p;
-    IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope_);
+    IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(new CoarseIsotopeDistribution(max_isotope_));
 
     String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + String(charge, '+');
 
@@ -404,7 +405,7 @@ namespace OpenMS
 
       if (add_isotopes_)
       {
-        IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope_);
+        IsotopeDistribution dist = loss_ion.getIsotopeDistribution(new CoarseIsotopeDistribution(max_isotope_));
 
         // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
         String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String(charge, '+');
@@ -583,7 +584,7 @@ namespace OpenMS
 
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = peptide.getFormula(Residue::Full, charge).getIsotopeDistribution(max_isotope_);
+      IsotopeDistribution dist = peptide.getFormula(Residue::Full, charge).getIsotopeDistribution(new CoarseIsotopeDistribution(max_isotope_));
       double j(0.0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
@@ -615,7 +616,7 @@ namespace OpenMS
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
+      IsotopeDistribution dist = ion.getIsotopeDistribution(new CoarseIsotopeDistribution(max_isotope_));
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
@@ -648,7 +649,7 @@ namespace OpenMS
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
+      IsotopeDistribution dist = ion.getIsotopeDistribution(new CoarseIsotopeDistribution(max_isotope_));
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
