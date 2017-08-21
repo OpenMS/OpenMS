@@ -472,7 +472,7 @@ namespace OpenMS
       }
       else
       { // mass is registered already
-        id_gapless.push_back(*it); // copy
+        id_gapless.push_back(Peak1D(round(it->getMZ()),it->getIntensity())); // copy
         ++it;  // ... and advance
       }
     }
