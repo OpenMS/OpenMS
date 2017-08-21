@@ -85,7 +85,7 @@ namespace seqan
     'T', // 19 Thr Threonine
     'U', // 20 Selenocystein
     'V', // 21 Val Valine
-    'B', // 01 Aspartic Acid, Asparagine  $    22(B)
+    'B', // 01 Aspartic Acid, Asparagine  $    22(B) // the AmbAA's need to be consecutive (B,J,Z,X)
     'J', // 09 Leucine, Isoleucine        $    23(J)
     'Z', // 24 Glutamic Acid, Glutamine   $
     'X', // 25 Unknown (25)
@@ -172,8 +172,7 @@ namespace seqan
     static const Type VALUE = 5;
   };
 
-  inline AAcid
-    unknownValueImpl(AAcid *)
+  inline AAcid unknownValueImpl(AAcid *)
   {
     static const AAcid _result = AAcid('X');
     return _result;
@@ -298,7 +297,7 @@ namespace seqan
                                         
     // "constant" data, after construction of trie
     KeyWordLengthType max_ambAA;            // default: 3
-    Holder<TNeedle> data_host;                    // holds needles
+    Holder<TNeedle> data_host;                    // holds needles, i.e. Peptides
     String<String<TSize> > data_terminalStateMap; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
     TGraph data_graph;                            // regular trie data
     String<TVert> data_supplyMap;                 // trie suffix links
@@ -954,7 +953,7 @@ namespace OpenMS
     */
     void setProtein(const String& protein_sequence)
     {
-      protein_ = protein_sequence.c_str(); // we need an internal copy, since finder_ only keeps a reference
+      protein_ = protein_sequence.c_str(); // we need an internal copy, since finder_ only keeps a pointer
       finder_ = ::seqan::Finder<seqan::AAString>(protein_);
       dh_.reset();
     }
@@ -962,7 +961,7 @@ namespace OpenMS
     /**
       @brief Enumerate hits.
 
-      @param pattern The pattern created with initPattern().
+      @param pattern The pattern (i.e. trie) created with initPattern().
       @return False if end of protein is reached. True if a hit is found.
     */
     bool findNext(const FuzzyACPattern& pattern)
@@ -995,7 +994,7 @@ namespace OpenMS
 
     // member
     ::seqan::Finder<seqan::AAString> finder_; //< locate the next peptide hit in protein
-    ::seqan::AAString protein_;               //< the protein sequence - we need to store it since the finder only keeps a reference when constructed
+    ::seqan::AAString protein_;               //< the protein sequence - we need to store it since the finder only keeps a pointer to protein when constructed
     ::seqan::PatternAuxData<PeptideDB> dh_;   //< auxilliary data to hold a state after searching
   }; // class FuzzyAC
 

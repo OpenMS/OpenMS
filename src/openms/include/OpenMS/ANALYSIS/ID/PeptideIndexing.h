@@ -84,18 +84,24 @@ namespace OpenMS
   Additionally, setting this flag will convert all 'J's in any protein sequence to 'I'. This way, no tolerant search is required for 'J' (but is still possible for all
   the other ambiguous amino acids).
   If @p write_protein_sequences is requested and @p IL_equivalent is set as well, both the I/L-version and unmodified protein sequences need to be stored internally.
-  This wastes some memory, roughly equivalent to the size of the FASTA database file itself.
+  This requires some extra memory, roughly equivalent to the size of the FASTA database file itself.
 
   Enzyme specificity:
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
   By default, we demand that the peptide is fully tryptic (i.e. the enzyme parameter is set to "trypsin" and specificity is "full").
   So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
-  We make one exception for peptides starting at the second amino acid of a protein if the first amino acid of that protein is methionine (M),
-  which is usually cleaved off in vivo. For example, the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
-  You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements)
-  or <tt>none</tt> (essentially allowing all hits, no matter their context).
   
-  This tool support multiple threads (@p threads option) to speed up computation further, at the cost of little extra memory.
+  We make two exceptions to the specificity constraints:
+  1) for peptides starting at the second or third position of a protein are still considered N-terminally specific,
+  since the residues can be cleaved off in vivo; X!Tandem reports these peptides. For example, the two peptides ABAR and LABAR would both match a protein starting with MLABAR.
+  2) adventitious cleavage at Asp|Pro (Aspartate/D | Proline/P) is allowed for all enzymes (as supported by X!Tandem), i.e. counts as a proper cleavage site (see http://www.thegpm.org/tandem/release.html).
+  
+  You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements)
+  or <tt>none</tt> (essentially allowing all hits, no matter their context). These settings should not be used (due to high risk of reporting false positives),
+  unless the search engine was instructed to search peptides in the same way.
+  
+  Threading:
+  This tool support multiple threads (@p threads option) to speed up computation, at the cost of little extra memory.
 */
 
  class OPENMS_DLLAPI PeptideIndexing :

@@ -211,9 +211,9 @@ namespace OpenMS
            ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))) // semi spec
       {
         if (ignore_missed_cleavages)
-      {
+        {
           return true;
-      }
+        }
         return (countMissedCleavages_(cleavage_positions, pep_pos, pep_end) <= missed_cleavages_);
       }
         return false;

@@ -44,6 +44,7 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <algorithm>
 
@@ -56,14 +57,14 @@ struct PeptideProteinMatchInformation
   /// index of the protein the peptide is contained in
   OpenMS::Size protein_index;
 
+  /// the position of the peptide in the protein
+  OpenMS::Int position;
+
   /// the amino acid after the peptide in the protein
   char AABefore;
 
   /// the amino acid before the peptide in the protein
   char AAAfter;
-
-  /// the position of the peptide in the protein
-  OpenMS::Int position;
 
   bool operator<(const PeptideProteinMatchInformation& other) const
   {
@@ -408,21 +409,24 @@ DefaultParamHandler("PeptideIndexing")
       /** Aho Corasick (fast) */
       LOG_INFO << "Searching with up to " << aaa_max_ << " ambiguous amino acids!" << std::endl;
 		  this->startProgress(0, proteins.size(), "Aho-Corasick");
+      SysInfo::MemUsage mu;
 
       AhoCorasickAmbiguous::FuzzyACPattern pattern;
       AhoCorasickAmbiguous::initPattern(pep_DB, aaa_max_, pattern);
+      StopWatch s;
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
       {
         seqan::FoundProteinFunctor func_threads(enzyme);
         SignedSize prot_count = (SignedSize)proteins.size();
-#pragma omp for
+        AhoCorasickAmbiguous fuzzyAC;
+#pragma omp for schedule(static, 1000) nowait
         // search all peptides in each protein
         for (SignedSize i = 0; i < prot_count; ++i)
         {
-          IF_MASTERTHREAD this->setProgress(i);
-          AhoCorasickAmbiguous fuzzyAC(proteins[i].sequence);
+          //IF_MASTERTHREAD this->setProgress(i);
+          fuzzyAC.setProtein(proteins[i].sequence);
           while (fuzzyAC.findNext(pattern))
           {
             const seqan::Peptide& tmp_pep = pep_DB[fuzzyAC.getHitDBIndex()];
@@ -431,6 +435,7 @@ DefaultParamHandler("PeptideIndexing")
         }
 
         // join results again
+        IF_MASTERTHREAD s.start();
 #ifdef _OPENMP
 #pragma omp critical(PeptideIndexer_joinAC)
 #endif
@@ -438,7 +443,9 @@ DefaultParamHandler("PeptideIndexing")
           func.merge(func_threads);
         } // OMP end critical
       } // OMP end parallel
-    
+      s.stop();
+      std::cout << "Merge took: " << s.toString() << "\n";
+      std::cout << mu.delta("ACSup start") << "\n\n"; 
 
 		  this->endProgress();
       LOG_INFO << "\nAho-Corasick done:\n  found " << func.filter_passed << " hits for " << func.pep_to_prot.size() << " of " << length(pep_DB) << " peptides.\n";
