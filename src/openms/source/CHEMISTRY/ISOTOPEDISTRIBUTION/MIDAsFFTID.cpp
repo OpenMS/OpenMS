@@ -2,11 +2,11 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/MIDAsFFTID.h>
-//#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/Polynomial.h>
 #include <OpenMS/MATH/MISC/MIDAsFFT.h>
+
+//#define DEBUG
 
 using namespace std;
 
@@ -23,18 +23,17 @@ namespace OpenMS
     sigma = coarse.variance;
     double range = N * sqrt(1 + sigma);
     mass_range_ = pow(2, ceil(log2(ceil(range))));
+#ifdef DEBUG
     LOG_INFO << "Resolution " << resolution_ << endl;
     LOG_INFO << "Coarse Average mass " << coarse.mean << " Variance: " << coarse.variance << endl;
     LOG_INFO << "Fine Average mass " << fine.mean << " Variance: " << fine.variance << endl;
-
+#endif
     do
     {
       resolution_ = resolution/pow(2,k);  
-      LOG_INFO << "Mass range " << mass_range_ << endl;
       sample_size = pow(2, ceil(log2(mass_range_ / resolution_)));
       delta_ = 1.0 / sample_size;
       resolution_ = mass_range_/sample_size;
-      LOG_INFO << "-Resolution " << resolution << endl;
       k++;
     }while(resolution_ > resolution);
     
@@ -55,9 +54,11 @@ namespace OpenMS
   void MIDAsFFTID::init()
   {
 
+#ifdef DEBUG
     LOG_INFO <<"Average mass "<< average_mass_ <<endl;
     LOG_INFO << "Resolution " << resolution_ << endl;
-    Int k = 0;//-input_.size()/2;
+#endif
+    UInt k = 0;//-input_.size()/2;
     for(auto& sample : input_)
     {
       Int j = k > input_.size() / 2?  k++ - input_.size() : k++;
@@ -85,73 +86,62 @@ namespace OpenMS
           sample.i += prob * sin(phi);
           
         }
-        //LOG_INFO<<"x,y " << sample.r << " " <<sample.i << endl;
         radius *= pow(hypot(sample.r, sample.i), atoms);
         angle += atoms * atan2(sample.i, sample.r);
-        //LOG_INFO<<"radius,angle " << radius << " " << angle << endl;
         
       }
       
       //After looping assign the value
       
-      //LOG_INFO << " radius " << radius << " angle "<< angle << endl;
       sample.r = radius * cos(angle - phase);
       sample.i = radius * sin(angle - phase);
-      //LOG_INFO << sample.r << " " << sample.i << endl;
     }
-
-    //input_.back().r = input_.back().i = 0;
-    LOG_INFO << "End of initialization" << endl;
     
   }
 
   void MIDAsFFTID::run()
   {
     
-    kiss_fft_cfg cfg = kiss_fft_alloc(input_.size(), INVERSE, NULL, NULL);
-    kiss_fft(cfg, &(*input_.begin()), &(*output_.begin()));
-    kiss_fft_cleanup();
 
-    bool fft_midas_bypass = true;
+    UInt size = output_.size() * 2 + 1;
+    double *input = new double[ size ];
+    UInt k = 1;
 
-    if(!fft_midas_bypass)
+    //Convert samples FFT compatible input
+    for(auto& sample : input_)
     {
-      LOG_INFO << "Using midas native fft method " << endl;
-      UInt size = output_.size()*2 + 1;
-      double *input = new double[ size ];
-      //double *output = new double[ size ];
-      UInt k = 1;
-      for(auto& sample : input_)
+      if(2*k >= size)
       {
-        if(2*k >= size)
-        {
-          continue;
-        }
-        input[2*k-1] = sample.r;
-        input[2*k] = sample.i;
-        k++;
+        continue;
       }
+      input[2 * k - 1] = sample.r;
+      input[2 * k] = sample.i;
+      k++;
+    }
 
-      fft(input, size/2);
+    //Calculate the inverse fft
+    fft(input, size / 2);
     
-      k = 1;
-      for(auto& sample : output_)
+    //Dump back the values in the kissfft format
+    k = 1;
+    for(auto& sample : output_)
+    {
+      if(2*k >= size)
       {
-        if(2*k >= size)
-        {
-          continue;
-        }
-        sample.r = input[2*k-1];
-        sample.i = input[2*k];
-        k++;
+        continue;
       }
+      sample.r = input[2*k-1];
+      sample.i = input[2*k];
+      k++;
     }
 
     // Resume normal operation
-    output_.resize(output_.size()/2);
+    output_.resize(output_.size() / 2);
 
-    LOG_INFO << "IFFT done " <<" Sample size: "<< output_.size() <<endl;
-    
+#ifdef DEBUG
+    LOG_INFO << "Inverse FFT done. " <<" Sample size: "<< output_.size() <<endl;
+#endif
+
     double min_prob = -cutoff_amplitude_factor_ * 
       min_element(output_.begin(), output_.end(), 
                   [](const fft_complex& item1, const fft_complex& item2 )
@@ -159,37 +149,19 @@ namespace OpenMS
                     return (item1.r < item2.r);
                   })->r;
     
-    // for(auto& sample : output_)
-    // {
-    //   //LOG_INFO << sample.r << endl ;//<< " "<< sample.i << endl; 
-    // }
-
-    // double avg_prob= 0;
-    // int k = 0;
-    // for(auto& sample : output_)
-    // {
-    //   double smp = sample.i / output_.size();
-    //   if(smp > min_prob)
-    //   {
-    //     avg_prob+= smp;
-    //     k++;
-    //   }
-    // }
-    // if(k!=0){
-    //   avg_prob/=k;
-    // }
-
-    LOG_INFO << "Resolution: " << resolution_ << endl;
 
     Stats coarse(formulaMeanAndVariance()), fine(formulaMeanAndVariance(resolution_));
-    double ratio = coarse.variance/fine.variance;
+    double ratio = coarse.variance / fine.variance;
+
+#ifdef DEBUG
+    LOG_INFO << "Resolution: " << resolution_ << endl;
     LOG_INFO << "Delta " << delta_ <<endl;
     LOG_INFO << "Coarse mean: " << coarse.mean << ", Coarse variance: " << coarse.variance << endl;
     LOG_INFO << "Fine mean: " << fine.mean << ", fine variance: " << coarse.variance << endl;
     LOG_INFO << "Probability cutoff: " << min_prob << " Ratio: " << ratio <<endl;
-    
-    UInt k =  0;//-output_.size()/2;
-    //unsigned int average_mass = ceil(fine.mean);
+#endif
+
+    k = 0;
     Polynomial pol;
     double p_sum = 0;
     //for(auto& sample : boost::adaptors::reverse(output_))
@@ -197,35 +169,28 @@ namespace OpenMS
     {
       Peak1D member;
       member.setIntensity(sample.r);
-      Int j = k > output_.size()/2 ?  k++ - output_.size() : k++;
-      
+      Int j = k > output_.size() / 2 ?  k++ - output_.size() : k++;
       if(member.getIntensity() > min_prob)
       {
       
         p_sum += member.getIntensity();
-        member.setMZ(ratio*
-                       ( (j  + average_mass_) * resolution_ - coarse.mean) + fine.mean);
-        
+        member.setMZ(ratio*((j  + average_mass_) * resolution_ - coarse.mean) + fine.mean);
         pol.push_back(member);
-        LOG_INFO << member.getMZ() << " " << member.getIntensity() << endl;
       }
-      
-      
-       
     }
 
-    
-    LOG_INFO << "Probability sum " << p_sum << endl;
-
-    // // //normalize
+    //normalize to cdf
     for(auto& point : pol)
     {
-       point.setIntensity( point.getIntensity() / p_sum);
-       LOG_INFO << point.getMZ() <<" "<<point.getIntensity() << endl;
+       point.setIntensity(point.getIntensity() / p_sum);
+#ifdef DEBUG
+        LOG_INFO << member.getMZ() << " " << member.getIntensity() << endl;
+#endif
     }
 
+    //sort by mass
     sort(pol.begin(), pol.end(), by_power);
-    ContainerType tmp(pol.begin(),pol.end());
+    ContainerType tmp(pol.begin(), pol.end());
     merge(tmp, resolution_);
 
   }
