@@ -1597,7 +1597,7 @@ public:
         isotopes.insert(2, 0.0); // 17O is neglectable (=0.038%)
         isotopes.insert(3, a);
         e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_labeling_element * 2 + additional_isotopes)); // 2 * isotopic traces
+        CoarseIsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(new CoarseIsotopeDistribution(max_labeling_element * 2 + additional_isotopes)); // 2 * isotopic traces
         dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
         IsotopeDistribution::ContainerType container = dist.getContainer();
         vector<double> intensities;
