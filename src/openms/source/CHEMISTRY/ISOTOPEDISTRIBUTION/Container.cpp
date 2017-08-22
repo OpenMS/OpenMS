@@ -155,30 +155,6 @@ namespace OpenMS
   }
 
 
-  IsotopeDistribution IsotopeDistribution::operator+(const IsotopeDistribution & iso) const
-  {
-    throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
-    return *this;
-  }
-
-  IsotopeDistribution & IsotopeDistribution::operator+=(const IsotopeDistribution & iso)
-  {
-    throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
-    return *this;
-  }
-
-  IsotopeDistribution & IsotopeDistribution::operator*=(Size factor)
-  {
-    throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
-    return *this;
-  }
-
-  IsotopeDistribution IsotopeDistribution::operator*(Size factor) const
-  {
-    throw Exception::NotImplemented(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION);
-    return *this;
-  }
-
   bool IsotopeDistribution::operator==(const IsotopeDistribution & isotope_distribution) const
   {
     return distribution_ == isotope_distribution.distribution_;

@@ -206,22 +206,6 @@ public:
     }
     //@}
 
-    /// @name Convolutional Dummy Operators
-    //@{
-    /// operator which adds this distribution and the @p isotope_distribution to return IsotopeDisribution (similar to convolve distributions)
-    IsotopeDistribution operator+(const IsotopeDistribution & isotope_distribution) const;
-
-    /// operator which adds @p isotope_distribution to this (similar to convolve distributions)
-    IsotopeDistribution & operator+=(const IsotopeDistribution & isotope_distribution);
-
-    /// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+')
-    IsotopeDistribution operator*(Size factor) const;
-
-    /// operator which multiplies this distribution by @p factor (similar to @p factor times applying operator '+=')
-    IsotopeDistribution & operator*=(Size factor);
-    //@}
-
-
     /// @name Data Access Operators
     //@{
     /// operator which access a cell of the distribution and wraps it in SpectrumFragment struct
