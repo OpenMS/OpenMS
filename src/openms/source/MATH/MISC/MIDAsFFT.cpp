@@ -1,16 +1,16 @@
 #include <OpenMS/MATH/MISC/MIDAsFFT.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <utility>
+
+#define INVERSE
+using namespace std;
 
 namespace OpenMS
 {
 
   void fft(double *Data, int nn)
   {
-    int isign = -1;
-    unsigned long i, j, m, n, mmax, istep;
-    double wr, wpr, wpi, wi, theta;
-    double wtemp, tempr, tempi;
-    double one_pi = acos(-1);
-    double two_pi= 2*one_pi;
+    unsigned long i, j, m, n, mmax;
 
     /* Perform bit reversal of Data[] */
     n = nn << 1;
@@ -19,12 +19,8 @@ namespace OpenMS
     {
       if (j > i)
       {
-        wtemp = Data[i];
-        Data[i] = Data[j];
-        Data[j] = wtemp;
-        wtemp = Data[i+1];
-        Data[i+1] = Data[j+1];
-        Data[j+1] = wtemp;
+        swap(Data[i], Data[j]);
+        swap(Data[i+1], Data[j+1]);
       }
       m = n >> 1;
       while (m >= 2 && j > m)
@@ -40,28 +36,33 @@ namespace OpenMS
     mmax = 2;
     while (n > mmax)  /* Loop executed log(2)nn times */
     {
-      istep = mmax << 1;
-      theta = isign * (two_pi/mmax);  
-      wtemp = sin(0.5*theta);
-      wpr = -2.0*wtemp*wtemp;
-      wpi = sin(theta);
-      wr = 1.0;
-      wi = 0.0;
+      unsigned long istep = mmax << 1;
+#ifdef INVERSE
+      double theta = -((2 * Constants::PI) / mmax);
+#else
+      double theta = ((2 * Constants::PI) / mmax);
+#endif
+      double wtemp = sin(0.5 * theta);
+      double wpr = -2.0 * wtemp * wtemp;
+      double wpi = sin(theta);
+      double wr = 1.0;
+      double wi = 0.0;
       for (m=1; m<mmax; m+=2)
       {
         for (i=m; i<=n; i+=istep)
         {
+          double tempr, tempi;
           j = i+mmax;                      
-
-          tempr = wr*Data[j]-wi*Data[j+1];
-          tempi = wr*Data[j+1]+wi*Data[j];
-          Data[j] = Data[i]-tempr;
-          Data[j+1] = Data[i+1]-tempi;
+          tempr = wr * Data[j] - wi * Data[j + 1];
+          tempi = wr * Data[j + 1] + wi * Data[j];
+          Data[j] = Data[i] - tempr;
+          Data[j + 1] = Data[i + 1] - tempi;
           Data[i] += tempr;
-          Data[i+1] += tempi;
+          Data[i + 1] += tempi;
         }
-        wr = (wtemp=wr)*wpr-wi*wpi+wr;
-        wi = wi*wpr+wtemp*wpi+wi;
+        wtemp = wr;
+        wr += wtemp * wpr - wi * wpi;
+        wi += (wi * wpr) + (wtemp * wpi);
       }
       mmax = istep;
     }
