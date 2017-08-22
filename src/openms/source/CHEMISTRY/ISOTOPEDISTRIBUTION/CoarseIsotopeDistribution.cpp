@@ -49,21 +49,21 @@ using namespace std;
 namespace OpenMS
 {
   CoarseIsotopeDistribution::CoarseIsotopeDistribution() : 
-    IsotopePatternSolver(),
+    IsotopePatternGenerator(),
     max_isotope_(0)
   {
     distribution_.push_back(Peak1D(0, 1));
   }
 
   CoarseIsotopeDistribution::CoarseIsotopeDistribution(Size max_isotope) :
-    IsotopePatternSolver(),
+    IsotopePatternGenerator(),
     max_isotope_(max_isotope)
   {
      distribution_.push_back(Peak1D(0, 1));
   }
 
   CoarseIsotopeDistribution::CoarseIsotopeDistribution(const IsotopeDistribution& isotope_distribution) :
-    IsotopePatternSolver(isotope_distribution),
+    IsotopePatternGenerator(isotope_distribution),
     max_isotope_(0)
   {
        

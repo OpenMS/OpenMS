@@ -7,7 +7,7 @@ set(sources_list_h
   Container.h
   CoarseIsotopeDistribution.h
   Ecipex.h
-  IsotopePatternSolver.h
+  IsotopePatternGenerator.h
   MIDAsFFTID.h
   MIDAsPolynomialID.h
 )

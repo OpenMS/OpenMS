@@ -9,7 +9,7 @@
 #define kiss_fft_scalar double
 #define INVERSE true
 
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternSolver.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <kiss_fft.h>
 
 

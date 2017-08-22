@@ -1,7 +1,7 @@
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ECIPEX_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ECIPEX_H
 
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternSolver.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 
 
 namespace OpenMS
@@ -23,7 +23,7 @@ namespace OpenMS
         number of values, if the mass value is large!
     */
 
-  class OPENMS_DLLAPI Ecipex : public IsotopePatternSolver
+  class OPENMS_DLLAPI Ecipex : public IsotopePatternGenerator
   {
   public:
     typedef ContainerType Spectrum;

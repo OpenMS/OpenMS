@@ -169,7 +169,7 @@ namespace OpenMS
 
   };
 
-  Ecipex::Ecipex() : IsotopePatternSolver()
+  Ecipex::Ecipex() : IsotopePatternGenerator()
   {
     distribution_.push_back(Peak1D(0, 1));
   }
@@ -183,7 +183,7 @@ namespace OpenMS
   }
 
   Ecipex::Ecipex(const IsotopeDistribution& isotope_distribution) :
-    IsotopePatternSolver(isotope_distribution)
+    IsotopePatternGenerator(isotope_distribution)
   {
   }
   

@@ -13,11 +13,11 @@
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI IsotopePatternSolver : public IsotopeDistribution
+  class OPENMS_DLLAPI IsotopePatternGenerator : public IsotopeDistribution
   {
  public:
-    IsotopePatternSolver();
-    IsotopePatternSolver(const IsotopeDistribution&);
+    IsotopePatternGenerator();
+    IsotopePatternGenerator(const IsotopeDistribution&);
     virtual void run() = 0;
     void dumpIDToFile(String file);
     void setEmpiricalFormula(const EmpiricalFormula&);
@@ -26,7 +26,7 @@ namespace OpenMS
     void merge(ContainerType&, double);
   };
 
-  class OPENMS_DLLAPI MIDAs : public IsotopePatternSolver
+  class OPENMS_DLLAPI MIDAs : public IsotopePatternGenerator
   {
  public:
     

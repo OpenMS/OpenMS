@@ -49,7 +49,7 @@ namespace OpenMS
   class Element;
   class ElementDB;
   class IsotopeDistribution;
-  class IsotopePatternSolver;
+  class IsotopePatternGenerator;
   /**
     @ingroup Chemistry
 
@@ -169,7 +169,7 @@ public:
 
       @param max_depth: the maximum isotope which is considered, if 0 all are reported
     */
-    IsotopeDistribution getIsotopeDistribution(IsotopePatternSolver*) const;
+    IsotopeDistribution getIsotopeDistribution(IsotopePatternGenerator*) const;
 
     /**
       @brief returns the fragment isotope distribution of this given a precursor formula

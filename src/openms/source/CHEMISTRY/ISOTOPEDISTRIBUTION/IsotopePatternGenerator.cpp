@@ -1,7 +1,7 @@
 
 
 #include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternSolver.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <cmath>
@@ -11,15 +11,15 @@ using namespace std;
 
 namespace OpenMS
 {
-  IsotopePatternSolver::IsotopePatternSolver() : IsotopeDistribution()
+  IsotopePatternGenerator::IsotopePatternGenerator() : IsotopeDistribution()
   {}
 
-  IsotopePatternSolver::IsotopePatternSolver(const IsotopeDistribution& rhs) :
+  IsotopePatternGenerator::IsotopePatternGenerator(const IsotopeDistribution& rhs) :
     IsotopeDistribution(rhs)
   {
     
   }
-  void IsotopePatternSolver::merge(ContainerType& raw, double resolution)
+  void IsotopePatternGenerator::merge(ContainerType& raw, double resolution)
   {
     //raw must be ordered to work correctly ascending order on power field
 
@@ -49,14 +49,14 @@ namespace OpenMS
     }
   }
   
-  void IsotopePatternSolver::setEmpiricalFormula(const EmpiricalFormula& formula)
+  void IsotopePatternGenerator::setEmpiricalFormula(const EmpiricalFormula& formula)
   {
     formula_ = formula;
   }
 
 
 
-  void IsotopePatternSolver::dumpIDToFile(String file)
+  void IsotopePatternGenerator::dumpIDToFile(String file)
   {
     ofstream out(file.c_str());
     for(auto& sample : distribution_)
@@ -69,7 +69,7 @@ namespace OpenMS
   
   /* Start of the midas interface */
   MIDAs::MIDAs(EmpiricalFormula& formula, double resolution, UInt N_):
-    IsotopePatternSolver(),
+    IsotopePatternGenerator(),
     min_prob(1e-16),
     formula_(formula),
     resolution_(resolution),
@@ -78,12 +78,12 @@ namespace OpenMS
     
   }
 
-  MIDAs::MIDAs() : IsotopePatternSolver()
+  MIDAs::MIDAs() : IsotopePatternGenerator()
   {
   }
 
   //MIDAs::MIDAs(const IsotopeDistribution& isotope_distribution) : 
-  //  IsotopePatternSolver(isotope_distribution)
+  //  IsotopePatternGenerator(isotope_distribution)
   //{
   //}
 

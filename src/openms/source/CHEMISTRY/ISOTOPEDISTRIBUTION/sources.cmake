@@ -7,7 +7,7 @@ set(sources_list
   Container.cpp
   CoarseIsotopeDistribution.cpp
   Ecipex.cpp
-  IsotopePatternSolver.cpp
+  IsotopePatternGenerator.cpp
   MIDAsFFTID.cpp
   MIDAsPolynomialID.cpp
 )

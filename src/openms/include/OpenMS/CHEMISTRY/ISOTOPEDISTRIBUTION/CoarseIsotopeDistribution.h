@@ -35,13 +35,13 @@
 #ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_COARSEID_H
 #define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_COARSEID_H
 
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternSolver.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 
 
 namespace OpenMS
 {
 
-  class OPENMS_DLLAPI CoarseIsotopeDistribution : public IsotopePatternSolver
+  class OPENMS_DLLAPI CoarseIsotopeDistribution : public IsotopePatternGenerator
   {
 
  public:
