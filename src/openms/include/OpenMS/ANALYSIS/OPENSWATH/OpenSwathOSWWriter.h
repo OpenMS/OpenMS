@@ -187,9 +187,10 @@ namespace OpenMS
       rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
       if( rc != SQLITE_OK )
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            zErrMsg);
+        std::string error_message = zErrMsg;
         sqlite3_free(zErrMsg);
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            error_message);
       }
 
       // Insert run_id information
@@ -202,9 +203,10 @@ namespace OpenMS
       rc = sqlite3_exec(db, sql_run.str().c_str(), callback, 0, &zErrMsg);
       if( rc != SQLITE_OK )
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            zErrMsg);
+        std::string error_message = zErrMsg;
         sqlite3_free(zErrMsg);
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            error_message);
       }
 
       sqlite3_close(db);
@@ -440,9 +442,10 @@ namespace OpenMS
         rc = sqlite3_exec(db, to_osw_output[i].c_str(), callback, 0, &zErrMsg);
         if( rc != SQLITE_OK )
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              zErrMsg);
+          std::string error_message = zErrMsg;
           sqlite3_free(zErrMsg);
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              error_message);
         }
       }
 
