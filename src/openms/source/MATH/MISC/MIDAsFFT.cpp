@@ -1,6 +1,5 @@
 #include <OpenMS/MATH/MISC/MIDAsFFT.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <utility>
+
 
 #define INVERSE
 using namespace std;
