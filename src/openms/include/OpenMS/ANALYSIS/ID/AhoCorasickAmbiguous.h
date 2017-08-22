@@ -285,7 +285,8 @@ namespace seqan
     Pattern const& operator=(Pattern const & other);
     //____________________________________________________________________________
   public:
-    typedef typename Size<TNeedle>::Type TSize;
+    //typedef typename Size<TNeedle>::Type TSize; // defaults to uint64, but uint32 is enough...
+    typedef uint32_t TSize; // max. number of peptides allowed (4 billion; checked in init())
     typedef typename Value<TNeedle>::Type TKeyword;
     typedef typename Value<TKeyword>::Type TAlphabet;
     typedef Graph<Automaton<TAlphabet> > TGraph;
@@ -298,8 +299,8 @@ namespace seqan
     // "constant" data, after construction of trie
     KeyWordLengthType max_ambAA;            // default: 3
     Holder<TNeedle> data_host;                    // holds needles, i.e. Peptides
-    String<String<TSize> > data_terminalStateMap; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
     TGraph data_graph;                            // regular trie data
+    String<String<TSize> > data_terminalStateMap; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
     String<TVert> data_supplyMap;                 // trie suffix links
     String<KeyWordLengthType> data_nodeDepths;    // depths of each graph node
 
@@ -325,14 +326,19 @@ namespace seqan
       max_ambAA = max_AAA;
       typedef typename Value<TNeedle>::Type TKeyword;
       typedef typename Value<TKeyword>::Type TAlphabet;
-      
-      for (TSize i = 0; i < length(ndl); ++i)
+      if (std::numeric_limits<TSize>::max() < length(ndl)) // check 4 billion peptide limit; use length(ndl) directly, since TSize might be too small
+      {
+        throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, "Pattern<FuzzyAC>(PeptideSet)", std::string("Input contains more than 2^32 peptides. Cannot create trie.").c_str(), OpenMS::String(length(ndl)));
+      }
+      TSize ln = (TSize)length(ndl);
+      for (TSize i = 0; i < ln; ++i)
       {
         if (length(ndl[i]) > std::numeric_limits<KeyWordLengthType>::max())
         {
           throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, "Pattern<FuzzyAC>(PeptideSet)", std::string("Input peptide to FuzzyAC must NOT be longer than 255 chars!").c_str(), std::string(begin(ndl[i]), end(ndl[i])));
         }
-        for (TSize j = 0; j < length(ndl[i]); ++j)
+        TSize lni = (TSize)length(ndl[i]);
+        for (TSize j = 0; j < lni; ++j)
         {
           if (isAmbiguous(ndl[i][j])) // this check is important -- find() code below relies on no ambiguous chars being present!
           {
@@ -699,7 +705,7 @@ namespace seqan
 
   template<class TNeedle> inline void addHits(const Pattern<TNeedle, FuzzyAC>& me, PatternAuxData<TNeedle>& dh, Spawn<TNeedle>& spawn)
   {
-    typedef typename Size<TNeedle>::Type TSize;
+    typedef typename Pattern<TNeedle, FuzzyAC>::TSize TSize;
     String<TSize> needle_hits = getProperty(me.data_terminalStateMap, spawn.current_state);
     //DEBUG_ONLY std::cout << "spawn at path: " << getPath(me, spawn.current_state) << "\n";
     if (length(needle_hits) > 0)
@@ -720,7 +726,7 @@ namespace seqan
   }
   template<class TNeedle> inline void addHits(const Pattern<TNeedle, FuzzyAC>& me, PatternAuxData<TNeedle>& dh, typename Pattern<TNeedle, FuzzyAC>::TVert& current_state)
   {
-    typedef typename Size<TNeedle>::Type TSize;
+    typedef typename Pattern<TNeedle, FuzzyAC>::TSize TSize;
     //DEBUG_ONLY std::cout << "master at path: " << getPath(me, current_state) << "\n";
     String<TSize> needle_hits = getProperty(me.data_terminalStateMap, current_state);
     if (length(needle_hits))

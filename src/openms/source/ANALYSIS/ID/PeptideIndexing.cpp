@@ -141,23 +141,22 @@ public:
       this->filter_rejected += other.filter_rejected;
     }
 
-    void addHit(OpenMS::Size idx_pep,
-				        OpenMS::Size idx_prot,
-                const OpenMS::String& seq_pep,
+    void addHit(const OpenMS::Size idx_pep,
+                const OpenMS::Size idx_prot,
+                const OpenMS::Size len_pep,
 				        const OpenMS::String& seq_prot,
                 OpenMS::Int position)
     {
-      if (enzyme_.isValidProduct(seq_prot, position,
-                                 seq_pep.length(), true))
+      if (enzyme_.isValidProduct(seq_prot, position, len_pep, true))
       {
         PeptideProteinMatchInformation match;
         match.protein_index = idx_prot;
         match.position = position;
         match.AABefore = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : seq_prot[position - 1];
-        match.AAAfter = (position + seq_pep.length() >= seq_prot.size()) ? PeptideEvidence::C_TERMINAL_AA : seq_prot[position + seq_pep.length()];
+        match.AAAfter = (position + len_pep >= seq_prot.size()) ? PeptideEvidence::C_TERMINAL_AA : seq_prot[position + len_pep];
         pep_to_prot[idx_pep].insert(match);
         ++filter_passed;
-        DEBUG_ONLY std::cerr << "Hit: " << seq_pep << " with hit to protein " << seq_prot << " at position " << position << std::endl;
+        DEBUG_ONLY std::cerr << "Hit: " << len_pep << " (peplen) with hit to protein " << seq_prot << " at position " << position << std::endl;
       }
       else
       {
@@ -408,12 +407,18 @@ DefaultParamHandler("PeptideIndexing")
 
       /** Aho Corasick (fast) */
       LOG_INFO << "Searching with up to " << aaa_max_ << " ambiguous amino acids!" << std::endl;
-		  this->startProgress(0, proteins.size(), "Aho-Corasick");
       SysInfo::MemUsage mu;
-
+      LOG_INFO << "Building trie ...";
+      StopWatch s;
+      s.start();
       AhoCorasickAmbiguous::FuzzyACPattern pattern;
       AhoCorasickAmbiguous::initPattern(pep_DB, aaa_max_, pattern);
-      StopWatch s;
+      s.stop();
+      LOG_INFO << " done (" << int(s.getClockTime()) << "s)" << std::endl;
+      this->startProgress(0, proteins.size(), "Aho-Corasick");
+
+      s.reset();
+
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
@@ -430,7 +435,7 @@ DefaultParamHandler("PeptideIndexing")
           while (fuzzyAC.findNext(pattern))
           {
             const seqan::Peptide& tmp_pep = pep_DB[fuzzyAC.getHitDBIndex()];
-            func_threads.addHit(fuzzyAC.getHitDBIndex(), i, String(begin(tmp_pep), end(tmp_pep)), proteins[i].sequence, fuzzyAC.getHitProteinPosition());
+            func_threads.addHit(fuzzyAC.getHitDBIndex(), i, length(tmp_pep), proteins[i].sequence, fuzzyAC.getHitProteinPosition());
           }
         }
 
@@ -445,7 +450,8 @@ DefaultParamHandler("PeptideIndexing")
       } // OMP end parallel
       s.stop();
       std::cout << "Merge took: " << s.toString() << "\n";
-      std::cout << mu.delta("ACSup start") << "\n\n"; 
+      mu.after();
+      std::cout << mu.delta("ACSup done") << "\n\n"; 
 
 		  this->endProgress();
       LOG_INFO << "\nAho-Corasick done:\n  found " << func.filter_passed << " hits for " << func.pep_to_prot.size() << " of " << length(pep_DB) << " peptides.\n";
