@@ -19,13 +19,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  void print(std::string t, IsotopeDistribution& result)
-  {
-    for(auto& sample: result.getContainer())
-    {
-      cout<<t << sample.getMZ() <<" " << sample.getIntensity() << endl;
-    }
-  }
 
   class KissFftState 
   {
@@ -62,7 +55,7 @@ namespace OpenMS
       if (is1d()) 
       { 
         // for some reason kiss_fftndr needs at least 2 dimensions to work
-        if (!inverse_)
+        if (not inverse_)
         {
           kiss_fftr((kiss_fftr_cfg)cfg_, (kiss_fft_scalar*)in, (kiss_fft_cpx*)out);
         }
@@ -96,7 +89,7 @@ namespace OpenMS
   {
 
    public:
-    FftArray(const std::vector<Int>& dimensions)
+    explicit FftArray(const std::vector<Int>& dimensions)
       : dims_(dimensions), data_(nullptr), n_(1) 
     {
       for (const Int& x : dims_)
@@ -256,7 +249,7 @@ namespace OpenMS
     // exponentiation
     for (UInt64 i = 0; i < arr.size(); ++i)
     {
-      arr.data()[i] = std::pow(arr.data()[i], amount);
+      arr.data()[i] = pow(arr.data()[i], amount);
     }
     // inverse FFT
     arr.inverseFFT();
@@ -312,7 +305,7 @@ namespace OpenMS
     auto& p1 = *this;
     auto& p2 = distribution;
     
-    if(!p1.isNormalized() || !p2.isNormalized())
+    if(not p1.isNormalized() || not p2.isNormalized())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Distributions not normalized ", "");
     }
@@ -336,6 +329,8 @@ namespace OpenMS
     UInt64 n1 = p1.size(), n2 = p2.size();
 
     for(UInt64 i = 0; i < n1; i++)
+    {
+
       for(UInt64 j = 0; j < n2; j++) 
       {
         auto abundance = p1[i].getIntensity() * p2[j].getIntensity();
@@ -345,10 +340,14 @@ namespace OpenMS
         } 
         else 
         {
-          if (j == 0) break;
+          if (j == 0) 
+          {
+            break;
+          }
           n2 = j;
         }
       }
+    }
     result.sortAndNormalize();
     p1.set(result.getContainer());
   }
