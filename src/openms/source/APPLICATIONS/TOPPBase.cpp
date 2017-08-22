@@ -36,6 +36,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
@@ -491,6 +492,14 @@ namespace OpenMS
     result = main_(argc, argv);
     sw.stop();
     LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
+
+    // useful for benchmarking
+    if (debug_level_ >= 1)
+    {
+      size_t mem_virtual(0);
+      writeLog_(String("Peak Memory Usage: ") + (SysInfo::getProcessPeakMemoryConsumption(mem_virtual) ? String(mem_virtual / 1024) + " MB" : "<unknown>"));
+    }
+
 
 #ifndef DEBUG_TOPP
   }
