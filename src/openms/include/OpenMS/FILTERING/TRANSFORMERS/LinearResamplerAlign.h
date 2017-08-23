@@ -77,20 +77,20 @@ public:
 
         @param container The container to be resampled
     */
-    template <template <typename> class SpecT, typename PeakType>
-    void raster(SpecT<PeakType>& container)
+    template <class SpecT>
+    void raster(SpecT& container)
     {
       //return if nothing to do
       if (container.empty()) return;
 
-      typename SpecT<PeakType>::iterator first = container.begin();
-      typename SpecT<PeakType>::iterator last = container.end();
+      typename SpecT::iterator first = container.begin();
+      typename SpecT::iterator last = container.end();
 
       double end_pos = (last - 1)->getMZ();
       double start_pos = first->getMZ();
       int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
 
-      typename std::vector<PeakType> resampled_peak_container;
+      std::vector<typename SpecT::PeakType> resampled_peak_container;
       populate_raster_(resampled_peak_container, start_pos, end_pos, number_resampled_points);
 
       raster(container.begin(), container.end(), resampled_peak_container.begin(), resampled_peak_container.end());
@@ -113,21 +113,21 @@ public:
         @param start_pos The start position to be used for resampling
         @param end_pos The end position to be used for resampling
     */
-    template <template <typename> class SpecT, typename PeakType>
-    void raster_align(SpecT<PeakType>& container, double start_pos, double end_pos)
+    template <typename SpecT>
+    void raster_align(SpecT& container, double start_pos, double end_pos)
     {
       //return if nothing to do
       if (container.empty()) return;
 
       if (end_pos < start_pos)
       {
-        typename std::vector<PeakType> empty;
+        std::vector<typename SpecT::PeakType> empty;
         container.swap(empty);
         return;
       }
 
-      typename SpecT<PeakType>::iterator first = container.begin();
-      typename SpecT<PeakType>::iterator last = container.end();
+      typename SpecT::iterator first = container.begin();
+      typename SpecT::iterator last = container.end();
 
       // get the iterators just before / after the two points start_pos / end_pos
       while (first != container.end() && (first)->getMZ() < start_pos) {++first;}
@@ -135,7 +135,7 @@ public:
 
       int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
 
-      typename std::vector<PeakType> resampled_peak_container;
+      std::vector<typename SpecT::PeakType> resampled_peak_container;
       populate_raster_(resampled_peak_container, start_pos, end_pos, number_resampled_points);
 
       raster(first, last, resampled_peak_container.begin(), resampled_peak_container.end());

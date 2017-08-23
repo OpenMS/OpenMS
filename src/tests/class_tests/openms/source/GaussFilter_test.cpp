@@ -61,11 +61,11 @@ START_SECTION((virtual ~GaussFilter()))
     delete dgauss_ptr;
 END_SECTION
 
-START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& spectrum)))
-  MSSpectrum<Peak1D> spectrum;
+START_SECTION((template <typename PeakType> void filter(MSSpectrum& spectrum)))
+  MSSpectrum spectrum;
   spectrum.resize(5);
 
-  MSSpectrum<Peak1D>::Iterator it = spectrum.begin();
+  MSSpectrum::Iterator it = spectrum.begin();
   for (Size i=0; i<5; ++i, ++it)
   {
     it->setIntensity(1.0f);
@@ -96,10 +96,10 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& sp
 END_SECTION 
 
 START_SECTION((template <typename PeakType> void filter(MSChromatogram<PeakType>& chromatogram)))
-  MSChromatogram<ChromatogramPeak> chromatogram;
+  MSChromatogram chromatogram;
   chromatogram.resize(5);
 
-  MSChromatogram<ChromatogramPeak>::Iterator it = chromatogram.begin();
+  MSChromatogram::Iterator it = chromatogram.begin();
   for (Size i=0; i<5; ++i, ++it)
   {
     it->setIntensity(1.0f);

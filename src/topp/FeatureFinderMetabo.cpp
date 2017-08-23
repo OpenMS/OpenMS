@@ -289,7 +289,7 @@ protected:
     ms_peakmap.getPrimaryMSRunPath(ms_runs);
     feat_map.setPrimaryMSRunPath(ms_runs);
 
-    std::vector< std::vector< OpenMS::MSChromatogram<> > > feat_chromatograms;
+    std::vector< std::vector< OpenMS::MSChromatogram > > feat_chromatograms;
 
     FeatureFindingMetabo ffmet;
     ffmet.setParameters(ffm_param);
