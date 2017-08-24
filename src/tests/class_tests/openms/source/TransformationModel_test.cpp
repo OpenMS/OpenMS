@@ -130,6 +130,7 @@ START_SECTION((double weightDatum(double& datum, const string& weight) const))
   TransformationModel dw(data, param);
   string test;
   test = "";
+  double inf = 1.0/0.0;
   TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 0.0);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 2.0);
   test = "none";
