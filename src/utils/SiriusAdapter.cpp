@@ -117,8 +117,6 @@ protected:
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
     setValidStrings_("profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
     registerIntOption_("candidates", "<num>", 5, "The number of candidates in the output. Default 5 best candidates", false);
-    registerStringOption_("database", "<choice>", "all", "search formulas in given database", false);
-    setValidStrings_("database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));
     registerIntOption_("noise", "<num>", 0, "median intensity of noise peaks", false);
     registerIntOption_("ppm_max", "<num>", 10, "allowed ppm for decomposing masses", false);
     registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring (default). Use 'omit' to ignore isotope pattern.", false);
@@ -150,7 +148,6 @@ protected:
     QString executable = getStringOption_("executable").toQString();
     QString profile = getStringOption_("profile").toQString();
     QString elements = getStringOption_("elements").toQString();
-    QString database = getStringOption_("database").toQString();
     QString isotope = getStringOption_("isotope").toQString();
     QString noise = QString::number(getIntOption_("noise"));
     QString ppm_max = QString::number(getIntOption_("ppm_max"));
