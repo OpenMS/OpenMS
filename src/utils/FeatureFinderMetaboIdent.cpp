@@ -45,6 +45,7 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
@@ -161,6 +162,8 @@ protected:
 
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
+
+  typedef vector<const ReactionMonitoringTransition*> TransitionGroup;
 
   // predicate for filtering features by overall quality:
   struct FeatureFilterQuality
@@ -412,6 +415,104 @@ protected:
   }
 
 
+  pair<double, double> getTransitionRTs(const ReactionMonitoringTransition&
+                                        trans)
+  {
+    const TargetedExperiment::Compound& compound =
+      library_.getCompoundByRef(trans.getCompoundRef());
+    // @TODO: having to get the RTs this way hurts my brain...
+    double rt1 = compound.rts[0].getCVTerms()["MS:1000896"][0].getValue().
+      toString().toDouble();
+    double rt2 = compound.rts[1].getCVTerms()["MS:1000896"][0].getValue().
+      toString().toDouble();
+    return make_pair(rt1, rt2);
+  }
+
+
+  bool hasOverlappingTransition_(const ReactionMonitoringTransition& trans,
+                                 const TransitionGroup& group)
+  {
+    double mz = trans.getProductMZ();
+    pair<double, double> rts = getTransitionRTs(trans);
+    for (TransitionGroup::const_iterator it = group.begin(); it != group.end();
+         ++it)
+    {
+      double diff = mz_window_ppm_ ?
+        Math::getPPMAbs<double>(mz, (*it)->getProductMZ()) :
+        abs(mz - (*it)->getProductMZ());
+      if (diff < mz_window_) // overlapping m/z, check RT
+      {
+        pair<double, double> other_rts = getTransitionRTs(**it);
+        if (!(rts.second <= other_rts.first) &&
+            !(rts.first >= other_rts.second))
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+
+  void findOverlappingTransitions_()
+  {
+    vector<TransitionGroup> overlap_groups;
+    for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
+           library_.getTransitions().begin(); trans_it !=
+           library_.getTransitions().end(); ++trans_it)
+    {
+      // @TODO: make this more efficient?
+      vector<TransitionGroup> current_overlaps;
+      vector<TransitionGroup> no_overlaps;
+      for (vector<TransitionGroup>::const_iterator group_it =
+             overlap_groups.begin(); group_it != overlap_groups.end();
+           ++group_it)
+      {
+        if (hasOverlappingTransition_(*trans_it, *group_it))
+        {
+          current_overlaps.push_back(*group_it);
+        }
+        else
+        {
+          no_overlaps.push_back(*group_it);
+        }
+      }
+      if (current_overlaps.empty()) // make new group for current transition
+      {
+        TransitionGroup new_group(1, &(*trans_it));
+        no_overlaps.push_back(new_group);
+      }
+      else // merge all groups that overlap the current transition, then add it
+      {
+        TransitionGroup& merged = current_overlaps.front();
+        for (vector<TransitionGroup>::const_iterator group_it =
+               ++current_overlaps.begin(); group_it != current_overlaps.end();
+             ++group_it)
+        {
+          merged.insert(merged.end(), group_it->begin(), group_it->end());
+        }
+        merged.push_back(&(*trans_it));
+        no_overlaps.push_back(merged);
+      }
+      overlap_groups.swap(no_overlaps);
+    }
+    for (vector<TransitionGroup>::const_iterator group_it =
+           overlap_groups.begin(); group_it != overlap_groups.end(); ++group_it)
+    {
+      if (group_it->size() > 1)
+      {
+        LOG_INFO << "Overlapping transitions:";
+        for (TransitionGroup::const_iterator trans_it = group_it->begin();
+             trans_it != group_it->end(); ++trans_it)
+        {
+          LOG_INFO << " " << (*trans_it)->getNativeID();
+        }
+        LOG_INFO << endl;
+      }
+    }
+  }
+
+
   void annotateFeatures_(FeatureMap& features)
   {
     for (FeatureMap::Iterator feat_it = features.begin();
@@ -559,6 +660,9 @@ protected:
     //-------------------------------------------------------------
     LOG_INFO << "Loading targets and creating assay library..." << endl;
     readTargets_(id);
+
+    findOverlappingTransitions_();
+    return EXECUTION_OK;
 
     LOG_INFO << "Loading input LC-MS data..." << endl;
     MzMLFile mzml;
