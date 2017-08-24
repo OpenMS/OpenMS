@@ -198,7 +198,6 @@ protected:
     QStringList process_params; // the actual process
     process_params << "-p" << profile
                    << "-e" << elements
-                   << "-d" << database
                    << "-s" << isotope
                    << "--noise" << noise
                    << "--candidates" << candidates
