@@ -35,13 +35,15 @@
 #ifndef OPENMS_ANALYSIS_ID_PEPTIDEINDEXING_H
 #define OPENMS_ANALYSIS_ID_PEPTIDEINDEXING_H
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
+#include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <fstream>
 
@@ -130,6 +132,129 @@ public:
     ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids);
 
 protected:
+    struct PeptideProteinMatchInformation
+    {
+      /// index of the protein the peptide is contained in
+      OpenMS::Size protein_index;
+
+      /// the position of the peptide in the protein
+      OpenMS::Int position;
+
+      /// the amino acid after the peptide in the protein
+      char AABefore;
+
+      /// the amino acid before the peptide in the protein
+      char AAAfter;
+
+      bool operator<(const PeptideProteinMatchInformation& other) const
+      {
+        if (protein_index != other.protein_index)
+        {
+          return protein_index < other.protein_index;
+        }
+        else if (position != other.position)
+        {
+          return position < other.position;
+        }
+        else if (AABefore != other.AABefore)
+        {
+          return AABefore < other.AABefore;
+        }
+        else if (AAAfter != other.AAAfter)
+        {
+          return AAAfter < other.AAAfter;
+        }
+        return false;
+      }
+
+      bool operator==(const PeptideProteinMatchInformation& other) const
+      {
+        return protein_index == other.protein_index &&
+          position == other.position &&
+          AABefore == other.AABefore &&
+          AAAfter == other.AAAfter;
+      }
+
+    };
+    struct FoundProteinFunctor
+    {
+    public:
+      typedef std::map<OpenMS::Size, std::set<PeptideProteinMatchInformation> > MapType;
+
+      /// peptide index --> protein indices
+      MapType pep_to_prot;
+
+      /// number of accepted hits (passing addHit() constraints)
+      OpenMS::Size filter_passed;
+
+      /// number of rejected hits (not passing addHit())
+      OpenMS::Size filter_rejected;
+
+    private:
+      EnzymaticDigestion enzyme_;
+
+    public:
+      explicit FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
+        pep_to_prot(), filter_passed(0), filter_rejected(0), enzyme_(enzyme)
+      {
+      }
+
+      void merge(FoundProteinFunctor& other)
+      {
+        if (pep_to_prot.empty())
+        { // first merge is easy
+          pep_to_prot.swap(other.pep_to_prot);
+        }
+        else
+        {
+          for (FoundProteinFunctor::MapType::const_iterator it = other.pep_to_prot.begin(); it != other.pep_to_prot.end(); ++it)
+          { // augment set
+            this->pep_to_prot[it->first].insert(other.pep_to_prot[it->first].begin(), other.pep_to_prot[it->first].end());
+          }
+        }
+        // cheap members
+        this->filter_passed += other.filter_passed;
+        this->filter_rejected += other.filter_rejected;
+      }
+
+      void addHit(const OpenMS::Size idx_pep,
+        const OpenMS::Size idx_prot,
+        const OpenMS::Size len_pep,
+        const OpenMS::String& seq_prot,
+        OpenMS::Int position)
+      {
+        if (enzyme_.isValidProduct(seq_prot, position, len_pep, true))
+        {
+          PeptideProteinMatchInformation match;
+          match.protein_index = idx_prot;
+          match.position = position;
+          match.AABefore = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : seq_prot[position - 1];
+          match.AAAfter = (position + len_pep >= seq_prot.size()) ? PeptideEvidence::C_TERMINAL_AA : seq_prot[position + len_pep];
+          pep_to_prot[idx_pep].insert(match);
+          ++filter_passed;
+          DEBUG_ONLY std::cerr << "Hit: " << len_pep << " (peplen) with hit to protein " << seq_prot << " at position " << position << std::endl;
+        }
+        else
+        {
+          //std::cerr << "REJECTED Peptide " << seq_pep << " with hit to protein "
+          //  << seq_prot << " at position " << position << std::endl;
+          ++filter_rejected;
+        }
+      }
+
+    };
+
+    inline void addHits_(AhoCorasickAmbiguous& fuzzyAC, const AhoCorasickAmbiguous::FuzzyACPattern& pattern, const AhoCorasickAmbiguous::PeptideDB& pep_DB, const String& prot, const String& full_prot, SignedSize i, Int offset, FoundProteinFunctor& func_threads) const
+    {
+      fuzzyAC.setProtein(prot);
+      while (fuzzyAC.findNext(pattern))
+      {
+        const seqan::Peptide& tmp_pep = pep_DB[fuzzyAC.getHitDBIndex()];
+        func_threads.addHit(fuzzyAC.getHitDBIndex(), i, length(tmp_pep), full_prot, fuzzyAC.getHitProteinPosition() + offset);
+      }
+
+    }
+
     virtual void updateMembers_();
 
     String decoy_string_;

@@ -52,123 +52,11 @@ using namespace OpenMS;
 using namespace std;
 
 
-struct PeptideProteinMatchInformation
-{
-  /// index of the protein the peptide is contained in
-  OpenMS::Size protein_index;
-
-  /// the position of the peptide in the protein
-  OpenMS::Int position;
-
-  /// the amino acid after the peptide in the protein
-  char AABefore;
-
-  /// the amino acid before the peptide in the protein
-  char AAAfter;
-
-  bool operator<(const PeptideProteinMatchInformation& other) const
-  {
-    if (protein_index != other.protein_index)
-    {
-      return protein_index < other.protein_index;
-    }
-    else if (position != other.position)
-    {
-      return position < other.position;
-    }
-    else if (AABefore != other.AABefore)
-    {
-      return AABefore < other.AABefore;
-    }
-    else if (AAAfter != other.AAAfter)
-    {
-      return AAAfter < other.AAAfter;
-    }
-    return false;
-  }
-
-  bool operator==(const PeptideProteinMatchInformation& other) const
-  {
-    return protein_index == other.protein_index &&
-           position == other.position &&
-           AABefore == other.AABefore &&
-           AAAfter == other.AAAfter;
-  }
-
-};
-
 namespace seqan
 {
 
-  struct FoundProteinFunctor
-  {
-public:
-    typedef std::map<OpenMS::Size, std::set<PeptideProteinMatchInformation> > MapType;
-
-    /// peptide index --> protein indices
-    MapType pep_to_prot;
-
-    /// number of accepted hits (passing addHit() constraints)
-    OpenMS::Size filter_passed;
-
-    /// number of rejected hits (not passing addHit())
-    OpenMS::Size filter_rejected;
-
-private:
-    EnzymaticDigestion enzyme_;
-
-public:
-    explicit FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
-      pep_to_prot(), filter_passed(0), filter_rejected(0), enzyme_(enzyme)
-    {
-    }
-
-    void merge(FoundProteinFunctor& other)
-    {
-      if (pep_to_prot.empty())
-      { // first merge is easy
-        pep_to_prot.swap(other.pep_to_prot);
-      }
-      else
-      {
-        for (seqan::FoundProteinFunctor::MapType::const_iterator it = other.pep_to_prot.begin(); it != other.pep_to_prot.end(); ++it)
-        { // augment set
-          this->pep_to_prot[it->first].insert(other.pep_to_prot[it->first].begin(), other.pep_to_prot[it->first].end());
-        }
-      }
-      // cheap members
-      this->filter_passed += other.filter_passed;
-      this->filter_rejected += other.filter_rejected;
-    }
-
-    void addHit(const OpenMS::Size idx_pep,
-                const OpenMS::Size idx_prot,
-                const OpenMS::Size len_pep,
-				        const OpenMS::String& seq_prot,
-                OpenMS::Int position)
-    {
-      if (enzyme_.isValidProduct(seq_prot, position, len_pep, true))
-      {
-        PeptideProteinMatchInformation match;
-        match.protein_index = idx_prot;
-        match.position = position;
-        match.AABefore = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : seq_prot[position - 1];
-        match.AAAfter = (position + len_pep >= seq_prot.size()) ? PeptideEvidence::C_TERMINAL_AA : seq_prot[position + len_pep];
-        pep_to_prot[idx_pep].insert(match);
-        ++filter_passed;
-        DEBUG_ONLY std::cerr << "Hit: " << len_pep << " (peplen) with hit to protein " << seq_prot << " at position " << position << std::endl;
-      }
-      else
-      {
-        //std::cerr << "REJECTED Peptide " << seq_pep << " with hit to protein "
-        //  << seq_prot << " at position " << position << std::endl;
-        ++filter_rejected;
-      }
-    }
-
-  };
-
 }
+
 
 
 PeptideIndexing::PeptideIndexing() :
@@ -287,8 +175,8 @@ DefaultParamHandler("PeptideIndexing")
       return PEPTIDE_IDS_EMPTY;
     }
 
-    seqan::FoundProteinFunctor func(enzyme); // stores the matches (need to survive local scope which follows)
-    Map<String, Size> acc_to_prot; // build map: accessions to FASTA protein index
+    FoundProteinFunctor func(enzyme); // store the matches
+    Map<String, Size> acc_to_prot; // map: accessions --> FASTA protein index
     
     std::vector<String> idx_to_unmod_sequence; //< if protein sequences need to be modified by 'IL_equivalent_', store the original sequences here (this could be expensive!)
     if (IL_equivalent_ && write_protein_sequence_)
@@ -415,27 +303,47 @@ DefaultParamHandler("PeptideIndexing")
       AhoCorasickAmbiguous::initPattern(pep_DB, aaa_max_, pattern);
       s.stop();
       LOG_INFO << " done (" << int(s.getClockTime()) << "s)" << std::endl;
+      s.reset();
       this->startProgress(0, proteins.size(), "Aho-Corasick");
 
-      s.reset();
 
+      const string jumpX(aaa_max_ + 1, 'X'); // jump over stretches of 'X' which cost a lot of time; +1 because  AXXA is a valid hit for aaa_max == 2 (cannot split it)
 #ifdef _OPENMP
 #pragma omp parallel
 #endif
       {
-        seqan::FoundProteinFunctor func_threads(enzyme);
+        FoundProteinFunctor func_threads(enzyme);
         SignedSize prot_count = (SignedSize)proteins.size();
         AhoCorasickAmbiguous fuzzyAC;
-#pragma omp for schedule(static, 1000) nowait
+#pragma omp for schedule(dynamic, 100) nowait
         // search all peptides in each protein
         for (SignedSize i = 0; i < prot_count; ++i)
         {
+          const String& prot = proteins[i].sequence;
           //IF_MASTERTHREAD this->setProgress(i);
-          fuzzyAC.setProtein(proteins[i].sequence);
-          while (fuzzyAC.findNext(pattern))
+          // check if there are stretches of 'X'
+          if (prot.has('X'))
+          { 
+            // create chunks of the protein (splitting it at stretches of 'X..X') and feed them to AC one by one
+            size_t offset = -1, start = 0;
+            while ((offset = prot.find(jumpX, offset + 1)) != string::npos)
+            {
+              //std::cout << "found X..X at " << offset << " in protein " << proteins[i].identifier << "\n";
+              addHits_(fuzzyAC, pattern, pep_DB, prot.substr(start, offset + jumpX.size() - start), prot, i, start, func_threads);
+              // skip ahead while we encounter more X...
+              while (offset + jumpX.size() < prot.size() && prot[offset + jumpX.size()] == 'X') ++offset;
+              start = offset;
+              //std::cout << "  new start: " << start << "\n";
+            }
+            // last chunk
+            if (start < prot.size())
+            {
+              addHits_(fuzzyAC, pattern, pep_DB, prot.substr(start), prot, i, start, func_threads);
+            }
+          }
+          else
           {
-            const seqan::Peptide& tmp_pep = pep_DB[fuzzyAC.getHitDBIndex()];
-            func_threads.addHit(fuzzyAC.getHitDBIndex(), i, length(tmp_pep), proteins[i].sequence, fuzzyAC.getHitProteinPosition());
+            addHits_(fuzzyAC, pattern, pep_DB, prot, prot, i, 0, func_threads);
           }
         }
 
