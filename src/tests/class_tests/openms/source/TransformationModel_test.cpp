@@ -136,22 +136,22 @@ START_SECTION((double weightDatum(double& datum, const string& weight) const))
   TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 0.0);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 2.0);
   test = "ln(x)";
-  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), std::log(1e-55));
+  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), -inf);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), std::log(2.0));
   test = "1/x";
-  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 1/1e-15);
+  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), inf);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 1/std::abs(2.0));
   test = "1/x2";
-  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 1/std::pow(1e-15,2));
+  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), inf);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 1/std::abs(std::pow(2.0,2)));
   test = "ln(y)";
-  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), std::log(1e-15));
+  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), -inf);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), std::log(2.0));
   test = "1/y";
-  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 1/1e-15);
+  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), inf);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 1/std::abs(2.0));
   test = "1/y2";
-  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 1/std::pow(1e-15,2));
+  TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), inf);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 1/std::abs(std::pow(2.0,2)));
 }
 END_SECTION
