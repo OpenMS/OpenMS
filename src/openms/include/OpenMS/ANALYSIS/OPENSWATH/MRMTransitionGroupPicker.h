@@ -384,8 +384,7 @@ public:
           baseline_delta_2_height,
           slope_of_baseline,
           points_across_baseline,
-          points_across_half_height,
-        );    
+          points_across_half_height);    
 
         f.setMetaValue("width_at_5", width_at_5);    
         f.setMetaValue("width_at_10", width_at_10);
@@ -936,8 +935,7 @@ protected:
       double & baseline_delta_2_height,
       double & slope_of_baseline,
       int & points_across_baseline,
-      int & points_across_half_height,
-    );    
+      int & points_across_half_height);    
 
     // Members
     String background_subtraction_;

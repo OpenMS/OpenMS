@@ -37,7 +37,7 @@
 
 ///////////////////////////
 // #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h> //TODO: uncomment
-#include "/usr/local/OpenMS/src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h"
+// #include "/usr/local/OpenMS/src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h"
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/ClassTest.h>
