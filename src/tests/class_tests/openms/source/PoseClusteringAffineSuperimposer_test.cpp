@@ -307,7 +307,7 @@ START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, co
 
     TEST_STRING_EQUAL(transformation.getModelType(), "linear")
     parameters = transformation.getModelParameters();
-    TEST_EQUAL(parameters.size(), 2)
+    TEST_EQUAL(parameters.size(), 8)
     TEST_REAL_SIMILAR(parameters.getValue("slope"), 0.977273) // slope should be less than before
     TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.368182) // intercept should be higher than before
   }
