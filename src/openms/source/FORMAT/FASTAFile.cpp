@@ -89,30 +89,28 @@ namespace OpenMS
 
   bool FASTAFile::readNext(FASTAEntry& protein)
   {
-    String id;
     if (atEnd(*static_cast<FASTARecordReader*>(reader_.get())))
     { 
       infile_.close();
       return false;
     }
-    
-    if (readRecord(id, protein.sequence, *static_cast<FASTARecordReader*>(reader_.get()), seqan::Fasta()) != 0)
+	String id, s;
+    if (readRecord(id, s, *static_cast<FASTARecordReader*>(reader_.get()), seqan::Fasta()) != 0)
     {
-      String msg;
-      if (entries_read_ == 0) msg = "The first entry could not be read!";
-      else msg = "Only " + String(entries_read_) + " proteins could be read. The record after failed.";
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTA file! " + msg + " Please check the file!");
+      if (entries_read_ == 0) s = "The first entry could not be read!";
+      else s = "Only " + String(entries_read_) + " proteins could be read. The record after failed.";
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTA file! " + s + " Please check the file!");
     }
     ++entries_read_;
-
-    protein.sequence.removeWhitespaces();
+	s.removeWhitespaces();
+	protein.sequence = s; // assign here, since 's' might have higher capacity, thus wasting memory (usually 10-15%)
 
     // handle id
-    id = id.trim();
+    id.trim();
     String::size_type position = id.find_first_of(" \v\t");
     if (position == String::npos)
     {
-      protein.identifier = std::move(id);
+      protein.identifier = id;
       protein.description = "";
     }
     else

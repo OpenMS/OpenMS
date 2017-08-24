@@ -160,7 +160,7 @@ DefaultParamHandler("PeptideIndexing")
       return DATABASE_EMPTY;
     }
 
-    if (pep_ids.empty()) // Aho-Corasick requires non-empty input
+    if (pep_ids.empty()) // Aho-Corasick requires non-empty input; but we allow this case, since the TOPP tool should not crash when encountering a bad raw file (with no PSMs)
     {
       LOG_WARN << "Warning: An empty set of peptide identifications was provided. Output will be empty as well." << std::endl;
       if (!keep_unreferenced_proteins_)
