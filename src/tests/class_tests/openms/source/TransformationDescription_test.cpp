@@ -238,7 +238,7 @@ START_SECTION((void getModelParameters(Param& params) const))
 	params.setValue("intercept", -100.0);
   params.setValue("x_weight", "");
   params.setValue("y_weight", "");
-  paramssetValue("x_weight_min", 1e-15);
+  params.setValue("x_weight_min", 1e-15);
   params.setValue("y_weight_min", 1e-15);
   params.setValue("x_weight_max", 1e15);
   params.setValue("y_weight_max", 1e15);
