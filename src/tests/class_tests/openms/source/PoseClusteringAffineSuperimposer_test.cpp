@@ -129,7 +129,7 @@ START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMa
 
   TEST_STRING_EQUAL(transformation.getModelType(), "linear")
   parameters = transformation.getModelParameters();
-  TEST_EQUAL(parameters.size(), 2)
+  TEST_EQUAL(parameters.size(), 8)
   TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0)
   TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4)
 }
@@ -177,7 +177,7 @@ START_SECTION((virtual void run(const std::vector<Peak2D> & map_model, const std
 
   TEST_STRING_EQUAL(transformation.getModelType(), "linear")
   parameters = transformation.getModelParameters();
-  TEST_EQUAL(parameters.size(), 2)
+  TEST_EQUAL(parameters.size(), 8)
   TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0)
   TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4)
 }
@@ -231,7 +231,7 @@ START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, co
 
   TEST_STRING_EQUAL(transformation.getModelType(), "linear")
   parameters = transformation.getModelParameters();
-  TEST_EQUAL(parameters.size(), 2)
+  TEST_EQUAL(parameters.size(), 8)
   TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0)
   TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4)
 }
@@ -287,7 +287,7 @@ START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, co
 
     TEST_STRING_EQUAL(transformation.getModelType(), "linear")
     parameters = transformation.getModelParameters();
-    TEST_EQUAL(parameters.size(), 2)
+    TEST_EQUAL(parameters.size(), 8)
     TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0)
     TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4)
   }
@@ -331,7 +331,7 @@ START_SECTION(([EXTRA]virtual void run(const std::vector<Peak2D> & map_model, co
     // TODO: dont let this happen, so easy to prevent!
     TEST_STRING_EQUAL(transformation.getModelType(), "linear")
     parameters = transformation.getModelParameters();
-    TEST_EQUAL(parameters.size(), 2)
+    TEST_EQUAL(parameters.size(), 8)
     TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0) // TODO this is completely wrong
     TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4) // TODO this is completely wrong
   }
