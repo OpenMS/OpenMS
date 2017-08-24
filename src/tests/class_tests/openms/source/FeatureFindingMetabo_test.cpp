@@ -76,7 +76,7 @@ FeatureMap test_fm;
 
 std::vector<MassTrace> output_mt, splitted_mt, filtered_mt;
 
-std::vector<std::vector< OpenMS::MSChromatogram<> > > chromatograms;
+std::vector<std::vector< OpenMS::MSChromatogram > > chromatograms;
 
 MassTraceDetection test_mtd;
 test_mtd.run(input, output_mt);

@@ -46,7 +46,6 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
-#include <regex>
 
 using namespace OpenMS;
 using namespace std;
@@ -54,11 +53,7 @@ using namespace std;
 
 String SiriusMzTabWriter::extract_scan_index(const String &path)
 {
-  std::regex r("\\d*$"); //extract last digits from filepath: /var/folders/T/0_out/xxx_unknown0_unknown10 -> 10
-  std::smatch m;
-  std::regex_search(path, m, r);
-  std::string scan_index = m[0].str();
-  return scan_index;
+  return path.substr(path.find_last_not_of("0123456789") + 1);
 }
 
 void SiriusMzTabWriter::read(const std::vector<String> & paths, Size number, MzTab & result)

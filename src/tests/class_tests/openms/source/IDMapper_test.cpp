@@ -127,7 +127,7 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
 
   // create experiment
   PeakMap experiment;
-  MSSpectrum<> spectrum;
+  MSSpectrum spectrum;
   Precursor precursor;
   precursor.setMZ(0);
   spectrum.setRT(8.9);
@@ -196,7 +196,7 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
 
   // create experiment
   PeakMap experiment;
-  MSSpectrum<> spectrum;
+  MSSpectrum spectrum;
   Precursor precursor;
   precursor.setMZ(0);
   spectrum.setRT(60);
@@ -507,7 +507,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
   TOLERANCE_ABSOLUTE(0.01);
 
   PeakMap experiment;
-  MSSpectrum<> spectrum;
+  MSSpectrum spectrum;
 
   // match exactly to the first 10 consensusXML centroids 
   double mzs[10] = { 426.849, 405.85, 506.815, 484.83, 496.244, 430.212, 446.081, 453.233, 400.172, 437.227 }; 

@@ -77,7 +77,7 @@ namespace OpenMS
     @ingroup SignalProcessing
   */
 
-  template <typename Container = MSSpectrum<> >
+  template <typename Container = MSSpectrum>
   class SignalToNoiseEstimatorMedian :
     public SignalToNoiseEstimator<Container>
   {

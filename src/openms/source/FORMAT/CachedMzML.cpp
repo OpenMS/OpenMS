@@ -210,7 +210,7 @@ namespace OpenMS
   {
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
-    std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp.getChromatograms(); // copy 
+    std::vector<MSChromatogram > chromatograms = exp.getChromatograms(); // copy
     for (Size i = 0; i < exp.size(); i++)
     {
       exp[i].clear(false);
@@ -233,7 +233,7 @@ namespace OpenMS
       {
         exp[i].getDataProcessing().push_back(dp);
       }
-      std::vector<MSChromatogram<ChromatogramPeak> > l_chromatograms = exp.getChromatograms();
+      std::vector<MSChromatogram > l_chromatograms = exp.getChromatograms();
       for (Size i=0; i<l_chromatograms.size(); ++i)
       {
         l_chromatograms[i].getDataProcessing().push_back(dp);

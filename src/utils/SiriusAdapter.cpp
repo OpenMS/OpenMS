@@ -109,10 +109,10 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
-    setValidFormats_("out_sirius", ListUtils::create<String>("csv"));
+    setValidFormats_("out_sirius", ListUtils::create<String>("tsv"));
 
     registerOutputFile_("out_CSIFingerID","<file>", "", "MzTab ouput file for CSI:FingerID", false);
-    setValidFormats_("out_CSIFingerID", ListUtils::create<String>("csv"));
+    setValidFormats_("out_CSIFingerID", ListUtils::create<String>("tsv"));
 
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
     setValidStrings_("profile", ListUtils::create<String>("qtof,orbitrap,fticr"));

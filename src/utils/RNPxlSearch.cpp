@@ -427,11 +427,13 @@ class FragmentAnnotationHelper
 
   static String shiftedIonsToString(const vector<PeptideHit::PeakAnnotation>& as)
   {
+    vector<PeptideHit::PeakAnnotation> sorted(as);
+    stable_sort(sorted.begin(), sorted.end());
     String fas;
-    for (auto&  a : as)
+    for (auto&  a : sorted)
     {
       fas += String("(") + String::number(a.mz, 3) + "," + String::number(100.0 * a.intensity, 1) + ",\"" + a.annotation + "\")";    
-      if (&a != &as.back()) { fas += "|"; }     
+      if (&a != &sorted.back()) { fas += "|"; }     
     }
     return fas;
   }
@@ -598,7 +600,7 @@ protected:
     double best_localization_score;
     String localization_scores;
     String best_localization;  
-    String fragment_annotation_string;
+    String fragment_annotation_string; // for visualizaion in Proteome Discoverer
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
     {

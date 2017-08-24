@@ -16,8 +16,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
         PeakPickerHiRes()                  nogil except +
         PeakPickerHiRes(PeakPickerHiRes)   nogil except + #wrap-ignore
 
-        void pick(MSSpectrum[Peak1D] & input,
-                  MSSpectrum[Peak1D] & output
+        void pick(MSSpectrum & input,
+                  MSSpectrum & output
                  ) nogil except +
 
         void pickExperiment(MSExperiment & input,
