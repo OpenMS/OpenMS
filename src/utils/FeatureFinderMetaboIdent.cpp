@@ -34,7 +34,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-// #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -104,7 +103,7 @@ class TOPPFeatureFinderMetaboIdent :
 {
 public:
   TOPPFeatureFinderMetaboIdent() :
-    TOPPBase("FeatureFinderMetaboIdent", "Detects features in MS1 data based on metabolite identifications.")
+    TOPPBase("FeatureFinderMetaboIdent", "Detects features in MS1 data based on metabolite identifications.", false)
   {
     rt_term_.setCVIdentifierRef("MS");
     rt_term_.setAccession("MS:1000896");
@@ -163,7 +162,16 @@ protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  typedef vector<const ReactionMonitoringTransition*> TransitionGroup;
+  typedef vector<Feature*> FeatureGroup;
+
+  // boundaries for a mass trace in a feature:
+  struct MassTraceBounds
+  {
+    Size sub_index;
+    double rt_min, rt_max, mz_min, mz_max;
+  };
+  // boundaries for all mass traces per feature:
+  typedef map<UInt64, vector<MassTraceBounds> > FeatureBoundsMap;
 
   // predicate for filtering features by overall quality:
   struct FeatureFilterQuality
@@ -204,7 +212,6 @@ protected:
   map<String, double> target_rts_; // RTs of targets (assays)
   MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
   ProgressLogger prog_log_;
-
 
   // read input with information about targets:
   void readTargets_(const String& in_path)
@@ -390,7 +397,7 @@ protected:
          iso_it != iso_dist.end(); ++iso_it, ++counter)
     {
       ReactionMonitoringTransition transition;
-      String annotation = "i" + String(counter + 1);
+      String annotation = "i" + String(counter);
       String transition_name = target_id + "_" + annotation;
 
       transition.setNativeID(transition_name);
@@ -415,36 +422,19 @@ protected:
   }
 
 
-  pair<double, double> getTransitionRTs(const ReactionMonitoringTransition&
-                                        trans)
+  bool hasOverlappingBounds_(const vector<MassTraceBounds>& mtb1,
+                             const vector<MassTraceBounds>& mtb2)
   {
-    const TargetedExperiment::Compound& compound =
-      library_.getCompoundByRef(trans.getCompoundRef());
-    // @TODO: having to get the RTs this way hurts my brain...
-    double rt1 = compound.rts[0].getCVTerms()["MS:1000896"][0].getValue().
-      toString().toDouble();
-    double rt2 = compound.rts[1].getCVTerms()["MS:1000896"][0].getValue().
-      toString().toDouble();
-    return make_pair(rt1, rt2);
-  }
-
-
-  bool hasOverlappingTransition_(const ReactionMonitoringTransition& trans,
-                                 const TransitionGroup& group)
-  {
-    double mz = trans.getProductMZ();
-    pair<double, double> rts = getTransitionRTs(trans);
-    for (TransitionGroup::const_iterator it = group.begin(); it != group.end();
-         ++it)
+    for (vector<MassTraceBounds>::const_iterator mtb1_it = mtb1.begin();
+         mtb1_it != mtb1.end(); ++mtb1_it)
     {
-      double diff = mz_window_ppm_ ?
-        Math::getPPMAbs<double>(mz, (*it)->getProductMZ()) :
-        abs(mz - (*it)->getProductMZ());
-      if (diff < mz_window_) // overlapping m/z, check RT
+      for (vector<MassTraceBounds>::const_iterator mtb2_it = mtb2.begin();
+           mtb2_it != mtb2.end(); ++mtb2_it)
       {
-        pair<double, double> other_rts = getTransitionRTs(**it);
-        if (!(rts.second <= other_rts.first) &&
-            !(rts.first >= other_rts.second))
+        if (!((mtb1_it->rt_max < mtb2_it->rt_min) ||
+              (mtb1_it->rt_min > mtb2_it->rt_max) ||
+              (mtb1_it->mz_max < mtb2_it->mz_min) ||
+              (mtb1_it->mz_min > mtb2_it->mz_max)))
         {
           return true;
         }
@@ -454,21 +444,94 @@ protected:
   }
 
 
-  void findOverlappingTransitions_()
+  bool hasOverlappingFeature_(const Feature& feature, const FeatureGroup& group,
+                              const FeatureBoundsMap& feature_bounds)
   {
-    vector<TransitionGroup> overlap_groups;
-    for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
-           library_.getTransitions().begin(); trans_it !=
-           library_.getTransitions().end(); ++trans_it)
+    FeatureBoundsMap::const_iterator fbm_it1 =
+      feature_bounds.find(feature.getUniqueId());
+    // check overlaps with other features:
+    for (FeatureGroup::const_iterator group_it = group.begin();
+         group_it != group.end(); ++group_it)
+    {
+      FeatureBoundsMap::const_iterator fbm_it2 =
+        feature_bounds.find((*group_it)->getUniqueId());
+      // two features overlap if any of their mass traces overlap:
+      if (hasOverlappingBounds_(fbm_it1->second, fbm_it2->second))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  void getFeatureBounds_(const FeatureMap& features,
+                         FeatureBoundsMap& feature_bounds)
+  {
+    // get bounding boxes for all mass traces in all features:
+    for (FeatureMap::ConstIterator feat_it = features.begin();
+         feat_it != features.end(); ++feat_it)
+    {
+      for (Size i = 0; i < feat_it->getSubordinates().size(); ++i)
+      {
+        MassTraceBounds mtb;
+        mtb.sub_index = i;
+        const ConvexHull2D::PointArrayType& points =
+          feat_it->getConvexHulls()[i].getHullPoints();
+        mtb.mz_min = points.front().getY();
+        mtb.mz_max = points.back().getY();
+        const Feature& sub = feat_it->getSubordinates()[i];
+        const ConvexHull2D& hull = sub.getConvexHulls()[0];
+        // find beginning of mass trace (non-zero intensity):
+        double rt_min = hull.getHullPoints().back().getX();
+        for (ConvexHull2D::PointArrayType::const_iterator p_it =
+               hull.getHullPoints().begin(); p_it != hull.getHullPoints().end();
+             ++p_it)
+        {
+          if (p_it->getY() > 0)
+          {
+            rt_min = p_it->getX();
+            break;
+          }
+        }
+        // find end of mass trace (non-zero intensity):
+        double rt_max = hull.getHullPoints().front().getX();
+        for (ConvexHull2D::PointArrayType::const_reverse_iterator p_it =
+               hull.getHullPoints().rbegin(); p_it !=
+               hull.getHullPoints().rend(); ++p_it)
+        {
+          if (p_it->getX() < rt_min) break;
+          if (p_it->getY() > 0)
+          {
+            rt_max = p_it->getX();
+            break;
+          }
+        }
+        if (rt_min > rt_max) continue; // no peak -> skip
+        mtb.rt_min = rt_min;
+        mtb.rt_max = rt_max;
+        feature_bounds[feat_it->getUniqueId()].push_back(mtb);
+      }
+    }
+  }
+
+
+  void findOverlappingFeatures_(FeatureMap& features,
+                                const FeatureBoundsMap& feature_bounds,
+                                vector<FeatureGroup>& overlap_groups)
+  {
+    // partition features into groups of overlapping features:
+    for (FeatureMap::Iterator feat_it = features.begin();
+         feat_it != features.end(); ++feat_it)
     {
       // @TODO: make this more efficient?
-      vector<TransitionGroup> current_overlaps;
-      vector<TransitionGroup> no_overlaps;
-      for (vector<TransitionGroup>::const_iterator group_it =
+      vector<FeatureGroup> current_overlaps;
+      vector<FeatureGroup> no_overlaps;
+      for (vector<FeatureGroup>::const_iterator group_it =
              overlap_groups.begin(); group_it != overlap_groups.end();
            ++group_it)
       {
-        if (hasOverlappingTransition_(*trans_it, *group_it))
+        if (hasOverlappingFeature_(*feat_it, *group_it, feature_bounds))
         {
           current_overlaps.push_back(*group_it);
         }
@@ -477,38 +540,91 @@ protected:
           no_overlaps.push_back(*group_it);
         }
       }
-      if (current_overlaps.empty()) // make new group for current transition
+      if (current_overlaps.empty()) // make new group for current feature
       {
-        TransitionGroup new_group(1, &(*trans_it));
+        FeatureGroup new_group(1, &(*feat_it));
         no_overlaps.push_back(new_group);
       }
-      else // merge all groups that overlap the current transition, then add it
+      else // merge all groups that overlap the current feature, then add it
       {
-        TransitionGroup& merged = current_overlaps.front();
-        for (vector<TransitionGroup>::const_iterator group_it =
+        FeatureGroup& merged = current_overlaps.front();
+        for (vector<FeatureGroup>::const_iterator group_it =
                ++current_overlaps.begin(); group_it != current_overlaps.end();
              ++group_it)
         {
           merged.insert(merged.end(), group_it->begin(), group_it->end());
         }
-        merged.push_back(&(*trans_it));
+        merged.push_back(&(*feat_it));
         no_overlaps.push_back(merged);
       }
       overlap_groups.swap(no_overlaps);
     }
-    for (vector<TransitionGroup>::const_iterator group_it =
-           overlap_groups.begin(); group_it != overlap_groups.end(); ++group_it)
+  }
+
+
+  void resolveOverlappingFeatures_(FeatureGroup& group,
+                                   const FeatureBoundsMap& feature_bounds)
+  {
+    double best_rt_delta = rt_window_;
+    Feature* best_feature = 0;
+    while (!group.empty())
     {
-      if (group_it->size() > 1)
+      // best feature is the one with min. RT deviation to target:
+      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
+           ++it)
       {
-        LOG_INFO << "Overlapping transitions:";
-        for (TransitionGroup::const_iterator trans_it = group_it->begin();
-             trans_it != group_it->end(); ++trans_it)
+        double rt_delta = (*it)->getMetaValue("rt_delta");
+        if ((rt_delta < best_rt_delta) ||
+            ((rt_delta == best_rt_delta) && ((*it)->getIntensity() >
+                                             best_feature->getIntensity())))
         {
-          LOG_INFO << " " << (*trans_it)->getNativeID();
+          best_rt_delta = rt_delta;
+          best_feature = *it;
         }
-        LOG_INFO << endl;
+        else if ((rt_delta == best_rt_delta) && ((*it)->getIntensity() ==
+                                                 best_feature->getIntensity()))
+        {
+          // are the features the same? (@TODO: use "Math::approximatelyEqual"?)
+          if (((*it)->getRT() == best_feature->getRT()) &&
+              ((*it)->getMZ() == best_feature->getMZ()))
+          {
+            StringList alt_refs;
+            if (best_feature->metaValueExists("alt_PeptideRef"))
+            {
+              alt_refs = best_feature->getMetaValue("alt_PeptideRef");
+            }
+            alt_refs.push_back((*it)->getMetaValue("PeptideRef"));
+            best_feature->setMetaValue("alt_PeptideRef", alt_refs);
+          }
+          else
+          {
+            LOG_ERROR << "Error: cannot decide between equally good feature candidates; picking the first one of " << best_feature->getMetaValue("PeptideRef")
+                      << " (RT " << float(best_feature->getRT()) << ") and "
+                      << (*it)->getMetaValue("PeptideRef") << " (RT "
+                      << float((*it)->getRT()) << ")." << endl;
+          }
+        }
       }
+      // we have found a "best" feature, now remove other features that overlap:
+      FeatureGroup no_overlaps;
+      FeatureBoundsMap::const_iterator fbm_it1 =
+        feature_bounds.find(best_feature->getUniqueId());
+      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
+           ++it)
+      {
+        if (*it == best_feature) continue;
+        FeatureBoundsMap::const_iterator fbm_it2 =
+          feature_bounds.find((*it)->getUniqueId());
+        if (hasOverlappingBounds_(fbm_it1->second, fbm_it2->second))
+        {
+          (*it)->setMetaValue("FFMetId_remove", ""); // mark for removal
+        }
+        else
+        {
+          no_overlaps.push_back(*it);
+        }
+      }
+      group.swap(no_overlaps);
     }
   }
 
@@ -562,7 +678,7 @@ protected:
   }
 
 
-  void filterFeatures_(FeatureMap& features)
+  void selectFeaturesFromCandidates_(FeatureMap& features)
   {
     String previous_ref;
     double best_rt_dist = rt_window_;
@@ -597,15 +713,19 @@ protected:
         rt_dist = (rt_min > target_rt) ? (rt_min - target_rt) : (target_rt -
                                                                  rt_max);
       }
-      if (rt_dist < best_rt_dist) // new best candidate for this assay
+      if ((rt_dist < best_rt_dist) ||
+          ((rt_dist == best_rt_dist) && (it->getIntensity() >
+                                         best_it->getIntensity())))
       {
+        // new best candidate for this assay:
         best_rt_dist = rt_dist;
         if (best_it != it) best_it->setMetaValue("FFMetId_remove", "");
         best_it = it;
+        best_it->setMetaValue("rt_delta", abs(target_rt - best_it->getRT()));
       }
       else // this candidate is worse than a previous one
       {
-        it->setMetaValue("FFMetId_remove", "");
+        it->setMetaValue("FFMetId_remove", ""); // mark for removal
       }
     }
     features.erase(remove_if(features.begin(), features.end(),
@@ -660,9 +780,6 @@ protected:
     //-------------------------------------------------------------
     LOG_INFO << "Loading targets and creating assay library..." << endl;
     readTargets_(id);
-
-    findOverlappingTransitions_();
-    return EXECUTION_OK;
 
     LOG_INFO << "Loading input LC-MS data..." << endl;
     MzMLFile mzml;
@@ -757,8 +874,38 @@ protected:
       FeatureXMLFile().store(candidates_out, features);
     }
 
-    filterFeatures_(features);
-    LOG_INFO << features.size() << " features left after filtering." << endl;
+    selectFeaturesFromCandidates_(features);
+    LOG_INFO << features.size()
+             << " features left after selection of best candidates." << endl;
+
+    // get bounding boxes for all mass traces in all features:
+    FeatureBoundsMap feature_bounds;
+    getFeatureBounds_(features, feature_bounds);
+    // find and resolve overlaps:
+    vector<FeatureGroup> overlap_groups;
+    findOverlappingFeatures_(features, feature_bounds, overlap_groups);
+    for (vector<FeatureGroup>::iterator group_it = overlap_groups.begin();
+         group_it != overlap_groups.end(); ++group_it)
+    {
+      if (group_it->size() > 1)
+      {
+        LOG_INFO << "Overlapping features:";
+        for (FeatureGroup::const_iterator feat_it = group_it->begin();
+             feat_it != group_it->end(); ++feat_it)
+        {
+          if (feat_it != group_it->begin()) LOG_INFO << ",";
+          LOG_INFO << " " << (*feat_it)->getMetaValue("PeptideRef") << " (RT "
+                   << float((*feat_it)->getRT()) << ")";
+        }
+        LOG_INFO << endl;
+        resolveOverlappingFeatures_(*group_it, feature_bounds);
+      }
+    }
+    features.erase(remove_if(features.begin(), features.end(),
+                             feature_filter_), features.end());
+    LOG_INFO << features.size() << " features left after resolving overlaps."
+             << endl;
+
 
     if (elution_model != "none")
     {
