@@ -271,6 +271,13 @@ protected:
   }
 
 
+  double calculateMZ_(double mass, Int charge)
+  {
+    // @TODO: this only works for positive mode!
+    return (mass + charge * Constants::PROTON_MASS_U) / double(charge);
+  }
+
+
   void addTargetToLibrary_(const String& name, const String& formula,
                            double mass, const vector<Int>& charges,
                            const vector<double>& rts,
@@ -353,7 +360,7 @@ protected:
       }
       else
       {
-        mz = (mass + *z_it * Constants::PROTON_MASS_U) / *z_it;
+        mz = calculateMZ_(mass, *z_it);
       }
 
       // recycle to one range entry per RT:
@@ -744,70 +751,61 @@ protected:
   }
 
 
-  String fakePeptideSeq_(const String& name)
+  Size addTargetAnnotations_(FeatureMap& features)
   {
-    String fake_pep;
-    const vector<String> numbers = {"ZERO", "ONE", "TWO", "THREE", "FOUR",
-                                    "FIVE", "SIX", "SEVEN", "EIGHT", "NINE"};
-    for (String::const_iterator it = name.begin(); it != name.end(); ++it)
-    {
-      if ((*it == 'X') || (*it == 'x'))
-      {
-        fake_pep += "X[0.0]";
-      }
-      else if ((*it >= 'A') && (*it <= 'Z'))
-      {
-        fake_pep += *it;
-      }
-      else if ((*it >= 'a') && (*it <= 'z'))
-      {
-        fake_pep += String(*it).toUpper();
-      }
-      else if ((*it >= '0') && (*it <= '9'))
-      {
-        fake_pep += numbers[*it - '0'];
-      }
-      else if (*it == '\'')
-      {
-        fake_pep += "PRIME";
-      }
-      // skip other characters
-    }
-    return fake_pep;
-  }
-
-
-  void addFakePeptideIDs_(FeatureMap& features)
-  {
+    Size n_shared = 0;
+    set<String> found_refs;
     for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
     {
       StringList refs;
       refs.push_back(it->getMetaValue("PeptideRef"));
       if (it->metaValueExists("alt_PeptideRef"))
       {
+        n_shared++;
         StringList alt_refs = it->getMetaValue("alt_PeptideRef");
         refs.insert(refs.end(), alt_refs.begin(), alt_refs.end());
       }
-      it->getPeptideIdentifications().reserve(refs.size());
+      found_refs.insert(refs.begin(), refs.end());
+      String label;
       for (StringList::const_iterator ref_it = refs.begin();
            ref_it != refs.end(); ++ref_it)
       {
         const TargetedExperiment::Compound& compound =
           library_.getCompoundByRef(*ref_it);
-        String fake_pep = fakePeptideSeq_(compound.getMetaValue("name"));
-        PeptideHit hit;
-        hit.setSequence(AASequence::fromString(fake_pep));
-        hit.setCharge(compound.getChargeState());
+        const String& name = compound.getMetaValue("name");
+        if (!label.empty()) label += "/";
+        label += name;
+      }
+      it->setMetaValue("label", label); // label for TOPPView
+    }
+    // targets without features:
+    Size n_missing = library_.getCompounds().size() - found_refs.size();
+    features.getUnassignedPeptideIdentifications().reserve(n_missing);
+    for (vector<TargetedExperiment::Compound>::const_iterator it =
+           library_.getCompounds().begin(); it != library_.getCompounds().end();
+         ++it)
+    {
+      if (!found_refs.count(it->id))
+      {
         PeptideIdentification peptide;
         peptide.setIdentifier("id");
-        peptide.setRT(compound.getMetaValue("expected_RT"));
-        peptide.setMZ(it->getMetaValue("PrecursorMZ"));
-        peptide.insertHit(hit);
-        it->getPeptideIdentifications().push_back(peptide);
+        peptide.setMetaValue("label", it->getMetaValue("name"));
+        peptide.setMetaValue("PeptideRef", it->id);
+        peptide.setRT(it->getMetaValue("expected_RT"));
+        peptide.setMZ(calculateMZ_(it->theoretical_mass, it->getChargeState()));
+        features.getUnassignedPeptideIdentifications().push_back(peptide);
+      }
+      if (features.getUnassignedPeptideIdentifications().size() >= n_missing)
+      {
+        break; // found all
       }
     }
-    features.getProteinIdentifications().resize(1);
-    features.getProteinIdentifications()[0].setIdentifier("id");
+    if (n_missing)
+    {
+      features.getProteinIdentifications().resize(1);
+      features.getProteinIdentifications()[0].setIdentifier("id");
+    }
+    return n_shared; // for summary statistics
   }
 
 
@@ -975,7 +973,7 @@ protected:
     LOG_INFO << features.size() << " features left after resolving overlaps."
              << endl;
 
-    addFakePeptideIDs_(features);
+    Size n_shared = addTargetAnnotations_(features);
 
     if (elution_model != "none")
     {
@@ -1028,45 +1026,25 @@ protected:
     // statistics
     //-------------------------------------------------------------
 
-    set<String> found_refs;
-    Size n_shared = 0;
-    for (FeatureMap::ConstIterator it = features.begin(); it != features.end();
-         ++it)
-    {
-      found_refs.insert(it->getMetaValue("PeptideRef"));
-      if (it->metaValueExists("alt_PeptideRef"))
-      {
-        n_shared++;
-        StringList alt_refs = it->getMetaValue("alt_PeptideRef");
-        found_refs.insert(alt_refs.begin(), alt_refs.end());
-      }
-    }
-    Size n_missing = library_.getCompounds().size() - found_refs.size();
-    const Size n_examples = 5;
-    vector<String> missing_examples;
-    for (vector<TargetedExperiment::Compound>::const_iterator it =
-           library_.getCompounds().begin();
-         (it != library_.getCompounds().end()) &&
-           (missing_examples.size() <= n_examples); ++it)
-    {
-      if (!found_refs.count(it->id))
-      {
-        missing_examples.push_back(prettyPrintCompound_(*it));
-      }
-    }
-
+    Size n_missing = features.getUnassignedPeptideIdentifications().size();
     LOG_INFO << "\nSummary statistics:\n"
              << library_.getCompounds().size() << " targets specified\n"
              << features.size() << " features found\n"
              << n_shared << " features with multiple target annotations\n"
              << n_missing << " targets without features";
-    if (!missing_examples.empty())
+    const Size n_examples = 5;
+    if (n_missing)
     {
       LOG_INFO << ":";
-      for (vector<String>::iterator it = missing_examples.begin();
-           it != missing_examples.end(); ++it)
+      for (Size i = 0;
+           ((i < features.getUnassignedPeptideIdentifications().size()) &&
+            (i < n_examples)); ++i)
       {
-        LOG_INFO << "\n- " << *it;
+        const PeptideIdentification& id =
+          features.getUnassignedPeptideIdentifications()[i];
+        const TargetedExperiment::Compound& compound =
+          library_.getCompoundByRef(id.getMetaValue("PeptideRef"));
+        LOG_INFO << "\n- " << prettyPrintCompound_(compound);
       }
       if (n_missing > n_examples)
       {
