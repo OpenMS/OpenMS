@@ -54,7 +54,7 @@ namespace OpenMS
       x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15;
       x_datum_max_ = params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15;
     }
-    else if (params.exists("y_weight") && params.getValue("y_weight") != "")
+    if (params.exists("y_weight") && params.getValue("y_weight") != "")
     {
       // set y_weight
       params_.setValue("y_weight",params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "");
