@@ -44,7 +44,8 @@ namespace OpenMS
   {
     params_ = params;
     data_given_ = !data.empty();
-    if (params.exists("x_weight") && params.getValue("x_weight") != ""){
+    if (params.exists("x_weight") && params.getValue("x_weight") != "")
+    {
       // set x_weight
       params_.setValue("x_weight",params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "");
       params_.setValue("x_datum_min",params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15);
@@ -53,7 +54,8 @@ namespace OpenMS
       x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15;
       x_datum_max_ = params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15;
     }
-    else if (params.exists("y_weight") && params.getValue("y_weight") != ""){
+    else if (params.exists("y_weight") && params.getValue("y_weight") != "")
+    {
       // set y_weight
       params_.setValue("y_weight",params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "");
       params_.setValue("y_datum_min",params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15);
@@ -77,7 +79,8 @@ namespace OpenMS
       symmetric_ = params_.getValue("symmetric_regression") == "true";
       // weight the data (if weighting is specified)
       TransformationModel::DataPoints data_weighted = data;
-      if ((params.exists("x_weight" && params.getValue("x_weight") != "") || (params.exists("y_weight") && params.getValue("y_weight") != "")){
+      if ((params.exists("x_weight") && params.getValue("x_weight") != "") || (params.exists("y_weight") && params.getValue("y_weight") != "")))
+      {
         weightData(data_weighted, params);
       }
 
