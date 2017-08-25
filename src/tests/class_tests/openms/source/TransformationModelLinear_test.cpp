@@ -139,7 +139,7 @@ START_SECTION(([EXTRA] void getParameters(double&, double&, std::string&, std::s
   param.setValue("slope", 12.3);
   param.setValue("intercept", -45.6);  
   std::string x_weight_test, y_weight_test;
-  x_weight_test = "ln(x)";
+  x_weight_test = "";
   y_weight_test = "ln(y)";
   param.setValue("x_weight", x_weight_test);
   param.setValue("y_weight", y_weight_test);

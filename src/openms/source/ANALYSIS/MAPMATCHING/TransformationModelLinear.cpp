@@ -44,26 +44,23 @@ namespace OpenMS
   {
     params_ = params;
     data_given_ = !data.empty();
-    if (params.exists("x_weight") && params.getValue("x_weight") != "")
-    {
-      // set x_weight
-      params_.setValue("x_weight",params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "");
-      params_.setValue("x_datum_min",params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15);
-      params_.setValue("x_datum_max",params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15);
-      x_weight_ = params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "";
-      x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15;
-      x_datum_max_ = params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15;
-    }
-    if (params.exists("y_weight") && params.getValue("y_weight") != "")
-    {
-      // set y_weight
-      params_.setValue("y_weight",params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "");
-      params_.setValue("y_datum_min",params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15);
-      params_.setValue("y_datum_max",params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15);
-      y_weight_ = params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "";
-      y_datum_min_ = params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15;
-      y_datum_max_ = params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15;
-    }
+
+    // set x_weight
+    params_.setValue("x_weight",params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "");
+    params_.setValue("x_datum_min",params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15); //should match defaults
+    params_.setValue("x_datum_max",params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15);
+    x_weight_ = params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "";
+    x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15;
+    x_datum_max_ = params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15;
+
+    // set y_weight
+    params_.setValue("y_weight",params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "");
+    params_.setValue("y_datum_min",params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15); //should match defaults
+    params_.setValue("y_datum_max",params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15);
+    y_weight_ = params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "";
+    y_datum_min_ = params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15;
+    y_datum_max_ = params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15;
+
 
     if (!data_given_ && params.exists("slope") && (params.exists("intercept")))
     {
