@@ -139,13 +139,13 @@ START_SECTION(([EXTRA] void getParameters(double&, double&, std::string&, std::s
   param.setValue("slope", 12.3);
   param.setValue("intercept", -45.6);  
   std::string x_weight_test, y_weight_test;
-  x_weight_test = "";
+  x_weight_test = "ln(x)";
   y_weight_test = "ln(y)";
   param.setValue("x_weight", x_weight_test);
   param.setValue("y_weight", y_weight_test);
   param.setValue("x_datum_min", 1e-15);
-  param.setValue("x_datum_max", 1e8);
-  param.setValue("y_datum_min", 1e-8);
+  param.setValue("x_datum_max", 1e15);
+  param.setValue("y_datum_min", 1e-15);
   param.setValue("y_datum_max", 1e15);
   TransformationModelLinear lm(empty, param);
   double slope, intercept, x_datum_min, x_datum_max, y_datum_min, y_datum_max;
