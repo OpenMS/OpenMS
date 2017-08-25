@@ -79,7 +79,7 @@ namespace OpenMS
       symmetric_ = params_.getValue("symmetric_regression") == "true";
       // weight the data (if weighting is specified)
       TransformationModel::DataPoints data_weighted = data;
-      if ((params.exists("x_weight") && params.getValue("x_weight") != "") || (params.exists("y_weight") && params.getValue("y_weight") != "")))
+      if ((params.exists("x_weight") && params.getValue("x_weight") != "") || (params.exists("y_weight") && params.getValue("y_weight") != ""))
       {
         weightData(data_weighted, params);
       }
