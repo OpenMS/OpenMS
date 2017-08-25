@@ -292,7 +292,7 @@ public:
         ConvexHull2D::PointArrayType hull_points;
         double intensity_sum(0.0), rt_sum(0.0);
         double peak_apex_int = -1;
-        calculatePeakApexInt_(used_chromatogram,hull_points,intensity_sum,rt_sum,peak_apex_int);
+        calculatePeakApexInt_(used_chromatogram,hull_points,intensity_sum,rt_sum,peak_apex_int,peak_apex);
         double peak_apex_int_copy = peak_apex_int; //copy of the max peak intensity before background subtraction
 
         double background(0), avg_noise_level(0);
@@ -903,7 +903,8 @@ protected:
       ConvexHull2D::PointArrayType & hull_points,
       double & intensity_sum, 
       double & rt_sum,
-      double & peak_apex_int);
+      double & peak_apex_int,
+      double & peak_apex);
 
     /**
       @brief Will use the chromatogram to estimate the background noise and then subtract it
