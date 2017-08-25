@@ -84,7 +84,7 @@ START_SECTION(void load(const String & filename, TransformationDescription & tra
   trafo_xml.load(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_2.trafoXML"), trafo);
   TEST_STRING_EQUAL(trafo.getModelType(), "linear");
   params = trafo.getModelParameters();
-  TEST_EQUAL(params.size(), 2);
+  TEST_EQUAL(params.size(), 8);
   TEST_REAL_SIMILAR(params.getValue("slope"), 3.141592653589793238);
   TEST_REAL_SIMILAR(params.getValue("intercept"), 2.718281828459045235);
 
@@ -137,7 +137,7 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
   TEST_STRING_EQUAL(trafo.getModelType(), "linear");
   params.clear();
   params = trafo2.getModelParameters();
-  TEST_EQUAL(params.size(), 2);
+  TEST_EQUAL(params.size(), 8);
   TEST_REAL_SIMILAR(params.getValue("slope"), 3.141592653589793238);
   TEST_REAL_SIMILAR(params.getValue("intercept"), 2.718281828459045235);
   {
@@ -160,7 +160,7 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
   trafo_xml.load(tmp_file_pairs, trafo2);
   TEST_STRING_EQUAL(trafo2.getModelType(), "interpolated");
   params = trafo2.getModelParameters();
-  TEST_EQUAL(params.size(), 2);
+  TEST_EQUAL(params.size(), 8);
   TEST_STRING_EQUAL(params.getValue("interpolation_type"), "linear");
   TEST_STRING_EQUAL(params.getValue("extrapolation_type"), "two-point-linear");
   TEST_EQUAL(trafo2.getDataPoints().size(), 3);
@@ -204,7 +204,7 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
   params = trafo2.getModelParameters();
   TEST_EQUAL(params.getValue("num_breakpoints"), 4);
   TEST_EQUAL(params.getValue("break_positions"), "uniform");
-  TEST_EQUAL(params.size(), 2);
+  TEST_EQUAL(params.size(), 8);
   TEST_EQUAL(trafo2.getDataPoints().size(), 11);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].first, 1.2);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].second, 5.2);
