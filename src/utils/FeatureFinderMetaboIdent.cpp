@@ -598,10 +598,11 @@ protected:
           }
           else
           {
-            LOG_ERROR << "Error: cannot decide between equally good feature candidates; picking the first one of " << best_feature->getMetaValue("PeptideRef")
-                      << " (RT " << float(best_feature->getRT()) << ") and "
-                      << (*it)->getMetaValue("PeptideRef") << " (RT "
-                      << float((*it)->getRT()) << ")." << endl;
+            LOG_WARN << "Warning: cannot decide between equally good feature candidates; picking the first one of "
+                     << best_feature->getMetaValue("PeptideRef") << " (RT "
+                     << float(best_feature->getRT()) << ") and "
+                     << (*it)->getMetaValue("PeptideRef") << " (RT "
+                     << float((*it)->getRT()) << ")." << endl;
           }
         }
       }
@@ -647,6 +648,7 @@ protected:
       {
         String native_id = sub_it->getMetaValue("native_id");
         sub_it->setMetaValue("isotope_probability", isotope_probs_[native_id]);
+        sub_it->removeMetaValue("FeatureLevel"); // value "MS2" is misleading
       }
     }
     features.getProteinIdentifications().clear();
@@ -739,6 +741,73 @@ protected:
             String(float(compound.theoretical_mass)) + ", z=" +
             String(compound.getChargeState()) + ", rt=" +
             String(float(double(compound.getMetaValue("expected_RT")))) + ")");
+  }
+
+
+  String fakePeptideSeq_(const String& name)
+  {
+    String fake_pep;
+    const vector<String> numbers = {"ZERO", "ONE", "TWO", "THREE", "FOUR",
+                                    "FIVE", "SIX", "SEVEN", "EIGHT", "NINE"};
+    for (String::const_iterator it = name.begin(); it != name.end(); ++it)
+    {
+      if ((*it == 'X') || (*it == 'x'))
+      {
+        fake_pep += "X[0.0]";
+      }
+      else if ((*it >= 'A') && (*it <= 'Z'))
+      {
+        fake_pep += *it;
+      }
+      else if ((*it >= 'a') && (*it <= 'z'))
+      {
+        fake_pep += String(*it).toUpper();
+      }
+      else if ((*it >= '0') && (*it <= '9'))
+      {
+        fake_pep += numbers[*it - '0'];
+      }
+      else if (*it == '\'')
+      {
+        fake_pep += "PRIME";
+      }
+      // skip other characters
+    }
+    return fake_pep;
+  }
+
+
+  void addFakePeptideIDs_(FeatureMap& features)
+  {
+    for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
+    {
+      StringList refs;
+      refs.push_back(it->getMetaValue("PeptideRef"));
+      if (it->metaValueExists("alt_PeptideRef"))
+      {
+        StringList alt_refs = it->getMetaValue("alt_PeptideRef");
+        refs.insert(refs.end(), alt_refs.begin(), alt_refs.end());
+      }
+      it->getPeptideIdentifications().reserve(refs.size());
+      for (StringList::const_iterator ref_it = refs.begin();
+           ref_it != refs.end(); ++ref_it)
+      {
+        const TargetedExperiment::Compound& compound =
+          library_.getCompoundByRef(*ref_it);
+        String fake_pep = fakePeptideSeq_(compound.getMetaValue("name"));
+        PeptideHit hit;
+        hit.setSequence(AASequence::fromString(fake_pep));
+        hit.setCharge(compound.getChargeState());
+        PeptideIdentification peptide;
+        peptide.setIdentifier("id");
+        peptide.setRT(compound.getMetaValue("expected_RT"));
+        peptide.setMZ(it->getMetaValue("PrecursorMZ"));
+        peptide.insertHit(hit);
+        it->getPeptideIdentifications().push_back(peptide);
+      }
+    }
+    features.getProteinIdentifications().resize(1);
+    features.getProteinIdentifications()[0].setIdentifier("id");
   }
 
 
@@ -906,6 +975,7 @@ protected:
     LOG_INFO << features.size() << " features left after resolving overlaps."
              << endl;
 
+    addFakePeptideIDs_(features);
 
     if (elution_model != "none")
     {
@@ -959,10 +1029,17 @@ protected:
     //-------------------------------------------------------------
 
     set<String> found_refs;
+    Size n_shared = 0;
     for (FeatureMap::ConstIterator it = features.begin(); it != features.end();
          ++it)
     {
       found_refs.insert(it->getMetaValue("PeptideRef"));
+      if (it->metaValueExists("alt_PeptideRef"))
+      {
+        n_shared++;
+        StringList alt_refs = it->getMetaValue("alt_PeptideRef");
+        found_refs.insert(alt_refs.begin(), alt_refs.end());
+      }
     }
     Size n_missing = library_.getCompounds().size() - found_refs.size();
     const Size n_examples = 5;
@@ -981,6 +1058,7 @@ protected:
     LOG_INFO << "\nSummary statistics:\n"
              << library_.getCompounds().size() << " targets specified\n"
              << features.size() << " features found\n"
+             << n_shared << " features with multiple target annotations\n"
              << n_missing << " targets without features";
     if (!missing_examples.empty())
     {
