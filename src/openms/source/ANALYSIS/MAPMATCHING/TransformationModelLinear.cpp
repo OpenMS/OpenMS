@@ -44,7 +44,7 @@ namespace OpenMS
   {
     params_ = params;
     data_given_ = !data.empty();
-    if (params.exists("x_weight" && params.getValue("x_weight") != ""){
+    if (params.exists("x_weight") && params.getValue("x_weight") != ""){
       // set x_weight
       params_.setValue("x_weight",params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "");
       params_.setValue("x_datum_min",params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15);
