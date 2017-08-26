@@ -209,7 +209,6 @@ namespace OpenMS
     int & points_across_half_height)
   {
     points_across_baseline = 0;
-    double pi = 3.14159265;
     double startIntensity, endIntensity;
     double start_time_at_50, end_time_at_50;
     double base, height, height_5, height_10, height_50;
