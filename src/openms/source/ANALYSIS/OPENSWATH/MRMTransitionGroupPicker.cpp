@@ -192,7 +192,7 @@ namespace OpenMS
   
   void MRMTransitionGroupPicker::calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
     double best_left, double best_right, 
-    double peak_height, double peak_apex, double peak_intensity,
+    double peak_height, double peak_apex, double peak_intensity, double avg_noise_level,
     double & width_at_5,
     double & width_at_10,
     double & width_at_50,
@@ -210,93 +210,100 @@ namespace OpenMS
   {
     points_across_baseline = 0;
     double startIntensity, endIntensity;
+    double intensity, intensity_prev, retention_time, retention_time_prev;
     double start_time_at_50, end_time_at_50;
     double base, height, height_5, height_10, height_50;
+    
+    // pass 1
     for (MSChromatogram::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
     {
       MSChromatogram::const_iterator it_prev = it;
       it_prev--; //previous point
+      intensity = std::max(it->getIntensity()-avg_noise_level,0); //background-subtracted intensity
+      intensity_prev = std::max(it_prev->getIntensity()-avg_noise_level,0); //background-subtracted intensity of the previous point
+      retention_time = it->getMZ();
+      retention_time_prev = it_prev->getMZ();
 
-      if (it->getMZ() > best_left && it->getMZ() < best_right)
+      // start and end intensities
+      if (retention_time_prev == best_left)
       {
-        // start and end intensities
-        if (it == chromatogram.begin())
-        {
-          startIntensity = it->getIntensity();
-        }
-        else if (it == std::prev(chromatogram.end()))
-        {
-          endIntensity = it->getIntensity();
-        }
+        startIntensity = intensity;
+      }
+      else if (retention_time == best_right)
+      {
+        endIntensity = intensity_prev;
+      }
 
+      if (retention_time > best_left && retention_time < best_right)
+      {
         //start and end retention times
-        if (it->getMZ() < peak_apex)
+        if (retention_time < peak_apex)
         {
           // start_time_at_5
-          if (it->getIntensity() >= 0.05*peak_intensity && \
-            it_prev->getIntensity() < 0.05*peak_intensity && \
+          if (intensity >= 0.05*peak_height && \
+            intensity_prev < 0.05*peak_height && \
             points_across_baseline > 1)
           {
-            base = it->getMZ() - it_prev->getMZ();
-            height = it->getIntensity() - it_prev->getIntensity();
-            height_5 = it->getIntensity() - 0.05*peak_intensity;
-            start_time_at_5 = it->getMZ() - height*base/height_5;
+            base = retention_time - retention_time_prev;
+            height = intensity - intensity_prev;
+            height_5 = intensity - 0.05*peak_height;
+            start_time_at_5 = retention_time - height*base/height_5;
           }
           // start_time_at_10
-          else if (it->getIntensity() >= 0.1*peak_intensity && \
-            it_prev->getIntensity() < 0.1*peak_intensity && \
+          else if (intensity >= 0.1*peak_height && \
+            intensity_prev < 0.1*peak_height && \
             points_across_baseline > 1)
           {
-            base = it->getMZ() - it_prev->getMZ();
-            height = it->getIntensity() - it_prev->getIntensity();
-            height_10 = it->getIntensity() - 0.1*peak_intensity;
-            start_time_at_10 = it->getMZ() - height*base/height_10;
+            base = retention_time - retention_time_prev;
+            height = intensity - intensity_prev;
+            height_10 = intensity - 0.1*peak_height;
+            start_time_at_10 = retention_time - height*base/height_10;
           }
           // start_time_at_50
-          else if (it->getIntensity() >= 0.5*peak_intensity && \
-            it_prev->getIntensity() < 0.5*peak_intensity && \
+          else if (intensity >= 0.5*peak_height && \
+            intensity_prev < 0.5*peak_height && \
             points_across_baseline > 1)
           {
-            base = it->getMZ() - it_prev->getMZ();
-            height = it->getIntensity() - it_prev->getIntensity();
-            height_50 = it->getIntensity() - 0.5*peak_intensity;
-            start_time_at_50 = it->getMZ() - height*base/height_50;
+            base = retention_time - retention_time_prev;
+            height = intensity - intensity_prev;
+            height_50 = intensity - 0.5*peak_height;
+            start_time_at_50 = retention_time - height*base/height_50;
           }
         } 
-        else if (it->getMZ() > peak_apex)
+        else if (retention_time > peak_apex)
         {
           // end_time_at_5
-          if (it->getIntensity() <= 0.05*peak_intensity && \
-            it_prev->getIntensity() > 0.05*peak_intensity)
+          if (intensity <= 0.05*peak_height && \
+            intensity_prev > 0.05*peak_height)
           {
-            base = it->getMZ() - it_prev->getMZ();
-            height = it_prev->getIntensity() - it->getIntensity();
-            height_5 = 0.05*peak_intensity - it->getIntensity();
-            end_time_at_5 = it->getMZ() - height*base/height_5;
+            base = retention_time - retention_time_prev;
+            height = intensity_prev - intensity;
+            height_5 = 0.05*peak_height - intensity;
+            end_time_at_5 = retention_time - height*base/height_5;
           }
           // start_time_at_10
-          else if (it->getIntensity() <= 0.1*peak_intensity && \
-            it_prev->getIntensity() > 0.1*peak_intensity)
+          else if (intensity <= 0.1*peak_height && \
+            intensity_prev > 0.1*peak_height)
           {
-            base = it->getMZ() - it_prev->getMZ();
-            height = it_prev->getIntensity() - it->getIntensity();
-            height_10 = 0.1*peak_intensity - it->getIntensity();
-            end_time_at_10 = it->getMZ() - height*base/height_10;
+            base = retention_time - retention_time_prev;
+            height = intensity_prev - intensity;
+            height_10 = 0.1*peak_height - intensity;
+            end_time_at_10 = retention_time - height*base/height_10;
           }
           // end_time_at_50
-          else if (it->getIntensity() <= 0.5*peak_intensity && \
-          it_prev->getIntensity() > 0.5*peak_intensity)
+          else if (intensity <= 0.5*peak_height && \
+          intensity_prev > 0.5*peak_height)
           {
-            base = it->getMZ() - it_prev->getMZ();
-            height = it_prev->getIntensity() - it->getIntensity();
-            height_50 = 0.5*peak_intensity - it->getIntensity();
-            end_time_at_50 = it->getMZ() - height*base/height_50;
+            base = retention_time - retention_time_prev;
+            height = intensity_prev - intensity;
+            height_50 = 0.5*peak_height - intensity;
+            end_time_at_50 = retention_time - height*base/height_50;
           }
         } 
 
         // points across the peak
         points_across_baseline += 1;
-        if (it->getIntensity() >= 0.5*peak_intensity)
+        if (intensity >= 0.5*peak_height)
         {
           points_across_half_height += 1;
         }

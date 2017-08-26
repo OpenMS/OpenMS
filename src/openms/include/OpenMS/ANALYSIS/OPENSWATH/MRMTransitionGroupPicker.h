@@ -370,7 +370,8 @@ public:
         int points_across_half_height = 0;
         
         calculatePeakQCMetrics_(used_chromatogram, 
-          best_left, best_right, peak_apex_int, peak_apex, peak_apex_int_copy,
+          best_left, best_right, 
+          peak_apex_int, peak_apex, peak_apex_int_copy,avg_noise_level,
           width_at_5,
           width_at_10,
           width_at_50,
@@ -923,7 +924,7 @@ protected:
     */
     void calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
       double best_left, double best_right, 
-      double peak_height, double peak_apex, double peak_intensity,
+      double peak_height, double peak_apex, double peak_intensity, double avg_noise_level,
       double & width_at_5,
       double & width_at_10,
       double & width_at_50,
