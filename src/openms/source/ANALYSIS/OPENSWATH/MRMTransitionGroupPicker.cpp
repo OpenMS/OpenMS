@@ -164,7 +164,7 @@ namespace OpenMS
     ConvexHull2D::PointArrayType & hull_points,
     double & intensity_sum, 
     double & rt_sum,
-    double & peak_apex_int)
+    double & peak_apex_int,
     double & peak_apex)
   {  
     ConvexHull2D::PointArrayType hull_points;
