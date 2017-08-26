@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-// #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h> //TODO: uncomment
-// #include "/usr/local/OpenMS/src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
