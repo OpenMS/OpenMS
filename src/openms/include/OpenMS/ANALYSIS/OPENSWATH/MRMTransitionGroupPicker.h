@@ -292,7 +292,7 @@ public:
         ConvexHull2D::PointArrayType hull_points;
         double intensity_sum(0.0), rt_sum(0.0);
         double peak_apex_int = -1;
-        calculatePeakApexInt_(used_chromatogram,hull_points,intensity_sum,rt_sum,peak_apex_int,peak_apex);
+        calculatePeakApexInt_(used_chromatogram,best_left,best_right,hull_points,intensity_sum,rt_sum,peak_apex_int,peak_apex);
         double peak_apex_int_copy = peak_apex_int; //copy of the max peak intensity before background subtraction
 
         double background(0), avg_noise_level(0);
@@ -900,6 +900,7 @@ protected:
       intensity_sum, and rt_sum are also calculated.
     */
     void calculatePeakApexInt_(const MSChromatogram& chromatogram,
+      double best_left, double best_right, 
       ConvexHull2D::PointArrayType & hull_points,
       double & intensity_sum, 
       double & rt_sum,

@@ -159,6 +159,7 @@ namespace OpenMS
   }
   
   void MRMTransitionGroupPicker::calculatePeakApexInt_(const MSChromatogram& chromatogram,
+    double best_left, double best_right, 
     ConvexHull2D::PointArrayType & hull_points,
     double & intensity_sum, 
     double & rt_sum,
@@ -214,6 +215,9 @@ namespace OpenMS
     double base, height, height_5, height_10, height_50;
     for (MSChromatogram::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
     {
+      MSChromatogram::const_iterator it_prev = it;
+      it_prev--; //previous point
+
       if (it->getMZ() > best_left && it->getMZ() < best_right)
       {
         // start and end intensities
@@ -231,31 +235,31 @@ namespace OpenMS
         {
           // start_time_at_5
           if (it->getIntensity() >= 0.05*peak_intensity && \
-            std::prev(it->getIntensity()) < 0.05*peak_intensity && \
+            it_prev->getIntensity() < 0.05*peak_intensity && \
             points_across_baseline > 1)
           {
-            base = it->getMZ() - std::prev(it->getMZ());
-            height = it->getIntensity() - std::prev(it->getIntensity());
+            base = it->getMZ() - it_prev->getMZ();
+            height = it->getIntensity() - it_prev->getIntensity();
             height_5 = it->getIntensity() - 0.05*peak_intensity;
             start_time_at_5 = it->getMZ() - height*base/height_5;
           }
           // start_time_at_10
           else if (it->getIntensity() >= 0.1*peak_intensity && \
-            std::prev(it->getIntensity()) < 0.1*peak_intensity && \
+            it_prev->getIntensity() < 0.1*peak_intensity && \
             points_across_baseline > 1)
           {
-            base = it->getMZ() - std::prev(it->getMZ());
-            height = it->getIntensity() - std::prev(it->getIntensity());
+            base = it->getMZ() - it_prev->getMZ();
+            height = it->getIntensity() - it_prev->getIntensity();
             height_10 = it->getIntensity() - 0.1*peak_intensity;
             start_time_at_10 = it->getMZ() - height*base/height_10;
           }
           // start_time_at_50
           else if (it->getIntensity() >= 0.5*peak_intensity && \
-            std::prev(it->getIntensity()) < 0.5*peak_intensity && \
+            it_prev->getIntensity() < 0.5*peak_intensity && \
             points_across_baseline > 1)
           {
-            base = it->getMZ() - std::prev(it->getMZ());
-            height = it->getIntensity() - std::prev(it->getIntensity());
+            base = it->getMZ() - it_prev->getMZ();
+            height = it->getIntensity() - it_prev->getIntensity();
             height_50 = it->getIntensity() - 0.5*peak_intensity;
             start_time_at_50 = it->getMZ() - height*base/height_50;
           }
@@ -264,28 +268,28 @@ namespace OpenMS
         {
           // end_time_at_5
           if (it->getIntensity() <= 0.05*peak_intensity && \
-            std::prev(it->getIntensity()) > 0.05*peak_intensity)
+            it_prev->getIntensity() > 0.05*peak_intensity)
           {
-            base = it->getMZ() - std::prev(it->getMZ());
-            height = std::prev(it->getIntensity()) - it->getIntensity();
+            base = it->getMZ() - it_prev->getMZ();
+            height = it_prev->getIntensity() - it->getIntensity();
             height_5 = 0.05*peak_intensity - it->getIntensity();
             end_time_at_5 = it->getMZ() - height*base/height_5;
           }
           // start_time_at_10
           else if (it->getIntensity() >= 0.1*peak_intensity && \
-            std::prev(it->getIntensity()) < 0.1*peak_intensity)
+            it_prev->getIntensity() < 0.1*peak_intensity)
           {
-            base = it->getMZ() - std::prev(it->getMZ());
-            height = std::prev(it->getIntensity()) - it->getIntensity();
+            base = it->getMZ() - it_prev->getMZ();
+            height = it_prev->getIntensity() - it->getIntensity();
             height_10 = 0.1*peak_intensity - it->getIntensity();
             end_time_at_10 = it->getMZ() - height*base/height_10;
           }
           // end_time_at_50
           else if (it->getIntensity() >= 0.5*peak_intensity && \
-          std::prev(it->getIntensity()) < 0.5*peak_intensity)
+          it_prev->getIntensity() < 0.5*peak_intensity)
           {
-            base = it->getMZ() - std::prev(it->getMZ());
-            height = std::prev(it->getIntensity()) - it->getIntensity();
+            base = it->getMZ() - it_prev->getMZ();
+            height = it_prev->getIntensity() - it->getIntensity();
             height_50 = 0.5*peak_intensity - it->getIntensity();
             end_time_at_50 = it->getMZ() - height*base/height_50;
           }
