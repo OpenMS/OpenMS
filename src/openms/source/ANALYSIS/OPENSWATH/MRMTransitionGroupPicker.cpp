@@ -157,7 +157,6 @@ namespace OpenMS
       }
     }
   }
-
   
   void MRMTransitionGroupPicker::calculatePeakApexInt_(const MSChromatogram& chromatogram,
     ConvexHull2D::PointArrayType & hull_points,
@@ -166,7 +165,6 @@ namespace OpenMS
     double & peak_apex_int,
     double & peak_apex)
   {  
-    ConvexHull2D::PointArrayType hull_points;
     intensity_sum = 0.0;
     rt_sum = 0.0;
     peak_apex_int = -1;
