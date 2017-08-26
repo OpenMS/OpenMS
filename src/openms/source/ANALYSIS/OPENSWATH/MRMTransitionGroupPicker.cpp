@@ -190,6 +190,7 @@ namespace OpenMS
     }
   }
   
+  template <typename SpectrumT>
   void MRMTransitionGroupPicker::calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
     double best_left, double best_right, 
     double peak_height, double peak_apex, double peak_intensity,
@@ -206,7 +207,8 @@ namespace OpenMS
     double & baseline_delta_2_height,
     double & slope_of_baseline,
     int & points_across_baseline,
-    int & points_across_half_height){
+    int & points_across_half_height)
+  {
     points_across_baseline = 0;
     double pi = 3.14159265;
     double startIntensity, endIntensity;

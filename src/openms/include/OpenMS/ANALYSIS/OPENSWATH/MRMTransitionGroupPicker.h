@@ -899,7 +899,6 @@ protected:
       The maximum peak intensity/height is calculated.  The convex hull points,
       intensity_sum, and rt_sum are also calculated.
     */
-    template <typename SpectrumT>
     void calculatePeakApexInt_(const MSChromatogram& chromatogram,
       ConvexHull2D::PointArrayType & hull_points,
       double & intensity_sum, 
