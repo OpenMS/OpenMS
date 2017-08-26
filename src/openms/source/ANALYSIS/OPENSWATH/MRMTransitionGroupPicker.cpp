@@ -250,7 +250,7 @@ namespace OpenMS
             start_time_at_5 = retention_time - height*base/height_5;
           }
           // start_time_at_10
-          else if (intensity >= 0.1*peak_height && \
+          if (intensity >= 0.1*peak_height && \
             intensity_prev < 0.1*peak_height && \
             points_across_baseline > 1)
           {
@@ -260,7 +260,7 @@ namespace OpenMS
             start_time_at_10 = retention_time - height*base/height_10;
           }
           // start_time_at_50
-          else if (intensity >= 0.5*peak_height && \
+          if (intensity >= 0.5*peak_height && \
             intensity_prev < 0.5*peak_height && \
             points_across_baseline > 1)
           {
@@ -282,7 +282,7 @@ namespace OpenMS
             end_time_at_5 = retention_time - height*base/height_5;
           }
           // start_time_at_10
-          else if (intensity <= 0.1*peak_height && \
+          if (intensity <= 0.1*peak_height && \
             intensity_prev > 0.1*peak_height)
           {
             base = retention_time - retention_time_prev;
@@ -291,7 +291,7 @@ namespace OpenMS
             end_time_at_10 = retention_time - height*base/height_10;
           }
           // end_time_at_50
-          else if (intensity <= 0.5*peak_height && \
+          if (intensity <= 0.5*peak_height && \
           intensity_prev > 0.5*peak_height)
           {
             base = retention_time - retention_time_prev;
