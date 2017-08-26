@@ -208,8 +208,7 @@ namespace OpenMS
     double & baseline_delta_2_height,
     double & slope_of_baseline,
     int & points_across_baseline,
-    int & points_across_half_height,
-  ){
+    int & points_across_half_height){
     points_across_baseline = 0;
     double pi = 3.14159265;
     double startIntensity, endIntensity;
