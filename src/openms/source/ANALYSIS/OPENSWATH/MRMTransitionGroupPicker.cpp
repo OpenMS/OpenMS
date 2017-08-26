@@ -275,8 +275,8 @@ namespace OpenMS
             end_time_at_5 = it->getMZ() - height*base/height_5;
           }
           // start_time_at_10
-          else if (it->getIntensity() >= 0.1*peak_intensity && \
-            it_prev->getIntensity() < 0.1*peak_intensity)
+          else if (it->getIntensity() <= 0.1*peak_intensity && \
+            it_prev->getIntensity() > 0.1*peak_intensity)
           {
             base = it->getMZ() - it_prev->getMZ();
             height = it_prev->getIntensity() - it->getIntensity();
@@ -284,8 +284,8 @@ namespace OpenMS
             end_time_at_10 = it->getMZ() - height*base/height_10;
           }
           // end_time_at_50
-          else if (it->getIntensity() >= 0.5*peak_intensity && \
-          it_prev->getIntensity() < 0.5*peak_intensity)
+          else if (it->getIntensity() <= 0.5*peak_intensity && \
+          it_prev->getIntensity() > 0.5*peak_intensity)
           {
             base = it->getMZ() - it_prev->getMZ();
             height = it_prev->getIntensity() - it->getIntensity();
