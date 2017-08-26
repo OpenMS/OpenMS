@@ -158,6 +158,7 @@ namespace OpenMS
     }
   }
   
+  template <typename SpectrumT>
   void MRMTransitionGroupPicker::calculatePeakApexInt_(const MSChromatogram& chromatogram,
     ConvexHull2D::PointArrayType & hull_points,
     double & intensity_sum, 
