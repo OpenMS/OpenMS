@@ -160,7 +160,7 @@ namespace OpenMS
   }
 
   
-  void calculatePeakApexInt_(const MSChromatogram& chromatogram,
+  void MRMTransitionGroupPicker::calculatePeakApexInt_(const MSChromatogram& chromatogram,
     ConvexHull2D::PointArrayType & hull_points,
     double & intensity_sum, 
     double & rt_sum,
