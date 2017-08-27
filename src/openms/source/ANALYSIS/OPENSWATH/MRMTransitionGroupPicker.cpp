@@ -192,7 +192,7 @@ namespace OpenMS
   
   void MRMTransitionGroupPicker::calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
     double best_left, double best_right, 
-    double peak_height, double peak_apex, double peak_intensity, double avg_noise_level,
+    double peak_height, double peak_apex, double avg_noise_level,
     double & width_at_5,
     double & width_at_10,
     double & width_at_50,
