@@ -66,6 +66,9 @@ namespace OpenMS
 
     defaults_.setValue("compute_peak_quality", "false", "Tries to compute a quality value for each peakgroup and detect outlier transitions. The resulting score is centered around zero and values above 0 are generally good and below -1 or -2 are usually bad.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("compute_peak_quality", ListUtils::create<String>("true,false"));
+    
+    defaults_.setValue("compute_peak_shape_metrics", "false", "Calulates various peak shape metrics (e.g., tailing) that can be used for downstream QC/QA.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("compute_peak_shape_metrics", ListUtils::create<String>("true,false"));
 
     defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
 
