@@ -6,52 +6,21 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/MISC/MIDAsFFT.h>
 
-//#define DEBUG
+#define DEBUG
 
 using namespace std;
 
 namespace OpenMS
 {
-  MIDAsFFTID::MIDAsFFTID(EmpiricalFormula& formula, double resolution):
-    MIDAs(formula, resolution, 15),
+  MIDAsFFTID::MIDAsFFTID(double resolution):
+    MIDAs(resolution, 15),
     cutoff_amplitude_factor_(2)
   {
-    UInt sample_size,k=0;
-    Stats coarse(formulaMeanAndVariance()), fine(formulaMeanAndVariance(resolution_));
-    double sigma;
-    
-    sigma = coarse.variance;
-    double range = N * sqrt(1 + sigma);
-    mass_range_ = pow(2, ceil(log2(ceil(range))));
-#ifdef DEBUG
-    LOG_INFO << "Resolution " << resolution_ << endl;
-    LOG_INFO << "Coarse Average mass " << coarse.mean << " Variance: " << coarse.variance << endl;
-    LOG_INFO << "Fine Average mass " << fine.mean << " Variance: " << fine.variance << endl;
-#endif
-    do
-    {
-      resolution_ = resolution/pow(2,k);  
-      sample_size = pow(2, ceil(log2(mass_range_ / resolution_)));
-      delta_ = 1.0 / sample_size;
-      resolution_ = mass_range_/sample_size;
-      k++;
-    }while(resolution_ > resolution);
-    
-    average_mass_ = round(fine.mean) / resolution_;
-    LOG_INFO <<"Mass Range " << mass_range_ <<endl;
-
-    fft_complex s = {0,0};
-    input_.resize(sample_size, s);
-    output_.resize(sample_size, s);
-    
-    
-    LOG_INFO << "Sample size: " << input_.size() << "   " << output_.size() << endl;
-    init();
 
   }
 
 
-  void MIDAsFFTID::init()
+  void MIDAsFFTID::init(const EmpiricalFormula& formula)
   {
 
 #ifdef DEBUG
@@ -67,7 +36,7 @@ namespace OpenMS
       double phase = (2 * Constants::PI * average_mass_ * freq);
 
       //LOG_INFO << "Delta:" << freq << endl;
-      for(const auto& element : formula_)
+      for(const auto& element : formula)
       {
         //Perform temporary calculations on sample data structure
         auto& atoms = element.second;
@@ -91,21 +60,54 @@ namespace OpenMS
         
       }
       
-      //After looping assign the value
-      
+      //After looping assign the value   
       sample.r = radius * cos(angle - phase);
       sample.i = radius * sin(angle - phase);
     }
     
   }
 
-  void MIDAsFFTID::run()
+  void MIDAsFFTID::run(const EmpiricalFormula& formula)
   {
+
+    UInt sample_size, k = 0;
+    Stats coarse(formulaMeanAndVariance(formula)), 
+      fine(formulaMeanAndVariance(formula, resolution_));
     
+    double sigma = coarse.variance;
+    double range = N * sqrt(1 + sigma);
+    mass_range_ = pow(2, ceil(log2(ceil(range))));
+
+    double initial_resolution = resolution_;
+    do
+    {
+      resolution_ = initial_resolution / pow(2,k);  
+      sample_size = pow(2, ceil(log2(mass_range_ / resolution_)));
+      delta_ = 1.0 / sample_size;
+      resolution_ = mass_range_ / sample_size;
+      k++;
+      
+    }while(resolution_ > initial_resolution);
+    
+    average_mass_ = round(fine.mean) / resolution_;
+
+    fft_complex s = {0,0};
+    input_.resize(sample_size, s);
+    output_.resize(sample_size, s);
+    
+#ifdef DEBUG
+    LOG_INFO << "Resolution " << resolution_ << endl;
+    LOG_INFO << "Coarse Average mass " << coarse.mean << " Variance: " << coarse.variance << endl;
+    LOG_INFO << "Fine Average mass " << fine.mean << " Variance: " << fine.variance << endl;
+    LOG_INFO << "Sample size: " << input_.size() << "   " << output_.size() << endl;
+#endif
+
+    // Create sample of formula
+    init(formula);
 
     UInt size = output_.size() * 2 + 1;
-    double *input = new double[ size ];
-    UInt k = 1;
+    vector<double> input(size, 0);
+    k = 1;
 
     //Convert samples FFT compatible input
     for(auto& sample : input_)
@@ -120,7 +122,7 @@ namespace OpenMS
     }
 
     //Calculate the inverse fft
-    fft(input, size / 2);
+    fft(&input.front(), size / 2);
     
     //Dump back the values in the kissfft format
     k = 1;
@@ -149,8 +151,6 @@ namespace OpenMS
                     return (item1.r < item2.r);
                   })->r;
     
-
-    Stats coarse(formulaMeanAndVariance()), fine(formulaMeanAndVariance(resolution_));
     double ratio = coarse.variance / fine.variance;
 
 #ifdef DEBUG
@@ -164,18 +164,18 @@ namespace OpenMS
     k = 0;
     Polynomial pol;
     double p_sum = 0;
-    //for(auto& sample : boost::adaptors::reverse(output_))
     for(auto& sample : output_)
     {
-      Peak1D member;
-      member.setIntensity(sample.r);
-      Int j = k > output_.size() / 2 ?  k++ - output_.size() : k++;
-      if(member.getIntensity() > min_prob)
+      k++;
+      if(sample.r > min_prob)
       {
-      
+        Peak1D member;
+        member.setIntensity(sample.r);
+        Int j = k > output_.size() / 2 ?  k - output_.size() : k;
         p_sum += member.getIntensity();
         member.setMZ(ratio*((j  + average_mass_) * resolution_ - coarse.mean) + fine.mean);
         pol.push_back(member);
+        LOG_INFO << k << " index " << member.getMZ() << endl;
       }
     }
 
@@ -184,26 +184,27 @@ namespace OpenMS
     {
        point.setIntensity(point.getIntensity() / p_sum);
 #ifdef DEBUG
-        LOG_INFO << member.getMZ() << " " << member.getIntensity() << endl;
+        //LOG_INFO << point.getMZ() << " " << point.getIntensity() << endl;
 #endif
     }
 
     //sort by mass
     sort(pol.begin(), pol.end(), by_power);
     ContainerType tmp(pol.begin(), pol.end());
-    merge(tmp, resolution_);
+    distribution_ = tmp;
+    //merge(tmp, resolution_);
 
   }
 
 
-  MIDAsFFTID::Stats MIDAsFFTID::formulaMeanAndVariance(double resolution)
+  MIDAsFFTID::Stats MIDAsFFTID::formulaMeanAndVariance(const EmpiricalFormula& formula, double resolution)
   {
     Stats stat = {0,0};
 
     //throw exception for zero resolution_
 
     // calculate average
-    for(const auto& element : formula_)
+    for(const auto& element : formula)
     {
       double ave_mw = 0, var_mw = 0;
       for(const auto& iso : element.first->getIsotopeDistribution())

@@ -37,6 +37,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
+#include <boost/math/special_functions/gamma.hpp>
 #include <cmath>
 #include <utility>
 
@@ -309,6 +310,19 @@ namespace OpenMS
       }
 
       return std::make_pair(left, right);
+    }
+    
+    /**
+       @brief Return the ln(x!) of a value
+       
+       This functions comes handy when there are large factorials in a ratio formula.
+       
+       @param x an integer value
+       @return natural logarithm of factorial x
+    */
+    inline double fact_ln(UInt x)
+    {
+      return lgamma(double(x+1));
     }
 
   } // namespace Math

@@ -167,6 +167,8 @@ public:
     bool isNormalized() const;
 
 
+    double averageMass() const;
+
     bool isConvolutionUnit() const;
     //@}
 
@@ -216,14 +218,15 @@ public:
 
 protected:   
 
+    /// sort wrapper of the distribution
     void sort_(std::function<bool(const MassAbundance& p1, const MassAbundance& p2)> sorter);
-
+    /// takes a function as a parameter to transform the distribution
     void transform_(std::function<void(MassAbundance&)> lambda);
 
     /// stores the isotope distribution
     ContainerType distribution_;
 
-    ///Holds if the distribution is sorted
+    ///Holds the distribution sorted state
     Sorted sort_type;
   };
 

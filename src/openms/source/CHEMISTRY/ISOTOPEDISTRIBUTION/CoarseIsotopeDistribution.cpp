@@ -152,11 +152,11 @@ namespace OpenMS
     return round(IsotopeDistribution::getMin());
   }
 
-  void CoarseIsotopeDistribution::run()
+  void CoarseIsotopeDistribution::run(const EmpiricalFormula& formula)
   {
     CoarseIsotopeDistribution result(getMaxIsotope());
-    auto it = formula_.begin();
-    for (; it != formula_.end(); ++it)
+    auto it = formula.begin();
+    for (; it != formula.end(); ++it)
     {
       CoarseIsotopeDistribution tmp = it->first->getIsotopeDistribution();
       tmp.setMaxIsotope(getMaxIsotope());

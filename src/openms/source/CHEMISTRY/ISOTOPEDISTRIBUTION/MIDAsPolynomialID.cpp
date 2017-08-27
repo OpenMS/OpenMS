@@ -6,12 +6,13 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/MIDAsPolynomialID.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Polynomial.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 
 #include <vector>
 #include <utility>
 
-#define DEBUG
+//#define DEBUG
 
 using namespace std;
 namespace OpenMS
@@ -30,32 +31,16 @@ namespace OpenMS
   }
 
 
-  MIDAsPolynomialID::MIDAsPolynomialID(EmpiricalFormula& formula, double resolution):
-    MIDAs(formula, resolution, 10),
-    lighter_isotope(0)
+  MIDAsPolynomialID::MIDAsPolynomialID(double resolution):
+    MIDAs(resolution, 10)
   {
-    for(EmpiricalFormula::const_iterator el = formula_.begin(); el != formula_.end(); ++el)
-    {
-      lighter_isotope += lightest_element(*(el->first)) * (el->second);
-    }
-
-    LOG_INFO << "Fine resolution: " << resolution_ << endl;
-
     mw_resolution = 1e-12;
-    
-
-
   }
 
-  inline double MIDAsPolynomialID::fact_ln(UInt x)
-  {
-    return boost::math::lgamma(x+1);
-  }
-
-  void MIDAsPolynomialID::run()
+  void MIDAsPolynomialID::run(const EmpiricalFormula& formula)
   {
     vector<Polynomial> el_dist;
-    for(EmpiricalFormula::ConstIterator element = formula_.begin(); element != formula_.end(); ++element)
+    for(EmpiricalFormula::ConstIterator element = formula.begin(); element != formula.end(); ++element)
     {
       el_dist.push_back(generatePolynomial(*(element->first), element->second));
 #ifdef DEBUG
@@ -85,17 +70,17 @@ namespace OpenMS
       pmember.setMZ(pmember.getMZ() * mw_resolution);
     }
     distribution_.clear();
-    move(T.begin(), T.end(), back_inserter(distribution_));
+    //move(T.begin(), T.end(), back_inserter(distribution_));
+    distribution_.assign(T.begin(),T.end());
 
-    merge(distribution_, 0.0001);
+    //merge(distribution_, 0.0001);
+    trimIntensities(0.00001);
 
-    LOG_INFO << "Lightest theoretical element " << lighter_isotope << endl;
-
-    trimRight(0.0001);
-    trimLeft(0.0001);
+    // trimRight(0.0001);
+    // trimLeft(0.0001);
 
 #ifdef DEBUG
-    LOG_INFO << "Isotope Distribution of " << formula_.toString() << " successfully computed " << endl;
+    LOG_INFO << "Isotope Distribution of " << formula.toString() << " successfully computed " << endl;
     LOG_INFO << "Isotope Distribution has " << T.size() << " data points " << endl;
 #endif
   }
@@ -123,11 +108,11 @@ namespace OpenMS
     {
       Peak1D member;
       member.setMZ(0);
-      member.setIntensity(fact_ln(size));
+      member.setIntensity(Math::fact_ln(size));
       UInt index = 0;
       for(CounterSet::ContainerType::const_iterator iso_count = counters.begin(); iso_count != counters.end(); ++iso_count, ++index)
       {
-        member.setIntensity(member.getIntensity() + ((*iso_count) * log_prob[index]) - fact_ln((*iso_count)));
+        member.setIntensity(member.getIntensity() + ((*iso_count) * log_prob[index]) - Math::fact_ln((*iso_count)));
       }
 
       member.setIntensity(exp(member.getIntensity()));

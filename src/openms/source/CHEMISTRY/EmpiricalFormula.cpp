@@ -158,8 +158,7 @@ namespace OpenMS
 
   IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(IsotopePatternGenerator* solver) const
   {
-    solver->setEmpiricalFormula(*this);
-    solver->run();
+    solver->run(*this);
     return *solver;
   }
 

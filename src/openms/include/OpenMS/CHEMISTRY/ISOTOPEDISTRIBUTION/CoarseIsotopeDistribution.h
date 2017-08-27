@@ -76,7 +76,7 @@ namespace OpenMS
     bool operator!=(const CoarseIsotopeDistribution& isotope_distribution) const;
 
 
-    void run();
+    void run(const EmpiricalFormula&);
 
     /**
        @brief Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported

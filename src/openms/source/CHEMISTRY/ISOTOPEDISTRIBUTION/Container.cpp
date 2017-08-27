@@ -223,6 +223,18 @@ namespace OpenMS
     return distribution_.size() == 1  && distribution_.front().getMZ() == 0.0;
   }
 
-
+  double IsotopeDistribution::averageMass() const
+  {
+    double prob_sum = accumulate(distribution_.begin(), distribution_.end(), 0.0,
+               [](double total_prob, const Peak1D& iso)
+               {
+                 return  total_prob + iso.getIntensity();
+               });
+    return accumulate(distribution_.begin(), distribution_.end(), 0.0,
+                      [&prob_sum](double average_mass, const Peak1D& iso)
+                      {
+                        return average_mass + iso.getMZ()*(iso.getIntensity()/prob_sum);
+                      });
+  }
 
 }

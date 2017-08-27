@@ -28,17 +28,16 @@ namespace OpenMS
   public:
     typedef ContainerType Spectrum;
     using IsotopeDistribution::operator[];
-    Ecipex(EmpiricalFormula& formula, double threshold, double fft_threshold);
+    Ecipex(double threshold, double fft_threshold);
     Ecipex();
     Ecipex(const IsotopeDistribution& isotope_distribution);
     
     void sortAndNormalize();
     void computeIsotopePattern(double threshold, double fft_threshold);
-    void run();
+    void run(const EmpiricalFormula& );
     Ecipex elementIsotopePattern(const Spectrum& iso_pattern, UInt size, double fft_threshold);
     void convolve(IsotopeDistribution& spectrum, double threshold);
   private:
-    EmpiricalFormula formula_;
     double fft_threshold_;
     double threshold_;
   };

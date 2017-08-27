@@ -24,8 +24,6 @@ namespace OpenMS
     //raw must be ordered to work correctly ascending order on power field
 
     UInt output_size = ceil((raw.back().getMZ() - raw.front().getMZ())/resolution);
-    LOG_INFO << "output size " << output_size << endl;
-    LOG_INFO << "raw size " << raw.size() <<endl;
 
     distribution_.clear();
     distribution_.resize(output_size, Peak1D(0, 0));
@@ -38,7 +36,7 @@ namespace OpenMS
       if(index >= distribution_.size()){
 
         LOG_INFO << index <<endl;
-        
+        continue;
       }
       auto& mass = distribution_[index].getPosition() ;
 
@@ -48,13 +46,6 @@ namespace OpenMS
       distribution_[index].setIntensity(distribution_[index].getIntensity() + p.getIntensity());
     }
   }
-  
-  void IsotopePatternGenerator::setEmpiricalFormula(const EmpiricalFormula& formula)
-  {
-    formula_ = formula;
-  }
-
-
 
   void IsotopePatternGenerator::dumpIDToFile(String file)
   {
@@ -66,12 +57,12 @@ namespace OpenMS
     
     out.close();
   }
+
   
   /* Start of the midas interface */
-  MIDAs::MIDAs(EmpiricalFormula& formula, double resolution, UInt N_):
+  MIDAs::MIDAs(double resolution, UInt N_):
     IsotopePatternGenerator(),
     min_prob(1e-16),
-    formula_(formula),
     resolution_(resolution),
     N(N_)
   {

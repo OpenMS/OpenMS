@@ -25,7 +25,7 @@ namespace OpenMS
 
    public:
     
-    KissFftState(const std::vector<Int>& dimensions, bool inverse = false)
+    KissFftState(const vector<Int>& dimensions, bool inverse = false)
       : dims_(dimensions), inverse_(inverse) 
     {
       if (is1d())
@@ -78,7 +78,7 @@ namespace OpenMS
     }
 
    private:
-    std::vector<int> dims_;
+    std::vector<Int> dims_;
     bool inverse_;
     void* cfg_;
     bool is1d() const { return dims_.size() == 1; }
@@ -89,7 +89,7 @@ namespace OpenMS
   {
 
    public:
-    explicit FftArray(const std::vector<Int>& dimensions)
+    explicit FftArray(const vector<Int>& dimensions)
       : dims_(dimensions), data_(nullptr), n_(1) 
     {
       for (const Int& x : dims_)
@@ -108,7 +108,7 @@ namespace OpenMS
 
       UInt64 n_bytes = n_ * sizeof(kiss_fft_cpx);
 
-      data_ = reinterpret_cast<std::complex<kiss_fft_scalar>*>(KISS_FFT_MALLOC(n_bytes));
+      data_ = reinterpret_cast<complex<kiss_fft_scalar>*>(KISS_FFT_MALLOC(n_bytes));
       
       if (data_ == nullptr)
       {
@@ -167,8 +167,7 @@ namespace OpenMS
     distribution_.push_back(Peak1D(0, 1));
   }
 
-  Ecipex::Ecipex(EmpiricalFormula& formula, double threshold, double fft_threshold):
-    formula_(formula),
+  Ecipex::Ecipex(double threshold, double fft_threshold):
     fft_threshold_(fft_threshold),
     threshold_(threshold)
   {
@@ -180,32 +179,32 @@ namespace OpenMS
   {
   }
   
-  void Ecipex::run()
+  void Ecipex::run(const EmpiricalFormula& formula)
   {
-    computeIsotopePattern(threshold_, fft_threshold_);
-  }
-
-  void Ecipex::computeIsotopePattern(double threshold, double fft_threshold) 
-  {
-    for (auto& element : formula_) 
+    for (auto& element : formula) 
     {
       auto pattern = elementIsotopePattern(
         element.first->getIsotopeDistribution().getContainer(), 
         element.second, 
-        fft_threshold);
+        fft_threshold_);
       
-      convolve(pattern, threshold * threshold);
+      convolve(pattern, threshold_ * threshold_);
     }
-    trimIntensities(threshold);
+    trimIntensities(threshold_);
   }
+
+
 
   void Ecipex::sortAndNormalize()
   {
     sortByIntensity();
+    
     double max_intensity = distribution_.front().getIntensity();
-    transform_([&max_intensity](MassAbundance& m){
-        m.setIntensity(m.getIntensity() / max_intensity);
-      });
+
+    transform_([&max_intensity](MassAbundance& m)
+               {
+                 m.setIntensity(m.getIntensity() / max_intensity);
+               });
     
   }
 
@@ -256,9 +255,10 @@ namespace OpenMS
     for (UInt64 i = 0; i < arr.size(); ++i)
     {
       arr.scalar_data()[i] /= double(arr.size());  // take care of FFT normalization
-    }
+     }
   
     Ecipex result;
+    //Clear the unit convolutional vector
     result.clear();
 
     vector<UInt64> indices(dim, 0);
@@ -307,7 +307,11 @@ namespace OpenMS
     
     if(not p1.isNormalized() || not p2.isNormalized())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Distributions not normalized ", "");
+      throw Exception::InvalidValue(__FILE__, 
+                                    __LINE__, 
+                                    OPENMS_PRETTY_FUNCTION, 
+                                    "Distributions not normalized ", 
+                                    "");
     }
 
 

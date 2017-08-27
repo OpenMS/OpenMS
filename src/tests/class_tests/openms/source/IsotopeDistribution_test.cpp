@@ -38,8 +38,6 @@
 // This one is going to be tested.
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Ecipex.h>
-
 ///////////////////////////
 
 // More headers
@@ -706,25 +704,6 @@ START_SECTION(ConstReverseIterator rend() const)
 END_SECTION
 
 delete iso;
-
-
-EmpiricalFormula f("CH200");
-
-START_SECTION(MIDAs(double,EmpiricalFormula&))
-
-  //MIDAs *midas_pol = new MIDAsPolynomialID(f, 0.000001);
-  //midas_pol->run();
-  //delete midas_pol;
-
-  Ecipex* ecipex = new Ecipex(f, 0.00001, 0.00001);
-  ecipex->run();
-  for(auto& sample: ecipex->getContainer())
-  {
-   std::cout << sample.getMZ() <<" " << sample.getIntensity() << endl;
-  }
-  delete ecipex;
-
-END_SECTION
 
 
 /////////////////////////////////////////////////////////////

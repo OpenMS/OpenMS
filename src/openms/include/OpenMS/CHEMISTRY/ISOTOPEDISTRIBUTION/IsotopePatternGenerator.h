@@ -18,11 +18,10 @@ namespace OpenMS
  public:
     IsotopePatternGenerator();
     IsotopePatternGenerator(const IsotopeDistribution&);
-    virtual void run() = 0;
+    virtual void run(const EmpiricalFormula&) = 0;
     void dumpIDToFile(String file);
     void setEmpiricalFormula(const EmpiricalFormula&);
  protected:
-    EmpiricalFormula formula_;
     void merge(ContainerType&, double);
   };
 
@@ -32,15 +31,13 @@ namespace OpenMS
     
     typedef std::deque<Peak1D> Polynomial;
   
-    MIDAs(EmpiricalFormula&, double, UInt);
+    MIDAs(double, UInt);
     MIDAs();
     MIDAs(const IsotopeDistribution& isotope_distribution);
  protected:
     double min_prob;
-    EmpiricalFormula formula_;
     double resolution_;
     UInt N;
-
   };
 
   inline bool desc_prob(const Peak1D& p0, const Peak1D& p)
