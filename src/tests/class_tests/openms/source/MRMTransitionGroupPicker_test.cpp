@@ -540,9 +540,9 @@ START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
     peak_apex_int,
     peak_apex);
 
-  TEST_REAL_SIMILAR(intensity_sum,0.0);
-  TEST_REAL_SIMILAR(rt_sum,0.0);
-  TEST_REAL_SIMILAR(peak_apex_int,0.0);
+  TEST_REAL_SIMILAR(intensity_sum,6764562);
+  TEST_REAL_SIMILAR(rt_sum,151.590633338);
+  TEST_REAL_SIMILAR(peak_apex_int,966489);
 }
 END_SECTION
 
@@ -642,20 +642,20 @@ START_SECTION(( void calculatePeakQCMetrics_(const MSChromatogram& chromatogram,
     points_across_baseline,
     points_across_half_height);
 
-  TEST_REAL_SIMILAR(width_at_5,0.0);
-  TEST_REAL_SIMILAR(width_at_10,0.0);
-  TEST_REAL_SIMILAR(width_at_50,0.0);
-  TEST_REAL_SIMILAR(start_time_at_10,0.0);
-  TEST_REAL_SIMILAR(start_time_at_5,0.0);
-  TEST_REAL_SIMILAR(end_time_at_10,0.0);
-  TEST_REAL_SIMILAR(end_time_at_5,0.0);
-  TEST_REAL_SIMILAR(total_width,0.0);
-  TEST_REAL_SIMILAR(tailing_factor,0.0);
-  TEST_REAL_SIMILAR(asymmetry_factor,0.0);
-  TEST_REAL_SIMILAR(baseline_delta_2_height,0.0);
-  TEST_REAL_SIMILAR(slope_of_baseline,0.0);
-  TEST_EQUAL(points_across_baseline,0);
-  TEST_EQUAL(points_across_half_height,0);
+  TEST_REAL_SIMILAR(width_at_5,0.27924231787346);
+  TEST_REAL_SIMILAR(width_at_10,0.135162753574054);
+  TEST_REAL_SIMILAR(width_at_50,0.0596533918928945);
+  TEST_REAL_SIMILAR(start_time_at_10,2.63202095937465);
+  TEST_REAL_SIMILAR(start_time_at_5,2.47208309122377);
+  TEST_REAL_SIMILAR(end_time_at_10,2.76718371294871);
+  TEST_REAL_SIMILAR(end_time_at_5,2.75132540909723);
+  TEST_REAL_SIMILAR(total_width,0.540983333);
+  TEST_REAL_SIMILAR(tailing_factor,5.96347844593576);
+  TEST_REAL_SIMILAR(asymmetry_factor,0.864852961737272);
+  TEST_REAL_SIMILAR(baseline_delta_2_height,0.0007820948955);
+  TEST_REAL_SIMILAR(slope_of_baseline,755);
+  TEST_EQUAL(points_across_baseline,55);
+  TEST_EQUAL(points_across_half_height,6);
 }
 END_SECTION
 
