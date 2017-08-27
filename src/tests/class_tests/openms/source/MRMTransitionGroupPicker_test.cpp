@@ -473,7 +473,7 @@ START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
   int & points_across_half_height) ))
 {
   // Toy chromatogram
-  static const std::vector<double> time={2.23095,2.239716667,2.248866667,2.25765,2.266416667,
+  std::vector<double> time={2.23095,2.239716667,2.248866667,2.25765,2.266416667,
     2.275566667,2.2847,2.293833333,2.304066667,2.315033333,2.325983333,2.336566667,
     2.3468,2.357016667,2.367283333,2.377183333,2.387083333,2.39735,2.40725,2.4175,
     2.4274,2.4373,2.44755,2.45745,2.4677,2.477966667,2.488216667,2.498516667,2.5084,
@@ -488,7 +488,7 @@ START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
     3.073133333,3.080666667,3.0882,3.095733333,3.103633333,3.111533333,3.119066667,
     3.126966667,3.134866667,3.14275,3.15065,3.15855,3.166433333,3.174333333,3.182233333,
     3.190133333,3.198016667,3.205916667,3.213166667};
-  static const std::vector<double> intensity={1447,2139,1699,755,1258,1070,944,1258,1573,1636,
+  std::vector<double> intensity={1447,2139,1699,755,1258,1070,944,1258,1573,1636,
     1762,1447,1133,1321,1762,1133,1447,2391,692,1636,2957,1321,1573,1196,1258,881,
     1384,2076,1133,1699,1384,692,1636,1133,1573,1825,1510,2391,4342,10382,17618,
     51093,153970,368094,632114,869730,962547,966489,845055,558746,417676,270942,
@@ -498,7 +498,7 @@ START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
     2328,2202,3649,2706,3020,3335,2580,2328,2894,3146,2769,2517};
 
   RichPeakChromatogram chromatogram;
-  for (int k = 0; k < time.size(); k++)
+  for (size_t k = 0; k < time.size(); k++)
   {   
     ChromatogramPeak peak;
     peak.setMZ(time[k]);
@@ -507,9 +507,9 @@ START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
   } 
 
   // Features
-  double best_left = 2.477966667
-  double best_right = 3.01895
-  double peak_apex = 2.7045
+  double best_left = 2.477966667;
+  double best_right = 3.01895;
+  double peak_apex = 2.7045;
 
   // Calculate peak apex
   MRMTransitionGroupPicker picker;  
@@ -565,7 +565,7 @@ START_SECTION(( void calculatePeakQCMetrics_(const MSChromatogram& chromatogram,
   int & points_across_half_height) ))
 {
   // Toy chromatogram
-  static const std::vector<double> time={2.23095,2.239716667,2.248866667,2.25765,2.266416667,
+  std::vector<double> time={2.23095,2.239716667,2.248866667,2.25765,2.266416667,
     2.275566667,2.2847,2.293833333,2.304066667,2.315033333,2.325983333,2.336566667,
     2.3468,2.357016667,2.367283333,2.377183333,2.387083333,2.39735,2.40725,2.4175,
     2.4274,2.4373,2.44755,2.45745,2.4677,2.477966667,2.488216667,2.498516667,2.5084,
@@ -580,7 +580,7 @@ START_SECTION(( void calculatePeakQCMetrics_(const MSChromatogram& chromatogram,
     3.073133333,3.080666667,3.0882,3.095733333,3.103633333,3.111533333,3.119066667,
     3.126966667,3.134866667,3.14275,3.15065,3.15855,3.166433333,3.174333333,3.182233333,
     3.190133333,3.198016667,3.205916667,3.213166667};
-  static const std::vector<double> intensity={1447,2139,1699,755,1258,1070,944,1258,1573,1636,
+  std::vector<double> intensity={1447,2139,1699,755,1258,1070,944,1258,1573,1636,
     1762,1447,1133,1321,1762,1133,1447,2391,692,1636,2957,1321,1573,1196,1258,881,
     1384,2076,1133,1699,1384,692,1636,1133,1573,1825,1510,2391,4342,10382,17618,
     51093,153970,368094,632114,869730,962547,966489,845055,558746,417676,270942,
@@ -590,7 +590,7 @@ START_SECTION(( void calculatePeakQCMetrics_(const MSChromatogram& chromatogram,
     2328,2202,3649,2706,3020,3335,2580,2328,2894,3146,2769,2517};
 
   RichPeakChromatogram chromatogram;
-  for (int k = 0; k < time.size(); k++)
+  for (size_t k = 0; k < time.size(); k++)
   {   
     ChromatogramPeak peak;
     peak.setMZ(time[k]);
@@ -599,12 +599,12 @@ START_SECTION(( void calculatePeakQCMetrics_(const MSChromatogram& chromatogram,
   } 
 
   // Features
-  double best_left = 2.477966667
-  double best_right = 3.01895
-  double peak_height = 965356  
-  double peak_apex = 2.7045
-  double peak_intensity = 966489
-  double avg_noise_level = 723.5
+  double best_left = 2.477966667;
+  double best_right = 3.01895;
+  double peak_height = 965356;
+  double peak_apex = 2.7045;
+  double peak_intensity = 966489;
+  double avg_noise_level = 723.5;
 
   // Calculate the QCs
   MRMTransitionGroupPicker picker;
