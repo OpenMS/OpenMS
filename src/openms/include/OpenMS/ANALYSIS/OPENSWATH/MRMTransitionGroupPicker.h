@@ -533,6 +533,43 @@ public:
 
     /// Find largest peak in a vector of chromatograms
     void findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
+    
+    /**
+    @brief Will use the chromatogram to get the maximum peak intensity
+
+    The maximum peak intensity/height is calculated.  The convex hull points,
+    intensity_sum, and rt_sum are also calculated.
+    */
+    void calculatePeakApexInt_(const MSChromatogram& chromatogram,
+    double best_left, double best_right, 
+    ConvexHull2D::PointArrayType & hull_points,
+    double & intensity_sum, 
+    double & rt_sum,
+    double & peak_apex_int,
+    double & peak_apex);
+
+    /**
+    @brief Calculates standard peak shape quality metrics
+
+    Standard peak shape quality metrics are calculated for down stream QC/QA.
+    */
+    void calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
+    double best_left, double best_right, 
+    double peak_height, double peak_apex, double avg_noise_level,
+    double & width_at_5,
+    double & width_at_10,
+    double & width_at_50,
+    double & start_time_at_10,
+    double & start_time_at_5,
+    double & end_time_at_10,
+    double & end_time_at_5,
+    double & total_width,
+    double & tailing_factor,
+    double & asymmetry_factor,
+    double & baseline_delta_2_height,
+    double & slope_of_baseline,
+    int & points_across_baseline,
+    int & points_across_half_height);
 
 protected:
 
@@ -892,21 +929,7 @@ protected:
       return resampled_peak_container;
     }
 
-    //@}	
-
-    /**
-      @brief Will use the chromatogram to get the maximum peak intensity
-
-      The maximum peak intensity/height is calculated.  The convex hull points,
-      intensity_sum, and rt_sum are also calculated.
-    */
-    void calculatePeakApexInt_(const MSChromatogram& chromatogram,
-      double best_left, double best_right, 
-      ConvexHull2D::PointArrayType & hull_points,
-      double & intensity_sum, 
-      double & rt_sum,
-      double & peak_apex_int,
-      double & peak_apex);
+    //@}
 
     /**
       @brief Will use the chromatogram to estimate the background noise and then subtract it
@@ -915,30 +938,7 @@ protected:
       peak and then subtracting that from the total intensity.
     */
     void calculateBgEstimation_(const MSChromatogram& chromatogram,
-                                  double best_left, double best_right, double & background, double & avg_noise_level);
-
-    /**
-      @brief Calculates standard peak shape quality metrics
-
-      Standard peak shape quality metrics are calculated for down stream QC/QA.
-    */
-    void calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
-      double best_left, double best_right, 
-      double peak_height, double peak_apex, double avg_noise_level,
-      double & width_at_5,
-      double & width_at_10,
-      double & width_at_50,
-      double & start_time_at_10,
-      double & start_time_at_5,
-      double & end_time_at_10,
-      double & end_time_at_5,
-      double & total_width,
-      double & tailing_factor,
-      double & asymmetry_factor,
-      double & baseline_delta_2_height,
-      double & slope_of_baseline,
-      int & points_across_baseline,
-      int & points_across_half_height);
+                                  double best_left, double best_right, double & background, double & avg_noise_level);	
 
     // Members
     String background_subtraction_;
