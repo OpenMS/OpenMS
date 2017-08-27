@@ -351,61 +351,60 @@ public:
           total_intensity += intensity_sum;
           total_peak_apices += peak_apex_int;
         }
-		
-        // Calculate peak shape metrics that will be used for later QC
-        double width_at_5 = 0;
-        double width_at_10 = 0;
-        double width_at_50 = 0;
-        // double area_2_height = 0;
-        double start_time_at_10 = 0;
-        double start_time_at_5 = 0;
-        double end_time_at_10 = 0;
-        double end_time_at_5 = 0;
-        double total_width = 0;
-        double tailing_factor = 0;
-        double asymmetry_factor = 0;
-        double baseline_delta_2_height = 0;
-        double slope_of_baseline = 0;
-        int points_across_baseline = 0;
-        int points_across_half_height = 0;
-        
-        calculatePeakQCMetrics_(used_chromatogram, 
-          best_left, best_right, 
-          peak_apex_int, peak_apex, avg_noise_level,
-          width_at_5,
-          width_at_10,
-          width_at_50,
-          start_time_at_10,
-          start_time_at_5,
-          end_time_at_10,
-          end_time_at_5,
-          total_width,
-          tailing_factor,
-          asymmetry_factor,
-          baseline_delta_2_height,
-          slope_of_baseline,
-          points_across_baseline,
-          points_across_half_height);    
-
-        f.setMetaValue("width_at_5", width_at_5);    
-        f.setMetaValue("width_at_10", width_at_10);
-        f.setMetaValue("width_at_50", width_at_50);
-        // f.setMetaValue("area_2_height", area_2_height);
-        f.setMetaValue("start_time_at_10", start_time_at_10);
-        f.setMetaValue("start_time_at_5", start_time_at_5);
-        f.setMetaValue("end_time_at_10", end_time_at_10);
-        f.setMetaValue("end_time_at_5", end_time_at_5);
-        f.setMetaValue("total_width", total_width);
-        f.setMetaValue("tailing_factor", tailing_factor);
-        f.setMetaValue("asymmetry_factor", asymmetry_factor);
-        f.setMetaValue("baseline_delta_2_height", baseline_delta_2_height);
-        f.setMetaValue("slope_of_baseline", slope_of_baseline);
-        f.setMetaValue("points_across_baseline", points_across_baseline);
-        f.setMetaValue("points_across_half_height", points_across_half_height);
     
-        // double area_ratio
-        // double height_ratio
+        if (compute_peak_shape_metrics_)
+        { //for backwards compatibility with TOPP tests
+          // Calculate peak shape metrics that will be used for later QC
+          double width_at_5 = 0;
+          double width_at_10 = 0;
+          double width_at_50 = 0;
+          // double area_2_height = 0;
+          double start_time_at_10 = 0;
+          double start_time_at_5 = 0;
+          double end_time_at_10 = 0;
+          double end_time_at_5 = 0;
+          double total_width = 0;
+          double tailing_factor = 0;
+          double asymmetry_factor = 0;
+          double baseline_delta_2_height = 0;
+          double slope_of_baseline = 0;
+          int points_across_baseline = 0;
+          int points_across_half_height = 0;
           
+          calculatePeakShapeMetrics_(used_chromatogram, 
+            best_left, best_right, 
+            peak_apex_int, peak_apex, avg_noise_level,
+            width_at_5,
+            width_at_10,
+            width_at_50,
+            start_time_at_10,
+            start_time_at_5,
+            end_time_at_10,
+            end_time_at_5,
+            total_width,
+            tailing_factor,
+            asymmetry_factor,
+            baseline_delta_2_height,
+            slope_of_baseline,
+            points_across_baseline,
+            points_across_half_height);    
+
+          f.setMetaValue("width_at_5", width_at_5);    
+          f.setMetaValue("width_at_10", width_at_10);
+          f.setMetaValue("width_at_50", width_at_50);
+          // f.setMetaValue("area_2_height", area_2_height);
+          f.setMetaValue("start_time_at_10", start_time_at_10);
+          f.setMetaValue("start_time_at_5", start_time_at_5);
+          f.setMetaValue("end_time_at_10", end_time_at_10);
+          f.setMetaValue("end_time_at_5", end_time_at_5);
+          f.setMetaValue("total_width", total_width);
+          f.setMetaValue("tailing_factor", tailing_factor);
+          f.setMetaValue("asymmetry_factor", asymmetry_factor);
+          f.setMetaValue("baseline_delta_2_height", baseline_delta_2_height);
+          f.setMetaValue("slope_of_baseline", slope_of_baseline);
+          f.setMetaValue("points_across_baseline", points_across_baseline);
+          f.setMetaValue("points_across_half_height", points_across_half_height);   
+        }       
 
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
       }
@@ -553,7 +552,7 @@ public:
 
     Standard peak shape quality metrics are calculated for down stream QC/QA.
     */
-    void calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
+    void calculatePeakShapeMetrics_(const MSChromatogram& chromatogram, 
     double best_left, double best_right, 
     double peak_height, double peak_apex, double avg_noise_level,
     double & width_at_5,
@@ -945,6 +944,7 @@ protected:
     bool recalculate_peaks_;
     bool use_precursors_;
     bool compute_peak_quality_;
+    bool compute_peak_shape_metrics_;
     double min_qual_;
 
     int stop_after_feature_;

@@ -97,6 +97,7 @@ namespace OpenMS
     use_precursors_ = (bool)param_.getValue("use_precursors").toBool();
     recalculate_peaks_max_z_ = (double)param_.getValue("recalculate_peaks_max_z");
     compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
+    compute_peak_shape_metrics_ = (bool)param_.getValue("compute_peak_shape_metrics").toBool();
     min_qual_ = (double)param_.getValue("minimal_quality");
     min_peak_width_ = (double)param_.getValue("min_peak_width");
     resample_boundary_ = (double)param_.getValue("resample_boundary");
@@ -190,7 +191,7 @@ namespace OpenMS
     }
   }
   
-  void MRMTransitionGroupPicker::calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
+  void MRMTransitionGroupPicker::calculatePeakShapeMetrics_(const MSChromatogram& chromatogram, 
     double best_left, double best_right, 
     double peak_height, double peak_apex, double avg_noise_level,
     double & width_at_5,

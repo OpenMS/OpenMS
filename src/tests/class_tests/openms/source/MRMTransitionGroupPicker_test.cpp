@@ -541,12 +541,12 @@ START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
     peak_apex);
 
   TEST_REAL_SIMILAR(intensity_sum,6764562);
-  TEST_REAL_SIMILAR(rt_sum,151.590633338);
+  TEST_REAL_SIMILAR(rt_sum,151.890633338);
   TEST_REAL_SIMILAR(peak_apex_int,966489);
 }
 END_SECTION
 
-START_SECTION(( void calculatePeakQCMetrics_(const MSChromatogram& chromatogram, 
+START_SECTION(( void calculatePeakShapeMetrics_(const MSChromatogram& chromatogram, 
   double best_left, double best_right, 
   double peak_height, double peak_apex, double avg_noise_level,
   double & width_at_5,
@@ -624,7 +624,7 @@ START_SECTION(( void calculatePeakQCMetrics_(const MSChromatogram& chromatogram,
   int points_across_baseline = 0;
   int points_across_half_height = 0;
 
-  picker.calculatePeakQCMetrics_(chromatogram, 
+  picker.calculatePeakShapeMetrics_(chromatogram, 
     best_left, best_right, 
     peak_height, peak_apex, avg_noise_level,
     width_at_5,
