@@ -9,7 +9,6 @@ CubicSpline2d.h
 KissFFTWrapper.h
 LinearInterpolation.h
 MathFunctions.h
-MIDAsFFT.h
 NonNegativeLeastSquaresSolver.h
 MSNumpress.h
 RANSAC.h

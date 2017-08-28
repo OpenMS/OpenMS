@@ -10,6 +10,7 @@
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <kiss_fft.h>
+#include <kiss_fftr.h>
 
 
 namespace OpenMS
@@ -19,12 +20,14 @@ namespace OpenMS
  public:
     typedef kiss_fft_cpx fft_complex;
     typedef std::vector<fft_complex> FFT_Spectrum;
+    typedef std::vector<kiss_fft_scalar> FFT_Series;
     typedef struct {double mean; double variance;} Stats;
-    MIDAsFFTID(double);
+    MIDAsFFTID(double, double);
     void init(const EmpiricalFormula&);
     void run(const EmpiricalFormula&);
  private:
-    FFT_Spectrum input_, output_;
+    FFT_Spectrum input_;
+    FFT_Series output_;
     double cutoff_amplitude_factor_;
     double average_mass_;
     double delta_;

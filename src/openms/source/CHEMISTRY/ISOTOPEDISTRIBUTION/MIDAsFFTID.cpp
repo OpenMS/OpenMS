@@ -1,10 +1,44 @@
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry               
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// 
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution 
+//    may be used to endorse or promote products derived from this software 
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS. 
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// 
+// --------------------------------------------------------------------------
+// $Maintainer: Nikos Patikas $
+// $Authors: Nikos Patikas $
+// --------------------------------------------------------------------------
+//
 
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/MIDAsFFTID.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/MATH/MISC/MIDAsFFT.h>
+#include <boost/range/adaptors.hpp>
 
 // #define DEBUG
 
@@ -12,8 +46,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  MIDAsFFTID::MIDAsFFTID(double resolution):
-    MIDAs(resolution, 15),
+  MIDAsFFTID::MIDAsFFTID(double resolution, double probability_cutoff):
+    MIDAs(resolution, probability_cutoff, 15),
     cutoff_amplitude_factor_(2)
   {
 
@@ -38,9 +72,9 @@ namespace OpenMS
       //LOG_INFO << "Delta:" << freq << endl;
       for (const auto& element : formula)
       {
+        
         //Perform temporary calculations on sample data structure
         auto& atoms = element.second;
-        
         sample.r = sample.i = 0;
         for (const auto& iso : element.first->getIsotopeDistribution())
         {
@@ -82,18 +116,19 @@ namespace OpenMS
     double initial_resolution = resolution_;
     do
     {
-      resolution_ = initial_resolution / pow(2,k);  
-      sample_size = pow(2, ceil(log2(int(mass_range_ / resolution_))));
+      resolution_ = initial_resolution / pow(2,k);
+      sample_size = kiss_fftr_next_fast_size_real(int(mass_range_ / resolution_));
+      //sample_size = pow(2, ceil(log2(int(mass_range_ / resolution_))));
       delta_ = 1.0 / sample_size;
       resolution_ = mass_range_ / sample_size;
       k++;
-    }while(resolution_ > initial_resolution);
+    }while (resolution_ > initial_resolution);
     
     average_mass_ = round(fine.mean) / resolution_;
 
     fft_complex s = {0,0};
     input_.resize(sample_size, s);
-    output_.resize(sample_size, s);
+    output_.resize(sample_size, 0);
     
 #ifdef DEBUG
     LOG_INFO << "Resolution " << resolution_ << endl;
@@ -105,38 +140,10 @@ namespace OpenMS
     // Create sample of formula
     init(formula);
 
-    UInt size = output_.size() * 2 + 1;
-    vector<double> input(size, 0);
-    k = 1;
-
-    //Convert samples FFT compatible input
-    for(auto& sample : input_)
-    {
-      if(2*k >= size)
-      {
-        continue;
-      }
-      input[2 * k - 1] = sample.r;
-      input[2 * k] = sample.i;
-      k++;
-    }
-
-    //Calculate the inverse fft
-    fft(&input.front(), size / 2);
-    
-    //Dump back the values in the kissfft format
-    k = 1;
-    for(auto& sample : output_)
-    {
-      if(2*k >= size)
-      {
-        continue;
-      }
-      sample.r = input[2*k-1] / input_.size();
-      sample.i = input[2*k] / input_.size();
-      k++;
-    }
-
+     kiss_fftr_cfg cfg = kiss_fftr_alloc( input_.size(), true , 0, 0);
+     
+     kiss_fftri(cfg, &input_.front(), &output_.front());
+     
 
     // Resume normal operation
 
@@ -145,13 +152,10 @@ namespace OpenMS
 #endif
 
     double min_prob = -cutoff_amplitude_factor_ * 
-      min_element(output_.begin(), output_.end(), 
-                  [](const fft_complex& item1, const fft_complex& item2 )
-                  {
-                    return (item1.r < item2.r);
-                  })->r;
+      (*min_element(output_.begin(), output_.end()));
     
-    double ratio = coarse.variance / fine.variance;
+    double ratio = fine.variance > 0 ? coarse.variance / fine.variance : 1;
+    
 
 #ifdef DEBUG
     LOG_INFO << "Resolution: " << resolution_ << endl;
@@ -164,12 +168,12 @@ namespace OpenMS
     k = 0;
     Polynomial pol;
     double p_sum = 0;
-    for(auto& sample : output_)
+    for (auto& sample : boost::adaptors::reverse(output_))
     {
-      if(sample.r > min_prob)
+      if (sample > min_prob)
       {
         Peak1D member;
-        member.setIntensity(sample.r);
+        member.setIntensity(sample);
         Int j = k > input_.size() / 2?  k++ - input_.size() : k++;
         p_sum += member.getIntensity();
         member.setMZ(ratio * ((j + average_mass_) * resolution_ - fine.mean) + coarse.mean);
@@ -180,7 +184,7 @@ namespace OpenMS
 
     distribution_.assign(pol.begin(), pol.end());
     renormalize();
-
+    trimIntensities(min_prob_);
     //sort by mass
     sort(distribution_.begin(), distribution_.end(), by_power);
     
@@ -196,10 +200,10 @@ namespace OpenMS
     //throw exception for zero resolution_
 
     // calculate average
-    for(const auto& element : formula)
+    for (const auto& element : formula)
     {
       double ave_mw = 0, var_mw = 0;
-      for(const auto& iso : element.first->getIsotopeDistribution())
+      for (const auto& iso : element.first->getIsotopeDistribution())
       {
         //round in resolution grid and weight on probability
         double mass = resolution < 1 ? round(iso.getMZ() / resolution) * resolution : iso.getMZ();  
@@ -208,7 +212,7 @@ namespace OpenMS
 
       //calculate variance
 
-      for(const auto& iso : element.first->getIsotopeDistribution())
+      for (const auto& iso : element.first->getIsotopeDistribution())
       {
         double mass = resolution < 1 ? round(iso.getMZ() / resolution) * resolution : iso.getMZ();  
         var_mw += iso.getIntensity() * pow(ave_mw - mass, 2);

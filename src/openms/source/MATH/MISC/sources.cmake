@@ -9,7 +9,6 @@ CubicSpline2d.cpp
 KissFFTWrapper.cpp
 LinearInterpolation.cpp
 MathFunctions.cpp
-MIDAsFFT.cpp
 NonNegativeLeastSquaresSolver.cpp
 MSNumpress.cpp
 RANSAC.cpp
