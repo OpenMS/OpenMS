@@ -7,9 +7,9 @@ input.file <- commandArgs(TRUE)[1]
 output.file <- commandArgs(TRUE)[2]
 
 # get index in protein groups list containing protein x
-getIndex <- function(x) {
-	g <- gsub(x, "", protein.groups.members, fixed=TRUE)
-	d <- nchar(protein.groups.members)-nchar(g)
+getIndex <- function(x, members) {
+	g <- gsub(x, "", members, fixed=TRUE)
+	d <- nchar(members)-nchar(g)
 	return (which(d>0)[1])
 }
 
@@ -64,13 +64,14 @@ readMzTabPRT <- function(file) {
   proteins <- protein.data[which(protein.data$opt_global_protein_group_type=="single_protein"),]
   protein.groups <- protein.data[which(protein.data$opt_global_protein_group_type=="protein_group"),]
   indistinguishable.groups <- protein.data[which(protein.data$opt_global_protein_group_type=="indistinguishable_group"),]
-  
+
   protein.groups.members <- as.character(protein.groups$ambiguity_members)
+  
   indistinguishable.groups.members <- as.character(indistinguishable.groups$ambiguity_members)
   
   if ((dim(protein.groups)[1] > 0) && (dim(indistinguishable.groups)[1] > 0)) {
     # match indistinguishable groups to protein groups
-    group.index <- as.vector(sapply(firstEntry(indistinguishable.groups.members), getIndex))
+    group.index <- as.vector(sapply(firstEntry(indistinguishable.groups.members), getIndex, members=protein.groups.members))
     table <- data.frame(cbind(group.index, indistinguishable.groups.members))
     
     # merge information from the protein list
@@ -95,8 +96,8 @@ readMzTabPRT <- function(file) {
     table$accessions <- x
     table$gene <- y
   }
-  
-  return (table)
+
+  return (protein.groups)
 }
 
 table <- readMzTabPRT(input.file)
