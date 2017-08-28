@@ -1,6 +1,3 @@
-#define MAX_ISOTOPIC_COMBINATIONS 1e7 
-
-#include <complex>
 #include <cstring>
 #include <cassert>
 #include <iostream>
@@ -8,159 +5,16 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Ecipex.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Exception.h>
-
-#define kiss_fft_scalar double 
+#include <OpenMS/MATH/MISC/KissFFTWrapper.h>
 
 #include <kiss_fft.h>
-#include <kiss_fftndr.h>
-#include <kiss_fftr.h>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-  class KissFftState 
-  {
-
-   public:
-    
-    KissFftState(const vector<Int>& dimensions, bool inverse = false)
-      : dims_(dimensions), inverse_(inverse) 
-    {
-      if (is1d())
-      {
-        cfg_ = kiss_fftr_alloc(dims_[0], inverse, nullptr, nullptr);
-      }
-      else
-      {
-        cfg_ = kiss_fftndr_alloc(&dims_[0], dims_.size(), inverse, nullptr, nullptr);
-      }
-      if (cfg_ == nullptr) 
-      {
-        throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-      }
-    }
-
-    KissFftState(const KissFftState&) = delete;
-    KissFftState operator=(const KissFftState&) = delete;
-    
-    ~KissFftState() 
-    { 
-      free(cfg_); 
-    }
-
-    void runFFT(void* in, void* out) 
-    {
-      if (is1d()) 
-      { 
-        // for some reason kiss_fftndr needs at least 2 dimensions to work
-        if (not inverse_)
-        {
-          kiss_fftr((kiss_fftr_cfg)cfg_, (kiss_fft_scalar*)in, (kiss_fft_cpx*)out);
-        }
-        else
-        {
-          kiss_fftri((kiss_fftr_cfg)cfg_, (kiss_fft_cpx*)in, (kiss_fft_scalar*)out);
-        }
-      } 
-      else 
-      {
-        if (!inverse_)
-        {
-          kiss_fftndr((kiss_fftndr_cfg)cfg_, (kiss_fft_scalar*)in, (kiss_fft_cpx*)out);
-        }
-        else
-        {
-          kiss_fftndri((kiss_fftndr_cfg)cfg_, (kiss_fft_cpx*)in, (kiss_fft_scalar*)out);
-        }
-      }
-    }
-
-   private:
-    std::vector<Int> dims_;
-    bool inverse_;
-    void* cfg_;
-    bool is1d() const { return dims_.size() == 1; }
-  };
-
-
-  class FftArray 
-  {
-
-   public:
-    explicit FftArray(const vector<Int>& dimensions)
-      : dims_(dimensions), data_(nullptr), n_(1) 
-    {
-      for (const Int& x : dims_)
-      {
-        n_ *= x;
-      }
-
-      if (n_ > MAX_ISOTOPIC_COMBINATIONS)
-      {
-        throw Exception::InvalidValue(__FILE__, 
-                                      __LINE__, 
-                                      OPENMS_PRETTY_FUNCTION, 
-                                      "Too many isotopic combinations", 
-                                      String(n_));
-      }
-
-      UInt64 n_bytes = n_ * sizeof(kiss_fft_cpx);
-
-      data_ = reinterpret_cast<complex<kiss_fft_scalar>*>(KISS_FFT_MALLOC(n_bytes));
-      
-      if (data_ == nullptr)
-      {
-        throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-      }
-
-      std::memset(data_, 0, n_bytes);
-    }
-
-    void forwardFFT() 
-    {
-      KissFftState state(dims_, false);
-      state.runFFT(scalar_data(), complex_data());
-    }
-
-    void inverseFFT()
-    {
-      KissFftState state(dims_, true);
-      state.runFFT(complex_data(), scalar_data());
-    }
-
-    kiss_fft_cpx* complex_data() const 
-    { 
-      return reinterpret_cast<kiss_fft_cpx*>(data_); 
-    }
-
-    kiss_fft_scalar* scalar_data() const 
-    {
-      return reinterpret_cast<kiss_fft_scalar*>(data_);
-    }
-
-    std::complex<kiss_fft_scalar>* data() const 
-    { 
-      return data_; 
-    }
-
-    UInt64 size() const 
-    { 
-      return n_; 
-    }
-
-    ~FftArray() 
-    { 
-      kiss_fftr_free(data_); 
-    }
-
-   private:
-    vector<Int> dims_;
-    complex<kiss_fft_scalar>* data_;
-    UInt64 n_;
-
-  };
+  
 
   Ecipex::Ecipex() : IsotopePatternGenerator()
   {
@@ -183,19 +37,20 @@ namespace OpenMS
   {
     for (auto& element : formula) 
     {
-      auto pattern = elementIsotopePattern(
+      auto pattern = elementIsotopePattern_(
         element.first->getIsotopeDistribution().getContainer(), 
         element.second, 
         fft_threshold_);
       
-      convolve(pattern, threshold_ * threshold_);
+      convolve_(pattern, threshold_ * threshold_);
     }
     trimIntensities(threshold_);
+    sortByMass();
   }
 
 
 
-  void Ecipex::sortAndNormalize()
+  void Ecipex::sortByIntensityAndNormalize_()
   {
     sortByIntensity();
     
@@ -208,7 +63,7 @@ namespace OpenMS
     
   }
 
-  Ecipex Ecipex::elementIsotopePattern(const Spectrum& iso_pattern, 
+  Ecipex Ecipex::elementIsotopePattern_(const Spectrum& iso_pattern, 
                                        UInt amount, 
                                        double threshold)
   {
@@ -294,12 +149,12 @@ namespace OpenMS
         indices[k] = 0;
       }
     }
-    result.sortAndNormalize();
+    result.sortByIntensityAndNormalize_();
     return result;
   }
 
   
-  void Ecipex::convolve(IsotopeDistribution& distribution, double threshold)
+  void Ecipex::convolve_(IsotopeDistribution& distribution, double threshold)
   {
       
     auto& p1 = *this;
@@ -352,7 +207,7 @@ namespace OpenMS
         }
       }
     }
-    result.sortAndNormalize();
+    result.sortByIntensityAndNormalize_();
     p1.set(result.getContainer());
   }
 
