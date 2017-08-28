@@ -23,6 +23,7 @@ namespace OpenMS
     void setEmpiricalFormula(const EmpiricalFormula&);
  protected:
     void merge(ContainerType&, double);
+    
   };
 
   class OPENMS_DLLAPI MIDAs : public IsotopePatternGenerator
@@ -30,14 +31,13 @@ namespace OpenMS
  public:
     
     typedef std::deque<Peak1D> Polynomial;
-  
-    MIDAs(double, UInt);
+    MIDAs(double resolution, double probability_cutoff, UInt N);
     MIDAs();
     MIDAs(const IsotopeDistribution& isotope_distribution);
  protected:
-    double min_prob;
-    double resolution_;
     UInt N;
+    double min_prob_;
+    double resolution_;
   };
 
   inline bool desc_prob(const Peak1D& p0, const Peak1D& p)

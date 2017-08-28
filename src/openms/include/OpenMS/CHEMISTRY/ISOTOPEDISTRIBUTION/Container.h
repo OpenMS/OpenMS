@@ -135,6 +135,9 @@ public:
     /// sort isotope distribution by intensity
     void sortByIntensity();
 
+    /// sort isotope distribution by mass
+    void sortByMass();
+
     /** @brief re-normalizes the sum of the probabilities of the isotopes to 1
 
             The re-normalisation is needed as in distributions with a lot of isotopes (and with high max isotope)

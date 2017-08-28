@@ -47,23 +47,12 @@ namespace OpenMS
     }
   }
 
-  void IsotopePatternGenerator::dumpIDToFile(String file)
-  {
-    ofstream out(file.c_str());
-    for(auto& sample : distribution_)
-    {
-      out << sample.getMZ() << " "<<sample.getIntensity() << endl;
-    }
-    
-    out.close();
-  }
-
   
   /* Start of the midas interface */
-  MIDAs::MIDAs(double resolution, UInt N_):
+  MIDAs::MIDAs(double resolution, double min_prob, UInt N_):
     IsotopePatternGenerator(),
-    min_prob(1e-16),
     resolution_(resolution),
+    min_prob_(min_prob),
     N(N_)
   {
     
@@ -73,10 +62,10 @@ namespace OpenMS
   {
   }
 
-  //MIDAs::MIDAs(const IsotopeDistribution& isotope_distribution) : 
-  //  IsotopePatternGenerator(isotope_distribution)
-  //{
-  //}
+  MIDAs::MIDAs(const IsotopeDistribution& isotope_distribution) : 
+    IsotopePatternGenerator(isotope_distribution)
+  {
+  }
 
 
 }

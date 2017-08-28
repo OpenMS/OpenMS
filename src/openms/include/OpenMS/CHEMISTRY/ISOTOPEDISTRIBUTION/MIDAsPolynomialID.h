@@ -11,21 +11,13 @@ namespace OpenMS
   {
  public:
 
-    MIDAsPolynomialID(double);
+    MIDAsPolynomialID(double resolution, double probability_cutoff);
     void run(const EmpiricalFormula&);
     
  private:
     Polynomial generatePolynomial(const Element&, const SignedSize);
     void multiplyPolynomials(Polynomial&, Polynomial&);
     void merge_polynomial(Polynomial&);
-    void dumpID(Polynomial&);
-    
-    //Polynomial fgid;
-    double fine_resolution;
-    
-    double mw_resolution;
-    double resolution;
-    double min_resolution;
     
   };
 }

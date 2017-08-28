@@ -63,45 +63,48 @@ using namespace OpenMS;
 using namespace std;
 
 
-EmpiricalFormula f("C200H200O200");
+//EmpiricalFormula f("(13)C100(2)H100(15)N100");
+
+EmpiricalFormula f("C100");
+
 IsotopePatternGenerator* id;
 
 START_SECTION(Ecipex(double,double))
   
-  id = new Ecipex(0.00001, 0.00001);
+  id = new Ecipex(0.005, 0.00001);
   id->run(f);
   LOG_INFO << "Size " << id->size() << endl;
-  id->renormalize();
-  for(auto& sample : id->getContainer())
-  {
-    LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
-  }
+id->renormalize();
+for(auto& sample : id->getContainer())
+{
+  LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
+}
+  
   LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
   delete id;
 
-
 END_SECTION
 
-START_SECTION(MIDAsFFTID(double))
-  id = new MIDAsFFTID(5e-05);
+START_SECTION(MIDAsFFTID(double, double))
+  id = new MIDAsFFTID(5e-05, 0.005);
   id->run(f);
+for(auto& sample : id->getContainer())
+{
+  LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
+}
   LOG_INFO << "Size " << id->size() << endl;
-  for(auto& sample : id->getContainer())
-  {
-    LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
-  }
   LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
   delete id;
 END_SECTION
 
-START_SECTION(MIDAsPolynomialID(double))
-  id = new MIDAsPolynomialID(0.00001);
+START_SECTION(MIDAsPolynomialID(double,double))
+  id = new MIDAsPolynomialID(0.00001, 0.005);
   id->run(f);
+for(auto& sample : id->getContainer())
+{
+  LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
+}
   LOG_INFO << "Size " << id->size() << endl;
-  for(auto& sample : id->getContainer())
-  {
-    LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
-  }
   LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
   delete id;
 END_SECTION

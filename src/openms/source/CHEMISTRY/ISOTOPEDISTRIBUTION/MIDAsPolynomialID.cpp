@@ -10,9 +10,10 @@
 
 
 #include <vector>
+#include <algorithm>
 #include <utility>
 
-//#define DEBUG
+#define DEBUG
 
 using namespace std;
 namespace OpenMS
@@ -31,10 +32,9 @@ namespace OpenMS
   }
 
 
-  MIDAsPolynomialID::MIDAsPolynomialID(double resolution):
-    MIDAs(resolution, 10)
+  MIDAsPolynomialID::MIDAsPolynomialID(double resolution, double probability_cutoff):
+    MIDAs(resolution, probability_cutoff, 10)
   {
-    mw_resolution = 1e-12;
   }
 
   void MIDAsPolynomialID::run(const EmpiricalFormula& formula)
@@ -47,7 +47,7 @@ namespace OpenMS
       LOG_INFO << element->first->getName() <<" has " << el_dist.back().size() << " data points " << endl;
 #endif
     }
-    Polynomial& T = *(el_dist.begin());
+    Polynomial& T = el_dist.front();
 
     for(vector<Polynomial>::iterator pol = boost::next(el_dist.begin()); pol != el_dist.end(); ++pol)
     {
@@ -67,10 +67,9 @@ namespace OpenMS
     sort(T.begin(), T.end(), by_power);
     for(auto& pmember : T)
     {
-      pmember.setMZ(pmember.getMZ() * mw_resolution);
+      pmember.setMZ(pmember.getMZ() * resolution_);
     }
-    distribution_.clear();
-    //move(T.begin(), T.end(), back_inserter(distribution_));
+
     distribution_.assign(T.begin(),T.end());
 
     //merge(distribution_, 0.0001);
@@ -100,7 +99,7 @@ namespace OpenMS
         continue;
       }
       addCounter(c, iso_it->getIntensity(), size, N);
-      base_power.push_back(round(iso_it->getMZ() / mw_resolution));
+      base_power.push_back(round(iso_it->getMZ() / resolution_));
       log_prob.push_back(log(iso_it->getIntensity()));
     }
 
@@ -117,7 +116,7 @@ namespace OpenMS
 
       member.setIntensity(exp(member.getIntensity()));
 
-      if(member.getIntensity() < min_prob)
+      if(member.getIntensity() < min_prob_)
       {
         continue;
       }
@@ -130,15 +129,23 @@ namespace OpenMS
 
       pol.push_back(member);
 
-    }
-
+    }    
     return pol;
   }
 
   void MIDAsPolynomialID::multiplyPolynomials(Polynomial& f, Polynomial& g)
   {
 
-    // sort polynomials to accelerate multiplication loop 
+    // sort polynomials to accelerate multiplication loop
+    if (f.empty() || g.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, 
+                                      __LINE__, 
+                                      OPENMS_PRETTY_FUNCTION, 
+                                      "Empty polynomial multiplication", 
+                                      String(""));
+    }
+
     sort(f.begin(), f.end(), desc_prob);
     sort(g.begin(), g.end(), desc_prob);
 
@@ -146,16 +153,16 @@ namespace OpenMS
                       + min_element(f.begin(), f.end(), by_power)->getMZ();
     double max_mass = max_element(g.begin(), g.end(), by_power)->getMZ()
                       + max_element(f.begin(), f.end(), by_power)->getMZ();
-    double delta_mass = resolution_/mw_resolution;
-    UInt size = round((max_mass-min_mass)/delta_mass);
+    double delta_mass = resolution_/resolution_;
+    UInt size = max({UInt(round((max_mass - min_mass) / delta_mass)), UInt(1)});
     Polynomial fgid(size, Peak1D(0, 0));
 
-    for(Polynomial::iterator g_it = g.begin(); g_it != g.end(); ++g_it)
+    for (Polynomial::iterator g_it = g.begin(); g_it != g.end(); ++g_it)
     {
-      for(Polynomial::iterator f_it = f.begin(); f_it != f.end(); ++f_it)
+      for (Polynomial::iterator f_it = f.begin(); f_it != f.end(); ++f_it)
       {
         double prob = f_it->getIntensity() * g_it->getIntensity();
-        if(prob > min_prob)
+        if (prob > min_prob_)
         {
           double mass = f_it->getMZ() + g_it->getMZ();
           UInt bin = round((mass - min_mass) / delta_mass);
@@ -171,7 +178,7 @@ namespace OpenMS
     }
 
     fgid.erase(remove_if(fgid.begin(), fgid.end(), zero_prob), fgid.end());
-    for(Polynomial::iterator f_it = fgid.begin(); f_it != fgid.end(); ++f_it)
+    for (Polynomial::iterator f_it = fgid.begin(); f_it != fgid.end(); ++f_it)
     {
       f_it->setMZ(f_it->getMZ() / f_it->getIntensity());
     }

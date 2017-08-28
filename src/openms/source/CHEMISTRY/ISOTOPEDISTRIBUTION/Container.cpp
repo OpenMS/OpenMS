@@ -148,7 +148,14 @@ namespace OpenMS
         return p1.getIntensity() > p2.getIntensity();
       });
   }
-  
+
+  void IsotopeDistribution::sortByMass()
+  {
+    sort_([](const MassAbundance& p1, const MassAbundance& p2){
+        return p1.getMZ() < p2.getMZ();
+      });
+  }
+
   void IsotopeDistribution::transform_(function<void(MassAbundance&)> lambda)
   {
     for_each(distribution_.begin(), distribution_.end(), lambda);
