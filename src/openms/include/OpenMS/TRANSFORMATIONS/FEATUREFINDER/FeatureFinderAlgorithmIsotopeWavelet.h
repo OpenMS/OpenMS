@@ -71,7 +71,7 @@ public:
     /** @brief Destructor. */
     virtual ~FeatureFinderAlgorithmIsotopeWavelet();
 
-    MSSpectrum<PeakType>* createHRData(const UInt i);
+    MSSpectrum* createHRData(const UInt i);
 
     /** @brief The working horse of this class. */
     void run();

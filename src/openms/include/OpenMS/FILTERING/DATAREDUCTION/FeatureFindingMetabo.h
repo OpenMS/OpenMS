@@ -102,7 +102,7 @@ public:
 
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;
-    std::vector< OpenMS::MSChromatogram<> > getChromatograms(UInt64 feature_id) const;
+    std::vector< OpenMS::MSChromatogram > getChromatograms(UInt64 feature_id) const;
 
 private:
 
@@ -173,7 +173,7 @@ public:
     virtual ~FeatureFindingMetabo();
 
     /// main method of FeatureFindingMetabo
-    void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram<> > >& output_chromatograms);
+    void run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram > >& output_chromatograms);
 
 protected:
     virtual void updateMembers_();

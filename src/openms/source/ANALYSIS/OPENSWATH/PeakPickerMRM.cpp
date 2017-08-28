@@ -76,7 +76,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  void PeakPickerMRM::pickChromatogram(const MSChromatogram<>& chromatogram, MSChromatogram<>& picked_chrom)
+  void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     if (!chromatogram.isSorted())
     {
@@ -104,7 +104,7 @@ namespace OpenMS
     }
 
     // Smooth the chromatogram
-    MSChromatogram<> smoothed_chrom = chromatogram;
+    MSChromatogram smoothed_chrom = chromatogram;
     if (!use_gauss_)
     {
       SavitzkyGolayFilter sgolay;
@@ -171,9 +171,9 @@ namespace OpenMS
     }
   }
 
-  void PeakPickerMRM::pickChromatogram_(const MSChromatogram<>& chromatogram, MSChromatogram<>& picked_chrom)
+  void PeakPickerMRM::pickChromatogram_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
-    SignalToNoiseEstimatorMedian<MSChromatogram<> > snt;
+    SignalToNoiseEstimatorMedian<MSChromatogram > snt;
     Param snt_parameters = snt.getParameters();
     snt_parameters.setValue("win_len", sn_win_len_);
     snt_parameters.setValue("bin_count", sn_bin_count_);
@@ -236,7 +236,7 @@ namespace OpenMS
   }
 
 #ifdef WITH_CRAWDAD
-  void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram<>& chromatogram, MSChromatogram<>& picked_chrom)
+  void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
 
@@ -294,14 +294,14 @@ namespace OpenMS
 
   }
 #else
-  void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram<>& /* chromatogram */, MSChromatogram<>& /* picked_chrom */)
+  void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& /* chromatogram */, MSChromatogram& /* picked_chrom */)
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
   }
 #endif
 
-  void PeakPickerMRM::removeOverlappingPeaks_(const MSChromatogram<>& chromatogram, MSChromatogram<>& picked_chrom)
+  void PeakPickerMRM::removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     if (picked_chrom.empty()) {return; }
     LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")" << std::endl;
@@ -363,7 +363,7 @@ namespace OpenMS
     }
   }
 
-  Size PeakPickerMRM::findClosestPeak_(const MSChromatogram<>& chromatogram, double central_peak_mz, Size current_peak)
+  Size PeakPickerMRM::findClosestPeak_(const MSChromatogram& chromatogram, double central_peak_mz, Size current_peak)
   {
     while (current_peak < chromatogram.size())
     {
@@ -385,7 +385,7 @@ namespace OpenMS
     return current_peak;
   }
 
-  void PeakPickerMRM::integratePeaks_(const MSChromatogram<>& chromatogram)
+  void PeakPickerMRM::integratePeaks_(const MSChromatogram& chromatogram)
   {
     for (Size i = 0; i < left_width_.size(); i++)
     {

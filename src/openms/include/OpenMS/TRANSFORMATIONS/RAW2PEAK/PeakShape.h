@@ -74,7 +74,7 @@ namespace OpenMS
     };
 
     /// Iterator to the raw data vector
-    typedef MSSpectrum<>::const_iterator PeakIterator;
+    typedef MSSpectrum::const_iterator PeakIterator;
 
     /// Default constructor
     PeakShape();
@@ -153,7 +153,7 @@ protected:
     /// Right peak endpoint in the data
     PeakIterator right_endpoint_;
     /// Needed for initialization of endpoint iterators
-    MSSpectrum<> exp_;
+    MSSpectrum exp_;
     /// flag if left endpoint iterator differs from default value
     bool left_iterator_set_;
     /// flag if left endpoint iterator differs from default value

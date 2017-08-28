@@ -67,7 +67,7 @@ for (int i=0; i < 11; ++i)
     intensity.push_back(Gauss2(418.2+0.1*i));
 }
 
-MSSpectrum<Peak1D> spectrum;
+MSSpectrum spectrum;
 Peak1D peak;
 spectrum.setRT(1789.0714);
 for (size_t i=0; i < mz.size(); ++i)
@@ -96,7 +96,7 @@ START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<do
     delete ptr;
 END_SECTION
 
-START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum))
+START_SECTION(SplineSpectrum(MSSpectrum& raw_spectrum))
 	SplineSpectrum spline(spectrum);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
     ptr = new SplineSpectrum(spectrum);
@@ -104,7 +104,7 @@ START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum))
     delete ptr;
 END_SECTION
 
-START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling))
+START_SECTION(SplineSpectrum(MSSpectrum& raw_spectrum, double scaling))
 	SplineSpectrum spline(spectrum, 0.7);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
     ptr = new SplineSpectrum(spectrum, 0.7);

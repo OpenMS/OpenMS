@@ -121,7 +121,7 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
   ptr->setParameters(ptr->getDefaults()); // reset parameters
 
   // test compact format:
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   spec.setNativeID("ident");
   spec.setMSLevel(2);
   spec.setRT(234.5678901);
