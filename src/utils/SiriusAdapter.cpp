@@ -235,7 +235,12 @@ protected:
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input" );
+      writeLog_( "FATAL: External invocation of Sirius failed. Standard output and error were:");
+      const QString sirius_stdout(qp.readAllStandardOutput());
+      const QString sirius_stderr(qp.readAllStandardOutput());
+      writeLog_(sirius_stdout);
+      writeLog_(sirius_stderr);
+
       return EXTERNAL_PROGRAM_ERROR;
     }
 
