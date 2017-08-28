@@ -63,7 +63,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-EmpiricalFormula f("C200");
+EmpiricalFormula f("C200H200O200");
 IsotopePatternGenerator* id;
 
 START_SECTION(Ecipex(double,double))
@@ -71,7 +71,11 @@ START_SECTION(Ecipex(double,double))
   id = new Ecipex(0.00001, 0.00001);
   id->run(f);
   LOG_INFO << "Size " << id->size() << endl;
-  
+  id->renormalize();
+  for(auto& sample : id->getContainer())
+  {
+    LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
+  }
   LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
   delete id;
 
@@ -79,7 +83,7 @@ START_SECTION(Ecipex(double,double))
 END_SECTION
 
 START_SECTION(MIDAsFFTID(double))
-  id = new MIDAsFFTID(0.00001);
+  id = new MIDAsFFTID(5e-05);
   id->run(f);
   LOG_INFO << "Size " << id->size() << endl;
   for(auto& sample : id->getContainer())

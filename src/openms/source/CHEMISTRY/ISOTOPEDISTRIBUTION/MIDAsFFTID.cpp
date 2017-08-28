@@ -6,7 +6,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/MATH/MISC/MIDAsFFT.h>
 
-#define DEBUG
+// #define DEBUG
 
 using namespace std;
 
@@ -28,25 +28,25 @@ namespace OpenMS
     LOG_INFO << "Resolution " << resolution_ << endl;
 #endif
     UInt k = 0;//-input_.size()/2;
-    for(auto& sample : input_)
+    for (auto& sample : input_)
     {
-      Int j = k > input_.size() / 2?  k++ - input_.size() : k++;
+      Int j = k >= input_.size() / 2?  k++ - input_.size() : k++;
   
       double phi = 0, angle = 0, radius = 1, freq = j * delta_;
       double phase = (2 * Constants::PI * average_mass_ * freq);
 
       //LOG_INFO << "Delta:" << freq << endl;
-      for(const auto& element : formula)
+      for (const auto& element : formula)
       {
         //Perform temporary calculations on sample data structure
         auto& atoms = element.second;
         
         sample.r = sample.i = 0;
-        for(const auto& iso : element.first->getIsotopeDistribution())
+        for (const auto& iso : element.first->getIsotopeDistribution())
         {
           auto mass = round(iso.getMZ() / resolution_);
           auto prob = iso.getIntensity();
-          if(!(prob > 0))
+          if (not (prob > 0))
           {
             continue;
           }
@@ -78,15 +78,15 @@ namespace OpenMS
     double range = N * sqrt(1 + sigma);
     mass_range_ = pow(2, ceil(log2(ceil(range))));
 
+
     double initial_resolution = resolution_;
     do
     {
       resolution_ = initial_resolution / pow(2,k);  
-      sample_size = pow(2, ceil(log2(mass_range_ / resolution_)));
+      sample_size = pow(2, ceil(log2(int(mass_range_ / resolution_))));
       delta_ = 1.0 / sample_size;
       resolution_ = mass_range_ / sample_size;
       k++;
-      
     }while(resolution_ > initial_resolution);
     
     average_mass_ = round(fine.mean) / resolution_;
@@ -132,13 +132,13 @@ namespace OpenMS
       {
         continue;
       }
-      sample.r = input[2*k-1];
-      sample.i = input[2*k];
+      sample.r = input[2*k-1] / input_.size();
+      sample.i = input[2*k] / input_.size();
       k++;
     }
 
+
     // Resume normal operation
-    output_.resize(output_.size() / 2);
 
 #ifdef DEBUG
     LOG_INFO << "Inverse FFT done. " <<" Sample size: "<< output_.size() <<endl;
@@ -166,32 +166,24 @@ namespace OpenMS
     double p_sum = 0;
     for(auto& sample : output_)
     {
-      k++;
       if(sample.r > min_prob)
       {
         Peak1D member;
         member.setIntensity(sample.r);
-        Int j = k > output_.size() / 2 ?  k - output_.size() : k;
+        Int j = k > input_.size() / 2?  k++ - input_.size() : k++;
         p_sum += member.getIntensity();
-        member.setMZ(ratio*((j  + average_mass_) * resolution_ - coarse.mean) + fine.mean);
+        member.setMZ(ratio * ((j + average_mass_) * resolution_ - fine.mean) + coarse.mean);
         pol.push_back(member);
-        LOG_INFO << k << " index " << member.getMZ() << endl;
       }
+      k++;
     }
 
-    //normalize to cdf
-    for(auto& point : pol)
-    {
-       point.setIntensity(point.getIntensity() / p_sum);
-#ifdef DEBUG
-        //LOG_INFO << point.getMZ() << " " << point.getIntensity() << endl;
-#endif
-    }
+    distribution_.assign(pol.begin(), pol.end());
+    renormalize();
 
     //sort by mass
-    sort(pol.begin(), pol.end(), by_power);
-    ContainerType tmp(pol.begin(), pol.end());
-    distribution_ = tmp;
+    sort(distribution_.begin(), distribution_.end(), by_power);
+    
     //merge(tmp, resolution_);
 
   }
@@ -210,15 +202,16 @@ namespace OpenMS
       for(const auto& iso : element.first->getIsotopeDistribution())
       {
         //round in resolution grid and weight on probability
-        ave_mw += round(iso.getMZ() / resolution) * resolution * iso.getIntensity();
+        double mass = resolution < 1 ? round(iso.getMZ() / resolution) * resolution : iso.getMZ();  
+        ave_mw += mass * iso.getIntensity();
       }
 
       //calculate variance
 
       for(const auto& iso : element.first->getIsotopeDistribution())
       {
-        //round in resolution grid
-        var_mw += iso.getIntensity() * pow(ave_mw - (round(iso.getMZ() / resolution) * resolution), 2);
+        double mass = resolution < 1 ? round(iso.getMZ() / resolution) * resolution : iso.getMZ();  
+        var_mw += iso.getIntensity() * pow(ave_mw - mass, 2);
       }
       
       // find the real variance and mean by scaling with the molecule number in the empirical formula

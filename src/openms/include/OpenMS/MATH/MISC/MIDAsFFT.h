@@ -9,5 +9,4 @@ namespace OpenMS
   
   void fft(double *Data, int nn);
 
-
 }
