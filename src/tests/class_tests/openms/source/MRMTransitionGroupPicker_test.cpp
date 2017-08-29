@@ -592,7 +592,7 @@ START_SECTION(( void calculatePeakShapeMetrics_(const MSChromatogram& chromatogr
   picker.calculatePeakShapeMetrics_(chromatogram, 
     best_left, best_right, 
     peak_height, peak_apex, avg_noise_level,
-    PeakShapeMetrics_ & peakShapeMetrics);
+    peakShapeMetrics);
 
   TEST_REAL_SIMILAR(peakShapeMetrics.width_at_5,0.27924231787346);
   TEST_REAL_SIMILAR(peakShapeMetrics.width_at_10,0.135162753574054);
