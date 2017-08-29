@@ -571,6 +571,16 @@ protected:
   void resolveOverlappingFeatures_(FeatureGroup& group,
                                    const FeatureBoundsMap& feature_bounds)
   {
+    LOG_DEBUG << "Overlapping features:";
+    for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
+         ++it)
+    {
+      if (it != group.begin()) LOG_DEBUG << ",";
+      LOG_DEBUG << " " << (*it)->getMetaValue("PeptideRef") << " (RT "
+                << float((*it)->getRT()) << ")";
+    }
+    LOG_DEBUG << endl;
+
     double best_rt_delta = rt_window_;
     Feature* best_feature = 0;
     while (!group.empty())
@@ -624,6 +634,16 @@ protected:
           feature_bounds.find((*it)->getUniqueId());
         if (hasOverlappingBounds_(fbm_it1->second, fbm_it2->second))
         {
+          // keep a record of the feature that is getting removed:
+          String ref = String((*it)->getMetaValue("PeptideRef")) + " (RT " +
+            String(float((*it)->getRT())) + ")";
+          StringList overlap_refs;
+          if (best_feature->metaValueExists("overlap_removed"))
+          {
+            overlap_refs = best_feature->getMetaValue("overlap_removed");
+          }
+          overlap_refs.push_back(ref);
+          best_feature->setMetaValue("overlap_removed", overlap_refs);
           (*it)->setMetaValue("FFMetId_remove", ""); // mark for removal
         }
         else
@@ -950,28 +970,30 @@ protected:
     // find and resolve overlaps:
     vector<FeatureGroup> overlap_groups;
     findOverlappingFeatures_(features, feature_bounds, overlap_groups);
-    for (vector<FeatureGroup>::iterator group_it = overlap_groups.begin();
-         group_it != overlap_groups.end(); ++group_it)
+    if (overlap_groups.size() == features.size())
     {
-      if (group_it->size() > 1)
-      {
-        LOG_INFO << "Overlapping features:";
-        for (FeatureGroup::const_iterator feat_it = group_it->begin();
-             feat_it != group_it->end(); ++feat_it)
-        {
-          if (feat_it != group_it->begin()) LOG_INFO << ",";
-          LOG_INFO << " " << (*feat_it)->getMetaValue("PeptideRef") << " (RT "
-                   << float((*feat_it)->getRT()) << ")";
-        }
-        LOG_INFO << endl;
-        resolveOverlappingFeatures_(*group_it, feature_bounds);
-      }
+      LOG_INFO << "No overlaps between features found." << endl;
     }
-    features.erase(remove_if(features.begin(), features.end(),
+    else
+    {
+      Size n_overlap_groups = 0, n_overlap_features = 0;
+      for (vector<FeatureGroup>::iterator group_it = overlap_groups.begin();
+           group_it != overlap_groups.end(); ++group_it)
+      {
+        if (group_it->size() > 1)
+        {
+          n_overlap_groups++;
+          n_overlap_features += group_it->size();
+          resolveOverlappingFeatures_(*group_it, feature_bounds);
+        }
+      }
+      features.erase(remove_if(features.begin(), features.end(),
                              feature_filter_), features.end());
-    LOG_INFO << features.size() << " features left after resolving overlaps."
-             << endl;
-
+      LOG_INFO << features.size()
+               << " features left after resolving overlaps (involving "
+               << n_overlap_features << " features in " << n_overlap_groups
+               << " groups)." << endl;
+    }
     Size n_shared = addTargetAnnotations_(features);
 
     if (elution_model != "none")
