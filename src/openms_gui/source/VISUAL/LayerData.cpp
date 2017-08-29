@@ -249,11 +249,13 @@ namespace OpenMS
     bool annotations_changed(false);
 
     // collect annotations, that have to be removed
-    for (const auto tmp_a : fas)
+    for (const auto& tmp_a : fas)
     {
-      for (const auto it : selected_annotations)
+      for (const auto& it : selected_annotations)
       {
         Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(it);
+        // only search for peak annotations
+        if (pa == nullptr) { continue; }
         if (fabs(tmp_a.mz - pa->getPeakPosition()[0]) < 1e-6)
         {
           if (String(pa->getText()).hasPrefix(tmp_a.annotation))
@@ -265,11 +267,10 @@ namespace OpenMS
       }
     }
     // remove the collected annotations from the PeptideHit annotations
-    for (const auto tmp_a : to_remove)
+    for (const auto& tmp_a : to_remove)
     {
       fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
     }
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
-
 } //Namespace
