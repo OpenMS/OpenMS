@@ -701,7 +701,6 @@ protected:
           specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 1, precursor_charge);
           specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, precursor_mass, false, 1, precursor_charge);
           specGen.getComplexXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, 1, 3);
-          // specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 1, precursor_charge+2);
         } else
         {
           // Function for mono-links or loop-links
@@ -925,7 +924,7 @@ protected:
           {
             for (auto match : matched_spec_xlinks_alpha)
             {
-              cout << "TEST: " << num_iso_peaks_array.size() << " | " << match.second << " | " << num_iso_peaks_array[match.second] << endl;
+              // cout << "TEST: " << num_iso_peaks_array.size() << " | " << match.second << " | " << num_iso_peaks_array[match.second] << endl;
               iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array[match.second]);
             }
             csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());

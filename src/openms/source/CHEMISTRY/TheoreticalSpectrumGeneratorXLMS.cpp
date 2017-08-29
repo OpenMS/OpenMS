@@ -901,6 +901,8 @@ namespace OpenMS
         mono_weight -= beta[j].getMonoWeight(Residue::Internal);
         double pos(mono_weight / static_cast<double>(charge));
 
+        if (pos < 0.0) { continue; }
+
         Peak1D p;
         p.setMZ(pos);
         p.setIntensity(intensity);
@@ -956,6 +958,8 @@ namespace OpenMS
       {
         mono_weight -= beta[j].getMonoWeight(Residue::Internal);
         double pos(mono_weight / static_cast<double>(charge));
+
+        if (pos < 0.0) { continue; }
 
         Peak1D p;
         p.setMZ(pos);
