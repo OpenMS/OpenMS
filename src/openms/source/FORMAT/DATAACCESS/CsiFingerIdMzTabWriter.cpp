@@ -63,7 +63,18 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
 
     ifstream file(pathtocsicsv);
 
-    if (file)
+    int number_of_lines = 0;
+
+    if (file) 
+    {
+        std::string line;
+        while (std::getline(file, line))
+        {
+            ++number_of_lines;   
+        }    
+    }
+
+    if (file && number_of_lines > 1)
     {
       // read results from sirius output files
       CsvFile compounds(pathtocsicsv, '\t');
