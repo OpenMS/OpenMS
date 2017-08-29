@@ -517,16 +517,6 @@ public:
     double & rt_sum,
     double & peak_apex_int,
     double & peak_apex_rt);
-
-    /**
-    @brief Calculates standard peak shape quality metrics
-
-    Standard peak shape quality metrics are calculated for down stream QC/QA.
-    */
-    void calculatePeakShapeMetrics_(const MSChromatogram& chromatogram, 
-    double best_left, double best_right, 
-    double peak_height, double peak_apex_rt, double avg_noise_level,
-    PeakShapeMetrics_ & peakShapeMetrics);
     
     // internal structure to represent various peak shape metrics
     struct PeakShapeMetrics_ {
@@ -545,6 +535,17 @@ public:
       int points_across_baseline = 0;
       int points_across_half_height = 0;
     };
+
+    /**
+    @brief Calculates standard peak shape quality metrics
+
+    Standard peak shape quality metrics are calculated for down stream QC/QA.
+    */
+    void calculatePeakShapeMetrics_(const MSChromatogram& chromatogram, 
+    double best_left, double best_right, 
+    double peak_height, double peak_apex_rt, double avg_noise_level,
+    PeakShapeMetrics_ & peakShapeMetrics);
+    
 
 protected:
 
