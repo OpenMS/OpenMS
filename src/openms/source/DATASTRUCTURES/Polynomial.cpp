@@ -72,7 +72,8 @@ namespace OpenMS
 
   void CounterSet::RangeCounter::setMaxAllowedValue(UInt counters_range)
   {
-    max_ = counters_range < max() - min() ? counters_range + min() : max();
+    max_allowed_ = counters_range < max() - min() ? counters_range + min() : max();
+    max_ = max_allowed_;
   }
 
   CounterSet::CounterSet(UInt n): N(n), has_next(true)
@@ -141,6 +142,7 @@ namespace OpenMS
     //Add a dummy value, this will be changed to min at the constructor
     counters.push_back(0);
     range_counters.push_back(RangeCounter(min, max, counters.back()));
+    range_counters.back().setMaxAllowedValue(N);
     reset();
   }
 
