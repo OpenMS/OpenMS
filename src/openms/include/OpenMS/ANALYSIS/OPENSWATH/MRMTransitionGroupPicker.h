@@ -359,7 +359,7 @@ public:
           calculatePeakShapeMetrics_(used_chromatogram, 
             best_left, best_right, 
             peak_apex_int, peak_apex, avg_noise_level,
-            PeakShapeMetrics_ & peakShapeMetrics);    
+            peakShapeMetrics);    
 
           f.setMetaValue("width_at_5", peakShapeMetrics.width_at_5);    
           f.setMetaValue("width_at_10", peakShapeMetrics.width_at_10);
@@ -527,6 +527,23 @@ public:
     double best_left, double best_right, 
     double peak_height, double peak_apex_rt, double avg_noise_level,
     PeakShapeMetrics_ & peakShapeMetrics);
+    
+    // internal structure to represent various peak shape metrics
+    struct PeakShapeMetrics_ {
+      double width_at_5 = 0.0;
+      double width_at_10 = 0.0;
+      double width_at_50 = 0.0;
+      double start_time_at_10 = 0.0;
+      double start_time_at_5 = 0.0;
+      double end_time_at_10 = 0.0;
+      double end_time_at_5 = 0.0;
+      double total_width = 0.0;
+      double tailing_factor = 0.0;
+      double asymmetry_factor = 0.0;
+      double baseline_delta_2_height = 0.0;
+      double slope_of_baseline = 0.0;
+      int points_across_baseline = 0;
+      int points_across_half_height = 0;
 
 protected:
 
@@ -910,23 +927,6 @@ protected:
     double min_peak_width_;
     double recalculate_peaks_max_z_;
     double resample_boundary_;
-
-    // internal structure to represent various peak shape metrics
-    struct PeakShapeMetrics_ {
-      double width_at_5 = 0.0;
-      double width_at_10 = 0.0;
-      double width_at_50 = 0.0;
-      double start_time_at_10 = 0.0;
-      double start_time_at_5 = 0.0;
-      double end_time_at_10 = 0.0;
-      double end_time_at_5 = 0.0;
-      double total_width = 0.0;
-      double tailing_factor = 0.0;
-      double asymmetry_factor = 0.0;
-      double baseline_delta_2_height = 0.0;
-      double slope_of_baseline = 0.0;
-      int points_across_baseline = 0;
-      int points_across_half_height = 0;
     };
   };
 }
