@@ -276,7 +276,7 @@ public:
     void synchronizePeakAnnotations();
 
     /// remove peak annotations in the given list from the currently active PeptideHit
-    void removePeakAnnotationsFromPeptideHit(std::vector<Annotation1DItem*>);
+    void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
 
     /// if this layer is visible
     bool visible;

@@ -217,7 +217,7 @@ namespace OpenMS
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
 
-  void LayerData::removePeakAnnotationsFromPeptideHit(std::vector<Annotation1DItem*> anno_items)
+  void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
     // LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
     int spectrum_index = getCurrentSpectrumIndex();
@@ -228,69 +228,48 @@ namespace OpenMS
     MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
 
-    if (ms_level != 2)
+    if (ms_level != 2) { return; }
+
+    // store user fragment annotations
+    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+
+    // no ID selected
+    if (peptide_id_index == -1 || peptide_hit_index == -1) { return ;}
+
+    if (pep_ids.empty()) { return; }
+
+    vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
+
+    if (hits.empty()) { return; }
+
+    PeptideHit& hit = hits[peptide_hit_index];
+    vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
+    if (fas.empty()) { return; }
+
+    // all requirements fulfilled, PH in hit and annotations in anno items
+    vector<PeptideHit::PeakAnnotation> to_remove;
+    bool annotations_changed(false);
+
+    for (const auto tmp_a : fas)
     {
-      return;
-    }
-    else
-    {
-      // store user fragment annotations
-      vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
-
-      // no ID selected
-      if (peptide_id_index == -1 || peptide_hit_index == -1)
+      for (const auto it : selected_annotations)
       {
-        return;
-      }
-
-      if (pep_ids.empty())
-      {
-        return;
-      }
-      else
-      {
-        vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
-
-        if (hits.empty())
+        Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(it);
+        if (fabs(tmp_a.mz - pa->getPeakPosition()[0]) < 1e-6)
         {
-          return;
-        }
-        else
-        {
-          PeptideHit& hit = hits[peptide_hit_index];
-          vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
-          if (fas.empty())
+          if (String(pa->getText()).hasPrefix(tmp_a.annotation))
           {
-            return;
+            to_remove.push_back(tmp_a);
+            annotations_changed = true;
           }
-
-          // all requirements fulfilled, PH in hit and annotations in anno items
-          vector<PeptideHit::PeakAnnotation> to_remove;
-          bool annotations_changed(false);
-
-          for (auto tmp_a : fas)
-          {
-            for (auto it : anno_items)
-            {
-              Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(it);
-              if (fabs(tmp_a.mz - pa->getPeakPosition()[0]) < 1e-6)
-              {
-                if (String(pa->getText()).hasPrefix(tmp_a.annotation))
-                {
-                  to_remove.push_back(tmp_a);
-                  annotations_changed = true;
-                }
-              }
-            }
-          }
-          for (auto tmp_a : to_remove)
-          {
-            fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
-          }
-          if (annotations_changed) { hit.setPeakAnnotations(fas); }
         }
       }
     }
+    for (const auto tmp_a : to_remove)
+    {
+      fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
+    }
+    if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
 
 } //Namespace
