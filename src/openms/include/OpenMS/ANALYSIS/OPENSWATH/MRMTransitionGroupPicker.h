@@ -544,6 +544,7 @@ public:
       double slope_of_baseline = 0.0;
       int points_across_baseline = 0;
       int points_across_half_height = 0;
+    };
 
 protected:
 
@@ -927,7 +928,6 @@ protected:
     double min_peak_width_;
     double recalculate_peaks_max_z_;
     double resample_boundary_;
-    };
   };
 }
 
