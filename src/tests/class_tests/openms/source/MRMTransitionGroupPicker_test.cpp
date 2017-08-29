@@ -473,6 +473,7 @@ START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
   int & points_across_half_height) ))
 {
   // Toy chromatogram
+  // data is taken from raw LC-MS/MS data points acquired for L-Glutamate in RBCs
   std::vector<double> time={2.23095,2.239716667,2.248866667,2.25765,2.266416667,
     2.275566667,2.2847,2.293833333,2.304066667,2.315033333,2.325983333,2.336566667,
     2.3468,2.357016667,2.367283333,2.377183333,2.387083333,2.39735,2.40725,2.4175,
@@ -565,6 +566,7 @@ START_SECTION(( void calculatePeakShapeMetrics_(const MSChromatogram& chromatogr
   int & points_across_half_height) ))
 {
   // Toy chromatogram
+  // data is taken from raw LC-MS/MS data points acquired for L-Glutamate in RBCs
   std::vector<double> time={2.23095,2.239716667,2.248866667,2.25765,2.266416667,
     2.275566667,2.2847,2.293833333,2.304066667,2.315033333,2.325983333,2.336566667,
     2.3468,2.357016667,2.367283333,2.377183333,2.387083333,2.39735,2.40725,2.4175,
