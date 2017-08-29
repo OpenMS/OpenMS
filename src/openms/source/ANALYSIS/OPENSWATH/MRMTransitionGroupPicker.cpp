@@ -310,7 +310,7 @@ namespace OpenMS
     peakShapeMetrics.baseline_delta_2_height = peakShapeMetrics.slope_of_baseline / peak_height;
 
     // other
-    peakShapeMetrics.tailing_factor = peakShapeMetrics.width_at_5 / std::min(peak_apex_rt - start_time_at_5, end_time_at_5 - peak_apex_rt);
+    peakShapeMetrics.tailing_factor = peakShapeMetrics.width_at_5 / std::min(peak_apex_rt - peakShapeMetrics.start_time_at_5, peakShapeMetrics.end_time_at_5 - peak_apex_rt);
     peakShapeMetrics.asymmetry_factor = std::min(peak_apex_rt - peakShapeMetrics.start_time_at_10, peakShapeMetrics.end_time_at_10 - peak_apex_rt) / std::max(peak_apex_rt - peakShapeMetrics.start_time_at_10, peakShapeMetrics.end_time_at_10 - peak_apex_rt);
   }
 
