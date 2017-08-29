@@ -228,8 +228,6 @@ namespace OpenMS
     MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
 
-    bool annotations_changed(false);
-
     if (ms_level != 2)
     {
       return;
@@ -268,6 +266,7 @@ namespace OpenMS
 
           // all requirements fulfilled, PH in hit and annotations in anno items
           vector<PeptideHit::PeakAnnotation> to_remove;
+          bool annotations_changed(false);
 
           for (auto tmp_a : fas)
           {
