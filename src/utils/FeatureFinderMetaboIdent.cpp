@@ -273,8 +273,7 @@ protected:
 
   double calculateMZ_(double mass, Int charge)
   {
-    // @TODO: this only works for positive mode!
-    return (mass + charge * Constants::PROTON_MASS_U) / double(charge);
+    return (mass + charge * Constants::PROTON_MASS_U) / fabs(charge);
   }
 
 
