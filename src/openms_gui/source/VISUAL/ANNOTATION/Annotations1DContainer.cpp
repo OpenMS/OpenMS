@@ -195,4 +195,17 @@ namespace OpenMS
     }
   }
 
+  std::vector<Annotation1DItem*> Annotations1DContainer::getSelectedItems()
+  {
+    std::vector<Annotation1DItem*> annotation_items;
+    for (Iterator it = begin(); it != end(); ++it)
+    {
+      if ((*it)->isSelected())
+      {
+        annotation_items.push_back(*it);
+      }
+    }
+    return annotation_items;
+  }
+
 } //Namespace

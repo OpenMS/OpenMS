@@ -509,6 +509,7 @@ namespace OpenMS
     if (e->key() == Qt::Key_Delete)
     {
       e->accept();
+      getCurrentLayer_().removePeakAnnotationsFromPeptideHit(getCurrentLayer_().getCurrentAnnotations().getSelectedItems());
       getCurrentLayer_().getCurrentAnnotations().removeSelectedItems();
       update_(OPENMS_PRETTY_FUNCTION);
     }

@@ -275,6 +275,9 @@ public:
     /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
     void synchronizePeakAnnotations();
 
+    /// remove peak annotations in the given list from the currently active PeptideHit
+    void removePeakAnnotationsFromPeptideHit(std::vector<Annotation1DItem*>);
+
     /// if this layer is visible
     bool visible;
 

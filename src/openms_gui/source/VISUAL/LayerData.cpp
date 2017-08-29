@@ -217,4 +217,84 @@ namespace OpenMS
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
 
+  void LayerData::removePeakAnnotationsFromPeptideHit(std::vector<Annotation1DItem*> anno_items)
+  {
+    // LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
+    int spectrum_index = getCurrentSpectrumIndex();
+
+    // Return if no valid peak layer attached
+    if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
+
+    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    int ms_level = spectrum.getMSLevel();
+
+    bool annotations_changed(false);
+
+    if (ms_level != 2)
+    {
+      return;
+    }
+    else
+    {
+      // store user fragment annotations
+      vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
+
+      // no ID selected
+      if (peptide_id_index == -1 || peptide_hit_index == -1)
+      {
+        return;
+      }
+
+      if (pep_ids.empty())
+      {
+        return;
+      }
+      else
+      {
+        vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
+
+        if (hits.empty())
+        {
+          return;
+        }
+        else
+        {
+          PeptideHit& hit = hits[peptide_hit_index];
+          vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
+          if (fas.empty())
+          {
+            return;
+          }
+
+          // all requirements fulfilled, PH in hit and annotations in anno items
+          vector<PeptideHit::PeakAnnotation> to_remove;
+
+          for (auto tmp_a : fas)
+          {
+            for (auto it : anno_items)
+            {
+              Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(it);
+              if (fabs(tmp_a.mz - pa->getPeakPosition()[0]) < 1e-6)
+              {
+                if (String(pa->getText()).hasPrefix(tmp_a.annotation))
+                {
+                  // erase(tmp_a);
+                  // std::remove(fas.begin(), fas.end(), tmp_a);
+                  to_remove.push_back(tmp_a);
+                  // fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
+                  annotations_changed = true;
+                }
+              }
+            }
+          }
+          for (auto tmp_a : to_remove)
+          {
+            fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
+          }
+          if (annotations_changed) { hit.setPeakAnnotations(fas); }
+        }
+      }
+    }
+  }
+
 } //Namespace
