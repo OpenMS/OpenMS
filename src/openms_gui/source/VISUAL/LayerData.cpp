@@ -58,7 +58,6 @@ namespace OpenMS
 
   void LayerData::synchronizePeakAnnotations()
   {
-    // LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
     int spectrum_index = getCurrentSpectrumIndex();
 
     // Return if no valid peak layer attached
@@ -219,37 +218,37 @@ namespace OpenMS
 
   void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
-    // LayerData & current_layer = widget_1D->canvas()->getCurrentLayer();
     int spectrum_index = getCurrentSpectrumIndex();
 
     // Return if no valid peak layer attached
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
-    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
-    int ms_level = spectrum.getMSLevel();
-
-    if (ms_level != 2) { return; }
-
-    // store user fragment annotations
-    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
-
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return ;}
 
+    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    int ms_level = spectrum.getMSLevel();
+
+    // wrong MS level
+    if (ms_level < 2) { return; }
+
+    // extract Peptideidentification and PeptideHit if possible.
+    // that this function returns prematurely is unlikely,
+    // since we are deleting existing annotations,
+    // that have to be somewhere, but better make sure
+    vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
     if (pep_ids.empty()) { return; }
-
     vector<PeptideHit>& hits = pep_ids[peptide_id_index].getHits();
-
     if (hits.empty()) { return; }
-
     PeptideHit& hit = hits[peptide_hit_index];
     vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
     if (fas.empty()) { return; }
 
-    // all requirements fulfilled, PH in hit and annotations in anno items
+    // all requirements fulfilled, PH in hit and annotations in selected_annotations
     vector<PeptideHit::PeakAnnotation> to_remove;
     bool annotations_changed(false);
 
+    // collect annotations, that have to be removed
     for (const auto tmp_a : fas)
     {
       for (const auto it : selected_annotations)
@@ -265,6 +264,7 @@ namespace OpenMS
         }
       }
     }
+    // remove the collected annotations from the PeptideHit annotations
     for (const auto tmp_a : to_remove)
     {
       fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
