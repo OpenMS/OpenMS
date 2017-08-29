@@ -43,6 +43,7 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <iostream>
 
 
@@ -337,7 +338,8 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   {
     String name = string_array[i];
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
-    // TEST_EQUAL(spec.getStringDataArrayByName("IonNames")[i], "test")
+    //TEST_REAL_SIMILAR(spec[i].getPosition()[0], 0)
+    //TEST_EQUAL(spec.getStringDataArrayByName("IonNames")[i], "test")
   }
 
   // beta annotations
@@ -464,6 +466,45 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
 //    ptr->getXLinkIonSpectrum(spec, tmp_peptide, 9, 2000.0, false, 2, 5);
 //  }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+END_SECTION
+
+START_SECTION(virtual void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLDataStructs::ProteinProteinCrossLink crosslink, int mincharge, int maxcharge))
+
+  Param param(ptr->getParameters());
+  param.setValue("add_isotopes", "false");
+  param.setValue("max_isotope", 1); // not very useful combination, but it should at least run
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_b_ions", "true");
+  param.setValue("add_c_ions", "false");
+  param.setValue("add_x_ions", "false");
+  param.setValue("add_y_ions", "true");
+  param.setValue("add_z_ions", "false");
+  param.setValue("add_metainfo", "true");
+  param.setValue("add_losses", "true");
+  ptr->setParameters(param);
+
+  OPXLDataStructs::ProteinProteinCrossLink crosslink;
+  crosslink.alpha = AASequence::fromString("PCRTIDE");
+  crosslink.beta = AASequence::fromString("ACDEFGHIJ");
+  crosslink.cross_link_position = std::make_pair<Size, Size>(4, 5);
+  crosslink.cross_linker_mass = 200.0;
+
+  PeakSpectrum spec;
+  DataArrays::StringDataArray ion_names;
+  DataArrays::IntegerDataArray charges;
+  ptr->getXLinkIonSpectrum(spec, crosslink.beta, 5, 2000.0, true, 2, 4);
+  ptr->getComplexXLinkIonSpectrum(spec, crosslink, 1, 1);
+
+  TEST_EQUAL(spec.size(), 15)
+  TEST_EQUAL(spec.getStringDataArrayByName("IonNames").size(), 15)
+  TEST_EQUAL(spec.getIntegerDataArrayByName("Charges").size(), 15)
+
+  for (Size i = 0; i < spec.size(); ++i)
+  {
+    TEST_EQUAL(spec[i].getMZ(), 0)
+    TEST_EQUAL(spec.getStringDataArrayByName("IonNames")[i], "test")
+    TEST_EQUAL(spec.getIntegerDataArrayByName("Charges")[i], 0)
+  }
 
 END_SECTION
 
