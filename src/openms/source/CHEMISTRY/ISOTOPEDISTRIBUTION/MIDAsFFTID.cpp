@@ -40,7 +40,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <boost/range/adaptors.hpp>
 
-// #define DEBUG
+#define DEBUG
 
 using namespace std;
 
@@ -143,7 +143,15 @@ namespace OpenMS
      kiss_fftr_cfg cfg = kiss_fftr_alloc( input_.size(), true , 0, 0);
      
      kiss_fftri(cfg, &input_.front(), &output_.front());
-     
+     //Use kissfft
+     //FFT_Spectrum out(sample_size, s);
+     //kiss_fft_cfg cfg = kiss_fft_alloc(input_.size(), 1, 0, 0);
+     //kiss_fft(cfg, &input_.front(), &out.front());
+     //k = 0;
+     //for(auto& smp : out)
+     //{
+     //  output_[k++] = smp.r;
+     //}
 
     // Resume normal operation
 

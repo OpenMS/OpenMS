@@ -17,12 +17,12 @@ namespace OpenMS
   {
  public:
     IsotopePatternGenerator();
+    IsotopePatternGenerator(double probability_cutoff);
     IsotopePatternGenerator(const IsotopeDistribution&);
     virtual void run(const EmpiricalFormula&) = 0;
-    void dumpIDToFile(String file);
-    void setEmpiricalFormula(const EmpiricalFormula&);
+    void merge(double);
  protected:
-    void merge(ContainerType&, double);
+    double min_prob_;
     
   };
 
@@ -36,7 +36,6 @@ namespace OpenMS
     MIDAs(const IsotopeDistribution& isotope_distribution);
  protected:
     UInt N;
-    double min_prob_;
     double resolution_;
   };
 

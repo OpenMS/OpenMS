@@ -65,16 +65,18 @@ using namespace std;
 
 //EmpiricalFormula f("(13)C100(2)H100(15)N100");
 
-EmpiricalFormula f("C100");
+EmpiricalFormula f("C1000");
 
 IsotopePatternGenerator* id;
-
+double probability_cutoff = 0.00005;
+double grid_resolution = 0.1;
 START_SECTION(Ecipex(double,double))
   
-  id = new Ecipex(0.005, 0.00001);
+  LOG_INFO << "Total number of isotopes" << f.calculateTheoreticalIsotopesNumber() << endl;
+  id = new Ecipex(0.00001, probability_cutoff);
   id->run(f);
+  id->merge(grid_resolution);
   LOG_INFO << "Size " << id->size() << endl;
-id->renormalize();
 for(auto& sample : id->getContainer())
 {
   LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
@@ -86,8 +88,9 @@ for(auto& sample : id->getContainer())
 END_SECTION
 
 START_SECTION(MIDAsFFTID(double, double))
-  id = new MIDAsFFTID(5e-05, 0.005);
+  id = new MIDAsFFTID(0.00001, probability_cutoff);
   id->run(f);
+  id->merge(grid_resolution);
 for(auto& sample : id->getContainer())
 {
   LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
@@ -98,14 +101,15 @@ for(auto& sample : id->getContainer())
 END_SECTION
 
 START_SECTION(MIDAsPolynomialID(double,double))
-  id = new MIDAsPolynomialID(0.00001, 0.005);
+  id = new MIDAsPolynomialID(0.00001, probability_cutoff);
   id->run(f);
-for(auto& sample : id->getContainer())
-{
-  LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
-}
+  id->merge(grid_resolution);
+  for(auto& sample : id->getContainer())
+  {
+          LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
+  }
   LOG_INFO << "Size " << id->size() << endl;
-  LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
+  //LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
   delete id;
 END_SECTION
 

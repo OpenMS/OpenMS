@@ -1,3 +1,4 @@
+
 #include <cstring>
 #include <cassert>
 #include <iostream>
@@ -21,7 +22,8 @@ namespace OpenMS
     distribution_.push_back(Peak1D(0, 1));
   }
 
-  Ecipex::Ecipex(double threshold, double fft_threshold):
+  Ecipex::Ecipex(double fft_threshold, double threshold):
+    IsotopePatternGenerator(threshold),
     fft_threshold_(fft_threshold),
     threshold_(threshold)
   {
@@ -44,6 +46,7 @@ namespace OpenMS
       
       convolve_(pattern, threshold_ * threshold_);
     }
+    renormalize();
     trimIntensities(threshold_);
     sortByMass();
   }

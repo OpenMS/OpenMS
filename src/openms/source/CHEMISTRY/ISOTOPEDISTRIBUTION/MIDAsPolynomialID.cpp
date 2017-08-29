@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <utility>
 
-#define DEBUG
+// #define DEBUG
 
 using namespace std;
 namespace OpenMS
@@ -71,12 +71,6 @@ namespace OpenMS
     }
 
     distribution_.assign(T.begin(),T.end());
-
-    //merge(distribution_, 0.0001);
-    trimIntensities(0.00001);
-
-    // trimRight(0.0001);
-    // trimLeft(0.0001);
 
 #ifdef DEBUG
     LOG_INFO << "Isotope Distribution of " << formula.toString() << " successfully computed " << endl;
