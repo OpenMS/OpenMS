@@ -28,57 +28,76 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Eugen Netz $
-// $Authors: Eugen Netz $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
-#include <boost/math/special_functions/binomial.hpp>
-#include <numeric>
-#include <iostream>
+#ifndef OPENMS_ANALYSIS_QUANTITATION_TMTELEVENPLEXQUANTITATIONMETHOD_H
+#define OPENMS_ANALYSIS_QUANTITATION_TMTELEVENPLEXQUANTITATIONMETHOD_H
+
+#include <OpenMS/config.h>
+
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 namespace OpenMS
 {
+  /**
+    @brief TMT 11plex quantitation to be used with the IsobaricQuantitation.
 
-  namespace Math
+    @htmlinclude OpenMS_TMTSixPlexQuantitationMethod.parameters
+  */
+  class OPENMS_DLLAPI TMTElevenPlexQuantitationMethod :
+    public IsobaricQuantitationMethod
   {
+public:
+    /// Default c'tor
+    TMTElevenPlexQuantitationMethod();
 
-    double CumulativeBinomial::compute(Size n, Size k, double p)
-    {
-      double p_cumul = 0.0;
-      if (p < 1e-99) return static_cast<double>(k == 0);
-      if (1 - p < 1e-99) return static_cast<double>(k != n);
-      if (k > n)  return 1.0;
+    /// d'tor
+    ~TMTElevenPlexQuantitationMethod();
 
-      for (Size j = 0; j < k; ++j)
-      {
-        double coeff = 0;
+    /// Copy c'tor
+    TMTElevenPlexQuantitationMethod(const TMTElevenPlexQuantitationMethod& other);
 
-        try
-        {
-          coeff = boost::math::binomial_coefficient<double>(static_cast<unsigned int>(n), static_cast<unsigned int>(j));
-        }
-        catch (std::overflow_error const& /*e*/)
-        {
-          std::cout << "Warning: Binomial coefficient for match-odds score has overflowed! Setting value to the maximal double value." << std::endl;
-          std::cout << "binomial_coefficient was called with N = " << n << " and k = " << j << std::endl;
-          coeff = std::numeric_limits<double>::max();
-        }
+    /// Assignment operator
+    TMTElevenPlexQuantitationMethod & operator=(const TMTElevenPlexQuantitationMethod& rhs);
 
-        p_cumul += coeff * pow(p,  static_cast<int>(j)) * pow((1-p), static_cast<int>((n-j)));
-      }
+    /// @brief Methods to implement from IsobaricQuantitationMethod
+    /// @{
 
-      // A result of p_cumul >= 1.0 does not make sense theoretically, but it might reach 1.0 because of insufficient precision,
-      // solved by using largest value smaller than 1.0
-      if (p_cumul >= 1.0)
-      {
-        // TODO: C11 change to nexttoward
-//        p_cumul = nexttoward(1.0, 0.0);
-        p_cumul = 1.0 - std::numeric_limits<double>::epsilon();
-      }
+    const String& getName() const;
 
-      return p_cumul;
-    }
-  } // namespace Math
+    const IsobaricChannelList& getChannelInformation() const;
 
-} // namespace OpenMS
+    Size getNumberOfChannels() const;
+
+    virtual Matrix<double> getIsotopeCorrectionMatrix() const;
+
+    Size getReferenceChannel() const;
+
+    /// @}
+
+  private:
+    /// the actual information on the different tmt11plex channels.
+    IsobaricChannelList channels_;
+
+    /// The name of the quantitation method.
+    static const String name_;
+
+    /// The reference channel for this experiment.
+    Size reference_channel_;
+
+    /// List of available channel names as they are presented to the user
+    static const std::vector<String> channel_names_;
+
+  protected:
+    /// implemented for DefaultParamHandler
+    void setDefaultParams_();
+
+    /// implemented for DefaultParamHandler
+    void updateMembers_();
+
+  };
+} // namespace
+
+#endif // OPENMS_ANALYSIS_QUANTITATION_TMTELEVENPLEXQUANTITATIONMETHOD_H

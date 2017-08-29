@@ -1,4 +1,5 @@
 
+
     def transform(self, bytes path, transformer):
         cdef _String path_string = _String(<char *>path)
         assert hasattr(transformer, "consumeSpectrum"), "expected method consumeSpectrum"

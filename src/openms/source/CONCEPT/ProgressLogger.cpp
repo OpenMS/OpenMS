@@ -102,18 +102,11 @@ public:
     void endProgress(const int current_recursion_depth) const
     {
       stop_watch_.stop();
-      if (begin_ == end_)
+      if (current_recursion_depth)
       {
-        if (current_recursion_depth)
-        {
-          cout << '\n';
-        }
-        cout << endl << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
+        cout << '\n';
       }
-      else
-      {
-        cout << '\r' << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
-      }
+      cout << '\r' << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
     }
 
 private:
