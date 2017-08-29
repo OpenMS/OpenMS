@@ -59,12 +59,12 @@ namespace OpenMS
 
     @code
     //data
-    std::vector< MSSpectrum<> > spectra;
+    std::vector< MSSpectrum> spectra;
 
     //... spectra are added to the vector ...
 
     //range from 0.0 to 36.0 s
-    InRTRange< MSSpectrum<> > range(0.0, 36.0);
+    InRTRange< MSSpectrum> range(0.0, 36.0);
 
     //remove the range
     spectra.erase(remove_if(spectra.begin(), spectra.end(), range), spectra.end());
@@ -74,7 +74,7 @@ namespace OpenMS
 
     @code
     //data
-    MSSpectrum<> spectrum;
+    MSSpectrum spectrum;
 
     //... peaks are added to the spectrum ...
 

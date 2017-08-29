@@ -89,7 +89,7 @@ namespace OpenMS
 
       vector<PeakReference> registry_spec;
       vector<BlackListEntry> blacklist_spec;
-      for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (MSSpectrum::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
         // peak registry
         PeakReference reference;
@@ -173,7 +173,7 @@ namespace OpenMS
         vector<double> peak_min;
         vector<double> peak_max;
         vector<double> peak_intensity;
-        MSSpectrum<Peak1D>::ConstIterator it_mz;
+        MSSpectrum::ConstIterator it_mz;
         vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
         for (it_mz = it_rt_picked->begin(), it_mz_boundary = it_rt_boundaries->begin();
              it_mz < it_rt_picked->end() && it_mz_boundary < it_rt_boundaries->end();
@@ -361,7 +361,7 @@ namespace OpenMS
     PeakMap::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
     vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries = boundaries_.begin() + spectrum_index;
 
-    MSSpectrum<Peak1D>::ConstIterator it_mz;
+    MSSpectrum::ConstIterator it_mz;
     vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundaries;
     for (it_mz = it_rt->begin(), it_mz_boundaries = it_rt_boundaries->begin();
          it_mz < it_rt->end() && it_mz_boundaries < it_rt_boundaries->end();

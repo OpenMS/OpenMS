@@ -55,10 +55,10 @@ using namespace std;
 namespace OpenMS
 {
   //Precursor correction (highest intensity)
-  Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum<Peak1D>& spectrum1, double left_tolerance, double right_tolerance)
+  Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum& spectrum1, double left_tolerance, double right_tolerance)
   {
-    MSSpectrum<Peak1D>::ConstIterator left = spectrum1.MZBegin(test_mz - left_tolerance);
-    MSSpectrum<Peak1D>::ConstIterator right = spectrum1.MZEnd(test_mz + right_tolerance);
+    MSSpectrum::ConstIterator left = spectrum1.MZBegin(test_mz - left_tolerance);
+    MSSpectrum::ConstIterator right = spectrum1.MZEnd(test_mz + right_tolerance);
 
     // no MS1 precursor peak in +- tolerance window found
     if (left == right || left->getMZ() > test_mz + right_tolerance)
@@ -66,7 +66,7 @@ namespace OpenMS
       return -1;
     }
 
-    MSSpectrum<Peak1D>::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
+    MSSpectrum::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
 
     if (max_intensity_it == right)
     {
@@ -112,7 +112,7 @@ namespace OpenMS
         continue;
       }
 
-      const MSSpectrum<Peak1D>& spectrum = *s_it;
+      const MSSpectrum& spectrum = *s_it;
 
       int scan_index = s_it - spectra.begin();
 
@@ -176,7 +176,7 @@ namespace OpenMS
         //get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da)
         else
         {
-          const MSSpectrum<Peak1D>& spectrum1 = *s_it2;
+          const MSSpectrum& spectrum1 = *s_it2;
 
           // 0.2 Da left and right of the precursor m/z - we do not expect metabolites with charge 5 or higher.
           Int mono_index = getHighestIntensityPeakInMZRange(test_mz, spectrum1, 0.2, 0.2);

@@ -3058,7 +3058,7 @@ def testMRMTransitionGroup():
     """
     @tests:
      """
-    mrmgroup = pyopenms.MRMTransitionGroup()
+    mrmgroup = pyopenms.MRMTransitionGroupCP()
     assert mrmgroup is not None
 
     mrmgroup.setTransitionGroupID(b"this_id")
