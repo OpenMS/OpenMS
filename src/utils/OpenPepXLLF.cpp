@@ -427,24 +427,20 @@ protected:
     // Setting parameters for cross-link fragmentation
     Param specGenParams = specGen.getParameters();
     specGenParams.setValue("add_metainfo", "true");
-    specGenParams.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
-    specGenParams.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
+    specGenParams.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
+    specGenParams.setValue("max_isotope", 1, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
     specGenParams.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
     specGenParams.setValue("add_precursor_peaks", "false", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
     specGenParams.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
     specGenParams.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
     specGenParams.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
     specGenParams.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-    specGenParams.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
+    specGenParams.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
     specGenParams.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
     specGenParams.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
     specGenParams.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
-    specGenParams.setValue("add_a_ions", "true");
-    specGenParams.setValue("add_losses", "true");
     specGenParams.setValue("add_precursor_peaks", "true");
     specGenParams.setValue("add_k_linked_ions", "true");
-    // TODO does nothing yet
-    specGenParams.setValue("multiple_fragmentation_mode" , "false", "If set to true, multiple fragmentation events on the same cross-linked peptide pair are considered (HCD fragmentation)");
     specGen.setParameters(specGenParams);
 
     LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
@@ -490,7 +486,7 @@ protected:
     vector<OPXLDataStructs::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
     vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses;
     filtered_peptide_masses.assign(peptide_masses.begin(), last);
-    peptide_masses.clear();
+    // peptide_masses.clear();
 
     progresslogger.startProgress(0, 1, "Enumerating cross-links...");
     enumerated_cross_link_masses = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
@@ -689,6 +685,7 @@ protected:
         PeakSpectrum theoretical_spec_linear_beta;
         PeakSpectrum theoretical_spec_xlinks_alpha;
         PeakSpectrum theoretical_spec_xlinks_beta;
+        // PeakSpectrum theoretical_spec_xlinks_complex;
 
         bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::CROSS;
         bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::LOOP;
@@ -703,6 +700,8 @@ protected:
           specGen.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
           specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 1, precursor_charge);
           specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, precursor_mass, false, 1, precursor_charge);
+          specGen.getComplexXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, 1, 3);
+          // specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 1, precursor_charge+2);
         } else
         {
           // Function for mono-links or loop-links
@@ -724,6 +723,9 @@ protected:
         DataArrays::FloatDataArray ppm_error_array_xlinks_alpha;
         DataArrays::FloatDataArray ppm_error_array_linear_beta;
         DataArrays::FloatDataArray ppm_error_array_xlinks_beta;
+
+        // theoretical_spec_xlinks_alpha = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_complex);
+        // theoretical_spec_xlinks_beta = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_xlinks_beta, theoretical_spec_xlinks_complex);
 
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_alpha, theoretical_spec_linear_alpha, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_alpha);
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_beta, theoretical_spec_linear_beta, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_beta);
@@ -923,6 +925,7 @@ protected:
           {
             for (auto match : matched_spec_xlinks_alpha)
             {
+              cout << "TEST: " << num_iso_peaks_array.size() << " | " << match.second << " | " << num_iso_peaks_array[match.second] << endl;
               iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array[match.second]);
             }
             csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());
