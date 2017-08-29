@@ -509,21 +509,6 @@ START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
   double intensity_sum(0.0), rt_sum(0.0);
   double peak_apex_int = -1;
 
-  double width_at_5 = 0.0;
-  double width_at_10 = 0.0;
-  double width_at_50 = 0.0;
-  double start_time_at_10 = 0.0;
-  double start_time_at_5 = 0.0;
-  double end_time_at_10 = 0.0;
-  double end_time_at_5 = 0.0;
-  double total_width = 0.0;
-  double tailing_factor = 0.0;
-  double asymmetry_factor = 0.0;
-  double baseline_delta_2_height = 0.0;
-  double slope_of_baseline = 0.0;
-  int points_across_baseline = 0;
-  int points_across_half_height = 0;
-
   picker.calculatePeakApexInt_(chromatogram,
     best_left,best_right,hull_points,
     intensity_sum,
@@ -587,7 +572,7 @@ START_SECTION(( void calculatePeakShapeMetrics_(const MSChromatogram& chromatogr
 
   // Calculate the QCs
   MRMTransitionGroupPicker picker;
-  PeakShapeMetrics_ peakShapeMetrics;
+  MRMTransitionGroupPicker::PeakShapeMetrics_ peakShapeMetrics;
 
   picker.calculatePeakShapeMetrics_(chromatogram, 
     best_left, best_right, 
