@@ -517,7 +517,7 @@ public:
     double & rt_sum,
     double & peak_apex_int,
     double & peak_apex_rt);
-    
+
     // internal structure to represent various peak shape metrics
     struct PeakShapeMetrics_ {
       double width_at_5 = 0.0;
@@ -525,8 +525,10 @@ public:
       double width_at_50 = 0.0;
       double start_time_at_10 = 0.0;
       double start_time_at_5 = 0.0;
+      double start_time_at_50 = 0.0;
       double end_time_at_10 = 0.0;
       double end_time_at_5 = 0.0;
+      double end_time_at_50 = 0.0;
       double total_width = 0.0;
       double tailing_factor = 0.0;
       double asymmetry_factor = 0.0;
