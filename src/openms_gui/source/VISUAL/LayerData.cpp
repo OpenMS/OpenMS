@@ -278,10 +278,7 @@ namespace OpenMS
               {
                 if (String(pa->getText()).hasPrefix(tmp_a.annotation))
                 {
-                  // erase(tmp_a);
-                  // std::remove(fas.begin(), fas.end(), tmp_a);
                   to_remove.push_back(tmp_a);
-                  // fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
                   annotations_changed = true;
                 }
               }
