@@ -45,9 +45,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <iostream>
-
+#include <fstream>
 /////////////////////////////////////////////////////////////
 
 START_TEST(IsotopeDistributionHires, "$Id$")
@@ -63,55 +64,73 @@ using namespace OpenMS;
 using namespace std;
 
 
-//EmpiricalFormula f("(13)C100(2)H100(15)N100");
+EmpiricalFormula f("C100");
 
-EmpiricalFormula f("C1000");
+vector< pair<EmpiricalFormula, double> > formulas;
+formulas.push_back(make_pair(EmpiricalFormula("C"),0));
+formulas.push_back(make_pair(EmpiricalFormula("(13)C100(2)H100(15)N100"),0));
+formulas.push_back(make_pair(EmpiricalFormula("CHNO"),0));
+
+formulas.push_back(make_pair(EmpiricalFormula("C10H10"),0));
+formulas.push_back(make_pair(EmpiricalFormula("C100H100"),0));
+formulas.push_back(make_pair(EmpiricalFormula("C1000H1000"),0));
+formulas.push_back(make_pair(EmpiricalFormula("C10000H10000"),0));
+
+formulas.push_back(make_pair(EmpiricalFormula("C10H10N10"),0));
+formulas.push_back(make_pair(EmpiricalFormula("C100H100N100"),0));
+formulas.push_back(make_pair(EmpiricalFormula("C1000H1000N1000"),0));
+formulas.push_back(make_pair(EmpiricalFormula("C10000H10000N1000"),0));
+
+formulas.push_back(make_pair(EmpiricalFormula("C10H10N10O10"),0));
+formulas.push_back(make_pair(EmpiricalFormula("C100H100N100O100"),0));
+formulas.push_back(make_pair(EmpiricalFormula("C1000H1000N1000O1000"),0));
+formulas.push_back(make_pair(EmpiricalFormula("C10000H10000N10000O10000"),0));
+
 
 IsotopePatternGenerator* id;
 double probability_cutoff = 0.00005;
 double grid_resolution = 0.1;
-START_SECTION(Ecipex(double,double))
+
+//ofstream out("/home/main/fgid_results/results.csv");
+// START_SECTION(Ecipex(double,double))
   
-  LOG_INFO << "Total number of isotopes" << f.calculateTheoreticalIsotopesNumber() << endl;
-  id = new Ecipex(0.00001, probability_cutoff);
-  id->run(f);
-  id->merge(grid_resolution);
-  LOG_INFO << "Size " << id->size() << endl;
-for(auto& sample : id->getContainer())
-{
-  LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
-}
+//   LOG_INFO << "Total number of isotopes" << f.calculateTheoreticalIsotopesNumber() << endl;
   
-  LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
-  delete id;
+//   id = new Ecipex(0.00001, probability_cutoff);
+//   id->run(f);
+//   LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
+//   id->merge(grid_resolution);
+//   LOG_INFO << "Size " << id->size() << endl;
+//   LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
+//   delete id;
 
-END_SECTION
+// END_SECTION
 
-START_SECTION(MIDAsFFTID(double, double))
-  id = new MIDAsFFTID(0.00001, probability_cutoff);
-  id->run(f);
-  id->merge(grid_resolution);
-for(auto& sample : id->getContainer())
-{
-  LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
-}
-  LOG_INFO << "Size " << id->size() << endl;
-  LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
-  delete id;
-END_SECTION
+// START_SECTION(MIDAsFFTID(double, double))
+//   id = new MIDAsFFTID(0.00001, probability_cutoff);
+//   id->run(f);
+//   id->merge(grid_resolution);
+// for(auto& sample : id->getContainer())
+// {
+//   LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
+// }
+//   LOG_INFO << "Size " << id->size() << endl;
+//   LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
+//   delete id;
+// END_SECTION
 
-START_SECTION(MIDAsPolynomialID(double,double))
+//START_SECTION(MIDAsPolynomialID(double,double))
   id = new MIDAsPolynomialID(0.00001, probability_cutoff);
   id->run(f);
-  id->merge(grid_resolution);
-  for(auto& sample : id->getContainer())
+  //id->merge(grid_resolution);
+  for(const auto& sample : id->getContainer())
   {
-          LOG_INFO << sample.getMZ() <<" "<< sample.getIntensity() << endl;
+          cout << sample.getMZ() <<" "<< sample.getIntensity() << endl;
   }
-  LOG_INFO << "Size " << id->size() << endl;
-  //LOG_INFO << id->averageMass() - f.getAverageWeight()<< endl;
+  cout << "Size " << id->size() << endl;
+  //cout << id->averageMass() - f.getAverageWeight()<< endl;
   delete id;
-END_SECTION
+//END_SECTION
 
 
 

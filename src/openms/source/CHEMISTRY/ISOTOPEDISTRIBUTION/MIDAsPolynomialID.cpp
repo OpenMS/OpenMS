@@ -26,7 +26,7 @@ namespace OpenMS
     UInt U = expectation + (N * sqrt(1 + var));
     UInt B = expectation > (N * sqrt(1 + var)) ? ceil(expectation - (N * sqrt(1 + var))) : 0;
 #ifdef DEBUG
-    LOG_INFO << "Added counter with values " << B << " " << U <<endl;
+    LOG_INFO << "Added counter with values " << B << " " << U << endl;
 #endif
     c.addCounter(B, U);
   }
@@ -48,7 +48,7 @@ namespace OpenMS
 #endif
     }
     Polynomial& T = el_dist.front();
-
+    
     for(vector<Polynomial>::iterator pol = boost::next(el_dist.begin()); pol != el_dist.end(); ++pol)
     {
       multiplyPolynomials(T, *pol);
@@ -107,9 +107,7 @@ namespace OpenMS
       {
         member.setIntensity(member.getIntensity() + ((*iso_count) * log_prob[index]) - Math::fact_ln((*iso_count)));
       }
-
       member.setIntensity(exp(member.getIntensity()));
-
       if(member.getIntensity() < min_prob_)
       {
         continue;
