@@ -72,37 +72,50 @@ namespace OpenMS
     /**
     @brief Weight the data by the given weight function
 
-    1 / x	If |x| < 10-5 then w = 10e5; otherwise w = 1 / |x|.
-    1 / x2	If |x| < 10-5 then w = 10e10; otherwise w = 1 / x2.
-    1 / y	If |y| < 10-8 then w = 10e8; otherwise w = 1 / |y|.
-    1 / y2	If |y| < 10-8 then w = 10e16; otherwise w = 1 / y2.
-    ln x	If x < 0 an error is generated; otherwise if x < 10-5 then w = ln 10e-5,
-    otherwise w = |ln x|.
+    Currently supported valid weighting functions include the following:
+      - 1 / x.
+      - 1 / x2.
+      - 1 / y.
+      - 1 / y2.
+      - ln x.
+      - ln y.
+    Note that the user needs to ensure valid bounds for the data by setting
+    the x_datum_min/x_datum_max and y_datum_min/y_datum_max params.
     */
     virtual void weightData(DataPoints& data, const Param& params);
-    
-    /// Unweight the data by the given weight function
+     
+    /**
+    @brief Unweight the data by the given weight function
+    */
     virtual void unWeightData(DataPoints& data, const Param& params);
     
-    /// 
+    /**
+    @brief Check for a valid wighting function string
+    */
     bool checkValidWeight(const std::string& weight, const std::vector<std::string>& valid_weights) const;
 
-    ///
+    /**
+    @brief Check that the data is within the valid min and max bounds
+    */
     double checkDatumRange(const double& datum, const double& datum_min, const double& datum_max);
-
-    ///
+ 
+    /**
+    @brief Weight the data according to the weighting function
+    */
     double weightDatum(const double& datum, const std::string& weight) const;
 
-    ///
+    /**
+    @brief Apply the reverse of the weighting function to the data
+    */
     double unWeightDatum(const double& datum, const std::string& weight) const;
 
     /// Gets the (actual) parameters
     const Param& getParameters() const;
 
-    ///
+    /// Returns a list of valid x weight function strings
     std::vector<std::string> getValidXWeights() const;
 
-    ///
+    /// Returns a list of valid y weight function strings
     std::vector<std::string> getValidYWeights() const;
 
     /// Gets the default parameters
