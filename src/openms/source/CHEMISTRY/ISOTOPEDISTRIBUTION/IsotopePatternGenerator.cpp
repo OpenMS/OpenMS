@@ -11,49 +11,57 @@ using namespace std;
 
 namespace OpenMS
 {
-  IsotopePatternGenerator::IsotopePatternGenerator() : IsotopeDistribution()
-  {}
+  IsotopePatternGenerator::IsotopePatternGenerator(double probability_cutoff) : 
+    IsotopeDistribution(),
+    min_prob_(probability_cutoff)
+  {
+
+  }
+
+  IsotopePatternGenerator::IsotopePatternGenerator() : 
+    IsotopeDistribution(),
+    min_prob_(1e-15)
+  {
+
+  }
 
   IsotopePatternGenerator::IsotopePatternGenerator(const IsotopeDistribution& rhs) :
     IsotopeDistribution(rhs)
   {
     
   }
-  void IsotopePatternGenerator::merge(ContainerType& raw, double resolution)
+  void IsotopePatternGenerator::merge(double resolution)
   {
     //raw must be ordered to work correctly ascending order on power field
+    sortByMass();
 
-    UInt output_size = ceil((raw.back().getMZ() - raw.front().getMZ())/resolution);
-
+    ContainerType raw = distribution_;
+    double mass_range = (raw.back().getMZ() - raw.front().getMZ());
+    UInt output_size = ceil(mass_range / resolution);
     distribution_.clear();
-    distribution_.resize(output_size, Peak1D(0, 0));
+    ContainerType distribution(output_size, Peak1D(0, 0));
+    double delta = mass_range / output_size;
 
     for(auto& p : raw)
     {
-      // Is this the case?
-      
       UInt index = round((p.getMZ() - raw.front().getMZ())/resolution);
-      if(index >= distribution_.size()){
-
-        LOG_INFO << index <<endl;
+      if(index >= distribution.size()){
         continue;
       }
-      auto& mass = distribution_[index].getPosition() ;
-
-      mass = mass == 0 ?
-             raw.front().getMZ() * index :
-             mass;
-      distribution_[index].setIntensity(distribution_[index].getIntensity() + p.getIntensity());
+      double mass = raw.front().getMZ() + (index * delta);
+      distribution[index].setMZ(mass);
+      distribution[index].setIntensity(distribution[index].getIntensity() + p.getIntensity());
     }
+    distribution_ = distribution;
+    trimIntensities(min_prob_);
   }
 
   
   /* Start of the midas interface */
   MIDAs::MIDAs(double resolution, double min_prob, UInt N_):
-    IsotopePatternGenerator(),
-    resolution_(resolution),
-    min_prob_(min_prob),
-    N(N_)
+    IsotopePatternGenerator(min_prob),
+    N(N_),
+    resolution_(resolution)
   {
     
   }
