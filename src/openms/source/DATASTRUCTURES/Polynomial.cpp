@@ -72,7 +72,7 @@ namespace OpenMS
 
   void CounterSet::RangeCounter::setMaxAllowedValue(UInt counters_range)
   {
-    max_allowed_ = counters_range < max() - min() ? counters_range + min() : max();
+    max_allowed_ = counters_range < max_ - min_ ? counters_range + min_ : max_;
     max_ = max_allowed_;
   }
 
@@ -88,9 +88,14 @@ namespace OpenMS
       it->reset();
     }
     min_sum = accumulate(counters.begin(), counters.end(), 0);
+    if(min_sum > N)
+    {
+      has_next = false;
+    }
 
     for(Ranges::reverse_iterator it = range_counters.rbegin(); it != range_counters.rend(); ++it)
     {
+      it->setMaxAllowedValue(N - min_sum);
       UInt remain = ((*it) += (N - sum()));
 
       if(remain == 0)
@@ -142,7 +147,6 @@ namespace OpenMS
     //Add a dummy value, this will be changed to min at the constructor
     counters.push_back(0);
     range_counters.push_back(RangeCounter(min, max, counters.back()));
-    range_counters.back().setMaxAllowedValue(N);
     reset();
   }
 
@@ -174,7 +178,7 @@ namespace OpenMS
               break;
             }
           }
-          if(sum() > N)
+          if(sum() > N )
           {
             has_next = false;
           }

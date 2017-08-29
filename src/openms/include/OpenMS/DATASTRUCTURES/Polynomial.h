@@ -63,8 +63,8 @@ namespace OpenMS
       void setMaxAllowedValue(UInt);
       inline UInt& getValue() const { return value; }
       inline void reset() { value = min_; }
-      inline const UInt& min() const { return min_; }
-      inline const UInt& max() const { return max_; }
+      inline const UInt& getMin() const { return min_; }
+      inline const UInt& getMax() const { return max_; }
       inline const UInt& maxAllowed() const { return max_allowed_; }
     };
     
