@@ -210,8 +210,8 @@ namespace OpenMS
     {
       MSChromatogram::const_iterator it_prev = it;
       it_prev--; //previous point
-      intensity = std::max(it->getIntensity()-avg_noise_level,0.0); //background-subtracted intensity
-      intensity_prev = std::max(it_prev->getIntensity()-avg_noise_level,0.0); //background-subtracted intensity of the previous point
+      intensity = std::max(it->getIntensity()-avg_noise_level, 0.0); //background-subtracted intensity
+      intensity_prev = std::max(it_prev->getIntensity()-avg_noise_level, 0.0); //background-subtracted intensity of the previous point
       retention_time = it->getMZ();
       retention_time_prev = it_prev->getMZ();
 
