@@ -136,20 +136,21 @@ namespace OpenMS
 
        // test if this peptide could have loop-links: one cross-link with both sides attached to the same peptide
        // TODO check for distance between the two linked residues
+       // TODO also use N-term and C-Term, (whether the peptide is C-term or N-term in protein in stored in peptides[p1].position)
       bool first_res = false; // is there a residue the first side of the linker can attach to?
       bool second_res = false; // is there a residue the second side of the linker can attach to?
       for (Size k = 0; k < seq_first.size()-1; ++k)
       {
         for (Size i = 0; i < cross_link_residue1.size(); ++i)
         {
-          if (seq_first.substr(k, 1) == cross_link_residue1[i])
+          if (cross_link_residue1[i].size() == 1 && seq_first.substr(k, 1) == cross_link_residue1[i])
           {
             first_res = true;
           }
         }
         for (Size i = 0; i < cross_link_residue2.size(); ++i)
         {
-          if (seq_first.substr(k, 1) == cross_link_residue2[i])
+          if (cross_link_residue2[i].size() == 1 && seq_first.substr(k, 1) == cross_link_residue2[i])
           {
             second_res = true;
           }
@@ -306,14 +307,14 @@ namespace OpenMS
         {
           for (Size k = 0; k < cross_link_residue1.size(); k++)
           {
-            if (cit->getString().find(cross_link_residue1[k]) < cit->getString().size()-1)
+            if (cross_link_residue1[k].size() == 1 && cit->getString().find(cross_link_residue1[k]) < cit->getString().size()-1)
             {
               skip = false;
             }
           }
           for (Size k = 0; k < cross_link_residue2.size(); k++)
           {
-            if (cit->getString().find(cross_link_residue2[k]) < cit->getString().size()-1)
+            if (cross_link_residue2[k].size() == 1 && cit->getString().find(cross_link_residue2[k]) < cit->getString().size()-1)
             {
               skip = false;
             }
