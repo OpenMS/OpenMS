@@ -197,14 +197,13 @@ namespace OpenMS
 
   std::vector<Annotation1DItem*> Annotations1DContainer::getSelectedItems()
   {
-    std::vector<Annotation1DItem*> annotation_items;
-    for (Iterator it = begin(); it != end(); ++it)
-    {
-      if ((*it)->isSelected())
-      {
-        annotation_items.push_back(*it);
-      }
-    }
+    // initialize with maximal possible size
+    std::vector<Annotation1DItem*> annotation_items(size());
+    // copy if is selected
+    auto it = std::copy_if(begin(), end(), annotation_items.begin(), [](Annotation1DItem* anno){return anno->isSelected();});
+    // resize to number of actually copied items
+    annotation_items.resize(std::distance(annotation_items.begin(), it));
+
     return annotation_items;
   }
 
