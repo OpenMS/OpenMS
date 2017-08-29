@@ -41,7 +41,10 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 
+#include <boost/math/special_functions/binomial.hpp>
+
 #include <iostream>
+
 
 using namespace std;
 
@@ -68,6 +71,7 @@ namespace OpenMS
     formula_[element] = number;
     charge_ = charge;
   }
+
 
   EmpiricalFormula::~EmpiricalFormula()
   {
@@ -101,6 +105,25 @@ namespace OpenMS
       weight += it->first->getAverageWeight() * (double)it->second;
     }
     return weight;
+  }
+
+  double EmpiricalFormula::calculateTheoreticalIsotopesNumber() const
+  {
+    double total = 1;
+    for(const auto& element : formula_)
+    {
+      UInt non_trace_isotopes = 0;
+      const auto& distr = element.first->getIsotopeDistribution();
+      for(auto isotope : distr)
+      {
+        if(isotope.getIntensity() != 0)
+        {
+          non_trace_isotopes++;
+        }
+      }
+      total *= boost::math::binomial_coefficient<double>(UInt(element.second), non_trace_isotopes);
+    }
+    return total;
   }
 
   bool EmpiricalFormula::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)

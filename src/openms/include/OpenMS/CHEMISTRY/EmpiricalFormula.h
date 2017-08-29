@@ -130,6 +130,9 @@ public:
     /// returns the average weight of the formula (includes proton charges)
     double getAverageWeight() const;
 
+    /// returns the total number of discrete isotopes
+    double calculateTheoreticalIsotopesNumber() const;
+
     /**
       @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry
 
