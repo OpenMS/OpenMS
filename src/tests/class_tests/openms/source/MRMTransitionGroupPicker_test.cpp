@@ -454,23 +454,13 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
 }
 END_SECTION
 
-START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram, 
+START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
   double best_left, double best_right, 
-  double peak_height, double peak_apex, double avg_noise_level,
-  double & width_at_5,
-  double & width_at_10,
-  double & width_at_50,
-  double & start_time_at_10,
-  double & start_time_at_5,
-  double & end_time_at_10,
-  double & end_time_at_5,
-  double & total_width,
-  double & tailing_factor,
-  double & asymmetry_factor,
-  double & baseline_delta_2_height,
-  double & slope_of_baseline,
-  int & points_across_baseline,
-  int & points_across_half_height) ))
+  ConvexHull2D::PointArrayType & hull_points,
+  double & intensity_sum, 
+  double & rt_sum,
+  double & peak_apex_int,
+  double & peak_apex_rt) ))
 {
   // Toy chromatogram
   // data is taken from raw LC-MS/MS data points acquired for L-Glutamate in RBCs
@@ -550,20 +540,7 @@ END_SECTION
 START_SECTION(( void calculatePeakShapeMetrics_(const MSChromatogram& chromatogram, 
   double best_left, double best_right, 
   double peak_height, double peak_apex, double avg_noise_level,
-  double & width_at_5,
-  double & width_at_10,
-  double & width_at_50,
-  double & start_time_at_10,
-  double & start_time_at_5,
-  double & end_time_at_10,
-  double & end_time_at_5,
-  double & total_width,
-  double & tailing_factor,
-  double & asymmetry_factor,
-  double & baseline_delta_2_height,
-  double & slope_of_baseline,
-  int & points_across_baseline,
-  int & points_across_half_height) ))
+  PeakShapeMetrics_ & peakShapeMetrics) ))
 {
   // Toy chromatogram
   // data is taken from raw LC-MS/MS data points acquired for L-Glutamate in RBCs
@@ -610,54 +587,27 @@ START_SECTION(( void calculatePeakShapeMetrics_(const MSChromatogram& chromatogr
 
   // Calculate the QCs
   MRMTransitionGroupPicker picker;
-
-  double width_at_5 = 0.0;
-  double width_at_10 = 0.0;
-  double width_at_50 = 0.0;
-  double start_time_at_10 = 0.0;
-  double start_time_at_5 = 0.0;
-  double end_time_at_10 = 0.0;
-  double end_time_at_5 = 0.0;
-  double total_width = 0.0;
-  double tailing_factor = 0.0;
-  double asymmetry_factor = 0.0;
-  double baseline_delta_2_height = 0.0;
-  double slope_of_baseline = 0.0;
-  int points_across_baseline = 0;
-  int points_across_half_height = 0;
+  PeakShapeMetrics_ peakShapeMetrics;
 
   picker.calculatePeakShapeMetrics_(chromatogram, 
     best_left, best_right, 
     peak_height, peak_apex, avg_noise_level,
-    width_at_5,
-    width_at_10,
-    width_at_50,
-    start_time_at_10,
-    start_time_at_5,
-    end_time_at_10,
-    end_time_at_5,
-    total_width,
-    tailing_factor,
-    asymmetry_factor,
-    baseline_delta_2_height,
-    slope_of_baseline,
-    points_across_baseline,
-    points_across_half_height);
+    PeakShapeMetrics_ & peakShapeMetrics);
 
-  TEST_REAL_SIMILAR(width_at_5,0.27924231787346);
-  TEST_REAL_SIMILAR(width_at_10,0.135162753574054);
-  TEST_REAL_SIMILAR(width_at_50,0.0596533918928945);
-  TEST_REAL_SIMILAR(start_time_at_10,2.63202095937465);
-  TEST_REAL_SIMILAR(start_time_at_5,2.47208309122377);
-  TEST_REAL_SIMILAR(end_time_at_10,2.76718371294871);
-  TEST_REAL_SIMILAR(end_time_at_5,2.75132540909723);
-  TEST_REAL_SIMILAR(total_width,0.540983333);
-  TEST_REAL_SIMILAR(tailing_factor,5.96347844593576);
-  TEST_REAL_SIMILAR(asymmetry_factor,0.864852961737272);
-  TEST_REAL_SIMILAR(baseline_delta_2_height,0.0007820948955);
-  TEST_REAL_SIMILAR(slope_of_baseline,755);
-  TEST_EQUAL(points_across_baseline,55);
-  TEST_EQUAL(points_across_half_height,6);
+  TEST_REAL_SIMILAR(peakShapeMetrics.width_at_5,0.27924231787346);
+  TEST_REAL_SIMILAR(peakShapeMetrics.width_at_10,0.135162753574054);
+  TEST_REAL_SIMILAR(peakShapeMetrics.width_at_50,0.0596533918928945);
+  TEST_REAL_SIMILAR(peakShapeMetrics.start_time_at_10,2.63202095937465);
+  TEST_REAL_SIMILAR(peakShapeMetrics.start_time_at_5,2.47208309122377);
+  TEST_REAL_SIMILAR(peakShapeMetrics.end_time_at_10,2.76718371294871);
+  TEST_REAL_SIMILAR(peakShapeMetrics.end_time_at_5,2.75132540909723);
+  TEST_REAL_SIMILAR(peakShapeMetrics.total_width,0.540983333);
+  TEST_REAL_SIMILAR(peakShapeMetrics.tailing_factor,5.96347844593576);
+  TEST_REAL_SIMILAR(peakShapeMetrics.asymmetry_factor,0.864852961737272);
+  TEST_REAL_SIMILAR(peakShapeMetrics.baseline_delta_2_height,0.0007820948955);
+  TEST_REAL_SIMILAR(peakShapeMetrics.slope_of_baseline,755);
+  TEST_EQUAL(peakShapeMetrics.points_across_baseline,55);
+  TEST_EQUAL(peakShapeMetrics.points_across_half_height,6);
 }
 END_SECTION
 
