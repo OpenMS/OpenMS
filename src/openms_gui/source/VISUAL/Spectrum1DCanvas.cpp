@@ -1337,6 +1337,7 @@ namespace OpenMS
         else if (result->text() == "Edit")
         {
           annot_item->editText();
+          getCurrentLayer_().synchronizePeakAnnotations();
         }
         update_(OPENMS_PRETTY_FUNCTION);
       }
