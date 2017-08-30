@@ -249,9 +249,9 @@ namespace OpenMS
     bool annotations_changed(false);
 
     // collect annotations, that have to be removed
-    for (const auto& tmp_a : fas)
+    for (auto const& tmp_a : fas)
     {
-      for (const auto& it : selected_annotations)
+      for (auto const& it : selected_annotations)
       {
         Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(it);
         // only search for peak annotations
@@ -267,7 +267,7 @@ namespace OpenMS
       }
     }
     // remove the collected annotations from the PeptideHit annotations
-    for (const auto& tmp_a : to_remove)
+    for (auto const& tmp_a : to_remove)
     {
       fas.erase(std::remove(fas.begin(), fas.end(), tmp_a), fas.end());
     }
