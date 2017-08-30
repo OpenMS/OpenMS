@@ -224,7 +224,7 @@ namespace OpenMS
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
     // no ID selected
-    if (peptide_id_index == -1 || peptide_hit_index == -1) { return ;}
+    if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
 
     MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
