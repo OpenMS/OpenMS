@@ -133,7 +133,6 @@ namespace OpenMS
     PeakSpectrum::IntegerDataArray charges;
     PeakSpectrum::StringDataArray ion_names;
 
-
     if (add_metainfo_)
     {
       if (spectrum.getIntegerDataArrays().size() > 0)
@@ -147,7 +146,6 @@ namespace OpenMS
       ion_names.setName("IonNames");
       charges.setName("Charges");
     }
-
 
     for (Int z = 1; z <= charge; ++z)
     {
@@ -1029,6 +1027,8 @@ namespace OpenMS
       double loss_pos = ion_mass - EmpiricalFormula(*it).getMonoWeight();
       const String& loss_name = *it;
       String loss_ion_name;
+
+      if (loss_pos < 0.0) { continue; }
 
       p.setMZ(loss_pos / static_cast<double>(charge));
       if (add_metainfo_)
