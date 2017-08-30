@@ -376,7 +376,7 @@ protected:
       {
         target.id = target_id + "_z" + String(*z_it) + "_rt" +
           String(float(rts[i]));
-        target.setMetaValue("expected_RT", rts[i]);
+        target.setMetaValue("expected_rt", rts[i]);
         target_rts_[target.id] = rts[i];
 
         double rt_tol = rt_ranges[i] / 2.0;
@@ -581,7 +581,7 @@ protected:
     }
     LOG_DEBUG << endl;
 
-    double best_rt_delta = rt_window_;
+    double best_rt_delta = numeric_limits<double>::infinity();
     Feature* best_feature = 0;
     while (!group.empty())
     {
@@ -589,7 +589,7 @@ protected:
       for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
            ++it)
       {
-        double rt_delta = (*it)->getMetaValue("rt_delta");
+        double rt_delta = abs(double((*it)->getMetaValue("rt_deviation")));
         if ((rt_delta < best_rt_delta) ||
             ((rt_delta == best_rt_delta) && ((*it)->getIntensity() >
                                              best_feature->getIntensity())))
@@ -604,12 +604,17 @@ protected:
           if (((*it)->getRT() == best_feature->getRT()) &&
               ((*it)->getMZ() == best_feature->getMZ()))
           {
+            // update annotations:
+            String add_ref = (*it)->getMetaValue("PeptideRef");
+            String label = best_feature->getMetaValue("label");
+            label += "/" + add_ref;
+            best_feature->setMetaValue("label", label);
             StringList alt_refs;
             if (best_feature->metaValueExists("alt_PeptideRef"))
             {
               alt_refs = best_feature->getMetaValue("alt_PeptideRef");
             }
-            alt_refs.push_back((*it)->getMetaValue("PeptideRef"));
+            alt_refs.push_back(add_ref);
             best_feature->setMetaValue("alt_PeptideRef", alt_refs);
           }
           else
@@ -663,10 +668,15 @@ protected:
     {
       feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
       String ref = feat_it->getMetaValue("PeptideRef");
-      Int z = library_.getCompoundByRef(ref).getChargeState();
-      feat_it->setCharge(z);
+      const TargetedExperiment::Compound& compound =
+        library_.getCompoundByRef(ref);
+      feat_it->setCharge(compound.getChargeState());
       ensureConvexHulls_(*feat_it);
       feat_it->getPeptideIdentifications().clear();
+      feat_it->setMetaValue("label", compound.getMetaValue("name"));
+      feat_it->setMetaValue("formula", compound.molecular_formula);
+      feat_it->setMetaValue("expected_rt",
+                            compound.getMetaValue("expected_rt"));
       // annotate subordinates with theoretical isotope intensities:
       for (vector<Feature>::iterator sub_it =
              feat_it->getSubordinates().begin(); sub_it !=
@@ -709,7 +719,7 @@ protected:
   void selectFeaturesFromCandidates_(FeatureMap& features)
   {
     String previous_ref;
-    double best_rt_dist = rt_window_;
+    double best_rt_dist = numeric_limits<double>::infinity();
     FeatureMap::Iterator best_it = features.begin();
     for (FeatureMap::Iterator it = features.begin(); it != features.end();
          ++it)
@@ -725,7 +735,7 @@ protected:
       double target_rt = target_rts_[ref];
       double rt_min = it->getMetaValue("leftWidth");
       double rt_max = it->getMetaValue("rightWidth");
-      double rt_dist = rt_window_;
+      double rt_dist = numeric_limits<double>::infinity();
       if ((rt_min <= target_rt) && (rt_max >= target_rt))
       {
         if (best_rt_dist <= 0.0)
@@ -747,9 +757,10 @@ protected:
       {
         // new best candidate for this assay:
         best_rt_dist = rt_dist;
+        // mark no-longer-best candidate for removal:
         if (best_it != it) best_it->setMetaValue("FFMetId_remove", "");
         best_it = it;
-        best_it->setMetaValue("rt_delta", abs(target_rt - best_it->getRT()));
+        best_it->setMetaValue("rt_deviation", target_rt - best_it->getRT());
       }
       else // this candidate is worse than a previous one
       {
@@ -766,7 +777,7 @@ protected:
     return (String(compound.getMetaValue("name")) + " (m=" +
             String(float(compound.theoretical_mass)) + ", z=" +
             String(compound.getChargeState()) + ", rt=" +
-            String(float(double(compound.getMetaValue("expected_RT")))) + ")");
+            String(float(double(compound.getMetaValue("expected_rt")))) + ")");
   }
 
 
@@ -776,26 +787,13 @@ protected:
     set<String> found_refs;
     for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
     {
-      StringList refs;
-      refs.push_back(it->getMetaValue("PeptideRef"));
+      found_refs.insert(it->getMetaValue("PeptideRef"));
       if (it->metaValueExists("alt_PeptideRef"))
       {
         n_shared++;
         StringList alt_refs = it->getMetaValue("alt_PeptideRef");
-        refs.insert(refs.end(), alt_refs.begin(), alt_refs.end());
+        found_refs.insert(alt_refs.begin(), alt_refs.end());
       }
-      found_refs.insert(refs.begin(), refs.end());
-      String label;
-      for (StringList::const_iterator ref_it = refs.begin();
-           ref_it != refs.end(); ++ref_it)
-      {
-        const TargetedExperiment::Compound& compound =
-          library_.getCompoundByRef(*ref_it);
-        const String& name = compound.getMetaValue("name");
-        if (!label.empty()) label += "/";
-        label += name;
-      }
-      it->setMetaValue("label", label); // label for TOPPView
     }
     // targets without features:
     Size n_missing = library_.getCompounds().size() - found_refs.size();
@@ -810,7 +808,7 @@ protected:
         peptide.setIdentifier("id");
         peptide.setMetaValue("label", it->getMetaValue("name"));
         peptide.setMetaValue("PeptideRef", it->id);
-        peptide.setRT(it->getMetaValue("expected_RT"));
+        peptide.setRT(it->getMetaValue("expected_rt"));
         peptide.setMZ(calculateMZ_(it->theoretical_mass, it->getChargeState()));
         features.getUnassignedPeptideIdentifications().push_back(peptide);
       }
@@ -1027,21 +1025,22 @@ protected:
     LOG_INFO << "Writing final results..." << endl;
     FeatureXMLFile().store(out, features);
 
-    // expected vs. observed retention times:
-    TransformationDescription trafo;
-    TransformationDescription::DataPoints points;
-    for (FeatureMap::ConstIterator it = features.begin(); it != features.end();
-         ++it)
+    if (!trafo_out.empty()) // write expected vs. observed retention times
     {
-      const String& ref = it->getMetaValue("PeptideRef");
-      TransformationDescription::DataPoint point;
-      point.first = library_.getCompoundByRef(ref).getMetaValue("expected_RT");
-      point.second = it->getRT();
-      point.note = ref;
-      points.push_back(point);
+      TransformationDescription trafo;
+      TransformationDescription::DataPoints points;
+      for (FeatureMap::ConstIterator it = features.begin();
+           it != features.end(); ++it)
+      {
+        TransformationDescription::DataPoint point;
+        point.first = it->getMetaValue("expected_rt");
+        point.second = it->getRT();
+        point.note = it->getMetaValue("PeptideRef");
+        points.push_back(point);
+      }
+      trafo.setDataPoints(points);
+      TransformationXMLFile().store(trafo_out, trafo);
     }
-    trafo.setDataPoints(points);
-    TransformationXMLFile().store(trafo_out, trafo);
 
     //-------------------------------------------------------------
     // statistics
