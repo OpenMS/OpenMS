@@ -70,9 +70,15 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
         std::string line;
         while (std::getline(file, line))
         {
-            ++number_of_lines;   
+            ++number_of_lines;
+            if (number_of_lines > 2)
+            {
+                break;
+            }
         }    
     }
+
+    std::cout << "number_of_lines " << number_of_lines << std::endl;
 
     if (file && number_of_lines > 1)
     {
@@ -88,6 +94,9 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
 
       for (Size j = 1; j < number; ++j)
       {
+
+        std::cout << "line " << j << std::endl;
+
         StringList sl;
         compounds.getRow(j, sl);
         CsiFingerIdMzTabWriter::CsiAdapterHit csi_hit;
