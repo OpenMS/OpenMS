@@ -113,12 +113,12 @@ namespace OpenMS
       // Create SQL structure
       const char * create_sql =
         "CREATE TABLE RUN(" \
-        "ID TEXT PRIMARY KEY NOT NULL," \
+        "ID INT PRIMARY KEY NOT NULL," \
         "FILENAME TEXT NOT NULL); " \
 
         "CREATE TABLE FEATURE(" \
-        "ID TEXT PRIMARY KEY NOT NULL," \
-        "RUN_ID TEXT NOT NULL," \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "RUN_ID INT NOT NULL," \
         "PRECURSOR_ID INT NOT NULL," \
         "EXP_RT REAL NOT NULL," \
         "NORM_RT REAL NOT NULL," \
@@ -127,7 +127,7 @@ namespace OpenMS
         "RIGHT_WIDTH REAL NOT NULL); " \
 
         "CREATE TABLE FEATURE_MS1(" \
-        "FEATURE_ID TEXT NOT NULL," \
+        "FEATURE_ID INT NOT NULL," \
         "AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
         "VAR_MASSDEV_SCORE REAL NOT NULL," \
@@ -137,7 +137,7 @@ namespace OpenMS
         "VAR_XCORR_SHAPE REAL NOT NULL); " \
 
         "CREATE TABLE FEATURE_MS2(" \
-        "FEATURE_ID TEXT NOT NULL," \
+        "FEATURE_ID INT NOT NULL," \
         "AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
         "VAR_BSERIES_SCORE REAL NOT NULL," \
@@ -170,7 +170,7 @@ namespace OpenMS
         "VAR_SONAR_RSQ REAL NULL); " \
 
         "CREATE TABLE FEATURE_TRANSITION(" \
-        "FEATURE_ID TEXT NOT NULL," \
+        "FEATURE_ID INT NOT NULL," \
         "TRANSITION_ID INT NOT NULL," \
         "AREA_INTENSITY REAL NOT NULL," \
         "APEX_INTENSITY REAL NOT NULL," \
@@ -195,8 +195,8 @@ namespace OpenMS
 
       // Insert run_id information
       std::stringstream sql_run;
-      sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ('"
-              << run_id_ << "', '"
+      sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
+              << *(int64_t*)&run_id_ << ", '"
               << input_filename_ << "'); ";
 
       // Execute SQL insert statement
@@ -234,20 +234,23 @@ namespace OpenMS
 
       for (FeatureMap::iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
       {
+        UInt64 uint64_feature_id = feature_it->getUniqueId();
+        int64_t feature_id = *(int64_t*)&uint64_feature_id;
+
         for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
         {
           if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
           {
-            sql_feature_ms2_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY) VALUES ('" 
-                                        << feature_it->getUniqueId() << "', " 
+            sql_feature_ms2_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY) VALUES (" 
+                                        << feature_id << ", " 
                                         << sub_it->getMetaValue("native_id") << ", " 
                                         << sub_it->getIntensity() << ", " 
                                         << sub_it->getMetaValue("peak_apex_int") << "); ";
           }
           else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
           {
-            sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE) VALUES ('" 
-                            << feature_it->getUniqueId() << "', " 
+            sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE) VALUES (" 
+                            << feature_id << ", " 
                             << sub_it->getIntensity() << ", " 
                             << sub_it->getMetaValue("peak_apex_int") << ", " 
                             << feature_it->getMetaValue("var_ms1_ppm_diff") << ", " 
@@ -258,9 +261,9 @@ namespace OpenMS
           }
         }
 
-        sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES ('" 
-                    << feature_it->getUniqueId() << "', '" 
-                    << run_id_ << "', " 
+        sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES (" 
+                    << feature_id << ", '" 
+                    << *(int64_t*)&run_id_ << "', " 
                     << id << ", " 
                     << feature_it->getRT() << ", " 
                     << feature_it->getMetaValue("norm_RT") << ", " 
@@ -299,8 +302,8 @@ namespace OpenMS
           var_sonar_rsq = feature_it->getMetaValue("var_sonar_rsq").toString();
         }
 
-        sql_feature_ms2 << "INSERT INTO FEATURE_MS2 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR, VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, VAR_LIBRARY_SANGLE, VAR_LOG_SN_SCORE, VAR_MANHATTAN_SCORE, VAR_MASSDEV_SCORE, VAR_MASSDEV_SCORE_WEIGHTED, VAR_NORM_RT_SCORE, VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ) VALUES ('" 
-                        << feature_it->getUniqueId() << "', " 
+        sql_feature_ms2 << "INSERT INTO FEATURE_MS2 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR, VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, VAR_LIBRARY_SANGLE, VAR_LOG_SN_SCORE, VAR_MANHATTAN_SCORE, VAR_MASSDEV_SCORE, VAR_MASSDEV_SCORE_WEIGHTED, VAR_NORM_RT_SCORE, VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ) VALUES (" 
+                        << feature_id << ", " 
                         << feature_it->getIntensity() << ", " 
                         << feature_it->getMetaValue("peak_apices_sum") << ", " 
                         << feature_it->getMetaValue("var_bseries_score") << ", " 
@@ -349,8 +352,8 @@ namespace OpenMS
           {
             for (int i = 0; i < feature_it->getMetaValue("id_target_num_transitions").toString().toInt(); ++i)
             {
-              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES ('" 
-                                          << feature_it->getUniqueId() << "', " 
+              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
+                                          << feature_id << ", " 
                                           << id_target_transition_names[i] << ", " 
                                           << id_target_area_intensity[i] << ", " 
                                           << id_target_apex_intensity[i] << ", " 
@@ -379,8 +382,8 @@ namespace OpenMS
           {
             for (int i = 0; i < feature_it->getMetaValue("id_decoy_num_transitions").toString().toInt(); ++i)
             {
-              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES ('" 
-                                          << feature_it->getUniqueId() << "', " 
+              sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
+                                          << feature_id << ", " 
                                           << id_decoy_transition_names[i] << ", " 
                                           << id_decoy_area_intensity[i] << ", " 
                                           << id_decoy_apex_intensity[i] << ", " 
