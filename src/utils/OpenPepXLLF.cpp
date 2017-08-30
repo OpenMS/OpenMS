@@ -421,27 +421,46 @@ protected:
     peptide_masses = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications,  variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides);
     progresslogger.endProgress();
 
-    // create spectrum generator
-    TheoreticalSpectrumGeneratorXLMS specGen;
+    // declare and set up spectrum generators
+    TheoreticalSpectrumGeneratorXLMS specGen_fast;
+    TheoreticalSpectrumGeneratorXLMS specGen_full;
 
     // Setting parameters for cross-link fragmentation
-    Param specGenParams = specGen.getParameters();
-    specGenParams.setValue("add_metainfo", "true");
-    specGenParams.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
-    specGenParams.setValue("max_isotope", 1, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
-    specGenParams.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-    specGenParams.setValue("add_precursor_peaks", "false", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-    specGenParams.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
-    specGenParams.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
-    specGenParams.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-    specGenParams.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-    specGenParams.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
-    specGenParams.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    specGenParams.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    specGenParams.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
-    specGenParams.setValue("add_precursor_peaks", "true");
-    specGenParams.setValue("add_k_linked_ions", "true");
-    specGen.setParameters(specGenParams);
+    // settings for pre-scoring, only a-, b- and y- ions without annotation etc.
+    Param specGenParams_fast = specGen_fast.getParameters();
+    specGenParams_fast.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
+    specGenParams_fast.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+    specGenParams_fast.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+    specGenParams_fast.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
+    specGenParams_fast.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
+    specGenParams_fast.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
+    specGenParams_fast.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+
+    specGenParams_fast.setValue("add_metainfo", "false");
+    specGenParams_fast.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
+    specGenParams_fast.setValue("max_isotope", 1, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
+    specGenParams_fast.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+    specGenParams_fast.setValue("add_precursor_peaks", "false");
+    specGenParams_fast.setValue("add_k_linked_ions", "false");
+    specGen_fast.setParameters(specGenParams_fast);
+
+    // settings fpr full-scoring, annotations, 2nd isotopic peaks, losses and precursors
+    Param specGenParams_full = specGen_full.getParameters();
+    specGenParams_full.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
+    specGenParams_full.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+    specGenParams_full.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+    specGenParams_full.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
+    specGenParams_full.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
+    specGenParams_full.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
+    specGenParams_full.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+
+    specGenParams_full.setValue("add_metainfo", "true");
+    specGenParams_full.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
+    specGenParams_full.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
+    specGenParams_full.setValue("add_losses", "true", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+    specGenParams_full.setValue("add_precursor_peaks", "true");
+    specGenParams_full.setValue("add_k_linked_ions", "true");
+    specGen_full.setParameters(specGenParams_full);
 
     LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
     search_params = protein_ids[0].getSearchParameters();
@@ -611,10 +630,10 @@ protected:
         {
           link_pos_B = cross_link_candidate.cross_link_position.second;
         }
-        specGen.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 2, link_pos_B);
+        specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 2, link_pos_B);
         if (type_is_cross_link)
         {
-          specGen.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
+          specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
         }
 
         // Something like this can happen, e.g. with a loop link connecting the first and last residue of a peptide
@@ -694,17 +713,18 @@ protected:
         {
           link_pos_B = cross_link_candidate.cross_link_position.second;
         }
-        specGen.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 2, link_pos_B);
+        specGen_full.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 2, link_pos_B);
         if (type_is_cross_link)
         {
-          specGen.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
-          specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 1, precursor_charge);
-          specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, precursor_mass, false, 1, precursor_charge);
-          specGen.getComplexXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, 1, 3);
+          specGen_full.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
+          specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 1, precursor_charge);
+          specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, precursor_mass, false, 1, precursor_charge);
+          // TODO complex peaks count as alpha for now,  add them to both alpha and beta? or start a third ion category?
+          specGen_full.getComplexXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, 1, 3);
         } else
         {
           // Function for mono-links or loop-links
-          specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 2, precursor_charge, link_pos_B);
+          specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 2, precursor_charge, link_pos_B);
         }
 
         // Something like this can happen, e.g. with a loop link connecting the first and last residue of a peptide
