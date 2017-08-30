@@ -61,36 +61,67 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page TOPP_FeatureFinderMetaboIdent FeatureFinderMetaboIdent
+   @page UTILS_FeatureFinderMetaboIdent FeatureFinderMetaboIdent
 
-   @brief Detects features in MS1 data based on metabolite identifications.
+   @brief Detects features in MS1 data corresponding to small molecule identifications.
 
    <CENTER>
      <table>
        <tr>
-         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-         <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderMetaboIdent \f$ \longrightarrow \f$</td>
-         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+         <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+         <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FeatureFinderMetaboIdent \f$ \longrightarrow \f$</td>
+         <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
        </tr>
        <tr>
-         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes (optional) </td>
-         <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_ProteinQuantifier</td>
-       </tr>
-       <tr>
-         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+         <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes (optional) </td>
+         <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_TextExporter</td>
        </tr>
      </table>
    </CENTER>
 
-   This tool detects quantitative features in MS1 data based on information from metabolite identifications.
+   This tool detects quantitative features in MS1 data for a list of targets, typically small molecule/metabolite identifications.
    It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
 
-   The aim is to detect features that enable the quantification of (ideally) all entries in the identification input.
+   @note This tool is still experimental!
+
+   @see @ref TOPP_FeatureFinderIdentification - targeted feature detection based on peptide identifications.
+
+   <B>Input format</B>
+
+   The targets to quantify have to be specified in a tab-separated text file that is passed via the @p id parameter.
+   This file has to start with the following header line, defining its columns:
+   <pre>
+   <TT>Name    Formula    Mass    Charge    RT    RT_range    Iso_distrib</TT>
+   </pre>
+
+   Every subsequent line defines a target.
+   (Except lines starting with "#", which are considered as comments and skipped.)
+   The following requirements apply:
+   - @p Name: unique name for the target compound
+   - @p Formula: chemical sum formula (see @ref OpenMS::EmpiricalFormula), optional
+   - @p Mass: neutral mass; if zero calculated from @p Formula
+   - @p Charge: charge state, or comma-separated list of multiple charges
+   - @p RT: retention time (RT), or comma-separated list of multiple RTs
+   - @p RT_range: RT window around @p RT for chromatogram extraction, either one value or one per @p RT entry; if zero parameter @p extract:rt_window is used
+   - @p Iso_distrib: comma-separated list of relative abundances of isotopologues (see @ref OpenMS::IsotopeDistribution); if zero calculated from @p Formula
+
+   In the simplest case, only @p Name, @p Formula, @p Charge and @p RT need to be given, all other values may be zero.
+   Every combination of compound (mass), RT and charge defines one target for feature detection.
+
+   <B>Output format</B>
+
+   The main output (parameter @p out) is a featureXML file containing the detected features, with annotations in meta data entries.
+   This file can be visualized in TOPPView - perhaps most usefully as a layer on top of the LC-MS data that gave rise to it.
+   Compound annotations of features (@p Name entries from the @p id input) can be shown by clicking the "Show feature annotation" button in the tool bar and selecting "Label meta data".
+   Positions of targets for which no feature was detected can be shown by clicking the "Show unassigned peptide identifications" button and selecting "Show label meta data".
+
+   To export the data from the featureXML file to a tabular text file (CSV), use @ref TOPP_TextExporter with the options @p no_ids and <TT>feature:add_metavalues 0</TT> (to include all meta data annotations).
+   In the result, the information from the @p Name, @p Formula, @p Charge and @p RT columns from the input will be in the @p label, @p formula, @p charge and @p expected_rt columns, respectively.
 
    <B>The command line parameters of this tool are:</B>
-   @verbinclude TOPP_FeatureFinderMetaboIdent.cli
+   @verbinclude UTILS_FeatureFinderMetaboIdent.cli
    <B>INI file documentation of this tool:</B>
-   @htmlinclude TOPP_FeatureFinderMetaboIdent.html
+   @htmlinclude UTILS_FeatureFinderMetaboIdent.html
 
 */
 
