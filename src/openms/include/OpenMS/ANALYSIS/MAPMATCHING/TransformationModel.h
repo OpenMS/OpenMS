@@ -95,7 +95,11 @@ namespace OpenMS
     bool checkValidWeight(const std::string& weight, const std::vector<std::string>& valid_weights) const;
 
     /**
-    @brief Check that the data is within the valid min and max bounds
+    @brief Check that the datum is within the valid min and max bounds.
+
+    The method checks if the datum is within the user specified min and max bounds.
+    If the datum is below the min bounds, the min bound is returned.
+    If the datum is above the max bounds, the max bound is returned.
     */
     double checkDatumRange(const double& datum, const double& datum_min, const double& datum_max);
  
