@@ -196,7 +196,7 @@ namespace OpenMS
       // Insert run_id information
       std::stringstream sql_run;
       sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
-              << *(int64_t*)&run_id_ << ", '"
+              << *(int64_t*)&run_id_ << ", '" // Conversion from UInt64 to int64_t to support SQLite
               << input_filename_ << "'); ";
 
       // Execute SQL insert statement
@@ -235,7 +235,7 @@ namespace OpenMS
       for (FeatureMap::iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
       {
         UInt64 uint64_feature_id = feature_it->getUniqueId();
-        int64_t feature_id = *(int64_t*)&uint64_feature_id;
+        int64_t feature_id = *(int64_t*)&uint64_feature_id; // Conversion from UInt64 to int64_t to support SQLite
 
         for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
         {
