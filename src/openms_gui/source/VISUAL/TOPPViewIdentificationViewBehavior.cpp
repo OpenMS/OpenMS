@@ -499,7 +499,7 @@ namespace OpenMS
       bool has_beta = frag_annotations[i].annotation.hasSubstring(String("beta|"));
       // if it has both, it is a complex fragment and more difficult to parse
       // those are ignored for the coverage indicator for now
-      if ( has_alpha ^ has_beta )
+      if ( has_alpha != has_beta )
       {
         vector<String> dol_split;
         frag_annotations[i].annotation.split("$", dol_split);
