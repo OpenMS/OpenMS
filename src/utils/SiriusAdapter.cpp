@@ -139,29 +139,41 @@ protected:
     // Parsing parameters
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
-    String out_sirius = getStringOption_("out_sirius");
-    String out_csifingerid = getStringOption_("out_CSIFingerID");
+    const String in = getStringOption_("in");
+    const String out_sirius = getStringOption_("out_sirius");
+    const String out_csifingerid = getStringOption_("out_CSIFingerID");
 
     // needed for counting
-    int number_compounds = getIntOption_("number") + 1;  // +1 needed to write the correct number of compounds
+    const int number_compounds = getIntOption_("number") + 1;  // +1 needed to write the correct number of compounds
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
-    QString profile = getStringOption_("profile").toQString();
-    QString elements = getStringOption_("elements").toQString();
-    QString database = getStringOption_("database").toQString();    
-    QString isotope = getStringOption_("isotope").toQString();
-    QString noise = QString::number(getIntOption_("noise"));
-    QString ppm_max = QString::number(getIntOption_("ppm_max"));
-    QString candidates = QString::number(getIntOption_("candidates"));
+    const QString profile = getStringOption_("profile").toQString();
+    const QString elements = getStringOption_("elements").toQString();
+    const QString database = getStringOption_("database").toQString();
+    const QString isotope = getStringOption_("isotope").toQString();
+    const QString noise = QString::number(getIntOption_("noise"));
+    const QString ppm_max = QString::number(getIntOption_("ppm_max"));
+    const QString candidates = QString::number(getIntOption_("candidates"));
 
-    QString path_to_executable = File::path(getStringOption_("executable")).toQString();
+    const bool auto_charge = getFlag_("auto_charge");
+    const bool no_recalibration = getFlag_("no_recalibration");
+    const bool fingerid = getFlag_("fingerid");
+    const bool iontree = getFlag_("iontree");
 
-    bool auto_charge = getFlag_("auto_charge");
-    bool no_recalibration = getFlag_("no_recalibration");
-    bool fingerid = getFlag_("fingerid");
-    bool iontree = getFlag_("iontree");
+
+    //-------------------------------------------------------------
+    // Determination of the Executable
+    //-------------------------------------------------------------
+
+    // Parameter executable not provided
+    if (executable.isEmpty())
+    {
+      const QProcessEnvironment env;
+      const QString & qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
+      executable = qsiriuspathenv.isEmpty() ? "sirius" : qsiriuspathenv;
+    }
+    const QString & path_to_executable = File::path(executable).toQString();
 
     //-------------------------------------------------------------
     // Calculations
@@ -173,7 +185,6 @@ protected:
     f.load(in, spectra);
     std::vector<String> subdirs;
 
-
     QString tmp_base_dir = File::getTempDirectory().toQString();
     QString tmp_dir = QDir(tmp_base_dir).filePath(File::getUniqueName().toQString());
 
@@ -183,19 +194,8 @@ protected:
     //Write msfile
     SiriusMSFile::store(spectra, tmp_ms_file);
 
-    //Knime hack
-    QProcessEnvironment env;
-    String siriuspath = "SIRIUS_PATH";
-    QString qsiriuspath = env.systemEnvironment().value(siriuspath.toQString());
-
-    // TODO Is it correct that the executable argument is ignored if the SIRIUS_PATH is not empty?
-    if (!qsiriuspath.isEmpty())
-    {
-      executable = qsiriuspath;
-    }
-
-    //Start Sirius
-    QStringList process_params; // the actual process
+    // Assemble SIRIUS parameters
+    QStringList process_params;
     process_params << "-p" << profile
                    << "-e" << elements
                    << "-d" << database
@@ -204,8 +204,9 @@ protected:
                    << "--candidates" << candidates
                    << "--ppm-max" << ppm_max
                    << "--quiet"
-                   << "--output" << out_dir.toQString(); //internal output folder for temporary
+                   << "--output" << out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
 
+    // Add flags
     if (no_recalibration)
     {
       process_params << "--no-recalibration";
@@ -225,16 +226,22 @@ protected:
 
     process_params << tmp_ms_file.toQString();
 
+    // The actual process
     QProcess qp;
-    qp.workingDirectory();
     qp.setWorkingDirectory(path_to_executable); //since library paths are relative to sirius executable path
     qp.start(executable, process_params); // does automatic escaping etc... start
-    bool success = qp.waitForFinished(-1); // wait till job is finished
+    const bool success = qp.waitForFinished(-1); // wait till job is finished
     qp.close();
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input" );
+      writeLog_( "FATAL: External invocation of Sirius failed. Standard output and error were:");
+      const QString sirius_stdout(qp.readAllStandardOutput());
+      const QString sirius_stderr(qp.readAllStandardOutput());
+      writeLog_(sirius_stdout);
+      writeLog_(sirius_stderr);
+
+      return EXTERNAL_PROGRAM_ERROR;
     }
 
     //-------------------------------------------------------------

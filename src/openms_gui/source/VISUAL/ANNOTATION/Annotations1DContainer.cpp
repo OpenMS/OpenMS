@@ -195,4 +195,16 @@ namespace OpenMS
     }
   }
 
+  std::vector<Annotation1DItem*> Annotations1DContainer::getSelectedItems()
+  {
+    // initialize with maximal possible size
+    std::vector<Annotation1DItem*> annotation_items(size());
+    // copy if is selected
+    auto it = std::copy_if(begin(), end(), annotation_items.begin(), [](Annotation1DItem* anno){return anno->isSelected();});
+    // resize to number of actually copied items
+    annotation_items.resize(std::distance(annotation_items.begin(), it));
+
+    return annotation_items;
+  }
+
 } //Namespace
