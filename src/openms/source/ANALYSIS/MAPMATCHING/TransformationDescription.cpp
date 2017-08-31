@@ -48,7 +48,7 @@ using namespace std;
 namespace OpenMS
 {
   TransformationDescription::TransformationDescription() :
-    data_(TransformationDescription::DataPoints()), 
+    data_(TransformationDescription::DataPoints()),
     model_type_("none"),
     model_(new TransformationModel())
   {
@@ -252,7 +252,7 @@ namespace OpenMS
     }
     // else:
     getDeviations(diffs, true);
-    os << "Summary of x/y deviations after applying '" << model_type_ 
+    os << "Summary of x/y deviations after applying '" << model_type_
        << "' transformation:\n";
     for (Size i = 0; i < 7; ++i)
     {
