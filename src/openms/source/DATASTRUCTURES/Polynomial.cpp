@@ -37,6 +37,7 @@
 #include <boost/utility.hpp>
 #include <algorithm>
 #include <functional>
+#include <iterator>
 
 using namespace std;
 
@@ -72,11 +73,10 @@ namespace OpenMS
 
   void CounterSet::RangeCounter::setMaxAllowedValue(UInt counters_range)
   {
-    max_allowed_ = counters_range < max_ - min_ ? counters_range + min_ : max_;
-    max_ = max_allowed_;
+    max_allowed_ = min({counters_range + min_ , max_});
   }
 
-  CounterSet::CounterSet(UInt n): N(n), has_next(true)
+  CounterSet::CounterSet(UInt n): N(n), has_next(true), first(true)
   {
   }
 
@@ -88,10 +88,6 @@ namespace OpenMS
       it->reset();
     }
     min_sum = accumulate(counters.begin(), counters.end(), 0);
-    if(min_sum > N)
-    {
-      has_next = false;
-    }
 
     for(Ranges::reverse_iterator it = range_counters.rbegin(); it != range_counters.rend(); ++it)
     {
@@ -114,14 +110,29 @@ namespace OpenMS
       LOG_WARN << "Overflow in counter set" << endl;
       return *this;
     }
+    
 
     prepare();
     
+    if(range_counters.front().getValue() == range_counters.front().maxAllowed() && distance(range_counters.begin(), count_it.base()) == 1)
+    {
+      // Nasty Nasty bug fix
+      if(first)
+      {
+        first = false;
+      }
+      else
+      {
+        has_next = false;
+      }
+    }
+
     for(Ranges::reverse_iterator it = range_counters.rbegin(); it != count_it; ++it)
     {
       
       RangeCounter& range = *it;
       UInt remain = (range += (N - sum()));
+      
       if(remain == 0)
       {
         count_it = it;
@@ -136,6 +147,8 @@ namespace OpenMS
             }
           }
         }
+
+    
         return *this;
       }
     }
@@ -178,7 +191,8 @@ namespace OpenMS
               break;
             }
           }
-          if(sum() > N )
+          
+          if(sum() > N)
           {
             has_next = false;
           }

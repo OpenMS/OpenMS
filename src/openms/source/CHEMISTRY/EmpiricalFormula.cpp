@@ -121,7 +121,13 @@ namespace OpenMS
           non_trace_isotopes++;
         }
       }
-      total *= boost::math::binomial_coefficient<double>(UInt(element.second), non_trace_isotopes);
+      if(non_trace_isotopes>1 && element.second!=1)
+      {
+        total *= boost::math::binomial_coefficient<double>(UInt(element.second), non_trace_isotopes);
+      }else
+      {
+        total *= element.second*non_trace_isotopes;
+      }
     }
     return total;
   }

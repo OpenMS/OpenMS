@@ -83,6 +83,7 @@ namespace OpenMS
     std::vector<RangeCounter> range_counters;
     ContainerType counters;
     bool has_next;
+    bool first;
     Ranges::reverse_iterator count_it;
     
     void prepare();
