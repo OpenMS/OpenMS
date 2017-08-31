@@ -126,6 +126,8 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-documentation
                   -Wno-source-uses-openmp
                   -Wno-old-style-cast
+                  -Wno-c++98-compat
+                  -Wno-c++98-compat-pedantic
                   # These are warnings of moderate severity, which are disabled
                   # for now until we are down to a reasonable size of warnings.
                   -Wno-conversion
@@ -133,6 +135,11 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-switch-enum
                   -Wno-missing-prototypes
                   -Wno-missing-variable-declarations
+                  -Wno-deprecated
+                  -Wno-deprecated-register
+                  -Wno-covered-switch-default
+                  -Wno-date-time
+                  -Wno-missing-noreturn
                   )
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")

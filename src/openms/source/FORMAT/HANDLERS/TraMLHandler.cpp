@@ -875,7 +875,7 @@ namespace OpenMS
 
           // Output transition type (only write if non-default, otherwise assume default)
           // Default is: true, false, true
-          // NOTE: do not change that, the same default is implicitely assumed in ReactionMonitoringTransition
+          // NOTE: do not change that, the same default is implicitly assumed in ReactionMonitoringTransition
           if (!it->isDetectingTransition())
           {
               os << "      <userParam name=\"detecting_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";

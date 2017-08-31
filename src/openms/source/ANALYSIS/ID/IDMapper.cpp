@@ -269,7 +269,7 @@ namespace OpenMS
     for (Size ui = 0; ui != unidentified.size(); ++ui)
     {
       Size spectrum_index = unidentified[ui];
-      const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+      const MSSpectrum& spectrum = spectra[spectrum_index];
       const vector<Precursor>& precursors = spectrum.getPrecursors();
 
       bool precursor_mapped(false);
@@ -327,7 +327,7 @@ namespace OpenMS
                   Size map_index = it_handle->getMapIndex();
 
                   // we use no undesrscore here to be compatible with linkers
-                  precursor_empty_id.setMetaValue("map_index", String(map_index));
+                  precursor_empty_id.setMetaValue("map_index", map_index);
                 }
                 map[cm_index].getPeptideIdentifications().push_back(precursor_empty_id);
                 ++assigned_precursors[spectrum_index];
@@ -596,7 +596,7 @@ namespace OpenMS
     for (Size i = 0; i != unidentified.size(); ++i)
     {
       Size spectrum_index = unidentified[i];
-      const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+      const MSSpectrum& spectrum = spectra[spectrum_index];
       const vector<Precursor>& precursors = spectrum.getPrecursors();
 
       // check if precursor has been identified

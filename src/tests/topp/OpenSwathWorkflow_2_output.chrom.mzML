@@ -69,12 +69,6 @@
 	</instrumentConfigurationList>
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000592" name="smoothing" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
@@ -101,17 +95,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAABuAAAA0gAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgzwgvgTEHVDQAAAzkQZl</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMGagAAAAAAjp7e5Jspq2H/kYu4U9pP73/75/9/+k/sU9mLuf+Rq2CbKt7kjpw==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJwBLgDR/0DBmoAAAAAAI6e3uSbKath/5GLuFPaT+9/++f/f/pP7FPZi7n/katgmyre5I6dDrBs8</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -132,17 +126,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAABuAAAA0gAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgzwgvgTEHVDQAAAzkQZl</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMN1AAAAAAAZnn6ylsRQ1KThjuwN9R/7w/76/8P+H/sN9Y7spOFQ1JbEfrIZng==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJxzOFzKAAKS8+o2TTsScGXJw743vF/lfx/+9+v/4X/yv3m/9r1Z8jDgyrQjdZsk5wEAG4YZ9A==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -163,17 +157,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAABuAAAA0gAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgzwgvgTEHVDQAAAzkQZl</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMS7gAAAAAABmJetysCB0a7fTOtW9M36rv75/67+zfpW9Ezrrt+B0crAl60BmA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJwBLgDR/0DEu4AAAAAAAZiXrcrAgdGu30zrVvTN+q7++f+u/s36VvRM667fgdHKwJetAZhkPRys</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -194,17 +188,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAAB4AAAA3AAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgwogvgPEHVDQAAA0vQZ5</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMGagAAAAAB6kiOnt7kmymrYf+Ri7hT2k/vf/vn/3/6T+xT2Yu5/5GrYJsq3uQ==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJwBLgDR/0DBmoAAAAAAepIjp7e5Jspq2H/kYu4U9pP73/75/9/+k/sU9mLuf+Rq2CbKt7k5SRt+</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -225,17 +219,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAAB4AAAA3AAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgwogvgPEHVDQAAA0vQZ5</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="72">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMN1AAAAAACIhxmefrKWxFDUpOGO7A31H/vD/vr/w/4f+w31juyk4VDUlsR+sg==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJxzOFzKAAId7ZLz6jZNOxJwZcnDvje8X+V/H/736//hf/K/eb/2vVnyMODKtCN1mwAS4RpM</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -256,17 +250,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAAB4AAAA3AAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgwogvgPEHVDQAAA0vQZ5</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMS7gAAAAAA8gAGYl63KwIHRrt9M61b0zfqu/vn/rv7N+lb0TOuu34HRysCXrQ==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJwBLgDR/0DEu4AAAAAAPIABmJetysCB0a7fTOtW9M36rv75/67+zfpW9Ezrrt+B0crAl61LZRzP</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -287,17 +281,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAACCAAAA5gAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgyYgfgbEHVDQAAA16QaN</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMGagAAAAADhe3qSI6e3uSbKath/5GLuFPaT+9/++f/f/pP7FPZi7n/katgmyg==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJwBLgDR/0DBmoAAAAAA4Xt6kiOnt7kmymrYf+Ri7hT2k/vf/vn/3/6T+xT2Yu5/5GrYJso6axtq</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -318,17 +312,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAACCAAAA5gAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgyYgfgbEHVDQAAA16QaN</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="72">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMN1AAAAAAAWb4iHGZ5+spbEUNSk4Y7sDfUf+8P++v/D/h/7DfWO7KThUNSWxA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJxzOFzKAAJi+R3tkvPqNk07EnBlycO+N7xf5X8f/vfr/+F/8r95v/a9WfIw4Mq0IwD1LRmh</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -349,17 +343,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAACCAAAA5gAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgyYgfgbEHVDQAAA16QaN</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMS7gAAAAAC7ZjyAAZiXrcrAgdGu30zrVvTN+q7++f+u/s36VvRM667fgdHKwA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJwBLgDR/0DEu4AAAAAAu2Y8gAGYl63KwIHRrt9M61b0zfqu/vn/rv7N+lb0TOuu34HRysBBdBys</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -380,17 +374,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAACMAAAA8AAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgx4g/gDEHVDQAAA3FQah</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMGagAAAAACoY+F7epIjp7e5Jspq2H/kYu4U9pP73/75/9/+k/sU9mLuf+Rq2A==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJwBLgDR/0DBmoAAAAAAqGPhe3qSI6e3uSbKath/5GLuFPaT+9/++f/f/pP7FPZi7n/katgv2BuF</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -411,17 +405,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAACMAAAA8AAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgx4g/gDEHVDQAAA3FQah</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="72">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMN1AAAAAABoVRZviIcZnn6ylsRQ1KThjuwN9R/7w/76/8P+H/sN9Y7spOFQ1A==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJxzOFzKAAIZoWL5He2S8+o2TTsScGXJw743vF/lfx/+9+v/4X/yv3m/9r1Z8jDgCgDhWhkE</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -442,17 +436,17 @@
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="36">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002312" name="MS-Numpress linear prediction compression" />
-						<binary>QCQAAAAAAACMAAAA8AAAAIiIiIiIiIiIgA==</binary>
+						<cvParam cvRef="MS" accession="MS:1002746" name="MS-Numpress linear prediction compression followed by zlib compression" />
+						<binary>eJxzUGEAgx4g/gDEHVDQAAA3FQah</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002314" name="MS-Numpress short logged float compression" />
-						<binary>QMS7gAAAAABwTLtmPIABmJetysCB0a7fTOtW9M36rv75/67+zfpW9Ezrrt+B0Q==</binary>
+						<cvParam cvRef="MS" accession="MS:1002748" name="MS-Numpress short logged float compression followed by zlib compression" />
+						<binary>eJwBLgDR/0DEu4AAAAAAcEy7ZjyAAZiXrcrAgdGu30zrVvTN+q7++f+u/s36VvRM667fgdEo+Bve</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
@@ -461,20 +455,20 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="1">5584</offset>
-		<offset idRef="2">7415</offset>
-		<offset idRef="3">9246</offset>
-		<offset idRef="4">11077</offset>
-		<offset idRef="5">12908</offset>
-		<offset idRef="6">14739</offset>
-		<offset idRef="7">16570</offset>
-		<offset idRef="8">18401</offset>
-		<offset idRef="9">20232</offset>
-		<offset idRef="10">22063</offset>
-		<offset idRef="11">23895</offset>
-		<offset idRef="12">25728</offset>
+		<offset idRef="1">5250</offset>
+		<offset idRef="2">7143</offset>
+		<offset idRef="3">9036</offset>
+		<offset idRef="4">10929</offset>
+		<offset idRef="5">12822</offset>
+		<offset idRef="6">14711</offset>
+		<offset idRef="7">16604</offset>
+		<offset idRef="8">18497</offset>
+		<offset idRef="9">20386</offset>
+		<offset idRef="10">22279</offset>
+		<offset idRef="11">24173</offset>
+		<offset idRef="12">26064</offset>
 	</index>
 </indexList>
-<indexListOffset>27592</indexListOffset>
+<indexListOffset>27993</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

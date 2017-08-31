@@ -46,6 +46,8 @@
 // QT
 class QPainter;
 class QMouseEvent;
+class QAction;
+class QMenu;
 
 namespace OpenMS
 {
@@ -142,6 +144,9 @@ protected slots:
 protected:
     // Docu in base class
     bool finishAdding_();
+
+    /// Collects fragment ion scans in the indicated RT/mz area and adds them to the indicated action
+    bool collectFragmentScansInArea(double rt_min, double rt_max, double mz_min, double mz_max, QAction* a, QMenu * msn_scans, QMenu * msn_meta);
 
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawCoordinates_(QPainter& painter, const PeakIndex& peak);

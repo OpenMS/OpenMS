@@ -333,7 +333,7 @@ protected:
           exp[i].push_back(tmp_exp[i][j]);
         }
       }
-      std::vector<MSChromatogram<ChromatogramPeak> > old_chromatograms = exp.getChromatograms();
+      std::vector<MSChromatogram > old_chromatograms = exp.getChromatograms();
       for (Size i=0; i < tmp_exp.getChromatograms().size(); ++i)
       {
         for (Size j = 0; j < tmp_exp.getChromatograms()[i].size(); j++)
@@ -361,7 +361,7 @@ protected:
         {
           consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
           consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
-          // f.getOptions().setCompression(true); // maybe later.
+          consumer.getOptions().setCompression(true);
         }
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
 
@@ -427,7 +427,7 @@ protected:
       {
         f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
         f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
-        // f.getOptions().setCompression(true); // maybe later.
+        f.getOptions().setCompression(true);
       }
 
       ChromatogramTools().convertSpectraToChromatograms(exp, true);

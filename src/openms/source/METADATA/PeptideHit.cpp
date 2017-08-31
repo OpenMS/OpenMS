@@ -245,12 +245,12 @@ namespace OpenMS
     return accessions;
   }
 
-  std::vector<PeptideHit::FragmentAnnotation> PeptideHit::getFragmentAnnotations() const
+  std::vector<PeptideHit::PeakAnnotation> PeptideHit::getPeakAnnotations() const
   {
     return fragment_annotations_;
   }
 
-  void PeptideHit::setFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> frag_annotations)
+  void PeptideHit::setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations)
   {
     fragment_annotations_ = frag_annotations;
   }

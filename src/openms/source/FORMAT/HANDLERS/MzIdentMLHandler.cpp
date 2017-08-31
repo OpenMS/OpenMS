@@ -357,7 +357,7 @@ namespace OpenMS
         if (cv_ref == "UNIMOD")
         {
           set<const ResidueModification*> mods;
-          Int loc = numeric_limits<Size>::max();
+          Int loc = numeric_limits<Int>::max();
           if (optionalAttributeAsInt_(loc, attributes, "location"))
           {
             String uni_mod_id = accession.suffix(':');
@@ -533,7 +533,8 @@ namespace OpenMS
         sip += "\t\t</AdditionalSearchParams>\n";
         // modifications:
         if (search_params.fixed_modifications.empty() &&
-            search_params.variable_modifications.empty())
+            search_params.variable_modifications.empty()
+            && (!is_ppxl)) // TODO some OpenPepXL modifications are not covered by the unimod.obo and cause problems in the search_params
         {
           // no modifications used or are they just missing from the parameters?
           ModificationDefinitionsSet mod_defs;
@@ -953,22 +954,13 @@ namespace OpenMS
             if (jt->metaValueExists("xl_chain") && jt->getMetaValue("xl_type") != "mono-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv) <- check for use of unimod:DSS use
             {
               int i = jt->getMetaValue("xl_pos").toString().toInt();
-//              p += "\t\t<Modification location=\"" + String(i + 1);
-//              p += "\" residues=\"" + String(jt->getSequence()[i].getOneLetterCode());
               if (jt->getMetaValue("xl_chain") == "MS:1002509")  // N.B. longer one is the donor, equals the heavier, equals, the alphabetical first
               {
-//                ModificationsDB* xl_db = ModificationsDB::getInstance();
                 CrossLinksDB* xl_db = CrossLinksDB::getInstance();
                 std::vector<String> mods;
-                xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, String(jt->getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
-                if (mods.size() > 0)
-                {
-                  p += "\t\t<Modification location=\"" + String(i + 1);
-                }
-
                 if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
                 {
-                  ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::N_TERM);
+                  xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::N_TERM);
                   if (mods.size() > 0)
                   {
                     p += "\t\t<Modification location=\"0";
@@ -976,10 +968,18 @@ namespace OpenMS
                 }
                 else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
                 {
-                  ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::C_TERM);
+                  xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, "", ResidueModification::C_TERM);
                   if (mods.size() > 0)
                   {
                     p += "\t\t<Modification location=\"" + String(i + 2);
+                  }
+                }
+                else
+                {
+                  xl_db->searchModificationsByDiffMonoMass(mods, double(jt->getMetaValue("xl_mass")), 0.0001, String(jt->getSequence()[i].getOneLetterCode()), ResidueModification::ANYWHERE);
+                  if (mods.size() > 0)
+                  {
+                    p += "\t\t<Modification location=\"" + String(i + 1);
                   }
                 }
 
@@ -1208,9 +1208,9 @@ namespace OpenMS
             sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/>\n";
           }
 
-          if (! jt->getFragmentAnnotations().empty())
+          if (! jt->getPeakAnnotations().empty())
           {
-            writeFragmentAnnotations_(sii_tmp, jt->getFragmentAnnotations(), 5, is_ppxl);
+            writeFragmentAnnotations_(sii_tmp, jt->getPeakAnnotations(), 5, is_ppxl);
           }
 
           std::set<String> peptide_result_details;
@@ -1655,10 +1655,10 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent, bool is_ppxl) const
+    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const
     {
       std::map<UInt,std::map<String,std::vector<StringList> > > annotation_map;
-      for (std::vector<PeptideHit::FragmentAnnotation>::const_iterator kt = annotations.begin();
+      for (std::vector<PeptideHit::PeakAnnotation>::const_iterator kt = annotations.begin();
              kt != annotations.end(); ++kt)
       {// string coding example: [alpha|ci$y3-H2O-NH3]5+
         // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one

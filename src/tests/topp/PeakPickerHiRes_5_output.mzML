@@ -39,12 +39,6 @@
 	</instrumentConfigurationList>
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000035" name="peak picking" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
@@ -152,11 +146,11 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="YLYEIAR/2_i0">3567</offset>
-		<offset idRef="YLYEIAR/2_i1">5292</offset>
-		<offset idRef="YLYEIAR/2_i2">7017</offset>
+		<offset idRef="YLYEIAR/2_i0">3233</offset>
+		<offset idRef="YLYEIAR/2_i1">4958</offset>
+		<offset idRef="YLYEIAR/2_i2">6683</offset>
 	</index>
 </indexList>
-<indexListOffset>8773</indexListOffset>
+<indexListOffset>8442</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -44,8 +44,8 @@
 namespace OpenMS
 {
 
-
-  CalibrationData::CalibrationData() : data_(),
+  CalibrationData::CalibrationData() :
+    data_(),
     use_ppm_(true),
     groups_()
   {
@@ -77,7 +77,6 @@ namespace OpenMS
     return data_.end();
   }
 
-
   Size CalibrationData::size() const
   {
     return data_.size();
@@ -90,9 +89,8 @@ namespace OpenMS
 
   void CalibrationData::clear()
   {
-    data_.clear(true); // with meta (not used, but to be save)
+    data_.clear();
   }
-
 
   void CalibrationData::setUsePPM( bool usePPM )
   {
@@ -104,7 +102,12 @@ namespace OpenMS
     return use_ppm_;
   }
 
-  void CalibrationData::insertCalibrationPoint( CalDataType::CoordinateType rt, CalDataType::CoordinateType mz_obs, CalDataType::IntensityType intensity, CalDataType::CoordinateType mz_ref, double weight, int group /*= -1*/ )
+  void CalibrationData::insertCalibrationPoint( CalDataType::CoordinateType rt,
+                                                CalDataType::CoordinateType mz_obs,
+                                                CalDataType::IntensityType intensity,
+                                                CalDataType::CoordinateType mz_ref,
+                                                double weight,
+                                                int group /*= -1*/ )
   {
     RichPeak2D p(Peak2D::PositionType(rt, mz_obs), intensity);
     p.setMetaValue("mz_ref", mz_ref);
@@ -126,25 +129,40 @@ namespace OpenMS
 
   CalibrationData::CalDataType::CoordinateType CalibrationData::getError( Size i ) const
   {
-    if (use_ppm_) return data_[i].getMetaValue("ppm_error");
-    else return (data_[i].getMZ() - getRefMZ(i));
+    if (use_ppm_)
+    {
+      return data_[i].getMetaValue("ppm_error");
+    }
+    else
+    {
+      return (data_[i].getMZ() - getRefMZ(i));
+    }
   }
 
   CalibrationData::CalDataType::CoordinateType CalibrationData::getRefMZ( Size i ) const
   {
-    if (!data_[i].metaValueExists("mz_ref")) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "getRefMz() received invalid point without meta data!");
+    if (!data_[i].metaValueExists("mz_ref"))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "getRefMz() received invalid point without meta data!");
+    }
+
     return data_[i].getMetaValue("mz_ref");
   }
 
   CalibrationData::CalDataType::CoordinateType CalibrationData::getWeight( Size i ) const
   {
-    if (!data_[i].metaValueExists("weight")) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "getWeight() received invalid point without meta data!");
+    if (!data_[i].metaValueExists("weight"))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "getWeight() received invalid point without meta data!");
+    }
     return data_[i].getMetaValue("weight");
   }
 
   int CalibrationData::getGroup( Size i ) const
   {
-    if (!data_[i].metaValueExists("peakgroup")) return -1;
+    if (!data_[i].metaValueExists("peakgroup")) { return -1; }
     return data_[i].getMetaValue("peakgroup");
   }
 
@@ -177,7 +195,7 @@ namespace OpenMS
           mz_ref = getRefMZ(j);
         }
       }
-      if (ints.empty()) continue; // no data points for this peak group in this RT range
+      if (ints.empty()) { continue; } // no data points for this peak group in this RT range
       double int_median = Math::median(ints.begin(), ints.end());
       cd.insertCalibrationPoint(rt, Math::median(mzs.begin(), mzs.end()), int_median, mz_ref, log(int_median));
     }

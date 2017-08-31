@@ -142,6 +142,7 @@
         <ITEMLIST name="in" type="input-file" description="input files separated by blanks" required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML">
         </ITEMLIST>
         <ITEM name="out" value="" type="output-file" description="Output file" required="true" advanced="false" supported_formats="*.consensusXML" />
+        <ITEM name="design" value="" type="input-file" description="input file containing the experimental design" required="false" advanced="false" supported_formats="*.tsv" />
         <ITEM name="keep_subelements" value="false" type="string" description="For consensusXML input only: If set, the sub-features of the inputs are transferred to the output." required="false" advanced="false" restrictions="true,false" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />

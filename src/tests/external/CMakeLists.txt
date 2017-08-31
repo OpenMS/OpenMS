@@ -46,6 +46,6 @@ else(OpenMS_FOUND)
   message(FATAL_ERROR "OpenMSConfig.cmake file not found!")
 endif(OpenMS_FOUND)
 
-## Enable testing - for Nighlty Build log
+## Enable testing - for Nightly Build log
 include(Dart)
 add_test(TestExternalCode TestExternalCode)

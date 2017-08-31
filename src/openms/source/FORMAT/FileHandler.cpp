@@ -107,6 +107,12 @@ namespace OpenMS
     return FileTypes::nameToType(tmp);
   }
 
+  bool FileHandler::hasValidExtension(const String& filename, const FileTypes::Type type)
+  {
+    FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
+    return (ft == type || ft == FileTypes::UNKNOWN);
+  }
+
   bool FileHandler::isSupported(FileTypes::Type type)
   {
     if (type == FileTypes::UNKNOWN || type == FileTypes::SIZE_OF_TYPE)
@@ -584,7 +590,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       f.getOptions() = options_;
       f.setLogType(log);
       f.load(filename, exp);
-      ChromatogramTools().convertSpectraToChromatograms<PeakMap >(exp, true);
+      ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp, true);
     }
     break;
 

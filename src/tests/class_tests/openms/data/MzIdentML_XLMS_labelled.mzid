@@ -54,7 +54,7 @@
 	</Peptide> 
  	<Peptide id="PEP_14218551181066812980"> 
 		<PeptideSequence>KELLK</PeptideSequence> 
-		<Modification location="1" residues="K" monoisotopicMassDelta="0"> 
+		<Modification location="0" residues="K" monoisotopicMassDelta="0"> 
 			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="5872803454194209283"/>
 		</Modification> 
 	</Peptide> 

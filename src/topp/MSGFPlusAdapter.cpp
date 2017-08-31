@@ -53,6 +53,7 @@
 #include <QtCore/QProcess>
 #include <QDir>
 
+#include <algorithm>
 #include <fstream>
 #include <map>
 #include <cstddef>
@@ -114,10 +115,11 @@ public:
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
-    enzymes_(ListUtils::create<String>("unspecific,trypsin,chymotrypsin,LysC,LysN,GluC,ArgC,AspN,alphaLP,no_cleavage")),  // EnzymesDB::getInstance()->getAllNames()
     protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
     tryptic_(ListUtils::create<String>("non,semi,fully"))
   {
+    EnzymesDB::getInstance()->getAllMSGFNames(enzymes_);
+    std::sort(enzymes_.begin(),enzymes_.end());
   }
 
 protected:
@@ -150,7 +152,7 @@ protected:
 
     registerFlag_("add_decoys", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.");
 
-    registerDoubleOption_("precursor_mass_tolerance", "<value>", 20, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
+    registerDoubleOption_("precursor_mass_tolerance", "<value>", 10, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance (MS-GF+ parameter '-t')", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
 
@@ -162,7 +164,7 @@ protected:
     registerStringOption_("instrument", "<choice>", instruments_[0], "Instrument that generated the data ('low_res'/'high_res' refer to LCQ and LTQ instruments; MS-GF+ parameter '-inst')", false);
     setValidStrings_("instrument", instruments_);
 
-    registerStringOption_("enzyme", "<choice>", enzymes_[1], "Enzyme used for digestion, or type of cleavage (MS-GF+ parameter '-e')", false);
+    registerStringOption_("enzyme", "<choice>", enzymes_[6], "Enzyme used for digestion, or type of cleavage. Note: MS-GF+ does not support blocking rules. (MS-GF+ parameter '-e')", false);
     setValidStrings_("enzyme", enzymes_);
 
     registerStringOption_("protocol", "<choice>", protocols_[0], "Labeling or enrichment protocol used, if any (MS-GF+ parameter '-p')", false);
@@ -300,7 +302,7 @@ protected:
       MzMLFile f;
       f.getOptions().addMSLevel(2);
       f.load(exp_name, exp);
-      primary_ms_run_path_ = exp.getPrimaryMSRunPath();
+      exp.getPrimaryMSRunPath(primary_ms_run_path_);
 
       if (exp.getSpectra().empty())
       {
@@ -474,7 +476,7 @@ protected:
     // no need to handle "not found" case - would have given error during parameter parsing:
     Int fragment_method_code = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
-    Int enzyme_code = ListUtils::getIndex<String>(enzymes_, enzyme);
+    Int enzyme_code = EnzymesDB::getInstance()->getEnzyme(enzyme)->getMSGFID();
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 

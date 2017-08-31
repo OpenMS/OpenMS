@@ -227,7 +227,7 @@ public:
     /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
     void setPrimaryMSRunPath(const StringList& s);
     /// get the file path to the first MS run
-    StringList getPrimaryMSRunPath() const;
+    void getPrimaryMSRunPath(StringList& toFill) const;
     //@}
 
 protected:

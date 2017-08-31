@@ -48,7 +48,13 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -141,6 +147,58 @@ public:
   {
   }
 
+private:
+  bool add_ionmatches_(vector<PeptideIdentification>& peptide_identifications, String filename, double tolerance)
+  {
+      TheoreticalSpectrumGenerator tg;
+      Param tgp(tg.getDefaults());
+      tgp.setValue("add_metainfo", "true");
+      tgp.setValue("add_losses", "true");
+      tgp.setValue("add_precursor_peaks", "true");
+      tgp.setValue("add_abundant_immonium_ions", "true");
+      tgp.setValue("add_first_prefix_ion", "true");
+      tgp.setValue("add_y_ions", "true");
+      tgp.setValue("add_b_ions", "true");
+      tgp.setValue("add_a_ions", "true");
+      tgp.setValue("add_x_ions", "true");
+      tg.setParameters(tgp);    
+
+      SpectrumAlignment sa;
+      Param sap = sa.getDefaults();
+      sap.setValue("tolerance", tolerance, "...");
+      sa.setParameters(sap);
+      SpectrumAnnotator annot;
+      bool ret = true;
+      PeakMap expmap;
+      SpectrumLookup lookup;
+      FileHandler().loadExperiment(filename, expmap);
+      lookup.readSpectra(expmap.getSpectra());
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+      for (SignedSize i = 0; i < (SignedSize)peptide_identifications.size(); ++i)
+      {
+        try
+        {
+          String ref = peptide_identifications[i].getMetaValue("spectrum_reference");
+          Size index = lookup.findByNativeID(ref);
+          annot.addIonMatchStatistics(peptide_identifications[i], expmap[index], tg, sa);
+        }
+        catch (Exception::ElementNotFound&)
+        {
+#ifdef _OPENMP
+#pragma omp critical (IDFileConverter_ERROR)
+#endif
+          {
+            LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
+            ret = false;
+          }
+        }
+      }
+    return ret;
+  }
+
 protected:
   void registerOptionsAndFlags_()
   {
@@ -171,6 +229,7 @@ protected:
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
     registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
+    registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
   }
 
   ExitCodes main_(int, const char**)
@@ -335,6 +394,12 @@ protected:
         {
           SpectrumMetaDataLookup::addMissingSpectrumReferences(
             peptide_identifications, mz_file, false, !getFlag_("no_spectra_data_override"), protein_identifications);
+
+          double add_ions = getDoubleOption_("add_ionmatch_annotation");
+          if (add_ions > 0)
+          {
+            add_ionmatches_(peptide_identifications, mz_file, add_ions);
+          }
         }
       }
 
@@ -349,6 +414,12 @@ protected:
         {
           SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(
             peptide_identifications, mz_file, false);
+
+          double add_ions = getDoubleOption_("add_ionmatch_annotation");
+          if (add_ions > 0)
+          {
+            add_ionmatches_(peptide_identifications, mz_file, add_ions);
+          }
         }
       }
 

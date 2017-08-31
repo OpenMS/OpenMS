@@ -56,55 +56,46 @@ namespace OpenMS
 
   String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, String indent, bool use_numpress)
   {
-    if (np.np_compression != MSNumpressCoder::NONE && opt.getCompression() )
-    {
-      // TODO check if zlib AND numpress are allowed at the same time by the standard ... 
-      // It is technically possible, but is illegal according to the standard:
-      //
-      // MUST supply a *child* term of MS:1000572 (binary data compression type) only once
-      //
-      // If you comment out the exception, it will work though.
-      //
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot have numpress and zlib compression at the same time", "numpress, zlib");
-    }
-
-    String np_term;
-    switch (np.np_compression)
-    {
-      case MSNumpressCoder::LINEAR:
-        np_term = "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
-        break;
-      case MSNumpressCoder::PIC:
-        np_term = "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
-        break;
-      case MSNumpressCoder::SLOF:
-        np_term = "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
-        break;
-      case MSNumpressCoder::SIZE_OF_NUMPRESSCOMPRESSION:
-        np_term = "";
-        break;
-      case MSNumpressCoder::NONE:
-        np_term = "";
-        break;
-    }
-
-    // force numpress term to be empty
-    if (!use_numpress) np_term = "";
-
     if (opt.getCompression())
     {
-      return indent + np_term + "\n" + indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
-    }
-    else if (!np_term.empty())
+      if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::LINEAR)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002746\" name=\"MS-Numpress linear prediction compression followed by zlib compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::PIC)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002747\" name=\"MS-Numpress positive integer compression followed by zlib compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::SLOF)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002748\" name=\"MS-Numpress short logged float compression followed by zlib compression\" />";
+      }
+    } else
     {
-      // only return the numpress term if its not empty
-      return indent + np_term;
+      if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
+      {
+        // default
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::LINEAR)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::PIC)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::SLOF)
+      {
+        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
+      }
     }
-    else
-    {
-      // default
-      return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
-    }
+    // default
+    return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
   }
 
   void MzMLHandlerHelper::writeFooter_(std::ostream& os, const PeakFileOptions& options_, 
@@ -331,17 +322,32 @@ namespace OpenMS
     {
       data_.back().compression = true;
     }
-    else if (accession == "MS:1002312") //numpress compression: linear (proposed CV term)
+    else if (accession == "MS:1002312") //numpress compression: linear
     {
       data_.back().np_compression = MSNumpressCoder::LINEAR;
     }
-    else if (accession == "MS:1002313") //numpress compression: pic (proposed CV term)
+    else if (accession == "MS:1002313") //numpress compression: pic
     {
       data_.back().np_compression = MSNumpressCoder::PIC;
     }
-    else if (accession == "MS:1002314") //numpress compression: slof (proposed CV term)
+    else if (accession == "MS:1002314") //numpress compression: slof
     {
       data_.back().np_compression = MSNumpressCoder::SLOF;
+    }
+    else if (accession == "MS:1002746") //numpress compression: linear + zlib
+    {
+      data_.back().np_compression = MSNumpressCoder::LINEAR;
+      data_.back().compression = true;
+    }
+    else if (accession == "MS:1002747") //numpress compression: pic + zlib
+    {
+      data_.back().np_compression = MSNumpressCoder::PIC;
+      data_.back().compression = true;
+    }
+    else if (accession == "MS:1002748") //numpress compression: slof + zlib
+    {
+      data_.back().np_compression = MSNumpressCoder::SLOF;
+      data_.back().compression = true;
     }
     else if (accession == "MS:1000576") // no compression
     {

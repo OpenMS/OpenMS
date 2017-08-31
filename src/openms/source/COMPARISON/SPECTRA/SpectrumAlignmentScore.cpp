@@ -33,11 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <cmath>
-
-#include <boost/math/special_functions/erf.hpp>
 
 using namespace std;
 

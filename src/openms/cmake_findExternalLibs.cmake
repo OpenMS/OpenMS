@@ -33,9 +33,7 @@
 # --------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# This cmake file handles finding external libs for OpenMS (note that the paths
-# for these libraries need to be defined on top-level, see the top-level file
-# cmake/OpenMSBuildSystem_externalLibs.cmake)
+# This cmake file handles finding external libs for OpenMS
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -146,7 +144,7 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "4.6.0")
+SET(QT_MIN_VERSION "4.8.1")
 
 # find qt
 find_package(Qt4 REQUIRED QtCore QtNetwork)

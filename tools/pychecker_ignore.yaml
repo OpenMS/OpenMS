@@ -1265,13 +1265,13 @@ PyOpenMSChecker:
     - OpenMS::IsInIsolationWindow
 
     # internal IDFilter
-    - OpenMS::HasDecoyAnnotation
-    - OpenMS::HasGoodScore
-    - OpenMS::HasMatchingAccession
-    - OpenMS::HasMaxMetaValue
-    - OpenMS::HasMaxRank
-    - OpenMS::HasMetaValue
-    - OpenMS::HasNoHits
+    - OpenMS::IDFilter::HasDecoyAnnotation
+    - OpenMS::IDFilter::HasGoodScore
+    - OpenMS::IDFilter::HasMatchingAccession
+    - OpenMS::IDFilter::HasMaxMetaValue
+    - OpenMS::IDFilter::HasMaxRank
+    - OpenMS::IDFilter::HasMetaValue
+    - OpenMS::IDFilter::HasNoHits
 
     # OPENSWATH classes
     - OpenSwath::mySqrt
@@ -1427,6 +1427,7 @@ PyOpenMSChecker:
     - OpenMS::Internal::XMLHandler::EndParsingSoftly
     - OpenMS::Internal::XTandemInfileNote
     - OpenMS::Internal::XTandemInfileXMLHandler
+    - OpenMS::Internal::XQuestResultXMLHandler
     - OpenMS::SparseVector
     - OpenMS::SparseVector::SparseVectorConstIterator
     - OpenMS::SparseVector::SparseVectorConstReverseIterator

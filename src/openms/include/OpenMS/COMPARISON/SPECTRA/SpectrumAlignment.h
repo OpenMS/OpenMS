@@ -37,9 +37,6 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <vector>
 #include <map>
 #include <utility>

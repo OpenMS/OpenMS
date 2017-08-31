@@ -250,14 +250,12 @@ namespace OpenMS
   }
 
   /// get the file path to the first MS run
-  StringList ProteinIdentification::getPrimaryMSRunPath() const
+  void ProteinIdentification::getPrimaryMSRunPath(StringList& toFill) const
   {
-    StringList ret;
     if (this->metaValueExists("spectra_data"))
     {
-      ret = this->getMetaValue("spectra_data");
+      toFill = this->getMetaValue("spectra_data");
     }
-    return ret;
   }
 
   ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)

@@ -39,7 +39,7 @@ class TestMRMFeatureFinderScoring(unittest.TestCase):
 
         self.assertAlmostEqual(output.size(), 3)
         self.assertAlmostEqual(output[0].getRT(), 3119.092041015, eps)
-        self.assertAlmostEqual(output[0].getIntensity(), 3574.232421875, eps)
+        self.assertAlmostEqual(output[0].getIntensity(), 3614.99755859375, eps)
         self.assertAlmostEqual(output[0].getMetaValue(b"var_xcorr_shape_weighted"), 0.997577965259552, eps)
         self.assertAlmostEqual(output[0].getMetaValue(b"sn_ratio"), 86.00413513183594, eps)
 

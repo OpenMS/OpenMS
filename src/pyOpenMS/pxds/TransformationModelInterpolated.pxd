@@ -20,6 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h
     cdef cppclass Interpolator:
         # wrap-ignore
         # ABSTRACT
+        # no-pxd-import
 
       void init(libcpp_vector[double] x, libcpp_vector[double] y)
 
