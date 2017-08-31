@@ -95,7 +95,7 @@ END_SECTION
 START_SECTION((template < typename SpectrumType > void store(const String &filename, const SpectrumType &spectrum) const ))
 {
   KroenikFile f;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   TEST_EXCEPTION(Exception::NotImplemented, f.store("bla", spec))
 }
 END_SECTION

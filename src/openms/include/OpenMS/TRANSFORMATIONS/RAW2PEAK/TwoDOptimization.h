@@ -301,9 +301,7 @@ protected:
       }
     }
     real_2D_ = real2D;
-    typedef typename InputSpectrumIterator::value_type InputSpectrumType;
-    typedef typename InputSpectrumType::value_type PeakType;
-    typedef MSSpectrum<PeakType> SpectrumType;
+    typedef MSSpectrum SpectrumType;
 
     typename PeakMap::Iterator ms_exp_it = ms_exp.begin();
     typename PeakMap::Iterator ms_exp_it_end = ms_exp.end();
@@ -348,7 +346,7 @@ protected:
       std::cout << "Next scan, rt = " << current_rt << " last_rt: " << last_rt << std::endl;
       std::cout << "---------------------------------------------------------------------------" << std::endl;
 #endif
-      MSSpectrum<PeakType> s;
+      MSSpectrum s;
       s.setRT(current_rt);
       // check if there were scans in between
       if (last_rt == 0 || // are we in the first scan
@@ -852,7 +850,7 @@ protected:
         while (set_iter != set_iter2)
         {
           const Size peak_index = set_iter->second;
-          const MSSpectrum<>& spec = ms_exp[set_iter->first];
+          const MSSpectrum& spec = ms_exp[set_iter->first];
           PeakShape shape(spec.getFloatDataArrays()[1][peak_index], //intensity
                           spec[peak_index].getMZ(),
                           spec.getFloatDataArrays()[3][peak_index], //left width
@@ -895,7 +893,7 @@ protected:
         Size p = 0;
         while (p < peak_shapes.size())
         {
-          MSSpectrum<>& spec = ms_exp[set_iter->first];
+          MSSpectrum& spec = ms_exp[set_iter->first];
           spec[set_iter->second].setMZ(peak_shapes[p].mz_position);
           spec.getFloatDataArrays()[3][set_iter->second] = peak_shapes[p].left_width;
           spec.getFloatDataArrays()[4][set_iter->second] = peak_shapes[p].right_width;
@@ -945,7 +943,6 @@ protected:
 
     double rt, first_peak_mz, last_peak_mz;
 
-    //MSSpectrum<InputPeakType> spec;
     typename PeakMap::SpectrumType spec;
     InputPeakType peak;
 
@@ -968,7 +965,7 @@ protected:
       // first the right scan through binary search
       rt = exp[iso_map_iter->second.scans[i]].getRT();
       spec.setRT(rt);
-      InputSpectrumIterator iter = lower_bound(first, last, spec, typename MSSpectrum<InputPeakType>::RTLess());
+      InputSpectrumIterator iter = lower_bound(first, last, spec, MSSpectrum::RTLess());
       //  if(iter->getRT() != rt) --iter;
       exp_it = exp.RTBegin(rt);
 #ifdef DEBUG2D

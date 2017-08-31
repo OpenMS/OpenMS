@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/NeutralLossDiffFilter.h>" names
         #  FilterFunctor
         NeutralLossDiffFilter() nogil except +
         NeutralLossDiffFilter(NeutralLossDiffFilter) nogil except +
-        double apply(MSSpectrum[Peak1D] & ) nogil except +
+        double apply(MSSpectrum & ) nogil except +
         # POINTER # FilterFunctor * create() nogil except +
         String getProductName() nogil except +
 

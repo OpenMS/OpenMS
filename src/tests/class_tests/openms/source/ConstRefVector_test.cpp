@@ -43,7 +43,6 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
@@ -62,12 +61,12 @@ START_TEST(ConstRefVector, "$Id$")
 ConstRefVector<PeakArrayType>* ptr = 0;
 ConstRefVector<PeakArrayType>* nullPointer = 0;
 START_SECTION((ConstRefVector()))
-	ptr = new ConstRefVector<PeakArrayType>();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new ConstRefVector<PeakArrayType>();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~ConstRefVector()))
-	delete ptr;
+  delete ptr;
 END_SECTION
 
 START_SECTION((ConstRefVector(const ConstRefVector& p)))
@@ -750,8 +749,8 @@ START_SECTION((const_reference front() const))
 END_SECTION
 
 START_SECTION((const_reference back() const))
- 	Peak1D peak;
-	peak = pl.back();
+   Peak1D peak;
+  peak = pl.back();
 
   TEST_REAL_SIMILAR(peak.getIntensity(), 1.1)
   TEST_REAL_SIMILAR(peak.getPosition()[0], 1.1)
@@ -942,10 +941,10 @@ START_SECTION((ConstRefVector(ContainerType &p)))
   PeakArrayType pa(5);
   ConstRefVector<PeakArrayType> pl(pa);
 
- 	for (Size i=0; i<pa.size(); ++i)
- 	{
- 		TEST_EQUAL(pa[i]== pl[i],true)
- 	}
+   for (Size i=0; i<pa.size(); ++i)
+   {
+     TEST_EQUAL(pa[i]== pl[i],true)
+   }
 END_SECTION
 
 START_SECTION((template <class InputIterator> void assign(InputIterator f , InputIterator l)))
@@ -979,36 +978,36 @@ START_SECTION((Iterator erase(Iterator first,Iterator last)))
 END_SECTION
 
 START_SECTION((void sortByPosition()))
-	ConstRefVector<PeakArray2DType> dpa2;
-	Peak2D p1(peak4);
-	p1.setIntensity(1.0f);
-	Peak2D p2(peak5);
-	p2.setIntensity(2.0f);
-	Peak2D p3(peak6);
-	p3.setIntensity(3.0f);
-	Peak2D p4;
-	p4.getPosition()[0]=4.3;
-	p4.getPosition()[1]=4711;
-	p4.setIntensity(4.0f);
-	Peak2D p5;
-	p5.getPosition()[1]=4711;
-	p5.setIntensity(5.0f);
-	Peak2D p6;
-	p6.getPosition()[1]=4711;
-	p6.setIntensity(6.0f);
-	dpa2.push_back(p1);
-	dpa2.push_back(p2);
-	dpa2.push_back(p3);
-	dpa2.push_back(p4);
-	dpa2.push_back(p5);
-	dpa2.push_back(p6);
-	dpa2.sortByPosition();
-	TEST_REAL_SIMILAR(dpa2[0].getIntensity(), 2.0)
-	TEST_REAL_SIMILAR(dpa2[1].getIntensity(), 5.0)
-	TEST_REAL_SIMILAR(dpa2[2].getIntensity(), 6.0)
-	TEST_REAL_SIMILAR(dpa2[3].getIntensity(), 1.0)
-	TEST_REAL_SIMILAR(dpa2[4].getIntensity(), 4.0)
-	TEST_REAL_SIMILAR(dpa2[5].getIntensity(), 3.0)
+  ConstRefVector<PeakArray2DType> dpa2;
+  Peak2D p1(peak4);
+  p1.setIntensity(1.0f);
+  Peak2D p2(peak5);
+  p2.setIntensity(2.0f);
+  Peak2D p3(peak6);
+  p3.setIntensity(3.0f);
+  Peak2D p4;
+  p4.getPosition()[0]=4.3;
+  p4.getPosition()[1]=4711;
+  p4.setIntensity(4.0f);
+  Peak2D p5;
+  p5.getPosition()[1]=4711;
+  p5.setIntensity(5.0f);
+  Peak2D p6;
+  p6.getPosition()[1]=4711;
+  p6.setIntensity(6.0f);
+  dpa2.push_back(p1);
+  dpa2.push_back(p2);
+  dpa2.push_back(p3);
+  dpa2.push_back(p4);
+  dpa2.push_back(p5);
+  dpa2.push_back(p6);
+  dpa2.sortByPosition();
+  TEST_REAL_SIMILAR(dpa2[0].getIntensity(), 2.0)
+  TEST_REAL_SIMILAR(dpa2[1].getIntensity(), 5.0)
+  TEST_REAL_SIMILAR(dpa2[2].getIntensity(), 6.0)
+  TEST_REAL_SIMILAR(dpa2[3].getIntensity(), 1.0)
+  TEST_REAL_SIMILAR(dpa2[4].getIntensity(), 4.0)
+  TEST_REAL_SIMILAR(dpa2[5].getIntensity(), 3.0)
 END_SECTION
 
 START_SECTION((template <typename ComparatorType> void sortByComparator(ComparatorType const &comparator=ComparatorType())))
@@ -1030,43 +1029,43 @@ START_SECTION((template <typename ComparatorType> void sortByComparator(Comparat
   // ----------------
 
   ConstRefVector<PeakArray2DType> dpa2;
-	Peak2D p1(peak4);
-	p1.setIntensity(1.0f);
-	Peak2D p2(peak5);
-	p2.setIntensity(2.0f);
-	Peak2D p3(peak6);
-	p3.setIntensity(3.0f);
-	Peak2D p4;
-	p4.getPosition()[0]=4.3;
-	p4.getPosition()[1]=4711;
-	p4.setIntensity(4.0f);
-	Peak2D p5;
-	p5.getPosition()[1]=4711;
-	p5.setIntensity(5.0f);
-	Peak2D p6;
-	p6.getPosition()[1]=4711;
-	p6.setIntensity(6.0f);
-	dpa2.push_back(p1);
-	dpa2.push_back(p2);
-	dpa2.push_back(p3);
-	dpa2.push_back(p4);
-	dpa2.push_back(p5);
-	dpa2.push_back(p6);
+  Peak2D p1(peak4);
+  p1.setIntensity(1.0f);
+  Peak2D p2(peak5);
+  p2.setIntensity(2.0f);
+  Peak2D p3(peak6);
+  p3.setIntensity(3.0f);
+  Peak2D p4;
+  p4.getPosition()[0]=4.3;
+  p4.getPosition()[1]=4711;
+  p4.setIntensity(4.0f);
+  Peak2D p5;
+  p5.getPosition()[1]=4711;
+  p5.setIntensity(5.0f);
+  Peak2D p6;
+  p6.getPosition()[1]=4711;
+  p6.setIntensity(6.0f);
+  dpa2.push_back(p1);
+  dpa2.push_back(p2);
+  dpa2.push_back(p3);
+  dpa2.push_back(p4);
+  dpa2.push_back(p5);
+  dpa2.push_back(p6);
 
 
-	dpa2.sortByComparator<Peak2D::MZLess >(Peak2D::MZLess());
-	TEST_REAL_SIMILAR(dpa2[0].getIntensity(), 3.0)
-	TEST_REAL_SIMILAR(dpa2[1].getIntensity(), 2.0)
-	TEST_REAL_SIMILAR(dpa2[2].getIntensity(), 1.0)
-	TEST_REAL_SIMILAR(dpa2[3].getIntensity(), 4.0)
-	TEST_REAL_SIMILAR(dpa2[4].getIntensity(), 5.0)
-	TEST_REAL_SIMILAR(dpa2[5].getIntensity(), 6.0)
+  dpa2.sortByComparator<Peak2D::MZLess >(Peak2D::MZLess());
+  TEST_REAL_SIMILAR(dpa2[0].getIntensity(), 3.0)
+  TEST_REAL_SIMILAR(dpa2[1].getIntensity(), 2.0)
+  TEST_REAL_SIMILAR(dpa2[2].getIntensity(), 1.0)
+  TEST_REAL_SIMILAR(dpa2[3].getIntensity(), 4.0)
+  TEST_REAL_SIMILAR(dpa2[4].getIntensity(), 5.0)
+  TEST_REAL_SIMILAR(dpa2[5].getIntensity(), 6.0)
 END_SECTION
 
 START_SECTION([EXTRA] Container without special members for sorting)
-	vector<Int> vec(5);
-	ConstRefVector<vector<Int> > ref_vec(vec);
-	TEST_EQUAL(ref_vec.size(),5)
+  vector<Int> vec(5);
+  ConstRefVector<vector<Int> > ref_vec(vec);
+  TEST_EQUAL(ref_vec.size(),5)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

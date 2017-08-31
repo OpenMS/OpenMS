@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <algorithm>

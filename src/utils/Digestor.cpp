@@ -203,30 +203,37 @@ protected:
       }
       else
       {
-        digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
+        vector<AASequence> current_digest;
+        digestor.digest(AASequence::fromString(protein_data[i].sequence), current_digest);
+
+        // keep peptides that match length restrictions (and count those that don't match)
+        std::copy_if(current_digest.begin(), current_digest.end(), std::back_inserter(temp_peptides), 
+          [&dropped_bylength, &min_size, &max_size](const AASequence& s) -> bool
+          {
+            bool valid_length = (s.size() >= min_size && s.size() <= max_size);
+            if (!valid_length)
+            {
+              ++dropped_bylength;
+              return false;
+            }
+            
+            return true;
+          });
       }
 
-      for (Size j = 0; j < temp_peptides.size(); ++j)
+      for (auto s : temp_peptides)
       {
-        if ((temp_peptides[j].size() >= min_size) &&
-            (temp_peptides[j].size() <= max_size))
+        if (!has_FASTA_output)
         {
-          if (!has_FASTA_output)
-          {
-            temp_peptide_hit.setSequence(temp_peptides[j]);
-            peptide_identification.insertHit(temp_peptide_hit);
-            identifications.push_back(peptide_identification);
-            peptide_identification.setHits(std::vector<PeptideHit>()); // clear
-          }
-          else // for FASTA file output
-          {
-            FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, temp_peptides[j].toString());
-            all_peptides.push_back(pep);
-          }
+          temp_peptide_hit.setSequence(s);
+          peptide_identification.insertHit(temp_peptide_hit);
+          identifications.push_back(peptide_identification);
+          peptide_identification.setHits(std::vector<PeptideHit>()); // clear
         }
-        else
+        else // for FASTA file output
         {
-          ++dropped_bylength;
+          FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, s.toString());
+          all_peptides.push_back(pep);
         }
       }
     }

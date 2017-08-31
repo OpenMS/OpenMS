@@ -57,7 +57,7 @@ START_SECTION(IsotopeWaveletTransform<PeakType>::TransSpectrum* prepareHRDataCud
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(MSSpectrum<PeakType>* createHRData(const UInt i))
+START_SECTION(MSSpectrum* createHRData(const UInt i))
 	NOT_TESTABLE
 END_SECTION
 

@@ -77,6 +77,8 @@
   - @subpage UTILS_RNPxl - Tool for RNP cross linking experiment analysis.
   - @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
   - @subpage UTILS_SpecLibCreator - Creates an MSP-formatted spectral library.
+  - @subpage UTILS_PSMFeatureExtractor - Creates search engine specific features for PercolatorAdapter input.
+  
 
   <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.

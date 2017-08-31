@@ -37,7 +37,8 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
-
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 namespace OpenMS
 {
   //@{
@@ -48,7 +49,8 @@ namespace OpenMS
 
       @ingroup Kernel
   */
-  typedef MSSpectrum<Peak1D> PeakSpectrum;
+
+  typedef MSSpectrum PeakSpectrum;
   /**
       @brief Two-dimensional map of raw data points or peaks.
 
@@ -57,18 +59,11 @@ namespace OpenMS
   typedef MSExperiment PeakMap;
 
   /**
-      @brief Spectrum consisting of raw data points or peaks with meta information.
-
-      @ingroup Kernel
-  */
-  typedef MSSpectrum<RichPeak1D> RichPeakSpectrum;
-
-  /**
       @brief Chromatogram consisting of raw data points or peaks
 
       @ingroup Kernel
   */
-  typedef MSChromatogram<ChromatogramPeak> Chromatogram;
+  typedef MSChromatogram Chromatogram;
   //@}
 
 }

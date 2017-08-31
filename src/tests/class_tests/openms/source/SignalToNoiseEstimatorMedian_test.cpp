@@ -57,7 +57,7 @@ START_SECTION((SignalToNoiseEstimatorMedian()))
 END_SECTION
 
 START_SECTION((SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstimatorMedian &source)))
-  MSSpectrum < > raw_data;
+  MSSpectrum raw_data;
   SignalToNoiseEstimatorMedian<> sne;
 	sne.init(raw_data);
   SignalToNoiseEstimatorMedian<> sne2 = sne;
@@ -65,7 +65,7 @@ START_SECTION((SignalToNoiseEstimatorMedian& operator=(const SignalToNoiseEstima
 END_SECTION
 
 START_SECTION((SignalToNoiseEstimatorMedian(const SignalToNoiseEstimatorMedian &source)))
-  MSSpectrum < > raw_data;
+  MSSpectrum raw_data;
   SignalToNoiseEstimatorMedian<> sne;
 	sne.init(raw_data);
   SignalToNoiseEstimatorMedian<> sne2(sne);
@@ -79,13 +79,13 @@ END_SECTION
 
 START_SECTION([EXTRA](virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
 
-  MSSpectrum < > raw_data;
-  MSSpectrum< >::const_iterator it;
+  MSSpectrum raw_data;
+  MSSpectrum::const_iterator it;
   DTAFile dta_file;
   dta_file.load(OPENMS_GET_TEST_DATA_PATH("SignalToNoiseEstimator_test.dta"), raw_data);
   
     
-  SignalToNoiseEstimatorMedian< MSSpectrum < > > sne;  
+  SignalToNoiseEstimatorMedian< MSSpectrum > sne;
 	Param p;
 	p.setValue("win_len", 40.0);
 	p.setValue("noise_for_empty_window", 2.0);
@@ -93,7 +93,7 @@ START_SECTION([EXTRA](virtual void init(const PeakIterator& it_begin, const Peak
 	sne.setParameters(p);
   sne.init(raw_data.begin(),raw_data.end());
 
-  MSSpectrum < > stn_data;
+  MSSpectrum stn_data;
   dta_file.load(OPENMS_GET_TEST_DATA_PATH("SignalToNoiseEstimatorMedian_test.out"), stn_data);
   int i = 0;
   for (it=raw_data.begin();it!=raw_data.end(); ++it)

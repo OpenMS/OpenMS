@@ -50,7 +50,6 @@ typedef OpenSwath::LightTransition TransitionType;
 OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType getData()
 {
   OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType map;
-  MRMTransitionGroup< MSSpectrum <ChromatogramPeak>,  OpenSwath::LightTransition> trgr;
   return map;
 }
 
@@ -130,7 +129,7 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   // Create a mock spectrum fitting to the transition group
   boost::shared_ptr<PeakMap > exp(new PeakMap);
   {
-    MSSpectrum<Peak1D> spec;
+    MSSpectrum spec;
     Peak1D p;
 
     p.setMZ(500.02);

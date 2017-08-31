@@ -16,17 +16,17 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         Feature() nogil except +
         Feature(Feature &) nogil except +
 
-        void setMZ(double)  nogil except +
-        void setRT(double)  nogil except +
+        void setMZ(double) nogil except +
+        void setRT(double) nogil except +
         void setIntensity(double) nogil except +
 
         double getMZ() nogil except +
         double getRT() nogil except +
         double getIntensity() nogil except +
 
-        float getQuality(Size index)  nogil except +
+        float getQuality(Size index) nogil except +
         void setQuality(Size index, float q) nogil except +
-        float getOverallQuality()  nogil except +
+        float getOverallQuality() nogil except +
         void setOverallQuality(float q) nogil except +
 
         float getWidth() nogil except +
@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         void setSubordinates(libcpp_vector[Feature]) nogil except +
 
         bool encloses(double rt, double mz) nogil except +
-        ConvexHull2D getConvexHull()                 nogil except +
+        ConvexHull2D getConvexHull() nogil except +
         libcpp_vector[ConvexHull2D] getConvexHulls() nogil except +
         void setConvexHulls(libcpp_vector[ConvexHull2D]) nogil except +
 
@@ -62,3 +62,4 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
         void clearMetaInfo() nogil except +
+

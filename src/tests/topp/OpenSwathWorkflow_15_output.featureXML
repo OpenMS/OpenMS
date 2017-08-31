@@ -25,6 +25,7 @@
 					<charge>2</charge>
 					<UserParam type="string" name="native_id" value="PEPTIDEE_Precursor_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="1196.82678222656"/>
+					<UserParam type="float" name="logSN" value="0.754007783737623"/>
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>
@@ -66,6 +67,7 @@
 					<charge>2</charge>
 					<UserParam type="string" name="native_id" value="PEPTIDEF_Precursor_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="1196.82678222656"/>
+					<UserParam type="float" name="logSN" value="0.754007783737623"/>
 					<UserParam type="string" name="FeatureLevel" value="MS1"/>
 				</feature>
 			</subordinate>

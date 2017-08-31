@@ -110,7 +110,13 @@ protected:
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
   template <typename SpectrumType>
-  static void deisotopeAndSingleChargeMSSpectrum_(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
+  static void deisotopeAndSingleChargeMSSpectrum_(SpectrumType& in, Int min_charge, Int max_charge, 
+                                                  double fragment_tolerance, 
+                                                  bool fragment_unit_ppm, 
+                                                  bool keep_only_deisotoped = false, 
+                                                  Size min_isopeaks = 3, 
+                                                  Size max_isopeaks = 10, 
+                                                  bool make_single_charged = true)
   {
     if (in.empty())
     {
@@ -204,7 +210,7 @@ protected:
         }
         else
         {
-          RichPeak1D p = old_spectrum[i];
+          Peak1D p = old_spectrum[i];
           p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
           in.push_back(p);
         }
@@ -227,7 +233,7 @@ protected:
           }
           else
           {
-            RichPeak1D p = old_spectrum[i];
+            Peak1D p = old_spectrum[i];
             p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
             in.push_back(p);
           }

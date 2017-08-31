@@ -39,7 +39,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/ANALYSIS/RNPXL/PScore.h>
 
 #include <limits>

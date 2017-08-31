@@ -82,25 +82,24 @@ public:
     /**
         @brief Applies the resampling algorithm to an MSSpectrum.
     */
-    template <typename PeakType>
-    void raster(MSSpectrum<PeakType>& spectrum)
+    void raster(MSSpectrum& spectrum)
     {
       //return if nothing to do
       if (spectrum.empty()) return;
 
-      typename MSSpectrum<PeakType>::iterator first = spectrum.begin();
-      typename MSSpectrum<PeakType>::iterator last = spectrum.end();
+      typename MSSpectrum::iterator first = spectrum.begin();
+      typename MSSpectrum::iterator last = spectrum.end();
 
       double end_pos = (last - 1)->getMZ();
       double start_pos = first->getMZ();
       int number_raw_points = static_cast<int>(spectrum.size());
       int number_resampled_points = static_cast<int>(ceil((end_pos - start_pos) / spacing_ + 1));
 
-      typename std::vector<PeakType> resampled_peak_container;
+      std::vector<Peak1D> resampled_peak_container;
       resampled_peak_container.resize(number_resampled_points);
 
       // generate the resampled peaks at positions origin+i*spacing_
-      typename std::vector<PeakType>::iterator it = resampled_peak_container.begin();
+      std::vector<Peak1D>::iterator it = resampled_peak_container.begin();
       for (int i = 0; i < number_resampled_points; ++i)
       {
         it->setMZ(start_pos + i * spacing_);

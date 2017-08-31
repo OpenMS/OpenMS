@@ -94,7 +94,7 @@ END_SECTION
 
 START_SECTION((SignalToNoiseEstimator(const SignalToNoiseEstimator &source)))
   TestSignalToNoiseEstimator sne;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   sne.init(spec.begin(), spec.end());
   TestSignalToNoiseEstimator sne_copy(sne);
 	NOT_TESTABLE
@@ -103,7 +103,7 @@ END_SECTION
 
 START_SECTION((SignalToNoiseEstimator& operator=(const SignalToNoiseEstimator &source)))
   TestSignalToNoiseEstimator sne;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   sne.init(spec.begin(), spec.end());
   TestSignalToNoiseEstimator sne_copy;
   sne_copy = sne;
@@ -118,14 +118,14 @@ END_SECTION
 
 START_SECTION((virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
   TestSignalToNoiseEstimator sne;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   sne.init(spec.begin(), spec.end());
 	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((virtual void init(const Container& c)))
   TestSignalToNoiseEstimator sne;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   sne.init(spec);
 	NOT_TESTABLE
 END_SECTION

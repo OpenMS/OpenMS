@@ -206,7 +206,8 @@ protected:
       ProteinIdentification::SearchParameters search_params(it_prot_ids->getSearchParameters());
       std::copy(search_params.fixed_modifications.begin(), search_params.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(search_params.variable_modifications.begin(), search_params.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
-      StringList spectra_data = it_prot_ids->getPrimaryMSRunPath();
+      StringList spectra_data;
+      it_prot_ids->getPrimaryMSRunPath(spectra_data);
       std::copy(spectra_data.begin(), spectra_data.end(), std::inserter(merged_spectra_data, merged_spectra_data.end()));
     }
     ProteinIdentification::SearchParameters search_params;

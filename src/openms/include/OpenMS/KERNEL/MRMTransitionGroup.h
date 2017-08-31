@@ -64,7 +64,7 @@ namespace OpenMS
     storage.
 
   */
-  template <typename SpectrumType, typename TransitionType>
+  template <typename ChromatogramType, typename TransitionType>
   class MRMTransitionGroup
   {
 
@@ -77,7 +77,7 @@ public:
     /// List of Reaction Monitoring transitions (meta data) type
     typedef std::vector<TransitionType> TransitionsType;
     /// Peak type
-    typedef typename SpectrumType::PeakType PeakType;
+    typedef typename ChromatogramType::PeakType PeakType;
     //@}
 
     /** @name Constructors and Destructor
@@ -172,17 +172,17 @@ public:
 
     /// @name (Fragment ion) chromatogram access
     //@{
-    inline const std::vector<SpectrumType> & getChromatograms() const
+    inline const std::vector<ChromatogramType> & getChromatograms() const
     {
       return chromatograms_;
     }
 
-    inline std::vector<SpectrumType> & getChromatograms()
+    inline std::vector<ChromatogramType> & getChromatograms()
     {
       return chromatograms_;
     }
 
-    inline void addChromatogram(SpectrumType & chromatogram, String key)
+    inline void addChromatogram(ChromatogramType & chromatogram, String key)
     {
       chromatograms_.push_back(chromatogram);
       chromatogram_map_[key] = boost::numeric_cast<int>(chromatograms_.size()) - 1;
@@ -195,7 +195,7 @@ public:
       return chromatogram_map_.find(key) != chromatogram_map_.end();
     }
 
-    inline SpectrumType & getChromatogram(String key)
+    inline ChromatogramType & getChromatogram(String key)
     {
       OPENMS_PRECONDITION(hasChromatogram(key), "Cannot retrieve chromatogram that does not exist")
       OPENMS_PRECONDITION(chromatograms_.size() > (size_t)chromatogram_map_[key], "Mapping needs to be accurate")
@@ -206,12 +206,12 @@ public:
 
     /// @name (Precursor ion) chromatogram access
     //@{
-    inline const std::vector<SpectrumType> & getPrecursorChromatograms() const
+    inline const std::vector<ChromatogramType> & getPrecursorChromatograms() const
     {
       return precursor_chromatograms_;
     }
 
-    inline std::vector<SpectrumType> & getPrecursorChromatograms()
+    inline std::vector<ChromatogramType> & getPrecursorChromatograms()
     {
       return precursor_chromatograms_;
     }
@@ -226,7 +226,7 @@ public:
      * @param key Identifier for this trace, please use use consistent naming like "Precursor_i0", "Precursor_i1", "Precursor_i2" ...
      *
      */
-    inline void addPrecursorChromatogram(SpectrumType & chromatogram, String key)
+    inline void addPrecursorChromatogram(ChromatogramType & chromatogram, String key)
     {
       precursor_chromatograms_.push_back(chromatogram);
       precursor_chromatogram_map_[key] = boost::numeric_cast<int>(precursor_chromatograms_.size()) - 1;
@@ -239,7 +239,7 @@ public:
       return precursor_chromatogram_map_.find(key) != precursor_chromatogram_map_.end();
     }
 
-    inline SpectrumType & getPrecursorChromatogram(String key)
+    inline ChromatogramType & getPrecursorChromatogram(String key)
     {
       OPENMS_PRECONDITION(hasPrecursorChromatogram(key), "Cannot retrieve precursor chromatogram that does not exist")
       OPENMS_PRECONDITION(precursor_chromatograms_.size() > (size_t)precursor_chromatogram_map_[key], "Mapping needs to be accurate")
@@ -335,7 +335,7 @@ public:
         }
       }
 
-      for (typename std::vector<SpectrumType>::iterator pr_it = precursor_chromatograms_.begin(); pr_it != precursor_chromatograms_.end(); ++pr_it)
+      for (typename std::vector<ChromatogramType>::iterator pr_it = precursor_chromatograms_.begin(); pr_it != precursor_chromatograms_.end(); ++pr_it)
       {
         // add precursor chromatograms if present
         transition_group_subset.addPrecursorChromatogram(*pr_it,pr_it->getNativeID());
@@ -446,10 +446,10 @@ protected:
     TransitionsType transitions_;
 
     /// chromatogram list
-    std::vector<SpectrumType> chromatograms_;
+    std::vector<ChromatogramType> chromatograms_;
 
     /// precursor chromatogram list
-    std::vector<SpectrumType> precursor_chromatograms_;
+    std::vector<ChromatogramType> precursor_chromatograms_;
 
     /// feature list
     MRMFeatureListType mrm_features_;

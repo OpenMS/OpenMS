@@ -76,6 +76,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
 
     cdef cppclass ParamIterator:
         # wrap-ignore
+        # no-pxd-import
         ParamIterator operator++() nogil except +
         ParamIterator operator--() nogil except +
         String getName() nogil except +
