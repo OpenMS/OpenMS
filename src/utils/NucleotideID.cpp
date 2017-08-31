@@ -576,7 +576,7 @@ protected:
             }
             //Create a new vector containing only spectra which correspond to this feature (makes the merging much cleaner)
             PeakMap selected_map;
-            std::vector<MSSpectrum<Peak1D> > selected_spectra;
+            std::vector<MSSpectrum > selected_spectra;
             selected_spectra.reserve(nearest.size());//reserve enough elements so we dont have to reallocate
             for (set<Size>::iterator siter = nearest.begin(); siter != nearest.end(); ++siter)
             {
@@ -623,15 +623,15 @@ protected:
                    NASequence reversed = NASequence(sequence_list[0].reverse(), what_type);
                   // StringList identifier_list= h_it->getMetaValue("identifier").toStringList(); //get the identifier
                    // String identifier = identifier_list[0];
-                   MSSpectrum<Peak1D> spec;
-                   MSSpectrum<Peak1D> rev_spec;
+                   MSSpectrum spec;
+                   MSSpectrum rev_spec;
                    test_generator.getSpectrum(rev_spec, reversed, pol_multiplier, h_it->getCharge() * pol_multiplier); //there should only be one //Shouldnt this be fm_it->getCharge
                    test_generator.getSpectrum(spec, sequence, pol_multiplier, h_it->getCharge() * pol_multiplier); //there should only be one
                    double revscore=0 ,tmprevscore = 0;
                    double score=0, tmpscore = 0;
                    //iterate through all of the matching ms2s since we may have many
                    if (do_all){
-                       for (std::vector<MSSpectrum<Peak1D> >::iterator n_it=selected_map.getSpectra().begin(); n_it != selected_map.getSpectra().end(); ++n_it){
+                       for (std::vector<MSSpectrum >::iterator n_it=selected_map.getSpectra().begin(); n_it != selected_map.getSpectra().end(); ++n_it){
                            tmprevscore = metmatch.computeHyperScore(*n_it, rev_spec, fragment_mass_tolerance, 100.0);
                            tmpscore = metmatch.computeHyperScore(*n_it, spec, fragment_mass_tolerance, 100.0);
                            if (tmpscore>score){
