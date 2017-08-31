@@ -56,7 +56,7 @@ START_TEST(Polynomial, "$Id$")
 
 using namespace OpenMS;
 using namespace std;
-const UInt N = 11;
+const UInt N = 15;
 CounterSet *ptr = 0;
 CounterSet *nullPointer = 0; 
 
@@ -66,16 +66,14 @@ START_SECTION((CounterSet()))
   TEST_NOT_EQUAL(ptr, nullPointer);
 END_SECTION
 
-//START_SECTION((~CounterSet()))
-//  delete ptr;
-//END_SECTION
+
 
 START_SECTION((CounterSet& CounterSet::operator++()))
 {
   
-  ptr->addCounter(1,3);
-  ptr->addCounter(1,4);
-  ptr->addCounter(3,4);
+  ptr->addCounter(1, 5);
+  ptr->addCounter(1, 4);
+  ptr->addCounter(3, 4);
   ptr->addCounter(3, 5);
   
   for(const CounterSet::ContainerType& results = ptr->getCounters(); ptr->hasNext(); ++(*ptr))

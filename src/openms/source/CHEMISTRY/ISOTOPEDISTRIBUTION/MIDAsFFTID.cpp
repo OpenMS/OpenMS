@@ -40,7 +40,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <boost/range/adaptors.hpp>
 
-#define DEBUG
+// #define DEBUG
 
 using namespace std;
 
