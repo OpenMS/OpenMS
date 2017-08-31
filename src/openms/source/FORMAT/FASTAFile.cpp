@@ -112,7 +112,7 @@ namespace OpenMS
     String::size_type position = id.find_first_of(" \v\t");
     if (position == String::npos)
     {
-      protein.identifier = id;
+      protein.identifier = std::move(id);
       protein.description = "";
     }
     else
@@ -132,7 +132,7 @@ namespace OpenMS
     f.readStart(filename);
     while (f.readNext(p))
     {
-      data.push_back(p);
+      data.push_back(std::move(p));
     }
     return;
   }

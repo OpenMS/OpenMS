@@ -306,14 +306,14 @@ protected:
       for (loopiter = entries.begin(); loopiter != entries.end(); loopiter = std::next(loopiter))
       {
 
-        iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::headerMatches), &(*loopiter)));
+        iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.headerMatches(*loopiter); });
 
         if (iter != loopiter)
         {
           std::cout << "Warning: Duplicate header, Number: " << std::distance(entries.begin(), loopiter) + 1 << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
         }
 
-        iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::sequenceMatches), &(*loopiter)));
+        iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.sequenceMatches(*loopiter); });
 
         if (iter != loopiter && iter != entries.end())
         {
