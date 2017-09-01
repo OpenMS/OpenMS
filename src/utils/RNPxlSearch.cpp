@@ -567,6 +567,7 @@ protected:
     String best_localization;  
     String fragment_annotation_string; // for visualizaion in Proteome Discoverer
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
+
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
     {
       return a.score > b.score;
@@ -948,13 +949,15 @@ protected:
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
 
-          // reannotate much more memory heavy AASequence object
+          // sequence with modifications - note: reannotated version requires much more memory heavy AASequence object
           AASequence fixed_and_variable_modified_peptide = all_modified_peptides[a.peptide_mod_index]; 
+          const double fixed_and_variable_modified_peptide_weight = fixed_and_variable_modified_peptide.getMonoWeight();
 
           // determine RNA on precursor from index in map
           std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
           std::advance(mod_combinations_it, a.rna_mod_index);
           String precursor_rna_adduct = *mod_combinations_it->second.begin();
+          double precursor_rna_weight = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
 
           // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
           // first get all possible RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
@@ -970,14 +973,11 @@ protected:
           // generate total loss spectrum for the fixed and variable modified peptide (without RNA)
           PeakSpectrum total_loss_spectrum;
 
-          // TODO for ETD: generate MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge
-
           spectrum_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
 
           // TODO: generate unshifted immonium ions to gain confidence in identified peptide sequence
 
-          // Marker ions derived from RNA fragments:
-          // Add peaks for marker ions A', G', C' marker ions (presence of these are determined by precursor RNA)
+          // ADD: MS2 marker ions derived from RNA fragments A', G', C' marker ions (presence of these are determined by precursor RNA)
           if (precursor_rna_adduct.hasSubstring("A"))
           {
             partial_loss_spectrum.push_back(Peak1D(136.0623, 1.0));
@@ -998,6 +998,15 @@ protected:
             partial_loss_spectrum_charge.push_back(1);
             partial_loss_spectrum_annotation.push_back("RNA:C'");
           }
+      
+          // ADD: (mainly for ETD) MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge
+          for (Size i = 1; i <= precursor_charge; ++i)
+          {
+            double xl_mz = (fixed_and_variable_modified_peptide_weight + precursor_rna_weight + static_cast<double>(i) * Constants::PROTON_MASS_U) / static_cast<double>(i);
+            partial_loss_spectrum.push_back(Peak1D(xl_mz, 1.0));
+            partial_loss_spectrum_charge.push_back(i);
+            partial_loss_spectrum_annotation.push_back("[M+" + precursor_rna_adduct + "]");
+          }
 
           for (Size i = 0; i != partial_loss_modification.size(); ++i)
           {
@@ -1006,12 +1015,12 @@ protected:
             //cout << fragment_shift_name << "\t" << partial_loss_modification[i].formula.toString() << endl;
             const double fragment_shift_mass = partial_loss_modification[i].formula.getMonoWeight();
 
-            // For every fragment adduct add an RNA mass peak of charge 1
+            // ADD: full RNA fragment adduct of charge 1 (without peptide)
             partial_loss_spectrum.push_back(Peak1D(fragment_shift_mass + Constants::PROTON_MASS_U, 1.0));
             partial_loss_spectrum_charge.push_back(1);
             partial_loss_spectrum_annotation.push_back("RNA:" + fragment_shift_name); // add name (e.g., RNA:U-H2O)
 
-            // Add shifted immonium ion peaks if the amino acid is present in the sequence
+            // ADD: shifted immonium ion peaks of charge 1 (if the amino acid is present in the sequence)
             if (unmodified_sequence.hasSubstring("Y"))
             {
               double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass;
@@ -1078,7 +1087,7 @@ protected:
               partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
             }
 
-            // Generate all possible shifted ion a,b,y-ion peaks by attaching the current RNA adduct (fragment_shift_name)
+            // Generate all possible shifted a,b,y-ion peaks by attaching the current RNA adduct (fragment_shift_name)
             double shift = ModificationsDB::getInstance()->getModification(fragment_shift_name, "", ResidueModification::N_TERM).getDiffMonoMass();
  
             // annotate generated a,b,y ions with fragment shift name
@@ -1092,7 +1101,7 @@ protected:
             // For every charge state
             for (Size z = 1; z <= precursor_charge; ++z)
             {
-              // 1. create unshifted peaks
+              // 1. create unshifted peaks (a,b,y, MS2 precursor ions up to pc charge)
               PeakSpectrum tmp_shifted_series_peaks;
               spectrum_generator.getSpectrum(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, z, z);
 
@@ -1161,17 +1170,17 @@ protected:
           const PeakSpectrum::StringDataArray& total_loss_annotations = total_loss_spectrum.getStringDataArrays()[0];
           const PeakSpectrum::IntegerDataArray& total_loss_charges = total_loss_spectrum.getIntegerDataArrays()[0];
             
-          for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
+          for (const auto & aligned : alignment)
           {
             // information on the experimental fragment in the alignment
-            const Size& fragment_index = pair_it->second;
+            const Size& fragment_index = aligned.second;
             const Peak1D& fragment = exp_spectrum[fragment_index];
             const double fragment_intensity = fragment.getIntensity(); // in percent (%)
             const double fragment_mz = fragment.getMZ();
             const int fragment_charge = exp_spectrum.getIntegerDataArrays().back()[fragment_index];
 
-            const String& ion_name = total_loss_annotations[pair_it->first];
-            const int charge = total_loss_charges[pair_it->first];
+            const String& ion_name = total_loss_annotations[aligned.first];
+            const int charge = total_loss_charges[aligned.first];
 
             // define which ion names are annotated 
             if (ion_name.hasPrefix("y"))
@@ -1184,7 +1193,7 @@ protected:
                 const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
-              peak_is_annotated.insert(pair_it->second);                  
+              peak_is_annotated.insert(aligned.second);                  
 
               // only allow matching charges (if a fragment charge was assigned)
               if (fragment_charge == 0 || fragment_charge == charge)
@@ -1209,7 +1218,7 @@ protected:
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
-              peak_is_annotated.insert(pair_it->second);                  
+              peak_is_annotated.insert(aligned.second);                  
 
               // only allow matching charges (if a fragment charge was assigned)
               if (fragment_charge == 0 || fragment_charge == charge)
@@ -1234,7 +1243,7 @@ protected:
                 const AASequence& peptide_sequence = aas.getPrefix(ion_number);
                 LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
               #endif
-              peak_is_annotated.insert(pair_it->second);                  
+              peak_is_annotated.insert(aligned.second);                  
 
               // only allow matching charges (if a fragment charge was assigned)
               if (fragment_charge == 0 || fragment_charge == charge)
@@ -1286,7 +1295,8 @@ protected:
           }
           vector<double> sites_sum_score(aas.size(), 0);
 
-          // loss spectrum to the experimental measured one
+          /////////////////
+          // Align partial-loss-spectrum to the experimental measured one
           alignment.clear();
 
           spectrum_aligner.getSpectrumAlignment(alignment, partial_loss_spectrum, exp_spectrum);
@@ -1307,11 +1317,11 @@ protected:
             if (peak_is_annotated.find(pair_it->second) != peak_is_annotated.end()) { continue; }
 
             // information on the experimental fragment in the alignment
-            const Size& fragment_index = pair_it->second;
-            const Peak1D& fragment = exp_spectrum[fragment_index];
-            const double fragment_intensity = fragment.getIntensity(); // in percent (%)
-            const double fragment_mz = fragment.getMZ();
-            const int fragment_charge = exp_spectrum.getIntegerDataArrays().back()[fragment_index];
+            const Size & fragment_index = pair_it->second;
+            const Peak1D & fragment = exp_spectrum[fragment_index];
+            const double & fragment_intensity = fragment.getIntensity(); // in percent (%)
+            const double & fragment_mz = fragment.getMZ();
+            const int & fragment_charge = exp_spectrum.getIntegerDataArrays().back()[fragment_index];
 
             String ion_name = partial_loss_annotations[pair_it->first];
             const int charge = partial_loss_charges[pair_it->first];
