@@ -81,13 +81,13 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "MzML file containing MS2 spectra. Make sure to run the HighResPrecursorMassCorrector using the featureXML first!\n");
+    registerInputFile_("in", "<file>", "", "MzML file containing MS2 spectra. Make sure to run the HighResPrecursorMassCorrector using the featureXML first!");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerInputFile_("in_features", "<file>", "", "Features annotated by AccurateMassSearch\n");
+    registerInputFile_("in_features", "<file>", "", "Features annotated by AccurateMassSearch");
     setValidFormats_("in_features", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_features", "<file>", "", "Features with ambiguities resolved by MS2 scoring\n");
+    registerOutputFile_("out_features", "<file>", "", "Features with ambiguities resolved by MS2 scoring");
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
     registerStringOption_("polarity", "<choice>", "negative", "Polarity of the spectra", false, false);
@@ -503,6 +503,19 @@ protected:
     bool do_all = true;
     bool average_all = true;
 
+    SpectraMerger fm_merger;
+    if (average_all)
+    {
+      Param merge_params = fm_merger.getParameters();
+      merge_params.setValue("block_method:ms_levels", vector<Int>(1, 2));
+      merge_params.setValue("block_method:rt_block_size", 100); // same as correctToNearestFeature's selection
+      merge_params.setValue("block_method:rt_max_length", 0.0); // no limit
+      merge_params.setValue("mz_binning_width", 2.0);
+      merge_params.setValue("mz_binning_width_unit", "ppm");
+      // merge_params.setValue("mass_error_unit", fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); // convert from bool to string
+      fm_merger.setParameters(merge_params);
+    }
+
     for (FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
     {
       if (fm_it->getPeptideIdentifications().empty())
@@ -519,7 +532,7 @@ protected:
       // determine MS2 precursor positions that overlap with the current feature
       // get code from HighResPrecursorMassCorrector
       // for each feature:
-      // Find nearest ms2's
+      // Find nearest MS2s
       set<Size> nearest = correctToNearestFeature(*fm_it, spectra, 100, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, false, do_all);
 
       if (nearest.empty())
@@ -534,7 +547,7 @@ protected:
       // Create a new vector containing only spectra which correspond to this feature (makes the merging much cleaner)
       PeakMap selected_map;
       std::vector<MSSpectrum> selected_spectra;
-      selected_spectra.reserve(nearest.size()); //reserve enough elements so we dont have to reallocate
+      selected_spectra.reserve(nearest.size()); // reserve enough elements so we don't have to reallocate
       for (set<Size>::iterator siter = nearest.begin(); siter != nearest.end(); ++siter)
       {
         selected_spectra.push_back(spectra.getSpectra()[*siter]);
@@ -545,15 +558,6 @@ protected:
       if (nearest.size() > 1 && average_all)
       {
         // merge MS2s
-        SpectraMerger fm_merger;
-        Param merge_params = fm_merger.getParameters();
-        merge_params.setValue("block_method:ms_levels", ListUtils::create<Int>("2"));
-        merge_params.setValue("block_method:rt_block_size", 100); // same as correctToNearestFeature's selection
-        merge_params.setValue("block_method:rt_max_length", 0.0); // no limit
-        merge_params.setValue("mz_binning_width", 2.0);
-        merge_params.setValue("mz_binning_width_unit", "ppm");
-        // merge_params.setValue("mass_error_unit", fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); // convert from bool to string
-        fm_merger.setParameters(merge_params);
         fm_merger.mergeSpectraPrecursors(selected_map);
       }
 
@@ -628,6 +632,7 @@ protected:
 
         }
         v_it->setHits(peptide_hits);
+        v_it->sort(); // best hits first
       }
       // clear putative IDs for which we have no evidence
       fm_it->setPeptideIdentifications(peptide_ids);
@@ -648,38 +653,38 @@ protected:
     }
     //Remove empty features
     //feature_map.erase(std::remove_if(feature_map.begin(), feature_map.end(),[](Feature i) {return i.getPeptideIdentifications().size()==0;}), feature_map.end()); //Someday when we have Lambda expressions...
-    FeatureMap parsed_feature_map=feature_map;
-    parsed_feature_map.erase(parsed_feature_map.begin(),parsed_feature_map.end()); //clear features leave metadata
-    for(FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
+    FeatureMap parsed_feature_map = feature_map;
+    parsed_feature_map.erase(parsed_feature_map.begin(), parsed_feature_map.end()); // clear features leave metadata
+    for (FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
     {
-      if (fm_it->getPeptideIdentifications().size()!=0)
+      if (fm_it->getPeptideIdentifications().size() != 0)
       {
         vector<PeptideIdentification> copy_of_pep_ids; //remove score 0;
         for (vector<PeptideIdentification>::iterator v_it = fm_it->getPeptideIdentifications().begin(); v_it != fm_it->getPeptideIdentifications().end(); ++v_it)
         {
-          vector<PeptideHit> peptide_hits = v_it->getHits(), copy_of_pep_hits;
-          for (vector<PeptideHit>::iterator h_it=peptide_hits.begin(); h_it != peptide_hits.end(); ++h_it)
+          vector<PeptideHit> copy_of_pep_hits;
+          for (vector<PeptideHit>::iterator h_it = v_it->getHits().begin(); h_it != v_it->getHits().end(); ++h_it)
           {
-            if (h_it->getScore()!=0)
+            if (h_it->getScore() != 0)
             {
               copy_of_pep_hits.push_back(*h_it);
             }
           }
-          if (copy_of_pep_hits.size()>0)
+          if (copy_of_pep_hits.size() > 0)
           {
-            PeptideIdentification temp_pepid=*v_it;
+            PeptideIdentification temp_pepid = *v_it;
             temp_pepid.setHits(copy_of_pep_hits);
             copy_of_pep_ids.push_back(temp_pepid);
           }
         }
-        if (copy_of_pep_ids.size()>0)
+        if (copy_of_pep_ids.size() > 0)
         {
           fm_it->setPeptideIdentifications(copy_of_pep_ids);
           parsed_feature_map.push_back(*fm_it);
         }
       }
     }
-    FeatureXMLFile().store(out_features_filepath,parsed_feature_map);
+    FeatureXMLFile().store(out_features_filepath, parsed_feature_map);
     progresslogger.endProgress();
 
     return EXECUTION_OK;
