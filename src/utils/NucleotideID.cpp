@@ -651,40 +651,54 @@ protected:
       //MzMLFile mtest;
       //mtest.store("/home/samuel/git/OpenMS/spectrumgentest.mzML", debug_exp);
     }
-    //Remove empty features
-    //feature_map.erase(std::remove_if(feature_map.begin(), feature_map.end(),[](Feature i) {return i.getPeptideIdentifications().size()==0;}), feature_map.end()); //Someday when we have Lambda expressions...
-    FeatureMap parsed_feature_map = feature_map;
-    parsed_feature_map.erase(parsed_feature_map.begin(), parsed_feature_map.end()); // clear features leave metadata
+
+    // remove search hits with score 0 and features without search hits;
+    // add labels for best hits to features (for visualization in TOPPView):
+    FeatureMap filtered_feature_map = feature_map;
+    filtered_feature_map.clear(false); // clear features, but leave metadata
     for (FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
     {
-      if (fm_it->getPeptideIdentifications().size() != 0)
+      if (!fm_it->getPeptideIdentifications().empty())
       {
-        vector<PeptideIdentification> copy_of_pep_ids; //remove score 0;
+        vector<PeptideIdentification> copy_of_pep_ids; // remove score 0
+        String label;
+        double best_score = 0.0;
         for (vector<PeptideIdentification>::iterator v_it = fm_it->getPeptideIdentifications().begin(); v_it != fm_it->getPeptideIdentifications().end(); ++v_it)
         {
           vector<PeptideHit> copy_of_pep_hits;
           for (vector<PeptideHit>::iterator h_it = v_it->getHits().begin(); h_it != v_it->getHits().end(); ++h_it)
           {
-            if (h_it->getScore() != 0)
+            double score = h_it->getScore();
+            if (score != 0)
             {
               copy_of_pep_hits.push_back(*h_it);
+              if (score > best_score)
+              {
+                label = h_it->getMetaValue("description");
+                best_score = score;
+              }
+              else if (score == best_score)
+              {
+                label += "/" + String(h_it->getMetaValue("description"));
+              }
             }
           }
-          if (copy_of_pep_hits.size() > 0)
+          if (!copy_of_pep_hits.empty())
           {
             PeptideIdentification temp_pepid = *v_it;
             temp_pepid.setHits(copy_of_pep_hits);
             copy_of_pep_ids.push_back(temp_pepid);
           }
         }
-        if (copy_of_pep_ids.size() > 0)
+        if (!copy_of_pep_ids.empty())
         {
           fm_it->setPeptideIdentifications(copy_of_pep_ids);
-          parsed_feature_map.push_back(*fm_it);
+          if (!label.empty()) fm_it->setMetaValue("label", label);
+          filtered_feature_map.push_back(*fm_it);
         }
       }
     }
-    FeatureXMLFile().store(out_features_filepath, parsed_feature_map);
+    FeatureXMLFile().store(out_features_filepath, filtered_feature_map);
     progresslogger.endProgress();
 
     return EXECUTION_OK;
