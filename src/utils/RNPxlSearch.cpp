@@ -298,50 +298,14 @@ struct FragmentAnnotationDetail_
 
   bool operator<(const FragmentAnnotationDetail_& other) const
   {
-    if (charge < other.charge) 
-    { 
-      return true;
-    } 
-    else if (charge > other.charge)
-    {
-      return false;
-    }
-
-    if (shift < other.shift)
-    { 
-      return true;
-    } 
-    else if (shift > other.shift)
-    {
-      return false;
-    }
-
-    if (mz < other.mz)
-    {
-      return true;
-    }
-    else if (mz > other.mz)
-    {
-      return false;
-    }
-
-    if (intensity < other.intensity)
-    {
-      return true;
-    }
-    else if (intensity > other.intensity)
-    {
-      return false;
-    }
-
-    return false;
+    return std::tie(charge, shift, mz, intensity) < std::tie(other.charge, other.shift, other.mz, other.intensity);
   }
 
   bool operator==(const FragmentAnnotationDetail_& other) const
   {
     double mz_diff = fabs(mz - other.mz);
     double intensity_diff = fabs(intensity - other.intensity);
-    return (shift == other.shift && mz_diff < 1e-6 && intensity_diff < 1e-6); // mz and intensity difference comparison actually not needed but kept for completeness
+    return (charge == other.charge && shift == other.shift && mz_diff < 1e-6 && intensity_diff < 1e-6); // mz and intensity difference comparison actually not needed but kept for completeness
   }
 };
 
@@ -356,7 +320,8 @@ class FragmentAnnotationHelper
   {
     return String("i") + c + "+" + fragment_shift_name;
   }
- 
+
+  // deprecated: for PD community nodes compatibility 
   static String fragmentAnnotationDetailsToString(const String& ion_type, map<Size, vector<FragmentAnnotationDetail_> > ion_annotation_details)
   {
     String fas;
@@ -740,17 +705,14 @@ protected:
 
     bool operator<(const FragmentAdductDefinition_& other) const
     {
-      if (formula.toString() < other.formula.toString()) return true;
-      if (formula.toString() > other.formula.toString()) return false;
-      if (name < other.name) return true;
-      return false;
+      String fa = formula.toString();
+      String fb = other.formula.toString();
+      return std::tie(fa, name) < std::tie(fb, other.name);
     }
 
     bool operator==(const FragmentAdductDefinition_& other) const
     {
-      if (formula != other.formula) return false;
-      if (name != other.name) return false;
-      return false;
+      return std::tie(formula, name) == std::tie(other.formula, other.name);
     }
   };
 
@@ -760,7 +722,7 @@ protected:
   vector<FragmentAdductDefinition_> getFeasibleFragmentAdducts_(const String& exp_pc_adduct, const String& exp_pc_formula, const PrecursorToFragmentAdductMapType& precursor_to_fragment_adducts)
   {
     // no precursor adduct? no fragment adducts are expected!
-    if (exp_pc_formula.empty()) return vector<FragmentAdductDefinition_>(); 
+    if (exp_pc_formula.empty()) { return vector<FragmentAdductDefinition_>(); } 
 
     #ifdef DEBUG_RNPXLSEARCH
       LOG_DEBUG << "Generating fragment adducts for precursor adduct: '" << exp_pc_adduct << "'" << endl;
@@ -966,20 +928,18 @@ protected:
 #endif
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
-      const PeakSpectrum& exp_spectrum = exp[scan_index];
-      const Size precursor_charge = exp_spectrum.getPrecursors()[0].getCharge();
+      const PeakSpectrum & exp_spectrum = exp[scan_index];
+      const Size & precursor_charge = exp_spectrum.getPrecursors()[0].getCharge();
       if (!annotated_hits[scan_index].empty())
       {
-        for (vector<AnnotatedHit>::iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
+        for (auto& a : annotated_hits[scan_index])
         {
           // get unmodified string
-          String unmodified_sequence = a_it->sequence.getString();
-
-//        cout << a_it->sequence.getString() << " " << exp_spectrum.getRT() << endl; 
+          const String unmodified_sequence = a.sequence.getString();
 
           // initialize result fields
-          a_it->best_localization = unmodified_sequence;
-          a_it->best_localization_score = 0;
+          a.best_localization = unmodified_sequence;
+          a.best_localization_score = 0;
 
           AASequence aas = AASequence::fromString(unmodified_sequence);
 
@@ -989,11 +949,11 @@ protected:
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
 
           // reannotate much more memory heavy AASequence object
-          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[a_it->peptide_mod_index]; 
+          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[a.peptide_mod_index]; 
 
           // determine RNA on precursor from index in map
           std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
-          std::advance(mod_combinations_it, a_it->rna_mod_index);
+          std::advance(mod_combinations_it, a.rna_mod_index);
           String precursor_rna_adduct = *mod_combinations_it->second.begin();
 
           // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
@@ -1336,18 +1296,15 @@ protected:
 
           if (alignment.empty()) 
           {
-            a_it->fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
-            a_it->fragment_annotations = fas;
+            a.fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
+            a.fragment_annotations = fas;
             continue;
           }
 
           for (vector<std::pair<Size, Size> >::const_iterator pair_it = alignment.begin(); pair_it != alignment.end(); ++pair_it)
           {
             // only annotate experimental peaks with shift - i.e. do not annotated complete loss peaks again
-            if (peak_is_annotated.find(pair_it->second) != peak_is_annotated.end())
-            {
-              continue;
-            }
+            if (peak_is_annotated.find(pair_it->second) != peak_is_annotated.end()) { continue; }
 
             // information on the experimental fragment in the alignment
             const Size& fragment_index = pair_it->second;
@@ -1363,10 +1320,7 @@ protected:
 
             ion_name.split(' ', f);  // e.g. "y3 C3O" or just "y2"
             String fragment_shift_name;
-            if (f.size() == 2) 
-            {
-              fragment_shift_name = f[1];
-            }
+            if (f.size() == 2) { fragment_shift_name = f[1]; }
 
             String fragment_ion_name = f[0]; // e.g. y3
 
@@ -1628,9 +1582,9 @@ protected:
           #endif
 
           // store score of best localization(s)
-          a_it->localization_scores = localization_scores;
-          a_it->best_localization = best_localization;
-          a_it->best_localization_score = best_localization_score;
+          a.localization_scores = localization_scores;
+          a.best_localization = best_localization;
+          a.best_localization_score = best_localization_score;
 
           String sb = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions);
           if (!sb.empty()) 
@@ -1677,8 +1631,8 @@ protected:
             fas.insert(fas.end(), annotated_precursor_ions.begin(), annotated_precursor_ions.end());
           }
 
-          a_it->fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
-          a_it->fragment_annotations = fas;
+          a.fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
+          a.fragment_annotations = fas;
 
           #ifdef DEBUG_RNPXLSEARCH
             LOG_DEBUG << "Ion centric annotation: " << endl;
