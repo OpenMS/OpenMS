@@ -63,118 +63,116 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
 
     ifstream file(pathtocsicsv);
 
-    int number_of_lines = 0;
+    unsigned int rowcount = 0;   
+    unsigned int number_cor = 0;
 
     if (file) 
     {
-        std::string line;
-        while (std::getline(file, line))
-        {
-            ++number_of_lines;
-            if (number_of_lines > 2)
-            {
-                break;
-            }
-        }    
-    }
-
-    std::cout << "number_of_lines " << number_of_lines << std::endl;
-
-    if (file && number_of_lines > 1)
-    {
+      
       // read results from sirius output files
       CsvFile compounds(pathtocsicsv, '\t');
-
-      // fill identification structure containing all candidate hits for a single spectrum
-      CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id;
-
-      //Extract scan_index from path
-      OpenMS::String str = File::path(pathtocsicsv);
-      std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
-
-      for (Size j = 1; j < number; ++j)
+      rowcount = compounds.rowCount();
+    
+      if (file && rowcount > 1)
       {
-
-        std::cout << "line " << j << std::endl;
-
-        StringList sl;
-        compounds.getRow(j, sl);
-        CsiFingerIdMzTabWriter::CsiAdapterHit csi_hit;
-        csi_hit.inchikey2D = sl[0];
-        csi_hit.inchi = sl[1];
-        csi_hit.molecular_formula = sl[2];
-        csi_hit.rank = sl[3].toInt();
-        csi_hit.score = sl[4].toDouble();
-        csi_hit.name = sl[5];
-        csi_hit.smiles = sl[6];
-        sl[8].split(';', csi_hit.pubchemids);
-        sl[9].split(';', csi_hit.links);
-
-        csi_id.hits.push_back(csi_hit);
-      }
-
-      csi_id.scan_index = scan_index;
-      csi_result.identifications.push_back(csi_id);
-
-      // write metadata to mzTab file
-      MzTabFile mztab_out;
-      MzTabMetaData md;
-      MzTabMSRunMetaData md_run;
-      md_run.location = MzTabString(str);
-      md.ms_run[1] = md_run;
-      md.description = MzTabString("CSI:FingerID-3.5");
-
-      //needed for header generation (score)
-      std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
-      smallmolecule_search_engine_score[1].setName("score");
-      md.smallmolecule_search_engine_score = smallmolecule_search_engine_score;
-      result.setMetaData(md);
-
-      // write results to mzTab file
-      MzTabSmallMoleculeSectionRows smsd;
-      for (Size i = 0; i != csi_result.identifications.size(); ++i)
-      {
-        const CsiFingerIdMzTabWriter::CsiAdapterIdentification &id = csi_result.identifications[i];
-        for (Size j = 0; j != id.hits.size(); ++j)
+        if (number > rowcount)
         {
-          const CsiFingerIdMzTabWriter::CsiAdapterHit &hit = id.hits[j];
-          MzTabSmallMoleculeSectionRow smsr;
-
-          map <Size, MzTabDouble> engine_score = {{1, MzTabDouble(hit.score)}};
-          smsr.best_search_engine_score = engine_score;
-
-          smsr.chemical_formula = MzTabString(hit.molecular_formula);
-          smsr.description = MzTabString(hit.name);
-          vector <MzTabString> pubchemids;
-          for (Size k = 0; k != hit.pubchemids.size(); ++k)
-          {
-            pubchemids.push_back(MzTabString(hit.pubchemids[k]));
-          }
-          smsr.identifier.set(pubchemids);
-          smsr.inchi_key = MzTabString(hit.inchikey2D);
-          smsr.smiles = MzTabString(hit.smiles);
-          vector < MzTabString > uri;
-          for (Size k = 0; k != hit.links.size(); ++k)
-          {
-            uri.push_back(MzTabString(hit.links[k]));
-          }
-
-          MzTabOptionalColumnEntry rank;
-          rank.first = "rank";
-          rank.second = MzTabString(hit.rank);
-
-          MzTabOptionalColumnEntry compoundId;
-          compoundId.first = "compoundId";
-          compoundId.second = MzTabString(id.scan_index);
-
-          smsr.opt_.push_back(rank);
-          smsr.opt_.push_back(compoundId);
-          smsd.push_back(smsr);
+          number_cor = rowcount; 
         }
+        else
+        {
+          number_cor = number;
+        }
+
+        // fill identification structure containing all candidate hits for a single spectrum
+        CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id;
+
+        //Extract scan_index from path
+        OpenMS::String str = File::path(pathtocsicsv);
+        std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
+
+        for (Size j = 1; j < number_cor; ++j)
+        {
+          
+          StringList sl;
+          compounds.getRow(j, sl);
+          CsiFingerIdMzTabWriter::CsiAdapterHit csi_hit;
+          csi_hit.inchikey2D = sl[0];
+          csi_hit.inchi = sl[1];
+          csi_hit.molecular_formula = sl[2];
+          csi_hit.rank = sl[3].toInt();
+          csi_hit.score = sl[4].toDouble();
+          csi_hit.name = sl[5];
+          csi_hit.smiles = sl[6];
+          sl[8].split(';', csi_hit.pubchemids);
+          sl[9].split(';', csi_hit.links);
+
+          csi_id.hits.push_back(csi_hit);
+        }
+
+        csi_id.scan_index = scan_index;
+        csi_result.identifications.push_back(csi_id);
+
+        // write metadata to mzTab file
+        MzTabFile mztab_out;
+        MzTabMetaData md;
+        MzTabMSRunMetaData md_run;
+        md_run.location = MzTabString(str);
+        md.ms_run[1] = md_run;
+        md.description = MzTabString("CSI:FingerID-3.5");
+
+        //needed for header generation (score)
+        std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
+        smallmolecule_search_engine_score[1].setName("score");
+        md.smallmolecule_search_engine_score = smallmolecule_search_engine_score;
+        result.setMetaData(md);
+
+        // write results to mzTab file
+        MzTabSmallMoleculeSectionRows smsd;
+        for (Size i = 0; i != csi_result.identifications.size(); ++i)
+        {
+          const CsiFingerIdMzTabWriter::CsiAdapterIdentification &id = csi_result.identifications[i];
+          for (Size j = 0; j != id.hits.size(); ++j)
+          {
+            const CsiFingerIdMzTabWriter::CsiAdapterHit &hit = id.hits[j];
+            MzTabSmallMoleculeSectionRow smsr;
+
+            map <Size, MzTabDouble> engine_score = {{1, MzTabDouble(hit.score)}};
+            smsr.best_search_engine_score = engine_score;
+
+            smsr.chemical_formula = MzTabString(hit.molecular_formula);
+            smsr.description = MzTabString(hit.name);
+            vector <MzTabString> pubchemids;
+            for (Size k = 0; k != hit.pubchemids.size(); ++k)
+            {
+              pubchemids.push_back(MzTabString(hit.pubchemids[k]));
+            }  
+            smsr.identifier.set(pubchemids);
+            smsr.inchi_key = MzTabString(hit.inchikey2D);
+            smsr.smiles = MzTabString(hit.smiles);
+            vector < MzTabString > uri;
+            for (Size k = 0; k != hit.links.size(); ++k)
+            {
+              uri.push_back(MzTabString(hit.links[k]));
+            }  
+
+            MzTabOptionalColumnEntry rank;
+            rank.first = "rank";
+            rank.second = MzTabString(hit.rank);
+
+            MzTabOptionalColumnEntry compoundId;
+            compoundId.first = "compoundId";
+            compoundId.second = MzTabString(id.scan_index);
+
+            smsr.opt_.push_back(rank);
+            smsr.opt_.push_back(compoundId);
+            smsd.push_back(smsr);
+          } 
+        }
+
+        result.setSmallMoleculeSectionRows(smsd);
+     
       }
-
-      result.setSmallMoleculeSectionRows(smsd);
-
     }
   }
 }

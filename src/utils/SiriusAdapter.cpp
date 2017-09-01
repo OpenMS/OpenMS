@@ -111,7 +111,7 @@ protected:
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
     setValidFormats_("out_sirius", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out_fingerid","<file>", "", "MzTab ouput file for CSI:FingerID", false);
+    registerOutputFile_("out_fingerid","<file>", "", "MzTab ouput file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
     setValidFormats_("out_fingerid", ListUtils::create<String>("tsv"));
 
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
@@ -130,7 +130,6 @@ protected:
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
-    registerFlag_("fingerid", "If this option is set, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
   }
 
   ExitCodes main_(int, const char **)
@@ -144,7 +143,7 @@ protected:
     String out_csifingerid = getStringOption_("out_fingerid");
 
     // needed for counting
-    int number_compounds = getIntOption_("number") + 1;  // +1 needed to write the correct number of compounds
+    int number_compounds = getIntOption_("number"); 
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
