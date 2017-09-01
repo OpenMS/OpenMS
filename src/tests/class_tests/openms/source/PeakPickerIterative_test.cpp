@@ -73,7 +73,7 @@ START_SECTION((~PeakPickerIterative()))
 }
 END_SECTION
 
-START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &input, MSSpectrum< PeakType > &output)))
+START_SECTION((template < typename PeakType > void pick(const MSSpectrum &input, MSSpectrum &output)))
 {
   // TODO
 }

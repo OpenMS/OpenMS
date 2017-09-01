@@ -247,6 +247,14 @@ namespace OpenMS
         }
         continue;
       }
+      if (key.hasSubstring("MSGFID"))
+      {
+        if (!key.hasSuffix(":"))
+        {
+          enzy_ptr->setMSGFID(value.toInt());
+        }
+        continue;
+      }
       if (key.hasSubstring("Synonyms"))
       {
         // no synonyms defined?
@@ -302,6 +310,18 @@ namespace OpenMS
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
       if ((*it)->getOMSSAID() != 0)
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
+  }
+
+  void EnzymesDB::getAllMSGFNames(vector<String>& all_names) const
+  {
+    all_names.clear();
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      if ((*it)->getMSGFID() != -1) // msgf+ starts enzyme numbering at 0
       {
         all_names.push_back((*it)->getName());
       }

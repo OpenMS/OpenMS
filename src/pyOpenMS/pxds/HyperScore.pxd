@@ -11,5 +11,5 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/HyperScore.h>" namespace "OpenMS":
 
         double compute(double fragment_mass_tolerance, 
                        bool fragment_mass_tolerance_unit_ppm,
-                       MSSpectrum[Peak1D] & exp_spectrum, MSSpectrum[Peak1D] & theo_spectrum) nogil except +
+                       MSSpectrum & exp_spectrum, MSSpectrum & theo_spectrum) nogil except +
 

@@ -211,7 +211,7 @@ protected:
     const char * tr_file = tr_file_str.c_str();
 
     MapType out_exp;
-    std::vector< OpenMS::MSChromatogram<> > chromatograms;
+    std::vector< OpenMS::MSChromatogram > chromatograms;
     TraMLFile traml;
     OpenMS::TargetedExperiment targeted_exp;
 

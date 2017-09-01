@@ -43,12 +43,12 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-void FunctionChangeSpectrum (OpenMS::MSSpectrum<OpenMS::Peak1D> & s)
+void FunctionChangeSpectrum (OpenMS::MSSpectrum & s)
 {
   s.sortByIntensity();
 }
 
-void FunctionChangeChromatogram (OpenMS::MSChromatogram<OpenMS::ChromatogramPeak> & c)
+void FunctionChangeChromatogram (OpenMS::MSChromatogram & c)
 {
   c.sortByIntensity();
 }
@@ -80,7 +80,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
   PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
-  MSSpectrum<> first_spectrum = exp.getSpectrum(0);
+  MSSpectrum first_spectrum = exp.getSpectrum(0);
 
   transforming_consumer->setExpectedSize(2,0);
   transforming_consumer->consumeSpectrum(exp.getSpectrum(0));
@@ -98,7 +98,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
   PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
-  MSChromatogram<> first_chromatogram = exp.getChromatogram(0);
+  MSChromatogram first_chromatogram = exp.getChromatogram(0);
 
   transforming_consumer->setExpectedSize(0,1);
   transforming_consumer->consumeChromatogram(exp.getChromatogram(0));
@@ -134,7 +134,7 @@ START_SECTION((virtual void setSpectraProcessingPtr( void (*sproptr)(SpectrumTyp
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   exp.getSpectrum(0).sortByPosition();
-  MSSpectrum<> first_spectrum = exp.getSpectrum(0);
+  MSSpectrum first_spectrum = exp.getSpectrum(0);
 
   transforming_consumer->setExpectedSize(2,0);
   transforming_consumer->setSpectraProcessingPtr(FunctionChangeSpectrum);
@@ -156,7 +156,7 @@ START_SECTION((virtual void setChromatogramProcessingPtr( void (*cproptr)(Chroma
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
   exp.getChromatogram(0).sortByPosition();
-  MSChromatogram<> first_chromatogram = exp.getChromatogram(0);
+  MSChromatogram first_chromatogram = exp.getChromatogram(0);
 
   transforming_consumer->setExpectedSize(0,1);
   transforming_consumer->setChromatogramProcessingPtr(FunctionChangeChromatogram);
