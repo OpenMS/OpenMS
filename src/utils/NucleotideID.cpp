@@ -552,7 +552,7 @@ protected:
         merge_params.setValue("block_method:rt_max_length", 0.0); // no limit
         merge_params.setValue("mz_binning_width", 2.0);
         merge_params.setValue("mz_binning_width_unit", "ppm");
-        // merge_params.setValue("mass_error_unit",fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); // convert from bool to string
+        // merge_params.setValue("mass_error_unit", fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); // convert from bool to string
         fm_merger.setParameters(merge_params);
         fm_merger.mergeSpectraPrecursors(selected_map);
       }
@@ -568,7 +568,7 @@ protected:
       for (vector<PeptideIdentification>::iterator v_it = peptide_ids.begin(); v_it != peptide_ids.end(); ++v_it)
       {
         vector<PeptideHit> peptide_hits = v_it->getHits();
-        for (vector<PeptideHit>::iterator h_it=peptide_hits.begin(); h_it != peptide_hits.end(); ++h_it)
+        for (vector<PeptideHit>::iterator h_it = peptide_hits.begin(); h_it != peptide_hits.end(); ++h_it)
         {
           // generate theoretical spectrum for current candidate (and optionally for the reversed decoy sequence for FDR calculation later)
           StringList sequence_list = h_it->getMetaValue("description").toStringList(); // get the sequence
