@@ -90,39 +90,27 @@ protected:
     registerOutputFile_("out_features", "<file>", "", "Features with ambiguities resolved by MS2 scoring\n");
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
-    StringList polarity_valid_strings;
-    polarity_valid_strings.push_back("negative");
-    polarity_valid_strings.push_back("positive");
-
-    registerStringOption_("polarity", "polarity", "negative", "Which polarity are the spectra?", false, false);
-    setValidStrings_("polarity", polarity_valid_strings);
+    registerStringOption_("polarity", "<choice>", "negative", "Polarity of the spectra", false, false);
+    setValidStrings_("polarity", ListUtils::create<String>("negative,positive"));
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
-    registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false);
-
-    StringList precursor_mass_tolerance_unit_valid_strings;
-    precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
-    precursor_mass_tolerance_unit_valid_strings.push_back("Da");
+    registerDoubleOption_("precursor:mass_tolerance", "<value>", 10.0, "Width of precursor mass tolerance window", false);
 
     registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
-    setValidStrings_("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
+    setValidStrings_("precursor:mass_tolerance_unit", ListUtils::create<String>("ppm,Da"));
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
-    registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
+    registerDoubleOption_("fragment:mass_tolerance", "<value>", 10.0, "Fragment mass tolerance", false);
 
-    StringList fragment_mass_tolerance_unit_valid_strings;
-    fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
-    fragment_mass_tolerance_unit_valid_strings.push_back("Da");
+    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment mass tolerance", false, false);
+    setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("ppm,Da"));
 
-    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment m", false, false);
-    setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
-
-    registerStringOption_("nucType","<nType>","RNA","Which type of nucleotide to generate spectra for.",false,false);
-    setValidStrings_("nucType",ListUtils::create<String>("RNA,DNA"));
+    registerStringOption_("seq_type", "<choice>", "RNA", "Type of nucleotide sequence for which to generate spectra.", false, false);
+    setValidStrings_("seq_type", ListUtils::create<String>("RNA,DNA"));
   }
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
-  //SPW in practice my samples show a notable lack of isotopic peaks in the MS2, I've disabled this for now until I can improve that.
+  // SPW: in practice my samples show a notable lack of isotopic peaks in the MS2, I've disabled this for now until I can improve that.
   template <typename SpectrumType>
   void deisotopeAndSingleChargeMSSpectrum_(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
   {
@@ -142,13 +130,13 @@ protected:
     {
       double current_mz = old_spectrum[current_peak].getPosition()[0];
 
-      for (Int q = max_charge; q >= min_charge; --q)     // important: test charge hypothesis from high to low
+      for (Int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
       {
         // try to extend isotopes from mono-isotopic peak
         // if extension larger then min_isopeaks possible:
         //   - save charge q in mono_isotopic_peak[]
         //   - annotate all isotopic peaks with feature number
-        if (features[current_peak] == -1)     // only process peaks which have no assigned feature number
+        if (features[current_peak] == -1) // only process peaks which have no assigned feature number
         {
           bool has_min_isopeaks = true;
           vector<Size> extensions;
@@ -157,7 +145,7 @@ protected:
             double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
             Size p = old_spectrum.findNearest(expected_mz);
             double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton)     // test for missing peak
+            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
             {
               if (i < min_isopeaks)
               {
@@ -297,7 +285,7 @@ protected:
 
 
   // This code is based on a function in HiResPrecursorMassCorrector, it returns a set of the indexes of peaks that overlap with the feature in question
-  //  SPW NB: The comments below are misleading and will be updated when I clean up this tool
+  //  SPW: The comments below are misleading and will be updated when I clean up this tool
   set<Size> correctToNearestFeature(const Feature& feature, PeakMap & exp, double rt_tolerance_s = 30.0, double mz_tolerance = 20.0, bool ppm = true, bool believe_charge = false, bool all_matching_features = false, int max_trace = 5)
   {
     // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
@@ -334,7 +322,6 @@ protected:
       {
         scan_idx_to_feature_idx.insert(scan);
       }
-
     }
 
     // filter sets to retain compatible features:
@@ -351,12 +338,9 @@ protected:
     // if precursor_mz = feature_mz + n * feature_charge (+/- mz_tolerance) a feature is compatible, if not, it is removed from the set
     for (set<Size>::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end();)
     {
-
-
       const Size scan = *it;
       const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
       const double mz_tolerance_da = ppm ? pc_mz * mz_tolerance * 1e-6  : mz_tolerance;
-
 
       if (!compatible_(feature, pc_mz, mz_tolerance_da, max_trace))
       {
@@ -367,7 +351,6 @@ protected:
         ++it;
       }
     }
-
 
     if (debug_level_ > 0)
     {
@@ -383,10 +366,8 @@ protected:
     if (!all_matching_features)
     {
       // keep only nearest features in set
-
       double min_distance = 1e16;
       Size best_feature = *scan_idx_to_feature_idx.begin(); //TODO check this
-
       for (set<Size>::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end(); ++it)
       {
         const Size scan = *it;
@@ -399,7 +380,6 @@ protected:
           best_feature = *it;
         }
       }
-
 
       // delete all except the nearest/best feature
       // Note: This is the "delete while iterating" pattern so mind the pre- and postincrement
@@ -422,7 +402,7 @@ protected:
   bool overlaps_(const DBoundingBox<2> box, const double rt, const double pc_mz) const
   {
     DPosition<2> pc_pos(rt, pc_mz);
-    return box.encloses(pc_pos)
+    return box.encloses(pc_pos);
   }
 
   bool compatible_(const Feature& feature, double pc_mz, double mz_tolerance, Size max_trace_number = 2)
@@ -474,16 +454,16 @@ protected:
     f.load(mzml_filepath, spectra);
     spectra.sortSpectra(true);
 
-    //progresslogger.startProgress(0, 1, "Filtering spectra...");
-    //preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm); //moved to per feature
-    //progresslogger.endProgress();
+    // progresslogger.startProgress(0, 1, "Filtering spectra...");
+    // preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm); // moved to per feature
+    // progresslogger.endProgress();
 
     // copy meta information
-    //MSExperiment debug_exp = spectra;
-    //debug_exp.clear(false);
+    // MSExperiment debug_exp = spectra;
+    // debug_exp.clear(false);
 
     TheoreticalSpectrumGenerator test_generator;
-    Param gen_params= test_generator.getParameters();
+    Param gen_params = test_generator.getParameters();
     gen_params.setValue("add_w_ions","true");
     gen_params.setValue("add_b_ions","false");
     gen_params.setValue("add_a_ions","true");
@@ -491,8 +471,6 @@ protected:
     gen_params.setValue("add_y_ions","true");
     gen_params.setValue("add_d_ions","true");
     test_generator.setParameters(gen_params);
-
-
 
     //      PeakSpectrum p;
     //      p.setMSLevel(2);
@@ -508,84 +486,74 @@ protected:
     //      MzMLFile mtest;
     //      mtest.store(debug_patterns_name, debug_exp);
 
-
     // load featureXML
     FeatureMap feature_map;
     FeatureXMLFile feature_file;
     feature_file.load(in_features_filepath, feature_map);
     MetaboliteSpectralMatching metmatch;
     Param met_params = metmatch.getParameters();
-    met_params.setValue("ionization_mode",getStringOption_("polarity"));
-    met_params.setValue("report_mode","best");
-    met_params.setValue("mass_error_unit",fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); //convert from bool to string
+    met_params.setValue("ionization_mode", getStringOption_("polarity"));
+    met_params.setValue("report_mode", "best");
+    met_params.setValue("mass_error_unit", fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); // convert from bool to string
     metmatch.setParameters(met_params);
     progresslogger.startProgress(0, 1, "Matching spectra...");
-    int pol_multiplier=-1;
-    if (getStringOption_("polarity")=="positive")
-      pol_multiplier=1;
-    Residue::NucleicAcidType what_type;
-    if (getStringOption_("nucType")=="DNA")
-      what_type = Residue::DNA;
-    else
-      what_type = Residue::RNA;
+    int pol_multiplier = -1;
+    if (getStringOption_("polarity") == "positive") pol_multiplier = 1;
+    Residue::NucleicAcidType what_type = (getStringOption_("seq_type") == "DNA") ? Residue::DNA : Residue::RNA;
 
     bool do_all = true;
     bool average_all = true;
 
     for (FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
     {
-
-      if (fm_it->getPeptideIdentifications().size()==0){
+      if (fm_it->getPeptideIdentifications().empty())
+      {
         if (debug_level_ > 2)
         {
           LOG_INFO << "Skipping empty feature" << endl;
         }
-        //TODO remove empty features here
-        fm_it->setPeptideIdentifications(vector<PeptideIdentification>() );
+        // TODO remove empty features here
+        fm_it->setPeptideIdentifications(vector<PeptideIdentification>());
         continue;
       }
 
       // determine MS2 precursor positions that overlap with the current feature
-      //get code from HighResPrecursorMassCorrector
+      // get code from HighResPrecursorMassCorrector
       // for each feature:
       // Find nearest ms2's
-      set<Size> nearest;
-      nearest=correctToNearestFeature(*fm_it, spectra, 100, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, false, do_all);
+      set<Size> nearest = correctToNearestFeature(*fm_it, spectra, 100, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, false, do_all);
 
-      if (nearest.size()==0)
+      if (nearest.empty())
       {
         if (debug_level_ > 2)
         {
-          LOG_INFO << "Skipping feature with no valid ms2s" << endl;
+          LOG_INFO << "Skipping feature with no valid MS2s" << endl;
         }
-        fm_it->setPeptideIdentifications(vector<PeptideIdentification>() );
+        fm_it->setPeptideIdentifications(vector<PeptideIdentification>());
         continue;
       }
-      //Create a new vector containing only spectra which correspond to this feature (makes the merging much cleaner)
+      // Create a new vector containing only spectra which correspond to this feature (makes the merging much cleaner)
       PeakMap selected_map;
       std::vector<MSSpectrum<Peak1D> > selected_spectra;
-      selected_spectra.reserve(nearest.size());//reserve enough elements so we dont have to reallocate
+      selected_spectra.reserve(nearest.size()); //reserve enough elements so we dont have to reallocate
       for (set<Size>::iterator siter = nearest.begin(); siter != nearest.end(); ++siter)
       {
         selected_spectra.push_back(spectra.getSpectra()[*siter]);
       }
-
       selected_map.setSpectra(selected_spectra);
 
-
-      //if the user wants to average mutliple compatible ms2s
-      if (nearest.size()>1 && average_all)
+      // if the user wants to average multiple compatible MS2s
+      if (nearest.size() > 1 && average_all)
       {
-        //merge ms2s
+        // merge MS2s
         SpectraMerger fm_merger;
         Param merge_params = fm_merger.getParameters();
-        merge_params.setValue("block_method:ms_levels",ListUtils::create<Int>("2"));
-        merge_params.setValue("block_method:rt_block_size",100);//same as correctToNearestFeature's selection
-        merge_params.setValue("block_method:rt_max_length",0.0);//no limit
-        //merge_params.setValue("mass_error_unit",fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); //convert from bool to string
+        merge_params.setValue("block_method:ms_levels", ListUtils::create<Int>("2"));
+        merge_params.setValue("block_method:rt_block_size", 100); // same as correctToNearestFeature's selection
+        merge_params.setValue("block_method:rt_max_length", 0.0); // no limit
+        // merge_params.setValue("mass_error_unit",fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); // convert from bool to string
         fm_merger.setParameters(merge_params);
         fm_merger.mergeSpectraPrecursors(selected_map);
-
       }
 
       preprocessSpectra_(selected_map, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
@@ -602,50 +570,55 @@ protected:
         for (vector<PeptideHit>::iterator h_it=peptide_hits.begin(); h_it != peptide_hits.end(); ++h_it)
         {
           // generate theoretical spectrum for current candidate (and optionally for the reversed decoy sequence for FDR calculation later)
-          StringList sequence_list = h_it->getMetaValue("description").toStringList();//get the sequence
+          StringList sequence_list = h_it->getMetaValue("description").toStringList(); // get the sequence
           // add a reversed seq for use as decoy
           NASequence sequence = NASequence(sequence_list[0], what_type);
           NASequence reversed = NASequence(sequence_list[0].reverse(), what_type);
-          // StringList identifier_list= h_it->getMetaValue("identifier").toStringList(); //get the identifier
+          // StringList identifier_list= h_it->getMetaValue("identifier").toStringList(); // get the identifier
           // String identifier = identifier_list[0];
           MSSpectrum<Peak1D> spec;
           MSSpectrum<Peak1D> rev_spec;
-          test_generator.getSpectrum(rev_spec, reversed, pol_multiplier, h_it->getCharge() * pol_multiplier); //there should only be one //Shouldnt this be fm_it->getCharge
-          test_generator.getSpectrum(spec, sequence, pol_multiplier, h_it->getCharge() * pol_multiplier); //there should only be one
-          double revscore=0 ,tmprevscore = 0;
-          double score=0, tmpscore = 0;
-          //iterate through all of the matching ms2s since we may have many
-          if (do_all){
-            for (std::vector<MSSpectrum<Peak1D> >::iterator n_it=selected_map.getSpectra().begin(); n_it != selected_map.getSpectra().end(); ++n_it){
-              tmprevscore=  metmatch.computeHyperScore(*n_it, rev_spec, fragment_mass_tolerance, 100.0);
-              tmpscore =  metmatch.computeHyperScore(*n_it, spec, fragment_mass_tolerance, 100.0);
-              if (tmpscore>score){
-                score=tmpscore;
-                revscore=tmprevscore; // We take decoy score for the same spectrum as the forward score
+          test_generator.getSpectrum(rev_spec, reversed, pol_multiplier, h_it->getCharge() * pol_multiplier); // there should only be one // FIXME: Shouldn't this be "fm_it->getCharge"?
+          test_generator.getSpectrum(spec, sequence, pol_multiplier, h_it->getCharge() * pol_multiplier); // there should only be one
+          double revscore = 0, tmprevscore = 0;
+          double score = 0, tmpscore = 0;
+          // iterate through all of the matching MS2s since we may have many
+          if (do_all)
+          {
+            for (std::vector<MSSpectrum<Peak1D> >::iterator n_it=selected_map.getSpectra().begin(); n_it != selected_map.getSpectra().end(); ++n_it)
+            {
+              tmprevscore = metmatch.computeHyperScore(*n_it, rev_spec, fragment_mass_tolerance, 100.0);
+              tmpscore = metmatch.computeHyperScore(*n_it, spec, fragment_mass_tolerance, 100.0);
+              if (tmpscore > score)
+              {
+                score = tmpscore;
+                revscore = tmprevscore; // We take decoy score for the same spectrum as the forward score
               }
             }
           }
-          else{
-            revscore=  metmatch.computeHyperScore(selected_map.getSpectra()[0], rev_spec, fragment_mass_tolerance, 100.0);
-            score =  metmatch.computeHyperScore(selected_map.getSpectra()[0], spec, fragment_mass_tolerance, 100.0);
+          else
+          {
+            revscore = metmatch.computeHyperScore(selected_map.getSpectra()[0], rev_spec, fragment_mass_tolerance, 100.0);
+            score = metmatch.computeHyperScore(selected_map.getSpectra()[0], spec, fragment_mass_tolerance, 100.0);
           }
           if (debug_level_ > 0)
           {
             LOG_INFO << "Decoy Score: " << revscore << endl;
             LOG_INFO << "Score: " << score << endl;
-
           }
-          if (score>=revscore)
+          if (score >= revscore)
           {
-            if (score>=h_it->getScore()) //Don't overwrite a better score (such as an earlier MS2 of the same feature
+            if (score >= h_it->getScore()) // Don't overwrite a better score (such as an earlier MS2 of the same feature
             {
               h_it->setScore(score);
             }
           }
           else
           {
-            if (h_it->getScore()==0)//tell the user how bad the gap between decoy and actual is if we don't have any good spectra
-              h_it->setScore(score-revscore);
+            if (h_it->getScore() == 0) // tell the user how bad the gap between decoy and actual is if we don't have any good spectra
+            {
+              h_it->setScore(score - revscore);
+            }
             if (debug_level_ > 0)
             {
               LOG_INFO << "Decoy scored better than actual "<< endl;
@@ -655,9 +628,8 @@ protected:
         }
         v_it->setHits(peptide_hits);
       }
-      //clear putative IDs for which we have no evidence
+      // clear putative IDs for which we have no evidence
       fm_it->setPeptideIdentifications(peptide_ids);
-
 
       // extract candidates from feature
 //            const std::vector< MSSpectrum< Peak1D > > overlapping_spectra = debug_exp.getSpectra();
@@ -672,9 +644,8 @@ protected:
       // TEST writing of MZML file FIXME
       //MzMLFile mtest;
       //mtest.store("/home/samuel/git/OpenMS/spectrumgentest.mzML", debug_exp);
-
-
     }
+
     //Remove empty features
     //feature_map.erase(std::remove_if(feature_map.begin(), feature_map.end(),[](Feature i) {return i.getPeptideIdentifications().size()==0;}), feature_map.end()); //Someday when we have Lambda expressions...
 
