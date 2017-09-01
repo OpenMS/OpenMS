@@ -317,8 +317,8 @@ class TOPPHiResPrecursorMassCorrector :
           LOG_WARN << "Error: no MS1 spectrum for this precursor" << endl;
         }
 
-        MSSpectrum<Peak1D>::ConstIterator left = rt_it->MZBegin(mz - mz_tolerance);
-        MSSpectrum<Peak1D>::ConstIterator right = rt_it->MZEnd(mz + mz_tolerance);
+        MSSpectrum::ConstIterator left = rt_it->MZBegin(mz - mz_tolerance);
+        MSSpectrum::ConstIterator right = rt_it->MZEnd(mz + mz_tolerance);
 
         // no MS1 precursor peak in +- tolerance window found
         if (left == right || left->getMZ() > mz + mz_tolerance)
@@ -326,7 +326,7 @@ class TOPPHiResPrecursorMassCorrector :
           count_error_highest_intenstiy += 1;
         }
 
-        MSSpectrum<Peak1D>::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
+        MSSpectrum::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
 
         // find peak (index) with highest intensity to expected position
         Size highest_peak_idx = max_intensity_it - rt_it->begin();
@@ -478,7 +478,7 @@ class TOPPHiResPrecursorMassCorrector :
         for (map<Size, set<Size> >::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end(); ++it)
         {
           const Size scan = it->first;
-          MSSpectrum<> spectrum = exp[scan];
+          MSSpectrum spectrum = exp[scan];
           corrected_precursors.insert(scan);
           for (set<Size>::iterator f_it = it->second.begin(); f_it != it->second.end(); ++f_it)
           {

@@ -191,8 +191,17 @@ namespace OpenMS
       }
       // determine charge of adduct (by # of '+')
       int l_charge = adduct[0].size();
-      int n_charge, p_charge;
+      int n_charge = 0 , p_charge;
       p_charge= l_charge - adduct[0].remove('+').size();
+      //Negative mode is more complicated to distinguish between a negative quantity of an uncharged adduct (eg H-4) and a positive quantity of a negative adduct (eg H4-, ie HHHH-).
+      /*      for (String::iterator nit=adduct[0].begin(); nit!=adduct[0].end(); ++nit)
+	{
+	  if (*nit=='-' && (nit==adduct[0].end() || !isdigit(*(nit+1))))
+	    {
+	      ++n_charge;
+	      //TODO remove these from the string
+	    }
+	    }*/
       n_charge = adduct[0].size() - adduct[0].remove('-').size();
       //std::cout << p_charge << " " << n_charge << endl;
       l_charge = p_charge - n_charge;

@@ -153,7 +153,7 @@ protected:
       void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
 
       /// Helper method that writes the FragmentAnnotations section of a spectrum identification
-      void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent, bool is_ppxl) const;
+      void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const;
 
       /// Convenience method to remove the [] from OpenMS internal file uri representation
       String trimOpenMSfileURI(const String file) const;

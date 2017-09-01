@@ -75,8 +75,11 @@ public:
     */
     static bool remove(const String& file);
 
-    /// Removes the specified directory (absolute path). Returns true if successful.
+    /// Removes the subdirectories of the specified directory (absolute path). Returns true if successful.
     static bool removeDirRecursively(const String& dir_name);
+
+    /// Removes the directory and all subdirectories (absolute path).
+    static bool removeDir(const QString& dir_name);
 
     /// Replaces the relative path in the argument with the absolute path.
     static String absolutePath(const String& file);
@@ -143,8 +146,13 @@ public:
     */
     static String findDoc(const String& filename);
     
-    /// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
-    static String getUniqueName();
+    /**
+      @brief Returns a string, consisting of date, time, hostname, process id, and a incrementing number. This can be used for temporary files.
+
+      @param include_hostname add hostname into result - potentially a long string
+      @return a unique name
+    */
+    static String getUniqueName(bool include_hostname = true);
 
     /// Returns the OpenMS data path (environment variable overwrites the default installation path)
     static String getOpenMSDataPath();

@@ -81,7 +81,7 @@ namespace OpenMS
     std::vector<MSRun> runs;  //< run 1..n (index + 1 determines run id of the first column)
 
     /// return fraction index to MSRuns (e.g., Fraction 1 maps to MSRun 1 and 2 in the example above)
-    std::map<unsigned, std::set<unsigned> > getFractionToRunsMapping() const;
+    std::map<unsigned int, std::set<unsigned int> > getFractionToRunsMapping() const;
 
     /// return if each fraction number is asscociated with the same number of runs 
     bool sameNrOfRunsPerFraction() const;

@@ -267,6 +267,15 @@ START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&ou
     TEST_EQUAL(out.size(), 2)
     TEST_EQUAL(out[0].toString(), "ACR")
     TEST_EQUAL(out[1].toString(), "PDE")
+        
+    // ------------------------
+    // unspecific cleavage
+    // ------------------------
+    ed.setEnzyme("unspecific cleavage");
+    ed.digest(AASequence::fromString("ABCDEFGHIJ"), out);
+    TEST_EQUAL(out.size(), 11*10/2)
+    ed.digest(AASequence::fromString("ABC"), out);
+    TEST_EQUAL(out.size(), 4*3/2)
 END_SECTION
 
 START_SECTION((bool digestUnmodifiedString(const StringView sequence, std::vector<StringView>& output, Size min_length)))
@@ -427,6 +436,16 @@ START_SECTION((bool digestUnmodifiedString(const StringView sequence, std::vecto
     TEST_EQUAL(out[0].getString(), "ACR")
     TEST_EQUAL(out[1].getString(), "PDE")
 
+    // ------------------------
+    // unspecific cleavage
+    // ------------------------    
+    s = "ABCDEFGHIJ";
+    ed.setEnzyme("unspecific cleavage");
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 11*10/2)
+    s = "ABC";
+    ed.digestUnmodifiedString(s, out);
+    TEST_EQUAL(out.size(), 4*3/2)
 END_SECTION
 
 START_SECTION((bool isValidProduct(const AASequence &protein, Size pep_pos, Size pep_length, bool methionine_cleavage)))

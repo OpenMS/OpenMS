@@ -215,7 +215,9 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
-    features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
+    features.setPrimaryMSRunPath(ms_runs);
 
     // get parameters specific for the feature finder
     Param feafi_param = getParam_().copy("algorithm:", true);

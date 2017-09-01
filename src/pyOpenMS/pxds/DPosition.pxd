@@ -16,6 +16,10 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DPosition.h>" namespace "OpenMS":
 
     cdef cppclass DPosition1 "OpenMS::DPosition<1> ":
         # wrap-ignore
+        # 
+        # wrap-manual-memory:
+        #   cdef class DPosition1:
+        #       cdef shared_ptr[_DPosition1] inst
         DPosition1()  nogil except +
         DPosition1(DPosition1)  nogil except +
 

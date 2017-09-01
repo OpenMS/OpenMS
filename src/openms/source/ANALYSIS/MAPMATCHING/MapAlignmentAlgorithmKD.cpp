@@ -47,10 +47,7 @@ MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps, const Param& par
   param_(param),
   max_pairwise_log_fc_(-1)
 {
-  if (param.exists("max_pairwise_log_fc"))
-  {
-    max_pairwise_log_fc_ = param.getValue("max_pairwise_log_fc");
-  }
+  updateMembers_();
 }
 
 MapAlignmentAlgorithmKD::~MapAlignmentAlgorithmKD()
@@ -169,7 +166,7 @@ Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeFeatureMaps& kd_data, vect
       result[i] = cc_index;
 
       vector<Size> compatible_features;
-      kd_data.getNeighborhood(i, compatible_features, false, max_pairwise_log_fc_);
+      kd_data.getNeighborhood(i, compatible_features, rt_tol_secs_, mz_tol_, mz_ppm_, false, max_pairwise_log_fc_);
       for (vector<Size>::const_iterator it = compatible_features.begin();
            it != compatible_features.end();
            ++it)
@@ -203,8 +200,8 @@ void MapAlignmentAlgorithmKD::getCCs_(const KDTreeFeatureMaps& kd_data, map<Size
 void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const map<Size, vector<Size> >& ccs, map<Size, vector<Size> >& filtered_ccs) const
 {
   Size num_maps = fit_data_.size();
-  Size min_size = max(2.0, (double)(param_.getValue("min_rel_cc_size")) * (double)num_maps);
-  int max_nr_conflicts = (int)param_.getValue("max_nr_conflicts");
+  Size min_size = max(2.0, (double)(param_.getValue("warp:min_rel_cc_size")) * (double)num_maps);
+  int max_nr_conflicts = (int)param_.getValue("warp:max_nr_conflicts");
   filtered_ccs.clear();
 
   for (map<Size, vector<Size> >::const_iterator it = ccs.begin(); it != ccs.end(); ++it)
@@ -264,6 +261,16 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
       filtered_ccs[it->first] = cc;
     }
   }
+}
+
+void MapAlignmentAlgorithmKD::updateMembers_()
+{
+  if (param_ == Param()) return;
+
+  rt_tol_secs_ = (double)(param_.getValue("warp:rt_tol"));
+  mz_tol_ = (double)(param_.getValue("warp:mz_tol"));
+  mz_ppm_ = (param_.getValue("mz_unit").toString() == "ppm");
+  max_pairwise_log_fc_ = param_.getValue("warp:max_pairwise_log_fc");
 }
 
 }

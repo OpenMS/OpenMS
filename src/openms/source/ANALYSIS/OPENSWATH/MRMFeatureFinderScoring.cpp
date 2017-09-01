@@ -309,7 +309,7 @@ namespace OpenMS
 
     for (Size i = 0; i < trgr_ident.size(); i++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram<> >(
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
             trgr_ident.getChromatogram(trgr_ident.getTransitions()[i].getNativeID()),
             sn_win_len_, sn_bin_count_, write_log_messages));
       if (  (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) 
@@ -401,6 +401,17 @@ namespace OpenMS
                                                 FeatureMap& output, 
                                                 bool ms1only)
   {
+    if (PeptideRefMap_.empty())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Error: Peptide reference map is empty, please call prepareProteinPeptideMaps_ first.");
+    }
+    if (transition_group.getTransitionGroupID().empty())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Error: Transition group id is empty, please set it.");
+    }
+
     MRMTransitionGroupType transition_group_detection, transition_group_identification, transition_group_identification_decoy;
     splitTransitionGroupsDetection_(transition_group, transition_group_detection);
     if (su_.use_uis_scores)
@@ -417,7 +428,7 @@ namespace OpenMS
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
     for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram<> >(
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
             transition_group_detection.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
       signal_noise_estimators.push_back(snptr);
     }
@@ -428,7 +439,7 @@ namespace OpenMS
     {
       for (Size k = 0; k < transition_group_detection.getPrecursorChromatograms().size(); k++)
       {
-        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram<> >(
+        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
               transition_group_detection.getPrecursorChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
         ms1_signal_noise_estimators.push_back(snptr);
       }
@@ -497,6 +508,14 @@ namespace OpenMS
         { 
           mrmfeature->addScore("sn_ratio", scores.sn_ratio);
           mrmfeature->addScore("var_log_sn_score", scores.log_sn_score); 
+          // compute subfeature log-SN values
+          for (Size k = 0; k < transition_group_detection.getPrecursorChromatograms().size(); k++)
+          {
+            Feature & f = mrmfeature->getPrecursorFeature(transition_group_detection.getPrecursorChromatograms()[k].getNativeID());
+            double sn_value = ms1_signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT());
+            if (sn_value < 1) {sn_value = 1.0;}
+            f.setMetaValue("logSN", std::log(sn_value));
+          }
         }
 
         // RT scores
@@ -650,7 +669,20 @@ namespace OpenMS
         if (su_.use_intensity_score_) { mrmfeature->addScore("var_intensity_score", mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic")); }
         if (su_.use_total_xic_score_) { mrmfeature->addScore("total_xic", (double)mrmfeature->getMetaValue("total_xic")); }
         if (su_.use_nr_peaks_score_) { mrmfeature->addScore("nr_peaks", scores.nr_peaks); }
-        if (su_.use_sn_score_) { mrmfeature->addScore("sn_ratio", scores.sn_ratio); mrmfeature->addScore("var_log_sn_score", scores.log_sn_score); }
+        if (su_.use_sn_score_)
+        {
+          mrmfeature->addScore("sn_ratio", scores.sn_ratio);
+          mrmfeature->addScore("var_log_sn_score", scores.log_sn_score);
+          // compute subfeature log-SN values
+          for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
+          {
+            Feature & f = mrmfeature->getFeature(transition_group_detection.getChromatograms()[k].getNativeID());
+            double sn_value = signal_noise_estimators[k]->getValueAtRT(mrmfeature->getRT());
+            if (sn_value < 1) {sn_value = 1.0;}
+            f.setMetaValue("logSN", std::log(sn_value));
+          }
+        }
+
         // TODO get it working with imrmfeature
         if (su_.use_elution_model_score_)
         {
@@ -793,7 +825,7 @@ namespace OpenMS
 
     for (Size i = 0; i < feature_list.size(); i++)
     {
-      if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break; }
+      if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break;}
       output.push_back(feature_list[i]);
     }
     transition_group = transition_group_detection;
@@ -875,7 +907,7 @@ namespace OpenMS
       // Retrieve chromatogram and filter it by the desired RT
       //-----------------------------------
       OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-      MSChromatogram<> chromatogram;
+      MSChromatogram chromatogram;
 
       // Get the expected retention time, apply the RT-transformation
       // (which describes the normalization) and then take the difference.

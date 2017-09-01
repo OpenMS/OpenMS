@@ -111,15 +111,14 @@ protected:
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
   // SPW: in practice my samples show a notable lack of isotopic peaks in the MS2, I've disabled this for now until I can improve that.
-  template <typename SpectrumType>
-  void deisotopeAndSingleChargeMSSpectrum_(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
+  void deisotopeAndSingleChargeMSSpectrum_(MSSpectrum& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
   {
     if (in.empty())
     {
       return;
     }
 
-    SpectrumType old_spectrum = in;
+    MSSpectrum old_spectrum = in;
 
     // determine charge seeds and extend them
     vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
@@ -534,7 +533,7 @@ protected:
       }
       // Create a new vector containing only spectra which correspond to this feature (makes the merging much cleaner)
       PeakMap selected_map;
-      std::vector<MSSpectrum<Peak1D> > selected_spectra;
+      std::vector<MSSpectrum> selected_spectra;
       selected_spectra.reserve(nearest.size()); //reserve enough elements so we dont have to reallocate
       for (set<Size>::iterator siter = nearest.begin(); siter != nearest.end(); ++siter)
       {
@@ -551,6 +550,8 @@ protected:
         merge_params.setValue("block_method:ms_levels", ListUtils::create<Int>("2"));
         merge_params.setValue("block_method:rt_block_size", 100); // same as correctToNearestFeature's selection
         merge_params.setValue("block_method:rt_max_length", 0.0); // no limit
+        merge_params.setValue("mz_binning_width", 2.0);
+        merge_params.setValue("mz_binning_width_unit", "ppm");
         // merge_params.setValue("mass_error_unit",fragment_mass_tolerance_unit_ppm ? "ppm" : "da"); // convert from bool to string
         fm_merger.setParameters(merge_params);
         fm_merger.mergeSpectraPrecursors(selected_map);
@@ -576,8 +577,8 @@ protected:
           NASequence reversed = NASequence(sequence_list[0].reverse(), what_type);
           // StringList identifier_list= h_it->getMetaValue("identifier").toStringList(); // get the identifier
           // String identifier = identifier_list[0];
-          MSSpectrum<Peak1D> spec;
-          MSSpectrum<Peak1D> rev_spec;
+          MSSpectrum spec;
+          MSSpectrum rev_spec;
           test_generator.getSpectrum(rev_spec, reversed, pol_multiplier, h_it->getCharge() * pol_multiplier); // there should only be one // FIXME: Shouldn't this be "fm_it->getCharge"?
           test_generator.getSpectrum(spec, sequence, pol_multiplier, h_it->getCharge() * pol_multiplier); // there should only be one
           double revscore = 0, tmprevscore = 0;
@@ -585,7 +586,7 @@ protected:
           // iterate through all of the matching MS2s since we may have many
           if (do_all)
           {
-            for (std::vector<MSSpectrum<Peak1D> >::iterator n_it=selected_map.getSpectra().begin(); n_it != selected_map.getSpectra().end(); ++n_it)
+            for (std::vector<MSSpectrum>::iterator n_it = selected_map.getSpectra().begin(); n_it != selected_map.getSpectra().end(); ++n_it)
             {
               tmprevscore = metmatch.computeHyperScore(*n_it, rev_spec, fragment_mass_tolerance, 100.0);
               tmpscore = metmatch.computeHyperScore(*n_it, spec, fragment_mass_tolerance, 100.0);
@@ -632,12 +633,12 @@ protected:
       fm_it->setPeptideIdentifications(peptide_ids);
 
       // extract candidates from feature
-//            const std::vector< MSSpectrum< Peak1D > > overlapping_spectra = debug_exp.getSpectra();
+//            const std::vector< MSSpectrum> overlapping_spectra = debug_exp.getSpectra();
 
       // score theoretical spectrum against experimental spectrum and retain best hit
       // Right now we are only keeping the top spectrum, but if we change in the future iterate through all of them.
 //            for (set<Size>::iterator s_it=nearest.begin();s_it!=nearest.end();++s_it){
-//              for (std::vector< MSSpectrum< Peak1D>>::iterator e_it=overlapping_spectra.begin(); e_it != overlapping_spectra.end(); ++e_it){
+//              for (std::vector< MSSpectrum>::iterator e_it=overlapping_spectra.begin(); e_it != overlapping_spectra.end(); ++e_it){
 //                  double score = MetaboliteSpectralMatching::computeHyperScore(spectra[*s_it], *e_it, 15.0, 200);
 //              }
 //            }
@@ -645,11 +646,40 @@ protected:
       //MzMLFile mtest;
       //mtest.store("/home/samuel/git/OpenMS/spectrumgentest.mzML", debug_exp);
     }
-
     //Remove empty features
     //feature_map.erase(std::remove_if(feature_map.begin(), feature_map.end(),[](Feature i) {return i.getPeptideIdentifications().size()==0;}), feature_map.end()); //Someday when we have Lambda expressions...
-
-    FeatureXMLFile().store(out_features_filepath,feature_map);
+    FeatureMap parsed_feature_map=feature_map;
+    parsed_feature_map.erase(parsed_feature_map.begin(),parsed_feature_map.end()); //clear features leave metadata
+    for(FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
+    {
+      if (fm_it->getPeptideIdentifications().size()!=0)
+      {
+        vector<PeptideIdentification> copy_of_pep_ids; //remove score 0;
+        for (vector<PeptideIdentification>::iterator v_it = fm_it->getPeptideIdentifications().begin(); v_it != fm_it->getPeptideIdentifications().end(); ++v_it)
+        {
+          vector<PeptideHit> peptide_hits = v_it->getHits(), copy_of_pep_hits;
+          for (vector<PeptideHit>::iterator h_it=peptide_hits.begin(); h_it != peptide_hits.end(); ++h_it)
+          {
+            if (h_it->getScore()!=0)
+            {
+              copy_of_pep_hits.push_back(*h_it);
+            }
+          }
+          if (copy_of_pep_hits.size()>0)
+          {
+            PeptideIdentification temp_pepid=*v_it;
+            temp_pepid.setHits(copy_of_pep_hits);
+            copy_of_pep_ids.push_back(temp_pepid);
+          }
+        }
+        if (copy_of_pep_ids.size()>0)
+        {
+          fm_it->setPeptideIdentifications(copy_of_pep_ids);
+          parsed_feature_map.push_back(*fm_it);
+        }
+      }
+    }
+    FeatureXMLFile().store(out_features_filepath,parsed_feature_map);
     progresslogger.endProgress();
 
     return EXECUTION_OK;

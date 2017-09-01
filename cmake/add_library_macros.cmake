@@ -28,8 +28,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche, Chris Bielow $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Stephan Aiche, Chris Bielow, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
 # required modules

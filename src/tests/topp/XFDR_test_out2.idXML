@@ -9,7 +9,7 @@
 				<UserParam type="float" name="cross_link:mass" value="138.068"/>
 				<UserParam type="floatList" name="cross_link:mass_monolink" value="[]"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-03-19T10:18:40" search_engine="OpenXQuest" search_engine_version="2.1.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-03-19T10:18:40" search_engine="OpenXQuest" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|Q00610|CLH1_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -16220,6 +16220,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value=""/>
+				<UserParam type="string" name="OpenXQuest:is_intraprotein" value=""/>
 			</PeptideHit>
 			<PeptideHit score="3" sequence="DGDKK" charge="3" protein_refs="PH_21" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -16240,6 +16241,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value=""/>
+				<UserParam type="string" name="OpenXQuest:is_intraprotein" value=""/>
 			</PeptideHit>
 			<UserParam type="string" name="target_decoy" value="decoy"/>
 			<UserParam type="float" name="OpenXQuest:error_rel" value="-8.70138"/>
@@ -16279,6 +16281,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value=""/>
+				<UserParam type="string" name="OpenXQuest:is_intraprotein" value=""/>
 			</PeptideHit>
 			<PeptideHit score="3" sequence="DGDKK" charge="3" protein_refs="PH_21" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -16299,6 +16302,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value=""/>
+				<UserParam type="string" name="OpenXQuest:is_intraprotein" value=""/>
 			</PeptideHit>
 			<UserParam type="string" name="target_decoy" value="decoy"/>
 			<UserParam type="float" name="OpenXQuest:error_rel" value="-8.70138"/>
@@ -16338,6 +16342,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value=""/>
+				<UserParam type="string" name="OpenXQuest:is_intraprotein" value=""/>
 			</PeptideHit>
 			<PeptideHit score="3" sequence="DGDKK" charge="3" protein_refs="PH_21" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -16358,6 +16363,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value=""/>
+				<UserParam type="string" name="OpenXQuest:is_intraprotein" value=""/>
 			</PeptideHit>
 			<UserParam type="string" name="target_decoy" value="decoy"/>
 			<UserParam type="float" name="OpenXQuest:error_rel" value="-8.70138"/>
@@ -16397,6 +16403,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value=""/>
+				<UserParam type="string" name="OpenXQuest:is_intraprotein" value=""/>
 			</PeptideHit>
 			<PeptideHit score="3" sequence="DGDKK" charge="3" protein_refs="PH_21" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -16417,6 +16424,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value=""/>
+				<UserParam type="string" name="OpenXQuest:is_intraprotein" value=""/>
 			</PeptideHit>
 			<UserParam type="string" name="target_decoy" value="decoy"/>
 			<UserParam type="float" name="OpenXQuest:error_rel" value="-8.70138"/>
@@ -16456,6 +16464,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value=""/>
+				<UserParam type="string" name="OpenXQuest:is_intraprotein" value=""/>
 			</PeptideHit>
 			<PeptideHit score="3" sequence="DGDKK" charge="3" protein_refs="PH_21" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -16476,6 +16485,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value=""/>
+				<UserParam type="string" name="OpenXQuest:is_intraprotein" value=""/>
 			</PeptideHit>
 			<UserParam type="string" name="target_decoy" value="decoy"/>
 			<UserParam type="float" name="OpenXQuest:error_rel" value="-8.70138"/>

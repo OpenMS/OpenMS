@@ -45,7 +45,7 @@ namespace OpenMS
     // flush remaining spectra
     if (!s_list.empty())
     {
-      MSSpectrum<> tmps = SpectrumAddition::addUpSpectra(s_list, -1, true);
+      MSSpectrum tmps = SpectrumAddition::addUpSpectra(s_list, -1, true);
       tmps.SpectrumSettings::operator=(s_list[0]); // copy over SpectrumSettings of first spectrum
       tmps.setName( s_list[0].getName() );
       tmps.setRT( s_list[0].getRT() );
@@ -71,7 +71,7 @@ namespace OpenMS
       // consume the previous list
       if (rt_initialized_ && !s_list.empty())
       {
-        MSSpectrum<> tmps = SpectrumAddition::addUpSpectra(s_list, -1, true);
+        MSSpectrum tmps = SpectrumAddition::addUpSpectra(s_list, -1, true);
         tmps.SpectrumSettings::operator=(s_list[0]); // copy over SpectrumSettings of first spectrum
         tmps.setName( s_list[0].getName() );
         tmps.setRT( s_list[0].getRT() );

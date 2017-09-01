@@ -137,6 +137,7 @@
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
   - @subpage TOPP_PhosphoScoring - Scores potential phosphorylation sites in order to localize the most probable sites.
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
+  - @subpage TOPP_PercolatorAdapter - Applies the percolator algorithm to protein/peptide identifications.
 
   <b>Targeted Experiments</b>
   - @subpage TOPP_InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments.

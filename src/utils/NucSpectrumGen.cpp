@@ -145,7 +145,7 @@ protected:
 
         test_generator.setParameters(gen_params);
 
-        MSSpectrum<Peak1D> spec;
+        MSSpectrum spec;
         Int minCharge = maxCharge < 0 ? -1 : 1;
         test_generator.getSpectrum(spec, NucSequence, minCharge, maxCharge);
         //candidate_spectra[identifier]=spec;
