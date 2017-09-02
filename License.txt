@@ -46,6 +46,12 @@ The respective license files for the contrib libraries
 can be found in the "contrib" package root directory or online
 (see below).
 
+SeqAn
+  - URL:
+  https://www.seqan.de/
+  - License:
+  https://github.com/seqan/seqan/blob/master/LICENSE
+
 libSVM
   - URL:
   http://www.csie.ntu.edu.tw/~cjlin/libsvm/
@@ -87,6 +93,31 @@ BZ2Lib
   http://www.bzip.org/
   - License:
   http://www.bzip.org/1.0.5/bzip2-manual-1.0.5.html
+
+Eigen
+ - URL:
+ http://eigen.tuxfamily.org/
+ - License:
+ https://www.mozilla.org/en-US/MPL/2.0/
+
+Geometric Tools (Wildmagic)
+ - URL:
+ https://www.geometrictools.com/
+ - License:
+ http://www.boost.org/LICENSE_1_0.txt
+
+SQLite:
+ - URL:
+ https://www.sqlite.org/
+ - License:
+ https://www.sqlite.org/copyright.html
+
+Kiss FFT
+`- URL:
+ https://sourceforge.net/projects/kissfft/
+ - License:
+ https://sourceforge.net/p/kissfft/code/ci/default/tree/COPYING
+
 
 ---------------------   Search engines:  ------------------------
  
