@@ -76,12 +76,6 @@ Boost (headers)
   - License:
   http://www.boost.org/more/license_info.html
 
-Comet
-  - URL:
-  http://comet-ms.sourceforge.net/
-  - License:
-  http://www.apache.org/licenses/LICENSE-2.0.html
-
 ZLib
   - URL:
   http://www.zlib.net
@@ -146,4 +140,16 @@ SpectraST:
   - License:
   https://www.gnu.org/licenses/gpl.html
   https://www.gnu.org/copyleft/lesser.html
+
+SIRIUS:
+  - URL:
+  https://bio.informatik.uni-jena.de/software/sirius/
+  - License:
+  https://www.gnu.org/licenses/gpl
+
+Comet:
+  - URL and source code:
+  https://sourceforge.net/projects/comet-ms/
+  - License:
+  http://www.apache.org/licenses/LICENSE-2.0.html
 
