@@ -495,7 +495,11 @@ namespace OpenMS
 
     for (Size i = 0; i < frag_annotations.size(); ++i)
     {
-      if (frag_annotations[i].annotation.hasSubstring(String("[alpha|")) || frag_annotations[i].annotation.hasSubstring(String("[beta|")))
+      bool has_alpha = frag_annotations[i].annotation.hasSubstring(String("alpha|"));
+      bool has_beta = frag_annotations[i].annotation.hasSubstring(String("beta|"));
+      // if it has both, it is a complex fragment and more difficult to parse
+      // those are ignored for the coverage indicator for now
+      if ( has_alpha != has_beta )
       {
         vector<String> dol_split;
         frag_annotations[i].annotation.split("$", dol_split);
@@ -506,7 +510,19 @@ namespace OpenMS
         bool alpha = bar_split[0] == "[alpha";
         bool ci = bar_split[1] == "ci";
 
-        int pos = dol_split[1].suffix(dol_split[1].size()-1).prefix(dol_split[1].size()-2).toInt()-1;
+        vector<String> loss_split;
+        dol_split[1].split("-", loss_split);
+        String pos_string = loss_split[0].suffix(loss_split[0].size()-1);
+        int pos;
+        if (pos_string.hasSubstring("]"))
+        {
+          pos = pos_string.prefix(pos_string.size()-1).toInt()-1;
+        }
+        else
+        {
+          pos = pos_string.toInt()-1;
+        }
+
         String frag_type = dol_split[1][0];
         //bool left = (frag_type == "a" || frag_type == "b" || frag_type == "c");
         int direction;
