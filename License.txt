@@ -138,3 +138,12 @@ LuciPhOr2:
   http://luciphor2.sourceforge.net/
   - License:
   http://www.apache.org/licenses/LICENSE-2.0
+
+SpectraST:
+  - URL and source code:
+ https://sourceforge.net/p/sashimi/code/HEAD/tree/trunk/
+ trans_proteomic_pipeline/src/Search/SpectraST/ 
+  - License:
+  https://www.gnu.org/licenses/gpl.html
+  https://www.gnu.org/copyleft/lesser.html
+
