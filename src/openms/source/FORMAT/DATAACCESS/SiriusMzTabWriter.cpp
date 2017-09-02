@@ -68,12 +68,12 @@ void SiriusMzTabWriter::read(const std::vector<String> & paths, Size number, MzT
 
     ifstream file(pathtosiriuscsv);
 
-    unsigned int rowcount = 0;   
-    unsigned int number_cor = 0;
-
     if (file) 
     {
       
+      unsigned int rowcount = 0;   
+      unsigned int number_cor = 0;
+    
       CsvFile compounds(pathtosiriuscsv, '\t');
       rowcount = compounds.rowCount();
 
