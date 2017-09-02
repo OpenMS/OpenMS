@@ -123,7 +123,7 @@ Kiss FFT
  
 OMSSA
   - URL:
-  http://pubchem.ncbi.nlm.nih.gov/omssa/
+  ftp://ftp.ncbi.nlm.nih.gov/pub/lewisg/omssa
   - License:
   Public Domain
 
@@ -141,16 +141,15 @@ X!Tandem:
 
 MyriMatch:
   - URL and source code:
-  http://fenchurch.mc.vanderbilt.edu/software.php
+  https://www.ncbi.nlm.nih.gov/pubmed/17269722
   - License:
   http://www.apache.org/licenses/LICENSE-2.0.txt
 
 MSGF+:
   - URL and source code:
-  http://proteomics.ucsd.edu/Software/MSGFPlus/ 
+  https://github.com/sangtaekim/msgfplus
   - License:
-  http://sourceforge.net/p/open-ms/code/HEAD/tree/THIRDPARTY/All/
-  MSGFPlus/LICENSE.txt
+  https://github.com/sangtaekim/msgfplus/blob/master/LICENSE.txt
 
 Fido:
   - URL and source code:
