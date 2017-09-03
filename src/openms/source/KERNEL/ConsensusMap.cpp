@@ -322,32 +322,32 @@ namespace OpenMS
   void ConsensusMap::sortPeptideIdentificationsByMapIndex()
   {
     // lambda predicate
-    auto mapIndexLess = [] (const PeptideIdentification & a, const PeptideIdentification & b) -> bool
-    {
-      const bool has_a = a.metaValueExists("map_index");
-      const bool has_b = b.metaValueExists("map_index");
+    auto mapIndexLess = [](const PeptideIdentification& a, const PeptideIdentification& b) -> bool
+                        {
+                          const bool has_a = a.metaValueExists("map_index");
+                          const bool has_b = b.metaValueExists("map_index");
 
-      // moves IDs without meta value to end
-      if (has_a && !has_b) { return true; }
-      if (!has_a && has_b) { return false; }
+                          // moves IDs without meta value to end
+                          if (has_a && !has_b) { return true; }
+                          if (!has_a && has_b) { return false; }
 
-      // both have map index annotated
-      if (has_a && has_b)
-      {
-        return a.getMetaValue("map_index") < b.getMetaValue("map_index");
-      }
+                          // both have map index annotated
+                          if (has_a && has_b)
+                          {
+                            return a.getMetaValue("map_index") < b.getMetaValue("map_index");
+                          }
 
-      // no map index annotated in both
-      return false;
-    };
+                          // no map index annotated in both
+                          return false;
+                        };
 
     std::transform(begin(), end(), begin(),
-      [mapIndexLess](ConsensusFeature& c) 
-      { 
-        vector<PeptideIdentification> & pids = c.getPeptideIdentifications();
-        stable_sort(pids.begin(), pids.end(), mapIndexLess);
-        return c;
-      });
+                   [mapIndexLess](ConsensusFeature& c)
+    {
+      vector<PeptideIdentification>& pids = c.getPeptideIdentifications();
+      stable_sort(pids.begin(), pids.end(), mapIndexLess);
+      return c;
+    });
   }
 
   void ConsensusMap::swap(ConsensusMap& from)
@@ -355,7 +355,7 @@ namespace OpenMS
     ConsensusMap tmp;
 
     //swap range information
-    tmp.RangeManagerType::operator=(* this);
+    tmp.RangeManagerType::operator=(*this);
     this->RangeManagerType::operator=(from);
     from.RangeManagerType::operator=(tmp);
 
@@ -454,7 +454,7 @@ namespace OpenMS
   /// Equality operator
   bool ConsensusMap::operator==(const ConsensusMap& rhs) const
   {
-    return std::operator==(*this, rhs) &&
+    return std::operator==(* this, rhs) &&
            MetaInfoInterface::operator==(rhs) &&
            RangeManagerType::operator==(rhs) &&
            DocumentIdentifier::operator==(rhs) &&

@@ -113,10 +113,10 @@ namespace OpenMS
         }
         else if (type == "output-file")
         {
-          tags.push_back("output file");          
+          tags.push_back("output file");
           param_.setValue(name, value, description, tags);
         }
-        else if (type == "float" || type == "double")
+        else if ((type == "float") || (type == "double"))
         {
           param_.setValue(name, asDouble_(value), description, tags);
         }
@@ -135,7 +135,9 @@ namespace OpenMS
           {
             val.split(':', parts);
             if (parts.size() != 2)
+            {
               val.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -157,11 +159,13 @@ namespace OpenMS
             val.split(',', parts);
             param_.setValidStrings(name, parts);
           }
-          else if (type == "float" || type == "double")
+          else if ((type == "float") || (type == "double"))
           {
             val.split(':', parts);
             if (parts.size() != 2)
+            {
               val.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -181,7 +185,7 @@ namespace OpenMS
         }
 
         // check for supported_formats -> supported_formats overwrites restrictions in case of files
-        if ((ListUtils::contains(tags, "input file") || ListUtils::contains(tags, "output file")) && (type == "string" || type == "input-file" || type == "output-file"))
+        if ((ListUtils::contains(tags, "input file") || ListUtils::contains(tags, "output file")) && ((type == "string") || (type == "input-file") || (type == "output-file")))
         {
           Int supported_formats_index = attributes.getIndex(s_supported_formats);
           if (supported_formats_index != -1)
@@ -216,8 +220,8 @@ namespace OpenMS
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
         list_.tags = ListUtils::create<String>(tags_string);
-        
-        
+
+
         //parse name/type
         list_.type = attributeAsString_(attributes, "type");
         // handle in-/output file correctly
@@ -233,12 +237,12 @@ namespace OpenMS
         }
 
         list_.name = path_ + attributeAsString_(attributes, "name");
-        
+
         //parse description, if present
         list_.description = "";
         optionalAttributeAsString_(list_.description, attributes, "description");
         list_.description.substitute("#br#", "\n");
-        
+
         //advanced
         String advanced_string;
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
@@ -254,7 +258,7 @@ namespace OpenMS
         {
           list_.tags.push_back("required");
         }
-        
+
         list_.restrictions_index = attributes.getIndex(s_restrictions);
         if (list_.restrictions_index != -1)
         {
@@ -262,7 +266,7 @@ namespace OpenMS
         }
 
         // check for supported_formats -> supported_formats overwrites restrictions in case of files
-        if ((ListUtils::contains(list_.tags, "input file") || ListUtils::contains(list_.tags, "output file")) && list_.type == "string")
+        if ((ListUtils::contains(list_.tags, "input file") || ListUtils::contains(list_.tags, "output file")) && (list_.type == "string"))
         {
           Int supported_formats_index = attributes.getIndex(s_supported_formats);
           if (supported_formats_index != -1)
@@ -282,7 +286,7 @@ namespace OpenMS
         {
           list_.intlist.push_back(asInt_(attributeAsString_(attributes, "value")));
         }
-        else if (list_.type == "float" || list_.type == "double")
+        else if ((list_.type == "float") || (list_.type == "double"))
         {
           list_.doublelist.push_back(asDouble_(attributeAsString_(attributes, "value")));
         }
@@ -295,7 +299,7 @@ namespace OpenMS
         optionalAttributeAsString_(file_version, attributes, "version");
 
         // default version is 1.0
-        if (file_version == "") file_version = "1.0";
+        if (file_version == "") { file_version = "1.0"; }
 
         VersionInfo::VersionDetails file_version_details = VersionInfo::VersionDetails::create(file_version);
         VersionInfo::VersionDetails parser_version = VersionInfo::VersionDetails::create(version_);
@@ -340,7 +344,9 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
+            {
               list_.restrictions.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -358,14 +364,16 @@ namespace OpenMS
             }
           }
         }
-        else if (list_.type == "float" || list_.type == "double")
+        else if ((list_.type == "float") || (list_.type == "double"))
         {
           param_.setValue(list_.name, list_.doublelist, list_.description, list_.tags);
           if (list_.restrictions_index != -1)
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
+            {
               list_.restrictions.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
               if (parts[0] != "")

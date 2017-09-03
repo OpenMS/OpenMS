@@ -61,7 +61,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MRMFragmentSelection::MRMFragmentSelection(const MRMFragmentSelection & rhs) :
+  MRMFragmentSelection::MRMFragmentSelection(const MRMFragmentSelection& rhs) :
     DefaultParamHandler(rhs)
   {
   }
@@ -70,7 +70,7 @@ namespace OpenMS
   {
   }
 
-  MRMFragmentSelection & MRMFragmentSelection::operator=(const MRMFragmentSelection & rhs)
+  MRMFragmentSelection& MRMFragmentSelection::operator=(const MRMFragmentSelection& rhs)
   {
     if (&rhs != this)
     {
@@ -79,7 +79,7 @@ namespace OpenMS
     return *this;
   }
 
-  void MRMFragmentSelection::selectFragments(vector<Peak1D> & selected_peaks, const PeakSpectrum & spec)
+  void MRMFragmentSelection::selectFragments(vector<Peak1D>& selected_peaks, const PeakSpectrum& spec)
   {
     Size num_top_peaks = param_.getValue("num_top_peaks");
     bool consider_names(param_.getValue("consider_names").toBool());
@@ -103,8 +103,8 @@ namespace OpenMS
       const String& name = annotations[i];
       const int charge = charges[i];
 
-      if (spec_copy[i].getMZ() >= min_mz && spec_copy[i].getMZ() <= max_mz &&
-          spec_copy[i].getMZ() > min_pos_precursor_percentage * precursor_pos &&
+      if ((spec_copy[i].getMZ() >= min_mz) && (spec_copy[i].getMZ() <= max_mz) &&
+          (spec_copy[i].getMZ() > min_pos_precursor_percentage * precursor_pos) &&
           (!consider_names || peakselectionIsAllowed_(name, charge)))
       {
         selected_peaks.push_back(spec_copy[i]);

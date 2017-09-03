@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  EnhancedTabBar::EnhancedTabBar(QWidget * parent) :
+  EnhancedTabBar::EnhancedTabBar(QWidget* parent) :
     QTabBar(parent)
   {
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(currentChanged_(int)));
@@ -60,12 +60,12 @@ namespace OpenMS
 
   }
 
-  void EnhancedTabBar::dragEnterEvent(QDragEnterEvent * e)
+  void EnhancedTabBar::dragEnterEvent(QDragEnterEvent* e)
   {
     e->acceptProposedAction();
   }
 
-  void EnhancedTabBar::dropEvent(QDropEvent * e)
+  void EnhancedTabBar::dropEvent(QDropEvent* e)
   {
     int tab = tabAt_(e->pos());
     if (tab != -1)
@@ -80,7 +80,7 @@ namespace OpenMS
     e->acceptProposedAction();
   }
 
-  void EnhancedTabBar::contextMenuEvent(QContextMenuEvent * e)
+  void EnhancedTabBar::contextMenuEvent(QContextMenuEvent* e)
   {
     int tab = tabAt_(e->pos());
     if (tab != -1)
@@ -95,7 +95,7 @@ namespace OpenMS
     }
   }
 
-  void EnhancedTabBar::mouseDoubleClickEvent(QMouseEvent * e)
+  void EnhancedTabBar::mouseDoubleClickEvent(QMouseEvent* e)
   {
     if (e->button() != Qt::LeftButton)
     {
@@ -110,7 +110,7 @@ namespace OpenMS
     }
   }
 
-  int EnhancedTabBar::addTab(const String & text, int id)
+  int EnhancedTabBar::addTab(const String& text, int id)
   {
     int tab_index = QTabBar::addTab(text.c_str());
     setTabData(tab_index, id);
@@ -147,7 +147,7 @@ namespace OpenMS
     emit currentIdChanged(tabData(id).toInt());
   }
 
-  int EnhancedTabBar::tabAt_(const QPoint & pos)
+  int EnhancedTabBar::tabAt_(const QPoint& pos)
   {
     int tab = -1;
 

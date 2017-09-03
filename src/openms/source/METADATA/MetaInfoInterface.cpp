@@ -45,7 +45,7 @@ namespace OpenMS
 
   }
 
-  MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface & rhs)
+  MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface& rhs)
   {
     if (rhs.meta_ != 0)
     {
@@ -62,25 +62,27 @@ namespace OpenMS
     delete(meta_);
   }
 
-  MetaInfoInterface & MetaInfoInterface::operator=(const MetaInfoInterface & rhs)
+  MetaInfoInterface& MetaInfoInterface::operator=(const MetaInfoInterface& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
+    }
 
 //      std::cout << meta_ << std::endl;
 //      std::cout << rhs.meta_ << std::endl;
 //      std::cout << " " << std::endl;
 
-    if (rhs.meta_ != 0 && meta_ != 0)
+    if ((rhs.meta_ != 0) && (meta_ != 0))
     {
       *meta_ = *(rhs.meta_);
     }
-    else if (rhs.meta_ == 0 && meta_ != 0)
+    else if ((rhs.meta_ == 0) && (meta_ != 0))
     {
       delete(meta_);
       meta_ = 0;
     }
-    else if (rhs.meta_ != 0 && meta_ == 0)
+    else if ((rhs.meta_ != 0) && (meta_ == 0))
     {
       meta_ = new MetaInfo(*(rhs.meta_));
     }
@@ -88,35 +90,39 @@ namespace OpenMS
     return *this;
   }
 
-  bool MetaInfoInterface::operator==(const MetaInfoInterface & rhs) const
+  bool MetaInfoInterface::operator==(const MetaInfoInterface& rhs) const
   {
-    if (rhs.meta_ == 0 && meta_ == 0)
+    if ((rhs.meta_ == 0) && (meta_ == 0))
     {
       return true;
     }
-    else if (rhs.meta_ == 0 && meta_ != 0)
+    else if ((rhs.meta_ == 0) && (meta_ != 0))
     {
       if (meta_->empty())
+      {
         return true;
+      }
 
       return false;
     }
-    else if (rhs.meta_ != 0 && meta_ == 0)
+    else if ((rhs.meta_ != 0) && (meta_ == 0))
     {
       if (rhs.meta_->empty())
+      {
         return true;
+      }
 
       return false;
     }
     return *meta_ == *(rhs.meta_);
   }
 
-  bool MetaInfoInterface::operator!=(const MetaInfoInterface & rhs) const
+  bool MetaInfoInterface::operator!=(const MetaInfoInterface& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const DataValue & MetaInfoInterface::getMetaValue(const String & name) const
+  const DataValue& MetaInfoInterface::getMetaValue(const String& name) const
   {
     if (meta_ == 0)
     {
@@ -125,7 +131,7 @@ namespace OpenMS
     return meta_->getValue(name);
   }
 
-  const DataValue & MetaInfoInterface::getMetaValue(UInt index) const
+  const DataValue& MetaInfoInterface::getMetaValue(UInt index) const
   {
     if (meta_ == 0)
     {
@@ -134,7 +140,7 @@ namespace OpenMS
     return meta_->getValue(index);
   }
 
-  bool MetaInfoInterface::metaValueExists(const String & name) const
+  bool MetaInfoInterface::metaValueExists(const String& name) const
   {
     if (meta_ == 0)
     {
@@ -152,19 +158,19 @@ namespace OpenMS
     return meta_->exists(index);
   }
 
-  void MetaInfoInterface::setMetaValue(const String & name, const DataValue & value)
+  void MetaInfoInterface::setMetaValue(const String& name, const DataValue& value)
   {
     createIfNotExists_();
     meta_->setValue(name, value);
   }
 
-  void MetaInfoInterface::setMetaValue(UInt index, const DataValue & value)
+  void MetaInfoInterface::setMetaValue(UInt index, const DataValue& value)
   {
     createIfNotExists_();
     meta_->setValue(index, value);
   }
 
-  MetaInfoRegistry & MetaInfoInterface::metaRegistry()
+  MetaInfoRegistry& MetaInfoInterface::metaRegistry()
   {
     return MetaInfo::registry();
   }
@@ -177,7 +183,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoInterface::getKeys(std::vector<String> & keys) const
+  void MetaInfoInterface::getKeys(std::vector<String>& keys) const
   {
     if (meta_ != 0)
     {
@@ -185,7 +191,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoInterface::getKeys(std::vector<UInt> & keys) const
+  void MetaInfoInterface::getKeys(std::vector<UInt>& keys) const
   {
     if (meta_ != 0)
     {
@@ -208,7 +214,7 @@ namespace OpenMS
     meta_ = 0;
   }
 
-  void MetaInfoInterface::removeMetaValue(const String & name)
+  void MetaInfoInterface::removeMetaValue(const String& name)
   {
     if (meta_ != 0)
     {

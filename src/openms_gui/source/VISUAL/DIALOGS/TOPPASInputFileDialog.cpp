@@ -45,14 +45,14 @@
 
 namespace OpenMS
 {
-  TOPPASInputFileDialog::TOPPASInputFileDialog(const QString & file_name)
+  TOPPASInputFileDialog::TOPPASInputFileDialog(const QString& file_name)
   {
     setupUi(this);
 
     line_edit->setText(file_name);
     // disable completer for windows, causes crashes
 #ifndef OPENMS_WINDOWSPLATFORM
-    QCompleter * completer = new QCompleter(this);
+    QCompleter* completer = new QCompleter(this);
     completer->setModel(new QDirModel(completer));
     line_edit->setCompleter(completer);
 #endif
@@ -63,7 +63,7 @@ namespace OpenMS
 
   void TOPPASInputFileDialog::showFileDialog()
   {
-    QString file_name = QFileDialog::getOpenFileName(this, tr("Specify input file"), tr(""), tr(/*valid formats*/ ""));
+    QString file_name = QFileDialog::getOpenFileName(this, tr("Specify input file"), tr(""), tr( /*valid formats*/ ""));
     if (file_name != "")
     {
       line_edit->setText(file_name);
@@ -87,7 +87,7 @@ namespace OpenMS
     accept();
   }
 
-  bool TOPPASInputFileDialog::fileNameValid(const QString & file_name)
+  bool TOPPASInputFileDialog::fileNameValid(const QString& file_name)
   {
     QFileInfo fi(file_name);
     return fi.exists() && fi.isReadable() && (!fi.isDir());

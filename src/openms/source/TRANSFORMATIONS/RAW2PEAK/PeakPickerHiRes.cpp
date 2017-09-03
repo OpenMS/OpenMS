@@ -67,7 +67,7 @@ namespace OpenMS
     defaults_.setValidStrings("report_FWHM_unit", ListUtils::create<String>("relative,absolute"));
 
     // parameters for STN estimator
-    defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum >().getDefaults());
+    defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian<MSSpectrum>().getDefaults());
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -82,14 +82,14 @@ namespace OpenMS
   {
     signal_to_noise_ = param_.getValue("signal_to_noise");
     spacing_difference_gap_ = param_.getValue("spacing_difference_gap");
-    if (spacing_difference_gap_ == 0.0) spacing_difference_gap_ = std::numeric_limits<double>::infinity();
+    if (spacing_difference_gap_ == 0.0) { spacing_difference_gap_ = std::numeric_limits<double>::infinity(); }
     spacing_difference_ = param_.getValue("spacing_difference");
-    if (spacing_difference_ == 0.0) spacing_difference_ = std::numeric_limits<double>::infinity();
+    if (spacing_difference_ == 0.0) { spacing_difference_ = std::numeric_limits<double>::infinity(); }
     missing_ = param_.getValue("missing");
 
     ms_levels_ = getParameters().getValue("ms_levels");
     report_FWHM_ = getParameters().getValue("report_FWHM").toBool();
-    report_FWHM_as_ppm_ = getParameters().getValue("report_FWHM_unit")!="absolute";
+    report_FWHM_as_ppm_ = getParameters().getValue("report_FWHM_unit") != "absolute";
   }
 
 }

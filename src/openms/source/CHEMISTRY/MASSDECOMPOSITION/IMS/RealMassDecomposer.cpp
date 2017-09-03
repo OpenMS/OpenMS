@@ -41,7 +41,7 @@ namespace OpenMS
   namespace ims
   {
 
-    RealMassDecomposer::RealMassDecomposer(const Weights & weights) :
+    RealMassDecomposer::RealMassDecomposer(const Weights& weights) :
       weights_(weights)
     {
 
@@ -89,7 +89,7 @@ namespace OpenMS
     }
 
     RealMassDecomposer::decompositions_type RealMassDecomposer::getDecompositions(double mass, double error,
-                                                                                  const constraints_type & constraints)
+                                                                                  const constraints_type& constraints)
     {
 
       // defines the range of integers to be decomposed
@@ -124,8 +124,8 @@ namespace OpenMS
               for (constraints_type::const_iterator it =
                      constraints.begin(); it != constraints.end(); ++it)
               {
-                if ((*pos)[it->first] < it->second.first ||
-                    (*pos)[it->first] > it->second.second)
+                if (((*pos)[it->first] < it->second.first) ||
+                    ((*pos)[it->first] > it->second.second))
                 {
                   to_erase = true;
                   break;

@@ -46,7 +46,7 @@ namespace OpenMS
 {
   // from table 1 in the Lan & Jorgenson paper:
   const double EGHTraceFitter::EPSILON_COEFS_[] =
-  {4.0, -6.293724, 9.232834, -11.342910, 9.123978, -4.173753, 0.827797};
+  { 4.0, -6.293724, 9.232834, -11.342910, 9.123978, -4.173753, 0.827797 };
 
 
   const Size EGHTraceFitter::NUM_PARAMS_ = 4;
@@ -354,8 +354,8 @@ namespace OpenMS
 
     // compute moving average for smoothing:
     const Size N = total_intensities.size();
-    const Size LEN = 2;   // window size: 2 * LEN + 1
-    std::vector<double> totals(N + 2 * LEN);   // pad with zeros at ends
+    const Size LEN = 2; // window size: 2 * LEN + 1
+    std::vector<double> totals(N + 2 * LEN); // pad with zeros at ends
     Int index = LEN;
     // LOG_DEBUG << "Summed intensities:\n";
     for (std::list<std::pair<double, double> >::iterator it =
@@ -366,7 +366,7 @@ namespace OpenMS
     }
 
     std::vector<double> smoothed(N);
-    Size max_index = 0;   // index of max. smoothed intensity
+    Size max_index = 0; // index of max. smoothed intensity
     // LOG_DEBUG << "Smoothed intensities:\n";
     double sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
     for (Size i = 0; i < N; ++i)
@@ -374,7 +374,7 @@ namespace OpenMS
       sum += totals[i + 2 * LEN];
       smoothed[i] = sum / (2 * LEN + 1);
       sum -= totals[i];
-      if (smoothed[i] > smoothed[max_index]) max_index = i;
+      if (smoothed[i] > smoothed[max_index]) { max_index = i; }
       // LOG_DEBUG << smoothed[i] << std::endl;
     }
     LOG_DEBUG << "Maximum at index " << max_index << std::endl;
@@ -414,12 +414,12 @@ namespace OpenMS
     //LOG_DEBUG << "B: " << B << std::endl;
 
     // compute estimates for tau / sigma based on A and B:
-    double alpha = (left_height + right_height) * 0.5 / height_;   // ~0.5
+    double alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
     double log_alpha = log(alpha);
 
     tau_ = -1 / log_alpha * (B - A);
     //EGH function fails when tau==0
-    if (tau_ == 0) tau_ = std::numeric_limits<double>::epsilon();
+    if (tau_ == 0) { tau_ = std::numeric_limits<double>::epsilon(); }
 
     LOG_DEBUG << "tau: " << tau_ << std::endl;
     sigma_ = sqrt(-0.5 / log_alpha * B * A);

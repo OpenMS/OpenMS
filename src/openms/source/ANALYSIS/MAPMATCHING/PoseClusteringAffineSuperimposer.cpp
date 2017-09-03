@@ -156,8 +156,8 @@ namespace OpenMS
 
   */
   void affineTransformationHashing(const bool do_dump_pairs,
-                                   const std::vector<Peak2D> & model_map,
-                                   const std::vector<Peak2D> & scene_map,
+                                   const std::vector<Peak2D>& model_map,
+                                   const std::vector<Peak2D>& scene_map,
                                    Math::LinearInterpolation<double, double>& scaling_hash_1,
                                    Math::LinearInterpolation<double, double>& scaling_hash_2,
                                    Math::LinearInterpolation<double, double>& rt_low_hash_,
@@ -173,8 +173,8 @@ namespace OpenMS
                                    const double scale_high_1,
                                    const double rt_low, const double rt_high)
   {
-    Size const model_map_size = model_map.size();   // i j
-    Size const scene_map_size = scene_map.size();   // k l
+    Size const model_map_size = model_map.size(); // i j
+    Size const scene_map_size = scene_map.size(); // k l
 
     String dump_pairs_filename;
     std::ofstream dump_pairs_file;
@@ -197,7 +197,9 @@ namespace OpenMS
       double i_winlength_factor = 1. / (i_high - i_low);
       i_winlength_factor -= winlength_factor_baseline;
       if (i_winlength_factor <= 0)
+      {
         continue;
+      }
 
       // Adjust window around k in scene map (get all features in a m/z range of item i in the scene map)
       while (k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
@@ -214,7 +216,9 @@ namespace OpenMS
         double k_winlength_factor = 1. / (k_high - k_low);
         k_winlength_factor -= winlength_factor_baseline;
         if (k_winlength_factor <= 0)
+        {
           continue;
+        }
 
         // compute similarity of intensities i k by taking the ratio of the two intensities
         double similarity_ik;
@@ -233,7 +237,9 @@ namespace OpenMS
           // diff in model map -> skip features that are too far away in RT
           double diff_model = model_map[j].getRT() - model_map[i].getRT();
           if (fabs(diff_model) < rt_pair_min_distance)
+          {
             continue;
+          }
 
           // Adjust window around j in model map
           while (j_low < model_map_size && model_map[j_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
@@ -243,7 +249,9 @@ namespace OpenMS
           double j_winlength_factor = 1. / (j_high - j_low);
           j_winlength_factor -= winlength_factor_baseline;
           if (j_winlength_factor <= 0)
+          {
             continue;
+          }
 
           // Adjust window around l in scene map
           while (l_low < scene_map_size && scene_map[l_low].getMZ() < model_map[j].getMZ() - mz_pair_max_distance)
@@ -257,15 +265,19 @@ namespace OpenMS
             double l_winlength_factor = 1. / (l_high - l_low);
             l_winlength_factor -= winlength_factor_baseline;
             if (l_winlength_factor <= 0)
+            {
               continue;
+            }
 
             // diff in scene map -> skip features that are too far away in RT
             double diff_scene = scene_map[l].getRT() - scene_map[k].getRT();
 
             // avoid cross mappings (i,j) -> (k,l) (e.g. i_rt < j_rt and k_rt > l_rt)
             // and point pairs with equal retention times (e.g. i_rt == j_rt)
-            if (fabs(diff_scene) < rt_pair_min_distance || ((diff_model > 0) != (diff_scene > 0)))
+            if ((fabs(diff_scene) < rt_pair_min_distance) || ((diff_model > 0) != (diff_scene > 0)))
+            {
               continue;
+            }
 
             // compute the transformation (i,j) -> (k,l)
             double scaling = diff_model / diff_scene;
@@ -293,7 +305,7 @@ namespace OpenMS
               // hashing round 1 (estimate the scaling only)
               scaling_hash_1.addValue(log(scaling), similarity_ik_jl);
             }
-            else if (scaling >= scale_low_1 && scaling <= scale_high_1)
+            else if ((scaling >= scale_low_1) && (scaling <= scale_high_1))
             {
               // hashing round 2 (estimate scaling and shift)
               scaling_hash_2.addValue(log(scaling), similarity_ik_jl);
@@ -310,10 +322,10 @@ namespace OpenMS
                                 << scene_map[l].getRT() << ' ' << scene_map[l].getMZ() << ' ' << similarity_ik_jl << ' ' << std::endl;
               }
             }
-          }   // l
-        }   // j
-      }   // k
-    }   // i
+          } // l
+        } // j
+      } // k
+    } // i
   }
 
   /**
@@ -415,12 +427,12 @@ namespace OpenMS
       {
         // -> basically trying to find the intersection where sorted values fall
         // below fitted line with slop "freq_slope"
-        Size index = 1;   // not 0 (!)
+        Size index = 1; // not 0 (!)
         while (buffer[index] >= freq_intercept + freq_slope * double(index))
         {
           ++index;
         }
-        freq_cutoff = buffer[--index];   // note that we have index >= 1
+        freq_cutoff = buffer[--index]; // note that we have index >= 1
       }
     }
     while (0);
@@ -456,7 +468,7 @@ namespace OpenMS
     const Size data_size = scaling_hash_1.getData().size();
     Size data_range_begin = 0;
     Size data_range_end = data_size;
-    for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)     // MAGIC ALERT: number of loops
+    for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop) // MAGIC ALERT: number of loops
     {
       statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
       double mean = statistics.mean() + data_range_begin;
@@ -669,7 +681,7 @@ namespace OpenMS
       const Size data_size = rt_low_hash_.getData().size();
       Size data_range_begin = 0;
       Size data_range_end = data_size;
-      for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
+      for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop) // MAGIC ALERT: number of loops
       {
         statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
         double mean = statistics.mean() + data_range_begin;
@@ -684,7 +696,7 @@ namespace OpenMS
         if (do_dump_buckets)
         {
           dump_buckets_low_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): " << outside_mean
-          - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
+            - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
                                 << data_range_end << std::endl;
         }
       }
@@ -697,7 +709,7 @@ namespace OpenMS
       const Size data_size = rt_high_hash_.getData().size();
       Size data_range_begin = 0;
       Size data_range_end = data_size;
-      for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
+      for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop) // MAGIC ALERT: number of loops
       {
         statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
         double mean = statistics.mean() + data_range_begin;
@@ -712,7 +724,7 @@ namespace OpenMS
         if (do_dump_buckets)
         {
           dump_buckets_high_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): " << outside_mean
-          - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
+            - outside_stdev << "  (mean+stdev): " << outside_mean + outside_stdev << "  data_range_begin: " << data_range_begin << "  data_range_end: "
                                  << data_range_end << std::endl;
         }
       }
@@ -726,7 +738,7 @@ namespace OpenMS
     }
   }
 
-  double computeIntensityRatio(const std::vector<Peak2D> & model_map, const std::vector<Peak2D> & scene_map)
+  double computeIntensityRatio(const std::vector<Peak2D>& model_map, const std::vector<Peak2D>& scene_map)
   {
     double total_int_model_map = 0;
     for (Size i = 0; i < model_map.size(); ++i)
@@ -743,10 +755,9 @@ namespace OpenMS
     return total_int_model_map / total_int_scene_map;
   }
 
-  void PoseClusteringAffineSuperimposer::run(const std::vector<Peak2D> & map_model,
-                                             const std::vector<Peak2D> & map_scene, 
-                                             TransformationDescription & transformation)
-
+  void PoseClusteringAffineSuperimposer::run(const std::vector<Peak2D>& map_model,
+                                             const std::vector<Peak2D>& map_scene,
+                                             TransformationDescription& transformation)
   {
     if (map_model.empty() || map_scene.empty())
     {
@@ -826,14 +837,14 @@ namespace OpenMS
       if (model_map.size() > num_used_points)
       {
         std::nth_element(model_map.rbegin(), model_map.rbegin() + (model_map.size() - num_used_points),
-            model_map.rend(), Peak2D::IntensityLess());
+                         model_map.rend(), Peak2D::IntensityLess());
         model_map.resize(num_used_points);
       }
       setProgress(++actual_progress);
       if (scene_map.size() > num_used_points)
       {
         std::nth_element(scene_map.rbegin(), scene_map.rbegin() + (scene_map.size() - num_used_points),
-            scene_map.rend(), Peak2D::IntensityLess());
+                         scene_map.rend(), Peak2D::IntensityLess());
         scene_map.resize(num_used_points);
       }
       setProgress(++actual_progress);
@@ -865,25 +876,25 @@ namespace OpenMS
       double shift = std::fabs(model_minrt - scene_minrt);
       double slope = (model_maxrt - model_minrt) / (scene_maxrt - scene_minrt);
 
-      if ( (double)param_.getValue("max_scaling") < slope * 1.2 || 
-           1.0 / (double)param_.getValue("max_scaling") > slope / 1.2)
+      if (((double)param_.getValue("max_scaling") < slope * 1.2) ||
+          (1.0 / (double)param_.getValue("max_scaling") > slope / 1.2))
       {
         std::cout << "WARNING: your map likely has a scaling around " << slope
-          << " but your parameters only allow for a maximal scaling of " <<
+                  << " but your parameters only allow for a maximal scaling of " <<
           param_.getValue("max_scaling") << std::endl;
         std::cout << "It is strongly adviced to adjust your max_scaling factor" << std::endl;
       }
 
-      if ( (double)param_.getValue("max_shift") < shift * 1.2)
+      if ((double)param_.getValue("max_shift") < shift * 1.2)
       {
         std::cout << "WARNING: your map likely has a shift around " << shift
-          << " but your parameters only allow for a maximal shift of " <<
+                  << " but your parameters only allow for a maximal shift of " <<
           param_.getValue("max_shift") << std::endl;
         std::cout << "It is strongly adviced to adjust your max_shift factor" << std::endl;
       }
 
     }
-    
+
 
     // Distance in RT two points need to have at most to be considered for clustering
     const double rt_pair_min_distance = (double) param_.getValue("rt_pair_distance_fraction") * (rt_high - rt_low);
@@ -1052,7 +1063,7 @@ namespace OpenMS
                                       "You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
       }
 
-      transformation.fitModel("linear", params);       // no data, but explicit parameters
+      transformation.fitModel("linear", params); // no data, but explicit parameters
     }
 
     setProgress(++actual_progress);
@@ -1067,17 +1078,17 @@ namespace OpenMS
     for (ConsensusMap::const_iterator it = map_model.begin(); it != map_model.end(); ++it)
     {
       Peak2D c;
-      c.setIntensity( it->getIntensity() );
-      c.setRT( it->getRT() );
-      c.setMZ( it->getMZ() );
+      c.setIntensity(it->getIntensity());
+      c.setRT(it->getRT());
+      c.setMZ(it->getMZ());
       c_map_model.push_back(c);
     }
     for (ConsensusMap::const_iterator it = map_scene.begin(); it != map_scene.end(); ++it)
     {
       Peak2D c;
-      c.setIntensity( it->getIntensity() );
-      c.setRT( it->getRT() );
-      c.setMZ( it->getMZ() );
+      c.setIntensity(it->getIntensity());
+      c.setRT(it->getRT());
+      c.setMZ(it->getMZ());
       c_map_scene.push_back(c);
     }
 

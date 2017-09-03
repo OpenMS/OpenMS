@@ -76,7 +76,6 @@ namespace OpenMS
     precision(std::numeric_limits<double>::digits10);
   }
 
-
   SVOutStream::~SVOutStream()
   {
     if (ofs_)

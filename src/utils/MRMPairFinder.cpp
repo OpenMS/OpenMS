@@ -164,7 +164,7 @@ protected:
     while (getline(is, line))
     {
       line.trim();
-      if (line.empty() || line[0] == '#')
+      if (line.empty() || (line[0] == '#'))
       {
         continue;
       }
@@ -214,16 +214,16 @@ protected:
           FeatureMap feature_map_light, feature_map_heavy;
           for (FeatureMap::const_iterator it = all_mrm_features.begin(); it != all_mrm_features.end(); ++it)
           {
-            if (fabs((double)it->getMetaValue("MZ") - it1->first) < mass_tolerance &&
-                fabs(it->getMZ() - pit->mz_light) < mass_tolerance &&
-                fabs(it->getRT() - pit->rt) < RT_tolerance)
+            if ((fabs((double)it->getMetaValue("MZ") - it1->first) < mass_tolerance) &&
+                (fabs(it->getMZ() - pit->mz_light) < mass_tolerance) &&
+                (fabs(it->getRT() - pit->rt) < RT_tolerance))
             {
               feature_map_light.push_back(*it);
             }
 
-            if (fabs((double)it->getMetaValue("MZ") - it2->first) < mass_tolerance &&
-                fabs(it->getMZ() - pit->mz_heavy) < mass_tolerance &&
-                fabs(it->getRT() - pit->rt) < RT_tolerance)
+            if ((fabs((double)it->getMetaValue("MZ") - it2->first) < mass_tolerance) &&
+                (fabs(it->getMZ() - pit->mz_heavy) < mass_tolerance) &&
+                (fabs(it->getRT() - pit->rt) < RT_tolerance))
             {
               feature_map_heavy.push_back(*it);
             }
@@ -253,14 +253,14 @@ protected:
             {
               for (vector<MatchedFeature>::const_iterator fit2 = heavy.begin(); fit2 != heavy.end(); ++fit2)
               {
-                if (fit1->idx != fit2->idx || fabs(fit1->f.getRT() - fit2->f.getRT()) > RT_pair_tolerance)
+                if ((fit1->idx != fit2->idx) || (fabs(fit1->f.getRT() - fit2->f.getRT()) > RT_pair_tolerance))
                 {
                   continue;
                 }
                 double deviation(0);
                 deviation = fabs(fit1->f.getMZ() - it2->second[fit1->idx].mz_light) +
                             fabs(fit2->f.getMZ() - it2->second[fit2->idx].mz_heavy);
-                if (deviation < best_deviation && deviation < mass_tolerance)
+                if ((deviation < best_deviation) && (deviation < mass_tolerance))
                 {
                   best_light = fit1->f;
                   best_heavy = fit2->f;

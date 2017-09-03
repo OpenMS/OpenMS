@@ -37,9 +37,10 @@
 
 namespace OpenMS
 {
-  std::ostream & operator<<(std::ostream & os, const ChromatogramPeak & point)
+  std::ostream& operator<<(std::ostream& os, const ChromatogramPeak& point)
   {
     os << "POS: " << point.getRT() << " INT: " << point.getIntensity();
     return os;
   }
+
 }

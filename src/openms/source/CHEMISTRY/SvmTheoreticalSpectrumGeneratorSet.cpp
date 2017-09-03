@@ -94,8 +94,11 @@ namespace OpenMS
     TextFile file(filename);
     TextFile::ConstIterator it = file.begin();
 
-    if (it == file.end()) return; // no data to load
+    if (it == file.end())
+    {
+      return;                     // no data to load
 
+    }
     // skip header line
     ++it;
     // process content
@@ -105,7 +108,7 @@ namespace OpenMS
       it->split(":", spl);
       Int precursor_charge = spl[0].toInt();
 
-      if (spl.size() != 2 || precursor_charge < 1)
+      if ((spl.size() != 2) || (precursor_charge < 1))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *it, " Invalid entry in SVM model File");
       }

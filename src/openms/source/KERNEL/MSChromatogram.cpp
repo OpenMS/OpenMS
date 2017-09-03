@@ -54,14 +54,14 @@ std::ostream& OpenMS::operator<<(std::ostream& os, const MSChromatogram& chrom)
   return os;
 }
 
-bool MSChromatogram::MZLess::operator()(const MSChromatogram &a, const MSChromatogram &b) const
+bool MSChromatogram::MZLess::operator()(const MSChromatogram& a, const MSChromatogram& b) const
 {
   return a.getMZ() < b.getMZ();
 }
 
-MSChromatogram &MSChromatogram::operator=(const MSChromatogram &source)
+MSChromatogram& MSChromatogram::operator=(const MSChromatogram& source)
 {
-  if (&source == this) { return *this;}
+  if (&source == this) { return *this; }
 
   ContainerType::operator=(source);
   RangeManager<1>::operator=(source);
@@ -75,7 +75,7 @@ MSChromatogram &MSChromatogram::operator=(const MSChromatogram &source)
   return *this;
 }
 
-bool MSChromatogram::operator==(const MSChromatogram &rhs) const
+bool MSChromatogram::operator==(const MSChromatogram& rhs) const
 {
   //name_ can differ => it is not checked
   return std::operator==(*this, rhs) &&
@@ -86,12 +86,12 @@ bool MSChromatogram::operator==(const MSChromatogram &rhs) const
          integer_data_arrays_ == rhs.integer_data_arrays_;
 }
 
-const String &MSChromatogram::getName() const
+const String& MSChromatogram::getName() const
 {
   return name_;
 }
 
-void MSChromatogram::setName(const String &name)
+void MSChromatogram::setName(const String& name)
 {
   name_ = name;
 }
@@ -101,37 +101,38 @@ double MSChromatogram::getMZ() const
   return getProduct().getMZ();
 }
 
-const MSChromatogram::FloatDataArrays &MSChromatogram::getFloatDataArrays() const
+const MSChromatogram::FloatDataArrays& MSChromatogram::getFloatDataArrays() const
 {
   return float_data_arrays_;
 }
 
-MSChromatogram::FloatDataArrays &MSChromatogram::getFloatDataArrays()
+MSChromatogram::FloatDataArrays& MSChromatogram::getFloatDataArrays()
 {
   return float_data_arrays_;
 }
 
-const MSChromatogram::StringDataArrays &MSChromatogram::getStringDataArrays() const
+const MSChromatogram::StringDataArrays& MSChromatogram::getStringDataArrays() const
 {
   return string_data_arrays_;
 }
 
-MSChromatogram::StringDataArrays &MSChromatogram::getStringDataArrays()
+MSChromatogram::StringDataArrays& MSChromatogram::getStringDataArrays()
 {
   return string_data_arrays_;
 }
 
-const MSChromatogram::IntegerDataArrays &MSChromatogram::getIntegerDataArrays() const
+const MSChromatogram::IntegerDataArrays& MSChromatogram::getIntegerDataArrays() const
 {
   return integer_data_arrays_;
 }
 
-MSChromatogram::IntegerDataArrays &MSChromatogram::getIntegerDataArrays()
+MSChromatogram::IntegerDataArrays& MSChromatogram::getIntegerDataArrays()
 {
   return integer_data_arrays_;
 }
 
-void MSChromatogram::sortByIntensity(bool reverse) {
+void MSChromatogram::sortByIntensity(bool reverse)
+{
   if (float_data_arrays_.empty() && string_data_arrays_.size() && integer_data_arrays_.size())
   {
     if (reverse)
@@ -263,7 +264,7 @@ bool MSChromatogram::isSorted() const
 {
   for (Size i = 1; i < this->size(); ++i)
   {
-    if (this->operator[](i - 1).getRT() > this->operator[](i).getRT()) return false;
+    if (this->operator[](i - 1).getRT() > this->operator[](i).getRT()) { return false; }
   }
   return true;
 }
@@ -271,14 +272,14 @@ bool MSChromatogram::isSorted() const
 Size MSChromatogram::findNearest(MSChromatogram::CoordinateType rt) const
 {
   //no peak => no search
-  if (ContainerType::size() == 0) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!");
+  if (ContainerType::size() == 0) { throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "There must be at least one peak to determine the nearest peak!"); }
 
   //search for position for inserting
   ConstIterator it = RTBegin(rt);
   //border cases
-  if (it == ContainerType::begin()) return 0;
+  if (it == ContainerType::begin()) { return 0; }
 
-  if (it == ContainerType::end()) return ContainerType::size() - 1;
+  if (it == ContainerType::end()) { return ContainerType::size() - 1; }
 
   //the peak before or the current peak are closest
   ConstIterator it2 = it;
@@ -355,7 +356,10 @@ MSChromatogram::RTEnd(MSChromatogram::ConstIterator begin, MSChromatogram::Coord
   return upper_bound(begin, end, p, PeakType::PositionLess());
 }
 
-MSChromatogram::ConstIterator MSChromatogram::MZEnd(MSChromatogram::CoordinateType rt) const {return RTEnd(rt);}
+MSChromatogram::ConstIterator MSChromatogram::MZEnd(MSChromatogram::CoordinateType rt) const
+{
+  return RTEnd(rt);
+}
 
 void MSChromatogram::clear(bool clear_meta_data)
 {

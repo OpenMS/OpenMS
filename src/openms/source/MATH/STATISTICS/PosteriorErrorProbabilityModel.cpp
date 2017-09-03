@@ -155,7 +155,7 @@ namespace OpenMS
       Int max_itns = param_.getValue("max_nr_iterations");
       int delta = 6;
       int itns = 0;
-      
+
       do
       {
         //E-STEP
@@ -195,12 +195,12 @@ namespace OpenMS
         negative_prior_ = sum_posterior / x_scores.size();
 
         double new_maxlike(computeMaxLikelihood(incorrect_density, correct_density));
-        if (boost::math::isnan(new_maxlike - maxlike) || new_maxlike < maxlike)
+        if (boost::math::isnan(new_maxlike - maxlike) || (new_maxlike < maxlike))
         {
           return false;
           //throw Exception::UnableToFit(__FILE__,__LINE__,OPENMS_PRETTY_FUNCTION,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");
         }
-        if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
+        if (((new_maxlike - maxlike) < pow(10.0, -delta)) || (itns >= max_itns))
         {
           if (itns >= max_itns)
           {
@@ -254,7 +254,9 @@ namespace OpenMS
       bool return_value;
       return_value = fit(search_engine_scores);
       if (!return_value)
+      {
         return false;
+      }
 
       probabilities.resize(search_engine_scores.size());
       vector<double>::iterator probs = probabilities.begin();
@@ -403,7 +405,7 @@ namespace OpenMS
       double temp_divider = dividing_score;
       for (std::vector<double>::iterator it = x_scores.begin(); it < x_scores.end(); ++it)
       {
-        if (temp_divider - *it >= 0 && bin < number_of_bins - 1)
+        if ((temp_divider - *it >= 0) && (bin < number_of_bins - 1))
         {
           points[bin].setY(points[bin].getY() + 1);
         }
@@ -470,11 +472,11 @@ namespace OpenMS
 
     void PosteriorErrorProbabilityModel::plotTargetDecoyEstimation(vector<double>& target, vector<double>& decoy)
     {
-      if (target.size() == 0 || decoy.size() == 0)
+      if ((target.size() == 0) || (decoy.size() == 0))
       {
         StringList empty;
-        if (target.size() == 0) empty.push_back("target");
-        if (decoy.size() == 0) empty.push_back("decoy");
+        if (target.size() == 0) { empty.push_back("target"); }
+        if (decoy.size() == 0) { empty.push_back("decoy"); }
         LOG_WARN << "Target-Decoy plot was called, but '" << ListUtils::concatenate(empty, "' and '") << "' has no data! Unable to create a target-decoy plot." << std::endl;
         return;
       }
@@ -496,7 +498,7 @@ namespace OpenMS
       for (std::vector<double>::iterator it = target.begin(); it < target.end(); ++it)
       {
         *it = *it + fabs(smallest_score_) + 0.001;
-        if (temp_divider - *it >= 0 && bin < number_of_bins - 1)
+        if ((temp_divider - *it >= 0) && (bin < number_of_bins - 1))
         {
           points[bin][1] += 1;
         }
@@ -519,7 +521,7 @@ namespace OpenMS
       for (std::vector<double>::iterator it = decoy.begin(); it < decoy.end(); ++it)
       {
         *it = *it + fabs(smallest_score_) + 0.001;
-        if (temp_divider - *it >= 0 && bin < number_of_bins - 1)
+        if ((temp_divider - *it >= 0) && (bin < number_of_bins - 1))
         {
           points[bin][2] += 1;
         }
@@ -573,11 +575,11 @@ namespace OpenMS
     {
       LOG_INFO << "Attempting to call 'gnuplot' ...";
       String cmd = String("gnuplot \"") + gp_file + "\"";
-      if (system(cmd.c_str()))  // 0 is success!
+      if (system(cmd.c_str())) // 0 is success!
       {
         LOG_WARN << "Calling 'gnuplot' on '" << gp_file << "' failed. Please create plots manually." << std::endl;
       }
-      else LOG_INFO << " success!" << std::endl;
+      else{ LOG_INFO << " success!" << std::endl; }
 
     }
 

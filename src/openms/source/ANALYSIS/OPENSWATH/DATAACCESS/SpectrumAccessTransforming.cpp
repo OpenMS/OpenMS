@@ -39,15 +39,17 @@ namespace OpenMS
 
   SpectrumAccessTransforming::SpectrumAccessTransforming(OpenSwath::SpectrumAccessPtr sptr) :
     sptr_(sptr)
-  {}
+  {
+  }
 
-  SpectrumAccessTransforming::~SpectrumAccessTransforming() {}
+  SpectrumAccessTransforming::~SpectrumAccessTransforming()
+  {
+  }
 
   size_t SpectrumAccessTransforming::getNrChromatograms() const
   {
     return sptr_->getNrChromatograms();
   }
-
 
   OpenSwath::SpectrumPtr SpectrumAccessTransforming::getSpectrumById(int id)
   {
@@ -80,4 +82,3 @@ namespace OpenMS
   }
 
 }
-

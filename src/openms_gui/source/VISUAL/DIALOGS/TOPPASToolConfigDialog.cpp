@@ -171,19 +171,25 @@ namespace OpenMS
   {
     //nothing to save
     if (param_->empty())
+    {
       return;
+    }
 
     filename_ = QFileDialog::getSaveFileName(this, tr("Save ini file"), default_dir_.c_str(), tr("ini files (*.ini)"));
     //no file selected
     if (filename_.isEmpty())
+    {
       return;
+    }
 
     if (!filename_.endsWith(".ini"))
+    {
       filename_.append(".ini");
+    }
 
     bool was_modified = editor_->isModified();
     editor_->store();
-    if (was_modified) editor_->setModified(true);
+    if (was_modified) { editor_->setModified(true); }
 
     arg_param_.insert(tool_name_ + ":1:", *param_);
     try

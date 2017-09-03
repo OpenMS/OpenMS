@@ -118,9 +118,9 @@ namespace OpenMS
         parent_parent_tag = *(open_tags_.end() - 3);
       }
 
-       static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-       static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-       static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+      static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 
       if (tag_ == "cvParam")
       {
@@ -297,7 +297,7 @@ namespace OpenMS
         }
         f_f_obj_.insert(std::make_pair(current_id_, fh)); // map_index was lost!! TODO artificial ones produced in ConsensusMap assembly
       }
-      else if (tag_ == "FeatureQuantLayer" || tag_ == "RatioQuantLayer" || tag_ == "MS2AssayQuantLayer")
+      else if ((tag_ == "FeatureQuantLayer") || (tag_ == "RatioQuantLayer") || (tag_ == "MS2AssayQuantLayer"))
       {
         //TODO Column attribute index!!!
         current_col_types_.clear();
@@ -312,7 +312,9 @@ namespace OpenMS
         current_row_.clear();
       }
       else
+      {
         error(LOAD, "MzQuantMLHandler::startElement: Unkown element found: '" + tag_ + "' in tag '" + parent_tag + "', ignoring.");
+      }
     }
 
     void MzQuantMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
@@ -356,7 +358,9 @@ namespace OpenMS
         String transcoded_chars2 = sm_.convert(chars);
         transcoded_chars2.trim();
         if (transcoded_chars2 != "")
+        {
           warning(LOAD, "MzQuantMLHandler::characters: Unkown character section found: '" + tag_ + "', ignoring: " + transcoded_chars2);
+        }
       }
     }
 
@@ -408,7 +412,7 @@ namespace OpenMS
         }
         for (std::vector<DataProcessing>::iterator it = dps.begin(); it != dps.end(); ++it)
         {
-          if (it->metaValueExists("software_ref") && current_sws_.find(it->getMetaValue("software_ref")) != current_sws_.end())
+          if (it->metaValueExists("software_ref") && (current_sws_.find(it->getMetaValue("software_ref")) != current_sws_.end()))
           {
             it->setSoftware(current_sws_[it->getMetaValue("software_ref")]);
           }
@@ -513,7 +517,9 @@ namespace OpenMS
         }
       }
       else
+      {
         warning(LOAD, String("MzQuantMLHandler::endElement: Unkown element found: '" + tag_ + "', ignoring."));
+      }
     }
 
     void MzQuantMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& /* attributes */, const String& /* cv_ref */, const String& /* unit_accession */)
@@ -619,14 +625,14 @@ namespace OpenMS
           }
         }
         //no value, although there should be a numerical value
-        else if (term.xref_type != ControlledVocabulary::CVTerm::NONE && term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING)
+        else if ((term.xref_type != ControlledVocabulary::CVTerm::NONE) && (term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING))
         {
           warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
           return;
         }
       }
 
-      if (parent_tag == "DataType" && parent_parent_tag == "Column")
+      if ((parent_tag == "DataType") && (parent_parent_tag == "Column"))
       {
         if (current_count_ >= current_col_types_.size())
         {
@@ -638,17 +644,27 @@ namespace OpenMS
       {
         //TODO
         if (accession == "MOD:01522")
+        {
           current_assay_.mods_.push_back(std::make_pair<String, double>("114", double(114)));
+        }
         else if (accession == "MOD:01523")
+        {
           current_assay_.mods_.push_back(std::make_pair<String, double>("115", double(115)));
+        }
         else if (accession == "MOD:01524")
+        {
           current_assay_.mods_.push_back(std::make_pair<String, double>("116", double(116)));
+        }
         else if (accession == "MOD:01525")
+        {
           current_assay_.mods_.push_back(std::make_pair<String, double>("117", double(117)));
+        }
 
       }
       else
+      {
         warning(LOAD, String("Unhandled cvParam '") + name + "' in tag '" + parent_tag + "'.");
+      }
     }
 
     void MzQuantMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
@@ -656,12 +672,12 @@ namespace OpenMS
       //create a DataValue that contains the data in the right type
       DataValue data_value;
       //float type
-      if (type == "xsd:double" || type == "xsd:float")
+      if ((type == "xsd:double") || (type == "xsd:float"))
       {
         data_value = DataValue(value.toDouble());
       }
       //integer type
-      else if (type == "xsd:byte" || type == "xsd:decimal" || type == "xsd:int" || type == "xsd:integer" || type == "xsd:long" || type == "xsd:negativeInteger" || type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger" || type == "xsd:short" || type == "xsd:unsignedByte" || type == "xsd:unsignedInt" || type == "xsd:unsignedLong" || type == "xsd:unsignedShort")
+      else if ((type == "xsd:byte") || (type == "xsd:decimal") || (type == "xsd:int") || (type == "xsd:integer") || (type == "xsd:long") || (type == "xsd:negativeInteger") || (type == "xsd:nonNegativeInteger") || (type == "xsd:nonPositiveInteger") || (type == "xsd:positiveInteger") || (type == "xsd:short") || (type == "xsd:unsignedByte") || (type == "xsd:unsignedInt") || (type == "xsd:unsignedLong") || (type == "xsd:unsignedShort"))
       {
         data_value = DataValue(value.toInt());
       }
@@ -725,7 +741,9 @@ namespace OpenMS
         }
       }
       else
+      {
         warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
+      }
     }
 
     void MzQuantMLHandler::writeTo(std::ostream& os)
@@ -800,7 +818,7 @@ namespace OpenMS
       for (std::vector<DataProcessing>::const_iterator dit = pl.begin(); dit != pl.end(); ++dit)
       {
         //~ for (std::vector<DataProcessing>::const_iterator dit = cmsq_->getDataProcessingList().begin(); dit != cmsq_->getDataProcessingList().end(); ++dit) // soome wierd bug is making this impossible resulting in segfault - to tired to work this one out right now
-        if (dit->getSoftware().getName() == "IDMapper" && !cmsq_->getConsensusMaps().front().getProteinIdentifications().empty())
+        if ((dit->getSoftware().getName() == "IDMapper") && !cmsq_->getConsensusMaps().front().getProteinIdentifications().empty())
         {
           searchdb_ref = "sdb_" + String(UniqueIdGenerator::getUniqueId());
           idfile_ref = "idf_" + String(UniqueIdGenerator::getUniqueId());
@@ -1218,7 +1236,7 @@ namespace OpenMS
 
         case 1: // ms2label
         {
-          if (!searchdb_ref.empty() && k < 2) // would break if there is more than one consensusmap
+          if (!searchdb_ref.empty() && (k < 2)) // would break if there is more than one consensusmap
           {
             String ass_refs;
             for (Size j = 0; j < cmsq_->getAssays().size(); ++j)
@@ -1322,7 +1340,7 @@ namespace OpenMS
       }
     }
 
-    void MzQuantMLHandler::writeFeature_(String& feature_xml, const std::vector<FeatureMap >& fm, UInt indentation_level)
+    void MzQuantMLHandler::writeFeature_(String& feature_xml, const std::vector<FeatureMap>& fm, UInt indentation_level)
     {
       //TODO: remove dummy
       //os << "\n featurewriter: " << identifier_prefix << "-" << String(identifier) << "-" << String(indentation_level) << "\n";
@@ -1335,7 +1353,7 @@ namespace OpenMS
       std::vector<UInt64> idvec;
       idvec.push_back(UniqueIdGenerator::getUniqueId());
 
-      for (std::vector<FeatureMap >::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
+      for (std::vector<FeatureMap>::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
       {
         for (std::vector<Feature>::const_iterator fit = fat->begin(); fit != fat->end(); ++fit)
         {

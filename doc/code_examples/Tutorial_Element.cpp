@@ -37,7 +37,7 @@ using namespace std;
 
 Int main()
 {
-  const ElementDB * db = ElementDB::getInstance();
+  const ElementDB* db = ElementDB::getInstance();
 
   Element carbon = *db->getElement("Carbon"); // .getResidue("C") would also be ok
 

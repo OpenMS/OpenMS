@@ -40,7 +40,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    MzDataHandler::MzDataHandler(MapType & exp, const String & filename, const String & version, ProgressLogger & logger) :
+    MzDataHandler::MzDataHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
       XMLHandler(filename, version),
       exp_(&exp),
       cexp_(0),
@@ -53,7 +53,7 @@ namespace OpenMS
       init_();
     }
 
-    MzDataHandler::MzDataHandler(const MapType & exp, const String & filename, const String & version, const ProgressLogger & logger) :
+    MzDataHandler::MzDataHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       exp_(0),
       cexp_(&exp),
@@ -109,21 +109,25 @@ namespace OpenMS
       String("CID;PSD;PD;SID").split(';', cv_terms_[18]);
     }
 
-    void MzDataHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void MzDataHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
       // skip current spectrum
       if (skip_spectrum_)
+      {
         return;
+      }
 
-      char * transcoded_chars = sm_.convert(chars);
+      char* transcoded_chars = sm_.convert(chars);
 
       //current tag
-      const String & current_tag = open_tags_.back();
+      const String& current_tag = open_tags_.back();
 
       //determine the parent tag
       String parent_tag;
       if (open_tags_.size() > 1)
+      {
         parent_tag = *(open_tags_.end() - 2);
+      }
 
 
       if (current_tag == "sampleName")
@@ -146,19 +150,19 @@ namespace OpenMS
       {
         exp_->getContacts().back().setContactInfo(sm_.convert(chars));
       }
-      else if (current_tag == "name" && parent_tag == "contact")
+      else if ((current_tag == "name") && (parent_tag == "contact"))
       {
         exp_->getContacts().back().setName(sm_.convert(chars));
       }
-      else if (current_tag == "name" && parent_tag == "software")
+      else if ((current_tag == "name") && (parent_tag == "software"))
       {
         data_processing_->getSoftware().setName(sm_.convert(chars));
       }
-      else if (current_tag == "comments" && parent_tag == "software")
+      else if ((current_tag == "comments") && (parent_tag == "software"))
       {
         data_processing_->getSoftware().setMetaValue("comment", String(sm_.convert(chars)));
       }
-      else if (current_tag == "comments" && parent_tag == "spectrumDesc")
+      else if ((current_tag == "comments") && (parent_tag == "spectrumDesc"))
       {
         spec_.setComment(transcoded_chars);
       }
@@ -167,31 +171,31 @@ namespace OpenMS
         //chars may be split to several chunks => concatenate them
         data_to_decode_.back() += transcoded_chars;
       }
-      else if (current_tag == "arrayName" && parent_tag == "supDataArrayBinary")
+      else if ((current_tag == "arrayName") && (parent_tag == "supDataArrayBinary"))
       {
         spec_.getFloatDataArrays().back().setName(transcoded_chars);
       }
-      else if (current_tag == "nameOfFile" && parent_tag == "sourceFile")
+      else if ((current_tag == "nameOfFile") && (parent_tag == "sourceFile"))
       {
         exp_->getSourceFiles().back().setNameOfFile(sm_.convert(chars));
       }
-      else if (current_tag == "nameOfFile" && parent_tag == "supSourceFile")
+      else if ((current_tag == "nameOfFile") && (parent_tag == "supSourceFile"))
       {
         //ignored
       }
-      else if (current_tag == "pathToFile" && parent_tag == "sourceFile")
+      else if ((current_tag == "pathToFile") && (parent_tag == "sourceFile"))
       {
         exp_->getSourceFiles().back().setPathToFile(sm_.convert(chars));
       }
-      else if (current_tag == "pathToFile" && parent_tag == "supSourceFile")
+      else if ((current_tag == "pathToFile") && (parent_tag == "supSourceFile"))
       {
         //ignored
       }
-      else if (current_tag == "fileType" && parent_tag == "sourceFile")
+      else if ((current_tag == "fileType") && (parent_tag == "sourceFile"))
       {
         exp_->getSourceFiles().back().setFileType(sm_.convert(chars));
       }
-      else if (current_tag == "fileType" && parent_tag == "supSourceFile")
+      else if ((current_tag == "fileType") && (parent_tag == "supSourceFile"))
       {
         //ignored
       }
@@ -206,25 +210,25 @@ namespace OpenMS
       }
     }
 
-    void MzDataHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+    void MzDataHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-      static const XMLCh * s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh * s_accession = xercesc::XMLString::transcode("accession");
-      static const XMLCh * s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh * s_id = xercesc::XMLString::transcode("id");
-      static const XMLCh * s_count = xercesc::XMLString::transcode("count");
-      static const XMLCh * s_spectrumtype = xercesc::XMLString::transcode("spectrumType");
-      static const XMLCh * s_methodofcombination = xercesc::XMLString::transcode("methodOfCombination");
-      static const XMLCh * s_acqnumber = xercesc::XMLString::transcode("acqNumber");
-      static const XMLCh * s_mslevel = xercesc::XMLString::transcode("msLevel");
-      static const XMLCh * s_mzrangestart = xercesc::XMLString::transcode("mzRangeStart");
-      static const XMLCh * s_mzrangestop = xercesc::XMLString::transcode("mzRangeStop");
-      static const XMLCh * s_supdataarrayref = xercesc::XMLString::transcode("supDataArrayRef");
-      static const XMLCh * s_precision = xercesc::XMLString::transcode("precision");
-      static const XMLCh * s_endian = xercesc::XMLString::transcode("endian");
-      static const XMLCh * s_length = xercesc::XMLString::transcode("length");
-      static const XMLCh * s_comment = xercesc::XMLString::transcode("comment");
-      static const XMLCh * s_accessionnumber = xercesc::XMLString::transcode("accessionNumber");
+      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+      static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+      static const XMLCh* s_id = xercesc::XMLString::transcode("id");
+      static const XMLCh* s_count = xercesc::XMLString::transcode("count");
+      static const XMLCh* s_spectrumtype = xercesc::XMLString::transcode("spectrumType");
+      static const XMLCh* s_methodofcombination = xercesc::XMLString::transcode("methodOfCombination");
+      static const XMLCh* s_acqnumber = xercesc::XMLString::transcode("acqNumber");
+      static const XMLCh* s_mslevel = xercesc::XMLString::transcode("msLevel");
+      static const XMLCh* s_mzrangestart = xercesc::XMLString::transcode("mzRangeStart");
+      static const XMLCh* s_mzrangestop = xercesc::XMLString::transcode("mzRangeStop");
+      static const XMLCh* s_supdataarrayref = xercesc::XMLString::transcode("supDataArrayRef");
+      static const XMLCh* s_precision = xercesc::XMLString::transcode("precision");
+      static const XMLCh* s_endian = xercesc::XMLString::transcode("endian");
+      static const XMLCh* s_length = xercesc::XMLString::transcode("length");
+      static const XMLCh* s_comment = xercesc::XMLString::transcode("comment");
+      static const XMLCh* s_accessionnumber = xercesc::XMLString::transcode("accessionNumber");
 
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
@@ -233,11 +237,15 @@ namespace OpenMS
       //determine the parent tag
       String parent_tag;
       if (open_tags_.size() > 1)
+      {
         parent_tag = *(open_tags_.end() - 2);
+      }
 
       //do nothing until a new spectrum is reached
-      if (tag != "spectrum" && skip_spectrum_)
+      if ((tag != "spectrum") && skip_spectrum_)
+      {
         return;
+      }
 
 
       // Do something depending on the tag
@@ -370,7 +378,9 @@ namespace OpenMS
       else if (tag == "spectrumList")
       {
         if (options_.getMetadataOnly())
+        {
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
         //std::cout << Date::now() << " Reserving space for spectra" << std::endl;
         UInt count = attributeAsInt_(attributes, s_count);
         exp_->reserve(count);
@@ -406,13 +416,13 @@ namespace OpenMS
         spec_.getAcquisitionInfo().insert(spec_.getAcquisitionInfo().end(), Acquisition());
         spec_.getAcquisitionInfo().back().setIdentifier(attributeAsString_(attributes, s_acqnumber));
       }
-      else if (tag == "spectrumInstrument" || tag == "acqInstrument")
+      else if ((tag == "spectrumInstrument") || (tag == "acqInstrument"))
       {
         spec_.setMSLevel(attributeAsInt_(attributes, s_mslevel));
         ScanWindow window;
         optionalAttributeAsDouble_(window.begin, attributes, s_mzrangestart);
         optionalAttributeAsDouble_(window.end, attributes, s_mzrangestop);
-        if (window.begin != 0.0 || window.end != 0.0)
+        if ((window.begin != 0.0) || (window.end != 0.0))
         {
           spec_.getInstrumentSettings().getScanWindows().push_back(window);
         }
@@ -447,7 +457,7 @@ namespace OpenMS
       {
         data_to_decode_.resize(data_to_decode_.size() + 1);
       }
-      else if (tag == "arrayName" && parent_tag == "supDataArrayBinary")
+      else if ((tag == "arrayName") && (parent_tag == "supDataArrayBinary"))
       {
         // Note: name is set in closing tag as it is CDATA
         data_to_decode_.resize(data_to_decode_.size() + 1);
@@ -455,12 +465,12 @@ namespace OpenMS
       //std::cout << "end startelement" << std::endl;
     }
 
-    void MzDataHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void MzDataHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       static UInt scan_count = 0;
 
-      static const XMLCh * s_spectrum = xercesc::XMLString::transcode("spectrum");
-      static const XMLCh * s_mzdata = xercesc::XMLString::transcode("mzData");
+      static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
+      static const XMLCh* s_mzdata = xercesc::XMLString::transcode("mzData");
 
       open_tags_.pop_back();
       //std::cout << "End: '" << sm_.convert(qname) << "'" << std::endl;
@@ -505,7 +515,7 @@ namespace OpenMS
         //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
         data_to_decode_[i].removeWhitespaces();
 
-        if (precisions_[i] == "64")         // precision 64 Bit
+        if (precisions_[i] == "64") // precision 64 Bit
         {
           if (endians_[i] == "big")
           {
@@ -523,7 +533,7 @@ namespace OpenMS
           decoded_double_list_.push_back(decoded_double);
           decoded_list_.push_back(std::vector<float>());
         }
-        else                                                // precision 32 Bit
+        else // precision 32 Bit
         {
           if (endians_[i] == "big")
           {
@@ -583,7 +593,7 @@ namespace OpenMS
       }
     }
 
-    void MzDataHandler::writeTo(std::ostream & os)
+    void MzDataHandler::writeTo(std::ostream& os)
     {
       logger_.startProgress(0, cexp_->size(), "storing mzData file");
 
@@ -592,7 +602,7 @@ namespace OpenMS
 
       //---------------------------------------------------------------------------------------------------
       //DESCRIPTION
-      const Sample & sm = cexp_->getSample();
+      const Sample& sm = cexp_->getSample();
       os << "\t<description>\n"
          << "\t\t<admin>\n"
          << "\t\t\t<sampleName>"
@@ -601,7 +611,7 @@ namespace OpenMS
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wconversion"
-      if (sm.getNumber() != "" || sm.getState() || sm.getMass() || sm.getVolume() || sm.getConcentration()  || !sm.isMetaEmpty())
+      if ((sm.getNumber() != "") || sm.getState() || sm.getMass() || sm.getVolume() || sm.getConcentration()  || !sm.isMetaEmpty())
 #pragma clang diagnostic pop
       {
         os << "\t\t\t<sampleDescription>\n";
@@ -620,7 +630,9 @@ namespace OpenMS
            << "\t\t\t\t<nameOfFile>" << cexp_->getSourceFiles()[0].getNameOfFile() << "</nameOfFile>\n"
            << "\t\t\t\t<pathToFile>" << cexp_->getSourceFiles()[0].getPathToFile() << "</pathToFile>\n";
         if (cexp_->getSourceFiles()[0].getFileType() != "")
+        {
           os << "\t\t\t\t<fileType>" << cexp_->getSourceFiles()[0].getFileType() << "</fileType>\n";
+        }
         os << "\t\t\t</sourceFile>\n";
       }
       if (cexp_->getSourceFiles().size() > 1)
@@ -634,7 +646,9 @@ namespace OpenMS
            << "\t\t\t\t<name>" << cexp_->getContacts()[i].getFirstName() << " " << cexp_->getContacts()[i].getLastName() << "</name>\n"
            << "\t\t\t\t<institution>" << cexp_->getContacts()[i].getInstitution() << "</institution>\n";
         if (cexp_->getContacts()[i].getContactInfo() != "")
+        {
           os << "\t\t\t\t<contactInfo>" << cexp_->getContacts()[i].getContactInfo() << "</contactInfo>\n";
+        }
         os << "\t\t\t</contact>\n";
       }
       //no contacts given => add empty entry as there must be a contact entry
@@ -647,7 +661,7 @@ namespace OpenMS
       }
 
       os << "\t\t</admin>\n";
-      const Instrument & inst = cexp_->getInstrument();
+      const Instrument& inst = cexp_->getInstrument();
       os << "\t\t<instrument>\n"
          << "\t\t\t<instrumentName>" << inst.getName() << "</instrumentName>\n"
          << "\t\t\t<source>\n";
@@ -677,7 +691,7 @@ namespace OpenMS
         for (Size i = 0; i < inst.getMassAnalyzers().size(); ++i)
         {
           os << "\t\t\t\t<analyzer>\n";
-          const MassAnalyzer & ana = inst.getMassAnalyzers()[i];
+          const MassAnalyzer& ana = inst.getMassAnalyzers()[i];
           writeCVS_(os, ana.getType(), 14, "1000010", "AnalyzerType", 5);
           writeCVS_(os, ana.getResolution(), "1000011", "MassResolution", 5);
           writeCVS_(os, ana.getResolutionMethod(), 2, "1000012", "ResolutionMethod", 5);
@@ -712,7 +726,7 @@ namespace OpenMS
         warning(STORE, "The MzData format can store only one ion detector. Only the first one is stored!");
       }
       os << "\t\t\t</detector>\n";
-      if (inst.getVendor() != "" || inst.getModel() != "" || inst.getCustomizations() != "")
+      if ((inst.getVendor() != "") || (inst.getModel() != "") || (inst.getCustomizations() != ""))
       {
         os << "\t\t\t<additional>\n";
         writeCVS_(os, inst.getVendor(), "1000030", "Vendor");
@@ -724,7 +738,7 @@ namespace OpenMS
       os << "\t\t</instrument>\n";
 
       //the data processing information of the first spectrum is used for the whole file
-      if (cexp_->size() == 0 || (*cexp_)[0].getDataProcessing().empty())
+      if ((cexp_->size() == 0) || (*cexp_)[0].getDataProcessing().empty())
       {
         os << "\t\t<dataProcessing>\n"
            << "\t\t\t<software>\n"
@@ -735,7 +749,7 @@ namespace OpenMS
       }
       else
       {
-        const DataProcessing & data_processing = * (*cexp_)[0].getDataProcessing()[0].get();
+        const DataProcessing& data_processing = *(*cexp_)[0].getDataProcessing()[0].get();
         os << "\t\t<dataProcessing>\n"
            << "\t\t\t<software";
         if (data_processing.getCompletionTime() != DateTime())
@@ -789,7 +803,7 @@ namespace OpenMS
           {
             native_id.toInt();
           }
-          catch (Exception::ConversionError &)
+          catch (Exception::ConversionError&)
           {
             all_numbers = false;
             all_prefixed_numbers = false;
@@ -811,7 +825,7 @@ namespace OpenMS
         for (Size s = 0; s < cexp_->size(); ++s)
         {
           logger_.setProgress(s);
-          const SpectrumType & spec = (*cexp_)[s];
+          const SpectrumType& spec = (*cexp_)[s];
 
           Size spectrum_id = s + 1;
           if (all_prefixed_numbers)
@@ -847,7 +861,7 @@ namespace OpenMS
                << " count=\"" << spec.getAcquisitionInfo().size() << "\">\n";
             for (Size i = 0; i < spec.getAcquisitionInfo().size(); ++i)
             {
-              const Acquisition & ac = spec.getAcquisitionInfo()[i];
+              const Acquisition& ac = spec.getAcquisitionInfo()[i];
               Int acq_number = 0;
               try
               {
@@ -868,7 +882,7 @@ namespace OpenMS
             os << "\t\t\t\t\t</acqSpecification>\n";
           }
 
-          const InstrumentSettings & iset = spec.getInstrumentSettings();
+          const InstrumentSettings& iset = spec.getInstrumentSettings();
           os << "\t\t\t\t\t<spectrumInstrument msLevel=\"" << spec.getMSLevel() << "\"";
           level_id[spec.getMSLevel()] = spectrum_id;
 
@@ -969,7 +983,7 @@ namespace OpenMS
             os << "\t\t\t\t<precursorList count=\"" << spec.getPrecursors().size() << "\">\n";
             for (Size i = 0; i < spec.getPrecursors().size(); ++i)
             {
-              const Precursor & precursor = spec.getPrecursors()[i];
+              const Precursor& precursor = spec.getPrecursors()[i];
               os << "\t\t\t\t\t<precursor msLevel=\"" << precursor_ms_level << "\" spectrumRef=\"" << precursor_id << "\">\n";
               os << "\t\t\t\t\t\t<ionSelection>\n";
               if (precursor != Precursor())
@@ -1004,7 +1018,7 @@ namespace OpenMS
             //write meta data array descriptions
             for (Size i = 0; i < spec.getFloatDataArrays().size(); ++i)
             {
-              const MetaInfoDescription & desc = spec.getFloatDataArrays()[i];
+              const MetaInfoDescription& desc = spec.getFloatDataArrays()[i];
               os << "\t\t\t<supDesc supDataArrayRef=\"" << (i + 1) << "\">\n";
               if (!desc.isMetaEmpty())
               {
@@ -1040,7 +1054,7 @@ namespace OpenMS
             //write supplemental data arrays
             for (Size i = 0; i < spec.getFloatDataArrays().size(); ++i)
             {
-              const MapType::SpectrumType::FloatDataArray & mda = spec.getFloatDataArrays()[i];
+              const MapType::SpectrumType::FloatDataArray& mda = spec.getFloatDataArrays()[i];
               //check if spectrum and meta data array have the same length
               if (mda.size() != spec.size())
               {
@@ -1082,18 +1096,20 @@ namespace OpenMS
       logger_.endProgress();
     }
 
-    void MzDataHandler::cvParam_(const String & accession, const String & value)
+    void MzDataHandler::cvParam_(const String& accession, const String& value)
     {
       String error = "";
 
       //determine the parent tag
       String parent_tag;
       if (open_tags_.size() > 1)
+      {
         parent_tag = *(open_tags_.end() - 2);
+      }
 
       if (parent_tag == "spectrumInstrument")
       {
-        if (accession == "PSI:1000036")       //Scan Mode
+        if (accession == "PSI:1000036") //Scan Mode
         {
           if (value == "Zoom")
           {
@@ -1151,15 +1167,15 @@ namespace OpenMS
             }
           }
         }
-        else if (accession == "PSI:1000038")       //Time in minutes
+        else if (accession == "PSI:1000038") //Time in minutes
         {
-          spec_.setRT(asDouble_(value) * 60);         //Minutes to seconds
+          spec_.setRT(asDouble_(value) * 60); //Minutes to seconds
           if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
           {
             skip_spectrum_ = true;
           }
         }
-        else if (accession == "PSI:1000039")       //Time in seconds
+        else if (accession == "PSI:1000039") //Time in seconds
         {
           spec_.setRT(asDouble_(value));
           if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
@@ -1167,13 +1183,13 @@ namespace OpenMS
             skip_spectrum_ = true;
           }
         }
-        else if (accession == "PSI:1000037")       //Polarity
+        else if (accession == "PSI:1000037") //Polarity
         {
-          if (value == "Positive" || value == "positive" || value == "+")     //be flexible here, actually only the first one is correct
+          if ((value == "Positive") || (value == "positive") || (value == "+")) //be flexible here, actually only the first one is correct
           {
             spec_.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
           }
-          else if (value == "Negative" || value == "negative" || value == "-")     //be flexible here, actually only the first one is correct
+          else if ((value == "Negative") || (value == "negative") || (value == "-")) //be flexible here, actually only the first one is correct
           {
             spec_.getInstrumentSettings().setPolarity(IonSource::NEGATIVE);
           }
@@ -1189,11 +1205,11 @@ namespace OpenMS
       }
       else if (parent_tag == "ionSelection")
       {
-        if (accession == "PSI:1000040")       //m/z
+        if (accession == "PSI:1000040") //m/z
         {
           spec_.getPrecursors().back().setMZ(asDouble_(value));
         }
-        else if (accession == "PSI:1000041")       //Charge
+        else if (accession == "PSI:1000041") //Charge
         {
           if (spec_.getPrecursors().back().getCharge() != 0)
           {
@@ -1205,11 +1221,11 @@ namespace OpenMS
             spec_.getPrecursors().back().setCharge(asInt_(value));
           }
         }
-        else if (accession == "PSI:1000042")       //Intensity
+        else if (accession == "PSI:1000042") //Intensity
         {
           spec_.getPrecursors().back().setIntensity(asDouble_(value));
         }
-        else if (accession == "PSI:1000043")       //Intensity unit
+        else if (accession == "PSI:1000043") //Intensity unit
         {
           //ignored
         }
@@ -1220,15 +1236,15 @@ namespace OpenMS
       }
       else if (parent_tag == "activation")
       {
-        if (accession == "PSI:1000044")       //activationmethod
+        if (accession == "PSI:1000044") //activationmethod
         {
           spec_.getPrecursors().back().getActivationMethods().insert((Precursor::ActivationMethod)cvStringToEnum_(18, value, "activation method"));
         }
-        else if (accession == "PSI:1000045")       //Energy
+        else if (accession == "PSI:1000045") //Energy
         {
           spec_.getPrecursors().back().setActivationEnergy(asDouble_(value));
         }
-        else if (accession == "PSI:1000046")       //Energy unit
+        else if (accession == "PSI:1000046") //Energy unit
         {
           //ignored - we assume electronvolt
         }
@@ -1441,7 +1457,7 @@ namespace OpenMS
       //std::cout << "End of MzDataHander::cvParam_" << std::endl;
     }
 
-    inline void MzDataHandler::writeCVS_(std::ostream & os, double value, const String & acc, const String & name, UInt indent) const
+    inline void MzDataHandler::writeCVS_(std::ostream& os, double value, const String& acc, const String& name, UInt indent) const
     {
       if (value != 0.0)
       {
@@ -1449,7 +1465,7 @@ namespace OpenMS
       }
     }
 
-    inline void MzDataHandler::writeCVS_(std::ostream & os, const String & value, const String & acc, const String & name, UInt indent) const
+    inline void MzDataHandler::writeCVS_(std::ostream& os, const String& value, const String& acc, const String& name, UInt indent) const
     {
       if (value != "")
       {
@@ -1457,7 +1473,7 @@ namespace OpenMS
       }
     }
 
-    inline void MzDataHandler::writeCVS_(std::ostream & os, UInt value, UInt map, const String & acc, const String & name, UInt indent)
+    inline void MzDataHandler::writeCVS_(std::ostream& os, UInt value, UInt map, const String& acc, const String& name, UInt indent)
     {
       //abort when receiving a wrong map index
       if (map >= cv_terms_.size())
@@ -1474,28 +1490,28 @@ namespace OpenMS
       writeCVS_(os, cv_terms_[map][value], acc, name, indent);
     }
 
-    inline void MzDataHandler::writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent)
+    inline void MzDataHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent)
     {
       std::vector<String> keys;
       meta.getKeys(keys);
       for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        if ((*it)[0] != '#')             // internally used meta info start with '#'
+        if ((*it)[0] != '#') // internally used meta info start with '#'
         {
           os << String(indent, '\t') << "<userParam name=\"" << *it << "\" value=\"" << meta.getMetaValue(*it) << "\"/>\n";
         }
       }
     }
 
-    inline void MzDataHandler::writeBinary_(std::ostream & os, Size size, const String & tag, const String & name, SignedSize id)
+    inline void MzDataHandler::writeBinary_(std::ostream& os, Size size, const String& tag, const String& name, SignedSize id)
     {
       os << "\t\t\t<" << tag;
-      if (tag == "supDataArrayBinary" || tag == "supDataArray")
+      if ((tag == "supDataArrayBinary") || (tag == "supDataArray"))
       {
         os << " id=\"" << id << "\"";
       }
       os << ">\n";
-      if (tag == "supDataArrayBinary" || tag == "supDataArray")
+      if ((tag == "supDataArrayBinary") || (tag == "supDataArray"))
       {
         os << "\t\t\t\t<arrayName>" << name << "</arrayName>\n";
       }
@@ -1508,6 +1524,7 @@ namespace OpenMS
          << str
          << "</data>\n\t\t\t</" << tag << ">\n";
     }
+
   }
 
 } // namespace OpenMS

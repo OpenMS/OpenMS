@@ -50,7 +50,7 @@ namespace OpenMS
 
   }
 
-  MetaInfoDescription::MetaInfoDescription(const MetaInfoDescription & source) :
+  MetaInfoDescription::MetaInfoDescription(const MetaInfoDescription& source) :
     MetaInfoInterface(source),
     comment_(source.comment_),
     name_(source.name_),
@@ -64,10 +64,12 @@ namespace OpenMS
 
   }
 
-  MetaInfoDescription & MetaInfoDescription::operator=(const MetaInfoDescription & source)
+  MetaInfoDescription& MetaInfoDescription::operator=(const MetaInfoDescription& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     MetaInfoInterface::operator=(source);
     comment_ = source.comment_;
@@ -77,39 +79,39 @@ namespace OpenMS
     return *this;
   }
 
-  bool MetaInfoDescription::operator==(const MetaInfoDescription & rhs) const
+  bool MetaInfoDescription::operator==(const MetaInfoDescription& rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
            comment_ == rhs.comment_ &&
            name_ == rhs.name_ &&
-           ( data_processing_.size() == rhs.data_processing_.size() &&
-           std::equal(data_processing_.begin(),
-                      data_processing_.end(),
-                      rhs.data_processing_.begin(),
-                      OpenMS::Helpers::cmpPtrSafe<DataProcessingPtr>) );
+           (data_processing_.size() == rhs.data_processing_.size() &&
+            std::equal(data_processing_.begin(),
+                       data_processing_.end(),
+                       rhs.data_processing_.begin(),
+                       OpenMS::Helpers::cmpPtrSafe<DataProcessingPtr>));
   }
 
-  void MetaInfoDescription::setName(const String & name)
+  void MetaInfoDescription::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & MetaInfoDescription::getName() const
+  const String& MetaInfoDescription::getName() const
   {
     return name_;
   }
 
-  const vector<ConstDataProcessingPtr> & MetaInfoDescription::getDataProcessing() const
+  const vector<ConstDataProcessingPtr>& MetaInfoDescription::getDataProcessing() const
   {
     return OpenMS::Helpers::constifyPointerVector(data_processing_);
   }
 
-  vector<DataProcessingPtr> & MetaInfoDescription::getDataProcessing()
+  vector<DataProcessingPtr>& MetaInfoDescription::getDataProcessing()
   {
     return data_processing_;
   }
 
-  void MetaInfoDescription::setDataProcessing(const vector<DataProcessingPtr> & processing_method)
+  void MetaInfoDescription::setDataProcessing(const vector<DataProcessingPtr>& processing_method)
   {
     data_processing_ = processing_method;
   }

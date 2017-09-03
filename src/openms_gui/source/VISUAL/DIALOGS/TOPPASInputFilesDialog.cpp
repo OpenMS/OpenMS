@@ -48,7 +48,7 @@
 
 namespace OpenMS
 {
-  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList & list, const QString& cwd)
+  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList& list, const QString& cwd)
     : cwd_(cwd)
   {
     setupUi(this);
@@ -80,19 +80,20 @@ namespace OpenMS
 
   void TOPPASInputFilesDialog::dropEvent(QDropEvent* e)
   {
-    foreach (const QUrl& url, e->mimeData()->urls())
+    foreach(const QUrl &url, e->mimeData()->urls())
     {
       input_file_list->addItem(url.toLocalFile());
     }
   }
 
-  void TOPPASInputFilesDialog::keyPressEvent(QKeyEvent* e) {
+  void TOPPASInputFilesDialog::keyPressEvent(QKeyEvent* e)
+  {
     // when Ctrl-C is pressed, copy all selected files to clipboard as text
     if (e->matches(QKeySequence::Copy))
     {
       QStringList strings;
       QList<QListWidgetItem*> selected_items = input_file_list->selectedItems();
-      foreach (QListWidgetItem* item, selected_items)
+      foreach(QListWidgetItem * item, selected_items)
       {
         strings << item->text();
       }
@@ -109,7 +110,7 @@ namespace OpenMS
   void TOPPASInputFilesDialog::showFileDialog()
   {
     QStringList file_names = QFileDialog::getOpenFileNames(this,
-                                                           tr("Select input file(s)"), 
+                                                           tr("Select input file(s)"),
                                                            cwd_);
     if (!file_names.isEmpty())
     {
@@ -120,7 +121,7 @@ namespace OpenMS
 
   void TOPPASInputFilesDialog::removeSelected()
   {
-    QList<QListWidgetItem *> selected_items = input_file_list->selectedItems();
+    QList<QListWidgetItem*> selected_items = input_file_list->selectedItems();
     foreach(QListWidgetItem * item, selected_items)
     {
       input_file_list->takeItem(input_file_list->row(item));
@@ -140,7 +141,9 @@ namespace OpenMS
       files.push_back(input_file_list->item(i)->text());
     }
     if (flag_sort_list->isChecked())
+    {
       files.sort();
+    }
   }
 
   const QString& TOPPASInputFilesDialog::getCWD() const
@@ -150,7 +153,7 @@ namespace OpenMS
 
   void TOPPASInputFilesDialog::editCurrentItem()
   {
-    QListWidgetItem * item = input_file_list->currentItem();
+    QListWidgetItem* item = input_file_list->currentItem();
     if (!item)
     {
       return;
@@ -174,13 +177,13 @@ namespace OpenMS
       return;
     }
 
-    if (QObject::sender() == up_button)     // move upwards
+    if (QObject::sender() == up_button) // move upwards
     {
       if (row == 0)
       {
         return;
       }
-      QListWidgetItem * item = input_file_list->takeItem(row);
+      QListWidgetItem* item = input_file_list->takeItem(row);
       input_file_list->insertItem(row - 1, item);
       input_file_list->setCurrentItem(item);
     }
@@ -190,7 +193,7 @@ namespace OpenMS
       {
         return;
       }
-      QListWidgetItem * item = input_file_list->takeItem(row);
+      QListWidgetItem* item = input_file_list->takeItem(row);
       input_file_list->insertItem(row + 1, item);
       input_file_list->setCurrentItem(item);
     }

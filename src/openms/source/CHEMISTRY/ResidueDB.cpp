@@ -159,7 +159,7 @@ namespace OpenMS
       {
         for (vector<String>::const_iterator mod_it = mod_names.begin(); mod_it != mod_names.end(); ++mod_it)
         {
-          if ( mod_it->empty() || it->empty() ) continue;
+          if (mod_it->empty() || it->empty()) { continue; }
           residue_mod_names_[*it][*mod_it] = r;
         }
       }
@@ -179,8 +179,8 @@ namespace OpenMS
 
   bool ResidueDB::hasResidue(const Residue* residue) const
   {
-    if (const_residues_.find(residue) != const_residues_.end() ||
-        const_modified_residues_.find(residue) != const_modified_residues_.end())
+    if ((const_residues_.find(residue) != const_residues_.end()) ||
+        (const_modified_residues_.find(residue) != const_modified_residues_.end()))
     {
       return true;
     }
@@ -416,7 +416,7 @@ namespace OpenMS
   void ResidueDB::buildResidueNames_()
   {
     // initialize lookup table to null pointer
-    for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
+    for (Size i = 0; i != sizeof(residue_by_one_letter_code_) / sizeof(residue_by_one_letter_code_[0]); ++i)
     {
       residue_by_one_letter_code_[i] = 0;
     }
@@ -473,7 +473,7 @@ namespace OpenMS
     // terminal mods. don't apply to residue (side chain), so don't consider them:
     const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
     String id = mod.getId();
-    if (id.empty()) id = mod.getFullId();
+    if (id.empty()) { id = mod.getFullId(); }
 
     if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
     {

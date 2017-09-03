@@ -166,7 +166,7 @@ protected:
       {
         // modification = i;
       }
-      else if (list[0][i].toLower().removeWhitespaces().compare("chargestate") == 0 || list[0][i].toLower().removeWhitespaces().hasSubstring("charge"))
+      else if ((list[0][i].toLower().removeWhitespaces().compare("chargestate") == 0) || list[0][i].toLower().removeWhitespaces().hasSubstring("charge"))
       {
         charge_state = i;
       }
@@ -174,7 +174,7 @@ protected:
       {
         peptide = i;
       }
-      else if (list[0][i].toLower().removeWhitespaces().hasSubstring("measuredweight")  || list[0][i].removeWhitespaces().compare("measuredweight[M+nH]n+") == 0)
+      else if (list[0][i].toLower().removeWhitespaces().hasSubstring("measuredweight")  || (list[0][i].removeWhitespaces().compare("measuredweight[M+nH]n+") == 0))
       {
         measured_weight = i;
       }

@@ -180,6 +180,7 @@ namespace OpenMS
       {
         return left.first < right.first;
       }
+
     };
 
     void sortByFirst(std::vector<std::pair<double, double> >& tmp)

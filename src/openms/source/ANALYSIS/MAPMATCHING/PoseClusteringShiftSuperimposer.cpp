@@ -89,7 +89,7 @@ namespace OpenMS
     return;
   }
 
-  void PoseClusteringShiftSuperimposer::run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation)
+  void PoseClusteringShiftSuperimposer::run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)
   {
     typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
     typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
@@ -141,9 +141,9 @@ namespace OpenMS
     // Select the most abundant data points only.  After that, disallow modifications
     // (we tend to have annoying issues with const_iterator versus iterator).
     PeakPointerArray_ model_map_ini(map_model.begin(), map_model.end());
-    const PeakPointerArray_ & model_map(model_map_ini);
+    const PeakPointerArray_& model_map(model_map_ini);
     PeakPointerArray_ scene_map_ini(map_scene.begin(), map_scene.end());
-    const PeakPointerArray_ & scene_map(scene_map_ini);
+    const PeakPointerArray_& scene_map(scene_map_ini);
     {
       // truncate the data as necessary
       // casting to SignedSize is done on PURPOSE here! (num_used_points will be maximal if -1 is used)
@@ -190,20 +190,30 @@ namespace OpenMS
       do
       {
         if (max_shift < 0)
+        {
           max_shift = -max_shift;
+        }
         //     ...ml@@@mh........    ,    ........ml@@@mh...
         //     ........sl@@@sh...    ,    ...sl@@@sh........
         double diff;
         diff = model_high - scene_low;
         if (diff < 0)
+        {
           diff = -diff;
+        }
         if (max_shift > diff)
+        {
           max_shift = diff;
+        }
         diff = model_low - scene_high;
         if (diff < 0)
+        {
           diff = -diff;
+        }
         if (max_shift > diff)
+        {
           max_shift = diff;
+        }
       }
       while (0);
 
@@ -236,7 +246,7 @@ namespace OpenMS
       // ... and finally ...
       total_intensity_ratio = total_int_model_map / total_int_scene_map;
     }
-    while (0);   // (the extra syntax helps with code folding in eclipse!)
+    while (0); // (the extra syntax helps with code folding in eclipse!)
     setProgress((actual_progress = 20));
 
     /// The serial number is incremented for each invocation of this, to avoid overwriting of hash table dumps.
@@ -288,7 +298,9 @@ namespace OpenMS
         double i_winlength_factor = 1. / (i_high - i_low);
         i_winlength_factor -= winlength_factor_baseline;
         if (i_winlength_factor <= 0)
+        {
           continue;
+        }
 
         // Adjust window around k in scene map
         while (k_low < scene_map_size && scene_map[k_low].getMZ() < model_map[i].getMZ() - mz_pair_max_distance)
@@ -302,7 +314,9 @@ namespace OpenMS
           double k_winlength_factor = 1. / (k_high - k_low);
           k_winlength_factor -= winlength_factor_baseline;
           if (k_winlength_factor <= 0)
+          {
             continue;
+          }
 
           // compute similarity of intensities i k
           double similarity_ik;
@@ -331,7 +345,7 @@ namespace OpenMS
         } // k
       } // i
     }
-    while (0);   // end of hashing (the extra syntax helps with code folding in eclipse!)
+    while (0); // end of hashing (the extra syntax helps with code folding in eclipse!)
 
     setProgress((actual_progress = 30));
 
@@ -410,7 +424,7 @@ namespace OpenMS
           std::sort(buffer.begin(), buffer.end(), std::greater<double>());
           double freq_intercept = shift_hash_.getData().front();
           double freq_slope = (shift_hash_.getData().back() - shift_hash_.getData().front()) / double(buffer.size())
-                                  / scaling_histogram_crossing_slope;
+                              / scaling_histogram_crossing_slope;
           if (!freq_slope || !buffer.size())
           {
             // in fact these conditions are actually impossible, but let's be really sure ;-)
@@ -461,7 +475,7 @@ namespace OpenMS
         const Size data_size = shift_hash_.getData().size();
         Size data_range_begin = 0;
         Size data_range_end = data_size;
-        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
+        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop) // MAGIC ALERT: number of loops
         {
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
           double mean = statistics.mean() + data_range_begin;

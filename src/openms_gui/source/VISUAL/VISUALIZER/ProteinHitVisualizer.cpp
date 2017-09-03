@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget * parent) :
+  ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<ProteinHit>()
   {

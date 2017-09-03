@@ -93,7 +93,7 @@ protected:
     return fiveNumbers(errors, decimal_places);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //load input features
     FeatureMap input;
@@ -129,9 +129,9 @@ protected:
         double best_score = 0.0;
         for (Size i = 0; i < input.size(); ++i)
         {
-          const Feature & f_i = input[i];
-          if (fabs(f_i.getRT() - elements[e].getRT()) < rt_tol
-             && fabs(f_i.getMZ() - elements[e].getMZ()) < mz_tol_charged)
+          const Feature& f_i = input[i];
+          if ((fabs(f_i.getRT() - elements[e].getRT()) < rt_tol)
+             && (fabs(f_i.getMZ() - elements[e].getMZ()) < mz_tol_charged))
           {
             ++match_counts[e];
             double score = (1.0 - fabs(f_i.getMZ() - elements[e].getMZ()) / mz_tol_charged) * (1.0 - fabs(f_i.getRT() - elements[e].getRT()) / rt_tol);
@@ -145,11 +145,11 @@ protected:
       }
 
       //not matched
-      if (match_counts[0] == 0 && match_counts[1] == 0)
+      if ((match_counts[0] == 0) && (match_counts[1] == 0))
       {
       }
       //half matched
-      else if ((match_counts[0] > 0 && match_counts[1] == 0) || (match_counts[0] == 0 && match_counts[1] > 0))
+      else if (((match_counts[0] > 0) && (match_counts[1] == 0)) || ((match_counts[0] == 0) && (match_counts[1] > 0)))
       {
         ++half_matched_pairs;
       }
@@ -185,7 +185,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPLabeledEval tool;
   return tool.main(argc, argv);

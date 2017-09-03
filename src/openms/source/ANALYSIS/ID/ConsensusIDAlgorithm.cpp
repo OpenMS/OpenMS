@@ -59,11 +59,9 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-
   ConsensusIDAlgorithm::~ConsensusIDAlgorithm()
   {
   }
-
 
   void ConsensusIDAlgorithm::updateMembers_()
   {
@@ -71,7 +69,6 @@ namespace OpenMS
     min_support_ = param_.getValue("filter:min_support");
     count_empty_ = (param_.getValue("filter:count_empty") == "true");
   }
-
 
   void ConsensusIDAlgorithm::apply(vector<PeptideIdentification>& ids,
                                    Size number_of_runs)
@@ -85,7 +82,7 @@ namespace OpenMS
     number_of_runs_ = (number_of_runs != 0) ? number_of_runs : ids.size();
 
     // prepare data here, so that it doesn't have to happen in each algorithm:
-    for (vector<PeptideIdentification>::iterator pep_it = ids.begin(); 
+    for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
       pep_it->sort();
@@ -107,7 +104,7 @@ namespace OpenMS
     ids.resize(1);
     ids[0].setScoreType(score_type);
     ids[0].setHigherScoreBetter(higher_better);
-    for (SequenceGrouping::iterator res_it = results.begin(); 
+    for (SequenceGrouping::iterator res_it = results.begin();
          res_it != results.end(); ++res_it)
     {
       OPENMS_PRECONDITION(!res_it->second.second.empty(),
@@ -118,10 +115,10 @@ namespace OpenMS
       {
         // filter by "support" value:
         double support = res_it->second.second[1];
-        if (support < min_support_) continue;
+        if (support < min_support_) { continue; }
         hit.setMetaValue("consensus_support", support);
       }
-      
+
       hit.setSequence(res_it->first);
       hit.setCharge(res_it->second.first);
       hit.setScore(res_it->second.second[0]);
@@ -134,8 +131,7 @@ namespace OpenMS
     ids[0].assignRanks();
   }
 
-
-  void ConsensusIDAlgorithm::compareChargeStates_(Int& recorded_charge, 
+  void ConsensusIDAlgorithm::compareChargeStates_(Int& recorded_charge,
                                                   Int new_charge,
                                                   const AASequence& peptide)
   {
@@ -146,9 +142,9 @@ namespace OpenMS
     else if ((new_charge != 0) && (recorded_charge != new_charge))
     { // maybe TODO: calculate correct charge from prec. m/z and peptide mass?
       String msg = "Conflicting charge states found for peptide '" +
-        peptide.toString() + "': " + String(recorded_charge) + ", " + 
-        String(new_charge);
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                   peptide.toString() + "': " + String(recorded_charge) + ", " +
+                   String(new_charge);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     msg, String(new_charge));
     }
   }

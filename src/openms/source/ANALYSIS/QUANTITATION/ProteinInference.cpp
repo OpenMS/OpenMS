@@ -93,7 +93,9 @@ namespace OpenMS
         {
           // are Protein- and PeptideIdentification from the same search engine run?
           if (it_pepid->getIdentifier() != protein_ident.getIdentifier())
+          {
             continue;
+          }
 
           std::set<String> accessions;
           accessions.insert(accession);
@@ -129,7 +131,9 @@ namespace OpenMS
 
       // no peptides found that match current Protein
       if (consensus_to_peptide.empty())
+      {
         continue;
+      }
 
       // Use all matching ConsensusElements to derive a quantitation for current protein
       // build up ratios for every map vs reference
@@ -161,7 +165,9 @@ namespace OpenMS
         // did not find a reference
         // TODO assume intensity==0 instead??
         if (it_ref == handles.end())
+        {
           continue;
+        }
 
         for (ConsensusFeature::HandleSetType::const_iterator it = handles.begin();
              it != handles.end();
@@ -209,7 +215,9 @@ namespace OpenMS
   bool ProteinInference::sortByUnique_(std::vector<PeptideHit>& peptide_hits_local, const bool is_higher_score_better)
   {
     if (peptide_hits_local.empty())
+    {
       return false;
+    }
 
     // several peptideHits from (the same) spectrum point to current Protein
     // -> take the best

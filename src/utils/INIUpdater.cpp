@@ -166,7 +166,7 @@ protected:
       String new_tool;
       String ttype;
       // find mapping to new tool (might be the same name)
-      if (p.exists(sec_inst + "tool_type")) ttype = p.getValue(sec_inst + "tool_type");
+      if (p.exists(sec_inst + "tool_type")) { ttype = p.getValue(sec_inst + "tool_type"); }
       if (!updater.getNewToolName(old_name, ttype, new_tool))
       {
         String type_text = ((ttype == "") ? "" : " with type '" + ttype + "' ");
@@ -299,7 +299,7 @@ protected:
       String new_tool;
       String ttype;
       // find mapping to new tool (might be the same name)
-      if (p.exists(sec_inst + "type")) ttype = p.getValue(sec_inst + "type");
+      if (p.exists(sec_inst + "type")) { ttype = p.getValue(sec_inst + "type"); }
       if (!updater.getNewToolName(sections[s], ttype, new_tool))
       {
         String type_text = ((ttype == "") ? "" : " with type '" + ttype + "' ");
@@ -368,14 +368,14 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    if (out.size() > 0 && inplace)
+    if ((out.size() > 0) && inplace)
     {
       writeLog_("Two incompatible arguments given (-out and -i). Use either of them, but not both!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
-    if (!inplace && out.size() != in.size())
+    if (!inplace && (out.size() != in.size()))
     {
       writeLog_("Output and input file list length must be equal!");
       printUsage_();
@@ -387,8 +387,8 @@ protected:
     for (Size i = 0; i < in.size(); ++i)
     {
       FileTypes::Type f_type = fh.getType(in[i]);
-      if (f_type == FileTypes::INI) updateINI(in[i], inplace ? "" : out[i]);
-      else if (f_type == FileTypes::TOPPAS) updateTOPPAS(in[i], inplace ? "" : out[i]);
+      if (f_type == FileTypes::INI) { updateINI(in[i], inplace ? "" : out[i]); }
+      else if (f_type == FileTypes::TOPPAS) { updateTOPPAS(in[i], inplace ? "" : out[i]); }
     }
 
     for (Size i = 0; i < tmp_files_.size(); ++i)

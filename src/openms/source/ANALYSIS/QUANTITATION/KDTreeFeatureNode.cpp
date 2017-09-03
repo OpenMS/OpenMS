@@ -38,50 +38,50 @@
 namespace OpenMS
 {
 
-KDTreeFeatureNode::KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx) :
-  data_(data),
-  idx_(idx)
-{
-}
-
-KDTreeFeatureNode::KDTreeFeatureNode(const KDTreeFeatureNode& rhs) :
-  data_(rhs.data_),
-  idx_(rhs.idx_)
-{
-}
-
-KDTreeFeatureNode& KDTreeFeatureNode::operator=(KDTreeFeatureNode const& rhs)
-{
-  data_ = rhs.data_;
-  idx_ = rhs.idx_;
-
-  return *this;
-}
-
-KDTreeFeatureNode::~KDTreeFeatureNode()
-{
-}
-
-Size KDTreeFeatureNode::getIndex() const
-{
-  return idx_;
-}
-
-KDTreeFeatureNode::value_type KDTreeFeatureNode::operator[](Size i) const
-{
-  if (i == 0)
+  KDTreeFeatureNode::KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx) :
+    data_(data),
+    idx_(idx)
   {
-    return data_->rt(idx_);
   }
-  else if (i == 1)
+
+  KDTreeFeatureNode::KDTreeFeatureNode(const KDTreeFeatureNode& rhs) :
+    data_(rhs.data_),
+    idx_(rhs.idx_)
   {
-    return data_->mz(idx_);
   }
-  else
+
+  KDTreeFeatureNode& KDTreeFeatureNode::operator=(KDTreeFeatureNode const& rhs)
   {
-    const String& err_msg = "Indices other than 0 (RT) and 1 (m/z) are not allowed!";
-    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, err_msg);
+    data_ = rhs.data_;
+    idx_ = rhs.idx_;
+
+    return *this;
   }
-}
+
+  KDTreeFeatureNode::~KDTreeFeatureNode()
+  {
+  }
+
+  Size KDTreeFeatureNode::getIndex() const
+  {
+    return idx_;
+  }
+
+  KDTreeFeatureNode::value_type KDTreeFeatureNode::operator[](Size i) const
+  {
+    if (i == 0)
+    {
+      return data_->rt(idx_);
+    }
+    else if (i == 1)
+    {
+      return data_->mz(idx_);
+    }
+    else
+    {
+      const String& err_msg = "Indices other than 0 (RT) and 1 (m/z) are not allowed!";
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, err_msg);
+    }
+  }
 
 }

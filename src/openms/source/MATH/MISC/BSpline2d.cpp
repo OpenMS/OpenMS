@@ -41,8 +41,8 @@
 namespace OpenMS
 {
 
-  BSpline2d::BSpline2d(const std::vector<double>& x, const std::vector<double>& y, 
-                       double wavelength, BoundaryCondition boundary_condition, 
+  BSpline2d::BSpline2d(const std::vector<double>& x, const std::vector<double>& y,
+                       double wavelength, BoundaryCondition boundary_condition,
                        Size num_nodes)
   {
     OPENMS_PRECONDITION(x.size() == y.size(), "x and y vectors passed to BSpline2d constructor must have the same size.")

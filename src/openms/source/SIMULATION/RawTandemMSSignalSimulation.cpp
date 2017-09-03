@@ -154,7 +154,9 @@ namespace OpenMS
     double sampling_rate = 1;
     //guess sampling rate from two adjacent full scans:
     if (experiment.size() >= 2)
+    {
       sampling_rate = experiment[1].getRT() - experiment[0].getRT();
+    }
 
     SimTypes::MSSimExperiment precomputed_MS2;
     precomputed_MS2.resize(features.size());
@@ -227,7 +229,9 @@ namespace OpenMS
       }
 
       if (features_fragmented.empty())
+      {
         continue;
+      }
 
       // now we have all features that elute in this scan -> create MS2 scans
       SimTypes::MSSimExperiment MS2_spectra;
@@ -269,7 +273,9 @@ namespace OpenMS
       // merge all MS2 spectra
       sm.mergeSpectraBlockWise(MS2_spectra);
       if (MS2_spectra.size() != 1)
+      {
         throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, MS2_spectra.size());
+      }
       // store merged spectrum
       MS2_spectra[0].setMetaValue("MSE_Spectrum", "true");
       MS2_spectra[0].setMetaValue("MSE_sequences", feature_seq);
@@ -362,7 +368,7 @@ namespace OpenMS
           simple_generator.getSpectrum(tmp_spec, seq, 1, prec_charge);
         }
 
-        // scale intensity and copy 
+        // scale intensity and copy
         for (Size peak = 0; peak < tmp_spec.size(); ++peak)
         {
           Peak1D p = tmp_spec[peak];

@@ -198,7 +198,7 @@ namespace OpenMS
     for (map<char, Size>::const_iterator it = deco.decomp_.begin(); it != deco.decomp_.end(); ++it)
     {
       map<char, Size>::const_iterator it2 = decomp_.find(it->first);
-      if (it2 == decomp_.end() || decomp_.find(it->first)->second < it->second)
+      if ((it2 == decomp_.end()) || (decomp_.find(it->first)->second < it->second))
       {
         cerr << it->first << " " << it->second << endl;
         return false;

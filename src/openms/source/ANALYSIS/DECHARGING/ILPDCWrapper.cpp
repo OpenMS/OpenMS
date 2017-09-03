@@ -158,12 +158,14 @@ namespace OpenMS
       for (Map<Size, std::set<Size> >::ConstIterator it = g2pairs.begin(); it != g2pairs.end(); ++it)
       {
         Size clique_size = it->second.size();
-        if (count > pairs_per_bin || clique_size > big_clique_bin_threshold)
+        if ((count > pairs_per_bin) || (clique_size > big_clique_bin_threshold))
         {
           if (count > 0) // either bin is full or we have to close it due to big clique
           {
             if (verbose_level > 2)
+            {
               LOG_INFO << "Overstepping border of " << pairs_per_bin << " by " << SignedSize(count - pairs_per_bin) << " elements!\n";
+            }
             bins.push_back(std::make_pair(start, pairs_clique_ordered.size()));
             start = pairs_clique_ordered.size();
             count = 0;
@@ -175,7 +177,9 @@ namespace OpenMS
               pairs_clique_ordered.push_back(pairs[*i_p]);
             }
             if (verbose_level > 2)
+            {
               LOG_INFO << "Extra bin for big clique (" << clique_size << ") prepended to schedule\n";
+            }
             bins.insert(bins.begin(), std::make_pair(start, pairs_clique_ordered.size()));
             start = pairs_clique_ordered.size();
             continue; // next clique (this one is already processed)
@@ -188,7 +192,9 @@ namespace OpenMS
         }
       }
       if (count > 0)
+      {
         bins.push_back(std::make_pair(start, pairs_clique_ordered.size()));
+      }
     }
 
     if (pairs_clique_ordered.size() != pairs.size())
@@ -359,15 +365,21 @@ namespace OpenMS
       build.setColumnType(index, LPWrapper::INTEGER); // integer variable
       build.setObjective(index, pairs[i].getEdgeScore());
       if (score_min > score)
+      {
         score_min = score;
+      }
       if (score_max < score)
+      {
         score_max = score;
+      }
 
       // DEBUG:
       //std::cerr << "MIP: egde#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
     }
     if (verbose_level > 2)
+    {
       LOG_INFO << "score_min: " << score_min << " score_max: " << score_max << "\n";
+    }
 
     //------------------------------------adding constraints--------------------------------------------------
 
@@ -449,18 +461,26 @@ namespace OpenMS
     }
 
     if (verbose_level > 2)
+    {
       LOG_INFO << "node count: " << fm.size() << "\n";
+    }
     if (verbose_level > 2)
+    {
       LOG_INFO << "edge count: " << pairs.size() << "\n";
+    }
     if (verbose_level > 2)
+    {
       LOG_INFO << "constraint count: " << (conflict_idx[0] + conflict_idx[1] + conflict_idx[2] + conflict_idx[3]) << " = " << conflict_idx[0] << " + " << conflict_idx[1] << " + " << conflict_idx[2] << " + " << conflict_idx[3] << "(0 or inferred)" << std::endl;
+    }
 
     //---------------------------------------------------------------------------------------------------------
     //----------------------------------------Solving and querying result--------------------------------------
     //---------------------------------------------------------------------------------------------------------
 
     if (verbose_level > 0)
+    {
       LOG_INFO << "Starting to solve..." << std::endl;
+    }
     LPWrapper::SolverParam param;
     param.enable_mir_cuts = true;
     param.enable_cov_cuts = true;
@@ -474,10 +494,12 @@ namespace OpenMS
     build.solve(param);
     time1.stop();
     if (verbose_level > 0)
+    {
       LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
                << " with objective value: " << build.getObjectiveValue() << "."
                << " Status: " << (!build.getStatus() ? " Finished" : " Not finished")
                << std::endl;
+    }
 
     // variable values
     UInt active_edges = 0;
@@ -501,7 +523,9 @@ namespace OpenMS
       }
     }
     if (verbose_level > 2)
+    {
       LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
+    }
 
     for (Map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
     {
@@ -519,7 +543,9 @@ namespace OpenMS
     double score;
     String e;
     if (getenv("M") != 0)
+    {
       e = String(getenv("M"));
+    }
     if (e == "")
     {
       //std::cout << "1";

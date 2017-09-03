@@ -47,7 +47,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  void ExperimentalDesign::load(const String & tsv_file, ExperimentalDesign & design) const
+  void ExperimentalDesign::load(const String& tsv_file, ExperimentalDesign& design) const
   {
     design.runs.clear();
 
@@ -60,7 +60,7 @@ namespace OpenMS
       String s = *sit;
 
       // skip empty lines
-      if (s.trim().empty()) continue;
+      if (s.trim().empty()) { continue; }
 
       // run-level header
       if (line_number == 0)
@@ -68,7 +68,7 @@ namespace OpenMS
         if (!s.hasPrefix("Run"))
         {
           throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-            "Error: Line does not contain the run header of the experimental design: " + String(s) + ".");
+                                      "Error: Line does not contain the run header of the experimental design: " + String(s) + ".");
         }
         else
         {
@@ -77,7 +77,7 @@ namespace OpenMS
           if (cells.size() != 4)
           {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-              "Error: Wrong number of columns (" + String(cells.size()) + ") in the experimental design header provided: " + String(s) + ".");
+                                        "Error: Wrong number of columns (" + String(cells.size()) + ") in the experimental design header provided: " + String(s) + ".");
           }
           ++line_number;
           continue;
@@ -91,7 +91,7 @@ namespace OpenMS
       if (s.size() < 4)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-          "Error: Not all columns of experimental design provided: " + String(s) + ".");
+                                    "Error: Not all columns of experimental design provided: " + String(s) + ".");
       }
 
       MSRun r;
@@ -105,7 +105,7 @@ namespace OpenMS
       {
         // file name is relative so we need to figure out the correct folder
 
-        // first check folder relative to folder of design file 
+        // first check folder relative to folder of design file
         // to allow, for example, a design in ./design.tsv and spectra in ./spectra/a.mzML
         // where ./ is the same folder
         QFileInfo design_file_info(tsv_file.toQString());
@@ -125,7 +125,7 @@ namespace OpenMS
             r.file = f;
           }
         }
-      }     
+      }
       else
       {
         // set to absolute path
@@ -135,19 +135,19 @@ namespace OpenMS
       if (!File::exists(r.file))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-          "Error: Spectra file does not exist: '" + String(r.file) + "'");
+                                    "Error: Spectra file does not exist: '" + String(r.file) + "'");
       }
 
       r.fraction = static_cast<unsigned>(cells[2].toInt());
       r.technical_replicate = static_cast<unsigned>(cells[3].toInt());
-      
+
       design.runs.push_back(r);
 
       // validation: check if run number matches the line number in the design file
       if (line_number != run_number)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-          "Error: Run index (" + String(run_number) + ") does not match row index (" + String(line_number) + ") in line: " + String(s) + ".");
+                                    "Error: Run index (" + String(run_number) + ") does not match row index (" + String(line_number) + ") in line: " + String(s) + ".");
       }
 
       ++line_number;
@@ -190,5 +190,5 @@ namespace OpenMS
     }
     return true;
   }
-}
 
+}

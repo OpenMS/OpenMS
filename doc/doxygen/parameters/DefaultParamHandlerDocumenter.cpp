@@ -188,18 +188,22 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
   ofstream f((String("output/OpenMS_") + class_name + ".parameters").c_str());
 
   if (!table_only)
+  {
     f << "<B>Parameters of this class are:</B><BR><BR>\n";
+  }
   f << "<table border=\"1\" style=\"border-style:solid; border-collapse:collapse; border-color:#c0c0c0;\" width=\"100%\" cellpadding=\"4\">" << endl;
   f << "<tr style=\"border-bottom:1px solid black; background:#fffff0\"><th>Name</th><th>Type</th><th>Default</th><th>Restrictions</th><th>Description</th></tr>" << endl;
   String type, description, restrictions;
   for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
   {
     restrictions = "";
-    if (it->value.valueType() == DataValue::INT_VALUE || it->value.valueType() == DataValue::INT_LIST)
+    if ((it->value.valueType() == DataValue::INT_VALUE) || (it->value.valueType() == DataValue::INT_LIST))
     {
       type = "int";
       if (it->value.valueType() == DataValue::INT_LIST)
+      {
         type += " list";
+      }
 
       //restrictions
       bool first = true;
@@ -211,15 +215,19 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
       if (it->max_int != (numeric_limits<Int>::max)())
       {
         if (!first)
+        {
           restrictions += ' ';
+        }
         restrictions += String("max: ") + it->max_int;
       }
     }
-    else if (it->value.valueType() == DataValue::DOUBLE_VALUE || it->value.valueType() == DataValue::DOUBLE_LIST)
+    else if ((it->value.valueType() == DataValue::DOUBLE_VALUE) || (it->value.valueType() == DataValue::DOUBLE_LIST))
     {
       type = "float";
       if (it->value.valueType() == DataValue::DOUBLE_LIST)
+      {
         type += " list";
+      }
 
       //restrictions
       bool first = true;
@@ -231,15 +239,19 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
       if (it->max_float != (numeric_limits<double>::max)())
       {
         if (!first)
+        {
           restrictions += ' ';
+        }
         restrictions += String("max: ") + it->max_float;
       }
     }
-    else if (it->value.valueType() == DataValue::STRING_VALUE || it->value.valueType() == DataValue::STRING_LIST)
+    else if ((it->value.valueType() == DataValue::STRING_VALUE) || (it->value.valueType() == DataValue::STRING_LIST))
     {
       type = "string";
       if (it->value.valueType() == DataValue::STRING_LIST)
+      {
         type += " list";
+      }
 
       //restrictions
       if (it->valid_strings.size() != 0)
@@ -297,7 +309,9 @@ void writeParameters(const String& class_name, const Param& param, bool table_on
     //make the advanced parameters cursive, the normal ones bold
     String style = "b";
     if (it->tags.count("advanced") == 1)
+    {
       style = "i";
+    }
 
     //final output
     f << "<tr>\n"

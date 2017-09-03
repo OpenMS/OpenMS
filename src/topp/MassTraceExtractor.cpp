@@ -222,7 +222,7 @@ protected:
         ep_det.filterByPeakWidth(split_mtraces, m_traces_final);
 
         LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size()
-                 << " of total " << split_mtraces.size() 
+                 << " of total " << split_mtraces.size()
                  << " were dropped because of too low peak width." << std::endl;
       }
       else
@@ -243,7 +243,7 @@ protected:
 
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
-        if (m_traces_final[i].getSize() == 0) continue;
+        if (m_traces_final[i].getSize() == 0) { continue; }
 
         ConsensusFeature fcons;
         int k = 0;
@@ -287,7 +287,7 @@ protected:
       ms_feat_map.setPrimaryMSRunPath(ms_runs);
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
-        if (m_traces_final[i].getSize() == 0) continue;
+        if (m_traces_final[i].getSize() == 0) { continue; }
 
         m_traces_final[i].updateMeanMZ();
         m_traces_final[i].updateWeightedMZsd();
@@ -304,7 +304,7 @@ protected:
         double sd = m_traces_final[i].getCentroidSD();
         f.setMetaValue("SD", sd);
         f.setMetaValue("SD_ppm", sd / f.getMZ() * 1e6);
-        if (m_traces_final[i].fwhm_mz_avg > 0) f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+        if (m_traces_final[i].fwhm_mz_avg > 0) { f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg); }
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);
       }

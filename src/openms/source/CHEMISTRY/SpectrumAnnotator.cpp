@@ -113,12 +113,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectrumAnnotator::SpectrumAnnotator(const SpectrumAnnotator & rhs) :
+  SpectrumAnnotator::SpectrumAnnotator(const SpectrumAnnotator& rhs) :
     DefaultParamHandler(rhs)
   {
   }
 
-  SpectrumAnnotator & SpectrumAnnotator::operator=(const SpectrumAnnotator & rhs)
+  SpectrumAnnotator& SpectrumAnnotator::operator=(const SpectrumAnnotator& rhs)
   {
     if (this != &rhs)
     {
@@ -144,7 +144,7 @@ namespace OpenMS
     {
       spec.sortByPosition();
     }
-    sa.getSpectrumAlignment(al, theoretical_spec, spec);  // peaks from theor. may be matched to none or one in spec!
+    sa.getSpectrumAlignment(al, theoretical_spec, spec); // peaks from theor. may be matched to none or one in spec!
 
     PeakSpectrum::StringDataArray theo_annot = theoretical_spec.getStringDataArrays().front();
     PeakSpectrum::StringDataArray type_annotations = PeakSpectrum::StringDataArray();
@@ -153,10 +153,10 @@ namespace OpenMS
     error_annotations.setName("IonMatchError");
     type_annotations.resize(spec.size());
     error_annotations.resize(spec.size());
-    for (vector<pair<Size, Size > >::const_iterator it = al.begin(); it != al.end(); ++it)
+    for (vector<pair<Size, Size> >::const_iterator it = al.begin(); it != al.end(); ++it)
     {
-        error_annotations[it->second] = std::fabs(spec[it->second].getMZ() - theoretical_spec[it->first].getMZ());
-        type_annotations[it->second] = theo_annot[it->first];
+      error_annotations[it->second] = std::fabs(spec[it->second].getMZ() - theoretical_spec[it->first].getMZ());
+      type_annotations[it->second] = theo_annot[it->first];
     }
     Param sap = sa.getParameters();
     spec.setMetaValue("fragment_mass_tolerance", sap.getValue("tolerance"));
@@ -177,7 +177,7 @@ namespace OpenMS
         StringList ions;
         double sum_intensity = 0;
         double match_intensity = 0;
-        vector<double> fragmenterrors, intensities, mzs;  // sorted by ascending intensity via spec.sortByIntensity for topN statistics
+        vector<double> fragmenterrors, intensities, mzs; // sorted by ascending intensity via spec.sortByIntensity for topN statistics
         fragmenterrors.reserve(spec.size());
         intensities.reserve(spec.size());
         mzs.reserve(spec.size());
@@ -189,7 +189,7 @@ namespace OpenMS
         map<String, vector<bool> > ion_series;
         for (StringList::iterator st = allowed_types.begin(); st != allowed_types.end(); ++st)
         {
-          ion_series.insert(make_pair(*st, vector<bool>(ph->getSequence().size()-1, false)));
+          ion_series.insert(make_pair(*st, vector<bool>(ph->getSequence().size() - 1, false)));
         }
 
         PeakSpectrum::StringDataArray type_annotations = PeakSpectrum::StringDataArray();
@@ -197,18 +197,22 @@ namespace OpenMS
         for (PeakSpectrum::StringDataArrays::iterator it = spec.getStringDataArrays().begin(); it != spec.getStringDataArrays().end(); ++it)
         {
           if (it->getName() == "IonName")
+          {
             type_annotations = *it;
+          }
         }
         for (PeakSpectrum::FloatDataArrays::iterator it = spec.getFloatDataArrays().begin(); it != spec.getFloatDataArrays().end(); ++it)
         {
           if (it->getName() == "IonMatchError")
+          {
             error_annotations = *it;
+          }
         }
 
         for (size_t i = 0; i < spec.size(); ++i)
         {
           sum_intensity += spec[i].getIntensity();
-          if (!type_annotations.at(i).empty())  // implies error_annotations is set, too.
+          if (!type_annotations.at(i).empty()) // implies error_annotations is set, too.
           {
             fragmenterrors.push_back(error_annotations.at(i));
             intensities.push_back(spec[i].getIntensity());
@@ -228,19 +232,19 @@ namespace OpenMS
                   cint += spec[i].getIntensity();
                 }
               }
-              if (max_series_)  // without loss max series is sometimes pretty crummy
+              if (max_series_) // without loss max series is sometimes pretty crummy
               {
                 const String& ion_type = ion_name.prefix(1);
                 boost::cmatch what;
                 if (boost::regex_match(ion_name.c_str(), what, seriesposition_regex_) &&
-                        ListUtils::contains(allowed_types, ion_type))
+                    ListUtils::contains(allowed_types, ion_type))
                 {
                   // what[0] contains the whole string
                   // what[1] contains the response code
                   try
                   {
                     int i = std::atoi(what[1].first);
-                    ion_series[ion_type].at(i-1) = true;
+                    ion_series[ion_type].at(i - 1) = true;
                   }
                   catch (std::out_of_range)
                   {
@@ -263,8 +267,8 @@ namespace OpenMS
         }
         if (terminal_series_match_ratio_)
         {
-          ph->setMetaValue("NTermIonCurrentRatio", nint/match_intensity);
-          ph->setMetaValue("CTermIonCurrentRatio", cint/match_intensity);
+          ph->setMetaValue("NTermIonCurrentRatio", nint / match_intensity);
+          ph->setMetaValue("CTermIonCurrentRatio", cint / match_intensity);
         }
         if (topNmatch_fragmenterrors_)
         {
@@ -282,7 +286,7 @@ namespace OpenMS
             std::size_t mid = fe.size() / 2;
             std::size_t lq = fe.size() / 4;
             std::size_t uq = lq + mid;
-            std::nth_element(fe.begin(), fe.begin()+mid, fe.end());
+            std::nth_element(fe.begin(), fe.begin() + mid, fe.end());
             if (fe.size() % 2 != 0)
             {
               ph->setMetaValue("median_fragment_error", fe[mid]);
@@ -290,17 +294,17 @@ namespace OpenMS
             else
             {
               double right2mid = fe[mid];
-              std::nth_element(fe.begin(), fe.begin() + mid-1, fe.end());
-              ph->setMetaValue("median_fragment_error", (right2mid + fe[mid-1]) / 2.0);
+              std::nth_element(fe.begin(), fe.begin() + mid - 1, fe.end());
+              ph->setMetaValue("median_fragment_error", (right2mid + fe[mid - 1]) / 2.0);
             }
-            std::nth_element(fe.begin(),          fe.begin() + lq, fe.end());
+            std::nth_element(fe.begin(), fe.begin() + lq, fe.end());
             std::nth_element(fe.begin() + lq + 1, fe.begin() + mid, fe.end());
             std::nth_element(fe.begin() + mid + 1, fe.begin() + uq, fe.end());
-            ph->setMetaValue("IQR_fragment_error", fe[uq]-fe[lq]);
+            ph->setMetaValue("IQR_fragment_error", fe[uq] - fe[lq]);
 
             vector<double> topn_fe;
             topn_fe.resize(fragmenterrors.size());
-            std::reverse_copy(fragmenterrors.begin(), fragmenterrors.end(), topn_fe.begin());  // fragmenterrors is sortByIntensity before, get TopN from the back of the vector
+            std::reverse_copy(fragmenterrors.begin(), fragmenterrors.end(), topn_fe.begin()); // fragmenterrors is sortByIntensity before, get TopN from the back of the vector
             topn_fe.resize(topNmatch_fragmenterrors_);
 
             double mean = Math::mean(topn_fe.begin(), topn_fe.end());
@@ -309,7 +313,7 @@ namespace OpenMS
             double sq_sum = 0;
             for (std::vector<double>::iterator it = topn_fe.begin(); it != topn_fe.end(); ++it)
             {
-              sq_sum += *it * *it;
+              sq_sum += *it** it;
             }
             double m_sq_sum = (sq_sum / topn_fe.size());
 
@@ -349,7 +353,7 @@ namespace OpenMS
         if (SN_statistics_)
         {
           float sn_by_matched_intensity = (match_intensity / ions.size()) /
-                  ((sum_intensity-match_intensity) / (spec.size()-ions.size()));
+                                          ((sum_intensity - match_intensity) / (spec.size() - ions.size()));
           if (spec.size() - ions.size() == 0)
           {
             sn_by_matched_intensity = 0;
@@ -359,12 +363,16 @@ namespace OpenMS
           float median = 0;
           // spec is already in sorted order of intensity
           if (spec.size() % 2 == 0)
+          {
             median = (spec[spec.size() / 2 - 1].getIntensity() + spec[spec.size() / 2].getIntensity()) / 2;
+          }
           else
+          {
             median = spec[spec.size() / 2].getIntensity();
-          float sign_int= 0;
+          }
+          float sign_int = 0;
           float nois_int = 0;
-          size_t sign_count= 0;
+          size_t sign_count = 0;
           size_t nois_count = 0;
           for (MSSpectrum::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
           {
@@ -380,7 +388,7 @@ namespace OpenMS
             }
           }
           float sn_by_median_intensity = (sign_int / sign_count) / (nois_int / nois_count);
-          if (nois_count == 0 || sign_count == 0)
+          if ((nois_count == 0) || (sign_count == 0))
           {
             sn_by_median_intensity = 0;
           }
@@ -394,7 +402,7 @@ namespace OpenMS
           {
             spec.sortByPosition();
             //TODO what about precursor_H2O_loss and precursor_NH3_loss
-            if (spec.findNearest(pit->getMZ(),sa.getParameters().getValue("tolerance"),
+            if (spec.findNearest(pit->getMZ(), sa.getParameters().getValue("tolerance"),
                                  sa.getParameters().getValue("tolerance")) > -1)
             {
               precursor = true;

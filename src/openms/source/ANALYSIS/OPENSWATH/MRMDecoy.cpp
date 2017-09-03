@@ -198,7 +198,7 @@ namespace OpenMS
           while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
           {
             pep_pos = (pseudoRNG() % shuffled_sequence.size());
-            if (shuffled_sequence[pep_pos].isModified() || (shuffled_sequence.hasNTerminalModification() && pep_pos == 0) || (shuffled_sequence.hasNTerminalModification() && pep_pos == (int)(shuffled_sequence.size() - 1)))
+            if (shuffled_sequence[pep_pos].isModified() || (shuffled_sequence.hasNTerminalModification() && (pep_pos == 0)) || (shuffled_sequence.hasNTerminalModification() && (pep_pos == (int)(shuffled_sequence.size() - 1))))
             {
               pep_pos = -1;
             }
@@ -298,7 +298,7 @@ namespace OpenMS
   {
     for (Size j = 0; j < peptide.mods.size(); j++)
     {
-      if (peptide.mods[j].location == -1 || peptide.mods[j].location == boost::numeric_cast<int>(peptide.sequence.size()))
+      if ((peptide.mods[j].location == -1) || (peptide.mods[j].location == boost::numeric_cast<int>(peptide.sequence.size())))
       {
         return true;
       }
@@ -333,7 +333,7 @@ namespace OpenMS
     {
       OpenMS::TargetedExperiment::Peptide peptide = exp.getPeptides()[pep_idx];
       // continue if the peptide has C/N terminal modifications and we should exclude them
-      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(peptide)) {continue; }
+      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(peptide)) { continue; }
       peptide.id = decoy_tag + peptide.id;
       OpenMS::String original_sequence = peptide.sequence;
       if (!peptide.getPeptideGroupLabel().empty())
@@ -391,7 +391,7 @@ namespace OpenMS
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
       const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
       // continue if the peptide has C/N terminal modifications and we should exclude them
-      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(target_peptide)) {continue;}
+      if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(target_peptide)) { continue; }
 
       const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
@@ -399,8 +399,8 @@ namespace OpenMS
 
       int decoy_charge = 1;
       int target_charge = 1;
-      if (decoy_peptide.hasCharge()) {decoy_charge = decoy_peptide.getChargeState();}
-      if (target_peptide.hasCharge()) {target_charge = target_peptide.getChargeState();}
+      if (decoy_peptide.hasCharge()) { decoy_charge = decoy_peptide.getChargeState(); }
+      if (target_peptide.hasCharge()) { target_charge = target_peptide.getChargeState(); }
 
       MRMIonSeries::IonSeries decoy_ionseries = mrmis.getIonSeries(decoy_peptide_sequence, decoy_charge, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
       MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(target_peptide_sequence, target_charge, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
@@ -410,7 +410,7 @@ namespace OpenMS
         setProgress(++progress);
         const ReactionMonitoringTransition tr = *(pep_it->second[i]);
 
-        if (!tr.isDetectingTransition() || tr.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+        if (!tr.isDetectingTransition() || (tr.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY))
         {
           continue;
         }
@@ -449,8 +449,8 @@ namespace OpenMS
               else
               {
                 exclusion_peptides.push_back(decoy_tr.getPeptideRef());
-              } 
-           }
+              }
+            }
           }
           decoy_transitions.push_back(decoy_tr);
         }

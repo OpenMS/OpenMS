@@ -65,7 +65,9 @@ namespace OpenMS
   DefaultParamHandler& DefaultParamHandler::operator=(const DefaultParamHandler& rhs)
   {
     if (&rhs == this)
+    {
       return *this;
+    }
 
     //copy members
     param_ = rhs.param_;

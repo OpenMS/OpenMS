@@ -324,7 +324,7 @@ namespace OpenMS
       BaseException(file, line, function, "UnableToCreateFile", "")
     {
       what_ = "the file '" + filename + "' could not be created";
-      if (!message.empty()) what_ += "; " + message;
+      if (!message.empty()) { what_ += "; " + message; }
       GlobalExceptionHandler::getInstance().setMessage(what_);
     }
 

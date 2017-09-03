@@ -149,7 +149,7 @@ namespace OpenMS
         optionalAttributeAsString_(unit_cv_ref, attributes, s_unit_cvref);
         optionalAttributeAsString_(cv_ref, attributes, s_unit_ref);
         CVTerm::Unit unit(unit_accession, unit_name, unit_cv_ref);
-        CVTerm cv_term(attributeAsString_(attributes, s_accession), 
+        CVTerm cv_term(attributeAsString_(attributes, s_accession),
                        attributeAsString_(attributes, s_name), cv_ref, value, unit);
 
         handleCVParam_(parent_parent_tag, parent_tag, cv_term);
@@ -165,7 +165,7 @@ namespace OpenMS
       }
       else if (tag_ == "cv")
       {
-        exp_->addCV(TargetedExperiment::CV(attributeAsString_(attributes, s_id), 
+        exp_->addCV(TargetedExperiment::CV(attributeAsString_(attributes, s_id),
                                            attributeAsString_(attributes, s_fullName),
                                            attributeAsString_(attributes, s_version),
                                            attributeAsString_(attributes, s_URI)));
@@ -323,10 +323,14 @@ namespace OpenMS
       //determine parent tag
       String parent_tag;
       if (open_tags_.size() > 1)
+      {
         parent_tag = *(open_tags_.end() - 2);
+      }
       String parent_parent_tag;
       if (open_tags_.size() > 2)
+      {
         parent_parent_tag = *(open_tags_.end() - 3);
+      }
 
       open_tags_.pop_back();
 
@@ -453,7 +457,7 @@ namespace OpenMS
       }
       else if (tag_ == "Configuration")
       {
-        if (parent_parent_tag == "IntermediateProduct" || parent_parent_tag == "Product")
+        if ((parent_parent_tag == "IntermediateProduct") || (parent_parent_tag == "Product"))
         {
           actual_product_.addConfiguration(actual_configuration_);
           actual_configuration_ = TargetedExperimentHelper::Configuration();
@@ -642,7 +646,7 @@ namespace OpenMS
           {
             os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000893\" name=\"peptide group label\" value=\"" <<  it->getPeptideGroupLabel() << "\"/>\n";
           }
-          writeCVParams_(os,  *it, 3);
+          writeCVParams_(os, *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
           for (std::vector<String>::const_iterator rit = it->protein_refs.begin(); rit != it->protein_refs.end(); ++rit)
@@ -652,8 +656,8 @@ namespace OpenMS
 
           if (it->mods.size() > 0)
           {
-            for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator 
-                mit = it->mods.begin(); mit != it->mods.end(); ++mit)
+            for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator
+                 mit = it->mods.begin(); mit != it->mods.end(); ++mit)
             {
               os << "      <Modification";
               os << " location=\"" << mit->location + 1 << "\""; // TraML stores locations starting with 1
@@ -674,12 +678,12 @@ namespace OpenMS
                 if (mit->location < 0)
                 {
                   term_spec = ResidueModification::N_TERM;
-                  if (!it->sequence.empty()) residue = it->sequence[0];
+                  if (!it->sequence.empty()) { residue = it->sequence[0]; }
                 }
                 else if (Size(mit->location) >= it->sequence.size())
                 {
                   term_spec = ResidueModification::C_TERM;
-                  if (!it->sequence.empty()) residue = it->sequence[it->sequence.size() - 1];
+                  if (!it->sequence.empty()) { residue = it->sequence[it->sequence.size() - 1]; }
                 }
                 else if (!it->sequence.empty())
                 {
@@ -688,7 +692,7 @@ namespace OpenMS
                 const ResidueModification& rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
                 String modname = rmod.getId();
                 os << "           <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id
-                  << "\" name=\"" << modname << "\"/>\n";
+                   << "\" name=\"" << modname << "\"/>\n";
               }
 
               writeCVParams_(os, *mit, 4);
@@ -736,17 +740,17 @@ namespace OpenMS
           }
           if (it->theoretical_mass > 0.0)
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001117\" name=\"theoretical mass\" value=\"" << 
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1001117\" name=\"theoretical mass\" value=\"" <<
               it->theoretical_mass << "\" unitCvRef=\"UO\" unitAccession=\"UO:0000221\" unitName=\"dalton\"/>\n";
           }
           if (!it->molecular_formula.empty())
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000866\" name=\"molecular formula\" value=\"" << 
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000866\" name=\"molecular formula\" value=\"" <<
               it->molecular_formula << "\"/>\n";
           }
           if (!it->smiles_string.empty())
           {
-            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000868\" name=\"SMILES string\" value=\"" << 
+            os << "      <cvParam cvRef=\"MS\" accession=\"MS:1000868\" name=\"SMILES string\" value=\"" <<
               it->smiles_string << "\"/>\n";
           }
 
@@ -878,15 +882,15 @@ namespace OpenMS
           // NOTE: do not change that, the same default is implicitly assumed in ReactionMonitoringTransition
           if (!it->isDetectingTransition())
           {
-              os << "      <userParam name=\"detecting_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";
+            os << "      <userParam name=\"detecting_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";
           }
           if (it->isIdentifyingTransition())
           {
-              os << "      <userParam name=\"identifying_transition\" type=\"xsd:boolean\" value=\"true\"/>\n";
+            os << "      <userParam name=\"identifying_transition\" type=\"xsd:boolean\" value=\"true\"/>\n";
           }
           if (!it->isQuantifyingTransition())
           {
-              os << "      <userParam name=\"quantifying_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";
+            os << "      <userParam name=\"quantifying_transition\" type=\"xsd:boolean\" value=\"false\"/>\n";
           }
 
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
@@ -985,7 +989,7 @@ namespace OpenMS
       }
       if (prod_it->getMZ() > 0)
       {
-        os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" <<  
+        os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" <<
           prod_it->getMZ() << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
       }
       writeCVParams_(os, *prod_it, 4);
@@ -994,70 +998,87 @@ namespace OpenMS
       if (!prod_it->getInterpretationList().empty())
       {
         os << "        <InterpretationList>" << "\n";
-        for (std::vector<TargetedExperiment::Interpretation>::const_iterator inter_it = prod_it->getInterpretationList().begin(); 
-            inter_it != prod_it->getInterpretationList().end(); ++inter_it)
+        for (std::vector<TargetedExperiment::Interpretation>::const_iterator inter_it = prod_it->getInterpretationList().begin();
+             inter_it != prod_it->getInterpretationList().end(); ++inter_it)
         {
           os << "          <Interpretation>" << "\n";
           if (inter_it->ordinal > 0)
           {
-            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000903\" name=\"product ion series ordinal\" value=\"" << 
-              (int)inter_it->ordinal << "\"/>\n";
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000903\" name=\"product ion series ordinal\" value=\"" <<
+            (int)inter_it->ordinal << "\"/>\n";
           }
           if (inter_it->rank > 0)
           {
-            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000926\" name=\"product interpretation rank\" value=\"" << 
-              (int)inter_it->rank << "\"/>\n";
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1000926\" name=\"product interpretation rank\" value=\"" <<
+            (int)inter_it->rank << "\"/>\n";
           }
 
           // Ion Type
           switch (inter_it->iontype)
           {
-            case Residue::AIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001229\" name=\"frag: a ion\"/>\n";
-              break;
-            case Residue::BIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001224\" name=\"frag: b ion\"/>\n";
-              break;
-            case Residue::CIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001231\" name=\"frag: c ion\"/>\n";
-              break;
-            case Residue::XIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001228\" name=\"frag: x ion\"/>\n";
-              break;
-            case Residue::YIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001220\" name=\"frag: y ion\"/>\n";
-              break;
-            case Residue::ZIon:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001230\" name=\"frag: z ion\"/>\n";
-              break;
-            case Residue::Precursor:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001523\" name=\"frag: precursor ion\"/>\n";
-              break;
-            case Residue::BIonMinusH20:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001222\" name=\"frag: b ion - H2O\"/>\n";
-              break;
-            case Residue::YIonMinusH20:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001223\" name=\"frag: y ion - H2O\"/>\n";
-              break;
-            case Residue::BIonMinusNH3:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001232\" name=\"frag: b ion - NH3\"/>\n";
-              break;
-            case Residue::YIonMinusNH3:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001233\" name=\"frag: y ion - NH3\"/>\n";
-              break;
-            case Residue::NonIdentified:
-              os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001240\" name=\"non-identified ion\"/>\n";
-              break;
-            case Residue::Unannotated:
-              // means no annotation and no input cvParam - to write out a cvParam, use Residue::NonIdentified
-              break;
-            // invalid values
-            case Residue::Full: break;
-            case Residue::Internal: break;
-            case Residue::NTerminal: break;
-            case Residue::CTerminal: break;
-            case Residue::SizeOfResidueType:
-              break;
+          case Residue::AIon:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001229\" name=\"frag: a ion\"/>\n";
+            break;
+
+          case Residue::BIon:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001224\" name=\"frag: b ion\"/>\n";
+            break;
+
+          case Residue::CIon:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001231\" name=\"frag: c ion\"/>\n";
+            break;
+
+          case Residue::XIon:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001228\" name=\"frag: x ion\"/>\n";
+            break;
+
+          case Residue::YIon:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001220\" name=\"frag: y ion\"/>\n";
+            break;
+
+          case Residue::ZIon:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001230\" name=\"frag: z ion\"/>\n";
+            break;
+
+          case Residue::Precursor:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001523\" name=\"frag: precursor ion\"/>\n";
+            break;
+
+          case Residue::BIonMinusH20:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001222\" name=\"frag: b ion - H2O\"/>\n";
+            break;
+
+          case Residue::YIonMinusH20:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001223\" name=\"frag: y ion - H2O\"/>\n";
+            break;
+
+          case Residue::BIonMinusNH3:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001232\" name=\"frag: b ion - NH3\"/>\n";
+            break;
+
+          case Residue::YIonMinusNH3:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001233\" name=\"frag: y ion - NH3\"/>\n";
+            break;
+
+          case Residue::NonIdentified:
+            os << "            <cvParam cvRef=\"MS\" accession=\"MS:1001240\" name=\"non-identified ion\"/>\n";
+            break;
+
+          case Residue::Unannotated:
+            // means no annotation and no input cvParam - to write out a cvParam, use Residue::NonIdentified
+            break;
+
+          // invalid values
+          case Residue::Full: break;
+
+          case Residue::Internal: break;
+
+          case Residue::NTerminal: break;
+
+          case Residue::CTerminal: break;
+
+          case Residue::SizeOfResidueType:
+            break;
           }
           writeCVParams_(os, *inter_it, 6);
           writeUserParam_(os, (MetaInfoInterface) * inter_it, 6);
@@ -1199,7 +1220,7 @@ namespace OpenMS
             }
           }
           //no value, although there should be a numerical value
-          else if (term.xref_type != ControlledVocabulary::CVTerm::NONE && term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING)
+          else if ((term.xref_type != ControlledVocabulary::CVTerm::NONE) && (term.xref_type != ControlledVocabulary::CVTerm::XSD_STRING))
           {
             warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' should have a numerical value. The value is '" + value + "'.");
             return;
@@ -1252,7 +1273,7 @@ namespace OpenMS
       {
         // if we find a CV term that starts with UniMod, chances are we can use
         // the UniMod accession number to identify the modification
-        if (cv_term.getAccession().size() > 7 && cv_term.getAccession().prefix(7).toLower() == String("unimod:"))
+        if ((cv_term.getAccession().size() > 7) && (cv_term.getAccession().prefix(7).toLower() == String("unimod:")))
         {
           // check for Exception::ConversionError ?
           actual_peptide_.mods.back().unimod_id = cv_term.getAccession().substr(7).toInt();
@@ -1485,8 +1506,8 @@ namespace OpenMS
       }
       else
       {
-        warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" + 
-              cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
+        warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" +
+                             cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
       }
       return;
     }
@@ -1496,12 +1517,12 @@ namespace OpenMS
       //create a DataValue that contains the data in the right type
       DataValue data_value;
       //float type
-      if (type == "xsd:double" || type == "xsd:float")
+      if ((type == "xsd:double") || (type == "xsd:float"))
       {
         data_value = DataValue(value.toDouble());
       }
       //integer type
-      else if (type == "xsd:byte" || type == "xsd:decimal" || type == "xsd:int" || type == "xsd:integer" || type == "xsd:long" || type == "xsd:negativeInteger" || type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger" || type == "xsd:short" || type == "xsd:unsignedByte" || type == "xsd:unsignedInt" || type == "xsd:unsignedLong" || type == "xsd:unsignedShort")
+      else if ((type == "xsd:byte") || (type == "xsd:decimal") || (type == "xsd:int") || (type == "xsd:integer") || (type == "xsd:long") || (type == "xsd:negativeInteger") || (type == "xsd:nonNegativeInteger") || (type == "xsd:nonPositiveInteger") || (type == "xsd:positiveInteger") || (type == "xsd:short") || (type == "xsd:unsignedByte") || (type == "xsd:unsignedInt") || (type == "xsd:unsignedLong") || (type == "xsd:unsignedShort"))
       {
         data_value = DataValue(value.toInt());
       }
@@ -1652,4 +1673,3 @@ namespace OpenMS
 
   } //namespace Internal
 } // namespace OpenMS
-

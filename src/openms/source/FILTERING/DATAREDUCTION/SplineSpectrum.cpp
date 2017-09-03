@@ -88,7 +88,7 @@ namespace OpenMS
   void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
   {
 
-    if (!(mz.size() == intensity.size() && mz.size() > 2))
+    if (!((mz.size() == intensity.size()) && (mz.size() > 2)))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "m/z and intensity vectors either not of the same size or too short.");
     }
@@ -103,7 +103,7 @@ namespace OpenMS
     std::vector<double> intensity_slim1; // slimmer vector after removal of zero-intensity datapoints from intensity
     mz_slim1.reserve(mz.size());
     intensity_slim1.reserve(intensity.size());
-    if (intensity[0] != 0 || intensity[1] != 0)
+    if ((intensity[0] != 0) || (intensity[1] != 0))
     {
       mz_slim1.push_back(mz[0]);
       intensity_slim1.push_back(intensity[0]);
@@ -122,7 +122,7 @@ namespace OpenMS
         intensity_slim1.push_back(intensity[i]);
       }
     }
-    if (intensity[mz.size() - 1] != 0 || intensity[mz.size() - 2] != 0)
+    if ((intensity[mz.size() - 1] != 0) || (intensity[mz.size() - 2] != 0))
     {
       mz_slim1.push_back(mz[mz.size() - 1]);
       intensity_slim1.push_back(intensity[mz.size() - 1]);
@@ -168,7 +168,7 @@ namespace OpenMS
     std::vector<double> intensity_package;
     for (size_t i = 0; i < mz_slim2.size(); ++i)
     {
-      if (start_package[i] && i > 0)
+      if (start_package[i] && (i > 0))
       {
         if (intensity_package.size() > 1)
         {

@@ -235,13 +235,21 @@ namespace OpenMS
     res_base_ = (double) param_.getValue("resolution:value");
     String model = param_.getValue("resolution:type");
     if (model == "constant")
+    {
       res_model_ = RES_CONSTANT;
+    }
     else if (model == "linear")
+    {
       res_model_ = RES_LINEAR;
+    }
     else if (model == "sqrt")
+    {
       res_model_ = RES_SQRT;
+    }
     else
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Resolution:type given in parameters is unknown");
+    }
 
     sampling_points_per_FWHM_ = (Int) param_.getValue("mz:sampling_points") - 1;
 
@@ -266,7 +274,9 @@ namespace OpenMS
         contaminants_file = File::find(contaminants_file);
       }
       if (!File::readable(contaminants_file))
+      {
         throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, contaminants_file);
+      }
       // read & parse file:
       TextFile tf(contaminants_file, true);
       contaminants_.clear();
@@ -274,8 +284,11 @@ namespace OpenMS
       Size line_number = 1;
       for (TextFile::ConstIterator tf_it = tf.begin(); tf_it != tf.end(); ++tf_it, ++line_number)
       {
-        if (tf_it->empty() || tf_it->hasPrefix("#")) continue; // skip comments
+        if (tf_it->empty() || tf_it->hasPrefix("#"))
+        {
+          continue;                                            // skip comments
 
+        }
         String line = *tf_it;
         StringList cols;
         line.removeWhitespaces().split(',', cols, true);
@@ -483,7 +496,9 @@ namespace OpenMS
         for (Size scan = 0; scan < experiment.size(); ++scan)
         {
           if ((*experiments[i])[scan].empty())
+          {
             continue; // we do not care if the spectrum wasn't touched at all
+          }
           // append all points from temp to org
           experiment[scan].insert(experiment[scan].end(), (*experiments[i])[scan].begin(), (*experiments[i])[scan].end());
           // delete from child experiment to save memory (otherwise the merge would double it!)
@@ -533,7 +548,9 @@ namespace OpenMS
     // i.e. sqrt(2*ln(2))*2 = 2.35482
     // , relating FWHM to Gaussian width
     if (is_gaussian)
+    {
       fwhm /= 2.35482;
+    }
     else
     {
     } // for Lorentzian, we do nothing as the scale parameter is exactly the FWHM
@@ -667,7 +684,9 @@ namespace OpenMS
       point.setIntensity(iter->second);
 
       if (point.getIntensity() <= 0.0)
+      {
         continue;
+      }
 
       experiment_ct[0].push_back(point);
     }
@@ -680,7 +699,9 @@ namespace OpenMS
       point.setIntensity(pm.getIntensity(DPosition<1>(*it_grid)));
 
       if (point.getIntensity() <= 0.0)
+      {
         continue;
+      }
 
       // add Gaussian distributed m/z error
       double mz_err = ndist(rnd_gen_->getTechnicalRng());
@@ -702,7 +723,9 @@ namespace OpenMS
                                                     Feature& active_feature)
   {
     if (rt_start <= 0)
+    {
       rt_start = 0;
+    }
 
     SimTypes::MSSimExperiment::iterator exp_start = experiment.RTBegin(rt_start);
     SimTypes::MSSimExperiment::iterator exp_ct_start = experiment_ct.RTBegin(rt_start);
@@ -744,7 +767,9 @@ namespace OpenMS
         point.setIntensity(iter->second * rt_intensity * distortion);
 
         if (point.getIntensity() <= 0.0)
+        {
           continue;
+        }
 
         exp_ct_iter->push_back(point);
       }
@@ -755,8 +780,10 @@ namespace OpenMS
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity(DPosition<2>(rt, *it_grid)) * distortion;
         if (intensity <= 0.0)
+        {
           continue; // intensity cutoff (below that we don't want to see a signal)
 
+        }
         point.setMZ(*it_grid);
         point.setIntensity(intensity);
 
@@ -835,17 +862,25 @@ namespace OpenMS
         double distortion = double(exp_iter->getMetaValue("distortion"));
         ProductModel<2>::IntensityType intensity = pm.getIntensity(DPosition<2>(rt, mz)) * distortion;
         if (intensity <= 0.0)
+        {
           continue; // intensity cutoff (below that we don't want to see a signal)
 
+        }
         // update min&max
         if (rt_min > rt)
+        {
           rt_min = rt;
+        }
         if (rt_max < rt)
+        {
           rt_max = rt;
+        }
         has_data = true;
       }
       if (!has_data)
+      {
         continue;
+      }
 
       // add four edge points of mass trace
       ConvexHull2D hull;
@@ -889,7 +924,9 @@ namespace OpenMS
       // for CE we want wider profiles with higher MT
       double width_factor(1); // default for HPLC
       if (feature.metaValueExists("RT_CE_width_factor"))
+      {
         width_factor = feature.getMetaValue("RT_CE_width_factor");
+      }
 
       p.setValue("egh:guess_parameter", "false");
       p.setValue("egh:tau", (double) feature.getMetaValue("RT_egh_tau"));
@@ -909,8 +946,10 @@ namespace OpenMS
     // find scan in experiment at which our elution starts
     SimTypes::MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
     if (exp_it == experiment.end())
+    {
       --exp_it; // we need the last valid RT below, so .end() is not useful
 
+    }
     DoubleList elution_intensities;
     DoubleList elution_bounds;
     elution_bounds.resize(4); // store min and max RT (in seconds and index terms)
@@ -940,7 +979,9 @@ namespace OpenMS
     }
 
     if (!contaminants_loaded_)
+    {
       loadContaminants();
+    }
 
     IONIZATIONMETHOD this_im = (String)param_.getValue("ionization_type") == "ESI" ? IM_ESI : IM_MALDI;
     c_map.clear(true);
@@ -951,10 +992,12 @@ namespace OpenMS
 
     for (Size i = 0; i < contaminants_.size(); ++i)
     {
-      if (contaminants_[i].im != IM_ALL && contaminants_[i].im != this_im)
+      if ((contaminants_[i].im != IM_ALL) && (contaminants_[i].im != this_im))
+      {
         continue;
+      }
 
-      if (exp.getMinRT() > contaminants_[i].rt_end || contaminants_[i].rt_start > exp.getMaxRT())
+      if ((exp.getMinRT() > contaminants_[i].rt_end) || (contaminants_[i].rt_start > exp.getMaxRT()))
       {
         ++out_of_range_RT;
         continue;
@@ -963,7 +1006,7 @@ namespace OpenMS
       SimTypes::FeatureMapSim::FeatureType feature;
       feature.setRT((contaminants_[i].rt_end + contaminants_[i].rt_start) / 2);
       feature.setMZ((contaminants_[i].sf.getMonoWeight() / contaminants_[i].q) + Constants::PROTON_MASS_U); // m/z (incl. protons)
-      if (!(minimal_mz_measurement_limit < feature.getMZ() && feature.getMZ() < maximal_mz_measurement_limit))
+      if (!((minimal_mz_measurement_limit < feature.getMZ()) && (feature.getMZ() < maximal_mz_measurement_limit)))
       {
         ++out_of_range_MZ;
         continue;
@@ -1005,8 +1048,10 @@ namespace OpenMS
     double intensity_mean = param_.getValue("noise:shot:intensity-mean");
 
     // avoid sampling 0 values
-    if (rate == 0.0 || intensity_mean == 0.0)
+    if ((rate == 0.0) || (intensity_mean == 0.0))
+    {
       return;
+    }
 
     // we distribute the rate in 100 Th windows
     double scaled_rate = rate * window_size;
@@ -1053,7 +1098,9 @@ namespace OpenMS
     double shape = param_.getValue("baseline:shape");
 
     if (scale == 0.0)
+    {
       return;
+    }
 
     // TODO: switch to iterator
     for (Size i = 0; i < experiment.size(); ++i)
@@ -1079,7 +1126,7 @@ namespace OpenMS
     double white_noise_mean = param_.getValue("noise:white:mean");
     double white_noise_stddev = param_.getValue("noise:white:stddev");
 
-    if (white_noise_mean == 0.0 && white_noise_stddev == 0.0)
+    if ((white_noise_mean == 0.0) && (white_noise_stddev == 0.0))
     {
       return;
     }
@@ -1113,7 +1160,7 @@ namespace OpenMS
     double detector_noise_mean = param_.getValue("noise:detector:mean");
     double detector_noise_stddev = param_.getValue("noise:detector:stddev");
 
-    if (detector_noise_mean == 0.0 && detector_noise_stddev == 0.0)
+    if ((detector_noise_mean == 0.0) && (detector_noise_stddev == 0.0))
     {
       LOG_INFO << "Detector noise was disabled." << std::endl;
       return;
@@ -1130,7 +1177,7 @@ namespace OpenMS
       for (; grid_it != grid_.end(); ++grid_it)
       {
         // if peak is in grid
-        if (peak_it != spectrum_it->end() && *grid_it == peak_it->getMZ())
+        if ((peak_it != spectrum_it->end()) && (*grid_it == peak_it->getMZ()))
         {
           SimTypes::SimIntensityType intensity = peak_it->getIntensity() + ndist(rnd_gen_->getTechnicalRng());
           if (intensity > 0.0)
@@ -1184,7 +1231,7 @@ namespace OpenMS
   // TODO: add instrument specific sampling technique
   void RawMSSignalSimulation::compressSignals_(SimTypes::MSSimExperiment& experiment)
   {
-    if (experiment.size() < 1 || experiment[0].getInstrumentSettings().getScanWindows().size() < 1)
+    if ((experiment.size() < 1) || (experiment[0].getInstrumentSettings().getScanWindows().size() < 1))
     {
       throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -1212,7 +1259,9 @@ namespace OpenMS
     for (Size i = 0; i < experiment.size(); ++i)
     {
       if (experiment[i].size() <= 1)
+      {
         continue;
+      }
 
       if (experiment[i].isSorted() == false) // this should be true - however we check
       {
@@ -1263,8 +1312,10 @@ namespace OpenMS
           }
         }
         if (break_scan)
+        {
           break; // skip remaining points of the scan (we reached the end of the grid)
 
+        }
         int_sum += experiment[i][j].getIntensity();
 
       } // end of scan
@@ -1301,7 +1352,7 @@ namespace OpenMS
     // TODO: German comment
     // TODO: variables model f??r den intensit??ts-einfluss
     // e.g. sqrt(intensity) || ln(intensity)
-    boost::normal_distribution<SimTypes::SimIntensityType> ndist(0, intensity_scale_stddev_ * intensity);
+    boost::normal_distribution<SimTypes::SimIntensityType> ndist(0, intensity_scale_stddev_* intensity);
     intensity += ndist(rnd_gen_->getTechnicalRng());
 
     return intensity;

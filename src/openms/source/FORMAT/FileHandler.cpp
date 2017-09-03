@@ -78,10 +78,14 @@ namespace OpenMS
     String basename = File::basename(filename), tmp;
     // special rules for "double extensions":
     if (basename.hasSuffix(".pep.xml"))
+    {
       return FileTypes::PEPXML;
+    }
 
     if (basename.hasSuffix(".prot.xml"))
+    {
       return FileTypes::PROTXML;
+    }
 
     try
     {
@@ -98,7 +102,7 @@ namespace OpenMS
       return FileTypes::UNKNOWN;
     }
     tmp.toUpper();
-    if (tmp == "BZ2" || tmp == "GZ") // todo ZIP (not supported yet):       || tmp == "ZIP"
+    if ((tmp == "BZ2") || (tmp == "GZ")) // todo ZIP (not supported yet):       || tmp == "ZIP"
     {
       // do not use getTypeByContent() here, as this is deadly for output files!
       return getTypeByFileName(filename.prefix(filename.size() - tmp.size() - 1)); // check name without compression suffix (e.g. bla.mzML.gz --> bla.mzML)
@@ -110,12 +114,12 @@ namespace OpenMS
   bool FileHandler::hasValidExtension(const String& filename, const FileTypes::Type type)
   {
     FileTypes::Type ft = FileHandler::getTypeByFileName(filename);
-    return (ft == type || ft == FileTypes::UNKNOWN);
+    return ft == type || ft == FileTypes::UNKNOWN;
   }
 
   bool FileHandler::isSupported(FileTypes::Type type)
   {
-    if (type == FileTypes::UNKNOWN || type == FileTypes::SIZE_OF_TYPE)
+    if ((type == FileTypes::UNKNOWN) || (type == FileTypes::SIZE_OF_TYPE))
     {
       return false;
     }
@@ -146,13 +150,13 @@ namespace OpenMS
     g2 |= 1 << 1;
     g2 |= 1 << 0;
     compressed_file.close();
-    if (bz[0] == 'B' && bz[1] == 'Z') // bzip2
+    if ((bz[0] == 'B') && (bz[1] == 'Z')) // bzip2
     {
       Bzip2Ifstream bzip2_file(filename.c_str());
 
       // read in 1024 bytes (keep last byte for zero to end string)
       char buffer[1024];
-      size_t bytes_read = bzip2_file.read(buffer, 1024-1);
+      size_t bytes_read = bzip2_file.read(buffer, 1024 - 1);
       buffer[bytes_read] = '\0';
 
       // get first five lines
@@ -166,13 +170,13 @@ namespace OpenMS
       all_simple = first_line + ' ' + two_five;
       complete_file = split;
     }
-    else if (bz[0] == g1 && bz[1] == g2) // gzip
+    else if ((bz[0] == g1) && (bz[1] == g2)) // gzip
     {
       GzipIfstream gzip_file(filename.c_str());
 
       // read in 1024 bytes (keep last byte for zero to end string)
       char buffer[1024];
-      size_t bytes_read = gzip_file.read(buffer, 1024-1);
+      size_t bytes_read = gzip_file.read(buffer, 1024 - 1);
       buffer[bytes_read] = '\0';
 
       // get first five lines
@@ -233,75 +237,111 @@ namespace OpenMS
 
     //mzXML (all lines)
     if (all_simple.hasSubstring("<mzXML"))
+    {
       return FileTypes::MZXML;
+    }
 
     //mzData (all lines)
     if (all_simple.hasSubstring("<mzData"))
+    {
       return FileTypes::MZDATA;
+    }
 
     //mzML (all lines)
     if (all_simple.hasSubstring("<mzML"))
+    {
       return FileTypes::MZML;
+    }
 
     //"analysisXML" aka. mzid (all lines)
     if (all_simple.hasSubstring("<MzIdentML"))
+    {
       return FileTypes::MZIDENTML;
+    }
 
     //mzq (all lines)
     if (all_simple.hasSubstring("<qcML"))
+    {
       return FileTypes::MZQUANTML;
+    }
 
     //subject to change!
     if (all_simple.hasSubstring("<MzQualityMLType"))
+    {
       return FileTypes::QCML;
+    }
 
     //pepXML (all lines)
     if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/pepXML\""))
+    {
       return FileTypes::PEPXML;
+    }
 
     //protXML (all lines)
     if (all_simple.hasSubstring("xmlns=\"http://regis-web.systemsbiology.net/protXML\""))
+    {
       return FileTypes::PROTXML;
+    }
 
     //feature map (all lines)
     if (all_simple.hasSubstring("<featureMap"))
+    {
       return FileTypes::FEATUREXML;
+    }
 
     //idXML (all lines)
     if (all_simple.hasSubstring("<IdXML"))
+    {
       return FileTypes::IDXML;
+    }
 
     //consensusXML (all lines)
     if (all_simple.hasSubstring("<consensusXML"))
+    {
       return FileTypes::CONSENSUSXML;
+    }
 
     //TOPPAS (all lines)
     if (all_simple.hasSubstring("<PARAMETERS") && all_simple.hasSubstring("<NODE name=\"info\"") && all_simple.hasSubstring("<ITEM name=\"num_vertices\""))
+    {
       return FileTypes::TOPPAS;
+    }
 
     //INI (all lines) (must be AFTER TOPPAS) - as this is less restrictive
     if (all_simple.hasSubstring("<PARAMETERS"))
+    {
       return FileTypes::INI;
+    }
 
     //TrafoXML (all lines)
     if (all_simple.hasSubstring("<TrafoXML"))
+    {
       return FileTypes::TRANSFORMATIONXML;
+    }
 
     //GelML (all lines)
     if (all_simple.hasSubstring("<GelML"))
+    {
       return FileTypes::GELML;
+    }
 
     //traML (all lines)
     if (all_simple.hasSubstring("<TraML"))
+    {
       return FileTypes::TRAML;
+    }
 
     //OMSSAXML file
     if (all_simple.hasSubstring("<MSResponse"))
+    {
       return FileTypes::OMSSAXML;
+    }
 
     //MASCOTXML file
     if (all_simple.hasSubstring("<mascot_search_results"))
+    {
       return FileTypes::MASCOTXML;
+    }
 
     //FASTA file
     // .. check this fairly early on, because other file formats might be less specific
@@ -316,18 +356,26 @@ namespace OpenMS
           ++i;
         }
         else if (complete_file[i].trim().hasPrefix("#"))
+        {
           ++i;
+        }
         else
+        {
           break;
+        }
       }
       if (bigger_than > 0)
+      {
         return FileTypes::FASTA;
+      }
     }
 
     // PNG file (to be really correct, the first eight bytes of the file would
     // have to be checked; see e.g. the Wikipedia article)
     if (first_line.substr(1, 3) == "PNG")
+    {
       return FileTypes::PNG;
+    }
 
     //MSP (all lines)
     for (Size i = 0; i != complete_file.size(); ++i)
@@ -362,7 +410,9 @@ namespace OpenMS
         conversion_error = true;
       }
       if (!conversion_error)
+      {
         return FileTypes::DTA;
+      }
     }
 
     //DTA2D
@@ -381,7 +431,9 @@ namespace OpenMS
         conversion_error = true;
       }
       if (!conversion_error)
+      {
         return FileTypes::DTA2D;
+      }
     }
 
     // MGF (Mascot Generic Format)
@@ -393,7 +445,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != complete_file.size(); ++i)
       {
-        if (complete_file[i].trim() == "FORMAT=Mascot generic" || complete_file[i].trim() == "BEGIN IONS")
+        if ((complete_file[i].trim() == "FORMAT=Mascot generic") || (complete_file[i].trim() == "BEGIN IONS"))
         {
           return FileTypes::MGF;
         }
@@ -403,7 +455,7 @@ namespace OpenMS
     // MS2 file format
     if (all_simple.hasSubstring("CreationDate"))
     {
-      if (all_simple.size() > 0 && all_simple[0] == 'H')
+      if ((all_simple.size() > 0) && (all_simple[0] == 'H'))
       {
         return FileTypes::MS2;
       }
@@ -525,7 +577,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
   bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, FileTypes::Type force_type, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
   {
-    // setting the flag for hash recomputation only works if source file entries are rewritten 
+    // setting the flag for hash recomputation only works if source file entries are rewritten
     OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
 
     //determine file type
@@ -631,8 +683,8 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       SourceFile src_file;
       src_file.setNameOfFile(File::basename(filename));
       String path_to_file = File::path(File::absolutePath(filename)); //convert to absolute path and strip file name
-      
-      // make sure we end up with at most 3 forward slashes       
+
+      // make sure we end up with at most 3 forward slashes
       String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
       src_file.setPathToFile(uri);
       // this is more complicated since the data formats allowed by mzML are very verbose.
@@ -673,7 +725,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       if (!exp.getChromatograms().empty())
       {
         PeakMap exp2 = exp;
-        ChromatogramTools().convertChromatogramsToSpectra<PeakMap >(exp2);
+        ChromatogramTools().convertChromatogramsToSpectra<PeakMap>(exp2);
         f.store(filename, exp2);
       }
       else
@@ -691,7 +743,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       if (!exp.getChromatograms().empty())
       {
         PeakMap exp2 = exp;
-        ChromatogramTools().convertChromatogramsToSpectra<PeakMap >(exp2);
+        ChromatogramTools().convertChromatogramsToSpectra<PeakMap>(exp2);
         f.store(filename, exp2);
       }
       else

@@ -101,13 +101,13 @@ protected:
     setValidStrings_("method", ListUtils::create<String>("reverse,shuffle"));
   }
 
-  String getIdentifier_(const String & identifier, const String & decoy_string, const bool as_prefix)
+  String getIdentifier_(const String& identifier, const String& decoy_string, const bool as_prefix)
   {
-    if (as_prefix) return decoy_string + identifier;
-    else return identifier + decoy_string;
+    if (as_prefix) { return decoy_string + identifier; }
+    else{ return identifier + decoy_string; }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -133,10 +133,10 @@ protected:
     FASTAFile f;
     f.writeStart(out);
     FASTAFile::FASTAEntry protein;
-      
+
     for (Size i = 0; i < in.size(); ++i)
     {
-      f.readStart(in[i]);  
+      f.readStart(in[i]);
 
       //-------------------------------------------------------------
       // calculations
@@ -153,10 +153,10 @@ protected:
         {
           f.writeNext(protein);
         }
-      
+
         // identifier
         protein.identifier = getIdentifier_(protein.identifier, decoy_string, decoy_string_position_prefix);
-      
+
         // sequence
         if (shuffle)
         {
@@ -179,7 +179,7 @@ protected:
         // writing output
         //-------------------------------------------------------------
         f.writeNext(protein);
-      
+
       } // next protein
     } // input files
 
@@ -189,7 +189,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDecoyDatabase tool;
   return tool.main(argc, argv);

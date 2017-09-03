@@ -323,7 +323,7 @@ protected:
       {
         double degree_start = getIntOption_("cv:degree_start");
         double degree_step_size = getIntOption_("cv:degree_step_size");
-        if (!additive_cv && degree_step_size <= 1)
+        if (!additive_cv && (degree_step_size <= 1))
         {
           writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
           return ILLEGAL_PARAMETERS;
@@ -336,11 +336,11 @@ protected:
       }
     }
 
-    if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC && !skip_cv)
+    if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC) && !skip_cv)
     {
       double c_start = getDoubleOption_("cv:c_start");
       double c_step_size = getDoubleOption_("cv:c_step_size");
-      if (!additive_cv && c_step_size <= 1)
+      if (!additive_cv && (c_step_size <= 1))
       {
         writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -352,11 +352,11 @@ protected:
       end_values.insert(make_pair(SVMWrapper::C, c_stop));
     }
 
-    if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC && !skip_cv)
+    if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC) && !skip_cv)
     {
       double nu_start = getDoubleOption_("cv:nu_start");
       double nu_step_size = getDoubleOption_("cv:nu_step_size");
-      if (!additive_cv && nu_step_size <= 1)
+      if (!additive_cv && (nu_step_size <= 1))
       {
         writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -379,12 +379,12 @@ protected:
     sigma_start = 0.;
     sigma_step_size = 0.;
     sigma_stop = 0.;
-    if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO
+    if ((svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
        && !skip_cv)
     {
       sigma_start = getDoubleOption_("cv:sigma_start");
       sigma_step_size = getDoubleOption_("cv:sigma_step_size");
-      if (!additive_cv && sigma_step_size <= 1)
+      if (!additive_cv && (sigma_step_size <= 1))
       {
         writeLog_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -436,7 +436,7 @@ protected:
           temp_peptide_hit = temp_peptide_hits[j];
           temp_string = temp_peptide_hit.getSequence().toUnmodifiedString();
           if (!non_redundant
-             || find(training_peptides.begin(), training_peptides.end(), temp_string) == training_peptides.end())
+             || (find(training_peptides.begin(), training_peptides.end(), temp_string) == training_peptides.end()))
           {
             training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
           }
@@ -476,7 +476,7 @@ protected:
           }
 
           if (!non_redundant
-             || find(training_peptides.begin(), training_peptides.end(), temp_string) == training_peptides.end())
+             || (find(training_peptides.begin(), training_peptides.end(), temp_string) == training_peptides.end()))
           {
             temp_training_peptides.push_back(temp_peptide_hit.getSequence().toUnmodifiedString());
             training_labels.push_back(-1.0);
@@ -508,7 +508,7 @@ protected:
     writeDebug_(debug_string, 1);
     temp_training_peptides.clear();
 
-    if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
+    if ((temp_type == LINEAR) || (temp_type == POLY) || (temp_type == RBF))
     {
       UInt maximum_sequence_length = 50;
       encoded_training_sample =
@@ -547,17 +547,17 @@ protected:
       }
       SVMData dummy;
       double cv_quality = svm.performCrossValidation(encoded_training_sample,
-                                                         dummy,
-                                                         false,
-                                                         start_values,
-                                                         step_sizes,
-                                                         end_values,
-                                                         number_of_partitions,
-                                                         number_of_runs,
-                                                         optimized_parameters,
-                                                         additive_cv,
-                                                         output_flag,
-                                                         "performances_" + digest + ".txt");
+                                                     dummy,
+                                                     false,
+                                                     start_values,
+                                                     step_sizes,
+                                                     end_values,
+                                                     number_of_partitions,
+                                                     number_of_runs,
+                                                     optimized_parameters,
+                                                     additive_cv,
+                                                     output_flag,
+                                                     "performances_" + digest + ".txt");
 
       String debug_string = "Best parameters found in cross validation:";
 

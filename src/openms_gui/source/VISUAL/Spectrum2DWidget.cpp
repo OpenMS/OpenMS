@@ -99,12 +99,12 @@ namespace OpenMS
 
     connect(canvas(), SIGNAL(showProjectionHorizontal(ExperimentSharedPtrType)), this, SLOT(horizontalProjection(ExperimentSharedPtrType)));
     connect(canvas(), SIGNAL(showProjectionVertical(ExperimentSharedPtrType)), this, SLOT(verticalProjection(ExperimentSharedPtrType)));
-    connect(canvas(), SIGNAL(showProjectionInfo(int, double, double)), this, SLOT(projectionInfo(int, double, double)));
+    connect(canvas(), SIGNAL(showProjectionInfo(int,double,double)), this, SLOT(projectionInfo(int,double,double)));
     connect(canvas(), SIGNAL(toggleProjections()), this, SLOT(toggleProjections()));
     connect(canvas(), SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(autoUpdateProjections()));
     // delegate signals from canvas
     connect(canvas(), SIGNAL(showSpectrumAs1D(int)), this, SIGNAL(showSpectrumAs1D(int)));
-    connect(canvas(), SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)), this, SIGNAL(showSpectrumAs1D(std::vector<int, std::allocator<int> >)));
+    connect(canvas(), SIGNAL(showSpectrumAs1D(std::vector<int,std::allocator<int> >)), this, SIGNAL(showSpectrumAs1D(std::vector<int,std::allocator<int> >)));
     connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
     // add projections box
     projection_box_ = new QGroupBox("Projections", this);
@@ -228,7 +228,9 @@ namespace OpenMS
       for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
       {
         if (s_it->getMSLevel() != 1)
+        {
           continue;
+        }
         //float arrays
         for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
         {
@@ -237,9 +239,13 @@ namespace OpenMS
             for (Size i = 0; i < it->size(); ++i)
             {
               if ((*it)[i] < min)
+              {
                 min = (*it)[i];
+              }
               if ((*it)[i] > max)
+              {
                 max = (*it)[i];
+              }
             }
             break;
           }
@@ -252,23 +258,31 @@ namespace OpenMS
             for (Size i = 0; i < it->size(); ++i)
             {
               if ((*it)[i] < min)
+              {
                 min = (*it)[i];
+              }
               if ((*it)[i] > max)
+              {
                 max = (*it)[i];
+              }
             }
             break;
           }
         }
       }
       if (min >= max)
+      {
         return tmp;
+      }
 
       //create histogram
       tmp.reset(min, max, (max - min) / 500.0);
       for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
       {
         if (s_it->getMSLevel() != 1)
+        {
           continue;
+        }
         //float arrays
         for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
         {
@@ -305,9 +319,13 @@ namespace OpenMS
         {
           float value = it->getMetaValue(name);
           if (value < min)
+          {
             min = value;
+          }
           if (value > max)
+          {
             max = value;
+          }
         }
       }
       //create histogram
@@ -408,7 +426,9 @@ namespace OpenMS
         goto_dialog.fixRange();
         SpectrumCanvas::AreaType area(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
         if (goto_dialog.clip_checkbox->checkState() == Qt::Checked)
+        {
           correctAreaToObeyMinMaxRanges_(area);
+        }
         canvas()->setVisibleArea(area);
       }
       else
@@ -420,9 +440,13 @@ namespace OpenMS
 
         Size feature_index(-1); // TODO : not use -1
         if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
+        {
           feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
+        }
         else if (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
+        {
           feature_index = canvas()->getCurrentLayer().getConsensusMap()->uniqueIdToIndex(uid.getUniqueId());
+        }
         if (feature_index == Size(-1)) // UID does not exist
         {
           try
@@ -436,8 +460,8 @@ namespace OpenMS
         }
 
         //check if the feature index exists
-        if ((canvas()->getCurrentLayer().type == LayerData::DT_FEATURE && feature_index >= canvas()->getCurrentLayer().getFeatureMap()->size())
-           || (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS && feature_index >= canvas()->getCurrentLayer().getConsensusMap()->size()))
+        if (((canvas()->getCurrentLayer().type == LayerData::DT_FEATURE) && (feature_index >= canvas()->getCurrentLayer().getFeatureMap()->size()))
+           || ((canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS) && (feature_index >= canvas()->getCurrentLayer().getConsensusMap()->size())))
         {
           QMessageBox::warning(this, "Invalid feature number", "Feature number too large/UniqueID not found.\nPlease select a valid feature!");
           return;

@@ -102,9 +102,13 @@ namespace OpenMS
     for (Size ii = 0; ii < tree.size(); ++ii)
     {
       if (tree[ii].distance >= 1)
+      {
         tree[ii].distance = -1; // manually set to disconnect, as SingleLinkage does not support it
+      }
       if (tree[ii].distance != -1)
+      {
         ++node_count;
+      }
     }
     ca.cut(list.size() - node_count, tree, clusters);
 
@@ -325,7 +329,9 @@ namespace OpenMS
     }
 
     if (charge_invalid_count > 0)
+    {
       LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
+    }
 
     mergeOverlappingWindows_(result);
     writeToFile_(out_path, result);

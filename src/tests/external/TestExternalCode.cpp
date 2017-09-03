@@ -40,7 +40,7 @@
 using namespace OpenMS;
 using namespace OpenMSExternal;
 
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
   std::cout << "Call OpenMS function from ExampleLibraryFile" << std::endl;
   ExampleLibraryFile().loadAndSaveFeatureXML();
@@ -52,8 +52,8 @@ int main(int argc, char * argv[])
   MzMLFile f;
   String tmpfilename = "tmpfile.mzML";
 
-  f.store(tmpfilename,exp);
-  f.load(tmpfilename,exp);
+  f.store(tmpfilename, exp);
+  f.load(tmpfilename, exp);
 
   std::cout << "Loading and storing of mzML worked!\n";
 

@@ -49,7 +49,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectrumAlignment::SpectrumAlignment(const SpectrumAlignment & source) :
+  SpectrumAlignment::SpectrumAlignment(const SpectrumAlignment& source) :
     DefaultParamHandler(source)
   {
   }
@@ -58,7 +58,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumAlignment & SpectrumAlignment::operator=(const SpectrumAlignment & source)
+  SpectrumAlignment& SpectrumAlignment::operator=(const SpectrumAlignment& source)
   {
     if (this != &source)
     {

@@ -47,7 +47,6 @@ namespace OpenMS
     setName("ConsensusIDAlgorithmAverage"); // DefaultParamHandler
   }
 
-
   double ConsensusIDAlgorithmAverage::getAggregateScore_(
     vector<double>& scores, bool /* higher_better */)
   {

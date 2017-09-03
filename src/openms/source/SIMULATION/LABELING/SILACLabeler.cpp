@@ -134,7 +134,7 @@ namespace OpenMS
   void SILACLabeler::setUpHook(SimTypes::FeatureMapSimVector& features_to_simulate)
   {
     // check if we have the correct number of channels
-    if (features_to_simulate.size() < 2 || features_to_simulate.size() > 3)
+    if ((features_to_simulate.size() < 2) || (features_to_simulate.size() > 3))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(features_to_simulate.size()) + " channel(s) given. We currently support only 2-channel SILAC. Please provide two FASTA files!");
     }
@@ -163,11 +163,11 @@ namespace OpenMS
          residue != feature.getPeptideIdentifications()[0].getHits()[0].getSequence().end();
          ++residue)
     {
-      if (*residue == 'R' && residue->getModificationName() == arginine_label)
+      if ((*residue == 'R') && (residue->getModificationName() == arginine_label))
       {
         unmodified_sequence.append("R");
       }
-      else if (*residue == 'K' && residue->getModificationName() == lysine_label)
+      else if ((*residue == 'K') && (residue->getModificationName() == lysine_label))
       {
         unmodified_sequence.append("K");
       }

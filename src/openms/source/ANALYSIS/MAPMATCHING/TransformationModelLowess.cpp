@@ -46,12 +46,12 @@ namespace OpenMS
 {
   bool cmpFirstDimension(const TransformationModel::DataPoint& x, const TransformationModel::DataPoint& y)
   {
-    return (x.first < y.first);
+    return x.first < y.first;
   }
 
   TransformationModelLowess::TransformationModelLowess(
-      const TransformationModel::DataPoints& data_,
-      const Param& params) : model_(0)
+    const TransformationModel::DataPoints& data_,
+    const Param& params) : model_(0)
   {
     // parameter handling/checking:
     params_ = params;
@@ -65,7 +65,7 @@ namespace OpenMS
                                        "'lowess' model requires more data");
     }
 
-    // TODO copy ... 
+    // TODO copy ...
     TransformationModel::DataPoints data(data_);
 
     // sort data
@@ -78,7 +78,7 @@ namespace OpenMS
     {
       x[i] = data[i].first;
       y[i] = data[i].second;
-      if (x[i] < xmin_) 
+      if (x[i] < xmin_)
       {
         xmin_ = x[i];
       }
@@ -91,7 +91,7 @@ namespace OpenMS
     double span = params_.getValue("span");
     int nsteps = params_.getValue("num_iterations");
     double delta = params_.getValue("delta");
-    
+
     if (delta < 0.0)
     {
       delta = (xmax_ - xmin_) * 0.01; // automatically determine delta
@@ -102,7 +102,7 @@ namespace OpenMS
     TransformationModel::DataPoints data_out;
     for (Size i = 0; i < result.size(); ++i)
     {
-      data_out.push_back( std::make_pair(x[i], result[i]) );
+      data_out.push_back(std::make_pair(x[i], result[i]));
     }
 
     // TODO thin out data here ? we may not need that many points here to interpolate ...  it is enough if we store a few datapoints
@@ -120,13 +120,13 @@ namespace OpenMS
 
   TransformationModelLowess::~TransformationModelLowess()
   {
-    if (model_) delete model_;
+    if (model_) { delete model_; }
   }
 
   void TransformationModelLowess::getDefaultParameters(Param& params)
   {
     params.clear();
-    params.setValue("span", 2/3.0, "Fraction of datapoints (f) to use for each local regression (determines the amount of smoothing). Choosing this parameter in the range .2 to .8 usually results in a good fit.");
+    params.setValue("span", 2 / 3.0, "Fraction of datapoints (f) to use for each local regression (determines the amount of smoothing). Choosing this parameter in the range .2 to .8 usually results in a good fit.");
     params.setMinFloat("span", 0.0);
     params.setMaxFloat("span", 1.0);
 

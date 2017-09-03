@@ -53,11 +53,11 @@ using namespace OpenMS;
   @page UTILS_TargetedFileConverter TargetedFileConverter
 
   @brief Converts different transition files for targeted proteomics and metabolomics analysis.
-  
+
   Can convert multiple formats to and from TraML (standardized transition
   format). It supports the OpenSWATH TSV format as well as the PQP format for
   transitions.
-  
+
   The OpenSWATH transition TSV files need to have the following headers, all fields need to be separated by tabs:
 
         <ul>
@@ -188,11 +188,11 @@ protected:
 
     bool legacy_traml_id = getFlag_("legacy_traml_id");
 
-    //--------------------------------------------------------------------------- 
+    //---------------------------------------------------------------------------
     // Start Conversion
-    //--------------------------------------------------------------------------- 
+    //---------------------------------------------------------------------------
     TargetedExperiment targeted_exp;
-    if (in_type == FileTypes::TSV || in_type == FileTypes::MRM)
+    if ((in_type == FileTypes::TSV) || (in_type == FileTypes::MRM))
     {
       const char* tr_file = in.c_str();
       Param reader_parameters = getParam_().copy("algorithm:", true);
@@ -227,7 +227,7 @@ protected:
     }
     if (out_type == FileTypes::PQP)
     {
-      const char * tr_file = out.c_str();
+      const char* tr_file = out.c_str();
       TransitionPQPReader pqp_reader = TransitionPQPReader();
       pqp_reader.setLogType(log_type_);
       pqp_reader.convertTargetedExperimentToPQP(tr_file, targeted_exp);

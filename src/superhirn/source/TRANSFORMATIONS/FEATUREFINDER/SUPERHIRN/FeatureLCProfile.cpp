@@ -102,7 +102,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of FeatureLCProfile
-  FeatureLCProfile::FeatureLCProfile(const FeatureLCProfile & tmp)
+  FeatureLCProfile::FeatureLCProfile(const FeatureLCProfile& tmp)
   {
     LCelutionSignals = tmp.LCelutionSignals;
     outsideLCelutionSignals = tmp.outsideLCelutionSignals;
@@ -112,7 +112,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of FeatureLCProfile
-  FeatureLCProfile::FeatureLCProfile(const FeatureLCProfile * tmp)
+  FeatureLCProfile::FeatureLCProfile(const FeatureLCProfile* tmp)
   {
     LCelutionSignals = tmp->LCelutionSignals;
     outsideLCelutionSignals = tmp->outsideLCelutionSignals;
@@ -122,7 +122,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  FeatureLCProfile & FeatureLCProfile::operator=(const FeatureLCProfile & tmp)
+  FeatureLCProfile& FeatureLCProfile::operator=(const FeatureLCProfile& tmp)
   {
     LCelutionSignals = tmp.LCelutionSignals;
     outsideLCelutionSignals = tmp.outsideLCelutionSignals;
@@ -147,7 +147,7 @@ namespace OpenMS
 
 /////////////////////////////////////////////////
 // add / get signals:
-  void FeatureLCProfile::addMS1elutionSignal(MS1Signal * in)
+  void FeatureLCProfile::addMS1elutionSignal(MS1Signal* in)
   {
     LCelutionSignals.insert(std::make_pair(in->scan, *in));
   }
@@ -181,9 +181,29 @@ namespace OpenMS
 
   }
 
-  std::map<int, MS1Signal> * FeatureLCProfile::getLCelutionSignalMap(){ return &LCelutionSignals; }
-  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsStart(){ return LCelutionSignals.begin(); }
-  std::map<int, MS1Signal>::reverse_iterator FeatureLCProfile::getLastLCelutionSignal(){ return LCelutionSignals.rbegin(); }
-  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsEnd(){ return LCelutionSignals.end(); }
-  int FeatureLCProfile::getNbLCelutionSignals(){ return (int) LCelutionSignals.size(); }
+  std::map<int, MS1Signal>* FeatureLCProfile::getLCelutionSignalMap()
+  {
+    return &LCelutionSignals;
+  }
+
+  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsStart()
+  {
+    return LCelutionSignals.begin();
+  }
+
+  std::map<int, MS1Signal>::reverse_iterator FeatureLCProfile::getLastLCelutionSignal()
+  {
+    return LCelutionSignals.rbegin();
+  }
+
+  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsEnd()
+  {
+    return LCelutionSignals.end();
+  }
+
+  int FeatureLCProfile::getNbLCelutionSignals()
+  {
+    return (int) LCelutionSignals.size();
+  }
+
 }

@@ -80,7 +80,9 @@ namespace OpenMS
   {
     // check if proteinIdentification exists before accessing it
     if (features.getProteinIdentifications().empty())
+    {
       return;
+    }
 
     for (std::vector<ProteinHit>::iterator protein_hit = features.getProteinIdentifications()[0].getHits().begin();
          protein_hit != features.getProteinIdentifications()[0].getHits().end();
@@ -99,7 +101,7 @@ namespace OpenMS
   void ICPLLabeler::setUpHook(SimTypes::FeatureMapSimVector& features)
   {
     // channel check
-    if (features.size() < 2 || features.size() > 3)
+    if ((features.size() < 2) || (features.size() > 3))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "We currently support only 2- or 3-channel ICPL");
     }

@@ -49,7 +49,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSpectrumCompareFunctor::BinnedSpectrumCompareFunctor(const BinnedSpectrumCompareFunctor & source) :
+  BinnedSpectrumCompareFunctor::BinnedSpectrumCompareFunctor(const BinnedSpectrumCompareFunctor& source) :
     DefaultParamHandler(source)
   {
   }
@@ -58,7 +58,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSpectrumCompareFunctor & BinnedSpectrumCompareFunctor::operator=(const BinnedSpectrumCompareFunctor & source)
+  BinnedSpectrumCompareFunctor& BinnedSpectrumCompareFunctor::operator=(const BinnedSpectrumCompareFunctor& source)
   {
     if (this != &source)
     {
@@ -74,7 +74,7 @@ namespace OpenMS
     Factory<BinnedSpectrumCompareFunctor>::registerProduct(BinnedSumAgreeingIntensities::getProductName(), &BinnedSumAgreeingIntensities::create);
   }
 
-  BinnedSpectrumCompareFunctor::IncompatibleBinning::IncompatibleBinning(const char * file, int line, const char * function, const char * message) throw() :
+  BinnedSpectrumCompareFunctor::IncompatibleBinning::IncompatibleBinning(const char* file, int line, const char* function, const char* message) throw() :
     BaseException(file, line, function, "BinnedSpectrumCompareFunctor::IncompatibleBinning", message)
   {
   }

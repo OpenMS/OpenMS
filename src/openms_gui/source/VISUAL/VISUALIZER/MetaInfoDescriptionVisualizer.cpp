@@ -44,7 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget * parent) :
+  MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<MetaInfoDescription>()
   {

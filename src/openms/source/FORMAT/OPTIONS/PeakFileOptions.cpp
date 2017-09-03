@@ -108,12 +108,12 @@ namespace OpenMS
   {
     return metadata_only_;
   }
-  
+
   void PeakFileOptions::setForceMQCompatability(bool forceMQ)
   {
     force_maxquant_compatibility_ = forceMQ;
   }
-  
+
   bool PeakFileOptions::getForceMQCompatability() const
   {
     return force_maxquant_compatibility_;
@@ -314,7 +314,7 @@ namespace OpenMS
 
   void PeakFileOptions::setNumpressConfigurationMassTime(MSNumpressCoder::NumpressConfig config)
   {
-    if (config.np_compression == MSNumpressCoder::SLOF || config.np_compression == MSNumpressCoder::PIC)
+    if ((config.np_compression == MSNumpressCoder::SLOF) || (config.np_compression == MSNumpressCoder::PIC))
     {
       std::cerr << "Warning, compression of m/z or time dimension with pic or slof algorithms can lead to data loss" << std::endl;
     }

@@ -82,7 +82,7 @@ using namespace std;
   Chose one of two optional input files:
    1) peptide identifications (from featureXML or idXML) using 'id_in'
    2) lock masses using 'lock_in'
-  
+
   The user can choose whether the calibration function shall be
   calculated for each spectrum separately or once for the whole map.
   If this is done scan-wise, a user-defined range of neighboring spectra
@@ -93,7 +93,7 @@ using namespace std;
   Usually, the RT range should provide about 3x more calibrants than required, i.e. 6(=3x2) for linear, and 9(=3x3) for quadratic models.
   If the calibrant data is too sparse for a certain scan, the closest neighboring model will be used automatically.
   If no model can be calculated anywhere, the tool will fail.
-  
+
   Optional quality control output files allow to judge the success of calibration. It is strongly advised to inspect them.
   If PNG images are requested, 'R' (statistical programming language) needs to be installed and available on the system path!
 
@@ -110,7 +110,7 @@ using namespace std;
      Remaining outliers can be removed by using RANSAC.
      The data might benefit from a precursor mass correction (e.g. using @ref TOPP_HighResPrecursorMassCorrector), before an MS/MS search is done.
      The list of calibrants is derived solely from the idXML/featureXML and only the resulting model is applied to the mzML.
-  
+
   2) [lock_in] Calibration can be performed using specific lock masses which occur in most spectra. The structure of the cal:lock_in CSV file is as follows:
     Each line represents one lock mass in the format: <m/z>, <ms-level>, <charge>
     Lines starting with # are treated as comments and ignored. The ms-level is usually '1', but you can also use '2' if there are fragment ions commonly occurring.
@@ -134,7 +134,7 @@ using namespace std;
   Usually, peptide ID's provide calibration points for MS1 precursors, i.e. are suitable for MS1. They are applicable for MS2 only if
   the same mass analyzer was used (e.g. Q-Exactive). In other words, MS/MS spectra acquired using the ion trap analyzer of a Velos cannot be calibrated using
   peptide ID's.
-  Precursor m/z associated to higher-level MS spectra are corrected if their precursor spectra are subject to calibration, 
+  Precursor m/z associated to higher-level MS spectra are corrected if their precursor spectra are subject to calibration,
   e.g. precursor information within MS2 spectra is calibrated if target ms-level is set to 1.
   Lock masses ('cal:lock_in') can be specified freely for MS1 and/or MS2.
 
@@ -173,7 +173,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
     registerInputFile_("rscript_executable", "<file>", "Rscript", "Path to the Rscript executable (default: 'Rscript').", false);
-        
+
     addEmptyLine_();
 
     registerDoubleOption_("ppm_match_tolerance", "<delta m/z in [ppm]>", 25, "Finding calibrants in raw data uses this tolerance (for lock masses and ID's).", false);
@@ -190,7 +190,7 @@ protected:
     setValidFormats_("cal:lock_fail_out", ListUtils::create<String>("mzML"));
     registerFlag_("cal:lock_require_mono", "Require all lock masses to be monoisotopic, i.e. not the iso1, iso2 etc ('charge' column is used to determine the spacing). Peaks which are not mono-isotopic are not used.");
     registerFlag_("cal:lock_require_iso", "Require all lock masses to have at least the +1 isotope. Peaks without isotope pattern are not used.");
-    registerStringOption_("cal:model_type", 
+    registerStringOption_("cal:model_type",
                           "<model>",
                           MZTrafoModel::enumToName(MZTrafoModel::LINEAR_WEIGHTED),
                           "Type of function to be fitted to the calibration points.",
@@ -198,11 +198,11 @@ protected:
     setValidStrings_("cal:model_type", MZTrafoModel::names_of_modeltype, MZTrafoModel::SIZE_OF_MODELTYPE);
 
     addEmptyLine_();
-    
+
     registerIntList_("ms_level", "i j ...", ListUtils::create<int>("1,2,3"), "Target MS levels to apply the transformation onto. Does not affect calibrant collection.", false);
-    
+
     registerDoubleOption_("RT_chunking", "<RT window in [sec]>", 300, "RT window (one-sided, i.e. left->center, or center->right) around an MS scan in which calibrants are collected to build a model. Set to -1 to use ALL calibrants for all scans, i.e. a global model.", false);
-    
+
     registerTOPPSubsection_("RANSAC", "Robust outlier removal using RANSAC");
     registerFlag_("RANSAC:enabled", "Apply RANSAC to calibration points to remove outliers before fitting a model.");
     // RANSAC:n is automatically taken from the input model (i.e. n=2 for linear, n=3 for quadratic)
@@ -214,7 +214,7 @@ protected:
     setMinInt_("RANSAC:pc_inliers", 1);
     setMaxInt_("RANSAC:pc_inliers", 99);
     registerIntOption_("RANSAC:iter", "<# iterations>", 70, "Maximal # iterations.", false);
-    
+
     registerTOPPSubsection_("goodness", "Thresholds for accepting calibration success");
     registerDoubleOption_("goodness:median", "<threshold>", 4.0, "The median ppm error of calibrated masses must be smaller than this threshold.", false);
     registerDoubleOption_("goodness:MAD", "<threshold>", 1.0, "The median absolute deviation of the ppm error of calibrated masses must be smaller than this threshold.", false);
@@ -239,13 +239,13 @@ protected:
     //-------------------------------------------------------------
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    String rscript_executable = getStringOption_("rscript_executable"); 
+    String rscript_executable = getStringOption_("rscript_executable");
     String cal_id = getStringOption_("cal:id_in");
     String cal_lock = getStringOption_("cal:lock_in");
     String file_cal_lock_out = getStringOption_("cal:lock_out");
     String file_cal_lock_fail_out = getStringOption_("cal:lock_fail_out");
     double rt_chunk = getDoubleOption_("RT_chunking");
-    
+
     IntList ms_level = getIntList_("ms_level");
 
     if (((int)!cal_lock.empty() + (int)!cal_id.empty()) != 1)
@@ -282,7 +282,7 @@ protected:
       else if (ftype == FileTypes::IDXML)
       {
         std::vector<ProteinIdentification> prot_ids;
-        std::vector<PeptideIdentification> pep_ids; 
+        std::vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(cal_id, prot_ids, pep_ids);
         ic.fillCalibrants(pep_ids, tol_ppm);
       }
@@ -295,7 +295,7 @@ protected:
       vector<InternalCalibration::LockMass> ref_masses;
       for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
       {
-        if (iter->hasPrefix("#")) continue;
+        if (iter->hasPrefix("#")) { continue; }
         // each line has:
         //   m/z, ms-level, charge
         std::vector<String> vec;
@@ -313,7 +313,7 @@ protected:
       // match calibrants to data
       CalibrationData failed_points;
       ic.fillCalibrants(exp, ref_masses, tol_ppm, lock_require_mono, lock_require_iso, failed_points, debug_level_ > 0);
-      
+
       // write matched lock mass peaks
       if (!file_cal_lock_out.empty())
       {
@@ -330,7 +330,7 @@ protected:
         mz_file.store(file_cal_lock_fail_out, exp_out);
       }
     }
-    
+
     bool use_RANSAC = getFlag_("RANSAC:enabled");
 
     if (ic.getCalibrationPoints().empty())
@@ -338,7 +338,7 @@ protected:
       LOG_ERROR << "No calibration points found! Check your Raw data and calibration masses. Aborting!" << std::endl;
       return UNEXPECTED_RESULT;
     }
-      
+
     //
     // create models and calibrate
     //
@@ -348,11 +348,11 @@ protected:
     Math::RANSACParam p(RANSAC_initial_points, getIntOption_("RANSAC:iter"), getDoubleOption_("RANSAC:threshold"), getIntOption_("RANSAC:pc_inliers"), true);
     MZTrafoModel::setRANSACParams(p);
     // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
-    MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5); 
+    MZTrafoModel::setCoefficientLimits(tol_ppm, tol_ppm, 0.5);
 
-    if (!ic.calibrate(exp, ms_level, md, rt_chunk, use_RANSAC, 
+    if (!ic.calibrate(exp, ms_level, md, rt_chunk, use_RANSAC,
                       getDoubleOption_("goodness:median"),
-                      getDoubleOption_("goodness:MAD"), 
+                      getDoubleOption_("goodness:MAD"),
                       getStringOption_("quality_control:models"),
                       getStringOption_("quality_control:models_plot"),
                       getStringOption_("quality_control:residuals"),
@@ -362,7 +362,7 @@ protected:
       LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
       return UNEXPECTED_RESULT;
     }
- 
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------

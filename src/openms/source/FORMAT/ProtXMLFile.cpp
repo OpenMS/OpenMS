@@ -116,9 +116,13 @@ namespace OpenMS
 
       QDateTime date = QDateTime::fromString(time.toQString());
       if (!date.isValid())
+      {
         date = QDateTime::fromString(time.toQString(), Qt::ISODate);
+      }
       if (!date.isValid())
+      {
         LOG_WARN << "Warning: Cannot parse 'time'='" << time << "'.\n";
+      }
       prot_id_->setDateTime(date);
       prot_id_->setSearchEngine(analysis);
       prot_id_->setSearchEngineVersion(version);
@@ -216,13 +220,13 @@ namespace OpenMS
         temp_description.split(' ', mod_split);
         if (mod_split.size() == 2)
         {
-          if (mod_split[1] == "(C-term)" || ModificationsDB::getInstance()->getModification(temp_description).getTermSpecificity() == ResidueModification::C_TERM)
+          if ((mod_split[1] == "(C-term)") || (ModificationsDB::getInstance()->getModification(temp_description).getTermSpecificity() == ResidueModification::C_TERM))
           {
             temp_aa_sequence.setCTerminalModification(mod_split[0]);
           }
           else
           {
-            if (mod_split[1] == "(N-term)" || ModificationsDB::getInstance()->getModification(temp_description).getTermSpecificity() == ResidueModification::N_TERM)
+            if ((mod_split[1] == "(N-term)") || (ModificationsDB::getInstance()->getModification(temp_description).getTermSpecificity() == ResidueModification::N_TERM))
             {
               temp_aa_sequence.setNTerminalModification(mod_split[0]);
             }

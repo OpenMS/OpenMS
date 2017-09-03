@@ -122,20 +122,20 @@ namespace OpenMS
     // 9. read results, which should now contain the XML (function "httpDone")
 
     updateMembers_();
-    connect(http_, SIGNAL(requestFinished(int, bool)), this, SLOT(httpRequestFinished(int, bool)));
+    connect(http_, SIGNAL(requestFinished(int,bool)), this, SLOT(httpRequestFinished(int,bool)));
     connect(http_, SIGNAL(requestStarted(int)), this, SLOT(httpRequestStarted(int)));
     connect(http_, SIGNAL(done(bool)), this, SLOT(httpDone(bool)));
     connect(http_, SIGNAL(stateChanged(int)), this, SLOT(httpStateChanged(int)));
-    connect(http_, SIGNAL(readyRead(const QHttpResponseHeader &)), this, SLOT(readyReadSlot(const QHttpResponseHeader &)));
-    connect(http_, SIGNAL(responseHeaderReceived(const QHttpResponseHeader &)), this, SLOT(readResponseHeader(const QHttpResponseHeader &)));
-    connect(this, SIGNAL(gotRedirect(const QHttpResponseHeader &)), this, SLOT(followRedirect(const QHttpResponseHeader &)));
+    connect(http_, SIGNAL(readyRead(const QHttpResponseHeader&)), this, SLOT(readyReadSlot(const QHttpResponseHeader&)));
+    connect(http_, SIGNAL(responseHeaderReceived(const QHttpResponseHeader&)), this, SLOT(readResponseHeader(const QHttpResponseHeader&)));
+    connect(this, SIGNAL(gotRedirect(const QHttpResponseHeader&)), this, SLOT(followRedirect(const QHttpResponseHeader&)));
     connect(&timeout_, SIGNAL(timeout()), this, SLOT(timedOut()));
 
     // get progress information
-    connect(http_, SIGNAL(dataReadProgress(int, int)), this, SLOT(httpDataReadProgress(int, int)));
+    connect(http_, SIGNAL(dataReadProgress(int,int)), this, SLOT(httpDataReadProgress(int,int)));
 
-    if (param_.getValue("login").toBool()) login();
-    else execQuery();
+    if (param_.getValue("login").toBool()) { login(); }
+    else{ execQuery(); }
   }
 
   void MascotRemoteQuery::login()
@@ -311,7 +311,9 @@ namespace OpenMS
 #endif
 
     if (to_ > 0)
+    {
       timeout_.start();
+    }
     http_->request(header, querybytes);
   }
 
@@ -413,7 +415,9 @@ namespace OpenMS
   {
     //if (http_->bytesAvailable() < 1000) std::cerr << "new bytes: " << http_->bytesAvailable() << " from " << resp.toString() << " with code " <<  resp.statusCode() << " and httpstat: " << http_->state() << "\n";
     if (to_ > 0)
+    {
       timeout_.start(); // reset timeout
+    }
   }
 
   void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_header)
@@ -502,7 +506,7 @@ namespace OpenMS
     cerr << doc.toPlainText().toStdString() << "\n";
 #endif
 
-    if (QString(new_bytes).trimmed().size() == 0 && !(http_->lastResponse().isValid() && http_->lastResponse().statusCode() == 303))
+    if ((QString(new_bytes).trimmed().size() == 0) && !(http_->lastResponse().isValid() && (http_->lastResponse().statusCode() == 303)))
     {
       error_message_ = "Error: Reply from mascot server is empty! Possible server overload - see the Mascot Admin!";
       endRun_();
@@ -538,7 +542,7 @@ namespace OpenMS
       rx.indexIn(response);
       search_number_ = getSearchNumberFromFilePath_(rx.cap(1));
 
-      if (param_.exists("skip_export") && 
+      if (param_.exists("skip_export") &&
           (param_.getValue("skip_export") == "true"))
       {
         endRun_();
@@ -557,7 +561,7 @@ namespace OpenMS
       // see http://www.matrixscience.com/help/export_help.html for parameter documentation
       String required_params = "&do_export=1&export_format=XML&generate_file=1&group_family=1&peptide_master=1&protein_master=1&search_master=1&show_unassigned=1&show_mods=1&show_header=1&show_params=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&pep_expect=1&pep_var_mod=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1";
       String adjustable_params = param_.getValue("export_params");
-      results_path.append(required_params.toQString() + "&" + 
+      results_path.append(required_params.toQString() + "&" +
                           adjustable_params.toQString());
       // results_path.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&search_master=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1&generate_file=1&group_family=1");
 
@@ -653,7 +657,9 @@ namespace OpenMS
     server_path_ = param_.getValue("server_path");
     //MascotRemoteQuery_test
     if (server_path_ != "")
+    {
       server_path_ = "/" + server_path_;
+    }
 
     host_name_ = param_.getValue("hostname");
     use_ssl_ = param_.getValue("use_ssl").toBool();
@@ -696,9 +702,13 @@ namespace OpenMS
   void MascotRemoteQuery::removeHostName_(QString& url)
   {
     if (url.startsWith("http://"))
+    {
       url.remove("http://");
+    }
     else if (url.startsWith("https://"))
+    {
       url.remove("https://");
+    }
 
     if (!url.startsWith(host_name_.toQString()))
     {
@@ -709,7 +719,7 @@ namespace OpenMS
     url.remove(host_name_.toQString());
 
     // ensure path starts with /
-    if (url[0] != '/') url.prepend('/');
+    if (url[0] != '/') { url.prepend('/'); }
   }
 
   void MascotRemoteQuery::logHeader_(const QHttpHeader& header,
@@ -729,4 +739,5 @@ namespace OpenMS
 
     return tmp.toInt();
   }
+
 }

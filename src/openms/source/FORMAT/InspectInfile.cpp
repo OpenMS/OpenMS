@@ -140,13 +140,19 @@ namespace OpenMS
     file_content << "spectra," << spectra_ << "\n";
 
     if (!db_.empty())
+    {
       file_content << "db," << db_ << "\n";
+    }
 
     if (!enzyme_.empty())
+    {
       file_content << "protease," << enzyme_ << "\n";
+    }
 
     if (blind_ != 2)
+    {
       file_content << "blind," << blind_ << "\n";
+    }
 
     //mod,+57,C,fix,carbamidomethylation
     for (std::map<String, vector<String> >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i)
@@ -154,30 +160,46 @@ namespace OpenMS
       // fix", "cterminal", "nterminal", and "opt
       mods_i->second[2].toLower();
       if (mods_i->second[2].hasSuffix("term"))
+      {
         mods_i->second[2].append("inal");
+      }
       file_content << "mod," << mods_i->second[1] << "," << mods_i->second[0] << "," << mods_i->second[2] << "," << mods_i->first << "\n";
     }
 
     if (modifications_per_peptide_ > -1)
+    {
       file_content << "mods," << modifications_per_peptide_ << "\n";
+    }
 
     if (maxptmsize_ >= 0)
+    {
       file_content << "maxptmsize," << maxptmsize_ << "\n";
+    }
 
     if (precursor_mass_tolerance_ >= 0)
+    {
       file_content << "PM_tolerance," << precursor_mass_tolerance_ << "\n";
+    }
 
     if (peak_mass_tolerance_ >= 0)
+    {
       file_content << "IonTolerance," << peak_mass_tolerance_ << "\n";
+    }
 
     if (multicharge_ != 2)
+    {
       file_content << "multicharge," << multicharge_ << "\n";
+    }
 
     if (!instrument_.empty())
+    {
       file_content << "instrument," << instrument_ << "\n";
+    }
 
     if (tag_count_ >= 0)
+    {
       file_content << "TagCount," << tag_count_ << "\n";
+    }
 
     ofs << file_content.str();
 
@@ -195,7 +217,9 @@ namespace OpenMS
       vector<String> modifications, mod_parts;
       modification_line.split(':', modifications); // get the single modifications
       if (modifications.empty())
+      {
         modifications.push_back(modification_line);
+      }
 
       // to get masses from a formula
       EmpiricalFormula add_formula, substract_formula;
@@ -219,7 +243,9 @@ namespace OpenMS
         // get the single parts of the modification string
         mod_i->split(',', mod_parts);
         if (mod_parts.empty())
+        {
           mod_parts.push_back(*mod_i);
+        }
         mass_or_composition_or_name = -1;
 
         // check whether the first part is a mass, composition or name
@@ -231,9 +257,13 @@ namespace OpenMS
           // to check whether the first part is a mass, it is converted into a float and then back into a string and compared to the given string
           // remove + signs because they don't appear in a float
           if (mass.hasPrefix("+"))
+          {
             mass.erase(0, 1);
+          }
           if (mass.hasSuffix("+"))
+          {
             mass.erase(mass.length() - 1, 1);
+          }
           if (mass.hasSuffix("-")) // a - sign at the end will not be converted
           {
             mass.erase(mass.length() - 1, 1);
@@ -241,7 +271,9 @@ namespace OpenMS
           }
           // if it is a mass
           if (String(mass.toFloat()) == mass)
+          {
             mass_or_composition_or_name = 0;
+          }
         }
         catch (Exception::ConversionError& /*c_e*/)
         {
@@ -278,8 +310,10 @@ namespace OpenMS
 
         // check whether it's an empirical formula / if a composition was given, get the mass
         if (mass_or_composition_or_name == -1)
+        {
           mass = mod_parts.front();
-        if (mass_or_composition_or_name == -1 || mass_or_composition_or_name == 2)
+        }
+        if ((mass_or_composition_or_name == -1) || (mass_or_composition_or_name == 2))
         {
           // check whether there is a positive and a negative formula
           String::size_type pos = mass.find("-");
@@ -296,11 +330,17 @@ namespace OpenMS
             }
             // sum up the masses
             if (monoisotopic)
+            {
               mass = String(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
+            }
             else
+            {
               mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
+            }
             if (mass_or_composition_or_name == -1)
+            {
               mass_or_composition_or_name = 1;
+            }
           }
           catch (Exception::ParseError& /*pe*/)
           {
@@ -328,15 +368,21 @@ namespace OpenMS
 
         // get the type
         if (mod_parts.empty())
+        {
           type = "OPT";
+        }
         else
         {
           type = mod_parts.front();
           type.toUpper();
           if (types.find(type) != String::npos)
+          {
             mod_parts.erase(mod_parts.begin());
+          }
           else
+          {
             type = "OPT";
+          }
         }
 
         if (mod_parts.size() > 1)
@@ -349,9 +395,13 @@ namespace OpenMS
         if (mass_or_composition_or_name < 2)
         {
           if (mod_parts.empty())
+          {
             name = "PTM_" + String(PTMname_residues_mass_type_.size());
+          }
           else
+          {
             name = mod_parts.front();
+          }
         }
 
         // insert the modification

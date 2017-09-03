@@ -39,7 +39,7 @@
 
 namespace OpenMS
 {
-  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum & spectrum)
+  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum& spectrum)
   {
     spectrum.reserve(sptr->getMZArray()->data.size());
 
@@ -54,7 +54,7 @@ namespace OpenMS
     }
   }
 
-  OpenSwath::SpectrumPtr OpenSwathDataAccessHelper::convertToSpectrumPtr(const OpenMS::MSSpectrum & spectrum)
+  OpenSwath::SpectrumPtr OpenSwathDataAccessHelper::convertToSpectrumPtr(const OpenMS::MSSpectrum& spectrum)
   {
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
@@ -70,7 +70,7 @@ namespace OpenMS
     return sptr;
   }
 
-  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram & chromatogram)
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram& chromatogram)
   {
     chromatogram.reserve(cptr->getTimeArray()->data.size());
 
@@ -85,7 +85,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram & chromatogram, const OpenSwath::ChromatogramPtr cptr,
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram& chromatogram, const OpenSwath::ChromatogramPtr cptr,
                                                                     double rt_min, double rt_max)
   {
     chromatogram.reserve(cptr->getTimeArray()->data.size());
@@ -94,7 +94,7 @@ namespace OpenMS
     std::vector<double>::const_iterator int_it = cptr->getIntensityArray()->data.begin();
     for (; rt_it != cptr->getTimeArray()->data.end(); ++rt_it, ++int_it)
     {
-      if (*rt_it < rt_min || *rt_it > rt_max)
+      if ((*rt_it < rt_min) || (*rt_it > rt_max))
       {
         continue;
       }
@@ -105,7 +105,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp)
+  void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::TargetedExperiment& transition_exp_, OpenSwath::LightTargetedExperiment& transition_exp)
   {
     //copy proteins
     for (Size i = 0; i < transition_exp_.getProteins().size(); i++)
@@ -123,7 +123,7 @@ namespace OpenMS
       transition_exp.compounds.push_back(p);
     }
 
-    //copy compounds and store as compounds 
+    //copy compounds and store as compounds
     for (Size i = 0; i < transition_exp_.getCompounds().size(); i++)
     {
       OpenSwath::LightCompound c;
@@ -154,28 +154,28 @@ namespace OpenMS
       // legacy
 #if 1
       if (transition_exp_.getTransitions()[i].getCVTerms().has("decoy") &&
-          transition_exp_.getTransitions()[i].getCVTerms()["decoy"][0].getValue().toString() == "1" )
+          (transition_exp_.getTransitions()[i].getCVTerms()["decoy"][0].getValue().toString() == "1"))
       {
         t.decoy = true;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007"))    // target SRM transition
+      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007")) // target SRM transition
       {
         t.decoy = false;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // decoy SRM transition
+      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008")) // decoy SRM transition
       {
         t.decoy = true;
       }
       else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") &&
-          transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // both == illegal
+               transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008")) // both == illegal
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");
       }
       else
 #endif
-      if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN ||
-          transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
+      if ((transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN) ||
+          (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::TARGET))
       {
         // assume its target
         t.decoy = false;
@@ -193,7 +193,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound & p)
+  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Peptide& pep, OpenSwath::LightCompound& p)
   {
     OpenSwath::LightModification light_mod;
 
@@ -228,7 +228,7 @@ namespace OpenMS
     p.protein_refs.clear();
     if (!pep.protein_refs.empty())
     {
-      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() );
+      p.protein_refs.insert(p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end());
     }
 
     // Mapping of peptide modifications (don't do this for metabolites...)
@@ -266,7 +266,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound & comp)
+  void OpenSwathDataAccessHelper::convertTargetedCompound(const TargetedExperiment::Compound& compound, OpenSwath::LightCompound& comp)
   {
     comp.id = compound.id;
     if (!compound.rts.empty() && compound.rts[0].hasCVTerm("MS:1000896"))
@@ -290,19 +290,18 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightCompound & peptide, AASequence & aa_sequence)
+  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightCompound& peptide, AASequence& aa_sequence)
   {
     OPENMS_PRECONDITION(peptide.isPeptide(), "Function needs peptide, not metabolite")
 
     aa_sequence = AASequence::fromString(peptide.sequence);
     for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin();
-        it != peptide.modifications.end(); ++it)
+         it != peptide.modifications.end(); ++it)
     {
-      TargetedExperimentHelper::setModification(it->location, 
-                                                boost::numeric_cast<int>(peptide.sequence.size()), 
+      TargetedExperimentHelper::setModification(it->location,
+                                                boost::numeric_cast<int>(peptide.sequence.size()),
                                                 "UniMod:" + String(it->unimod_id), aa_sequence);
     }
   }
-
 
 }

@@ -130,7 +130,7 @@ namespace OpenMS
       String pre = attributeAsString_(attributes, "pre");
       if (!pre.empty())
       {
-        pe.setAABefore(pre[pre.size()-1]);
+        pe.setAABefore(pre[pre.size() - 1]);
       }
       // get amino acid after
       String post = attributeAsString_(attributes, "post");
@@ -143,9 +143,9 @@ namespace OpenMS
       pe.setStart(current_start_ - 1);
       current_stop_ = attributeAsInt_(attributes, "end");
       pe.setEnd(current_stop_ - 1);
-        
+
       pe.setProteinAccession(current_protein_);
- 
+
       String seq = attributeAsString_(attributes, "seq");
       // is this the same peptide as before, just in a different protein (scores will be the same)?
       if ((peptide_hits_.find(id) == peptide_hits_.end()) || (seq != previous_seq_))
@@ -156,7 +156,7 @@ namespace OpenMS
         // potentially leading to errors when assigning mods to residues:
         hit.setSequence(AASequence::fromString(seq, false));
         hit.setCharge(current_charge_);
-        
+
         // get scores etc.:
         hit.setMetaValue("nextscore", attributeAsDouble_(attributes, "nextscore"));
         hit.setMetaValue("delta", attributeAsDouble_(attributes, "delta"));
@@ -319,7 +319,7 @@ namespace OpenMS
         hit.setAccession(current_protein_);
 
         double score(0);
-        if (optionalAttributeAsDouble_(score, attributes, "expect")) hit.setScore(score);
+        if (optionalAttributeAsDouble_(score, attributes, "expect")) { hit.setScore(score); }
 
         protein_hits_.push_back(hit);
         protein_uids_.insert(uid);

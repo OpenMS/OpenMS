@@ -45,11 +45,11 @@ using namespace boost::assign;
 
 namespace OpenMS
 {
-const String TMTElevenPlexQuantitationMethod::name_ = "tmt11plex";
-const std::vector<String> TMTElevenPlexQuantitationMethod::channel_names_ = list_of("126")("127N")("127C")("128N")("128C")("129N")("129C")("130N")("130C")("131N")("131C");
+  const String TMTElevenPlexQuantitationMethod::name_ = "tmt11plex";
+  const std::vector<String> TMTElevenPlexQuantitationMethod::channel_names_ = list_of("126")("127N")("127C")("128N")("128C")("129N")("129C")("130N")("130C")("131N")("131C");
 
-TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
-{
+  TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
+  {
     setName("TMTElevenPlexQuantitationMethod");
 
     //    // mass map outline - for further details please see #2427 (was adapted for tmt11plex)
@@ -66,17 +66,17 @@ TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
     //    "131C", 131.144500, 129C, 130C, x, x
 
     // create the channel map                                                //-2  -1  +1  +2
-    channels_.push_back(IsobaricChannelInformation("126",   0, "", 126.127726, -1, -1,  2,  4));
-    channels_.push_back(IsobaricChannelInformation("127N",  1, "", 127.124761, -1, -1,  3,  5));
-    channels_.push_back(IsobaricChannelInformation("127C",  2, "", 127.131081, -1,  0,  4,  6));
-    channels_.push_back(IsobaricChannelInformation("128N",  3, "", 128.128116, -1,  1,  5,  7));
-    channels_.push_back(IsobaricChannelInformation("128C",  4, "", 128.134436,  0,  2,  6,  8));
-    channels_.push_back(IsobaricChannelInformation("129N",  5, "", 129.131471,  1,  3,  7,  9));
-    channels_.push_back(IsobaricChannelInformation("129C",  6, "", 129.137790,  2,  4,  8, 10));
-    channels_.push_back(IsobaricChannelInformation("130N",  7, "", 130.134825,  3,  5,  9, -1));
-    channels_.push_back(IsobaricChannelInformation("130C",  8, "", 130.141145,  4,  6, 10, -1));
-    channels_.push_back(IsobaricChannelInformation("131N",  9, "", 131.138180,  5,  7, -1, -1));
-    channels_.push_back(IsobaricChannelInformation("131C", 10, "", 131.144500,  6,  8, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127726, -1, -1, 2, 4));
+    channels_.push_back(IsobaricChannelInformation("127N", 1, "", 127.124761, -1, -1, 3, 5));
+    channels_.push_back(IsobaricChannelInformation("127C", 2, "", 127.131081, -1, 0, 4, 6));
+    channels_.push_back(IsobaricChannelInformation("128N", 3, "", 128.128116, -1, 1, 5, 7));
+    channels_.push_back(IsobaricChannelInformation("128C", 4, "", 128.134436, 0, 2, 6, 8));
+    channels_.push_back(IsobaricChannelInformation("129N", 5, "", 129.131471, 1, 3, 7, 9));
+    channels_.push_back(IsobaricChannelInformation("129C", 6, "", 129.137790, 2, 4, 8, 10));
+    channels_.push_back(IsobaricChannelInformation("130N", 7, "", 130.134825, 3, 5, 9, -1));
+    channels_.push_back(IsobaricChannelInformation("130C", 8, "", 130.141145, 4, 6, 10, -1));
+    channels_.push_back(IsobaricChannelInformation("131N", 9, "", 131.138180, 5, 7, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("131C", 10, "", 131.144500, 6, 8, -1, -1));
 
 
     // Original 10plex channel
@@ -86,14 +86,14 @@ TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod()
     reference_channel_ = 0;
 
     setDefaultParams_();
-}
+  }
 
-TMTElevenPlexQuantitationMethod::~TMTElevenPlexQuantitationMethod()
-{
-}
+  TMTElevenPlexQuantitationMethod::~TMTElevenPlexQuantitationMethod()
+  {
+  }
 
-void TMTElevenPlexQuantitationMethod::setDefaultParams_()
-{
+  void TMTElevenPlexQuantitationMethod::setDefaultParams_()
+  {
     defaults_.setValue("channel_126_description", "", "Description for the content of the 126 channel.");
     defaults_.setValue("channel_127N_description", "", "Description for the content of the 127N channel.");
     defaults_.setValue("channel_127C_description", "", "Description for the content of the 127C channel.");
@@ -123,10 +123,10 @@ void TMTElevenPlexQuantitationMethod::setDefaultParams_()
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
-}
+  }
 
-void TMTElevenPlexQuantitationMethod::updateMembers_()
-{
+  void TMTElevenPlexQuantitationMethod::updateMembers_()
+  {
     channels_[0].description = param_.getValue("channel_126_description");
     channels_[1].description = param_.getValue("channel_127N_description");
     channels_[2].description = param_.getValue("channel_127C_description");
@@ -145,21 +145,21 @@ void TMTElevenPlexQuantitationMethod::updateMembers_()
                                                          (String) param_.getValue("reference_channel"));
 
     reference_channel_ = t_it - TMTElevenPlexQuantitationMethod::channel_names_.begin();
-}
+  }
 
-TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod(const TMTElevenPlexQuantitationMethod& other)
-{
+  TMTElevenPlexQuantitationMethod::TMTElevenPlexQuantitationMethod(const TMTElevenPlexQuantitationMethod& other)
+  {
     channels_.clear();
     channels_.insert(channels_.begin(), other.channels_.begin(), other.channels_.end());
 
     reference_channel_ = other.reference_channel_;
-}
+  }
 
-TMTElevenPlexQuantitationMethod& TMTElevenPlexQuantitationMethod::operator=(const TMTElevenPlexQuantitationMethod& rhs)
-{
+  TMTElevenPlexQuantitationMethod& TMTElevenPlexQuantitationMethod::operator=(const TMTElevenPlexQuantitationMethod& rhs)
+  {
     if (this == &rhs)
     {
-        return *this;
+      return *this;
     }
     channels_.clear();
     channels_.insert(channels_.begin(), rhs.channels_.begin(), rhs.channels_.end());
@@ -167,32 +167,32 @@ TMTElevenPlexQuantitationMethod& TMTElevenPlexQuantitationMethod::operator=(cons
     reference_channel_ = rhs.reference_channel_;
 
     return *this;
-}
+  }
 
-const String& TMTElevenPlexQuantitationMethod::getName() const
-{
+  const String& TMTElevenPlexQuantitationMethod::getName() const
+  {
     return TMTElevenPlexQuantitationMethod::name_;
-}
+  }
 
-const IsobaricQuantitationMethod::IsobaricChannelList& TMTElevenPlexQuantitationMethod::getChannelInformation() const
-{
+  const IsobaricQuantitationMethod::IsobaricChannelList& TMTElevenPlexQuantitationMethod::getChannelInformation() const
+  {
     return channels_;
-}
+  }
 
-Size TMTElevenPlexQuantitationMethod::getNumberOfChannels() const
-{
+  Size TMTElevenPlexQuantitationMethod::getNumberOfChannels() const
+  {
     return 11;
-}
+  }
 
-Matrix<double> TMTElevenPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
-{
+  Matrix<double> TMTElevenPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
+  {
     StringList iso_correction = getParameters().getValue("correction_matrix");
     return stringListToIsotopCorrectionMatrix_(iso_correction);
-}
+  }
 
-Size TMTElevenPlexQuantitationMethod::getReferenceChannel() const
-{
+  Size TMTElevenPlexQuantitationMethod::getReferenceChannel() const
+  {
     return reference_channel_;
-}
+  }
 
 } // namespace

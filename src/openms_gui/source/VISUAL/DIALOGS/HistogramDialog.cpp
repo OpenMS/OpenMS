@@ -44,23 +44,23 @@ namespace OpenMS
 {
   using namespace Math;
 
-  HistogramDialog::HistogramDialog(const Histogram<> & distribution, QWidget * parent) :
+  HistogramDialog::HistogramDialog(const Histogram<>& distribution, QWidget* parent) :
     QDialog(parent)
   {
     setWindowTitle("Intensity Distribution");
 
     //layout
-    QGridLayout * layout = new QGridLayout(this);
+    QGridLayout* layout = new QGridLayout(this);
     layout->setRowStretch(0, 100);
 
     //ok
-    QPushButton * ok_button_ = new QPushButton("&Apply Filter", this);
+    QPushButton* ok_button_ = new QPushButton("&Apply Filter", this);
     ok_button_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(ok_button_, SIGNAL(clicked()), this, SLOT(accept()));
     layout->addWidget(ok_button_, 1, 1);
 
     //cancel
-    QPushButton * cancel_button_ = new QPushButton("&Cancel", this);
+    QPushButton* cancel_button_ = new QPushButton("&Cancel", this);
     cancel_button_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     connect(cancel_button_, SIGNAL(clicked()), this, SLOT(reject()));
     layout->addWidget(cancel_button_, 1, 2);
@@ -98,7 +98,7 @@ namespace OpenMS
     mw_->setRightSplitter(position);
   }
 
-  void HistogramDialog::setLegend(const String & legend)
+  void HistogramDialog::setLegend(const String& legend)
   {
     mw_->setLegend(legend);
   }

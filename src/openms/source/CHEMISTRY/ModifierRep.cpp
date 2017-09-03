@@ -77,7 +77,7 @@ namespace OpenMS
     }*/
   }
 
-  ModifierRep::ModifierRep(const ModifierRep & source) :
+  ModifierRep::ModifierRep(const ModifierRep& source) :
     modification_table_(source.modification_table_),
     number_of_modifications_(source.number_of_modifications_)
   {
@@ -99,7 +99,7 @@ namespace OpenMS
     return number_of_modifications_;
   }
 
-  const vector<vector<double> > & ModifierRep::getModificationTable()
+  const vector<vector<double> >& ModifierRep::getModificationTable()
   {
     return modification_table_;
   }
@@ -149,7 +149,7 @@ namespace OpenMS
     return mod_masses.size();
   }
 
-  void ModifierRep::refreshModificationList(map<double, SignedSize> & mod_map, const char & c)
+  void ModifierRep::refreshModificationList(map<double, SignedSize>& mod_map, const char& c)
   {
     if (modification_table_.at((int)c).empty())
     {
@@ -179,7 +179,7 @@ namespace OpenMS
     }
   }
 
-  vector<String> ModifierRep::getModificationsForMass(double & m)
+  vector<String> ModifierRep::getModificationsForMass(double& m)
   {
     if (number_of_modifications_ == 0)
     {
@@ -197,7 +197,7 @@ namespace OpenMS
         5. converting double to string and deleting doubled entries
         6. saving the mapping
     */
-    if (mass_mapping_.empty() && number_of_modifications_ > 0)
+    if (mass_mapping_.empty() && (number_of_modifications_ > 0))
     {
       set<String> all_mods;
 
@@ -310,11 +310,13 @@ namespace OpenMS
 
   }
 
-  vector<String> ModifierRep::getModificationsForMass(double & m, const String & seq)
+  vector<String> ModifierRep::getModificationsForMass(double& m, const String& seq)
   {
     vector<String> all_mods = getModificationsForMass(m);
     if (all_mods.empty())
+    {
       return all_mods;
+    }
 
     vector<int> seq_hist;
     for (int i = 0; i < 256; i++)
@@ -347,7 +349,9 @@ namespace OpenMS
         }
       }
       if (to_add)
+      {
         res.push_back(all_mods.at(j));
+      }
     }
     return res;
 

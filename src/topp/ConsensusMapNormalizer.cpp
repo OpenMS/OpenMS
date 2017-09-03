@@ -115,7 +115,7 @@ protected:
     registerStringOption_("description_filter", "<regexp>", "", "Use only features with description (partially) matching this regular expression for computing the normalization factors. Useful, e.g., if you have known house keeping proteins in your samples. When this parameter is empty or the regular expression matches the empty string, all features are used (even those without an ID). No effect if quantile normalization is used.", false, true);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
@@ -146,7 +146,7 @@ protected:
     }
     else if (algo_type == "quantile")
     {
-      if (acc_filter != "" || desc_filter != "")
+      if ((acc_filter != "") || (desc_filter != ""))
       {
         LOG_WARN << endl << "NOTE: Accession / description filtering is not supported in quantile normalization mode. Ignoring filters." << endl << endl;
       }
@@ -164,10 +164,11 @@ protected:
 
     return EXECUTION_OK;
   }
+
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPConsensusMapNormalizer tool;
   return tool.main(argc, argv);

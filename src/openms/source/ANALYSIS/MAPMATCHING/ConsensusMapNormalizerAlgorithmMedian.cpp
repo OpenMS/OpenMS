@@ -53,7 +53,7 @@ namespace OpenMS
 
   }
 
-  Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const String& acc_filter, const String& desc_filter)
+  Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap& map, vector<double>& medians, const String& acc_filter, const String& desc_filter)
   {
     Size number_of_maps = map.getFileDescriptions().size();
     vector<vector<double> > feature_int(number_of_maps);
@@ -65,7 +65,7 @@ namespace OpenMS
     for (UInt i = 0; i < number_of_maps; i++)
     {
       ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
-      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      if (it == map.getFileDescriptions().end()) { throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i)); }
       feature_int[i].reserve(it->second.size);
 
       if (it->second.size > map_with_most_features->second.size)
@@ -127,7 +127,7 @@ namespace OpenMS
     return map_with_most_features_idx;
   }
 
-  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap & map, NormalizationMethod method, const String& acc_filter, const String& desc_filter)
+  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap& map, NormalizationMethod method, const String& acc_filter, const String& desc_filter)
   {
     if (method == NM_SHIFT)
     {
@@ -180,8 +180,8 @@ namespace OpenMS
     boost::regex desc_regexp(desc_filter);
     boost::cmatch m;
 
-    if ((acc_filter == "" || boost::regex_search("", m, acc_regexp)) &&
-        (desc_filter == "" || boost::regex_search("", m, desc_regexp)))
+    if (((acc_filter == "") || boost::regex_search("", m, acc_regexp)) &&
+        ((desc_filter == "") || boost::regex_search("", m, desc_regexp)))
     {
       // feature passes (even if it has no identification!)
       return true;
@@ -199,7 +199,7 @@ namespace OpenMS
         for (set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
         {
           // does accession match?
-          if (!(acc_filter == "" ||
+          if (!((acc_filter == "") ||
                 boost::regex_search("", m, acc_regexp) ||
                 boost::regex_search(acc_it->c_str(), m, acc_regexp)))
           {
@@ -208,7 +208,7 @@ namespace OpenMS
           }
 
           // yes. does description match, too?
-          if (desc_filter == "" || boost::regex_search("", m, desc_regexp))
+          if ((desc_filter == "") || boost::regex_search("", m, desc_regexp))
           {
             return true;
           }

@@ -179,12 +179,18 @@ namespace OpenMS
         for (Size i = 0; i < it->size(); ++i)
         {
           if ((*it)[i] < min)
+          {
             min = (*it)[i];
+          }
           if ((*it)[i] > max)
+          {
             max = (*it)[i];
+          }
         }
         if (min >= max)
+        {
           return tmp;
+        }
 
         //create histogram
         tmp.reset(min, max, (max - min) / 500.0);
@@ -205,12 +211,18 @@ namespace OpenMS
         for (Size i = 0; i < it->size(); ++i)
         {
           if ((*it)[i] < min)
+          {
             min = (*it)[i];
+          }
           if ((*it)[i] > max)
+          {
             max = (*it)[i];
+          }
         }
         if (min >= max)
+        {
           return tmp;
+        }
 
         //create histogram
         tmp.reset(min, max, (max - min) / 500.0);
@@ -239,7 +251,9 @@ namespace OpenMS
       goto_dialog.fixRange();
       SpectrumCanvas::AreaType area(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
       if (goto_dialog.clip_checkbox->checkState() == Qt::Checked)
+      {
         correctAreaToObeyMinMaxRanges_(area);
+      }
       canvas()->setVisibleArea(area);
     }
   }

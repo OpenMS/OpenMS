@@ -87,11 +87,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPMetaboliteSpectralMatcher :
-        public TOPPBase
+  public TOPPBase
 {
 public:
   TOPPMetaboliteSpectralMatcher() :
-      TOPPBase("MetaboliteSpectralMatcher", "Perform a spectral library search.", false)
+    TOPPBase("MetaboliteSpectralMatcher", "Perform a spectral library search.", false)
   {
   }
 
@@ -139,7 +139,7 @@ protected:
 
     MzMLFile mz_file;
     mz_file.setLogType(log_type_);
-    std::vector<Int> ms_level(1,2);
+    std::vector<Int> ms_level(1, 2);
     mz_file.getOptions().setMSLevels(ms_level);
 
     PeakMap ms_peakmap;
@@ -199,4 +199,3 @@ int main(int argc, const char** argv)
 }
 
 /// @endcond
-

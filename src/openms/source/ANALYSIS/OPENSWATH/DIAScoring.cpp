@@ -177,7 +177,7 @@ namespace OpenMS
   }
 
   /// Precursor isotope scores
-  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
+  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state,
                                           double& isotope_corr, double& isotope_overlap, std::string sum_formula)
   {
     // collect the potential isotopes of this peak
@@ -186,10 +186,10 @@ namespace OpenMS
     std::vector<double> isotopes_int;
     for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
     {
-      double left  = precursor_mz - dia_extract_window_ / 2.0 + 
-                       iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
-      double right = precursor_mz + dia_extract_window_ / 2.0 + 
-                       iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      double left  = precursor_mz - dia_extract_window_ / 2.0 +
+                     iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      double right = precursor_mz + dia_extract_window_ / 2.0 +
+                     iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
       double mz, intensity;
       integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       isotopes_int.push_back(intensity);
@@ -219,7 +219,7 @@ namespace OpenMS
       right = bseries[it] + dia_extract_window_ / 2.0;
       bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       double ppmdiff = std::fabs(bseries[it] - mz) * 1000000 / bseries[it];
-      if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
+      if (signalFound && (ppmdiff < dia_byseries_ppm_diff_) && (intensity > dia_byseries_intensity_min_))
       {
         bseries_score++;
       }
@@ -230,7 +230,7 @@ namespace OpenMS
       right = yseries[it] + dia_extract_window_ / 2.0;
       bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       double ppmdiff = std::fabs(yseries[it] - mz) * 1000000 / yseries[it];
-      if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
+      if (signalFound && (ppmdiff < dia_byseries_ppm_diff_) && (intensity > dia_byseries_intensity_min_))
       {
         yseries_score++;
       }
@@ -261,8 +261,8 @@ namespace OpenMS
   }
 
   void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
-                                          std::map<std::string, double>& intensities, //relative intensities
-                                          double& isotope_corr, double& isotope_overlap)
+                                        std::map<std::string, double>& intensities,   //relative intensities
+                                        double& isotope_corr, double& isotope_overlap)
   {
     std::vector<double> isotopes_int;
     double max_ratio;
@@ -284,9 +284,9 @@ namespace OpenMS
       for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
       {
         double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 +
-                        iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
-        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + 
-                        iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
+                      iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
+        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 +
+                       iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
         double mz, intensity;
         integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
         isotopes_int.push_back(intensity);
@@ -324,12 +324,12 @@ namespace OpenMS
       double ratio;
       if (mono_int != 0) { ratio = intensity / mono_int; }
       else { ratio = 0; }
-      if (ratio > max_ratio) {max_ratio = ratio;}
-        
+      if (ratio > max_ratio) { max_ratio = ratio; }
+
       double ddiff_ppm = std::fabs(mz - (mono_mz - 1.0 / (double) ch)) * 1000000 / mono_mz;
 
       // FEATURE we should fit a theoretical distribution to see whether we really are a secondary peak
-      if (ratio > 1 && ddiff_ppm < peak_before_mono_max_ppm_diff_)
+      if ((ratio > 1) && (ddiff_ppm < peak_before_mono_max_ppm_diff_))
       {
         //isotope_overlap += 1.0 * rel_intensity;
 
@@ -358,7 +358,7 @@ namespace OpenMS
       EmpiricalFormula empf(sum_formula);
       isotope_dist = empf.getIsotopeDistribution(dia_nr_isotopes_);
     }
-    else 
+    else
     {
       // create the theoretical distribution from the peptide weight
       isotope_dist.setMaxIsotope(dia_nr_isotopes_ + 1);

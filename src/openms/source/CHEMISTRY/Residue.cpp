@@ -271,7 +271,7 @@ namespace OpenMS
     double temp2 = getPkb();
     double temp3 = getPkc();
 
-    if (temp3 >= 0 && temp3 < temp1)
+    if ((temp3 >= 0) && (temp3 < temp1))
     {
       pi = (temp3 + temp2) / 2;
     }
@@ -342,7 +342,7 @@ namespace OpenMS
     NTerm_loss_formulas_.push_back(NTerm_loss_formula);
   }
 
-  const vector<EmpiricalFormula> & Residue::getNTermLossFormulas() const
+  const vector<EmpiricalFormula>& Residue::getNTermLossFormulas() const
   {
     return NTerm_loss_formulas_;
   }
@@ -516,7 +516,7 @@ namespace OpenMS
     }
     // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
     // as in the case of XLMOD.obo modifications
-    if ( (mod.getMonoMass() == 0) && (mod.getDiffMonoMass() != 0) )
+    if ((mod.getMonoMass() == 0) && (mod.getDiffMonoMass() != 0))
     {
       mono_weight_ += mod.getDiffMonoMass();
     }
@@ -527,7 +527,7 @@ namespace OpenMS
       updated_formula = true;
       setFormula(getFormula() + mod.getDiffFormula());
     }
-    if (mod.getFormula() != "" && !updated_formula)
+    if ((mod.getFormula() != "") && !updated_formula)
     {
       updated_formula = true;
       String formula = mod.getFormula();
@@ -576,7 +576,7 @@ namespace OpenMS
 
   const String& Residue::getModificationName() const
   {
-    if (modification_ == 0) return String::EMPTY;
+    if (modification_ == 0) { return String::EMPTY; }
     return modification_->getId();
   }
 
@@ -625,7 +625,7 @@ namespace OpenMS
     residue_sets_ = residue_sets;
   }
 
-  const set<String> & Residue::getResidueSets() const
+  const set<String>& Residue::getResidueSets() const
   {
     return residue_sets_;
   }
@@ -700,9 +700,9 @@ namespace OpenMS
   ostream& operator<<(ostream& os, const Residue& residue)
   {
     os << residue.name_ << " "
-    << residue.three_letter_code_ << " "
-    << residue.one_letter_code_ << " "
-    << residue.formula_;
+       << residue.three_letter_code_ << " "
+       << residue.one_letter_code_ << " "
+       << residue.formula_;
     return os;
   }
 

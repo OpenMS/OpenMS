@@ -42,7 +42,7 @@
 namespace OpenMS
 {
 
-  Annotation1DCaret::Annotation1DCaret(const Annotation1DCaret::PositionsType& caret_positions, 
+  Annotation1DCaret::Annotation1DCaret(const Annotation1DCaret::PositionsType& caret_positions,
                                        const QString& text,
                                        const QColor& colour,
                                        const QColor& connection_line_color) :
@@ -90,12 +90,12 @@ namespace OpenMS
     // draw ticks (for now)
     if (!caret_positions_.empty())
     {
-      QPoint caret;        // draw ^ to indicate theoretical position
+      QPoint caret; // draw ^ to indicate theoretical position
       for (PositionsType::iterator it = caret_positions_.begin(); it != caret_positions_.end(); ++it)
       {
         canvas->dataToWidget(it->getX(), it->getY(), caret, flipped, true);
-        painter.drawLine(caret.x(), caret.y(), caret.x()+4, caret.y() + 4);
-        painter.drawLine(caret.x(), caret.y(), caret.x()-4, caret.y() + 4);
+        painter.drawLine(caret.x(), caret.y(), caret.x() + 4, caret.y() + 4);
+        painter.drawLine(caret.x(), caret.y(), caret.x() - 4, caret.y() + 4);
         //std::cout << "caret: " << caret.x() << "," << caret.y() << "\n";
       }
     }
@@ -120,12 +120,12 @@ namespace OpenMS
 
       bounding_box_.translate(0.0, vertical_shift);
 
-      if (flipped && bounding_box_.bottom() > canvas->height())
+      if (flipped && (bounding_box_.bottom() > canvas->height()))
       {
         bounding_box_.moveBottom(canvas->height());
         bounding_box_.moveLeft(position_widget.x() + 5.0);
       }
-      else if (!flipped && bounding_box_.top() < 0.0)
+      else if (!flipped && (bounding_box_.top() < 0.0))
       {
         bounding_box_.moveTop(0.0);
         bounding_box_.moveLeft(position_widget.x() + 5.0);
@@ -153,22 +153,22 @@ namespace OpenMS
       QLineF bottom(bounding_box_.x(), bounding_box_.y() + bounding_box_.height(), bounding_box_.x() + bounding_box_.width(), bounding_box_.y() + bounding_box_.height());
 
       QLineF::IntersectType itype;
-      QPointF * ip = new QPointF();
-      QPointF * closest_ip = new QPointF(-10e10, -10e10);
+      QPointF* ip = new QPointF();
+      QPointF* closest_ip = new QPointF(-10e10, -10e10);
       bool found_intersection = false;
 
       // intersection with top
       itype = line.intersect(top, ip);
-      if (itype == QLineF::BoundedIntersection &&
-          QLineF(caret_position_widget, *ip).length() < QLineF(caret_position_widget, *closest_ip).length())
+      if ((itype == QLineF::BoundedIntersection) &&
+          (QLineF(caret_position_widget, *ip).length() < QLineF(caret_position_widget, *closest_ip).length()))
       {
         found_intersection = true;
         *closest_ip = *ip;
       }
       // intersection with left
       itype = line.intersect(left, ip);
-      if (itype == QLineF::BoundedIntersection &&
-          QLineF(caret_position_widget, *ip).length() < QLineF(caret_position_widget, *closest_ip).length())
+      if ((itype == QLineF::BoundedIntersection) &&
+          (QLineF(caret_position_widget, *ip).length() < QLineF(caret_position_widget, *closest_ip).length()))
       {
         found_intersection = true;
         *closest_ip = *ip;
@@ -176,8 +176,8 @@ namespace OpenMS
 
       // intersection with right
       itype = line.intersect(right, ip);
-      if (itype == QLineF::BoundedIntersection &&
-          QLineF(caret_position_widget, *ip).length() < QLineF(caret_position_widget, *closest_ip).length())
+      if ((itype == QLineF::BoundedIntersection) &&
+          (QLineF(caret_position_widget, *ip).length() < QLineF(caret_position_widget, *closest_ip).length()))
       {
         found_intersection = true;
         *closest_ip = *ip;
@@ -185,8 +185,8 @@ namespace OpenMS
 
       // intersection with bottom
       itype = line.intersect(bottom, ip);
-      if (itype == QLineF::BoundedIntersection &&
-          QLineF(caret_position_widget, *ip).length() < QLineF(caret_position_widget, *closest_ip).length())
+      if ((itype == QLineF::BoundedIntersection) &&
+          (QLineF(caret_position_widget, *ip).length() < QLineF(caret_position_widget, *closest_ip).length()))
       {
         found_intersection = true;
         *closest_ip = *ip;
@@ -214,14 +214,14 @@ namespace OpenMS
     //painter.drawText(bounding_box_, Qt::AlignLeft, text_);
     //std::cout << "Text to draw: " << st_.text() << " @ " << bounding_box_.topLeft().x() << "," << bounding_box_.topLeft().y() << "\n\n";
     painter.drawStaticText(bounding_box_.topLeft(), st_);
-    
-    
+
+
     //QRect rect = QRect(10, 30, 180, 20);
     //painter.translate( rect.topLeft() );
     //doc_.drawContents( &painter, bounding_box_ );
     //painter.
-    
-    
+
+
     if (selected_)
     {
       drawBoundingBox_(painter);

@@ -99,10 +99,10 @@ namespace OpenMS
       vector<double> ratios;
       for (UInt k = 0; k < number_of_features; ++k)
       {
-        if (feature_int[map_with_most_features_idx][k] != 0.0 && feature_int[j][k] != 0.0)
+        if ((feature_int[map_with_most_features_idx][k] != 0.0) && (feature_int[j][k] != 0.0))
         {
           double ratio = feature_int[map_with_most_features_idx][k] / feature_int[j][k];
-          if (ratio > ratio_threshold && ratio < 1 / ratio_threshold)
+          if ((ratio > ratio_threshold) && (ratio < 1 / ratio_threshold))
           {
             ratios.push_back(ratio);
           }

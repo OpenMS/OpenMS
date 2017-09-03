@@ -88,7 +88,7 @@ namespace OpenMS
       {
         const double value_model = QuadraticRegression::eval(coefficients[0], coefficients[1], coefficients[2], it->first);
         const double diff = it->second - value_model;
-        rss += diff*diff;
+        rss += diff * diff;
       }
 
       return rss;

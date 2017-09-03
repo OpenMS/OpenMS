@@ -66,8 +66,8 @@ using namespace OpenMS;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPOpenSwathFileSplitter
-  : public TOPPBase
+class TOPPOpenSwathFileSplitter :
+  public TOPPBase
 {
 public:
 
@@ -87,33 +87,33 @@ protected:
   }
 
   void loadSwathFiles(StringList& file_list, String tmp, String readoptions,
-    boost::shared_ptr<ExperimentalSettings > & exp_meta,
-    std::vector< OpenSwath::SwathMap > & swath_maps)
+                      boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                      std::vector<OpenSwath::SwathMap>& swath_maps)
   {
     SwathFile swath_file;
     swath_file.setLogType(log_type_);
 
     {
       FileTypes::Type in_file_type = FileTypes::nameToType(file_list[0]);
-      if (in_file_type == FileTypes::MZML || file_list[0].suffix(4).toLower() == "mzml"
-        || file_list[0].suffix(7).toLower() == "mzml.gz"  )
+      if ((in_file_type == FileTypes::MZML) || (file_list[0].suffix(4).toLower() == "mzml")
+         || (file_list[0].suffix(7).toLower() == "mzml.gz"))
       {
         swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions);
       }
-      else if (in_file_type == FileTypes::MZXML || file_list[0].suffix(5).toLower() == "mzxml"
-        || file_list[0].suffix(8).toLower() == "mzxml.gz"  )
+      else if ((in_file_type == FileTypes::MZXML) || (file_list[0].suffix(5).toLower() == "mzxml")
+              || (file_list[0].suffix(8).toLower() == "mzxml.gz"))
       {
         swath_maps = swath_file.loadMzXML(file_list[0], tmp, exp_meta, readoptions);
       }
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Input file needs to have ending mzML or mzXML");
+                                         "Input file needs to have ending mzML or mzXML");
       }
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     ///////////////////////////////////
     // Prepare Parameters
@@ -125,14 +125,14 @@ protected:
     // Load the SWATH files
     ///////////////////////////////////
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
-    std::vector< OpenSwath::SwathMap > swath_maps;
+    std::vector<OpenSwath::SwathMap> swath_maps;
     loadSwathFiles(file_list, tmp, "split", exp_meta, swath_maps);
     return EXECUTION_OK;
   }
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPOpenSwathFileSplitter tool;
   return tool.main(argc, argv);

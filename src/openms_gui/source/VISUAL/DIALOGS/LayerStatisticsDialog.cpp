@@ -41,7 +41,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  LayerStatisticsDialog::LayerStatisticsDialog(SpectrumWidget * parent) :
+  LayerStatisticsDialog::LayerStatisticsDialog(SpectrumWidget* parent) :
     QDialog(parent)
   {
     setupUi(this);
@@ -59,7 +59,7 @@ namespace OpenMS
 
       // add two rows for charge and quality
       table_->setRowCount(table_->rowCount() + 2);
-      QTableWidgetItem * item = new QTableWidgetItem();
+      QTableWidgetItem* item = new QTableWidgetItem();
       item->setText(QString("Charge"));
       table_->setVerticalHeaderItem(1, item);
       item = new QTableWidgetItem();
@@ -106,7 +106,7 @@ namespace OpenMS
 
       // add thres rows for charge, quality and elements
       table_->setRowCount(table_->rowCount() + 3);
-      QTableWidgetItem * item = new QTableWidgetItem();
+      QTableWidgetItem* item = new QTableWidgetItem();
       item->setText(QString("Charge"));
       table_->setVerticalHeaderItem(1, item);
       item = new QTableWidgetItem();
@@ -171,7 +171,7 @@ namespace OpenMS
       //TODO CHROM
     }
     // add computed intensity stats to the table
-    QTableWidgetItem * item = new QTableWidgetItem();
+    QTableWidgetItem* item = new QTableWidgetItem();
     item->setText("-");
     table_->setItem(0, 0, item);
     item = new QTableWidgetItem();
@@ -183,7 +183,7 @@ namespace OpenMS
     item = new QTableWidgetItem();
     item->setText(QString::number(avg_intensity_, 'f', 2));
     table_->setItem(0, 3, item);
-    QPushButton * button = new QPushButton("intensity", table_);
+    QPushButton* button = new QPushButton("intensity", table_);
     table_->setCellWidget(0, 4, button);
     connect(button, SIGNAL(clicked()), this, SLOT(showDistribution_()));
 
@@ -214,7 +214,7 @@ namespace OpenMS
       item->setText(QString::number(it->second.avg, 'f', 2));
       table_->setItem(table_->rowCount() - 1, 3, item);
 
-      if (it->second.count >= 2 && it->second.min < it->second.max)
+      if ((it->second.count >= 2) && (it->second.min < it->second.max))
       {
         button = new QPushButton(name.toQString(), table_);
         table_->setCellWidget(table_->rowCount() - 1, 4, button);
@@ -237,7 +237,7 @@ namespace OpenMS
       item->setText(QString::number(it->second.count));
       table_->setItem(table_->rowCount() - 1, 0, item);
 
-      if (it->second.min <= it->second.max)      // if (min <= max) --> value numerical
+      if (it->second.min <= it->second.max) // if (min <= max) --> value numerical
       {
         item = new QTableWidgetItem();
         item->setText(QString::number(it->second.min, 'f', 2));
@@ -251,14 +251,14 @@ namespace OpenMS
         item->setText(QString::number(it->second.avg, 'f', 2));
         table_->setItem(table_->rowCount() - 1, 3, item);
 
-        if (it->second.count >= 2 && it->second.min < it->second.max)
+        if ((it->second.count >= 2) && (it->second.min < it->second.max))
         {
           button = new QPushButton(name.toQString(), table_);
           table_->setCellWidget(table_->rowCount() - 1, 4, button);
           connect(button, SIGNAL(clicked()), this, SLOT(showDistribution_()));
         }
       }
-      else       // min > max --> meta value was not numerical --> statistics only about the count
+      else // min > max --> meta value was not numerical --> statistics only about the count
       {
         item = new QTableWidgetItem();
         item->setText("-");
@@ -291,7 +291,9 @@ namespace OpenMS
       computeMetaDataArrayStats_(it_rt->getIntegerDataArrays().begin(), it_rt->getIntegerDataArrays().end());
     }
     if (divisor != 0)
+    {
       avg_intensity_ /= (double)divisor;
+    }
     computeMetaAverages_();
   }
 
@@ -315,18 +317,26 @@ namespace OpenMS
     for (FeatureIterator_ it = layer_data_.getFeatureMap()->begin(); it != layer_data_.getFeatureMap()->end(); it++)
     {
       if (it->getCharge() < min_charge_)
+      {
         min_charge_ = it->getCharge();
+      }
       if (it->getCharge() > max_charge_)
+      {
         max_charge_ = it->getCharge();
+      }
       if (it->getOverallQuality() < min_quality_)
+      {
         min_quality_ = it->getOverallQuality();
+      }
       if (it->getOverallQuality() > max_quality_)
+      {
         max_quality_ = it->getOverallQuality();
+      }
       avg_intensity_ += it->getIntensity();
       avg_charge_ += it->getCharge();
       avg_quality_ += it->getOverallQuality();
       divisor++;
-      const MetaInfoInterface & mii = static_cast<MetaInfoInterface>(*it);
+      const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(*it);
       bringInMetaStats_(mii);
     }
     if (divisor != 0)
@@ -362,17 +372,29 @@ namespace OpenMS
     for (ConsensusIterator_ it = layer_data_.getConsensusMap()->begin(); it != layer_data_.getConsensusMap()->end(); it++)
     {
       if (it->getCharge() < min_charge_)
+      {
         min_charge_ = it->getCharge();
+      }
       if (it->getCharge() > max_charge_)
+      {
         max_charge_ = it->getCharge();
+      }
       if (it->getQuality() < min_quality_)
+      {
         min_quality_ = it->getQuality();
+      }
       if (it->getQuality() > max_quality_)
+      {
         max_quality_ = it->getQuality();
+      }
       if (it->size() < min_elements_)
+      {
         min_elements_ = it->size();
+      }
       if (it->size() > max_elements_)
+      {
         max_elements_ = it->size();
+      }
       avg_intensity_ += it->getIntensity();
       avg_charge_ += it->getCharge();
       avg_quality_ += it->getQuality();
@@ -388,38 +410,42 @@ namespace OpenMS
     }
   }
 
-  void LayerStatisticsDialog::bringInMetaStats_(const MetaInfoInterface & meta_interface)
+  void LayerStatisticsDialog::bringInMetaStats_(const MetaInfoInterface& meta_interface)
   {
     vector<UInt> new_meta_keys;
     meta_interface.getKeys(new_meta_keys);
     for (vector<UInt>::iterator it_meta_index = new_meta_keys.begin(); it_meta_index != new_meta_keys.end(); ++it_meta_index)
     {
-      const DataValue & next_value = meta_interface.getMetaValue(*it_meta_index);
+      const DataValue& next_value = meta_interface.getMetaValue(*it_meta_index);
       MetaIterator_ it = meta_stats_.find(*it_meta_index);
-      if (it != meta_stats_.end())      // stats about this meta index already exist -> bring this value in
+      if (it != meta_stats_.end()) // stats about this meta index already exist -> bring this value in
       {
         it->second.count++;
-        if (next_value.valueType() == DataValue::INT_VALUE || next_value.valueType() == DataValue::DOUBLE_VALUE)
+        if ((next_value.valueType() == DataValue::INT_VALUE) || (next_value.valueType() == DataValue::DOUBLE_VALUE))
         {
           double val = (double)next_value;
           if (val < it->second.min)
+          {
             it->second.min = val;
+          }
           if (val > it->second.max)
+          {
             it->second.max = val;
+          }
           it->second.avg += val;
         }
       }
-      else       // meta index has not occurred before, create new stats for it:
+      else // meta index has not occurred before, create new stats for it:
       {
         MetaStatsValue_ meta_stats_value;
-        if (next_value.valueType() == DataValue::INT_VALUE || next_value.valueType() == DataValue::DOUBLE_VALUE)
+        if ((next_value.valueType() == DataValue::INT_VALUE) || (next_value.valueType() == DataValue::DOUBLE_VALUE))
         {
           double val = (double)next_value;
           meta_stats_value = MetaStatsValue_(1, val, val, val);
         }
         else
         {
-          meta_stats_value = MetaStatsValue_(1, 1, 0, 0);        // min=1 > max=0 (illegal) indicates that value is not numerical
+          meta_stats_value = MetaStatsValue_(1, 1, 0, 0); // min=1 > max=0 (illegal) indicates that value is not numerical
         }
         meta_stats_.insert(make_pair(*it_meta_index, meta_stats_value));
       }
@@ -446,16 +472,16 @@ namespace OpenMS
 
   void LayerStatisticsDialog::showDistribution_()
   {
-    QPushButton * button = qobject_cast<QPushButton *>(sender());
+    QPushButton* button = qobject_cast<QPushButton*>(sender());
     QString text = button->text();
 
     if (text == "intensity")
     {
-      qobject_cast<SpectrumWidget *>(parent())->showIntensityDistribution();
+      qobject_cast<SpectrumWidget*>(parent())->showIntensityDistribution();
     }
     else
     {
-      qobject_cast<SpectrumWidget *>(parent())->showMetaDistribution(String(text));
+      qobject_cast<SpectrumWidget*>(parent())->showMetaDistribution(String(text));
     }
   }
 

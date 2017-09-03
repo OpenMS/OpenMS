@@ -81,11 +81,11 @@ using namespace std;
 
     The two or more given files (see parameter @p in) are merged. If a run/set exisits in several files, the quality parameters of these are merged as well.
     Several runs from qcml files can be comprised in a set.
-    
+
     - @p setname If the runs of the given input files are to be comprised in a set, this will be the name of the set.
 
     Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
-    
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCMerger.cli
     <B>INI file documentation of this tool:</B>
@@ -110,13 +110,13 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "List of qcml files to be merged.");
     setValidFormats_("in", ListUtils::create<String>("qcML"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
-    setValidFormats_("out",ListUtils::create<String>("qcML"));
+    setValidFormats_("out", ListUtils::create<String>("qcML"));
     registerStringOption_("setname", "<string>", "", "Use only when all given qcml files belong to one set, which will be held under the given name.", false);
   }
 
-  void addBoxPlotQPs(std::map<String,String> nums, std::map<String,String> nams, String set, QcMLFile& qcmlfile)
+  void addBoxPlotQPs(std::map<String, String> nums, std::map<String, String> nams, String set, QcMLFile& qcmlfile)
   {
-    for (std::map<String, String >::const_iterator it = nums.begin(); it != nums.end(); ++it)
+    for (std::map<String, String>::const_iterator it = nums.begin(); it != nums.end(); ++it)
     {
       QcMLFile::QualityParameter qp;
       qp.name = nams[it->first]; ///< Name
@@ -128,7 +128,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -143,13 +143,13 @@ protected:
     QcMLFile qcmlfile;
     if (!setname.empty())
     {
-      qcmlfile.registerSet(setname,setname,std::set< String >());
+      qcmlfile.registerSet(setname, setname, std::set<String>());
     }
     for (Size i = 0; i < in_files.size(); ++i)
     {
       QcMLFile tmpfile;
       tmpfile.load(in_files[i]);
-      qcmlfile.merge(tmpfile,setname);
+      qcmlfile.merge(tmpfile, setname);
     }
 
     if (!setname.empty())
@@ -221,7 +221,7 @@ protected:
   }
 
 };
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPQCMerger tool;
   return tool.main(argc, argv);

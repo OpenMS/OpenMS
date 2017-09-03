@@ -152,24 +152,24 @@ protected:
         svm.setParameter(SVMWrapper::KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
       }
 
-      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("border_length") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         writeLog_("No border length saved in additional parameters file. Aborting!");
         cout << "No border length saved in additional parameters file. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
-      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("k_mer_length") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         writeLog_("No k-mer length saved in additional parameters file. Aborting!");
         cout << "No k-mer length saved in additional parameters file. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
-      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("sigma") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         writeLog_("No sigma saved in additional parameters file. Aborting!");
         cout << "No sigma saved in additional parameters file. Aborting!" << endl;

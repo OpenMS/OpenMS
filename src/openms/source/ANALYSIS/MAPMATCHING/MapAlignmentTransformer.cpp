@@ -49,11 +49,10 @@ namespace OpenMS
   bool MapAlignmentTransformer::storeOriginalRT_(MetaInfoInterface& meta_info,
                                                  double original_rt)
   {
-    if (meta_info.metaValueExists("original_RT")) return false;
+    if (meta_info.metaValueExists("original_RT")) { return false; }
     meta_info.setMetaValue("original_RT", original_rt);
     return true;
   }
-
 
   void MapAlignmentTransformer::transformRetentionTimes(
     PeakMap& msexp, const TransformationDescription& trafo,
@@ -66,7 +65,7 @@ namespace OpenMS
          mse_iter != msexp.end(); ++mse_iter)
     {
       double rt = mse_iter->getRT();
-      if (store_original_rt) storeOriginalRT_(*mse_iter, rt);
+      if (store_original_rt) { storeOriginalRT_(*mse_iter, rt); }
       mse_iter->setRT(trafo.apply(rt));
     }
 
@@ -75,11 +74,11 @@ namespace OpenMS
     {
       MSChromatogram& chromatogram = msexp.getChromatogram(i);
       vector<double> original_rts;
-      if (store_original_rt) original_rts.reserve(chromatogram.size());
+      if (store_original_rt) { original_rts.reserve(chromatogram.size()); }
       for (Size j = 0; j < chromatogram.size(); j++)
       {
         double rt = chromatogram[j].getRT();
-        if (store_original_rt) original_rts.push_back(rt);
+        if (store_original_rt) { original_rts.push_back(rt); }
         chromatogram[j].setRT(trafo.apply(rt));
       }
       if (store_original_rt && !chromatogram.metaValueExists("original_rt"))
@@ -90,7 +89,6 @@ namespace OpenMS
 
     msexp.updateRanges();
   }
-
 
   void MapAlignmentTransformer::transformRetentionTimes(
     FeatureMap& fmap, const TransformationDescription& trafo,
@@ -110,14 +108,13 @@ namespace OpenMS
     }
   }
 
-
   void MapAlignmentTransformer::applyToBaseFeature_(
     BaseFeature& feature, const TransformationDescription& trafo,
     bool store_original_rt)
   {
     // transform feature position:
     double rt = feature.getRT();
-    if (store_original_rt) storeOriginalRT_(feature, rt);
+    if (store_original_rt) { storeOriginalRT_(feature, rt); }
     feature.setRT(trafo.apply(rt));
 
     // adapt RT values of annotated peptides:
@@ -127,7 +124,6 @@ namespace OpenMS
                               store_original_rt);
     }
   }
-
 
   void MapAlignmentTransformer::applyToFeature_(
     Feature& feature, const TransformationDescription& trafo,
@@ -160,7 +156,6 @@ namespace OpenMS
     }
   }
 
-
   void MapAlignmentTransformer::transformRetentionTimes(
     ConsensusMap& cmap, const TransformationDescription& trafo,
     bool store_original_rt)
@@ -178,7 +173,6 @@ namespace OpenMS
     }
   }
 
-
   void MapAlignmentTransformer::applyToConsensusFeature_(
     ConsensusFeature& feature, const TransformationDescription& trafo,
     bool store_original_rt)
@@ -186,7 +180,7 @@ namespace OpenMS
     applyToBaseFeature_(feature, trafo, store_original_rt);
 
     // apply to grouped features (feature handles):
-    for (ConsensusFeature::HandleSetType::const_iterator it = 
+    for (ConsensusFeature::HandleSetType::const_iterator it =
            feature.getFeatures().begin(); it != feature.getFeatures().end();
          ++it)
     {
@@ -195,18 +189,17 @@ namespace OpenMS
     }
   }
 
-
   void MapAlignmentTransformer::transformRetentionTimes(
-    vector<PeptideIdentification>& pep_ids, 
+    vector<PeptideIdentification>& pep_ids,
     const TransformationDescription& trafo, bool store_original_rt)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin(); 
+    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
          pep_it != pep_ids.end(); ++pep_it)
     {
       if (pep_it->hasRT())
       {
         double rt = pep_it->getRT();
-        if (store_original_rt) storeOriginalRT_(*pep_it, rt);
+        if (store_original_rt) { storeOriginalRT_(*pep_it, rt); }
         pep_it->setRT(trafo.apply(rt));
       }
     }

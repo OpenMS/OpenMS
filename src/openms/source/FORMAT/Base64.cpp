@@ -52,32 +52,32 @@ namespace OpenMS
 
     binary  ->    char = val
 
-       0    ->     A   = 65  
-                   ...     
-      25    ->     Z   = 90  
-      26    ->     a   = 97  
-                   ...     
-      51    ->     z   = 122 
-      52    ->     0   = 48  
-                   ...     
-      61    ->     9   = 57  
-      62    ->     +   = 43  
-      63    ->     /   = 47  
-      
-   
+       0    ->     A   = 65
+                   ...
+      25    ->     Z   = 90
+      26    ->     a   = 97
+                   ...
+      51    ->     z   = 122
+      52    ->     0   = 48
+                   ...
+      61    ->     9   = 57
+      62    ->     +   = 43
+      63    ->     /   = 47
+
+
    While decoding we have to map a character to its base 64 target using the
    base 64 mapping:
 
-    char = val      ->      target 
-   
+    char = val      ->      target
+
      A   = 65       ->        0
-     ...     
+     ...
      Z   = 90       ->       25
      a   = 97       ->       26
-     ...     
+     ...
      z   = 122      ->       51
      0   = 48       ->       52
-     ...     
+     ...
      9   = 57       ->       61
      +   = 43       ->       62
      /   = 47       ->       63
@@ -138,7 +138,9 @@ print s
   {
     out.clear();
     if (in.empty())
+    {
       return;
+    }
 
     std::string str;
     std::string compressed;
@@ -147,7 +149,7 @@ print s
     for (Size i = 0; i < in.size(); ++i)
     {
       str = str.append(in[i]);
-      if (append_null_byte) str.push_back('\0');
+      if (append_null_byte) { str.push_back('\0'); }
     }
 
     if (zlib_compression)
@@ -220,9 +222,13 @@ print s
 
       // fixup for padding
       if (padding_count > 0)
+      {
         to[3] = '=';
+      }
       if (padding_count > 1)
+      {
         to[2] = '=';
+      }
 
       to += 4;
       written += 4;

@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string ProteinIdentification::NamesOfPeakMassType[] = {"Monoisotopic", "Average"};
+  const std::string ProteinIdentification::NamesOfPeakMassType[] = { "Monoisotopic", "Average" };
 
   ProteinIdentification::ProteinGroup::ProteinGroup() :
     probability(0.0), accessions()
@@ -62,10 +62,10 @@ namespace OpenMS
   bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
   {
     // comparison of probabilities is intentionally "the wrong way around":
-    if (probability > rhs.probability) return true;
-    if (probability < rhs.probability) return false;
-    if (accessions.size() < rhs.accessions.size()) return true;
-    if (accessions.size() > rhs.accessions.size()) return false;
+    if (probability > rhs.probability) { return true; }
+    if (probability < rhs.probability) { return false; }
+    if (accessions.size() < rhs.accessions.size()) { return true; }
+    if (accessions.size() > rhs.accessions.size()) { return false; }
     return accessions < rhs.accessions;
   }
 
@@ -82,7 +82,7 @@ namespace OpenMS
     fragment_mass_tolerance_ppm(false),
     precursor_mass_tolerance(0.0),
     precursor_mass_tolerance_ppm(false),
-    digestion_enzyme("unknown_enzyme","")
+    digestion_enzyme("unknown_enzyme", "")
   {
   }
 
@@ -176,7 +176,9 @@ namespace OpenMS
     for (; pos != protein_hits_.end(); ++pos)
     {
       if (pos->getAccession() == accession)
+      {
         break;
+      }
     }
     return pos;
   }
@@ -318,7 +320,9 @@ namespace OpenMS
   void ProteinIdentification::assignRanks()
   {
     if (protein_hits_.empty())
+    {
       return;
+    }
 
     UInt rank = 1;
     sort();
@@ -328,7 +332,7 @@ namespace OpenMS
     {
       lit->setRank(rank);
       ++lit;
-      if (lit != protein_hits_.end() && lit->getScore() != tmpscore)
+      if ((lit != protein_hits_.end()) && (lit->getScore() != tmpscore))
       {
         ++rank;
         tmpscore = lit->getScore();
@@ -343,22 +347,22 @@ namespace OpenMS
     for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
     {
       // peptide hits
-      const PeptideIdentification & peptide_id = pep_ids[pep_i];
+      const PeptideIdentification& peptide_id = pep_ids[pep_i];
       const vector<PeptideHit> peptide_hits = peptide_id.getHits();
       for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
       {
-        const PeptideHit & peptide_hit = peptide_hits[ph_i];
+        const PeptideHit& peptide_hit = peptide_hits[ph_i];
         const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
 
         // matched proteins for hit
         for (Size pep_ev_i = 0; pep_ev_i != ph_evidences.size(); ++pep_ev_i)
         {
-          const PeptideEvidence & evidence = ph_evidences[pep_ev_i];
+          const PeptideEvidence& evidence = ph_evidences[pep_ev_i];
           map_acc_2_evidence[evidence.getProteinAccession()].insert(evidence);
         }
       }
     }
-    
+
     for (Size i = 0; i < protein_hits_.size(); ++i)
     {
       const Size protein_length = protein_hits_[i].getSequence().length();
@@ -367,32 +371,32 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
       }
       vector<bool> covered_amino_acids(protein_length, false);
-      
-      const String & accession = protein_hits_[i].getAccession();
+
+      const String& accession = protein_hits_[i].getAccession();
       double coverage = 0.0;
       if (map_acc_2_evidence.find(accession) != map_acc_2_evidence.end())
       {
-        const set<PeptideEvidence> & evidences = map_acc_2_evidence.find(accession)->second;
+        const set<PeptideEvidence>& evidences = map_acc_2_evidence.find(accession)->second;
         for (set<PeptideEvidence>::const_iterator sit = evidences.begin(); sit != evidences.end(); ++sit)
         {
           int start = sit->getStart();
           int stop = sit->getEnd();
-          
-          if (start == PeptideEvidence::UNKNOWN_POSITION || stop == PeptideEvidence::UNKNOWN_POSITION)
+
+          if ((start == PeptideEvidence::UNKNOWN_POSITION) || (stop == PeptideEvidence::UNKNOWN_POSITION))
           {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-              " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
           }
 
-          if (start < 0 || stop < start || stop > static_cast<int>(protein_length))
+          if ((start < 0) || (stop < start) || (stop > static_cast<int>(protein_length)))
           {
             const String message = " PeptideEvidence (start/end) (" + String(start) + "/" + String(stop) +
-                                   " ) are invalid or point outside of protein '" + accession + 
-                                   "' (length: " + String(protein_length) + 
+                                   " ) are invalid or point outside of protein '" + accession +
+                                   "' (length: " + String(protein_length) +
                                    "). Cannot compute coverage!";
             throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
           }
-          
+
           std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);
         }
         coverage = 100.0 * (double) std::accumulate(covered_amino_acids.begin(), covered_amino_acids.end(), 0) / protein_length;

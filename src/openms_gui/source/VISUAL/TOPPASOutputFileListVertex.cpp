@@ -118,9 +118,13 @@ namespace OpenMS
     for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
     {
       if (suffices.size() > 1)
+      {
         text_l.push_back(String(".") + sit->first + "(" + String(sit->second) + ")");
+      }
       else
+      {
         text_l.push_back(String(".") + sit->first);
+      }
     }
     text = ListUtils::concatenate(text_l, " | ").toQString();
     // might get very long, especially if node was not reached yet, so trim
@@ -130,10 +134,10 @@ namespace OpenMS
 
     // topo sort number
     painter->drawText(-63.0, -19.0, QString::number(topo_nr_));
-    
+
     // output folder name
-    painter->drawText(painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, output_folder_name_).width()/-2, -25, output_folder_name_);
-    
+    painter->drawText(painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, output_folder_name_).width() / -2, -25, output_folder_name_);
+
   }
 
   void TOPPASOutputFileListVertex::setOutputFolderName(const QString& name)
@@ -204,8 +208,8 @@ namespace OpenMS
           throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, f.toStdString());
         }
         QString new_file = full_dir.toQString()
-            + QDir::separator()
-            + File::basename(f).toQString();
+                           + QDir::separator()
+                           + File::basename(f).toQString();
 
         // remove "_tmp<number>" if its a suffix
         QRegExp rx("_tmp\\d+$");
@@ -235,8 +239,8 @@ namespace OpenMS
               {
                 ft = FileHandler::getTypeByContent(f); // this will access the file physically
               }
-              // do we know the extension already? 
-              if (ft == FileTypes::UNKNOWN) 
+              // do we know the extension already?
+              if (ft == FileTypes::UNKNOWN)
               { // if not, try param value of '<name>_type' (more generic, supporting more than just 'out_type')
                 const Param& p = ttv->getParam();
                 String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
@@ -254,7 +258,7 @@ namespace OpenMS
         if (ft != FileTypes::UNKNOWN)
         { // replace old suffix by new suffix
           String new_suffix = String(".") + FileTypes::typeToName(ft);
-          if (!new_file.endsWith(new_suffix.toQString())) new_file = (File::removeExtension(new_file) + new_suffix).toQString();
+          if (!new_file.endsWith(new_suffix.toQString())) { new_file = (File::removeExtension(new_file) + new_suffix).toQString(); }
         }
 
         // only scheduled for writing
@@ -351,11 +355,12 @@ namespace OpenMS
     TOPPASEdge* e = *inEdgesBegin();
     TOPPASVertex* tv = e->getSourceVertex();
     String dir;
-    if (output_folder_name_.isEmpty()) {
+    if (output_folder_name_.isEmpty())
+    {
       // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
       dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_) + "-"
-                                                             + tv->getName() + "-" 
-                                                             + e->getSourceOutParamName().remove(':');
+            + tv->getName() + "-"
+            + e->getSourceOutParamName().remove(':');
     }
     else
     {

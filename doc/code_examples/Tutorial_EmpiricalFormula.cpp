@@ -41,7 +41,7 @@ Int main()
 
   EmpiricalFormula sum = methanol + water;
 
-  const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
+  const Element* carbon = ElementDB::getInstance()->getElement("Carbon");
 
   cout << sum << " "
        << sum.getNumberOf(carbon) << " "

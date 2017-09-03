@@ -42,7 +42,7 @@
 #include <QDir>
 
 #if defined(Q_WS_MAC)
-  #include <CoreServices/CoreServices.h>
+#include <CoreServices/CoreServices.h>
 #endif
 
 #include <iostream>
@@ -56,9 +56,9 @@ namespace OpenMS
   {
 
     enum OpenMS_OS {OS_UNKNOWN, OS_MACOS, OS_WINDOWS, OS_LINUX};
-    std::string OpenMS_OSNames[] = {"unknown", "MacOS", "Windows", "Linux"};
+    std::string OpenMS_OSNames[] = { "unknown", "MacOS", "Windows", "Linux" };
     enum OpenMS_Architecture {ARCH_UNKNOWN, ARCH_32BIT, ARCH_64BIT};
-    std::string OpenMS_ArchNames[] = {"unknown", "32 bit", "64 bit"};
+    std::string OpenMS_ArchNames[] = { "unknown", "32 bit", "64 bit" };
 
 #if WIN32
     OpenMS_Architecture getArchOnWin();
@@ -92,7 +92,7 @@ namespace OpenMS
     static OpenMSOSInfo getOSInfo()
     {
       OpenMSOSInfo info;
-#if defined(WIN32)  // Windows
+#if defined(WIN32) // Windows
       info.os = OS_WINDOWS;
       info.arch = getArchOnWin();
       info.os_version = getWinOSVersion();
@@ -105,7 +105,7 @@ namespace OpenMS
       // query gestalt for detailed osx version information
       // NOTE: Gestalt will be deprecated at some point in the future where we
       //       have to look for a better solution
-      SInt32 majorVersion,minorVersion,bugFixVersion;
+      SInt32 majorVersion, minorVersion, bugFixVersion;
       Gestalt(gestaltSystemVersionMajor, &majorVersion);
       Gestalt(gestaltSystemVersionMinor, &minorVersion);
       Gestalt(gestaltSystemVersionBugFix, &bugFixVersion);
@@ -193,12 +193,14 @@ namespace OpenMS
       size_t bytes = sizeof(size_t);
       switch (bytes)
       {
-        case 4:
-          return ARCH_32BIT;
-        case 8:
-          return ARCH_64BIT;
-        default:
-          return ARCH_UNKNOWN;
+      case 4:
+        return ARCH_32BIT;
+
+      case 8:
+        return ARCH_64BIT;
+
+      default:
+        return ARCH_UNKNOWN;
       }
     }
 
@@ -208,7 +210,7 @@ namespace OpenMS
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-int main(int /*argc*/, const char ** /*argv*/)
+int main(int /*argc*/, const char** /*argv*/)
 {
   cout << "OpenMS Version:" << "\n";
   cout << "==================" << "\n";

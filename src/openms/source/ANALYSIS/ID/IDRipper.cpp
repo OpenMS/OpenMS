@@ -63,7 +63,9 @@ namespace OpenMS
   IDRipper& IDRipper::operator=(const IDRipper& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
+    }
 
     DefaultParamHandler::operator=(rhs);
     updateMembers_();
@@ -98,12 +100,16 @@ namespace OpenMS
 
       //TODO LOG that file_origin was not as expected
       if (file_.empty())
+      {
         continue;
+      }
 
       // try to get peptide hits for peptide identification
       const vector<PeptideHit>& peptide_hits = pep_it->getHits();
       if (peptide_hits.empty())
+      {
         continue;
+      }
 
       // collect all protein accessions that are stored in the peptide hits
       vector<String> protein_accessions;

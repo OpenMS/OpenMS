@@ -74,7 +74,7 @@ namespace OpenMS
     delete c1_;
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::align(std::vector<PeakMap >& peakmaps, std::vector<TransformationDescription>& transformation)
+  void MapAlignmentAlgorithmSpectrumAlignment::align(std::vector<PeakMap>& peakmaps, std::vector<TransformationDescription>& transformation)
   {
     transformation.clear();
     TransformationDescription trafo;
@@ -119,13 +119,13 @@ namespace OpenMS
       for (Size k = 0; k < pattern.size(); ++k)
       {
         float s =    scoring_(*pattern[k], *(tempalign[y]));
-        if (s > maxi && s > cutoffScore_)
+        if ((s > maxi) && (s > cutoffScore_))
         {
           x = k;
           maxi = s;
         }
       }
-      if (x >= alignpoint[alignpoint.size() - 2] + 3 && y >= alignpoint[alignpoint.size() - 1] + 3)
+      if ((x >= alignpoint[alignpoint.size() - 2] + 3) && (y >= alignpoint[alignpoint.size() - 1] + 3))
       {
         alignpoint.push_back(x);
         alignpoint.push_back(y);
@@ -136,13 +136,13 @@ namespace OpenMS
       for (Size k = 0; k < tempalign.size(); ++k)
       {
         float s =    scoring_(*pattern[xn], *(tempalign[k]));
-        if (s > maxi && s > cutoffScore_)
+        if ((s > maxi) && (s > cutoffScore_))
         {
           yn = k;
           maxi = s;
         }
       }
-      if (xn >= alignpoint[alignpoint.size() - 2] + 3 && yn >= alignpoint[alignpoint.size() - 1] + 3)
+      if ((xn >= alignpoint[alignpoint.size() - 2] + 3) && (yn >= alignpoint[alignpoint.size() - 1] + 3))
       {
         alignpoint.push_back(xn);
         alignpoint.push_back(yn);
@@ -230,7 +230,7 @@ namespace OpenMS
         {
           if (insideBand_(i, j, n, m, k_))
           {
-            if (i == 0 || j == 0)
+            if ((i == 0) || (j == 0))
             {
               if (i == 0)
               {
@@ -306,7 +306,9 @@ namespace OpenMS
                   traceback[i][j] = 2;
                 }
                 else
+                {
                   traceback[i][j] = 0;
+                }
               }
               catch (Exception::OutOfRange /*&e*/)
               {
@@ -321,7 +323,7 @@ namespace OpenMS
           secondcolummatchmatrix.clear();
         }
       }
-      if (score_ >= firstcolummatchmatrix[n][m] || k_ == (Int)n + 2) // || matchmatrix[n][m] >= (2*(k_+1)+n-m)*(-gap_)+(n-(k_+1))*3/*(m-(k_+1))*cutoffScore_ -2* gap_ - (2*(k_) +((Int)m-(Int)n))*e_*/)
+      if ((score_ >= firstcolummatchmatrix[n][m]) || (k_ == (Int)n + 2)) // || matchmatrix[n][m] >= (2*(k_+1)+n-m)*(-gap_)+(n-(k_+1))*3/*(m-(k_+1))*cutoffScore_ -2* gap_ - (2*(k_) +((Int)m-(Int)n))*e_*/)
       {
         finish = true;
         firstcolummatchmatrix.clear();
@@ -332,7 +334,9 @@ namespace OpenMS
         score_ = firstcolummatchmatrix[n][m];
         k_ *= 2;
         if (k_ > (Int)n + 2)
+        {
           k_ = (Int)n + 2;
+        }
       }
     }
     // matchmatrix.clear();
@@ -358,8 +362,10 @@ namespace OpenMS
     while (!endtraceback)
     {
       //std::cout << i << " " << j << " i j " << std::endl;
-      if (i <= 0 || j <= 0)
+      if ((i <= 0) || (j <= 0))
+      {
         endtraceback = true;
+      }
       else
       {
         if (traceback[i][j] == 0)
@@ -388,9 +394,13 @@ namespace OpenMS
           j = j - 1;
         }
         else if (traceback[i][j] == 1)
+        {
           i = i - 1;
+        }
         else if (traceback[i][j] == 2)
+        {
           j = j - 1;
+        }
       }
     }
 
@@ -440,7 +450,7 @@ namespace OpenMS
 
   inline bool MapAlignmentAlgorithmSpectrumAlignment::insideBand_(Size i, Size j, Size n, Size m, Int k_)
   {
-    if ((Int)(m - n - k_) <= (Int)(i - j) && (Int) (i - j) <= k_) //  if((Int)(-k_)<=(Int)(i-j) &&(Int) (i-j) <=(Int)(k_+n-m))
+    if (((Int)(m - n - k_) <= (Int)(i - j)) && ((Int) (i - j) <= k_)) //  if((Int)(-k_)<=(Int)(i-j) &&(Int) (i-j) <=(Int)(k_+n-m))
     {
       //std::cout << i << " i " << j << " j " << " innerhalb der Bande " << std::endl;
       return true;
@@ -476,7 +486,7 @@ namespace OpenMS
           y = (Int)(temp + 1);
           s = scoreCalculation_(x, y, xbegin, ybegin, pattern, aligned, buffer, column_row_orientation);
         }
-        if (s > maxi && s > cutoffScore_)
+        if ((s > maxi) && (s > cutoffScore_))
         {
           maxi = s;
           if (ktemp < std::abs((Int)x - y) + 1)
@@ -497,15 +507,21 @@ namespace OpenMS
       {
         float score = scoring_(*pattern[i + patternbegin - 1], *aligned[j + alignbegin - 1]);
         if (score > 1)
+        {
           score = 1;
+        }
         if (debug_)
         {
           debugscoreDistributionCalculation_(score);
         }
         if (score < threshold_)
+        {
           score = mismatchscore_;
+        }
         else
+        {
           score = 2 + score;
+        }
         buffer[i][j] = score;
       }
       return buffer[i][j];
@@ -516,15 +532,21 @@ namespace OpenMS
       {
         float score = scoring_(*pattern[j + patternbegin - 1], *aligned[i + alignbegin - 1]);
         if (score > 1)
+        {
           score = 1;
+        }
         if (debug_)
         {
           debugscoreDistributionCalculation_(score);
         }
         if (score < threshold_)
+        {
           score = mismatchscore_;
+        }
         else
+        {
           score = 2 + score;
+        }
         buffer[j][i] = score;
       }
       return buffer[j][i];
@@ -547,10 +569,14 @@ namespace OpenMS
       size = 1;
     }
     else
+    {
       size = xcoordinate.size() / bucketsize_;
+    }
 
     if (size == 1)
+    {
       bucketsize_ = xcoordinate.size() - 1;
+    }
     //std::cout << size << " size "<< xcoordinate.size() << " xcoordinate.size() " << std::endl;
     for (Size i = 0; i < size; ++i)
     {
@@ -574,7 +600,7 @@ namespace OpenMS
       std::sort(temp.begin(), temp.end(), Compare(false));
       //Int anchor=(Int)(size*anchorPoints_/100);
       float anchor = (temp.size() * anchorPoints_ / 100);
-      if (anchor <= 0 && !temp.empty())
+      if ((anchor <= 0) && !temp.empty())
       {
         anchor = 1;
       }
@@ -643,7 +669,7 @@ namespace OpenMS
       myfile << debugtraceback_[i].first << " " << debugtraceback_[i].second << std::endl;
       for (Size p = 0; p < debugscorematrix_.size(); ++p)
       {
-        if (debugscorematrix_[p][0] == debugtraceback_[i].first && debugscorematrix_[p][1] == debugtraceback_[i].second)
+        if ((debugscorematrix_[p][0] == debugtraceback_[i].first) && (debugscorematrix_[p][1] == debugtraceback_[i].second))
         {
           debugscorematrix_[p][3] = 1;
           break;
@@ -661,7 +687,9 @@ namespace OpenMS
     for (Size i = 0; i < debugscorematrix_.size(); ++i)
     {
       if (scoremaximum < debugscorematrix_[i][2] + 2)
+      {
         scoremaximum = debugscorematrix_[i][2] + 2;
+      }
       //shift all score about 2 (to get 0, the default score in the debugbuffermatrix is -2 )
       debugscorematrix_[i][2] += 2;
     }
@@ -669,7 +697,9 @@ namespace OpenMS
     for (Size i = 0; i < debugscorematrix_.size(); ++i)
     {
       if (debugscorematrix_[i][2] != 0)
+      {
         debugscorematrix_[i][2] /= scoremaximum;
+      }
     }
     //write the score in a file
     /*
@@ -815,7 +845,7 @@ namespace OpenMS
     e_      = (float)param_.getValue("affinegapcost");
 
     // create spectrum compare functor if it does not yet exist
-    if (c1_ == NULL || c1_->getName() != (String)param_.getValue("scorefunction"))
+    if ((c1_ == NULL) || (c1_->getName() != (String)param_.getValue("scorefunction")))
     {
       c1_ = Factory<PeakSpectrumCompareFunctor>::create((String)param_.getValue("scorefunction"));
     }

@@ -106,7 +106,7 @@ namespace OpenMS
       {
         has_pyroglu_q = true;
       }
-      if (has_pyroglu_e && has_pyroglu_q) break;
+      if (has_pyroglu_e && has_pyroglu_q) { break; }
     }
 
     map<String, double> origin_set;
@@ -303,7 +303,7 @@ namespace OpenMS
       //scoring, maximum missed cleavage site parameter (see below) to something like 50.
       //</note>
       writeNote_(os, "protein, cleavage site", cleavage_site_);
-      
+
       //////////////// semi cleavage parameter
       //<note type="input" label="protein, cleavage semi">yes</note>
       writeNote_(os, "protein, cleavage semi", semi_cleavage_);
@@ -487,7 +487,7 @@ namespace OpenMS
       //<note type="input" label="output, results">valid</note>
       //<note>values = all|valid|stochastic</note>
       writeNote_(os, "output, results", output_results_);
- 
+
       //<note type="input" label="output, maximum valid expectation value">0.1</note>
       writeNote_(os, "output, maximum valid expectation value", String(max_valid_evalue_));
 
@@ -703,7 +703,7 @@ namespace OpenMS
 
   void XTandemInfile::setOutputResults(String result)
   {
-    if (result == "valid" || result == "all" || result == "stochastic")
+    if ((result == "valid") || (result == "all") || (result == "stochastic"))
     {
       output_results_ = result;
     }
@@ -727,7 +727,7 @@ namespace OpenMS
   {
     allow_isotope_error_ = allow_isotope_error;
   }
-  
+
   void XTandemInfile::setCleavageSite(const String& cleavage_site)
   {
     cleavage_site_ = cleavage_site;

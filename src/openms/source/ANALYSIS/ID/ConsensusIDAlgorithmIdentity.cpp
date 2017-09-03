@@ -44,7 +44,6 @@ namespace OpenMS
     setName("ConsensusIDAlgorithmIdentity"); // DefaultParamHandler
   }
 
-
   void ConsensusIDAlgorithmIdentity::preprocess_(
     vector<PeptideIdentification>& ids)
   {
@@ -60,8 +59,8 @@ namespace OpenMS
         // scores with different orientations definitely aren't comparable:
         String hi_lo = higher_better ? "higher/lower" : "lower/higher";
         String msg = "Score types '" + ids[0].getScoreType() + "' and '" +
-          pep_it->getScoreType() + "' have different orientations (" + hi_lo +
-          " is better) and cannot be compared meaningfully.";
+                     pep_it->getScoreType() + "' have different orientations (" + hi_lo +
+                     " is better) and cannot be compared meaningfully.";
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       msg, higher_better ? "false" : "true");
       }
@@ -77,7 +76,6 @@ namespace OpenMS
                << "results will be meaningless." << endl;
     }
   }
-
 
   void ConsensusIDAlgorithmIdentity::apply_(vector<PeptideIdentification>& ids,
                                             SequenceGrouping& results)
@@ -95,7 +93,7 @@ namespace OpenMS
         SequenceGrouping::iterator pos = results.find(seq);
         if (pos == results.end()) // new sequence
         {
-          results[seq] = make_pair(hit_it->getCharge(), 
+          results[seq] = make_pair(hit_it->getCharge(),
                                    vector<double>(1, hit_it->getScore()));
         }
         else // previously seen sequence
@@ -110,7 +108,7 @@ namespace OpenMS
     // calculate score and support, and update results with them:
     bool higher_better = ids[0].isHigherScoreBetter();
     Size n_other_ids = (count_empty_ ? number_of_runs_ : ids.size()) - 1;
-    for (SequenceGrouping::iterator res_it = results.begin(); 
+    for (SequenceGrouping::iterator res_it = results.begin();
          res_it != results.end(); ++res_it)
     {
       double score = getAggregateScore_(res_it->second.second, higher_better);

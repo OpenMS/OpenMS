@@ -77,7 +77,7 @@ namespace OpenMS
       // platform specific line endings:
       // Windows LE: \r\n
       //    we now have a line with \r at the end: get rid of it
-      if (str.size() >= 1 && *str.rbegin() == '\r')
+      if ((str.size() >= 1) && (*str.rbegin() == '\r'))
       {
         str = str.substr(0, str.size() - 1);
       }
@@ -100,13 +100,13 @@ namespace OpenMS
       for (Size i = 0; i < lines.size(); ++i)
       {
         // remove leading/trailing whitespace
-        if (trim_lines) lines[i].trim();
+        if (trim_lines) { lines[i].trim(); }
         // skip? (only after trimming!)
-        if (skip_empty_lines && lines[i].empty()) continue;
+        if (skip_empty_lines && lines[i].empty()) { continue; }
 
         buffer_.push_back(lines[i]);
 
-        if (first_n > -1 && static_cast<Int>(buffer_.size()) == first_n)
+        if ((first_n > -1) && (static_cast<Int>(buffer_.size()) == first_n))
         {
           had_enough = true;
           break;
@@ -166,4 +166,5 @@ namespace OpenMS
   {
     return buffer_.end();
   }
+
 } // namespace OpenMS

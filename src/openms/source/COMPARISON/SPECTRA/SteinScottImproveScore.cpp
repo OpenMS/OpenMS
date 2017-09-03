@@ -50,7 +50,7 @@ namespace OpenMS
   }
 
   /// copy constructor
-  SteinScottImproveScore::SteinScottImproveScore(const SteinScottImproveScore & source) :
+  SteinScottImproveScore::SteinScottImproveScore(const SteinScottImproveScore& source) :
     PeakSpectrumCompareFunctor(source)
   {
   }
@@ -61,7 +61,7 @@ namespace OpenMS
   }
 
   /// assignment operator
-  SteinScottImproveScore & SteinScottImproveScore::operator=(const SteinScottImproveScore & source)
+  SteinScottImproveScore& SteinScottImproveScore::operator=(const SteinScottImproveScore& source)
   {
     if (this != &source)
     {
@@ -78,7 +78,7 @@ namespace OpenMS
   @param spec  const PeakSpectrum Spectrum 1
   @see SteinScottImproveScore()
   */
-  double SteinScottImproveScore::operator()(const PeakSpectrum & spec) const
+  double SteinScottImproveScore::operator()(const PeakSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
@@ -92,7 +92,7 @@ namespace OpenMS
   @param s2  const PeakSpectrum Spectrum 2
   @see SteinScottImproveScore()
   */
-  double SteinScottImproveScore::operator()(const PeakSpectrum & s1, const PeakSpectrum & s2) const
+  double SteinScottImproveScore::operator()(const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {
     const double epsilon = (double)param_.getValue("tolerance");
     const double constant = epsilon / 10000;

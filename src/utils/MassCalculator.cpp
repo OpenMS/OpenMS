@@ -96,7 +96,7 @@ public:
 protected:
 
   bool use_avg_mass_;
-  ostream* output_;  // pointer to output stream (stdout or file)
+  ostream* output_; // pointer to output stream (stdout or file)
   String format_, separator_;
   Residue::ResidueType res_type_;
   map<String, Residue::ResidueType> res_type_names_;
@@ -104,12 +104,12 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file with peptide sequences and optionally charge numbers (mutually exclusive to 'in_seq')", false);
-    setValidFormats_("in",ListUtils::create<String>("txt"));
+    setValidFormats_("in", ListUtils::create<String>("txt"));
 
     registerStringList_("in_seq", "<peptide_sequences>", StringList(), "List of peptide sequences (mutually exclusive to 'in')", false, false);
 
     registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
-    setValidFormats_("out",ListUtils::create<String>("txt"));
+    setValidFormats_("out", ListUtils::create<String>("txt"));
 
     registerIntList_("charge", "<numbers>", ListUtils::create<Int>("0"), "List of charge states; required if 'in_seq' is given", false);
     registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
@@ -122,8 +122,8 @@ protected:
 
   double computeMass_(const AASequence& seq, Int charge) const
   {
-    if (use_avg_mass_) return seq.getAverageWeight(res_type_, charge);
-    else return seq.getMonoWeight(res_type_, charge);
+    if (use_avg_mass_) { return seq.getAverageWeight(res_type_, charge); }
+    else{ return seq.getMonoWeight(res_type_, charge); }
   }
 
   void writeTable_(const AASequence& seq, const set<Int>& charges)
@@ -146,10 +146,10 @@ protected:
          ++it)
     {
       double mass = computeMass_(seq, *it);
-      if (it != charges.begin()) *output_ << ", ";
+      if (it != charges.begin()) { *output_ << ", "; }
       *output_ << "z=" << *it << " m=" << mass << " m/z=";
-      if (*it != 0) *output_ << (mass / *it);
-      else *output_ << "inf";
+      if (*it != 0) { *output_ << (mass / *it); }
+      else{ *output_ << "inf"; }
     }
     *output_ << endl;
   }
@@ -161,20 +161,23 @@ protected:
          ++it)
     {
       double mass = computeMass_(seq, *it);
-      if (it != charges.begin()) *output_ << " ";
-      if (!mz) *output_ << mass;
-      else if (*it == 0) *output_ << "inf";
-      else *output_ << mass / *it;
+      if (it != charges.begin()) { *output_ << " "; }
+      if (!mz) { *output_ << mass; }
+      else if (*it == 0) { *output_ << "inf"; }
+      else{ *output_ << mass / *it; }
     }
     *output_ << endl;
   }
 
   void writeLine_(const AASequence& seq, const set<Int>& charges)
   {
-    if (format_ == "list") writeList_(seq, charges);
-    else if (format_ == "table") writeTable_(seq, charges);
-    else if (format_ == "mass_only") writeMassOnly_(seq, charges);
-    else writeMassOnly_(seq, charges, true); // "mz_only"
+    if (format_ == "list") { writeList_(seq, charges); }
+    else if (format_ == "table") { writeTable_(seq, charges); }
+    else if (format_ == "mass_only") { writeMassOnly_(seq, charges); }
+    else
+    {
+      writeMassOnly_(seq, charges, true);    // "mz_only"
+    }
   }
 
   String getItem_(String& line, const String& skip = " \t,;")
@@ -182,8 +185,8 @@ protected:
     Size pos = line.find_first_of(skip);
     String prefix = line.substr(0, pos);
     pos = line.find_first_not_of(skip, pos);
-    if (pos == String::npos) line = "";
-    else line = line.substr(pos);
+    if (pos == String::npos) { line = ""; }
+    else{ line = line.substr(pos); }
     return prefix;
   }
 
@@ -205,7 +208,7 @@ protected:
       try
       {
         seq = AASequence::fromString(item);
-      } 
+      }
       catch (Exception::ParseError& /*e*/)
       {
         LOG_WARN << "Warning: '" << item << "' is not a valid peptide sequence - skipping\n";
@@ -265,7 +268,7 @@ protected:
     if (format_ == "table")
     {
       separator_ = getStringOption_("separator");
-      if (separator_.empty()) separator_ = "\t";
+      if (separator_.empty()) { separator_ = "\t"; }
       // write header:
       SVOutStream sv_out(*output_, separator_);
       sv_out << "peptide" << "charge" << "mass" << "mass-to-charge" << endl;
@@ -293,7 +296,7 @@ protected:
         AASequence seq;
         try
         {
-         seq = AASequence::fromString(*it);
+          seq = AASequence::fromString(*it);
         }
         catch (Exception::ParseError& /*e*/)
         {
@@ -305,7 +308,7 @@ protected:
       }
     }
 
-    if (!out.empty()) outfile.close();
+    if (!out.empty()) { outfile.close(); }
 
     return EXECUTION_OK;
   }

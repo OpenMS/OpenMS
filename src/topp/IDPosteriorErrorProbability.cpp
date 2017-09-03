@@ -139,7 +139,7 @@ protected:
     { // hide from user -- we have a top-level param for that
       p.remove("out_plot");
     }
-    else 
+    else
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "INTERNAL ERROR: Param 'out_plot' was removed from fit-algorithm. Please update param handling internally!");
     }
@@ -167,7 +167,7 @@ protected:
     else if (engine == "MASCOT")
     {
       // issue #740: unable to fit data with score 0
-      if (hit.getScore() == 0.0) 
+      if (hit.getScore() == 0.0)
       {
         return numeric_limits<double>::quiet_NaN();
       }
@@ -194,7 +194,7 @@ protected:
     }
     else if ((engine == "MSGFPlus") || (engine == "MS-GF+"))
     {
-      if (hit.metaValueExists("MS:1002053"))  // name: MS-GF:EValue
+      if (hit.metaValueExists("MS:1002053")) // name: MS-GF:EValue
       {
         return (-1) * log10(max((double)hit.getMetaValue("MS:1002053"), smallest_e_value_));
       }
@@ -308,7 +308,7 @@ protected:
                 if (top_hits_only)
                 {
                   pep_it->sort();
-                  if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
+                  if (!hits.empty() && (!split_charge || (hits[0].getCharge() == *charge_it)))
                   {
                     double score = getScore_(*engine_it, hits[0]);
                     if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
@@ -369,14 +369,14 @@ protected:
         decoy.clear();
       }
 
-      if (split_charge) ++charge_it;
+      if (split_charge) { ++charge_it; }
     }
     while (charge_it != charges.end());
 
     if (all_scores.empty())
     {
       writeLog_("No data collected. Check whether search engine is supported.");
-      if (!ignore_bad_data) return INPUT_FILE_EMPTY;
+      if (!ignore_bad_data) { return INPUT_FILE_EMPTY; }
     }
 
     String out_plot = fit_algorithm.getValue("out_plot").toString().trim();
@@ -394,13 +394,13 @@ protected:
       {
         // only adapt plot output if plot is requested (this badly violates the output rules and needs to change!)
         // one way to fix this: plot charges into a single file (no renaming of output file needed) - but this requires major code restructuring
-        if (!out_plot.empty()) fit_algorithm.setValue("out_plot", out_plot + "_charge_" + String(charge));
+        if (!out_plot.empty()) { fit_algorithm.setValue("out_plot", out_plot + "_charge_" + String(charge)); }
         PEP_model.setParameters(fit_algorithm);
       }
 
       const bool return_value = PEP_model.fit(score_it->second[0]);
-      if (!return_value) writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
-      if (!return_value && !ignore_bad_data) return UNEXPECTED_RESULT;
+      if (!return_value) { writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine); }
+      if (!return_value && !ignore_bad_data) { return UNEXPECTED_RESULT; }
 
       if (return_value)
       {
@@ -435,11 +435,17 @@ protected:
                     {
                       score = 1.0;
                     }
-                    else 
-                    { 
+                    else
+                    {
                       score = PEP_model.computeProbability(score);
-                      if ((score > 0.0) && (score < 1.0)) unable_to_fit_data = false;  // only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
-                      if ((score > 0.2) && (score < 0.8)) data_might_not_be_well_fit = false;  //same as above
+                      if ((score > 0.0) && (score < 1.0))
+                      {
+                        unable_to_fit_data = false;                                    // only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
+                      }
+                      if ((score > 0.2) && (score < 0.8))
+                      {
+                        data_might_not_be_well_fit = false;                                    //same as above
+                      }
                     }
                     hit_it->setScore(score);
                     if (prob_correct)
@@ -467,10 +473,10 @@ protected:
             }
           }
         }
-        if (unable_to_fit_data) writeLog_(String("Unable to fit data for search engine: ") + engine);
-        if (unable_to_fit_data && !ignore_bad_data) return UNEXPECTED_RESULT;
+        if (unable_to_fit_data) { writeLog_(String("Unable to fit data for search engine: ") + engine); }
+        if (unable_to_fit_data && !ignore_bad_data) { return UNEXPECTED_RESULT; }
 
-        if (data_might_not_be_well_fit) writeLog_(String("Data might not be well fitted for search engine: ") + engine);
+        if (data_might_not_be_well_fit) { writeLog_(String("Data might not be well fitted for search engine: ") + engine); }
       }
     }
     //-------------------------------------------------------------

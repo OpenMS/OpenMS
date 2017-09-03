@@ -59,7 +59,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
 }
 */
 
-    IMSIsotopeDistribution & IMSIsotopeDistribution::operator=(const IMSIsotopeDistribution & distribution)
+    IMSIsotopeDistribution& IMSIsotopeDistribution::operator=(const IMSIsotopeDistribution& distribution)
     {
       if (this != &distribution)
       {
@@ -69,19 +69,19 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
       return *this;
     }
 
-    bool IMSIsotopeDistribution::operator==(const IMSIsotopeDistribution & distribution) const
+    bool IMSIsotopeDistribution::operator==(const IMSIsotopeDistribution& distribution) const
     {
       return this == &distribution ||
              (peaks_ == distribution.peaks_ &&
               nominal_mass_ == distribution.nominal_mass_);
     }
 
-    bool IMSIsotopeDistribution::operator!=(const IMSIsotopeDistribution & distribution) const
+    bool IMSIsotopeDistribution::operator!=(const IMSIsotopeDistribution& distribution) const
     {
       return !this->operator==(distribution);
     }
 
-    IMSIsotopeDistribution & IMSIsotopeDistribution::operator*=(const IMSIsotopeDistribution & distribution)
+    IMSIsotopeDistribution& IMSIsotopeDistribution::operator*=(const IMSIsotopeDistribution& distribution)
     {
 
       if (distribution.empty())
@@ -100,8 +100,8 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
       setMinimumSize_();
       // creates a non-const equivalent of a const parameter - it's needed to
       // get non-const iterators out of it
-      IMSIsotopeDistribution & non_const_distribution =
-        const_cast<IMSIsotopeDistribution &>(distribution);
+      IMSIsotopeDistribution& non_const_distribution =
+        const_cast<IMSIsotopeDistribution&>(distribution);
       non_const_distribution.setMinimumSize_();
 
       // sets up different iterators for an efficient folding:
@@ -156,7 +156,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
 
       @return The distribution folded with itself @c power times.
     */
-    IMSIsotopeDistribution & IMSIsotopeDistribution::operator*=(unsigned int power)
+    IMSIsotopeDistribution& IMSIsotopeDistribution::operator*=(unsigned int power)
     {
       if (power <= 1)
       {
@@ -246,7 +246,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
       {
         sum += cit->abundance;
       }
-      if (sum > 0 && std::fabs(sum - 1) > ABUNDANCES_SUM_ERROR)
+      if ((sum > 0) && (std::fabs(sum - 1) > ABUNDANCES_SUM_ERROR))
       {
         abundance_type scale = 1 / sum;
         for (peaks_iterator it = peaks_.begin(); it < peaks_.end(); ++it)
@@ -264,12 +264,12 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
       }
     }
 
-    std::ostream & operator<<(std::ostream & os, const IMSIsotopeDistribution & distribution)
+    std::ostream& operator<<(std::ostream& os, const IMSIsotopeDistribution& distribution)
     {
       for (IMSIsotopeDistribution::size_type i = 0; i < distribution.size(); ++i)
       {
-        os  << distribution.getMass(i) << ' '
-        << distribution.getAbundance(i)     << '\n';
+        os << distribution.getMass(i) << ' '
+           << distribution.getAbundance(i)     << '\n';
       }
       return os;
     }

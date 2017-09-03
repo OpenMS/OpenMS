@@ -45,7 +45,7 @@ namespace OpenMS
   float XQuestScores::preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta)
   {
 
-    if ( (matched_alpha <= 0 && matched_beta <= 0) || ions_alpha <= 0 || ions_beta <= 0)
+    if (((matched_alpha <= 0) && (matched_beta <= 0)) || (ions_alpha <= 0) || (ions_beta <= 0))
     {
       return 0.0;
     }
@@ -64,8 +64,8 @@ namespace OpenMS
       matched_beta_float = 0.1;
     }
 
-      float result = sqrt((static_cast<float>(matched_alpha_float) / static_cast<float>(ions_alpha)) * (static_cast<float>(matched_beta_float) / static_cast<float>(ions_beta)));
-      return result;
+    float result = sqrt((static_cast<float>(matched_alpha_float) / static_cast<float>(ions_alpha)) * (static_cast<float>(matched_beta_float) / static_cast<float>(ions_beta)));
+    return result;
   }
 
   float XQuestScores::preScore(Size matched_alpha, Size ions_alpha)
@@ -79,17 +79,17 @@ namespace OpenMS
     return result;
   }
 
-  double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
+  double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec, const std::vector<std::pair<Size, Size> >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
   {
     Size matched_size = matched_spec.size();
     Size theo_size = theoretical_spec.size();
 
-    if (matched_size < 1 || theo_size < 1)
+    if ((matched_size < 1) || (theo_size < 1))
     {
       return 0;
     }
 
-    double range = theoretical_spec[theo_size-1].getMZ() -  theoretical_spec[0].getMZ();
+    double range = theoretical_spec[theo_size - 1].getMZ() -  theoretical_spec[0].getMZ();
 
     // Compute fragment tolerance in Da for the mean of MZ values, if tolerance in ppm (rough approximation)
     // TODO if we keep this score, think of a way to make it compatible with ppm tolerances
@@ -106,11 +106,11 @@ namespace OpenMS
 
     if (is_xlink_spectrum)
     {
-      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  (static_cast<double>(theo_size) / static_cast<double>(n_charges)))));
+      a_priori_p = (1 - (pow((1 - 2 * tolerance_Th / (0.5 * range)), (static_cast<double>(theo_size) / static_cast<double>(n_charges)))));
     }
     else
     {
-      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  static_cast<int>(theo_size))));
+      a_priori_p = (1 - (pow((1 - 2 * tolerance_Th / (0.5 * range)), static_cast<int>(theo_size))));
     }
 
     double match_odds = 0;
@@ -137,7 +137,7 @@ namespace OpenMS
     double mindigestlength = 5;
     if (!type_is_cross_link)
     {
-      beta_size = ( maxdigestlength + mindigestlength ) - alpha_size;
+      beta_size = (maxdigestlength + mindigestlength) - alpha_size;
     }
 
     double aatotal = alpha_size + beta_size;
@@ -148,7 +148,7 @@ namespace OpenMS
     double TIC_weight_alpha = invFrac_alpha / invMax;
     double TIC_weight_beta = invFrac_beta / invMax;
 
-    double wTIC = TIC_weight_alpha * (intsum_alpha / total_current ) + TIC_weight_beta * (intsum_beta / total_current);
+    double wTIC = TIC_weight_alpha * (intsum_alpha / total_current) + TIC_weight_beta * (intsum_beta / total_current);
     return wTIC;
   }
 
@@ -172,11 +172,11 @@ namespace OpenMS
     double TIC_weight_alpha = invFrac_alpha / invMax;
     double TIC_weight_beta = invFrac_beta / invMax;
 
-    double wTIC = TIC_weight_alpha * (intsum_alpha / total_current ) + TIC_weight_beta * (intsum_beta / total_current);
+    double wTIC = TIC_weight_alpha * (intsum_alpha / total_current) + TIC_weight_beta * (intsum_beta / total_current);
     return wTIC;
   }
 
-  double XQuestScores::matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
+  double XQuestScores::matchedCurrentChain(const std::vector<std::pair<Size, Size> >& matched_spec_common, const std::vector<std::pair<Size, Size> >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
   {
     double intsum = 0;
     for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_common.size()); ++j)
@@ -190,12 +190,12 @@ namespace OpenMS
     return intsum;
   }
 
-  double XQuestScores::totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
+  double XQuestScores::totalMatchedCurrent(const std::vector<std::pair<Size, Size> >& matched_spec_common_alpha, const std::vector<std::pair<Size, Size> >& matched_spec_common_beta, const std::vector<std::pair<Size, Size> >& matched_spec_xlinks_alpha, const std::vector<std::pair<Size, Size> >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
   {
     // make vectors of matched peak indices
     double intsum = 0;
-    std::vector< Size > indices_common;
-    std::vector< Size > indices_xlinks;
+    std::vector<Size> indices_common;
+    std::vector<Size> indices_xlinks;
     for (Size j = 0; j < matched_spec_common_alpha.size(); ++j)
     {
       indices_common.push_back(matched_spec_common_alpha[j].second);
@@ -216,8 +216,8 @@ namespace OpenMS
     // make the indices in the vectors unique, to not sum up peak intensities multiple times
     sort(indices_common.begin(), indices_common.end());
     sort(indices_xlinks.begin(), indices_xlinks.end());
-    std::vector< Size >::iterator last_unique_common = unique(indices_common.begin(), indices_common.end());
-    std::vector< Size >::iterator last_unique_xlinks = unique(indices_xlinks.begin(), indices_xlinks.end());
+    std::vector<Size>::iterator last_unique_common = unique(indices_common.begin(), indices_common.end());
+    std::vector<Size>::iterator last_unique_xlinks = unique(indices_xlinks.begin(), indices_xlinks.end());
     indices_common.erase(last_unique_common, indices_common.end());
     indices_xlinks.erase(last_unique_xlinks, indices_xlinks.end());
 
@@ -233,20 +233,21 @@ namespace OpenMS
     return intsum;
   }
 
-  std::vector< double > XQuestScores::xCorrelation(const PeakSpectrum & spec1, const PeakSpectrum & spec2, Int maxshift, double tolerance)
+  std::vector<double> XQuestScores::xCorrelation(const PeakSpectrum& spec1, const PeakSpectrum& spec2, Int maxshift, double tolerance)
   {
     // generate vector of results, filled with zeroes
-    std::vector< double > results(maxshift * 2 + 1, 0);
+    std::vector<double> results(maxshift * 2 + 1, 0);
 
     // return 0 = no correlation, when one of the spectra is empty
-    if (spec1.size() == 0 || spec2.size() == 0) {
+    if ((spec1.size() == 0) || (spec2.size() == 0))
+    {
       return results;
     }
 
-    double maxionsize = std::max(spec1[spec1.size()-1].getMZ(), spec2[spec2.size()-1].getMZ());
-    Int table_size = ceil(maxionsize / tolerance)+1;
-    std::vector< double > ion_table1(table_size, 0);
-    std::vector< double > ion_table2(table_size, 0);
+    double maxionsize = std::max(spec1[spec1.size() - 1].getMZ(), spec2[spec2.size() - 1].getMZ());
+    Int table_size = ceil(maxionsize / tolerance) + 1;
+    std::vector<double> ion_table1(table_size, 0);
+    std::vector<double> ion_table2(table_size, 0);
 
     // Build tables of the same size, each bin has the size of the tolerance
     for (Size i = 0; i < spec1.size(); ++i)
@@ -259,7 +260,7 @@ namespace OpenMS
     }
     for (Size i = 0; i < spec2.size(); ++i)
     {
-      Size pos =static_cast<Size>(ceil(spec2[i].getMZ() / tolerance));
+      Size pos = static_cast<Size>(ceil(spec2[i].getMZ() / tolerance));
       // with this line, use real intensities
 //      ion_table2[pos] = spec2[i].getIntensity();
       // with this line, use intensities normalized to 10
@@ -287,7 +288,7 @@ namespace OpenMS
       for (Int i = 0; i < table_size; ++i)
       {
         Int j = i + shift;
-        if ( (j >= 0) && (j < table_size))
+        if ((j >= 0) && (j < table_size))
         {
           s += (ion_table1[i] - mean1) * (ion_table2[j] - mean2);
         }

@@ -195,13 +195,13 @@ namespace OpenMS
     while (f_iter != features.end() && fabs(f_iter->getRT() - rt) < 0.1 && count < number)
     {
       //std::cout << *f_iter << std::endl;
-      if ((f_iter->metaValueExists("fragmented") && f_iter->getMetaValue("fragmented") != "true")
+      if ((f_iter->metaValueExists("fragmented") && (f_iter->getMetaValue("fragmented") != "true"))
          || !f_iter->metaValueExists("fragmented"))
       {
         if (type_ == DEX)
         {
           // if it matching a mass of an identified protein, continue
-          if (f_iter->metaValueExists("shifted") && f_iter->getMetaValue("shifted") == "down")
+          if (f_iter->metaValueExists("shifted") && (f_iter->getMetaValue("shifted") == "down"))
           {
             ++f_iter;
             continue;
@@ -256,13 +256,13 @@ namespace OpenMS
     FeatureMap::Iterator iter = features.begin();
     while (iter != features.end() && count < number)
     {
-      if ((iter->metaValueExists("fragmented") && iter->getMetaValue("fragmented") != "true")
+      if ((iter->metaValueExists("fragmented") && (iter->getMetaValue("fragmented") != "true"))
          || !iter->metaValueExists("fragmented"))
       {
         if (type_ == DEX)
         {
           // if it matching a mass of an identified protein, continue
-          if (iter->metaValueExists("shifted") && iter->getMetaValue("shifted") == "down")
+          if (iter->metaValueExists("shifted") && (iter->getMetaValue("shifted") == "down"))
           {
             ++iter;
             continue;
@@ -318,9 +318,9 @@ namespace OpenMS
 #ifdef PIS_DEBUG
             std::cout << *acc_it << " hat " << prot_id_counter_[*acc_it].size() << " hits" << std::endl;
 #endif
-            if ((param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "true" &&
-                 prot_id_counter_[*acc_it].size() >= min_pep_ids_) // protein is already identified
-               || (param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "false" &&
+            if (((param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "true") &&
+                 (prot_id_counter_[*acc_it].size() >= min_pep_ids_)) // protein is already identified
+               || ((param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "false") &&
                    (protein_inference.getProteinProbability(*acc_it) > min_protein_probability) &&
                    (protein_inference.isProteinInMinimalList(*acc_it)))) // protein is already identified
             {
@@ -367,29 +367,31 @@ namespace OpenMS
     // go through all proteins whose status changed
     for (; it != status_changed.end(); ++it)
     {
-      if ((param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "true" && prot_id_counter_[*it].size() >= min_pep_ids_) ||
-          (param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "false" && (protein_inference.getProteinProbability(*it) > min_protein_probability) &&
+      if (((param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "true") && (prot_id_counter_[*it].size() >= min_pep_ids_)) ||
+          ((param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "false") && (protein_inference.getProteinProbability(*it) > min_protein_probability) &&
            (protein_inference.isProteinInMinimalList(*it))))
       {
 #ifdef PIS_DEBUG
         std::cout << *it << "\t" << prot_id_counter_[*it].size() << " hits \n";
 #endif
         // change ordering of corresponding features ->down
-        if (type_ == UPSHIFT || type_ == SPS)
+        if ((type_ == UPSHIFT) || (type_ == SPS))
+        {
           continue;
+        }
         shiftDown_(features, preprocessed_db, *it);
       }
       else
       {
-        if (type_ != DOWNSHIFT && type_ != DEX && type_ != SPS)
+        if ((type_ != DOWNSHIFT) && (type_ != DEX) && (type_ != SPS))
         {
           // change ordering of corresponding features ->up
 #ifdef PIS_DEBUG
           std::cout << *it << "\t" << prot_id_counter_[*it].size() << " hits \n";
 #endif
-          if (((param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "false" &&
-                protein_inference.getProteinProbability(*it) > min_protein_probability_for_change) ||
-               param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "true")
+          if ((((param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "false") &&
+                (protein_inference.getProteinProbability(*it) > min_protein_probability_for_change)) ||
+               (param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "true"))
              &&  (protein_inference.isProteinInMinimalList(*it)))
           {
             shiftUp_(features, preprocessed_db, *it);
@@ -406,7 +408,9 @@ namespace OpenMS
   {
     // check for required MetaValues in FeatureMap
     if (check_meta_values)
+    {
       checkForRequiredUserParams_(features);
+    }
 #ifdef PIS_DEBUG
     std::cout << "checked for user params" << std::endl;
 #endif
@@ -450,10 +454,10 @@ namespace OpenMS
       FeatureMap::Iterator f_iter = features.begin();
       for (; f_iter != features.end(); ++f_iter)
       {
-        if ((double) f_iter->getMetaValue("msms_score") > 0
-           && f_iter->getMetaValue("fragmented") == "false"
-           && f_iter->getMetaValue("shifted") != "down"
-           && f_iter->getMetaValue("shifted") != "both")
+        if (((double) f_iter->getMetaValue("msms_score") > 0)
+           && (f_iter->getMetaValue("fragmented") == "false")
+           && (f_iter->getMetaValue("shifted") != "down")
+           && (f_iter->getMetaValue("shifted") != "both"))
         {
           double weight = preprocessed_db.getWeight(*aa_vec_iter);
           if (mz_tolerance_unit_ == "ppm")
@@ -518,18 +522,18 @@ namespace OpenMS
       FeatureMap::Iterator f_iter = features.begin();
       for (; f_iter != features.end(); ++f_iter)
       {
-        if ((double) f_iter->getMetaValue("msms_score") > 0
-           && f_iter->getMetaValue("fragmented") == "false"
-           && f_iter->getMetaValue("shifted") != "up"
-           && f_iter->getMetaValue("shifted") != "both")
+        if (((double) f_iter->getMetaValue("msms_score") > 0)
+           && (f_iter->getMetaValue("fragmented") == "false")
+           && (f_iter->getMetaValue("shifted") != "up")
+           && (f_iter->getMetaValue("shifted") != "both"))
         {
           double weight = preprocessed_db.getWeight(*aa_vec_iter);
           if (mz_tolerance_unit_ == "ppm")
           {
 
-            if (fabs(f_iter->getMZ() - *aa_vec_iter) < ((f_iter->getMZ() * mz_tolerance_) / 1e06)
-               && f_iter->getMetaValue("shifted") != "up"
-               && f_iter->getMetaValue("shifted") != "both")
+            if ((fabs(f_iter->getMZ() - *aa_vec_iter) < ((f_iter->getMZ() * mz_tolerance_) / 1e06))
+               && (f_iter->getMetaValue("shifted") != "up")
+               && (f_iter->getMetaValue("shifted") != "both"))
             {
               // matching mass
               double score = (double)f_iter->getMetaValue("msms_score");
@@ -549,9 +553,9 @@ namespace OpenMS
               }
             }
           }
-          else if (fabs(f_iter->getMZ() - *aa_vec_iter) < mz_tolerance_
-                  && f_iter->getMetaValue("shifted") != "up"
-                  && f_iter->getMetaValue("shifted") != "both")
+          else if ((fabs(f_iter->getMZ() - *aa_vec_iter) < mz_tolerance_)
+                  && (f_iter->getMetaValue("shifted") != "up")
+                  && (f_iter->getMetaValue("shifted") != "both"))
           {
             // matching mass
             double score = (double)f_iter->getMetaValue("msms_score");
@@ -583,14 +587,22 @@ namespace OpenMS
     for (UInt i = 0; i < features.size(); ++i)
     {
       if (!features[i].metaValueExists("shifted"))
+      {
         features[i].setMetaValue("shifted", (String)"false");
+      }
       if (!features[i].metaValueExists("fragmented"))
+      {
         features[i].setMetaValue("fragmented", (String)"false");
+      }
       // default value for msms_score???
       if (!features[i].metaValueExists("msms_score"))
+      {
         features[i].setMetaValue("msms_score", features[i].getIntensity());
+      }
       if (!features[i].metaValueExists("init_msms_score"))
+      {
         features[i].setMetaValue("init_msms_score", features[i].getIntensity());
+      }
     }
 #ifdef PIS_DEBUG
     std::cout << "...finished" << std::endl;
@@ -609,8 +621,8 @@ namespace OpenMS
       {
         for (UInt hit_c = 0; hit_c < pep_ids[id_c].getHits().size(); ++hit_c)
         {
-          if (pep_ids[id_c].getHits()[hit_c].getScore() >= pep_ids[id_c].getSignificanceThreshold() &&
-              (Int)pep_ids[id_c].getHits()[hit_c].getMetaValue("Rank") == 1)
+          if ((pep_ids[id_c].getHits()[hit_c].getScore() >= pep_ids[id_c].getSignificanceThreshold()) &&
+              ((Int)pep_ids[id_c].getHits()[hit_c].getMetaValue("Rank") == 1))
           {
             tmp_hits.push_back(pep_ids[id_c].getHits()[hit_c]);
           }
@@ -618,8 +630,8 @@ namespace OpenMS
       }
       else // if meta value rank doesn't exist, take highest scoring peptide hit
       {
-        if (pep_ids[id_c].getHits().size() == 1 &&
-            pep_ids[id_c].getHits()[0].getScore() >= pep_ids[id_c].getSignificanceThreshold())
+        if ((pep_ids[id_c].getHits().size() == 1) &&
+            (pep_ids[id_c].getHits()[0].getScore() >= pep_ids[id_c].getSignificanceThreshold()))
         {
           tmp_hits.push_back(pep_ids[id_c].getHits()[0]);
         }
@@ -665,9 +677,13 @@ namespace OpenMS
   {
     convertPeptideIdScores_(pep_ids);
     if (param_.getValue("type") == "ILP_IPS")
+    {
       simulateILPBasedIPSRun_(features, experiment, pep_ids, prot_ids, preprocessed_db, path, precursor_path);
+    }
     else
+    {
       simulateRun_(features, pep_ids, prot_ids, preprocessed_db, path, precursor_path);
+    }
   }
 
   void PrecursorIonSelection::simulateRun_(FeatureMap& features, std::vector<PeptideIdentification>& param_pep_ids,
@@ -697,7 +713,9 @@ namespace OpenMS
     bool sequential_order = (param_.getValue("sequential_spectrum_order") == "true") ? true : false;
 
     if (features.empty())
+    {
       return;
+    }
 
     // check if feature map has required user_params-> else add them
     checkForRequiredUserParams_(features);
@@ -727,7 +745,9 @@ namespace OpenMS
       getNextPrecursorsSeq(features, new_features, step_size, curr_rt);
     }
     else
+    {
       getNextPrecursors(features, new_features, step_size);
+    }
 
     Size precursors = 0;
     UInt iteration = 0;
@@ -737,7 +757,9 @@ namespace OpenMS
 
     std::ofstream* precs = 0;
     if (precursor_path != "")
+    {
       precs = new std::ofstream(precursor_path.c_str());
+    }
 
 #ifdef PIS_DEBUG
     std::cout << max_iteration_ << std::endl;
@@ -787,7 +809,7 @@ namespace OpenMS
           std::cout << std::endl;
         }
 
-        if ((double)new_features[c].getMetaValue("init_msms_score") == 0 && !pep_ids.empty())
+        if (((double)new_features[c].getMetaValue("init_msms_score") == 0) && !pep_ids.empty())
         {
           std::cout << "Attention: score was 0, but spectrum led to an id!!! "
                     << std::endl;
@@ -831,7 +853,7 @@ namespace OpenMS
                       }
                     }
                   } // for(UInt s_prot_id = 0; s_prot_id <...
-                  // add only if this protein doesn't exist as a hit yet
+                    // add only if this protein doesn't exist as a hit yet
                   if (!exists)
                   {
                     if (!all_prot_ids.empty())
@@ -878,9 +900,13 @@ namespace OpenMS
         protein_inference.calculateProteinProbabilities(all_pep_ids);
         UInt num_prot_ids = 0;
         if (use_peptide_rule)
+        {
           num_prot_ids = protein_inference.getNumberOfProtIdsPeptideRule(min_peptides, prot_id_counter_);
+        }
         else
+        {
           num_prot_ids = protein_inference.getNumberOfProtIds(protein_id_threshold);
+        }
         outf << iteration << "\t\t"
              << num_prot_ids << "\t\t"
              << precursors << "\t\t"
@@ -893,7 +919,9 @@ namespace OpenMS
           getNextPrecursorsSeq(features, new_features, step_size, curr_rt);
         }
         else
+        {
           getNextPrecursors(features, new_features, step_size);
+        }
         continue;
       }
       protein_inference.findMinimalProteinList(all_pep_ids);
@@ -901,9 +929,13 @@ namespace OpenMS
       UInt num_prot_ids = 0;
       rescore_(features, curr_pep_ids, preprocessed_db, protein_inference);
       if (use_peptide_rule)
+      {
         num_prot_ids = protein_inference.getNumberOfProtIdsPeptideRule(min_peptides, prot_id_counter_);
+      }
       else
+      {
         num_prot_ids = protein_inference.getNumberOfProtIds(protein_id_threshold);
+      }
       //      features.sortByMZ();
       //      rescore_(features, curr_pep_ids, preprocessed_db,protein_inference);
 
@@ -943,7 +975,9 @@ namespace OpenMS
         getNextPrecursorsSeq(features, new_features, step_size, curr_rt);
       }
       else
+      {
         getNextPrecursors(features, new_features, step_size);
+      }
 #ifdef PIS_DEBUG
       std::cout << new_features.size() << " compounds for msms" << std::endl;
 #endif
@@ -1085,7 +1119,9 @@ namespace OpenMS
 
     std::ofstream* precs = 0;
     if (precursor_path != "")
+    {
       precs = new std::ofstream(precursor_path.c_str());
+    }
 
     std::vector<PeptideIdentification> curr_pep_ids, all_pep_ids;
     std::vector<ProteinIdentification> curr_prot_ids;
@@ -1204,9 +1240,13 @@ namespace OpenMS
       //#endif
       UInt num_prots = 0;
       if (use_peptide_rule)
+      {
         num_prots = protein_inference.getNumberOfProtIdsPeptideRule(min_peptides, prot_id_counter_);
+      }
       else
+      {
         num_prots = protein_inference.getNumberOfProtIds(protein_id_threshold);
+      }
 
       std::cout << "step size constraint update" << std::endl;
       ilp_wrapper.updateStepSizeConstraint(iteration, step_size);
@@ -1269,7 +1309,9 @@ namespace OpenMS
       for (UInt i = 0; i < hits.size(); ++i)
       {
         if (prot_id_counter_[hits[i].getAccession()].size() < min_pep_ids_)
+        {
           continue; // if this protein has less than 3 peptides it isn't identified
+        }
         // for debugging purposes
         ++prot_id_count;
         // is this already combined?
@@ -1280,7 +1322,9 @@ namespace OpenMS
           for (UInt j = i + 1; j < hits.size(); ++j)
           {
             if (prot_id_counter_[hits[j].getAccession()].size() < min_pep_ids_)
+            {
               continue;
+            }
             // get referencing hits
             std::set<String> pep_hits_i = prot_id_counter_[hits[i].getAccession()];
             std::set<String> pep_hits_j = prot_id_counter_[hits[j].getAccession()];
@@ -1337,7 +1381,9 @@ namespace OpenMS
           pep_ids[i].setHits(hits);
         }
         else
+        {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid score type, should be either a posterior error probability or a probability!", pep_ids[i].getScoreType());
+        }
       }
     }
   }
@@ -1349,17 +1395,29 @@ namespace OpenMS
 #endif
 
     if (param_.getValue("type") == "IPS")
+    {
       type_ = IPS;
+    }
     else if (param_.getValue("type") == "ILP_IPS")
+    {
       type_ = ILP_IPS;
+    }
     else if (param_.getValue("type") == "Upshift")
+    {
       type_ = UPSHIFT;
+    }
     else if (param_.getValue("type") == "Downshift")
+    {
       type_ = DOWNSHIFT;
+    }
     else if (param_.getValue("type") == "SPS")
+    {
       type_ = SPS;
+    }
     else
+    {
       type_ = DEX;
+    }
     min_pep_ids_ = (UInt)param_.getValue("MIPFormulation:thresholds:min_peptide_ids");
     mz_tolerance_unit_ = (String)param_.getValue("Preprocessing:precursor_mass_tolerance_unit");
     mz_tolerance_ = (double)param_.getValue("Preprocessing:precursor_mass_tolerance");

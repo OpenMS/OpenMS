@@ -43,7 +43,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-SimpleSVM::SimpleSVM():
+SimpleSVM::SimpleSVM() :
   DefaultParamHandler("SimpleSVM"), data_(), model_(0)
 {
   defaults_.setValue("kernel", "RBF", "SVM kernel");
@@ -62,7 +62,7 @@ SimpleSVM::SimpleSVM():
   defaults_.setValue("epsilon", 0.001, "Stopping criterion", advanced);
   defaults_.setMinFloat("epsilon", 0.0);
 
-  defaults_.setValue("cache_size", 100.0, "Size of the kernel cache (in MB)", 
+  defaults_.setValue("cache_size", 100.0, "Size of the kernel cache (in MB)",
                      advanced);
   defaults_.setMinFloat("cache_size", 1.0);
 
@@ -76,14 +76,12 @@ SimpleSVM::SimpleSVM():
   svm_set_print_string_function(&printNull_); // suppress output of LIBSVM
 }
 
-
 SimpleSVM::~SimpleSVM()
 {
-  if (model_ != 0) svm_free_model_content(model_);
+  if (model_ != 0) { svm_free_model_content(model_); }
   delete[] data_.x;
   delete[] data_.y;
 }
-
 
 void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
 {
@@ -109,7 +107,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
     if (it->first >= n_obs)
     {
       String msg = "Invalid training index; there are only " + String(n_obs) +
-        " observations.";
+                   " observations.";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     msg, String(it->first));
     }
@@ -124,18 +122,18 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
                                         "labels) for SVM classification.");
   }
   String msg = "Training SVM on " + String(data_.l) + " observations. Classes:";
-  for (map<Int, Size>::iterator it = label_table.begin(); 
+  for (map<Int, Size>::iterator it = label_table.begin();
        it != label_table.end(); ++it)
   {
     if (it->second < n_parts_)
     {
       msg = "Not enough observations of class " + String(it->first) + " for " +
-        String(n_parts_) + "-fold cross-validation.";
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
+            String(n_parts_) + "-fold cross-validation.";
+      throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
     msg += "\n- '" + String(it->first) + "': " + String(it->second) +
-      " observations";
+           " observations";
   }
   LOG_INFO << msg << endl;
 
@@ -151,15 +149,14 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
   optimizeParameters_();
   svm_params_.probability = 1;
   // in case "setup" was called before:
-  if (model_ != 0) svm_free_model_content(model_);
+  if (model_ != 0) { svm_free_model_content(model_); }
   model_ = svm_train(&data_, &svm_params_);
   LOG_INFO << "Number of support vectors in the final model: " << model_->l
            << endl;
 }
 
-
 void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
-  const
+const
 {
   if (model_ == 0)
   {
@@ -172,7 +169,8 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
   if (indexes.empty())
   {
     indexes.reserve(n_obs);
-    for (Size i = 0; i < n_obs; indexes.push_back(i++));
+    for (Size i = 0; i < n_obs; indexes.push_back(i++))
+      ;
   }
   Size n_classes = svm_get_nr_class(model_);
   vector<Int> labels(n_classes);
@@ -184,13 +182,13 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
   {
     if (*it >= n_obs)
     {
-      String msg = "Invalid index for prediction; there are only " + 
-        String(n_obs) + " observations.";
+      String msg = "Invalid index for prediction; there are only " +
+                   String(n_obs) + " observations.";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     msg, String(*it));
     }
     Prediction pred;
-    pred.label = Int(svm_predict_probability(model_, &(nodes_[*it][0]), 
+    pred.label = Int(svm_predict_probability(model_, &(nodes_[*it][0]),
                                              &(probabilities[0])));
     for (Size i = 0; i < n_classes; ++i)
     {
@@ -199,7 +197,6 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
     predictions.push_back(pred);
   }
 }
-
 
 void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 {
@@ -223,16 +220,15 @@ void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
   {
     double sv_coef = model_->sv_coef[0][l];
     // LIBSVM uses a sparse representation for data (incl. support vectors):
-    for (Size n = 0; ; ++n)
+    for (Size n = 0;; ++n)
     {
       const struct svm_node& node = model_->SV[l][n];
-      if (node.index == -1) break;
+      if (node.index == -1) { break; }
       const String& predictor_name = predictor_names_[node.index - 1];
       feature_weights[predictor_name] += sv_coef * node.value;
     }
   }
 }
-
 
 void SimpleSVM::scaleData_(PredictorMap& predictors) const
 {
@@ -246,7 +242,7 @@ void SimpleSVM::scaleData_(PredictorMap& predictors) const
     double vmax = *max_element(val_begin, val_end);
     if (vmin == vmax)
     {
-      LOG_INFO << "Predictor '" + pred_it->first + "' is uninformative." 
+      LOG_INFO << "Predictor '" + pred_it->first + "' is uninformative."
                << endl;
       pred_it->second.clear();
       continue;
@@ -259,7 +255,6 @@ void SimpleSVM::scaleData_(PredictorMap& predictors) const
   }
 }
 
-
 void SimpleSVM::convertData_(const PredictorMap& predictors)
 {
   Size n_obs = predictors.begin()->second.size();
@@ -270,7 +265,10 @@ void SimpleSVM::convertData_(const PredictorMap& predictors)
   for (PredictorMap::const_iterator pred_it = predictors.begin();
        pred_it != predictors.end(); ++pred_it)
   {
-    if (pred_it->second.empty()) continue; // uninformative predictor
+    if (pred_it->second.empty())
+    {
+      continue;                            // uninformative predictor
+    }
     pred_index++; // LIBSVM counts observations from 1
     predictor_names_.push_back(pred_it->first);
     for (Size obs_index = 0; obs_index < n_obs; ++obs_index)
@@ -278,20 +276,19 @@ void SimpleSVM::convertData_(const PredictorMap& predictors)
       double value = pred_it->second[obs_index];
       if (value > 0.0)
       {
-        svm_node node = {pred_index, value};
+        svm_node node = { pred_index, value };
         nodes_[obs_index].push_back(node);
       }
     }
   }
   LOG_DEBUG << "Number of predictors for SVM: " << pred_index << endl;
-  svm_node final = {-1, 0.0};
+  svm_node final = { -1, 0.0 };
   for (vector<vector<struct svm_node> >::iterator node_it = nodes_.begin();
        node_it != nodes_.end(); ++node_it)
   {
     node_it->push_back(final);
   }
 }
-
 
 void SimpleSVM::writeXvalResults(const String& path) const
 {
@@ -302,12 +299,11 @@ void SimpleSVM::writeXvalResults(const String& path) const
   {
     for (Size c_index = 0; c_index < log2_C_.size(); ++c_index)
     {
-      output << log2_C_[c_index] << log2_gamma_[g_index] 
+      output << log2_C_[c_index] << log2_gamma_[g_index]
              << performance_[g_index][c_index] << nl;
     }
   }
 }
-
 
 pair<double, double> SimpleSVM::chooseBestParameters_() const
 {
@@ -331,7 +327,7 @@ pair<double, double> SimpleSVM::chooseBestParameters_() const
       }
     }
   }
-  LOG_INFO << "Best cross-validation performance: " 
+  LOG_INFO << "Best cross-validation performance: "
            << float(best_value * 100.0) << "% correct" << endl;
   if (best_indexes.size() == 1)
   {
@@ -372,7 +368,6 @@ pair<double, double> SimpleSVM::chooseBestParameters_() const
   return make_pair(log2_C_[indexes.second], log2_gamma_[indexes.first]);
 }
 
-
 void SimpleSVM::optimizeParameters_()
 {
   log2_C_ = param_.getValue("log2_C");
@@ -385,7 +380,7 @@ void SimpleSVM::optimizeParameters_()
     log2_gamma_ = vector<double>(1, 0.0);
   }
 
-  LOG_INFO << "Running cross-validation to find optimal SVM parameters..." 
+  LOG_INFO << "Running cross-validation to find optimal SVM parameters..."
            << endl;
   Size prog_counter = 0;
   ProgressLogger prog_log;
@@ -406,13 +401,13 @@ void SimpleSVM::optimizeParameters_()
       Size n_correct = 0;
       for (Size i = 0; i < Size(data_.l); ++i)
       {
-        if (targets[i] == data_.y[i]) n_correct++;
+        if (targets[i] == data_.y[i]) { n_correct++; }
       }
       double ratio = n_correct / double(data_.l);
       performance_[g_index][c_index] = ratio;
       prog_log.setProgress(++prog_counter);
-      LOG_DEBUG << "Performance (log2_C = " << log2_C_[c_index] 
-                << ", log2_gamma = " << log2_gamma_[g_index] << "): " 
+      LOG_DEBUG << "Performance (log2_C = " << log2_C_[c_index]
+                << ", log2_gamma = " << log2_gamma_[g_index] << "): "
                 << n_correct << " correct (" << float(ratio * 100.0) << "%)"
                 << endl;
     }
@@ -426,4 +421,3 @@ void SimpleSVM::optimizeParameters_()
   svm_params_.C = pow(2.0, best_params.first);
   svm_params_.gamma = pow(2.0, best_params.second);
 }
-

@@ -41,7 +41,7 @@ namespace OpenMS
   TOPPASVertexNameDialog::TOPPASVertexNameDialog(const QString& name, const QString& input_regex)
   {
     setupUi(this);
-    
+
     if (!input_regex.isEmpty())
     {
       QRegExp rx(input_regex);
@@ -56,7 +56,7 @@ namespace OpenMS
 
   QString TOPPASVertexNameDialog::getName()
   {
-    
+
     return line_edit->text();
   }
 

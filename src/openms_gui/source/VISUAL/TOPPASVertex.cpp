@@ -48,7 +48,7 @@ namespace OpenMS
   int TOPPASVertex::global_debug_indent_ = 0;
 #endif
 
-    int TOPPASVertex::TOPPASFilenames::size() const
+  int TOPPASVertex::TOPPASFilenames::size() const
   {
     return filenames_.size();
   }
@@ -57,6 +57,7 @@ namespace OpenMS
   {
     return filenames_;
   }
+
   const QString& TOPPASVertex::TOPPASFilenames::operator[](int i) const
   {
     return filenames_[i];
@@ -82,7 +83,7 @@ namespace OpenMS
 
   void TOPPASVertex::TOPPASFilenames::append(const QStringList& filenames)
   {
-    foreach(const QString& fn, filenames)
+    foreach(const QString &fn, filenames)
     {
       check_(fn);
       push_back(fn);
@@ -106,7 +107,6 @@ namespace OpenMS
     }
 #endif
   }
-
 
   TOPPASVertex::TOPPASVertex() :
     QObject(),
@@ -134,8 +134,8 @@ namespace OpenMS
     QObject(),
     QGraphicsItem(),
     // do not copy pointers to edges
-    in_edges_(/*rhs.in_edges_*/),
-    out_edges_(/*rhs.out_edges_*/),
+    in_edges_( /*rhs.in_edges_*/),
+    out_edges_( /*rhs.out_edges_*/),
     edge_being_created_(rhs.edge_being_created_),
     pen_color_(rhs.pen_color_),
     brush_color_(rhs.brush_color_),
@@ -186,7 +186,7 @@ namespace OpenMS
   {
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
-      TOPPASVertex * tv = (*it)->getSourceVertex();
+      TOPPASVertex* tv = (*it)->getSourceVertex();
       if (!tv->isFinished())
       {
         // some tool that we depend on has not finished execution yet --> do not start yet
@@ -245,9 +245,11 @@ namespace OpenMS
     // -- check if rounds from recyling nodes are an integer part of total rounds, i.e. total_rounds = X * node_rounds, X from N+
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it) // look at all all recycling edges
     {
-      TOPPASVertex * tv = (*it)->getSourceVertex();
+      TOPPASVertex* tv = (*it)->getSourceVertex();
       if (!tv->allow_output_recycling_)
+      {
         continue;
+      }
 
       if (round_common % tv->round_total_ != 0) // modulo should be 0, if not ...
       {
@@ -279,7 +281,7 @@ namespace OpenMS
         VertexRoundPackage rpg;
         rpg.edge = *it;
         int upstream_round = round;
-        if (tv_upstream->allow_output_recycling_ && upstream_round >= tv_upstream->round_total_)
+        if (tv_upstream->allow_output_recycling_ && (upstream_round >= tv_upstream->round_total_))
         {
           upstream_round %= tv_upstream->round_total_;
         }
@@ -306,7 +308,7 @@ namespace OpenMS
     RoundPackage rp = output_files_[round];
     if (rp.find(param_index) == rp.end())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_index, rp.size()); // index could be larger (its a map, but nevertheless)
     }
     //String s = String(rp[param_index].filenames.join("\" \""));
     return rp[param_index].filenames.get();
@@ -331,14 +333,17 @@ namespace OpenMS
 
   TOPPASVertex::SUBSTREESTATUS TOPPASVertex::getSubtreeStatus() const
   {
-    if (!this->isFinished()) return TV_UNFINISHED;
+    if (!this->isFinished()) { return TV_UNFINISHED; }
 
-    if (!this->isUpstreamFinished()) return TV_UNFINISHED_INBRANCH; // only looks for immediate predecessors!
+    if (!this->isUpstreamFinished())
+    {
+      return TV_UNFINISHED_INBRANCH;                                // only looks for immediate predecessors!
 
+    }
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
       SUBSTREESTATUS status = (*it)->getTargetVertex()->getSubtreeStatus();
-      if (status != TV_ALLFINISHED) return status;
+      if (status != TV_ALLFINISHED) { return status; }
     }
     return TV_ALLFINISHED;
   }
@@ -464,7 +469,7 @@ namespace OpenMS
     dfs_color_ = color;
   }
 
-  TOPPASVertex * TOPPASVertex::getDFSParent()
+  TOPPASVertex* TOPPASVertex::getDFSParent()
   {
     return dfs_parent_;
   }
@@ -530,7 +535,7 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
-    round_total_ = -1;
+      round_total_ = -1;
     round_counter_ = 0;
 
     finished_ = false;
@@ -565,8 +570,11 @@ namespace OpenMS
 
   void TOPPASVertex::setRecycling(const bool is_enabled)
   {
-    if (allow_output_recycling_ == is_enabled) return; // nothing changed
+    if (allow_output_recycling_ == is_enabled)
+    {
+      return;                                          // nothing changed
 
+    }
     invertRecylingMode();
   }
 

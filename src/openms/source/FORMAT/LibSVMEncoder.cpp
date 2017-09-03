@@ -362,7 +362,7 @@ namespace OpenMS
         wrong_characters = true;
       }
     }
-    if (k_mer_length <= sequence_length && !wrong_characters)
+    if ((k_mer_length <= sequence_length) && !wrong_characters)
     {
       // if a border must not be longer than half of the peptide
       if (strict)
@@ -623,7 +623,7 @@ namespace OpenMS
       }
     }
 
-    if (sequence_ok && k_mer_length <= sequence_length)
+    if (sequence_ok && (k_mer_length <= sequence_length))
     {
       double oligo_value = 0.;
       double factor_simple = double(number_of_residues * (number_of_modifications + 1));
@@ -636,7 +636,7 @@ namespace OpenMS
         ++counter;
       }
 
-      if (!is_right_border || k_mer_length == 1)
+      if (!is_right_border || (k_mer_length == 1))
       {
 
         for (SignedSize k = (Int) k_mer_length - 1; k >= 0; k--)

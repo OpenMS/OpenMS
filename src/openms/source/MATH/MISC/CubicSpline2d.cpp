@@ -37,7 +37,7 @@
 
 #include <vector>
 #include <map>
-#include <functional> 
+#include <functional>
 
 using namespace std;
 
@@ -89,41 +89,41 @@ namespace OpenMS
 
   double CubicSpline2d::eval(double x) const
   {
-    if (x < x_.front() || x > x_.back())
+    if ((x < x_.front()) || (x > x_.back()))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Argument out of range of spline interpolation.");
     }
 
     // determine index of closest node left of (or exactly at) x
     unsigned i = static_cast<unsigned>(std::lower_bound(x_.begin(), x_.end(), x) - x_.begin());
-    if (x_[i] > x || x_.back() == x)
+    if ((x_[i] > x) || (x_.back() == x))
     {
-        --i;
+      --i;
     }
-    
+
     const double xx = x - x_[i];
     return ((d_[i] * xx + c_[i]) * xx + b_[i]) * xx + a_[i];
   }
 
   double CubicSpline2d::derivatives(double x, unsigned order) const
   {
-    if (x < x_.front() || x > x_.back())
+    if ((x < x_.front()) || (x > x_.back()))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Argument out of range of spline interpolation.");
     }
 
-    if (order < 1 || order > 3)
+    if ((order < 1) || (order > 3))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Only first, second and third derivative defined on cubic spline");
     }
 
     // determine index of closest node left of (or exactly at) x
     unsigned i = static_cast<unsigned>(std::lower_bound(x_.begin(), x_.end(), x) - x_.begin());
-    if (x_[i] > x || x_.back() == x) // also, i must not point to last index in 'x_', since all other vectors are one element shorter
+    if ((x_[i] > x) || (x_.back() == x)) // also, i must not point to last index in 'x_', since all other vectors are one element shorter
     {
       --i;
     }
-    
+
     const double xx = x - x_[i];
     if (order == 1)
     {
@@ -167,9 +167,9 @@ namespace OpenMS
     // 'x_' needs to be full length (all other member vectors (except c_) are one element shorter)
     x_.push_back(x[n]);
 
-    b_.resize(n); 
+    b_.resize(n);
     d_.resize(n);
-    c_.resize(n+1);
+    c_.resize(n + 1);
     c_.back() = 0;
     for (int j = static_cast<int>(n) - 1; j >= 0; --j)
     {

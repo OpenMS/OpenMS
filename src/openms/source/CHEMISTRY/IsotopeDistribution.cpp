@@ -57,7 +57,7 @@ namespace OpenMS
     distribution_.push_back(make_pair<Size, double>(0, 1));
   }
 
-  IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & isotope_distribution) :
+  IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution& isotope_distribution) :
     max_isotope_(isotope_distribution.max_isotope_),
     distribution_(isotope_distribution.distribution_)
   {
@@ -77,7 +77,7 @@ namespace OpenMS
     return max_isotope_;
   }
 
-  IsotopeDistribution & IsotopeDistribution::operator=(const IsotopeDistribution & iso)
+  IsotopeDistribution& IsotopeDistribution::operator=(const IsotopeDistribution& iso)
   {
     if (this != &iso)
     {
@@ -87,7 +87,7 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeDistribution IsotopeDistribution::operator+(const IsotopeDistribution & iso) const
+  IsotopeDistribution IsotopeDistribution::operator+(const IsotopeDistribution& iso) const
   {
     ContainerType result;
     convolve_(result, distribution_, iso.distribution_);
@@ -97,7 +97,7 @@ namespace OpenMS
     return result_iso;
   }
 
-  IsotopeDistribution & IsotopeDistribution::operator+=(const IsotopeDistribution & iso)
+  IsotopeDistribution& IsotopeDistribution::operator+=(const IsotopeDistribution& iso)
   {
     ContainerType result;
     convolve_(result, distribution_, iso.distribution_);
@@ -105,7 +105,7 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeDistribution & IsotopeDistribution::operator*=(Size factor)
+  IsotopeDistribution& IsotopeDistribution::operator*=(Size factor)
   {
     ContainerType result;
     convolvePow_(result, distribution_, factor);
@@ -123,12 +123,12 @@ namespace OpenMS
     return result_iso;
   }
 
-  void IsotopeDistribution::set(const ContainerType & distribution)
+  void IsotopeDistribution::set(const ContainerType& distribution)
   {
     distribution_ = distribution;
   }
 
-  const IsotopeDistribution::ContainerType & IsotopeDistribution::getContainer() const
+  const IsotopeDistribution::ContainerType& IsotopeDistribution::getContainer() const
   {
     return distribution_;
   }
@@ -186,9 +186,9 @@ namespace OpenMS
 
   void IsotopeDistribution::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
   {
-      EmpiricalFormula ef;
-      ef.estimateFromWeightAndComp(average_weight, C, H, N, O, S, P);
-      distribution_ = ef.getIsotopeDistribution(max_isotope_).getContainer();
+    EmpiricalFormula ef;
+    ef.estimateFromWeightAndComp(average_weight, C, H, N, O, S, P);
+    distribution_ = ef.getIsotopeDistribution(max_isotope_).getContainer();
   }
 
   void IsotopeDistribution::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
@@ -206,7 +206,7 @@ namespace OpenMS
 
   void IsotopeDistribution::estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, const std::set<UInt>& precursor_isotopes)
   {
-    UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
+    UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end()) + 1;
 
     double average_weight_comp_fragment = average_weight_precursor - average_weight_fragment;
     double S_comp_fragment = S_precursor - S_fragment;
@@ -238,7 +238,7 @@ namespace OpenMS
     IsotopeDistribution id_fragment = ef_fragment.getIsotopeDistribution(max_depth);
 
     EmpiricalFormula ef_comp_frag;
-    ef_comp_frag.estimateFromWeightAndComp(average_weight_precursor-average_weight_fragment, C, H, N, O, S, P);
+    ef_comp_frag.estimateFromWeightAndComp(average_weight_precursor - average_weight_fragment, C, H, N, O, S, P);
     IsotopeDistribution id_comp_fragment = ef_comp_frag.getIsotopeDistribution(max_depth);
 
     calcFragmentIsotopeDist(id_fragment, id_comp_fragment, precursor_isotopes);
@@ -251,13 +251,13 @@ namespace OpenMS
     distribution_ = result;
   }
 
-  bool IsotopeDistribution::operator==(const IsotopeDistribution & isotope_distribution) const
+  bool IsotopeDistribution::operator==(const IsotopeDistribution& isotope_distribution) const
   {
     return max_isotope_ == isotope_distribution.max_isotope_ &&
            distribution_ == isotope_distribution.distribution_;
   }
 
-  bool IsotopeDistribution::operator!=(const IsotopeDistribution & isotope_distribution) const
+  bool IsotopeDistribution::operator!=(const IsotopeDistribution& isotope_distribution) const
   {
     return !(isotope_distribution == *this);
   }
@@ -268,20 +268,20 @@ namespace OpenMS
     Size mass = id.begin()->first;
     for (ContainerType::const_iterator it = id.begin(); it < id.end(); ++mass) // go through all masses
     {
-      if (it->first != mass) 
+      if (it->first != mass)
       { // missing an entry
         id_gapless.push_back(make_pair(mass, 0.0));
       }
-      else 
+      else
       { // mass is registered already
         id_gapless.push_back(*it); // copy
-        ++it;  // ... and advance
+        ++it; // ... and advance
       }
     }
     return id_gapless;
   }
 
-  void IsotopeDistribution::convolve_(ContainerType & result, const ContainerType & left, const ContainerType & right) const
+  void IsotopeDistribution::convolve_(ContainerType& result, const ContainerType& left, const ContainerType& right) const
   {
     if (left.empty() || right.empty())
     {
@@ -289,15 +289,15 @@ namespace OpenMS
       return;
     }
 
-    
-    // ensure the isotope cluster has no gaps 
+
+    // ensure the isotope cluster has no gaps
     // (e.g. from Bromine there is only Bromine-79 & Bromine-81, so we need to insert Bromine-80 with zero probability)
     ContainerType left_l = fillGaps_(left);
     ContainerType right_l = fillGaps_(right);
 
     ContainerType::size_type r_max = left_l.size() + right_l.size() - 1;
 
-    if ((ContainerType::size_type)max_isotope_ != 0 && r_max > (ContainerType::size_type)max_isotope_)
+    if (((ContainerType::size_type)max_isotope_ != 0) && (r_max > (ContainerType::size_type)max_isotope_))
     {
       r_max = (ContainerType::size_type)max_isotope_;
     }
@@ -320,7 +320,7 @@ namespace OpenMS
     }
   }
 
-  void IsotopeDistribution::convolvePow_(ContainerType & result, const ContainerType & input, Size n) const
+  void IsotopeDistribution::convolvePow_(ContainerType& result, const ContainerType& input, Size n) const
   {
     // TODO: Maybe use FFT convolve
     if (n == 1)
@@ -371,7 +371,9 @@ namespace OpenMS
       }
       // check the loop condition
       if (i >= log2n)
+      {
         break;
+      }
 
       // prepare next round
       convolveSquare_(intermediate, convolution_power);
@@ -379,12 +381,12 @@ namespace OpenMS
     }
   }
 
-  void IsotopeDistribution::convolveSquare_(ContainerType & result, const ContainerType & input) const
+  void IsotopeDistribution::convolveSquare_(ContainerType& result, const ContainerType& input) const
   {
     result.clear();
     ContainerType::size_type r_max = 2 * input.size() - 1;
 
-    if ((ContainerType::size_type)max_isotope_ != 0 && (ContainerType::size_type)(max_isotope_ + 1) < r_max)
+    if (((ContainerType::size_type)max_isotope_ != 0) && ((ContainerType::size_type)(max_isotope_ + 1) < r_max))
     {
       r_max = (ContainerType::size_type)(max_isotope_ + 1);
     }
@@ -423,7 +425,7 @@ namespace OpenMS
 
     ContainerType::size_type r_max = fragment_isotope_dist_l.size();
 
-    if ((ContainerType::size_type)max_isotope_ != 0 && r_max > (ContainerType::size_type)max_isotope_)
+    if (((ContainerType::size_type)max_isotope_ != 0) && (r_max > (ContainerType::size_type)max_isotope_))
     {
       r_max = (ContainerType::size_type)max_isotope_;
     }
@@ -473,10 +475,10 @@ namespace OpenMS
     {
       for (std::set<UInt>::const_iterator precursor_itr = precursor_isotopes.begin(); precursor_itr != precursor_isotopes.end(); ++precursor_itr)
       {
-        if (*precursor_itr >= i &&
-                (*precursor_itr-i) < comp_fragment_isotope_dist_l.size())
+        if ((*precursor_itr >= i) &&
+            ((*precursor_itr - i) < comp_fragment_isotope_dist_l.size()))
         {
-          result[i].second += comp_fragment_isotope_dist_l[*precursor_itr-i].second;
+          result[i].second += comp_fragment_isotope_dist_l[*precursor_itr - i].second;
         }
       }
       result[i].second *= fragment_isotope_dist_l[i].second;
@@ -510,7 +512,9 @@ namespace OpenMS
     for (; riter != distribution_.rend(); ++riter)
     {
       if (riter->second >= cutoff)
+      {
         break;
+      }
     }
     // trim the container
     distribution_.resize(riter.base() - distribution_.begin());

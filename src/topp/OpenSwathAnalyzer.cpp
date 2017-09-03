@@ -96,13 +96,14 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPOpenSwathAnalyzer : public TOPPBase
+class TOPPOpenSwathAnalyzer :
+  public TOPPBase
 {
 public:
 
   TOPPOpenSwathAnalyzer() :
-  TOPPBase("OpenSwathAnalyzer",
-           "Picks peaks and finds features in an SWATH-MS or SRM experiment.", true)
+    TOPPBase("OpenSwathAnalyzer",
+             "Picks peaks and finds features in an SWATH-MS or SRM experiment.", true)
   {
   }
 
@@ -110,7 +111,7 @@ protected:
 
   typedef PeakMap MapType;
 
-  void registerModelOptions_(const String &default_model)
+  void registerModelOptions_(const String& default_model)
   {
     registerTOPPSubsection_("model", "Options to control the modeling of retention time transformations from data");
     registerStringOption_("model:type", "<name>", default_model, "Type of model", false, true);
@@ -163,12 +164,12 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String &) const
+  Param getSubsectionDefaults_(const String&) const
   {
     return MRMFeatureFinderScoring().getDefaults();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     StringList file_list = getStringList_("swath_files");
@@ -195,16 +196,16 @@ protected:
     Param feature_finder_param = getParam_().copy("algorithm:", true);
 
     // Create the output map, load the input TraML file and the chromatograms
-    boost::shared_ptr<MapType> exp (new MapType());
+    boost::shared_ptr<MapType> exp(new MapType());
     FeatureMap out_featureFile;
     OpenSwath::LightTargetedExperiment transition_exp;
 
     std::cout << "Loading TraML file" << std::endl;
     {
-      TargetedExperiment *transition_exp__ = new TargetedExperiment();
-      TargetedExperiment &transition_exp_ = *transition_exp__;
+      TargetedExperiment* transition_exp__ = new TargetedExperiment();
+      TargetedExperiment& transition_exp_ = *transition_exp__;
       {
-        TraMLFile *t = new TraMLFile;
+        TraMLFile* t = new TraMLFile;
         t->load(tr_file, transition_exp_);
         delete t;
       }
@@ -225,7 +226,7 @@ protected:
       featureFinder.setStrictFlag(!nostrict);
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-      std::vector< OpenSwath::SwathMap > empty_maps;
+      std::vector<OpenSwath::SwathMap> empty_maps;
       featureFinder.pickExperiment(chromatogram_ptr, out_featureFile,
                                    transition_exp, trafo, empty_maps, transition_group_map);
       out_featureFile.ensureUniqueId();
@@ -243,7 +244,7 @@ protected:
     {
       MRMFeatureFinderScoring featureFinder;
       MzMLFile swath_file;
-      boost::shared_ptr<MapType> swath_map (new MapType());
+      boost::shared_ptr<MapType> swath_map(new MapType());
       FeatureMap featureFile;
       cout << "Loading file " << file_list[i] << endl;
 
@@ -262,9 +263,9 @@ protected:
       {
         cout << "Doing file " << file_list[i]
 #ifdef _OPENMP
-             << " (" << i << " out of " << file_list.size() / omp_get_num_threads() << " -- total for all threads: " << file_list.size() << ")" << endl;
+          << " (" << i << " out of " << file_list.size() / omp_get_num_threads() << " -- total for all threads: " << file_list.size() << ")" << endl;
 #else
-        << " (" << i << " out of " << file_list.size() << ")" << endl;
+          << " (" << i << " out of " << file_list.size() << ")" << endl;
 #endif
       }
 
@@ -278,7 +279,7 @@ protected:
         OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
         OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
         OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-        std::vector< OpenSwath::SwathMap > swath_maps(1);
+        std::vector<OpenSwath::SwathMap> swath_maps(1);
         swath_maps[0].sptr = swath_ptr;
         featureFinder.pickExperiment(chromatogram_ptr, featureFile,
                                      transition_exp_used, trafo, swath_maps, transition_group_map);
@@ -314,7 +315,7 @@ protected:
 
 };
 
-int main(int argc, const char **argv)
+int main(int argc, const char** argv)
 {
   TOPPOpenSwathAnalyzer tool;
   return tool.main(argc, argv);

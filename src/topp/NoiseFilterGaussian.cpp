@@ -53,7 +53,7 @@ using namespace std;
   @page TOPP_NoiseFilterGaussian NoiseFilterGaussian
 
   @brief  Executes a Gaussian filter to reduce the noise in an MS experiment.
- 
+
   <center>
   <table>
   <tr>
@@ -74,7 +74,7 @@ using namespace std;
   </tr>
   </table>
   </center>
- 
+
   The Gaussian filter is a peak area preserving low-pass filter and is characterized by narrow bandwidths,
   sharp cutoffs, and low passband ripple.
 
@@ -103,13 +103,13 @@ public:
     @brief Helper class for the Low Memory Noise filtering
   */
   class NFGaussMzMLConsumer :
-    public MSDataWritingConsumer 
+    public MSDataWritingConsumer
   {
 
-  public:
+public:
 
     NFGaussMzMLConsumer(const String& filename, const GaussFilter& gf) :
-      MSDataWritingConsumer(filename) 
+      MSDataWritingConsumer(filename)
     {
       gf_ = gf;
     }
@@ -119,12 +119,12 @@ public:
       gf_.filter(s);
     }
 
-    void processChromatogram_(MapType::ChromatogramType& c) 
+    void processChromatogram_(MapType::ChromatogramType& c)
     {
       gf_.filter(c);
     }
 
-  private:
+private:
     GaussFilter gf_;
   };
 
@@ -141,7 +141,7 @@ public:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return GaussFilter().getDefaults();
   }
@@ -164,7 +164,7 @@ public:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -193,14 +193,14 @@ public:
     PeakMap exp;
     mz_data_file.load(in, exp);
 
-    if (exp.empty() && exp.getChromatograms().size() == 0)
+    if (exp.empty() && (exp.getChromatograms().size() == 0))
     {
       LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
     //check for peak type (profile data required)
-    if (!exp.empty() && PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::PEAKS)
+    if (!exp.empty() && (PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::PEAKS))
     {
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }
@@ -232,7 +232,7 @@ public:
     {
       gauss.filterExperiment(exp);
     }
-    catch (Exception::IllegalArgument & e)
+    catch (Exception::IllegalArgument& e)
     {
       writeLog_(String("Error: ") + e.getMessage());
       return INCOMPATIBLE_INPUT_DATA;
@@ -255,7 +255,7 @@ public:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPNoiseFilterGaussian tool;
   return tool.main(argc, argv);

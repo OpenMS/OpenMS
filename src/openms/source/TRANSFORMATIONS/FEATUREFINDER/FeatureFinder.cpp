@@ -65,7 +65,7 @@ namespace OpenMS
   void FeatureFinder::run(const String& algorithm_name, PeakMap& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
   {
     // Nothing to do if there is no data
-    if ((algorithm_name != "mrm" && input_map.empty()) || (algorithm_name == "mrm" && input_map.getChromatograms().empty()))
+    if (((algorithm_name != "mrm") && input_map.empty()) || ((algorithm_name == "mrm") && input_map.getChromatograms().empty()))
     {
       features.clear(true);
       return;
@@ -74,13 +74,13 @@ namespace OpenMS
     // check input
     {
       // We need updated ranges => check number of peaks
-      if (algorithm_name != "mrm" && input_map.getSize() == 0)
+      if ((algorithm_name != "mrm") && (input_map.getSize() == 0))
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureFinder needs updated ranges on input map. Aborting.");
       }
 
       // We need MS1 data only => check levels
-      if (algorithm_name != "mrm" && (input_map.getMSLevels().size() != 1 || input_map.getMSLevels()[0] != 1))
+      if ((algorithm_name != "mrm") && ((input_map.getMSLevels().size() != 1) || (input_map.getMSLevels()[0] != 1)))
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureFinder can only operate on MS level 1 data. Please do not use MS/MS data. Aborting.");
       }
@@ -95,7 +95,9 @@ namespace OpenMS
       for (Size s = 0; s < input_map.size(); ++s)
       {
         if (input_map[s].empty())
+        {
           continue;
+        }
         if (input_map[s][0].getMZ() < 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureFinder can only operate on spectra that contain peaks with positive m/z values. Filter the data accordingly beforehand! Aborting.");
@@ -104,7 +106,7 @@ namespace OpenMS
     }
 
     // initialize
-    if (algorithm_name != "mrm" && algorithm_name != "centroided")
+    if ((algorithm_name != "mrm") && (algorithm_name != "centroided"))
     {
       // Resize peak flag vector
       flags_.resize(input_map.size());

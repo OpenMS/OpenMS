@@ -58,7 +58,7 @@ namespace OpenMS
     if (input_x.size() != input_y.size())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
+                                    "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
     }
 
     // unable to smooth over 2 or less data points (we need at least 3)
@@ -115,16 +115,16 @@ namespace OpenMS
     if (u < 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Value of u must be strictly positive! Aborting...", String(u));
+                                    "Value of u must be strictly positive! Aborting...", String(u));
     }
 
     // 0 <= u < t; u is regarded as 0.0 if fabs(u) falls below epsilon
-    if ((fabs(u) < std::numeric_limits<double>::epsilon() || (0.0 < u)) && (u < t))
+    if (((fabs(u) < std::numeric_limits<double>::epsilon()) || (0.0 < u)) && (u < t))
     {
       // (1 - (u/t)^3)^3
       // return pow( ( 1.0 - pow(u/t, 3.0)), 3.0 );
       double quot(u / t);
-      double inner_term(1.0 - quot * quot * quot);
+      double inner_term(1.0 - quot* quot* quot);
 
       return inner_term * inner_term * inner_term;
     }

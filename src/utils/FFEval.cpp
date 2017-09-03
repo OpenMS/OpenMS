@@ -209,22 +209,22 @@ protected:
           {
             ++match_count;
             exact_centroid_match = true;
-            if (f_i.getCharge() == f_t.getCharge()) correct_charge = true;
+            if (f_i.getCharge() == f_t.getCharge()) { correct_charge = true; }
             last_match_index = a;
           }
           //Centroid is one trace off, but still contained in the convex hull
           else if (f_i.getConvexHull().getBoundingBox().encloses(f_t.getPosition())
                   &&
                    (
-                     fabs(f_i.getMZ() + 1.0 / f_t.getCharge() - f_t.getMZ()) < charge_mz_tol
+                     (fabs(f_i.getMZ() + 1.0 / f_t.getCharge() - f_t.getMZ()) < charge_mz_tol)
                    ||
-                     fabs(f_i.getMZ() - 1.0 / f_t.getCharge() - f_t.getMZ()) < charge_mz_tol
+                     (fabs(f_i.getMZ() - 1.0 / f_t.getCharge() - f_t.getMZ()) < charge_mz_tol)
                    )
                    )
           {
             ++match_count;
             last_match_index = a;
-            if (f_i.getCharge() == f_t.getCharge()) correct_charge = true;
+            if (f_i.getCharge() == f_t.getCharge()) { correct_charge = true; }
           }
         }
       }
@@ -254,7 +254,7 @@ protected:
         }
       }
       //evaluation of correct features only
-      if (match_count == 1 && correct_charge)
+      if ((match_count == 1) && correct_charge)
       {
         ints_t.push_back(f_t.getIntensity());
         ints_i.push_back(features_in[last_match_index].getIntensity());
@@ -270,8 +270,8 @@ protected:
         for (Size b = 0; b < abort_reasons.size(); ++b)
         {
           const Feature& f_ab =  abort_reasons[b];
-          if (fabs(f_ab.getRT() - f_t.getRT()) <= rt_tol
-             && fabs(f_ab.getMZ() - f_t.getMZ()) <= mz_tol)
+          if ((fabs(f_ab.getRT() - f_t.getRT()) <= rt_tol)
+             && (fabs(f_ab.getMZ() - f_t.getMZ()) <= mz_tol))
           {
             double score = (1.0 - fabs(f_ab.getMZ() - f_t.getMZ()) / mz_tol) * (1.0 - fabs(f_ab.getRT() - f_t.getRT()) / rt_tol);
             if (score > best_score_ab)

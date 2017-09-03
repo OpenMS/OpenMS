@@ -78,7 +78,7 @@ namespace OpenMS
     std::ofstream output_file(filename.c_str());
 
     // checking if file is writable
-    if (!File::writable(filename) || sequences.size() != labels.size())
+    if (!File::writable(filename) || (sequences.size() != labels.size()))
     {
       return false;
     }
@@ -188,7 +188,7 @@ namespace OpenMS
     switch (type)
     {
     case (SVM_TYPE):
-      if (value == NU_SVR || value == EPSILON_SVR || value == NU_SVC || value == C_SVC || value == ONE_CLASS)
+      if ((value == NU_SVR) || (value == EPSILON_SVR) || (value == NU_SVC) || (value == C_SVC) || (value == ONE_CLASS))
       {
         param_->svm_type = value;
       }
@@ -239,7 +239,7 @@ namespace OpenMS
       break;
 
     case (PROBABILITY):
-      if (value == 1 || value == 0)
+      if ((value == 1) || (value == 0))
       {
         param_->probability = value;
       }
@@ -351,8 +351,8 @@ namespace OpenMS
 
   Int SVMWrapper::train(struct svm_problem* problem)
   {
-    if (problem != NULL
-       && param_ != NULL
+    if ((problem != NULL)
+       && (param_ != NULL)
        && (svm_check_parameter(problem, param_) == NULL))
     {
       training_set_ = problem;
@@ -403,7 +403,7 @@ namespace OpenMS
 
   Int SVMWrapper::train(SVMData& problem)
   {
-    if (param_ != NULL || kernel_type_ != OLIGO)
+    if ((param_ != NULL) || (kernel_type_ != OLIGO))
     {
       training_data_ = problem;
 
@@ -522,12 +522,12 @@ namespace OpenMS
     {
       cout << "problem is null" << endl;
     }
-    if (param_->kernel_type == PRECOMPUTED && training_set_ == NULL)
+    if ((param_->kernel_type == PRECOMPUTED) && (training_set_ == NULL))
     {
       cout << "Training set is null and kernel type == PRECOMPUTED" << endl;
     }
 
-    if (model_ != NULL && problem != NULL)
+    if ((model_ != NULL) && (problem != NULL))
     {
       if (kernel_type_ == OLIGO)
       {
@@ -720,7 +720,7 @@ namespace OpenMS
   {
     svm_problem* merged_problem = NULL;
 
-    if (problems.size() == 1 && except == 0)
+    if ((problems.size() == 1) && (except == 0))
     {
       return NULL;
     }
@@ -769,7 +769,7 @@ namespace OpenMS
     merged_problem.sequences.clear();
     merged_problem.labels.clear();
 
-    if (problems.size() != 1 || except != 0)
+    if ((problems.size() != 1) || (except != 0))
     {
       if (problems.size() > 0)
       {
@@ -886,15 +886,23 @@ namespace OpenMS
 
       map<SVM_parameter_type, double>::const_iterator it = step_sizes_map.find(start_values_iterator->first);
       if (it == step_sizes_map.end())
+      {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No step size given for svm parameter grid search");
+      }
       else
+      {
         step_sizes[actual_index] = it->second;
+      }
 
       it = end_values_map.find(start_values_iterator->first);
       if (it == end_values_map.end())
+      {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No end value given for svm parameter grid search");
+      }
       else
+      {
         end_values[actual_index] = it->second;
+      }
 
       ++start_values_iterator;
       ++actual_index;
@@ -920,23 +928,35 @@ namespace OpenMS
       }
       double max_performance = 0;
       if (is_labeled)
+      {
         createRandomPartitions(problem_l, number_of_partitions, partitions_l);
+      }
       else
+      {
         createRandomPartitions(problem_ul, number_of_partitions, partitions_ul);
+      }
 
       counter = 0;
       found = true;
 
       if (is_labeled)
+      {
         training_data_l.resize(number_of_partitions, SVMData());
+      }
       else
+      {
         training_data_ul = new svm_problem*[number_of_partitions];
+      }
       for (Size j = 0; j < number_of_partitions; j++)
       {
         if (is_labeled)
+        {
           SVMWrapper::mergePartitions(partitions_l, j, training_data_l[j]);
+        }
         else
+        {
           training_data_ul[j] = SVMWrapper::mergePartitions(partitions_ul, j);
+        }
       }
 
       while (found) // do grid search
@@ -946,7 +966,9 @@ namespace OpenMS
         {
           // testing whether actual parameters are in the defined range
           if (actual_values[v] > end_values[v])
+          {
             throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTModel CV parameters are out of range!");
+          }
           setParameter(actual_types[v], actual_values[v]);
         }
 
@@ -961,9 +983,13 @@ namespace OpenMS
 
           bool success;
           if (is_labeled)
+          {
             success = train(training_data_l[j]);
+          }
           else
+          {
             success = train(training_data_ul[j]);
+          }
 
           if (success)
           {
@@ -983,7 +1009,7 @@ namespace OpenMS
               it_end = real_labels.end();
             }
 
-            if (param_->svm_type == C_SVC || param_->svm_type == NU_SVC)
+            if ((param_->svm_type == C_SVC) || (param_->svm_type == NU_SVC))
             {
               if (mcc_as_performance_measure)
               {
@@ -996,7 +1022,7 @@ namespace OpenMS
                   OpenMS::Math::classificationRate(predicted_labels.begin(), predicted_labels.end(), it_start, it_end);
               }
             }
-            else if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
+            else if ((param_->svm_type == NU_SVR) || (param_->svm_type == EPSILON_SVR))
             {
               temp_performance +=
                 Math::pearsonCorrelationCoefficient(predicted_labels.begin(), predicted_labels.end(), it_start, it_end);
@@ -1007,7 +1033,7 @@ namespace OpenMS
               LibSVMEncoder::destroyProblem(training_problem_);
             }
 
-            if (output && j == number_of_partitions - 1)
+            if (output && (j == number_of_partitions - 1))
             {
               performances_file << temp_performance / (j + 1) << " ";
               for (Size k = 0; k < start_values_map.size(); k++)
@@ -1185,7 +1211,9 @@ namespace OpenMS
       {
 
         if (counter <= max_index)
+        {
           found = nextGrid_(start_values, step_sizes, end_values, additive_step_sizes, actual_values);
+        }
 
         performances_file << performances[counter]  / number_of_runs << ": ";
         for (Size k = 0; k < start_values_map.size(); k++)
@@ -1277,9 +1305,13 @@ namespace OpenMS
     {
       double new_value;
       if (additive_step_sizes)
+      {
         new_value = actual_values[actual_index] + step_sizes[actual_index];
+      }
       else
+      {
         new_value = actual_values[actual_index] * step_sizes[actual_index];
+      }
 
       if (new_value   <= end_values[actual_index] + precision)
       {
@@ -1399,7 +1431,7 @@ namespace OpenMS
 
   void SVMWrapper::setWeights(const vector<Int>& weight_labels, const vector<double>& weights)
   {
-    if (weight_labels.size() == weights.size() && weights.size() > 0)
+    if ((weight_labels.size() == weights.size()) && (weights.size() > 0))
     {
       param_->nr_weight = (Int)weights.size();
       param_->weight_label = new Int[weights.size()];
@@ -1428,16 +1460,16 @@ namespace OpenMS
     {
       if (x[i1].second == y[i2].second)
       {
-        if (max_distance < 0
-           || (abs(x[i1].first - y[i2].first)) <= max_distance)
+        if ((max_distance < 0)
+           || ((abs(x[i1].first - y[i2].first)) <= max_distance))
         {
           kernel += gauss_table.at(abs((x[i1].first - y[i2].first)));
-          if (i1 < x_size - 1 && x[i1].second == x[i1 + 1].second)
+          if ((i1 < x_size - 1) && (x[i1].second == x[i1 + 1].second))
           {
             i1++;
             c1++;
           }
-          else if (i2 < y_size - 1 && y[i2].second == y[i2 + 1].second)
+          else if ((i2 < y_size - 1) && (y[i2].second == y[i2 + 1].second))
           {
             i2++;
             i1 -= c1;
@@ -1453,11 +1485,11 @@ namespace OpenMS
         {
           if (x[i1].first < y[i2].first)
           {
-            if (i1 < x_size - 1 && x[i1].second == x[i1 + 1].second)
+            if ((i1 < x_size - 1) && (x[i1].second == x[i1 + 1].second))
             {
               i1++;
             }
-            else if (i2 < y_size - 1 && y[i2].second == y[i2 + 1].second)
+            else if ((i2 < y_size - 1) && (y[i2].second == y[i2 + 1].second))
             {
               while (i2 < y_size - 1 && y[i2].second == y[i2 + 1].second)
               {
@@ -1598,7 +1630,7 @@ namespace OpenMS
     double temp = 0;
     svm_problem* kernel_matrix;
 
-    if (problem1 == NULL || problem2 == NULL)
+    if ((problem1 == NULL) || (problem2 == NULL))
     {
       return NULL;
     }
@@ -1657,8 +1689,8 @@ namespace OpenMS
       return NULL;
     }
 
-    if (problem1.labels.size() != problem1.sequences.size()
-       || problem2.labels.size() != problem2.sequences.size())
+    if ((problem1.labels.size() != problem1.sequences.size())
+       || (problem2.labels.size() != problem2.sequences.size()))
     {
       return NULL;
     }
@@ -1891,8 +1923,8 @@ namespace OpenMS
       double upper_bound = intercept + it->first * slope;
       double lower_bound = -intercept + it->first * (1 / slope);
 
-      if (it->second >= lower_bound
-         && it->first <= upper_bound)
+      if ((it->second >= lower_bound)
+         && (it->first <= upper_bound))
       {
         ++counter;
       }
@@ -1925,7 +1957,7 @@ namespace OpenMS
     decision_values.clear();
     if (model_ != NULL)
     {
-      if (param_->svm_type == NU_SVR || param_->svm_type == EPSILON_SVR)
+      if ((param_->svm_type == NU_SVR) || (param_->svm_type == EPSILON_SVR))
       {
         predict(data, decision_values);
       }

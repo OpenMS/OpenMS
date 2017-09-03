@@ -41,7 +41,7 @@ namespace OpenMS
   {
     setupUi(this);
 
-    connect(list_widget, SIGNAL(itemChanged(QListWidgetItem *)), this, SLOT(itemChanged(QListWidgetItem *)));
+    connect(list_widget, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(itemChanged(QListWidgetItem*)));
 
     // select b- and y-ions as residue types by default
     list_widget->item(0)->setCheckState(Qt::Unchecked);
@@ -56,7 +56,7 @@ namespace OpenMS
     list_widget->item(9)->setCheckState(Qt::Unchecked);
   }
 
-  void TheoreticalSpectrumGenerationDialog::itemChanged(QListWidgetItem * item)
+  void TheoreticalSpectrumGenerationDialog::itemChanged(QListWidgetItem* item)
   {
     if (item->text() == "Isotope clusters")
     {

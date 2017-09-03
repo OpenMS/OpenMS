@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  IdentificationHit::IdentificationHit(const IdentificationHit & rhs) :
+  IdentificationHit::IdentificationHit(const IdentificationHit& rhs) :
     MetaInfoInterface(rhs),
     id_(rhs.id_),
     charge_(rhs.charge_),
@@ -66,7 +66,7 @@ namespace OpenMS
   {
   }
 
-  IdentificationHit & IdentificationHit::operator=(const IdentificationHit & rhs)
+  IdentificationHit& IdentificationHit::operator=(const IdentificationHit& rhs)
   {
     if (this == &rhs)
     {
@@ -86,7 +86,7 @@ namespace OpenMS
   }
 
   // Equality operator
-  bool IdentificationHit::operator==(const IdentificationHit & rhs) const
+  bool IdentificationHit::operator==(const IdentificationHit& rhs) const
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
@@ -99,17 +99,17 @@ namespace OpenMS
   }
 
   // Inequality operator
-  bool IdentificationHit::operator!=(const IdentificationHit & rhs) const
+  bool IdentificationHit::operator!=(const IdentificationHit& rhs) const
   {
     return !(*this == rhs);
   }
 
-  void IdentificationHit::setId(const String & id)
+  void IdentificationHit::setId(const String& id)
   {
     id_ = id;
   }
 
-  const String & IdentificationHit::getId() const
+  const String& IdentificationHit::getId() const
   {
     return id_;
   }
@@ -144,12 +144,12 @@ namespace OpenMS
     return experimental_mass_to_charge_;
   }
 
-  void IdentificationHit::setName(const String & name)
+  void IdentificationHit::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & IdentificationHit::getName() const
+  const String& IdentificationHit::getName() const
   {
     return name_;
   }

@@ -143,7 +143,7 @@ namespace OpenMS
     if (mt_length != tr.getSize())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
+                                    "MassTrace was not smoothed before! Aborting...", String(smoothed_ints_vec.size()));
     }
 
     // first make sure that everything is cleared
@@ -167,7 +167,7 @@ namespace OpenMS
       double ref_int = c_it->first;
       Size ref_idx = c_it->second;
 
-      if (!(used_idx[ref_idx]) && ref_int > 0.0)
+      if (!(used_idx[ref_idx]) && (ref_int > 0.0))
       {
         bool real_max = true;
 
@@ -245,7 +245,7 @@ namespace OpenMS
           {
             right_bound = mid_element_idx;
           }
-          // else walk to the right ... 
+          // else walk to the right ...
           else
           {
             left_bound = mid_element_idx;
@@ -269,7 +269,7 @@ namespace OpenMS
         double mid_rt(tr[min_rt].getRT());
         double right_rt(tr[chrom_maxes[right_idx]].getRT());
 
-        // compute the distance from the two maxima to the new minima 
+        // compute the distance from the two maxima to the new minima
         double left_dist(std::fabs(mid_rt - left_rt));
         double right_dist(std::fabs(right_rt - mid_rt));
         double min_dist(min_fwhm_ / 2.0);
@@ -277,8 +277,8 @@ namespace OpenMS
         // out debug info
 #ifdef DEBUG_EPD
         std::cout << "findLocalExtrema: Identified potential minimum " << std::endl;
-        std::cout << "    " << tr.getLabel() << ": left_idx,right_idx " << left_idx << "," << right_idx << 
-          ":" << left_max_int << " min: " << min_int << " " << right_max_int << 
+        std::cout << "    " << tr.getLabel() << ": left_idx,right_idx " << left_idx << "," << right_idx <<
+          ":" << left_max_int << " min: " << min_int << " " << right_max_int <<
           " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
         std::cout << "    Int: min " << min_int << ", left: " << left_max_int << ", right: " << right_max_int << std::endl;
         std::cout << "    Distance: min " << min_dist << ", left: " << left_dist << ", right: " << right_dist << std::endl;
@@ -286,15 +286,15 @@ namespace OpenMS
 
         // 2.4 Decide whether to split the masstrace (introduce a minimum):
         // i)  the maxima intensity should be at least 2x above the minimum for a split
-        // ii) check that splitting the trace would not create peaks smaller than min_dist 
-        if (left_max_int / min_int >= 2.0
-           && right_max_int / min_int >= 2.0
-           && left_dist >= min_dist
-           && right_dist >= min_dist)
+        // ii) check that splitting the trace would not create peaks smaller than min_dist
+        if ((left_max_int / min_int >= 2.0)
+           && (right_max_int / min_int >= 2.0)
+           && (left_dist >= min_dist)
+           && (right_dist >= min_dist))
         {
 #ifdef DEBUG_EPD
-        std::cout << "    -> add new minima " << ": left_idx,right_idx " << left_idx << "," << right_idx << 
-          " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
+          std::cout << "    -> add new minima " << ": left_idx,right_idx " << left_idx << "," << right_idx <<
+            " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
 #endif
 
           chrom_mins.push_back(min_rt);
@@ -377,7 +377,7 @@ namespace OpenMS
     // filter out mass traces below lower quartile and above upper quartile
     for (std::multimap<double, Size>::const_iterator m_it = sorted_by_peakwidth.begin(); m_it != sorted_by_peakwidth.end(); ++m_it)
     {
-      if (count_mt >= lower_quartile_idx && count_mt <= upper_quartile_idx)
+      if ((count_mt >= lower_quartile_idx) && (count_mt <= upper_quartile_idx))
       {
         // std::cout << "pw added " << m_it->first << std::endl;
         filt_mtraces.push_back(mt_vec[m_it->second]);
@@ -443,7 +443,7 @@ namespace OpenMS
       if (pw_filtering_ == "fixed")
       {
         double act_fwhm(mt.estimateFWHM(true));
-        if (act_fwhm < min_fwhm_ || act_fwhm > max_fwhm_)
+        if ((act_fwhm < min_fwhm_) || (act_fwhm > max_fwhm_))
         {
           pw_ok = false;
         }
@@ -520,7 +520,7 @@ namespace OpenMS
         if (pw_filtering_ == "fixed")
         {
           double act_fwhm(new_mt.estimateFWHM(true));
-          if (act_fwhm < min_fwhm_ || act_fwhm > max_fwhm_)
+          if ((act_fwhm < min_fwhm_) || (act_fwhm > max_fwhm_))
           {
             pw_ok = false;
           }

@@ -117,7 +117,7 @@ namespace OpenMS
     is_at_end_ = false;
     std::string line;
     std::getline(input_file_, line);
-    if (line[0] == '>' || input_file_.eof())
+    if ((line[0] == '>') || input_file_.eof())
     {
       last_header_ = header_;
       header_ = line;

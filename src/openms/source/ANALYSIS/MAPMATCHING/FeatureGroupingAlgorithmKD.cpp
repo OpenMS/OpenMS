@@ -130,7 +130,7 @@ namespace OpenMS
          map_it != input_maps.end(); ++map_it)
     {
       for (typename MapType::const_iterator feat_it = map_it->begin();
-          feat_it != map_it->end(); feat_it++)
+           feat_it != map_it->end(); feat_it++)
       {
         massrange.push_back(feat_it->getMZ());
         double inty = feat_it->getIntensity();
@@ -164,16 +164,16 @@ namespace OpenMS
     // compute partition boundaries
     vector<double> partition_boundaries;
     partition_boundaries.push_back(massrange.front());
-    for (size_t j = 0; j < massrange.size()-1; j++)
+    for (size_t j = 0; j < massrange.size() - 1; j++)
     {
       // minimal differences between two m/z values
-      double massrange_diff = mz_ppm_ ? max_mz_tol * 1e-6 * massrange[j+1] : max_mz_tol;
+      double massrange_diff = mz_ppm_ ? max_mz_tol * 1e-6 * massrange[j + 1] : max_mz_tol;
 
-      if (fabs(massrange[j] - massrange[j+1]) > massrange_diff)
+      if (fabs(massrange[j] - massrange[j + 1]) > massrange_diff)
       {
-        if (j >= (partition_boundaries.size() ) * pts_per_partition  )
+        if (j >= (partition_boundaries.size()) * pts_per_partition)
         {
-          partition_boundaries.push_back((massrange[j] + massrange[j+1])/2.0);
+          partition_boundaries.push_back((massrange[j] + massrange[j + 1]) / 2.0);
         }
       }
     }
@@ -188,10 +188,10 @@ namespace OpenMS
     {
       Size progress = 0;
       startProgress(0, partition_boundaries.size(), "computing RT transformations");
-      for (size_t j = 0; j < partition_boundaries.size()-1; j++)
+      for (size_t j = 0; j < partition_boundaries.size() - 1; j++)
       {
         double partition_start = partition_boundaries[j];
-        double partition_end = partition_boundaries[j+1];
+        double partition_end = partition_boundaries[j + 1];
 
         std::vector<MapType> tmp_input_maps(input_maps.size());
         for (size_t k = 0; k < input_maps.size(); k++)
@@ -201,8 +201,8 @@ namespace OpenMS
           // map
           for (size_t m = 0; m < input_maps[k].size(); m++)
           {
-            if (input_maps[k][m].getMZ() >= partition_start &&
-                input_maps[k][m].getMZ() < partition_end)
+            if ((input_maps[k][m].getMZ() >= partition_start) &&
+                (input_maps[k][m].getMZ() < partition_end))
             {
               tmp_input_maps[k].push_back(input_maps[k][m]);
             }
@@ -233,10 +233,10 @@ namespace OpenMS
     // ------------ run alignment + feature linking on individual partitions ------------
     Size progress = 0;
     startProgress(0, partition_boundaries.size(), "linking features");
-    for (size_t j = 0; j < partition_boundaries.size()-1; j++)
+    for (size_t j = 0; j < partition_boundaries.size() - 1; j++)
     {
       double partition_start = partition_boundaries[j];
-      double partition_end = partition_boundaries[j+1];
+      double partition_end = partition_boundaries[j + 1];
 
       std::vector<MapType> tmp_input_maps(input_maps.size());
       for (size_t k = 0; k < input_maps.size(); k++)
@@ -246,8 +246,8 @@ namespace OpenMS
         // map
         for (size_t m = 0; m < input_maps[k].size(); m++)
         {
-          if (input_maps[k][m].getMZ() >= partition_start &&
-              input_maps[k][m].getMZ() < partition_end)
+          if ((input_maps[k][m].getMZ() >= partition_start) &&
+              (input_maps[k][m].getMZ() < partition_end))
           {
             tmp_input_maps[k].push_back(input_maps[k][m]);
           }
@@ -366,8 +366,6 @@ namespace OpenMS
     }
   }
 
-
-
   void FeatureGroupingAlgorithmKD::updateClusterProxies_(set<ClusterProxyKD>& potential_clusters,
                                                          vector<ClusterProxyKD>& cluster_for_idx,
                                                          const set<Size>& update_these,
@@ -401,7 +399,7 @@ namespace OpenMS
     Int charge_i = kd_data.charge(i);
     for (vector<Size>::const_iterator it = neighbors.begin(); it != neighbors.end(); ++it)
     {
-      if (!assigned[*it] && kd_data.charge(*it) == charge_i)
+      if (!assigned[*it] && (kd_data.charge(*it) == charge_i))
       {
         points_for_map_index[kd_data.mapIndex(*it)].push_back(*it);
       }

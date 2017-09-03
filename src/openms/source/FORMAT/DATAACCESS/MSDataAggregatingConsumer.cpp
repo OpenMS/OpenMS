@@ -47,21 +47,21 @@ namespace OpenMS
     {
       MSSpectrum tmps = SpectrumAddition::addUpSpectra(s_list, -1, true);
       tmps.SpectrumSettings::operator=(s_list[0]); // copy over SpectrumSettings of first spectrum
-      tmps.setName( s_list[0].getName() );
-      tmps.setRT( s_list[0].getRT() );
-      tmps.setDriftTime( s_list[0].getDriftTime() );
-      tmps.setMSLevel( s_list[0].getMSLevel() );
+      tmps.setName(s_list[0].getName());
+      tmps.setRT(s_list[0].getRT());
+      tmps.setDriftTime(s_list[0].getDriftTime());
+      tmps.setMSLevel(s_list[0].getMSLevel());
 
       next_consumer_->consumeSpectrum(tmps);
     }
   }
 
-  void MSDataAggregatingConsumer::consumeSpectrum(SpectrumType & s)
+  void MSDataAggregatingConsumer::consumeSpectrum(SpectrumType& s)
   {
     // aggregate by RT
     double RT = s.getRT();
 
-    if (rt_initialized_ && std::fabs(RT - previous_rt_) < 1e-5)
+    if (rt_initialized_ && (std::fabs(RT - previous_rt_) < 1e-5))
     {
       // need to aggregate spectrum
       s_list.push_back(s);
@@ -73,10 +73,10 @@ namespace OpenMS
       {
         MSSpectrum tmps = SpectrumAddition::addUpSpectra(s_list, -1, true);
         tmps.SpectrumSettings::operator=(s_list[0]); // copy over SpectrumSettings of first spectrum
-        tmps.setName( s_list[0].getName() );
-        tmps.setRT( s_list[0].getRT() );
-        tmps.setDriftTime( s_list[0].getDriftTime() );
-        tmps.setMSLevel( s_list[0].getMSLevel() );
+        tmps.setName(s_list[0].getName());
+        tmps.setRT(s_list[0].getRT());
+        tmps.setDriftTime(s_list[0].getDriftTime());
+        tmps.setMSLevel(s_list[0].getMSLevel());
 
         next_consumer_->consumeSpectrum(tmps);
       }
@@ -92,11 +92,10 @@ namespace OpenMS
     rt_initialized_ = true;
   }
 
-  void MSDataAggregatingConsumer::consumeChromatogram(ChromatogramType & c)
+  void MSDataAggregatingConsumer::consumeChromatogram(ChromatogramType& c)
   {
     // NOP
     next_consumer_->consumeChromatogram(c);
   }
-
 
 } // namespace OpenMS

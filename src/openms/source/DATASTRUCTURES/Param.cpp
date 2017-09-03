@@ -116,7 +116,7 @@ namespace OpenMS
         {
           ok = true;
         }
-        else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+        else if ((std::find(tags.begin(), tags.end(), "input file") != tags.end()) || (std::find(tags.begin(), tags.end(), "output file") != tags.end()))
         {
           //do not check restrictions on file names for now
           ok = true;
@@ -146,7 +146,7 @@ namespace OpenMS
           {
             ok = true;
           }
-          else if (std::find(tags.begin(), tags.end(), "input file") != tags.end() || std::find(tags.begin(), tags.end(), "output file") != tags.end())
+          else if ((std::find(tags.begin(), tags.end(), "input file") != tags.end()) || (std::find(tags.begin(), tags.end(), "output file") != tags.end()))
           {
             //do not check restrictions on file names for now
             ok = true;
@@ -165,7 +165,7 @@ namespace OpenMS
     else if (value.valueType() == DataValue::INT_VALUE)
     {
       Int tmp = value;
-      if ((min_int != -std::numeric_limits<Int>::max() && tmp < min_int) || (max_int != std::numeric_limits<Int>::max() && tmp > max_int))
+      if (((min_int != -std::numeric_limits<Int>::max()) && (tmp < min_int)) || ((max_int != std::numeric_limits<Int>::max()) && (tmp > max_int)))
       {
         message = String("Invalid integer parameter value '") + String(tmp) + "' for parameter '" + name + "' given! The valid range is: [" + min_int + ":" + max_int + "].";
         return false;
@@ -178,7 +178,7 @@ namespace OpenMS
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         int_value = ls_value[i];
-        if ((min_int != -std::numeric_limits<Int>::max() && int_value < min_int) || (max_int != std::numeric_limits<Int>::max() && int_value > max_int))
+        if (((min_int != -std::numeric_limits<Int>::max()) && (int_value < min_int)) || ((max_int != std::numeric_limits<Int>::max()) && (int_value > max_int)))
         {
           message = String("Invalid integer parameter value '") + int_value + "' for parameter '" + name + "' given! The valid range is: [" + min_int + ":" + max_int + "].";
           return false;
@@ -188,7 +188,7 @@ namespace OpenMS
     else if (value.valueType() == DataValue::DOUBLE_VALUE)
     {
       double tmp = value;
-      if ((min_float != -std::numeric_limits<double>::max() && tmp < min_float) || (max_float != std::numeric_limits<double>::max() && tmp > max_float))
+      if (((min_float != -std::numeric_limits<double>::max()) && (tmp < min_float)) || ((max_float != std::numeric_limits<double>::max()) && (tmp > max_float)))
       {
         message = String("Invalid double parameter value '") + tmp + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
         return false;
@@ -200,7 +200,7 @@ namespace OpenMS
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         double dou_value = ls_value[i];
-        if ((min_float != -std::numeric_limits<double>::max() && dou_value < min_float) || (max_float != std::numeric_limits<double>::max() && dou_value > max_float))
+        if (((min_float != -std::numeric_limits<double>::max()) && (dou_value < min_float)) || ((max_float != std::numeric_limits<double>::max()) && (dou_value > max_float)))
         {
           message = String("Invalid double parameter value '") + dou_value + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
           return false;
@@ -242,8 +242,10 @@ namespace OpenMS
 
   bool Param::ParamNode::operator==(const ParamNode& rhs) const
   {
-    if (name != rhs.name || entries.size() != rhs.entries.size() || nodes.size() != rhs.nodes.size())
+    if ((name != rhs.name) || (entries.size() != rhs.entries.size()) || (nodes.size() != rhs.nodes.size()))
+    {
       return false;
+    }
 
     //order of sections / entries should not matter
     for (Size i = 0; i < entries.size(); ++i)
@@ -297,12 +299,16 @@ namespace OpenMS
       for (Size i = 0; i < nodes.size(); ++i)
       {
         if (nodes[i].name.hasPrefix(local_name))
+        {
           return this;
+        }
       }
       for (Size i = 0; i < entries.size(); ++i)
       {
         if (entries[i].name.hasPrefix(local_name))
+        {
           return this;
+        }
       }
       return 0;
     }
@@ -326,11 +332,15 @@ namespace OpenMS
   {
     ParamNode* parent = findParentOf(local_name);
     if (parent == 0)
+    {
       return 0;
+    }
 
     EntryIterator it = parent->findEntry(suffix(local_name));
     if (it == parent->entries.end())
+    {
       return 0;
+    }
 
     return &(*it);
   }
@@ -372,7 +382,7 @@ namespace OpenMS
       {
         it->insert(*it2);
       }
-      if (it->description == "" || node.description != "") //replace description if not empty in new node
+      if ((it->description == "") || (node.description != "")) //replace description if not empty in new node
       {
         it->description = node.description;
       }
@@ -420,7 +430,7 @@ namespace OpenMS
     {
       it->value = entry.value;
       it->tags = entry.tags;
-      if (it->description == "" || entry.description != "") //replace description if not empty in new entry
+      if ((it->description == "") || (entry.description != "")) //replace description if not empty in new entry
       {
         it->description = entry.description;
       }
@@ -495,7 +505,7 @@ namespace OpenMS
   {
     ParamEntry& entry = getEntry_(key);
     //check if correct parameter type
-    if (entry.value.valueType() != DataValue::STRING_VALUE && entry.value.valueType() != DataValue::STRING_LIST)
+    if ((entry.value.valueType() != DataValue::STRING_VALUE) && (entry.value.valueType() != DataValue::STRING_LIST))
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -513,7 +523,7 @@ namespace OpenMS
   void Param::setMinInt(const String& key, Int min)
   {
     ParamEntry& entry = getEntry_(key);
-    if (entry.value.valueType() != DataValue::INT_VALUE && entry.value.valueType() != DataValue::INT_LIST)
+    if ((entry.value.valueType() != DataValue::INT_VALUE) && (entry.value.valueType() != DataValue::INT_LIST))
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -523,7 +533,7 @@ namespace OpenMS
   void Param::setMaxInt(const String& key, Int max)
   {
     ParamEntry& entry = getEntry_(key);
-    if (entry.value.valueType() != DataValue::INT_VALUE && entry.value.valueType() != DataValue::INT_LIST)
+    if ((entry.value.valueType() != DataValue::INT_VALUE) && (entry.value.valueType() != DataValue::INT_LIST))
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -533,7 +543,7 @@ namespace OpenMS
   void Param::setMinFloat(const String& key, double min)
   {
     ParamEntry& entry = getEntry_(key);
-    if (entry.value.valueType() != DataValue::DOUBLE_VALUE && entry.value.valueType() != DataValue::DOUBLE_LIST)
+    if ((entry.value.valueType() != DataValue::DOUBLE_VALUE) && (entry.value.valueType() != DataValue::DOUBLE_LIST))
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -543,7 +553,7 @@ namespace OpenMS
   void Param::setMaxFloat(const String& key, double max)
   {
     ParamEntry& entry = getEntry_(key);
-    if (entry.value.valueType() != DataValue::DOUBLE_VALUE && entry.value.valueType() != DataValue::DOUBLE_LIST)
+    if ((entry.value.valueType() != DataValue::DOUBLE_VALUE) && (entry.value.valueType() != DataValue::DOUBLE_LIST))
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -603,7 +613,9 @@ namespace OpenMS
       if (!exists(prefix2 + it.getName()))
       {
         if (showMessage)
+        {
           std::cerr << "Setting " << prefix2 + it.getName() << " to " << it->value << std::endl;
+        }
         String name = prefix2 + it.getName();
         root_.insert(ParamEntry("", it->value, it->description), name);
         //copy tags
@@ -612,16 +624,16 @@ namespace OpenMS
           addTag(name, *tag_it);
         }
         //copy restrictions
-        if (it->value.valueType() == DataValue::STRING_VALUE || it->value.valueType() == DataValue::STRING_LIST)
+        if ((it->value.valueType() == DataValue::STRING_VALUE) || (it->value.valueType() == DataValue::STRING_LIST))
         {
           setValidStrings(name, it->valid_strings);
         }
-        else if (it->value.valueType() == DataValue::INT_VALUE || it->value.valueType() == DataValue::INT_LIST)
+        else if ((it->value.valueType() == DataValue::INT_VALUE) || (it->value.valueType() == DataValue::INT_LIST))
         {
           setMinInt(name, it->min_int);
           setMaxInt(name, it->max_int);
         }
-        else if (it->value.valueType() == DataValue::DOUBLE_VALUE || it->value.valueType() == DataValue::DOUBLE_LIST)
+        else if ((it->value.valueType() == DataValue::DOUBLE_VALUE) || (it->value.valueType() == DataValue::DOUBLE_LIST))
         {
           setMinFloat(name, it->min_float);
           setMaxFloat(name, it->max_float);
@@ -842,11 +854,15 @@ namespace OpenMS
 
       //it is a option when it starts with a '-' and the second character is not a number
       bool arg_is_option = false;
-      if (arg.size() >= 2 && arg[0] == '-' && arg[1] != '0' && arg[1] != '1' && arg[1] != '2' && arg[1] != '3' && arg[1] != '4' && arg[1] != '5' && arg[1] != '6' && arg[1] != '7' && arg[1] != '8' && arg[1] != '9')
+      if ((arg.size() >= 2) && (arg[0] == '-') && (arg[1] != '0') && (arg[1] != '1') && (arg[1] != '2') && (arg[1] != '3') && (arg[1] != '4') && (arg[1] != '5') && (arg[1] != '6') && (arg[1] != '7') && (arg[1] != '8') && (arg[1] != '9'))
+      {
         arg_is_option = true;
+      }
       bool arg1_is_option = false;
-      if (arg1.size() >= 2 && arg1[0] == '-' && arg1[1] != '0' && arg1[1] != '1' && arg1[1] != '2' && arg1[1] != '3' && arg1[1] != '4' && arg1[1] != '5' && arg1[1] != '6' && arg1[1] != '7' && arg1[1] != '8' && arg1[1] != '9')
+      if ((arg1.size() >= 2) && (arg1[0] == '-') && (arg1[1] != '0') && (arg1[1] != '1') && (arg1[1] != '2') && (arg1[1] != '3') && (arg1[1] != '4') && (arg1[1] != '5') && (arg1[1] != '6') && (arg1[1] != '7') && (arg1[1] != '8') && (arg1[1] != '9'))
+      {
         arg1_is_option = true;
+      }
 
       //cout << "Parse: '"<< arg << "' '" << arg1 << "'" << std::endl;
 
@@ -905,11 +921,15 @@ namespace OpenMS
 
       //it is a option when it starts with a '-' and the second character is not a number
       bool arg_is_option = false;
-      if (arg.size() >= 2 && arg[0] == '-' && arg[1] != '0' && arg[1] != '1' && arg[1] != '2' && arg[1] != '3' && arg[1] != '4' && arg[1] != '5' && arg[1] != '6' && arg[1] != '7' && arg[1] != '8' && arg[1] != '9')
+      if ((arg.size() >= 2) && (arg[0] == '-') && (arg[1] != '0') && (arg[1] != '1') && (arg[1] != '2') && (arg[1] != '3') && (arg[1] != '4') && (arg[1] != '5') && (arg[1] != '6') && (arg[1] != '7') && (arg[1] != '8') && (arg[1] != '9'))
+      {
         arg_is_option = true;
+      }
       bool arg1_is_option = false;
-      if (arg1.size() >= 2 && arg1[0] == '-' && arg1[1] != '0' && arg1[1] != '1' && arg1[1] != '2' && arg1[1] != '3' && arg1[1] != '4' && arg1[1] != '5' && arg1[1] != '6' && arg1[1] != '7' && arg1[1] != '8' && arg1[1] != '9')
+      if ((arg1.size() >= 2) && (arg1[0] == '-') && (arg1[1] != '0') && (arg1[1] != '1') && (arg1[1] != '2') && (arg1[1] != '3') && (arg1[1] != '4') && (arg1[1] != '5') && (arg1[1] != '6') && (arg1[1] != '7') && (arg1[1] != '8') && (arg1[1] != '9'))
+      {
         arg1_is_option = true;
+      }
 
 
       //with multiple argument
@@ -930,7 +950,9 @@ namespace OpenMS
             sl.push_back(arg1);
             ++j;
             if (j < argc)
+            {
               arg1 = argv[j];
+            }
           }
 
           root_.insert(ParamEntry("", sl, ""), options_with_multiple_argument.find(arg)->second);
@@ -1048,46 +1070,78 @@ namespace OpenMS
       {
         LOG_WARN << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
         if (!prefix2.empty())
+        {
           LOG_WARN << " in '" << prefix2 << "'";
+        }
         LOG_WARN << "!" << std::endl;
       }
 
       //different types
       ParamEntry* default_value = defaults.root_.findEntryRecursive(prefix2 + it.getName());
       if (default_value == 0)
+      {
         continue;
+      }
       if (default_value->value.valueType() != it->value.valueType())
       {
         String d_type;
         if (default_value->value.valueType() == DataValue::STRING_VALUE)
+        {
           d_type = "string";
+        }
         if (default_value->value.valueType() == DataValue::STRING_LIST)
+        {
           d_type = "string list";
+        }
         if (default_value->value.valueType() == DataValue::EMPTY_VALUE)
+        {
           d_type = "empty";
+        }
         if (default_value->value.valueType() == DataValue::INT_VALUE)
+        {
           d_type = "integer";
+        }
         if (default_value->value.valueType() == DataValue::INT_LIST)
+        {
           d_type = "integer list";
+        }
         if (default_value->value.valueType() == DataValue::DOUBLE_VALUE)
+        {
           d_type = "float";
+        }
         if (default_value->value.valueType() == DataValue::DOUBLE_LIST)
+        {
           d_type = "float list";
+        }
         String p_type;
         if (it->value.valueType() == DataValue::STRING_VALUE)
+        {
           p_type = "string";
+        }
         if (it->value.valueType() == DataValue::STRING_LIST)
+        {
           p_type = "string list";
+        }
         if (it->value.valueType() == DataValue::EMPTY_VALUE)
+        {
           p_type = "empty";
+        }
         if (it->value.valueType() == DataValue::INT_VALUE)
+        {
           p_type = "integer";
+        }
         if (it->value.valueType() == DataValue::INT_LIST)
+        {
           p_type = "integer list";
+        }
         if (it->value.valueType() == DataValue::DOUBLE_VALUE)
+        {
           p_type = "float";
+        }
         if (it->value.valueType() == DataValue::DOUBLE_LIST)
+        {
           p_type = "float list";
+        }
 
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + ": Wrong parameter type '" + p_type + "' for " + d_type + " parameter '" + it.getName() + "' given!");
       }
@@ -1096,7 +1150,9 @@ namespace OpenMS
       pe.value = it->value;
       String s;
       if (!pe.isValid(s))
+      {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name + ": " + s);
+      }
     }
   }
 
@@ -1116,7 +1172,7 @@ namespace OpenMS
   {
     // start at NEXT entry
     Param::ParamIterator it = start_leaf;
-    if (it != this->end()) ++it;
+    if (it != this->end()) { ++it; }
 
     for (; it != this->end(); ++it)
     {
@@ -1140,7 +1196,6 @@ namespace OpenMS
     return update(p_outdated, true, add_unknown, fail_on_invalid_values, fail_on_unknown_parameters, stream);
   }
 
-  
   bool Param::update(const Param& p_outdated, bool verbose, const bool add_unknown, bool fail_on_invalid_values, bool fail_on_unknown_parameters, Logger::LogStream& stream)
   {
     bool is_update_success(true);
@@ -1163,7 +1218,7 @@ namespace OpenMS
         }
         // param 'type': do not override!
         else if (it.getName().hasSuffix(":type") &&
-                 it.getName().toQString().count(':') == 2) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
+                 (it.getName().toQString().count(':') == 2)) // only for TOPP type (e.g. PeakPicker:1:type), any other 'type' param is ok
         {
           if (this->getValue(it.getName()) != it->value)
           {
@@ -1235,7 +1290,7 @@ namespace OpenMS
           if (new_entry.isValid(validation_result))
           {
             // overwrite default value
-            if (verbose) stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!" << std::endl;
+            if (verbose) { stream << "Default-Parameter '" << target_name << "' overridden: '" << default_value << "' --> '" << it->value << "'!" << std::endl; }
             this->setValue(target_name, it->value, new_entry.description, this->getTags(target_name));
           }
           else
@@ -1265,7 +1320,7 @@ namespace OpenMS
         {
           stream << " Updating failed!" << std::endl;
           is_update_success = false;
-        } 
+        }
         else
         {
           stream << " Ignoring invalid value (using new default)!" << std::endl;
@@ -1287,7 +1342,9 @@ namespace OpenMS
     {
       String prefix = "";
       if (it.getName().has(':'))
+      {
         prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
+      }
 
       // we care only about values that do not exist already
       if (!this->exists(it.getName()))
@@ -1310,7 +1367,9 @@ namespace OpenMS
         {
           LOG_DEBUG << "[Param::merge] reducing param trace " << traceIt->name << " (" << pathname << ")" << std::endl;
           if (pathname.hasSuffix(traceIt->name + ":"))
+          {
             pathname.resize(pathname.size() - traceIt->name.size() - 1);
+          }
         }
         String real_pathname = pathname.chop(1); //remove ':' at the end
         if (real_pathname != "")
@@ -1345,7 +1404,7 @@ namespace OpenMS
 
   void Param::addSection(const String& key, const String& description)
   {
-    root_.insert(ParamNode("",description),key);
+    root_.insert(ParamNode("", description), key);
   }
 
   Param::ParamIterator Param::begin() const
@@ -1408,7 +1467,9 @@ namespace OpenMS
   Param::ParamIterator& Param::ParamIterator::operator++()
   {
     if (root_ == 0)
+    {
       return *this;
+    }
 
     trace_.clear();
     while (true)

@@ -66,8 +66,11 @@ namespace OpenMS
     feature_map = fmap;
 
     TextFile::ConstIterator it = input.begin();
-    if (it == input.end()) return; // no data to load
+    if (it == input.end())
+    {
+      return;                      // no data to load
 
+    }
     // skip header line
     ++it;
     // process content

@@ -75,7 +75,7 @@ public:
     {
       begin_ = begin;
       end_ = end;
-      if (current_recursion_depth) cout << '\n';
+      if (current_recursion_depth) { cout << '\n'; }
       cout << string(2 * current_recursion_depth, ' ') << "Progress of '" << label << "':" << endl;
       stop_watch_.reset();
       stop_watch_.start();
@@ -87,7 +87,7 @@ public:
       {
         cout << '.' << flush;
       }
-      else if (value < begin_ || value > end_)
+      else if ((value < begin_) || (value > end_))
       {
         cout << "ProgressLogger: Invalid progress value '" << value
              << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
@@ -161,18 +161,21 @@ public:
   {
     switch (type)
     {
-      case NONE:
-        return "NONE";
-      case CMD:
-        return "CMD";
-      case GUI:
-        return "GUI";
+    case NONE:
+      return "NONE";
+
+    case CMD:
+      return "CMD";
+
+    case GUI:
+      return "GUI";
     }
 
 // should never happen but gcc emits a warning/error
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunreachable-code-return"
     return "";
+
 #pragma clang diagnostic pop
   }
 
@@ -193,7 +196,7 @@ public:
 
   ProgressLogger& ProgressLogger::operator=(const ProgressLogger& other)
   {
-    if (&other == this) return *this;
+    if (&other == this) { return *this; }
 
     this->last_invoke_ = other.last_invoke_;
     this->type_ = other.type_;
@@ -237,7 +240,7 @@ public:
   void ProgressLogger::setProgress(SignedSize value) const
   {
     // update only if at least 1 second has passed
-    if (last_invoke_ == time(NULL)) return;
+    if (last_invoke_ == time(NULL)) { return; }
 
     last_invoke_ = time(NULL);
     current_logger_->setProgress(value, recursion_depth_);

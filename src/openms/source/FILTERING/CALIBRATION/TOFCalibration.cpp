@@ -43,14 +43,14 @@ namespace OpenMS
     DefaultParamHandler("TOFCalibration"), ProgressLogger()
   {
     subsections_.push_back("PeakPicker");
-    check_defaults_ = false;   // class has no own parameters
+    check_defaults_ = false; // class has no own parameters
   }
 
   TOFCalibration::~TOFCalibration()
   {
   }
 
-  void TOFCalibration::calculateCalibCoeffs_(PeakMap & calib_spectra)
+  void TOFCalibration::calculateCalibCoeffs_(PeakMap& calib_spectra)
   {
     // flight times are needed later
     calib_peaks_ft_ = calib_spectra;
@@ -94,9 +94,9 @@ namespace OpenMS
       qr.computeRegression(x.begin(), x.end(), y.begin());
 
 #ifdef DEBUG_CALIBRATION
-      std::cout << "chi^2: " << qr.getChiSquared() << std::endl;//DEBUG
+      std::cout << "chi^2: " << qr.getChiSquared() << std::endl; //DEBUG
       std::cout << "a: " << qr.getA() << "b: " << qr.getB()
-            << "c: " << qr.getC() << std::endl;//DEBUG
+                << "c: " << qr.getC() << std::endl; //DEBUG
 #endif
       // store the coefficients
       coeff_quad_fit_.push_back(qr.getA());
@@ -160,10 +160,10 @@ namespace OpenMS
     }
   }
 
-  void TOFCalibration::matchMasses_(PeakMap & calib_peaks,
-                                    std::vector<std::vector<unsigned int> > & monoiso_peaks,
-                                    std::vector<unsigned int> & obs_masses,
-                                    std::vector<double> & exp_masses, unsigned int idx)
+  void TOFCalibration::matchMasses_(PeakMap& calib_peaks,
+                                    std::vector<std::vector<unsigned int> >& monoiso_peaks,
+                                    std::vector<unsigned int>& obs_masses,
+                                    std::vector<double>& exp_masses, unsigned int idx)
   {
     for (unsigned int i = 0; i < monoiso_peaks[idx].size(); ++i)
     {
@@ -192,7 +192,7 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::getMonoisotopicPeaks_(PeakMap & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks)
+  void TOFCalibration::getMonoisotopicPeaks_(PeakMap& calib_peaks, std::vector<std::vector<unsigned int> >& monoiso_peaks)
   {
 
     PeakMap::iterator spec_iter;
@@ -256,7 +256,7 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::applyTOFConversion_(PeakMap & calib_spectra)
+  void TOFCalibration::applyTOFConversion_(PeakMap& calib_spectra)
   {
     PeakMap::iterator spec_iter = calib_spectra.begin();
     PeakMap::SpectrumType::iterator peak_iter;
@@ -321,7 +321,7 @@ namespace OpenMS
 
   }
 
-  void TOFCalibration::pickAndCalibrate(PeakMap & calib_spectra, PeakMap & exp, std::vector<double> & exp_masses)
+  void TOFCalibration::pickAndCalibrate(PeakMap& calib_spectra, PeakMap& exp, std::vector<double>& exp_masses)
   {
     PeakMap p_calib_spectra;
 
@@ -334,7 +334,7 @@ namespace OpenMS
     calibrate(p_calib_spectra, exp, exp_masses);
   }
 
-  void TOFCalibration::calibrate(PeakMap & calib_spectra, PeakMap & exp, std::vector<double> & exp_masses)
+  void TOFCalibration::calibrate(PeakMap& calib_spectra, PeakMap& exp, std::vector<double>& exp_masses)
   {
     exp_masses_ = exp_masses;
     calculateCalibCoeffs_(calib_spectra);
@@ -354,9 +354,13 @@ namespace OpenMS
       {
         double xi = mQ_(calib_peaks_ft_[spec][monoiso[p]].getMZ(), spec);
         if (xi > calib_masses[error_medians_.size() - 1])
+        {
           continue;
+        }
         if (xi < calib_masses[0])
+        {
           continue;
+        }
         std::cout << exp_masses[p] << "\t"
                   << Math::getPPM(xi - spline(xi), exp_masses[p])
                   << std::endl;
@@ -404,7 +408,7 @@ namespace OpenMS
 
         if (m < m_min0)
         {
-          y = y_min0 + min_slope * (m - m_min0); 
+          y = y_min0 + min_slope * (m - m_min0);
           exp[spec][peak].setPos(m - y);
         }
         else if (m > m_max0)
@@ -421,4 +425,3 @@ namespace OpenMS
   }
 
 } //namespace OpenMS
-

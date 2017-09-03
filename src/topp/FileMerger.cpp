@@ -122,7 +122,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
-    
+
     registerTOPPSubsection_("rt_concat", "Options for concatenating files in the retention time (RT) dimension. The RT ranges of inputs are adjusted so they don't overlap in the merged file (traML input not supported)");
     registerDoubleOption_("rt_concat:gap", "<sec>", 0.0, "The amount of gap (in seconds) to insert between the RT ranges of different input files. RT concatenation is enabled if a value > 0 is set.", false);
     registerOutputFileList_("rt_concat:trafo_out", "<files>", vector<String>(), "Output of retention time transformations that were applied to the input files to produce non-overlapping RT ranges. If used, one output file per input file is required.", false);
@@ -240,7 +240,6 @@ protected:
 
       fh.store(out_file, out);
     }
-
     else if (force_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap out;
@@ -287,15 +286,14 @@ protected:
 
       fh.store(out_file, out);
     }
-
     else if (force_type == FileTypes::FASTA)
     {
       FASTAFile infile;
       FASTAFile outfile;
-      vector <FASTAFile::FASTAEntry> entries;
-      vector <FASTAFile::FASTAEntry> temp_entries;
-      vector <FASTAFile::FASTAEntry>::iterator loopiter;
-      vector <FASTAFile::FASTAEntry>::iterator iter;
+      vector<FASTAFile::FASTAEntry> entries;
+      vector<FASTAFile::FASTAEntry> temp_entries;
+      vector<FASTAFile::FASTAEntry>::iterator loopiter;
+      vector<FASTAFile::FASTAEntry>::iterator iter;
 
       for (Size i = 0; i < file_list.size(); ++i)
       {
@@ -315,7 +313,7 @@ protected:
 
         iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.sequenceMatches(*loopiter); });
 
-        if (iter != loopiter && iter != entries.end())
+        if ((iter != loopiter) && (iter != entries.end()))
         {
           std::cout << "Warning: Duplicate sequence, Number: " << std::distance(entries.begin(), loopiter) + 1 << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
         }
@@ -323,7 +321,6 @@ protected:
 
       outfile.store(out_file, entries);
     }
-
     else if (force_type == FileTypes::TRAML)
     {
       TargetedExperiment out;
@@ -387,7 +384,7 @@ protected:
         out.reserve(out.size() + in.size());
 
         // warn if custom RT and more than one scan in input file
-        if (rt_custom && in.size() > 1)
+        if (rt_custom && (in.size() > 1))
         {
           writeLog_(String("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
         }
@@ -454,9 +451,9 @@ protected:
           out.addSpectrum(*spec_it);
         }
         // also add the chromatograms
-        for (vector<MSChromatogram >::const_iterator
-               chrom_it = in.getChromatograms().begin(); chrom_it != 
-               in.getChromatograms().end(); ++chrom_it)
+        for (vector<MSChromatogram>::const_iterator
+             chrom_it = in.getChromatograms().begin(); chrom_it !=
+             in.getChromatograms().end(); ++chrom_it)
         {
           out.addChromatogram(*chrom_it);
         }

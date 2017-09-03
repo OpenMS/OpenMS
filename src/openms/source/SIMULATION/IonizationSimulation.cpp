@@ -207,7 +207,9 @@ namespace OpenMS
     // parse possible ESI adducts
     StringList esi_charge_impurity = param_.getValue("esi:charge_impurity");
     if (esi_charge_impurity.empty())
+    {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IonizationSimulation got empty esi:charge_impurity! You need to specify at least one adduct (usually 'H+:1')"));
+    }
     StringList components;
     max_adduct_charge_ = 0;
     // reset internal state:
@@ -219,7 +221,9 @@ namespace OpenMS
     {
       esi_charge_impurity[i].split(':', components);
       if (components.size() != 2)
+      {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IonizationSimulation got invalid esi:charge_impurity (") + esi_charge_impurity[i] + ") with " + components.size() + " components instead of 2.");
+      }
       // determine charge of adduct (by # of '+')
       Size l_charge = components[0].size();
       l_charge -= components[0].remove('+').size();
@@ -305,7 +309,9 @@ public:
 #ifdef _OPENMP
         // progress logger, only master thread sets progress (no barrier here)
         if (omp_get_thread_num() == 0)
+        {
           this->setProgress(progress);
+        }
 #else
         this->setProgress(progress);
 #endif
@@ -640,7 +646,7 @@ public:
 
   bool IonizationSimulation::isFeatureValid_(const Feature& feature)
   {
-    if (feature.getMZ() > maximal_mz_measurement_limit_ || feature.getMZ() < minimal_mz_measurement_limit_) // remove feature
+    if ((feature.getMZ() > maximal_mz_measurement_limit_) || (feature.getMZ() < minimal_mz_measurement_limit_)) // remove feature
     {
       return false;
     }

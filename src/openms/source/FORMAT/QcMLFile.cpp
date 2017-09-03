@@ -495,7 +495,7 @@ namespace OpenMS
       std::vector<QcMLFile::Attachment>::iterator qit = runQualityAts_[r].begin();
       while (qit != runQualityAts_[r].end())
       {
-        if (qit->qualityRef == ids[i] && ((qit->name == at) || (!not_all)))
+        if ((qit->qualityRef == ids[i]) && ((qit->name == at) || (!not_all)))
         {
           qit = runQualityAts_[r].erase(qit);
         }
@@ -507,7 +507,7 @@ namespace OpenMS
       qit = setQualityAts_[r].begin();
       while (qit != setQualityAts_[r].end())
       {
-        if (qit->qualityRef == ids[i] && ((qit->name == at) || (!not_all)))
+        if ((qit->qualityRef == ids[i]) && ((qit->name == at) || (!not_all)))
         {
           qit = setQualityAts_[r].erase(qit);
         }
@@ -777,11 +777,11 @@ namespace OpenMS
       std::map<String, std::map<String, String> > cvs_table;
       for (std::vector<QualityParameter>::const_iterator it = found->second.begin(); it != found->second.end(); ++it)
       {
-        if (it->cvAcc == "QC:0000043" || it->cvAcc == "QC:0000044" || it->cvAcc == "QC:0000045" || it->cvAcc == "QC:0000046" || it->cvAcc == "QC:0000047")
+        if ((it->cvAcc == "QC:0000043") || (it->cvAcc == "QC:0000044") || (it->cvAcc == "QC:0000045") || (it->cvAcc == "QC:0000046") || (it->cvAcc == "QC:0000047"))
         {
           cvs_table["id"][it->name.prefix(' ')] = it->value;
         }
-        else if (it->cvAcc == "QC:0000053" || it->cvAcc == "QC:0000054" || it->cvAcc == "QC:0000055" || it->cvAcc == "QC:0000056" || it->cvAcc == "QC:0000057")
+        else if ((it->cvAcc == "QC:0000053") || (it->cvAcc == "QC:0000054") || (it->cvAcc == "QC:0000055") || (it->cvAcc == "QC:0000056") || (it->cvAcc == "QC:0000057"))
         {
           cvs_table["ms2"][it->name.prefix(' ')] = it->value;
         }
@@ -988,7 +988,7 @@ namespace OpenMS
     }
     else if (tag_ == "qualityParameter")
     {
-      if (!(qp_.cvAcc == "MS:1000577" && parent_tag == "setQuality")) //set members get treated differently!
+      if (!((qp_.cvAcc == "MS:1000577") && (parent_tag == "setQuality"))) //set members get treated differently!
       {
         qps_.push_back(qp_);
         qp_ = QualityParameter();
@@ -1058,7 +1058,7 @@ namespace OpenMS
       xslt = xslt.erase(0, xslt.find("\n") + 1);
       xslt_ref = "openms-qc-stylesheet"; //TODO make this user defined pt.2
     }
-    catch (Exception::FileNotFound &)
+    catch (Exception::FileNotFound&)
     {
       warning(STORE, String("No qcml stylesheet found, result will not be viewable in a browser!"));
     }
@@ -1079,11 +1079,11 @@ namespace OpenMS
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     if (!xslt_ref.empty())
     {
-        os << "<?xml-stylesheet type=\"text/xml\" href=\"#" << xslt_ref << "\"?>\n";
-        os << "<!DOCTYPE catelog [\n"
-           << "  <!ATTLIST xsl:stylesheet\n"
-           << "  id  ID  #REQUIRED>\n"
-           << "  ]>\n";
+      os << "<?xml-stylesheet type=\"text/xml\" href=\"#" << xslt_ref << "\"?>\n";
+      os << "<!DOCTYPE catelog [\n"
+         << "  <!ATTLIST xsl:stylesheet\n"
+         << "  id  ID  #REQUIRED>\n"
+         << "  ]>\n";
     }
     os << "<qcML xmlns=\"https://github.com/qcML/qcml\" >\n"; //TODO creation date into schema!!
 
@@ -1151,18 +1151,20 @@ namespace OpenMS
             std::map<String, std::vector<QualityParameter> >::const_iterator rq = runQualityQPs_.find(*kt);
             if (rq != runQualityQPs_.end())
             {
-                QcMLFile::QualityParameter qp;
-                qp.id = *kt; ///< Identifier
-                qp.name = "set name"; ///< Name
-                qp.cvRef = "QC"; ///< cv reference
-                qp.cvAcc = "QC:0000005";
-                for (std::vector<QualityParameter>::const_iterator qit = rq->second.begin(); qit != rq->second.end(); ++qit)
+              QcMLFile::QualityParameter qp;
+              qp.id = *kt;   ///< Identifier
+              qp.name = "set name";   ///< Name
+              qp.cvRef = "QC";   ///< cv reference
+              qp.cvAcc = "QC:0000005";
+              for (std::vector<QualityParameter>::const_iterator qit = rq->second.begin(); qit != rq->second.end(); ++qit)
+              {
+                //<qualityParameter name="mzML file" ID="OTT0650-S44-A-Leber_1_run_name" cvRef="MS" accession="MS:1000577" value="OTT0650-S44-A-Leber_1"/>
+                if (qit->cvAcc == "MS:1000577")
                 {
-                  //<qualityParameter name="mzML file" ID="OTT0650-S44-A-Leber_1_run_name" cvRef="MS" accession="MS:1000577" value="OTT0650-S44-A-Leber_1"/>
-                  if (qit->cvAcc == "MS:1000577")
-                    qp.value = qit->value;
+                  qp.value = qit->value;
                 }
-                os << qp.toXMLString(4);
+              }
+              os << qp.toXMLString(4);
             }
             else
             {
@@ -1208,4 +1210,3 @@ namespace OpenMS
 }
 
 #pragma clang diagnostic pop
-

@@ -66,7 +66,7 @@ namespace OpenMS
     {}
 
     std::vector<double> mz_deltas; //< m/z distance between expected and observed reporter ion closest to expected position
-    int signal_not_unique;  //< counts if more than one peak was found within the search window of each reporter position
+    int signal_not_unique; //< counts if more than one peak was found within the search window of each reporter position
   };
 
 
@@ -88,14 +88,13 @@ namespace OpenMS
     hasFollowUpScan = followUpScan != baseExperiment.end();
   }
 
-
   void IsobaricChannelExtractor::PuritySate_::advanceFollowUp(const double rt)
   {
     // advance follow up scan until we found a ms1 scan with a bigger RT
-    if (followUpScan != baseExperiment.end()) ++followUpScan;
+    if (followUpScan != baseExperiment.end()) { ++followUpScan; }
     while (followUpScan != baseExperiment.end())
     {
-      if (followUpScan->getMSLevel() == 1 && followUpScan->getRT() > rt)
+      if ((followUpScan->getMSLevel() == 1) && (followUpScan->getRT() > rt))
       {
         break;
       }
@@ -145,7 +144,9 @@ namespace OpenMS
   IsobaricChannelExtractor& IsobaricChannelExtractor::operator=(const IsobaricChannelExtractor& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
+    }
 
     DefaultParamHandler::operator=(rhs);
     quant_method_ = rhs.quant_method_;
@@ -216,8 +217,8 @@ namespace OpenMS
     Size number_of_channels = quant_method_->getNumberOfChannels();
 
     /* check for sensible parameters */
-    if ((( number_of_channels == 10) || (number_of_channels == 11))
-        && reporter_mass_shift_ > TMT_10AND11PLEX_CHANNEL_TOLERANCE)
+    if (((number_of_channels == 10) || (number_of_channels == 11))
+       && (reporter_mass_shift_ > TMT_10AND11PLEX_CHANNEL_TOLERANCE))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Both TMT-10plex and TMT-11plex require reporter mass shifts <= 0.003 to avoid channel ambiguity!");
     }
@@ -482,9 +483,12 @@ namespace OpenMS
     std::map<String, int> activation_modes;
     for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
-      if (it->getMSLevel() == 1) continue; // never report MS1
+      if (it->getMSLevel() == 1)
+      {
+        continue;                          // never report MS1
+      }
       ++activation_modes[getActivationMethod_(*it)]; // count HCD, CID, ...
-      if (selected_activation_ == "" || isValidActivation(*it))
+      if ((selected_activation_ == "") || isValidActivation(*it))
       {
         ++ms_level[it->getMSLevel()];
       }
@@ -515,7 +519,7 @@ namespace OpenMS
     // remember the current precursor spectrum
     PuritySate_ pState(ms_exp_data);
 
-    typedef std::map<String, ChannelQC > ChannelQCSet;
+    typedef std::map<String, ChannelQC> ChannelQCSet;
     ChannelQCSet channel_mz_delta;
     const double qc_dist_mz = 0.5; // fixed! Do not change!
 
@@ -542,9 +546,12 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("No precursor information given for scan native ID ") + it->getNativeID() + " with RT " + String(it->getRT()));
         }
       }
-      if (it->getMSLevel() != quant_ms_level) continue;
-      if ((*it).empty()) continue; // skip empty spectra
-      if (!(selected_activation_ == "" || isValidActivation(*it))) continue;
+      if (it->getMSLevel() != quant_ms_level) { continue; }
+      if ((*it).empty())
+      {
+        continue;                  // skip empty spectra
+      }
+      if (!((selected_activation_ == "") || isValidActivation(*it))) { continue; }
 
       // find following ms1 scan (needed for purity computation)
       if (!pState.followUpValid(it->getRT()))
@@ -600,8 +607,8 @@ namespace OpenMS
       Peak2D::IntensityType overall_intensity = 0;
 
       for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
-            cl_it != quant_method_->getChannelInformation().end();
-            ++cl_it)
+           cl_it != quant_method_->getChannelInformation().end();
+           ++cl_it)
       {
         // set mz-position of channel
         channel_value.setMZ(cl_it->center);
@@ -616,14 +623,17 @@ namespace OpenMS
         int peak_count(0); // count peaks in user window -- should be only one, otherwise Window is too large
         PeakMap::SpectrumType::ConstIterator idx_nearest(mz_end);
         for (PeakMap::SpectrumType::ConstIterator mz_it = it->MZBegin(cl_it->center - qc_dist_mz);
-              mz_it != mz_end;
-              ++mz_it)
+             mz_it != mz_end;
+             ++mz_it)
         {
-          if (mz_it->getIntensity() == 0) continue; // ignore 0-intensity shoulder peaks -- could be detrimental when de-calibrated
+          if (mz_it->getIntensity() == 0)
+          {
+            continue;                               // ignore 0-intensity shoulder peaks -- could be detrimental when de-calibrated
+          }
           double dist_mz = fabs(mz_it->getMZ() - cl_it->center);
-          if (dist_mz < reporter_mass_shift_) ++peak_count;
-          if (idx_nearest == mz_end // first peak
-              || ((idx_nearest != mz_end) && (dist_mz < fabs(idx_nearest->getMZ() - cl_it->center)))) // closer to best candidate
+          if (dist_mz < reporter_mass_shift_) { ++peak_count; }
+          if ((idx_nearest == mz_end) // first peak
+             || ((idx_nearest != mz_end) && (dist_mz < fabs(idx_nearest->getMZ() - cl_it->center))))  // closer to best candidate
           {
             idx_nearest = mz_it;
           }
@@ -633,7 +643,7 @@ namespace OpenMS
           double mz_delta = cl_it->center - idx_nearest->getMZ();
           // stats: we don't care what shift the user specified
           channel_mz_delta[cl_it->name].mz_deltas.push_back(mz_delta);
-          if (peak_count > 1) ++channel_mz_delta[cl_it->name].signal_not_unique;
+          if (peak_count > 1) { ++channel_mz_delta[cl_it->name].signal_not_unique; }
           // pass user threshold
           if (std::fabs(mz_delta) < reporter_mass_shift_)
           {
@@ -687,8 +697,8 @@ namespace OpenMS
     LOG_INFO << "Calibration stats: Median distance of observed reporter ions m/z to expected position (up to " << qc_dist_mz << " Th):\n";
     bool impurities_found(false);
     for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
-      cl_it != quant_method_->getChannelInformation().end();
-      ++cl_it)
+         cl_it != quant_method_->getChannelInformation().end();
+         ++cl_it)
     {
       LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
       if (channel_mz_delta.find(cl_it->name) != channel_mz_delta.end())
@@ -697,14 +707,14 @@ namespace OpenMS
         double median = Math::median(channel_mz_delta[cl_it->name].mz_deltas.begin(), channel_mz_delta[cl_it->name].mz_deltas.end(), false);
         if (((number_of_channels == 10) || (number_of_channels == 11)) &&
             (fabs(median) > TMT_10AND11PLEX_CHANNEL_TOLERANCE) &&
-            (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
+            ((int(cl_it->center) != 126) && (int(cl_it->center) != 131))) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
         { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
           LOG_INFO << "<invalid data (>" << TMT_10AND11PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
         }
         else
         {
           LOG_INFO << median << " Th";
-          if (channel_mz_delta[cl_it->name].signal_not_unique > 0) 
+          if (channel_mz_delta[cl_it->name].signal_not_unique > 0)
           {
             LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl_it->name].signal_not_unique << " windows|spectra]";
             impurities_found = true;
@@ -717,8 +727,11 @@ namespace OpenMS
         LOG_INFO << "<no data>\n";
       }
     }
-    if (impurities_found) LOG_INFO << "\nImpurities within the allowed reporter mass shift " << reporter_mass_shift_ << " Th have been found." 
-                                   << "They can be ignored if the spectra are m/z calibrated (see above), since only the peak closest to the theoretical position is used for quantification!";
+    if (impurities_found)
+    {
+      LOG_INFO << "\nImpurities within the allowed reporter mass shift " << reporter_mass_shift_ << " Th have been found."
+               << "They can be ignored if the spectra are m/z calibrated (see above), since only the peak closest to the theoretical position is used for quantification!";
+    }
     LOG_INFO << std::endl;
 
 

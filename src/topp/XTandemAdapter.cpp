@@ -130,14 +130,14 @@ protected:
     registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("xtandem_executable", "<executable>",
-      // choose the default value according to the platform where it will be executed
-      // X! Tandem compiles as tandem on OSX and tandem.exe on any other platform
+                       // choose the default value according to the platform where it will be executed
+                       // X! Tandem compiles as tandem on OSX and tandem.exe on any other platform
 #if  defined(__APPLE__)
-      "tandem",
+                       "tandem",
 #else
-      "tandem.exe",
+                       "tandem.exe",
 #endif
-      "X! Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
+                       "X! Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("default_config_file", "<file>", "", "Default X! Tandem configuration file. All parameters of this adapter take precedence over the file - use it for parameters not available here. A template file can be found at 'OpenMS/share/CHEMISTRY/XTandem_default_input.xml'.", false, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("default_config_file", ListUtils::create<String>("xml"));
     registerFlag_("ignore_adapter_param", "Set this to use the configuration given in 'default_config_file' exclusively, ignoring other parameters (apart from 'in', 'out', 'database', 'xtandem_executable') set via this adapter.");

@@ -138,12 +138,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return PeakPickerCWT().getDefaults();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -198,7 +198,7 @@ protected:
     {
       pp.pickExperiment(ms_exp_raw, ms_exp_peaks);
     }
-    catch (Exception::BaseException & e)
+    catch (Exception::BaseException& e)
     {
       LOG_ERROR << "Exception caught: " << e.what() << "\n";
       return INTERNAL_ERROR;
@@ -225,7 +225,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPeakPickerWavelet tool;
   return tool.main(argc, argv);

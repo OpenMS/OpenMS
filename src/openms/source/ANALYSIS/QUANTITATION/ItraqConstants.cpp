@@ -40,49 +40,49 @@ namespace OpenMS
 {
 
   // number of channels for iTRAQ types. (make sure it corresponds to enum ITRAQ_TYPES)
-  const Int ItraqConstants::CHANNEL_COUNT[3] = {4, 8, 6};
+  const Int ItraqConstants::CHANNEL_COUNT[3] = { 4, 8, 6 };
 
-  const Int ItraqConstants::CHANNELS_FOURPLEX[4][1] = {{114}, {115}, {116}, {117}};
-  const Int ItraqConstants::CHANNELS_EIGHTPLEX[8][1] = {{113}, {114}, {115}, {116}, {117}, {118}, {119}, {121}};
-  const Int ItraqConstants::CHANNELS_TMT_SIXPLEX[6][1] = {{126}, {127}, {128}, {129}, {130}, {131}};
+  const Int ItraqConstants::CHANNELS_FOURPLEX[4][1] = { { 114 }, { 115 }, { 116 }, { 117 } };
+  const Int ItraqConstants::CHANNELS_EIGHTPLEX[8][1] = { { 113 }, { 114 }, { 115 }, { 116 }, { 117 }, { 118 }, { 119 }, { 121 } };
+  const Int ItraqConstants::CHANNELS_TMT_SIXPLEX[6][1] = { { 126 }, { 127 }, { 128 }, { 129 }, { 130 }, { 131 } };
 
   // currently from http://www.matrixscience.com/help/quant_config_help.html
   // (@ 117; +2 the value is 0.1 not 0.0 as confirmed by ABSciex)
   const double ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX[4][4] =
   {
-    {0.0, 1.0, 5.9, 0.2},   //114
-    {0.0, 2.0, 5.6, 0.1},
-    {0.0, 3.0, 4.5, 0.1},
-    {0.1, 4.0, 3.5, 0.1}    //117
+    { 0.0, 1.0, 5.9, 0.2 }, //114
+    { 0.0, 2.0, 5.6, 0.1 },
+    { 0.0, 3.0, 4.5, 0.1 },
+    { 0.1, 4.0, 3.5, 0.1 } //117
   };
 
   //taken from Applied Biosystems Website
   // http://www.absciex.com/Documents/Support/AB_SCIEX_Question_and_Answer.xls
   const double ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX[8][4] =
   {
-    {0.00, 0.00, 6.89, 0.22},   //113
-    {0.00, 0.94, 5.90, 0.16},
-    {0.00, 1.88, 4.90, 0.10},
-    {0.00, 2.82, 3.90, 0.07},
-    {0.06, 3.77, 2.99, 0.00},
-    {0.09, 4.71, 1.88, 0.00},
-    {0.14, 5.66, 0.87, 0.00},
-    {0.27, 7.44, 0.18, 0.00}    //121
+    { 0.00, 0.00, 6.89, 0.22 }, //113
+    { 0.00, 0.94, 5.90, 0.16 },
+    { 0.00, 1.88, 4.90, 0.10 },
+    { 0.00, 2.82, 3.90, 0.07 },
+    { 0.06, 3.77, 2.99, 0.00 },
+    { 0.09, 4.71, 1.88, 0.00 },
+    { 0.14, 5.66, 0.87, 0.00 },
+    { 0.27, 7.44, 0.18, 0.00 } //121
   };
 
   //taken from ThermoFisher Scientific
   // http://www.piercenet.com/coapdfs/CofA-90064-SPECS.pdf
   const double ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX[6][4] =
   {
-    {0.00, 0.00, 0.00, 0.00},      //126
-    {0.00, 0.00, 0.00, 0.00},      //127
-    {0.00, 0.00, 0.00, 0.00},      //128
-    {0.00, 0.00, 0.00, 0.00},      //129
-    {0.00, 0.00, 0.00, 0.00},      //130
-    {0.00, 0.00, 0.00, 0.00},      //131
+    { 0.00, 0.00, 0.00, 0.00 }, //126
+    { 0.00, 0.00, 0.00, 0.00 }, //127
+    { 0.00, 0.00, 0.00, 0.00 }, //128
+    { 0.00, 0.00, 0.00, 0.00 }, //129
+    { 0.00, 0.00, 0.00, 0.00 }, //130
+    { 0.00, 0.00, 0.00, 0.00 }, //131
   };
 
-  StringList ItraqConstants::getIsotopeMatrixAsStringList(const int itraq_type, const IsotopeMatrices & isotope_corrections)
+  StringList ItraqConstants::getIsotopeMatrixAsStringList(const int itraq_type, const IsotopeMatrices& isotope_corrections)
   {
     OPENMS_PRECONDITION(itraq_type < SIZE_OF_ITRAQ_TYPES && itraq_type >= 0, "Error while trying to access invalid isotope correction matrix.");
 
@@ -105,7 +105,7 @@ namespace OpenMS
     return isotopes;
   }
 
-  void ItraqConstants::updateIsotopeMatrixFromStringList(const int itraq_type, const StringList & channels, IsotopeMatrices & isotope_corrections)
+  void ItraqConstants::updateIsotopeMatrixFromStringList(const int itraq_type, const StringList& channels, IsotopeMatrices& isotope_corrections)
   {
     // TODO: make generic .. why do we need to initialize all matrices, we are only interested in itraq_type
     isotope_corrections.resize(SIZE_OF_ITRAQ_TYPES);
@@ -122,23 +122,29 @@ namespace OpenMS
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected one ':', got this: '" + (*it) + "'");
       }
-      result[0] = result[0].trim();       // hold channel name
-      result[1] = result[1].trim();       // holds 4 values
+      result[0] = result[0].trim(); // hold channel name
+      result[1] = result[1].trim(); // holds 4 values
 
       Int channel = result[0].toInt();
       Int line = 0;
       if (itraq_type == FOURPLEX)
+      {
         line = channel - 114;
+      }
       else if (itraq_type == EIGHTPLEX)
+      {
         line = channel - 113;
+      }
       else // TODO: what do we need as offset here
+      {
         line = channel - 126;
+      }
 
-      if ((itraq_type == FOURPLEX && (line < 0 || line > 3))
+      if (((itraq_type == FOURPLEX) && ((line < 0) || (line > 3)))
          ||
-          ((itraq_type == EIGHTPLEX && (line < 0 || line > 8)) || channel == 120)
+          (((itraq_type == EIGHTPLEX) && ((line < 0) || (line > 8))) || (channel == 120))
          ||
-          (itraq_type == TMT_SIXPLEX && (line < 0 || line > 5)))
+          ((itraq_type == TMT_SIXPLEX) && ((line < 0) || (line > 5))))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; channel-name is not valid for ")
                                           + String(
@@ -150,8 +156,10 @@ namespace OpenMS
       }
 
       // if set to 121 we still want to change line 7 of the matrix
-      if (line == 8 && itraq_type == EIGHTPLEX)
+      if ((line == 8) && (itraq_type == EIGHTPLEX))
+      {
         line = 7;
+      }
 
       StringList corrections;
       result[1].split('/', corrections);
@@ -172,10 +180,10 @@ namespace OpenMS
     }
   }
 
-  void ItraqConstants::initChannelMap(const int itraq_type, ChannelMapType & map)
+  void ItraqConstants::initChannelMap(const int itraq_type, ChannelMapType& map)
   {
     static Map<Int, double> reporter_mass_exact;
-    if (reporter_mass_exact.size() == 0 && (itraq_type == EIGHTPLEX || itraq_type == FOURPLEX)) // exact monoisotopic reporter ion masses (taken from AB Sciex)
+    if ((reporter_mass_exact.size() == 0) && ((itraq_type == EIGHTPLEX) || (itraq_type == FOURPLEX))) // exact monoisotopic reporter ion masses (taken from AB Sciex)
     {
       reporter_mass_exact[113] = 113.1078;
       reporter_mass_exact[114] = 114.1112;
@@ -223,7 +231,7 @@ namespace OpenMS
 #endif
   }
 
-  void ItraqConstants::updateChannelMap(const StringList & active_channels, ChannelMapType & map)
+  void ItraqConstants::updateChannelMap(const StringList& active_channels, ChannelMapType& map)
   {
     // split the channels key:name pairs apart
     for (StringList::const_iterator it = active_channels.begin(); it != active_channels.end(); ++it)
@@ -236,7 +244,7 @@ namespace OpenMS
       }
       result[0] = result[0].trim();
       result[1] = result[1].trim();
-      if (result[0] == String::EMPTY || result[1] == String::EMPTY)
+      if ((result[0] == String::EMPTY) || (result[1] == String::EMPTY))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; key or value is empty ('" + (*it) + "')");
       }
@@ -255,7 +263,7 @@ namespace OpenMS
     }
   }
 
-  Matrix<double> ItraqConstants::translateIsotopeMatrix(const int & itraq_type, const IsotopeMatrices & isotope_corrections)
+  Matrix<double> ItraqConstants::translateIsotopeMatrix(const int& itraq_type, const IsotopeMatrices& isotope_corrections)
   {
     // translate isotope_corrections to a channel_frequency matrix
 
@@ -280,26 +288,26 @@ namespace OpenMS
           }
           channel_frequency.setValue(i, j, val);
         }
-        else      // from mass i to mass j (directly copy the deviation)
+        else // from mass i to mass j (directly copy the deviation)
         {
-          if (i != 7 && j != 7)
+          if ((i != 7) && (j != 7))
           {
-            if (j < i && i <= j + 2)      // -2, -1 cases of row 'i'
+            if ((j < i) && (i <= j + 2)) // -2, -1 cases of row 'i'
             {
               channel_frequency.setValue(j, i, isotope_corrections[itraq_type].getValue(i, j - i + 2) / 100);
             }
-            else if (i < j && j <= i + 2)     // +1, +2 cases of row 'i'
+            else if ((i < j) && (j <= i + 2)) // +1, +2 cases of row 'i'
             {
               channel_frequency.setValue(j, i, isotope_corrections[itraq_type].getValue(i, j - i + 1) / 100);
             }
           }
           else // special case of ch-121 for 8plex
           { // make everything more 'extreme' by 1 index
-            if (i == 7 && j == 6) // -2 case of ch-121
+            if ((i == 7) && (j == 6)) // -2 case of ch-121
             {
               channel_frequency.setValue(j, i, isotope_corrections[itraq_type].getValue(i, 0) / 100);
             }
-            else if (i == 6 && j == 7) // +2 case of ch-121
+            else if ((i == 6) && (j == 7)) // +2 case of ch-121
             {
               channel_frequency.setValue(j, i, isotope_corrections[itraq_type].getValue(i, 3) / 100);
             }

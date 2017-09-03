@@ -53,7 +53,6 @@ namespace OpenMS
     meta = metadata_[index];
   }
 
-
   void SpectrumMetaDataLookup::getSpectrumMetaData(
     const MSSpectrum& spectrum, SpectrumMetaData& meta,
     const boost::regex& scan_regexp, const map<Size, double>& precursor_rts)
@@ -76,7 +75,7 @@ namespace OpenMS
       if (!precursor_rts.empty())
       {
         // precursor RT is RT of previous spectrum with lower MS level:
-        map<Size, double>::const_iterator pos = 
+        map<Size, double>::const_iterator pos =
           precursor_rts.find(meta.ms_level - 1);
         if (pos != precursor_rts.end()) // found
         {
@@ -87,15 +86,14 @@ namespace OpenMS
           LOG_ERROR << "Error: Could not set precursor RT for spectrum with native ID '" + meta.native_id + "' - precursor spectrum not found." << endl;
         }
       }
-    } 
+    }
   }
-
 
   void SpectrumMetaDataLookup::getSpectrumMetaData(const String& spectrum_ref,
                                                    SpectrumMetaData& meta,
                                                    MetaDataFlags flags) const
   {
-    for (std::vector<boost::regex>::const_iterator it = 
+    for (std::vector<boost::regex>::const_iterator it =
            reference_formats.begin(); it != reference_formats.end(); ++it)
     {
       boost::smatch match;
@@ -112,7 +110,7 @@ namespace OpenMS
             flags &= ~MDF_RT; // unset flag
           }
         }
-        if (((flags & MDF_PRECURSORRT) == MDF_PRECURSORRT) && 
+        if (((flags & MDF_PRECURSORRT) == MDF_PRECURSORRT) &&
             match["PRECRT"].matched)
         {
           String value = match["PRECRT"].str();
@@ -122,7 +120,7 @@ namespace OpenMS
             flags &= ~MDF_PRECURSORRT; // unset flag
           }
         }
-        if (((flags & MDF_PRECURSORMZ) == MDF_PRECURSORMZ) && 
+        if (((flags & MDF_PRECURSORMZ) == MDF_PRECURSORMZ) &&
             match["MZ"].matched)
         {
           String value = match["MZ"].str();
@@ -151,7 +149,7 @@ namespace OpenMS
             flags &= ~MDF_MSLEVEL; // unset flag
           }
         }
-        if (((flags & MDF_SCANNUMBER) == MDF_SCANNUMBER) && 
+        if (((flags & MDF_SCANNUMBER) == MDF_SCANNUMBER) &&
             match["SCAN"].matched)
         {
           String value = match["SCAN"].str();
@@ -179,15 +177,14 @@ namespace OpenMS
     }
   }
 
-
   bool SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(vector<PeptideIdentification>& peptides, const String& filename,
-    bool stop_on_error)
+                                                         bool stop_on_error)
   {
     PeakMap exp;
     SpectrumLookup lookup;
     bool success = true;
     for (vector<PeptideIdentification>::iterator it = peptides.begin();
-            it != peptides.end(); ++it)
+         it != peptides.end(); ++it)
     {
       if (boost::math::isnan(it->getRT()))
       {
@@ -206,7 +203,7 @@ namespace OpenMS
         {
           LOG_ERROR << "Error: Failed to look up retention time for peptide identification with spectrum reference '" + spectrum_id + "' - no spectrum with corresponding native ID found." << endl;
           success = false;
-          if (stop_on_error) break;
+          if (stop_on_error) { break; }
         }
       }
     }
@@ -214,7 +211,7 @@ namespace OpenMS
   }
 
   bool SpectrumMetaDataLookup::addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, const String& filename,
-    bool stop_on_error, bool override_spectra_data, vector<ProteinIdentification> proteins)
+                                                            bool stop_on_error, bool override_spectra_data, vector<ProteinIdentification> proteins)
   {
     bool success = true;
     PeakMap exp;
@@ -230,15 +227,15 @@ namespace OpenMS
       vector<String> spectra_data(1);
       spectra_data[0] = "file://" + lookup.spectra_data_ref;
       for (vector<ProteinIdentification>::iterator it =
-            proteins.begin(); it !=
-            proteins.end(); ++it)
+             proteins.begin(); it !=
+           proteins.end(); ++it)
       {
         it->setMetaValue("spectra_data", spectra_data);
       }
     }
     for (vector<PeptideIdentification>::iterator it =
-          peptides.begin(); it !=
-          peptides.end(); ++it)
+           peptides.begin(); it !=
+         peptides.end(); ++it)
     {
       try
       {
@@ -251,13 +248,12 @@ namespace OpenMS
       {
         LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(it->getRT()) + "'." << endl;
         success = false;
-        if (stop_on_error) break;
+        if (stop_on_error) { break; }
       }
     }
 
 
     return success;
   }
-
 
 } // namespace OpenMS

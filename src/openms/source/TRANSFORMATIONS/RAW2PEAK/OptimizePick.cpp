@@ -48,8 +48,8 @@ namespace OpenMS
 {
 
   OptimizePick::OptimizePick(
-      const struct OptimizationFunctions::PenaltyFactors & penalties,
-      const int max_iteration)
+    const struct OptimizationFunctions::PenaltyFactors& penalties,
+    const int max_iteration)
   {
 
     penalties_ = penalties;
@@ -70,16 +70,18 @@ namespace OpenMS
   {
   }
 
-  void OptimizePick::optimize(std::vector<PeakShape> & peaks, Data & data)
+  void OptimizePick::optimize(std::vector<PeakShape>& peaks, Data& data)
   {
     if (peaks.empty())
+    {
       return;
+    }
 
     size_t global_peak_number = 0;
     data.peaks.assign(peaks.begin(), peaks.end());
 
     size_t num_dimensions = 4 * data.peaks.size();
-    Eigen::VectorXd x_init (num_dimensions);
+    Eigen::VectorXd x_init(num_dimensions);
     x_init.setZero();
     // We have to initialize the parameters for the optimization
     for (size_t i = 0; i < data.peaks.size(); i++)
@@ -108,8 +110,8 @@ namespace OpenMS
     data.penalties = penalties_;
 
     unsigned num_data_points = std::max(data.positions.size() + 1, num_dimensions);
-    OptPeakFunctor functor (num_dimensions, num_data_points, &data);
-    Eigen::LevenbergMarquardt<OptPeakFunctor> lmSolver (functor);
+    OptPeakFunctor functor(num_dimensions, num_data_points, &data);
+    Eigen::LevenbergMarquardt<OptPeakFunctor> lmSolver(functor);
     lmSolver.parameters.maxfev = max_iteration_;
     Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
     //the states are poorly documented. after checking the source, we believe that
@@ -117,7 +119,7 @@ namespace OpenMS
     //termination states.
     if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
     {
-        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-OptimizePeak:", "Could not fit the data: Error " + String(status));
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-OptimizePeak:", "Could not fit the data: Error " + String(status));
     }
 
     // iterate over all peaks and store the optimized values in peaks
@@ -144,7 +146,7 @@ namespace OpenMS
                   << " " << peaks[global_peak_number + current_peak].area << std::endl;
 #endif
       }
-      else  //It's a Sech - Peak
+      else //It's a Sech - Peak
       {
         PeakShape p = peaks[global_peak_number + current_peak];
         double x_left_endpoint = p.mz_position - 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
@@ -163,12 +165,12 @@ namespace OpenMS
 
   }
 
-  int OptimizePick::OptPeakFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+  int OptimizePick::OptPeakFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
   {
-    const std::vector<double> & signal = m_data->signal;
-    const std::vector<double> & positions = m_data->positions;
-    const std::vector<PeakShape> & peaks = m_data->peaks;
-    const OptimizationFunctions::PenaltyFactors & penalties = m_data->penalties;
+    const std::vector<double>& signal = m_data->signal;
+    const std::vector<double>& positions = m_data->positions;
+    const std::vector<PeakShape>& peaks = m_data->peaks;
+    const OptimizationFunctions::PenaltyFactors& penalties = m_data->penalties;
     // iterate over all points of the signal
     for (size_t current_point = 0; current_point < positions.size(); current_point++)
     {
@@ -183,8 +185,8 @@ namespace OpenMS
         double p_height = x(4 * current_peak);
         double p_position = x(4 * current_peak + 3);
         double p_width
-            = (current_position <= p_position) ? x(4 * current_peak + 1)
-                                 : x(4 * current_peak + 2);
+          = (current_position <= p_position) ? x(4 * current_peak + 1)
+            : x(4 * current_peak + 2);
 
         // is it a Lorentz or a Sech - Peak?
         if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
@@ -216,21 +218,22 @@ namespace OpenMS
 
       //penalty += pow(p_position - old_position, 2) + pow(p_width_l - old_width_l, 2) + pow(p_width_r - old_width_r, 2);
       penalty += penalty_pos * pow(p_position - old_position, 2)
-        + penalty_lwidth * pow(p_width_l - old_width_l, 2)
-        + penalty_rwidth * pow(p_width_r - old_width_r, 2);
+                 + penalty_lwidth * pow(p_width_l - old_width_l, 2)
+                 + penalty_rwidth * pow(p_width_r - old_width_r, 2);
     }
 
     fvec(positions.size()) = 100 * penalty;
 
     return 0;
   }
+
   // compute Jacobian matrix for the different parameters
-  int OptimizePick::OptPeakFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+  int OptimizePick::OptPeakFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
   {
-    std::cout << "rows: " << J.rows() << " colums: " << J.cols() << std::endl;//DEBUG
-    const std::vector<double> & positions = m_data->positions;
-    const std::vector<PeakShape> & peaks = m_data->peaks;
-    const OptimizationFunctions::PenaltyFactors & penalties = m_data->penalties;
+    std::cout << "rows: " << J.rows() << " colums: " << J.cols() << std::endl; //DEBUG
+    const std::vector<double>& positions = m_data->positions;
+    const std::vector<PeakShape>& peaks = m_data->peaks;
+    const OptimizationFunctions::PenaltyFactors& penalties = m_data->penalties;
     // iterate over all points of the signal
     for (size_t current_point = 0; current_point < positions.size(); current_point++)
     {
@@ -243,7 +246,7 @@ namespace OpenMS
         double p_height = x(4 * current_peak);
         double p_position = x(4 * current_peak + 3);
         double p_width = (current_position <= p_position) ? x(4 * current_peak + 1)
-                          : x(4 * current_peak + 2);
+                         : x(4 * current_peak + 2);
 
         // is it a Lorentz or a Sech - Peak?
         if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
@@ -252,10 +255,10 @@ namespace OpenMS
           double denom_inv = 1. / (1. + pow(p_width * diff, 2));
 
           double ddl_left = (current_position <= p_position)
-              ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
+                            ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
 
           double ddl_right = (current_position  > p_position)
-              ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
+                             ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
 
           double ddx0 = -2 * p_height * pow(p_width, 2) * diff * pow(denom_inv, 2);
 
@@ -273,9 +276,9 @@ namespace OpenMS
           // and can assume that all derivatives vanish
           double sinh_term = (fabs(denom_inv) < 1e-6) ? 0.0 : sinh(p_width * diff);
           double ddl_left  = (current_position <= p_position)
-              ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) : 0;
+                             ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) : 0;
           double ddl_right = (current_position  > p_position)
-              ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) : 0;
+                             ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) : 0;
           double ddx0      = 2 * p_height * p_width * sinh_term * pow(denom_inv, 3);
 
           J(current_point, 4 * current_peak) = pow(denom_inv, 2);
@@ -313,4 +316,5 @@ namespace OpenMS
     }
     return 0;
   }
-}//namespace
+
+} //namespace

@@ -67,22 +67,21 @@ namespace OpenMS
       // count neighbors to the left that have higher intensity
       for (Int j = p - 1; j >= 0; --j)
       {
-        if (mz[j] < m - half_window) break;
-        if (intensities[j] > i) ++rank;
+        if (mz[j] < m - half_window) { break; }
+        if (intensities[j] > i) { ++rank; }
       }
 
       // count neighbors to the right that have higher intensity
       for (Size j = p + 1; j < mz.size(); j++)
       {
-        if (mz[j] > m + half_window) break;
-        if (intensities[j] > i) ++rank;
+        if (mz[j] > m + half_window) { break; }
+        if (intensities[j] > i) { ++rank; }
       }
       ranks.push_back(rank);
     }
 
     return ranks;
   }
-
 
   vector<vector<Size> > PScore::calculateRankMap(const PeakMap& peak_map, double mz_window)
   {
@@ -103,11 +102,11 @@ namespace OpenMS
     return rank_map;
   }
 
-  map<Size, PeakSpectrum > PScore::calculatePeakLevelSpectra(const PeakSpectrum& spec, const vector<Size>& ranks, Size min_level, Size max_level)
+  map<Size, PeakSpectrum> PScore::calculatePeakLevelSpectra(const PeakSpectrum& spec, const vector<Size>& ranks, Size min_level, Size max_level)
   {
-    map<Size, MSSpectrum > peak_level_spectra;
+    map<Size, MSSpectrum> peak_level_spectra;
 
-    if (spec.empty()) return peak_level_spectra;
+    if (spec.empty()) { return peak_level_spectra; }
 
     // loop over all peaks and associated (zero-based) ranks
     for (Size i = 0; i != ranks.size(); ++i)
@@ -130,7 +129,7 @@ namespace OpenMS
     return peak_level_spectra;
   }
 
-  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const vector<PeakSpectrum> & theo_spectra, double mz_window)
+  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const vector<PeakSpectrum>& theo_spectra, double mz_window)
   {
     AScore a_score_algorithm; // TODO: make the cumulative score function static
 
@@ -179,7 +178,7 @@ namespace OpenMS
     return best_pscore;
   }
 
-  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const PeakSpectrum & theo_spectrum, double mz_window)
+  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const PeakSpectrum& theo_spectrum, double mz_window)
   {
     AScore a_score_algorithm; // TODO: make the cumulative score function static
 
@@ -224,44 +223,53 @@ namespace OpenMS
     return best_pscore;
   }
 
-   double massCorrectionTerm(double mass)
-   {
-     return 0.024 * (mass - 600.0);
-   }
+  double massCorrectionTerm(double mass)
+  {
+    return 0.024 * (mass - 600.0);
+  }
 
-   double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage)
-   {
-     switch (cleavages)
-     {
-       case 0: return 53.2;
-       case 1: return consecutive_cleavage ? 42.1 : 31.1;
-       case 2: return 17.0;
-       default: return 0.0;
-     }
-   }
+  double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage)
+  {
+    switch (cleavages)
+    {
+    case 0: return 53.2;
 
-   double modificationCorrectionTerm(Size modifications)
-   {
-     switch (modifications)
-     {
-       case 0:
-         return 42.0;
-       case 1:
-         return 28.0;
-       case 2:
-         return 22.0;
-       case 3:
-         return 16.0;
-       case 4:
-         return 9.0;
-       case 5:
-         return 5.0;
-       case 6:
-         return 2.0;
-       default:
-         return 0.0;
-     }
-   }
+    case 1: return consecutive_cleavage ? 42.1 : 31.1;
+
+    case 2: return 17.0;
+
+    default: return 0.0;
+    }
+  }
+
+  double modificationCorrectionTerm(Size modifications)
+  {
+    switch (modifications)
+    {
+    case 0:
+      return 42.0;
+
+    case 1:
+      return 28.0;
+
+    case 2:
+      return 22.0;
+
+    case 3:
+      return 16.0;
+
+    case 4:
+      return 9.0;
+
+    case 5:
+      return 5.0;
+
+    case 6:
+      return 2.0;
+
+    default:
+      return 0.0;
+    }
+  }
 
 }
-

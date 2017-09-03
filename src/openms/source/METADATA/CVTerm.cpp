@@ -43,7 +43,7 @@ namespace OpenMS
   {
   }
 
-  CVTerm::CVTerm(const String & accession, const String & name, const String & cv_identifier_ref, const String & value, const Unit & unit) :
+  CVTerm::CVTerm(const String& accession, const String& name, const String& cv_identifier_ref, const String& value, const Unit& unit) :
     accession_(accession),
     name_(name),
     cv_identifier_ref_(cv_identifier_ref),
@@ -52,7 +52,7 @@ namespace OpenMS
   {
   }
 
-  CVTerm::CVTerm(const CVTerm & rhs) :
+  CVTerm::CVTerm(const CVTerm& rhs) :
     accession_(rhs.accession_),
     name_(rhs.name_),
     cv_identifier_ref_(rhs.cv_identifier_ref_),
@@ -65,7 +65,7 @@ namespace OpenMS
   {
   }
 
-  CVTerm & CVTerm::operator=(const CVTerm & rhs)
+  CVTerm& CVTerm::operator=(const CVTerm& rhs)
   {
     if (this != &rhs)
     {
@@ -78,7 +78,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool CVTerm::operator==(const CVTerm & rhs) const
+  bool CVTerm::operator==(const CVTerm& rhs) const
   {
     return accession_ == rhs.accession_ &&
            name_ == rhs.name_ &&
@@ -87,57 +87,57 @@ namespace OpenMS
            value_ == rhs.value_;
   }
 
-  bool CVTerm::operator!=(const CVTerm & rhs) const
+  bool CVTerm::operator!=(const CVTerm& rhs) const
   {
     return !(*this == rhs);
   }
 
-  void CVTerm::setAccession(const String & accession)
+  void CVTerm::setAccession(const String& accession)
   {
     accession_ = accession;
   }
 
-  const String & CVTerm::getAccession() const
+  const String& CVTerm::getAccession() const
   {
     return accession_;
   }
 
-  void CVTerm::setName(const String & name)
+  void CVTerm::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & CVTerm::getName() const
+  const String& CVTerm::getName() const
   {
     return name_;
   }
 
-  void CVTerm::setCVIdentifierRef(const String & cv_identifier_ref)
+  void CVTerm::setCVIdentifierRef(const String& cv_identifier_ref)
   {
     cv_identifier_ref_ = cv_identifier_ref;
   }
 
-  const String & CVTerm::getCVIdentifierRef() const
+  const String& CVTerm::getCVIdentifierRef() const
   {
     return cv_identifier_ref_;
   }
 
-  void CVTerm::setUnit(const Unit & unit)
+  void CVTerm::setUnit(const Unit& unit)
   {
     unit_ = unit;
   }
 
-  const CVTerm::Unit & CVTerm::getUnit() const
+  const CVTerm::Unit& CVTerm::getUnit() const
   {
     return unit_;
   }
 
-  void CVTerm::setValue(const DataValue & value)
+  void CVTerm::setValue(const DataValue& value)
   {
     value_ = value;
   }
 
-  const DataValue & CVTerm::getValue() const
+  const DataValue& CVTerm::getValue() const
   {
     return value_;
   }

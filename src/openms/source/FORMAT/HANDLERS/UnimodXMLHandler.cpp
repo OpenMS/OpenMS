@@ -64,7 +64,7 @@ namespace OpenMS
       tag_ = String(sm_.convert(qname));
 
       // new modification?
-      if (tag_ == "umod:mod" || tag_ == "mod")
+      if ((tag_ == "umod:mod") || (tag_ == "mod"))
       {
         sites_.clear();
         modification_ = new ResidueModification();
@@ -82,7 +82,7 @@ namespace OpenMS
       }
 
       // which residues are allowed?
-      if (tag_ == "umod:specificity" || tag_ == "specificity")
+      if ((tag_ == "umod:specificity") || (tag_ == "specificity"))
       {
         neutral_loss_diff_formula_ = EmpiricalFormula();
 
@@ -127,7 +127,10 @@ namespace OpenMS
         {
           was_valid_peptide_modification_ = true;
           term_specs_.push_back(position);
-          if (site.size() > 1) site = "X"; // C-term/N-term
+          if (site.size() > 1)
+          {
+            site = "X";                    // C-term/N-term
+          }
           sites_.push_back(site[0]);
         }
         else
@@ -138,7 +141,7 @@ namespace OpenMS
       }
 
 
-      if (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss")
+      if ((tag_ == "umod:NeutralLoss") || (tag_ == "NeutralLoss"))
       {
         // mono_mass="97.976896" avge_mass="97.9952" flag="false"
         //                               composition="H(3) O(4) P">
@@ -146,7 +149,7 @@ namespace OpenMS
       }
 
       // delta mass definitions?
-      if (tag_ == "umod:delta" || tag_ == "delta")
+      if ((tag_ == "umod:delta") || (tag_ == "delta"))
       {
         // avge_mass="-0.9848" mono_mass="-0.984016" composition="H N O(-1)" >
         avge_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass"))))).toDouble();
@@ -190,7 +193,7 @@ namespace OpenMS
       tag_ = String(sm_.convert(qname));
 
       // write the modifications to vector
-      if (tag_ == "umod:mod" || tag_ == "mod")
+      if ((tag_ == "umod:mod") || (tag_ == "mod"))
       {
         modification_->setDiffAverageMass(avge_mass_);
         modification_->setDiffMonoMass(mono_mass_);
@@ -215,7 +218,7 @@ namespace OpenMS
         return;
       }
 
-      if (tag_ == "umod:specificity" || tag_ == "specificity")
+      if ((tag_ == "umod:specificity") || (tag_ == "specificity"))
       {
         if (was_valid_peptide_modification_) // as we exclude "Protein" modifications (see above)
         {
@@ -224,7 +227,7 @@ namespace OpenMS
         }
       }
 
-      if (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss")
+      if ((tag_ == "umod:NeutralLoss") || (tag_ == "NeutralLoss"))
       {
         // now diff_formula_ contains the neutral loss diff formula
         neutral_loss_diff_formula_ = diff_formula_;
@@ -241,5 +244,5 @@ namespace OpenMS
       // nothing to do here
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

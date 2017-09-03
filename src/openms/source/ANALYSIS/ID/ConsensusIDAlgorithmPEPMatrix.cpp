@@ -55,7 +55,6 @@ namespace OpenMS
     ::seqan::resize(rows(alignment_), 2);
   }
 
-
   void ConsensusIDAlgorithmPEPMatrix::updateMembers_()
   {
     ConsensusIDAlgorithmSimilarity::updateMembers_();
@@ -66,7 +65,7 @@ namespace OpenMS
     scoring_method_ = SeqAnScore(-penalty, -penalty);
     if (matrix == "identity")
     {
-      ::seqan::setDefaultScoreMatrix(scoring_method_, 
+      ::seqan::setDefaultScoreMatrix(scoring_method_,
                                      ::seqan::AdaptedIdentity());
     }
     else if (matrix == "PAM30MS")
@@ -76,7 +75,7 @@ namespace OpenMS
     else
     {
       String msg = "Matrix '" + matrix + "' is not known! Valid choices are: "
-        "'identity', 'PAM30MS'.";
+                                         "'identity', 'PAM30MS'.";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
@@ -85,22 +84,24 @@ namespace OpenMS
     similarities_.clear();
   }
 
-
   double ConsensusIDAlgorithmPEPMatrix::getSimilarity_(AASequence seq1,
                                                        AASequence seq2)
   {
     // here we cannot take modifications into account:
     String unmod_seq1 = seq1.toUnmodifiedString();
     String unmod_seq2 = seq2.toUnmodifiedString();
-    if (unmod_seq1 == unmod_seq2) return 1.0;
+    if (unmod_seq1 == unmod_seq2) { return 1.0; }
     // order of sequences matters for cache look-up:
-    if (unmod_seq1 > unmod_seq2) swap(unmod_seq1, unmod_seq2);
+    if (unmod_seq1 > unmod_seq2) { swap(unmod_seq1, unmod_seq2); }
     seq1 = AASequence::fromString(unmod_seq1);
     seq2 = AASequence::fromString(unmod_seq2);
     pair<AASequence, AASequence> seq_pair = make_pair(seq1, seq2);
     SimilarityCache::iterator pos = similarities_.find(seq_pair);
-    if (pos != similarities_.end()) return pos->second; // score found in cache
-    
+    if (pos != similarities_.end())
+    {
+      return pos->second;                               // score found in cache
+
+    }
     // use SeqAn similarity scoring:
     SeqAnSequence seqan_seq1 = unmod_seq1.c_str();
     SeqAnSequence seqan_seq2 = unmod_seq2.c_str();
@@ -111,7 +112,7 @@ namespace OpenMS
                                          ::seqan::NeedlemanWunsch());
     // seq. 1 against seq. 2:
     ::seqan::assignSource(row(alignment_, 1), seqan_seq2);
-    double score_sim = globalAlignment(alignment_, scoring_method_, 
+    double score_sim = globalAlignment(alignment_, scoring_method_,
                                        ::seqan::NeedlemanWunsch());
     // seq. 2 against itself:
     ::seqan::assignSource(row(alignment_, 0), seqan_seq2);

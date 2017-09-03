@@ -67,7 +67,7 @@ namespace OpenMS
     protein_identification = ProteinIdentification();
     id_data.clear();
 
-    Internal::MascotXMLHandler handler(protein_identification, id_data, 
+    Internal::MascotXMLHandler handler(protein_identification, id_data,
                                        filename, peptides, lookup);
     parse_(filename, &handler);
 
@@ -81,16 +81,19 @@ namespace OpenMS
          id_it != id_data.end(); ++id_it)
     {
       const vector<PeptideHit>& peptide_hits = id_it->getHits();
-      if (!peptide_hits.empty() && 
-          (peptide_hits.size() > 1 || !peptide_hits[0].getSequence().empty()))
+      if (!peptide_hits.empty() &&
+          ((peptide_hits.size() > 1) || !peptide_hits[0].getSequence().empty()))
       {
         filtered_hits.push_back(*id_it);
       }
-      else if (!id_it->empty()) ++missing_sequence;
+      else if (!id_it->empty())
+      {
+        ++missing_sequence;
+      }
     }
-    if (missing_sequence) 
+    if (missing_sequence)
     {
-      LOG_WARN << "Warning: Removed " << missing_sequence 
+      LOG_WARN << "Warning: Removed " << missing_sequence
                << " peptide identifications without sequence." << endl;
     }
     id_data.swap(filtered_hits);
@@ -100,11 +103,11 @@ namespace OpenMS
     for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
          id_it != id_data.end(); ++id_it)
     {
-      if (!id_it->hasRT()) ++no_rt_count;
+      if (!id_it->hasRT()) { ++no_rt_count; }
     }
     if (no_rt_count)
     {
-      LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
+      LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size()
                << ") peptide identifications have no retention time value."
                << endl;
     }
@@ -112,21 +115,21 @@ namespace OpenMS
     if (!lookup.empty() && (no_rt_count == id_data.size()))
     {
       throw Exception::MissingInformation(
-        __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-        "No retention time information for peptide identifications found");
+              __FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "No retention time information for peptide identifications found");
     }
 
     // argh! Mascot 2.2 tends to repeat the first hit (yes it appears twice),
     // so we delete one of them
-    for (vector<PeptideIdentification>::iterator it = id_data.begin(); 
+    for (vector<PeptideIdentification>::iterator it = id_data.begin();
          it != id_data.end(); ++it)
     {
       vector<PeptideHit> peptide_hits = it->getHits();
       // check if equal, except for rank
-      if (peptide_hits.size() > 1 &&
-          peptide_hits[0].getScore() == peptide_hits[1].getScore() &&
-          peptide_hits[0].getSequence() == peptide_hits[1].getSequence() &&
-          peptide_hits[0].getCharge() == peptide_hits[1].getCharge())
+      if ((peptide_hits.size() > 1) &&
+          (peptide_hits[0].getScore() == peptide_hits[1].getScore()) &&
+          (peptide_hits[0].getSequence() == peptide_hits[1].getSequence()) &&
+          (peptide_hits[0].getCharge() == peptide_hits[1].getCharge()))
       {
         // erase first hit
         peptide_hits.erase(peptide_hits.begin() + 1);
@@ -134,7 +137,6 @@ namespace OpenMS
       }
     }
   }
-
 
   void MascotXMLFile::initializeLookup(SpectrumMetaDataLookup& lookup, const PeakMap& exp, const String& scan_regex)
   {

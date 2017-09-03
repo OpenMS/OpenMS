@@ -42,7 +42,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    MzMLValidator::MzMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
+    MzMLValidator::MzMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
       SemanticValidator(mapping, cv),
       binary_data_array_(),
       binary_data_type_()
@@ -58,12 +58,14 @@ namespace OpenMS
     // - check CV term values
     // - handle referenceableParamGroups
     // - check if binaryDataArray name and type match
-    void MzMLValidator::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+    void MzMLValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
       String tag = sm_.convert(qname);
       String parent_tag;
       if (open_tags_.size() > 0)
+      {
         parent_tag = open_tags_.back();
+      }
       String path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
       open_tags_.push_back(tag);
 
@@ -73,7 +75,7 @@ namespace OpenMS
       }
       else if (tag == "referenceableParamGroupRef")
       {
-        const std::vector<CVTerm> & terms = param_groups_[attributeAsString_(attributes, "ref")];
+        const std::vector<CVTerm>& terms = param_groups_[attributeAsString_(attributes, "ref")];
         for (Size i = 0; i < terms.size(); ++i)
         {
           handleTerm_(path, terms[i]);
@@ -119,7 +121,7 @@ namespace OpenMS
     String MzMLValidator::getPath_(UInt remove_from_end) const
     {
       String path;
-      if (open_tags_.size() != 0 && open_tags_.front() == "indexedmzML")
+      if ((open_tags_.size() != 0) && (open_tags_.front() == "indexedmzML"))
       {
         path.concatenate(open_tags_.begin() + 1, open_tags_.end() - remove_from_end, "/");
       }
@@ -134,14 +136,18 @@ namespace OpenMS
     //reimplemented to
     // - catch non-PSI CVs
     // - check if binaryDataArray name and type match
-    void MzMLValidator::handleTerm_(const String & path, const CVTerm & parsed_term)
+    void MzMLValidator::handleTerm_(const String& path, const CVTerm& parsed_term)
     {
       //some CVs cannot be validated because they use 'part_of' which spoils the inheritance
       if (parsed_term.accession.hasPrefix("GO:"))
+      {
         return;
+      }
 
       if (parsed_term.accession.hasPrefix("BTO:"))
+      {
         return;
+      }
 
       //check binary data array terms
       if (path.hasSuffix("/binaryDataArray/cvParam/@accession"))
@@ -157,7 +163,7 @@ namespace OpenMS
           binary_data_type_ = parsed_term.accession;
         }
         //if both are parsed, check if they match
-        if (binary_data_type_ != "" && binary_data_array_ != "")
+        if ((binary_data_type_ != "") && (binary_data_array_ != ""))
         {
           if (!ListUtils::contains(cv_.getTerm(binary_data_array_).xref_binary, binary_data_type_))
           {
@@ -169,5 +175,5 @@ namespace OpenMS
       SemanticValidator::handleTerm_(path, parsed_term);
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

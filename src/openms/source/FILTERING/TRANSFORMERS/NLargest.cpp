@@ -64,13 +64,13 @@ namespace OpenMS
   {
   }
 
-  NLargest::NLargest(const NLargest & source) :
+  NLargest::NLargest(const NLargest& source) :
     DefaultParamHandler(source)
   {
     updateMembers_();
   }
 
-  NLargest & NLargest::operator=(const NLargest & source)
+  NLargest& NLargest::operator=(const NLargest& source)
   {
     if (this != &source)
     {
@@ -80,12 +80,12 @@ namespace OpenMS
     return *this;
   }
 
-  void NLargest::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void NLargest::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void NLargest::filterPeakMap(PeakMap & exp)
+  void NLargest::filterPeakMap(PeakMap& exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {

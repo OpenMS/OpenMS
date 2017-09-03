@@ -138,7 +138,7 @@ namespace OpenMS
     // end of peptide id
     else if (tag_ == "MSHitSet")
     {
-      if (actual_peptide_id_.getHits().size() > 0  || load_empty_hits_)
+      if ((actual_peptide_id_.getHits().size() > 0) || load_empty_hits_)
       {
         peptide_identifications_->push_back(actual_peptide_id_);
       }
@@ -155,7 +155,7 @@ namespace OpenMS
           </MSModHit_modtype>
         </MSModHit>
       */
-      if (mods_map_.has(actual_mod_type_.toInt()) && mods_map_[actual_mod_type_.toInt()].size() > 0)
+      if (mods_map_.has(actual_mod_type_.toInt()) && (mods_map_[actual_mod_type_.toInt()].size() > 0))
       {
         if (mods_map_[actual_mod_type_.toInt()].size() > 1)
         {
@@ -187,7 +187,7 @@ namespace OpenMS
 
   void OMSSAXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
-    if (tag_.empty()) return;
+    if (tag_.empty()) { return; }
 
     String value = ((String)sm_.convert(chars)).trim();
     // MSPepHit section
@@ -304,7 +304,7 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstart")
     {
-      if (value != "" && !actual_peptide_evidences_.empty())
+      if ((value != "") && !actual_peptide_evidences_.empty())
       {
         actual_peptide_evidences_[0].setAABefore(value[0]);
       }
@@ -313,7 +313,7 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstop")
     {
-      if (value != "" && !actual_peptide_evidences_.empty())
+      if ((value != "") && !actual_peptide_evidences_.empty())
       {
         actual_peptide_evidences_[0].setAAAfter(value[0]);
       }
@@ -384,7 +384,7 @@ namespace OpenMS
       vector<String> split;
       it->split(',', split);
 
-      if (it->size() > 0 && (*it)[0] != '#')
+      if ((it->size() > 0) && ((*it)[0] != '#'))
       {
         Int omssa_mod_num = split[0].trim().toInt();
         if (split.size() < 2)

@@ -45,7 +45,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumIdentification::SpectrumIdentification(const SpectrumIdentification & rhs) :
+  SpectrumIdentification::SpectrumIdentification(const SpectrumIdentification& rhs) :
     MetaInfoInterface(rhs),
     id_(rhs.id_),
     hits_(rhs.hits_)
@@ -56,7 +56,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumIdentification & SpectrumIdentification::operator=(const SpectrumIdentification & rhs)
+  SpectrumIdentification& SpectrumIdentification::operator=(const SpectrumIdentification& rhs)
   {
     if (this == &rhs)
     {
@@ -71,7 +71,7 @@ namespace OpenMS
   }
 
   // Equality operator
-  bool SpectrumIdentification::operator==(const SpectrumIdentification & rhs) const
+  bool SpectrumIdentification::operator==(const SpectrumIdentification& rhs) const
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
@@ -79,22 +79,22 @@ namespace OpenMS
   }
 
   // Inequality operator
-  bool SpectrumIdentification::operator!=(const SpectrumIdentification & rhs) const
+  bool SpectrumIdentification::operator!=(const SpectrumIdentification& rhs) const
   {
     return !(*this == rhs);
   }
 
-  void SpectrumIdentification::setHits(const vector<IdentificationHit> & hits)
+  void SpectrumIdentification::setHits(const vector<IdentificationHit>& hits)
   {
     hits_ = hits;
   }
 
-  void SpectrumIdentification::addHit(const IdentificationHit & hit)
+  void SpectrumIdentification::addHit(const IdentificationHit& hit)
   {
     hits_.push_back(hit);
   }
 
-  const vector<IdentificationHit> & SpectrumIdentification::getHits() const
+  const vector<IdentificationHit>& SpectrumIdentification::getHits() const
   {
     return hits_;
   }

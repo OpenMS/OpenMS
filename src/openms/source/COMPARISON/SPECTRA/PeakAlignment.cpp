@@ -85,10 +85,14 @@ namespace OpenMS
     // shortcut similarity calculation by comparing PrecursorPeaks (PrecursorPeaks more than delta away from each other are supposed to be from another peptide)
     double pre_mz1 = 0.0;
     if (!spec1.getPrecursors().empty())
+    {
       pre_mz1 = spec1.getPrecursors()[0].getMZ();
+    }
     double pre_mz2 = 0.0;
     if (!spec2.getPrecursors().empty())
+    {
       pre_mz2 = spec2.getPrecursors()[0].getMZ();
+    }
     if (fabs(pre_mz1 - pre_mz2) > (double)param_.getValue("precursor_mass_tolerance"))
     {
       return 0;
@@ -241,7 +245,7 @@ namespace OpenMS
     */
 
     //normalize score to interval [0,1] with geometric mean
-    double best_score_normalized(best_score / sqrt(score_spec1 * score_spec2));
+    double best_score_normalized(best_score / sqrt(score_spec1* score_spec2));
 
     /*
     cout << "score_spec1: " << score_spec1 << " score_spec2: " << score_spec2 <<  " best_score: " << best_score << endl;
@@ -331,19 +335,19 @@ namespace OpenMS
           matrix.setValue(i, j, max(from_left, max(from_above, from_diagonal)));
 
           // TODO the cases where all or two values are equal
-          if (from_diagonal > from_left && from_diagonal > from_above)
+          if ((from_diagonal > from_left) && (from_diagonal > from_above))
           {
             traceback.setValue(i - 1, j - 1, 1);
           }
           else
           {
-            if (from_left > from_diagonal && from_left > from_above)
+            if ((from_left > from_diagonal) && (from_left > from_above))
             {
               traceback.setValue(i - 1, j - 1, 0);
             }
             else
             {
-              if (from_above > from_diagonal && from_above > from_left)
+              if ((from_above > from_diagonal) && (from_above > from_left))
               {
                 traceback.setValue(i - 1, j - 1, 2);
               }
@@ -360,7 +364,7 @@ namespace OpenMS
           {
             traceback.setValue(i - 1, j - 1, 0);
           }
-          else           //from_left <= from_above
+          else //from_left <= from_above
           {
             traceback.setValue(i - 1, j - 1, 2);
           }
@@ -424,8 +428,8 @@ namespace OpenMS
   double PeakAlignment::peakPairScore_(double& pos1, double& intens1, double& pos2, double& intens2, const double& sigma) const
   {
     //scoring formula : peakintensity score * peakposition score
-    double pi(sqrt(intens1 * intens2));
-    double pp((1 / (sigma * sqrt(2 * Constants::PI))) * exp(-(fabs(pos1 - pos2)) / 2 * sigma * sigma));
+    double pi(sqrt(intens1* intens2));
+    double pp((1 / (sigma* sqrt(2 * Constants::PI))) * exp(-(fabs(pos1 - pos2)) / 2 * sigma* sigma));
 
     /* to manually retrace
     cout << fabs(pos1-pos2) << " - "<< pi*pp << endl;

@@ -88,7 +88,7 @@ namespace OpenMS
       while (mzStart <= SuperHirnParameters::instance()->getMaxFeatureMZ())
       {
 
-        BackgroundIntensityBin * bin = new BackgroundIntensityBin(mzStart, trStart);
+        BackgroundIntensityBin* bin = new BackgroundIntensityBin(mzStart, trStart);
         mzArray.insert(make_pair(mzStart, *bin));
         delete bin;
 
@@ -101,7 +101,7 @@ namespace OpenMS
 
   }
 
-  void BackgroundControl::addPeakMSScan(double TR, list<CentroidPeak> * peakList)
+  void BackgroundControl::addPeakMSScan(double TR, list<CentroidPeak>* peakList)
   {
 
     map<double, map<double, BackgroundIntensityBin> >::iterator F = findTrKey(TR);
@@ -109,7 +109,7 @@ namespace OpenMS
     {
 
       // find the mz bins:
-      map<double, BackgroundIntensityBin> * mzMap = &(F->second);
+      map<double, BackgroundIntensityBin>* mzMap = &(F->second);
 
       list<CentroidPeak>::iterator mpi;
       for (mpi = peakList->begin(); mpi != peakList->end(); ++mpi)
@@ -125,7 +125,7 @@ namespace OpenMS
   }
 
   map<double, BackgroundIntensityBin>::iterator BackgroundControl::findMzKey(double mz,
-                                                                             map<double, BackgroundIntensityBin> * mzMap)
+                                                                             map<double, BackgroundIntensityBin>* mzMap)
   {
 
     double constraint = SuperHirnParameters::instance()->getBackgroundIntensityBinsMZ() / 2.0;

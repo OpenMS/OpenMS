@@ -62,7 +62,9 @@ namespace OpenMS
   void LabelFreeLabeler::setUpHook(SimTypes::FeatureMapSimVector& features)
   {
     if (features.size() == 1)
+    {
       return;
+    }
     else
     {
       LOG_INFO << "Merging input FASTA files into one. Intensities will be summed up if duplicates occur.";

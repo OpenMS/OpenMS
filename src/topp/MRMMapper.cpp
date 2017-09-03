@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2017.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -65,7 +65,7 @@ using namespace OpenMS;
           </tr>
       </table>
   </CENTER>
- 
+
   This tool reads an mzML containing chromatograms (presumably measured on an
   SRM instrument) and a TraML file that contains the data that was used to
   generate the instrument method to measure said data. It then maps the
@@ -91,8 +91,8 @@ using namespace OpenMS;
 /// @cond TOPPCLASSES
 
 
-class TOPPMRMMapper 
-  : public TOPPBase
+class TOPPMRMMapper :
+  public TOPPBase
 {
 
 public:
@@ -122,7 +122,7 @@ protected:
     registerFlag_("allow_multiple_mappings", "Allow multiple mappings (will take the last matching from the TraML)");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     String in = getStringOption_("in");
@@ -143,7 +143,7 @@ protected:
     // copy all meta data from old chromatogram
     output = chromatogram_map;
     output.clear(false);
-    std::vector<MSChromatogram > empty_chromats;
+    std::vector<MSChromatogram> empty_chromats;
     output.setChromatograms(empty_chromats);
 
     int notmapped = 0;
@@ -153,7 +153,7 @@ protected:
       bool mapped_already = false;
       MSChromatogram chromatogram = chromatogram_map.getChromatograms()[i];
 
-      if (chromatogram.getPrecursor().getMZ() == 0.0 && chromatogram.getProduct().getMZ() == 0.0)
+      if ((chromatogram.getPrecursor().getMZ() == 0.0) && (chromatogram.getProduct().getMZ() == 0.0))
       {
         LOG_WARN << "Skip mapping for chromatogram " + String(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
         continue;
@@ -162,21 +162,21 @@ protected:
       for (Size j = 0; j < targeted_exp.getTransitions().size(); j++)
       {
 
-        if (fabs(chromatogram.getPrecursor().getMZ() - targeted_exp.getTransitions()[j].getPrecursorMZ()) < map_precursor_tol_ &&
-            fabs(chromatogram.getProduct().getMZ()   - targeted_exp.getTransitions()[j].getProductMZ())   < map_product_tol_)
+        if ((fabs(chromatogram.getPrecursor().getMZ() - targeted_exp.getTransitions()[j].getPrecursorMZ()) < map_precursor_tol_) &&
+            (fabs(chromatogram.getProduct().getMZ()   - targeted_exp.getTransitions()[j].getProductMZ())   < map_product_tol_))
         {
 
           LOG_DEBUG << "Mapping chromatogram " << i << " to transition " << j << " (" << targeted_exp.getTransitions()[j].getNativeID() << ")"
-             " with precursor mz " << chromatogram.getPrecursor().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getPrecursorMZ() <<
-             " and product mz " << chromatogram.getProduct().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getProductMZ() << std::endl;
+                                                                                                                                           " with precursor mz " << chromatogram.getPrecursor().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getPrecursorMZ() <<
+            " and product mz " << chromatogram.getProduct().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getProductMZ() << std::endl;
 
           // ensure: map every chromatogram to only one transition
           if (mapped_already && !allow_multiple)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Already mapped chromatogram " + String(i) + \
-             " with " + String(chromatogram.getPrecursor().getMZ()) + \
-              " -> " + String(chromatogram.getProduct().getMZ()) +  \
-                "! Maybe try to decrease your mapping tolerance.");
+                                             " with " + String(chromatogram.getPrecursor().getMZ()) + \
+                                             " -> " + String(chromatogram.getProduct().getMZ()) +  \
+                                             "! Maybe try to decrease your mapping tolerance.");
           }
 
           mapped_already = true;
@@ -186,7 +186,7 @@ protected:
           String pepref = targeted_exp.getTransitions()[j].getPeptideRef();
           for (Size pep_idx = 0; pep_idx < targeted_exp.getPeptides().size(); pep_idx++)
           {
-            const OpenMS::TargetedExperiment::Peptide * pep = &targeted_exp.getPeptides()[pep_idx];
+            const OpenMS::TargetedExperiment::Peptide* pep = &targeted_exp.getPeptides()[pep_idx];
             if (pep->id == pepref)
             {
               precursor.setMetaValue("peptide_sequence", pep->sequence);
@@ -226,8 +226,8 @@ protected:
     // add all data processing information to all the chromatograms
     DataProcessing dp_ = getProcessingInfo_(DataProcessing::FORMAT_CONVERSION);
     DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing(dp_));
-    std::vector<MSChromatogram > chromatograms = output.getChromatograms();
-    for (Size i=0; i<chromatograms.size(); ++i)
+    std::vector<MSChromatogram> chromatograms = output.getChromatograms();
+    for (Size i = 0; i < chromatograms.size(); ++i)
     {
       chromatograms[i].getDataProcessing().push_back(dp);
     }
@@ -239,7 +239,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
 
   TOPPMRMMapper tool;

@@ -43,7 +43,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    MzIdentMLValidator::MzIdentMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
+    MzIdentMLValidator::MzIdentMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
       SemanticValidator(mapping, cv)
     {
       setCheckUnits(true);
@@ -53,5 +53,5 @@ namespace OpenMS
     {
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

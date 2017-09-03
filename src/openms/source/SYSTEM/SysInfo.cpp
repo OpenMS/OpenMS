@@ -53,15 +53,16 @@ namespace OpenMS
 
 #ifdef OMS_USELINUXMEMORYPLATFORM
   // see http://stackoverflow.com/questions/1558402/memory-usage-of-current-process-in-c
-  typedef struct {
-      long size,resident,share,text,lib,data,dt;
+  typedef struct
+  {
+    long size, resident, share, text, lib, data, dt;
   } statm_t;
 
   bool read_off_memory_status_linux(statm_t& result)
   {
     const char* statm_path = "/proc/self/statm";
 
-    FILE *f = fopen(statm_path,"r");
+    FILE* f = fopen(statm_path, "r");
     if (!f)
     {
       return false;
@@ -88,8 +89,8 @@ namespace OpenMS
     //               dt         dirty pages (unused in Linux 2.6)
 
 
-    if (7 != fscanf(f,"%ld %ld %ld %ld %ld %ld %ld",
-              &result.size,&result.resident,&result.share,&result.text,&result.lib,&result.data,&result.dt))
+    if (7 != fscanf(f, "%ld %ld %ld %ld %ld %ld %ld",
+                    &result.size, &result.resident, &result.share, &result.text, &result.lib, &result.data, &result.dt))
     {
       fclose(f);
       return false;
@@ -97,6 +98,7 @@ namespace OpenMS
     fclose(f);
     return true;
   }
+
 #endif
 
   bool SysInfo::getProcessMemoryConsumption(size_t& mem_virtual)
@@ -142,12 +144,15 @@ namespace OpenMS
     }
     mem_virtual = pmc.PeakWorkingSetSize / 1024; // byte to KB
     return true;
+
 #elif __APPLE__
     //todo: find a good API to do this
     return false;
+
 #else // Linux
     //todo: find a good API to do this
     return false;
+
 #endif
   }
 
@@ -176,19 +181,25 @@ namespace OpenMS
 
   String SysInfo::MemUsage::delta(const String& event)
   {
-    if (mem_after == 0) after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    if (mem_after == 0)
+    {
+      after();                   // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    }
     String s = String("Memory usage (") + event + "): ";
     s += diff_str_(mem_before, mem_after) + " (working set delta)";
     if (mem_after_peak > 0)
     { // only if supported
-      s+= ", " + diff_str_(mem_before_peak, mem_after_peak) + " (peak working set delta)";
+      s += ", " + diff_str_(mem_before_peak, mem_after_peak) + " (peak working set delta)";
     }
     return s;
   }
 
   String SysInfo::MemUsage::usage()
   {
-    if (mem_after == 0) after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    if (mem_after == 0)
+    {
+      after();                   // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    }
     String s("Memory usage: ");
     s += diff_str_(0, mem_after) + " (working set)";
     if (mem_after_peak > 0)
@@ -201,10 +212,9 @@ namespace OpenMS
   String SysInfo::MemUsage::diff_str_(size_t mem_before, size_t mem_after)
   {
     String s;
-    if (mem_after < mem_before) s += String("-");
+    if (mem_after < mem_before) { s += String("-"); }
     s = String(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
     return s;
   }
-
 
 } // namespace OpenMS

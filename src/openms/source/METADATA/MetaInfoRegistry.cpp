@@ -121,7 +121,7 @@ namespace OpenMS
 
   MetaInfoRegistry& MetaInfoRegistry::operator=(const MetaInfoRegistry& rhs)
   {
-    if (this == &rhs) return *this;
+    if (this == &rhs) { return *this; }
 
 #pragma omp critical (MetaInfoRegistry)
     {

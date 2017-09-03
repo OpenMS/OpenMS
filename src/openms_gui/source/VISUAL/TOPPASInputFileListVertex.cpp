@@ -94,7 +94,7 @@ namespace OpenMS
     return "InputVertex";
   }
 
-  void TOPPASInputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * /*e*/)
+  void TOPPASInputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
   {
     showFilesDialog();
   }
@@ -109,7 +109,7 @@ namespace OpenMS
       if (getFileNames() != updated_filelist)
       { // files were changed
         setFilenames(updated_filelist); // to correct filenames (separators etc)
-        qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+        qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 
         // update cwd
         cwd_ = tifd.getCWD();
@@ -160,9 +160,13 @@ namespace OpenMS
     for (Map<QString, Size>::const_iterator sit = suffices.begin(); sit != suffices.end(); ++sit)
     {
       if (suffices.size() > 1)
+      {
         text_l.push_back(String(".") + sit->first + "(" + String(sit->second) + ")");
+      }
       else
+      {
         text_l.push_back(String(".") + sit->first);
+      }
     }
     text = ListUtils::concatenate(text_l, " | ").toQString();
     text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
@@ -198,7 +202,7 @@ namespace OpenMS
   bool TOPPASInputFileListVertex::fileNamesValid()
   {
     QStringList fl = getFileNames();
-    foreach(const QString& file, fl)
+    foreach(const QString &file, fl)
     {
       if (!File::exists(file))
       {
@@ -259,7 +263,7 @@ namespace OpenMS
   {
     output_files_.clear();
 
-    if (files.empty()) return;
+    if (files.empty()) { return; }
 
     output_files_.resize(files.size()); // for now, assume one file per round (we could later extend that)
     for (int f = 0; f < files.size(); ++f)

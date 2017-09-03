@@ -50,7 +50,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <cmath>
-#include <algorithm>    // std::min, std::max
+#include <algorithm> // std::min, std::max
 #include <stdlib.h>
 #include <vector>
 
@@ -331,7 +331,7 @@ namespace c_lowess
                 size_t nleft,
                 size_t nright,
                 ContainerType& weights, // vector w
-                bool use_resid_weights,  // userw
+                bool use_resid_weights, // userw
                 const ContainerType& resid_weights)
     {
       ValueType h;
@@ -379,7 +379,7 @@ namespace c_lowess
         d1 = x[i] - x[nleft];
         d2 = x[nright + 1] - x[i];
         // if d1 <= d2 with x[nright+1] == x[nright], lowest fixes
-        if (d1 <= d2) break;
+        if (d1 <= d2) { break; }
         // radius will not decrease by move right
         nleft++;
         nright++;
@@ -409,7 +409,7 @@ namespace c_lowess
       for (i = last + 1; i < n; i++)
       {
         // find close points
-        if (x[i] > cut) break;
+        if (x[i] > cut) { break; }
 
         // i one beyond last pt within cut
         if (x[i] == x[last])
@@ -505,12 +505,12 @@ public:
 
     int lowess(const ContainerType& x,
                const ContainerType& y,
-               double frac,    // parameter f
+               double frac, // parameter f
                int nsteps,
                ValueType delta,
                ContainerType& ys,
-               ContainerType& resid_weights,   // vector rw
-               ContainerType& weights   // vector res
+               ContainerType& resid_weights, // vector rw
+               ContainerType& weights // vector res
                )
     {
       bool fit_ok;
@@ -533,7 +533,7 @@ public:
         // start of array in C++ at 0 / in FORTRAN at 1
         // last: index of prev estimated point
         // i: index of current point
-        size_t i(0), last(-1), nleft(0), nright(ns -1);
+        size_t i(0), last(-1), nleft(0), nright(ns - 1);
 
         // Fit all data points y[i] until the end of the array
         do
@@ -548,7 +548,7 @@ public:
 
           // if something went wrong during the fit, use y[i] as the
           // fitted value at x[i]
-          if (!fit_ok) ys[i] = y[i];
+          if (!fit_ok) { ys[i] = y[i]; }
 
           // If we skipped some points (because of how delta was set), go back
           // and fit them by linear interpolation.
@@ -571,7 +571,7 @@ public:
         }
 
         // compute robustness weights except last time
-        if (iter > nsteps) break;
+        if (iter > nsteps) { break; }
 
         calculate_residual_weights(n, weights, resid_weights);
       }

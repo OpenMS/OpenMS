@@ -52,13 +52,13 @@ namespace OpenMS
   {
   }
 
-  void MzQuantMLFile::load(const String & filename, MSQuantifications & msq)
+  void MzQuantMLFile::load(const String& filename, MSQuantifications& msq)
   {
     Internal::MzQuantMLHandler handler(msq, filename, schema_version_, *this);
     parse_(filename, &handler);
   }
 
-  void MzQuantMLFile::store(const String & filename, const MSQuantifications & cmsq) const
+  void MzQuantMLFile::store(const String& filename, const MSQuantifications& cmsq) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MZQUANTML))
     {
@@ -69,7 +69,7 @@ namespace OpenMS
     save_(filename, &handler);
   }
 
-  bool MzQuantMLFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
+  bool MzQuantMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
   {
     //load mapping
     CVMappings mapping;

@@ -61,7 +61,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectrumCheapDPCorr::SpectrumCheapDPCorr(const SpectrumCheapDPCorr & source) :
+  SpectrumCheapDPCorr::SpectrumCheapDPCorr(const SpectrumCheapDPCorr& source) :
     PeakSpectrumCompareFunctor(source),
     lastconsensus_(source.lastconsensus_),
     factor_(source.factor_)
@@ -72,7 +72,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumCheapDPCorr & SpectrumCheapDPCorr::operator=(const SpectrumCheapDPCorr & source)
+  SpectrumCheapDPCorr& SpectrumCheapDPCorr::operator=(const SpectrumCheapDPCorr& source)
   {
     if (this != &source)
     {
@@ -85,7 +85,7 @@ namespace OpenMS
 
   void SpectrumCheapDPCorr::setFactor(double f)
   {
-    if (f < 1 && f > 0)
+    if ((f < 1) && (f > 0))
     {
       factor_ = f;
     }
@@ -95,7 +95,7 @@ namespace OpenMS
     }
   }
 
-  double SpectrumCheapDPCorr::operator()(const PeakSpectrum & csa) const
+  double SpectrumCheapDPCorr::operator()(const PeakSpectrum& csa) const
   {
     return operator()(csa, csa);
   }
@@ -104,7 +104,7 @@ namespace OpenMS
         looks for peak pairs where there is just one or none possibility for alignment
         and aligns them (if possible). The rest is aligned using dynprog_
   */
-  double SpectrumCheapDPCorr::operator()(const PeakSpectrum & x, const PeakSpectrum & y) const
+  double SpectrumCheapDPCorr::operator()(const PeakSpectrum& x, const PeakSpectrum& y) const
   {
     double var = (double)param_.getValue("variation");
     double score(0);
@@ -113,9 +113,13 @@ namespace OpenMS
     lastconsensus_ = PeakSpectrum();
     Precursor p1, p2;
     if (!x.getPrecursors().empty())
+    {
       p1 = x.getPrecursors()[0];
+    }
     if (!y.getPrecursors().empty())
+    {
       p2 = y.getPrecursors()[0];
+    }
     lastconsensus_.getPrecursors().resize(1);
     lastconsensus_.getPrecursors()[0].setMZ((p1.getMZ() + p2.getMZ()) / 2);
     lastconsensus_.getPrecursors()[0].setCharge(p1.getCharge());
@@ -138,7 +142,9 @@ namespace OpenMS
           consensuspeak.setMZ(xit->getMZ());
           consensuspeak.setIntensity((xit->getIntensity()) * (1 - factor_));
           if (keeppeaks_)
+          {
             lastconsensus_.push_back(consensuspeak);
+          }
           ++xit;
           ++xpos;
         }
@@ -148,7 +154,9 @@ namespace OpenMS
           consensuspeak.setMZ(yit->getMZ());
           consensuspeak.setIntensity((yit->getIntensity()) * (factor_));
           if (keeppeaks_)
+          {
             lastconsensus_.push_back(consensuspeak);
+          }
           ++yit;
           ++ypos;
         }
@@ -176,13 +184,17 @@ namespace OpenMS
             yrun++;
           }
           if (xit + xrun == x.end())
+          {
             break;
+          }
           if (yit + yrun == y.end())
+          {
             break;
+          }
         }
 
         //dynamic programming necessary to calculate optimal pairing
-        if (xrun > 1 && yrun > 1)
+        if ((xrun > 1) && (yrun > 1))
         {
           score += dynprog_(x, y, xpos, xpos + xrun - 1, ypos, ypos + yrun - 1);
           xit = xit + xrun;
@@ -221,7 +233,7 @@ namespace OpenMS
     return score;
   }
 
-  double SpectrumCheapDPCorr::dynprog_(const PeakSpectrum & x, const PeakSpectrum & y, int xstart, int xend, int ystart, int yend) const
+  double SpectrumCheapDPCorr::dynprog_(const PeakSpectrum& x, const PeakSpectrum& y, int xstart, int xend, int ystart, int yend) const
   {
 #ifdef SPECTRUMCHEAPDPCORR_DEBUG
     cerr << "SpectrumCheapDPCorr::dynprog_(const DDiscreteSpectrum<1>& x, const DDiscreteSpectrum<1>& y, " << xstart << ", " << xend << ", " <<  ystart << ", " << yend << ")" <<  endl;
@@ -237,14 +249,17 @@ namespace OpenMS
         double variation = (y[ystart + j - 1].getMZ() + x[xstart + i - 1].getMZ()) / 2 * var;
         //positions too different
         if (fabs(x[xstart + i - 1].getMZ() - y[ystart + j - 1].getMZ()) > variation)
+        {
           align = 0;
-
+        }
         //calculate score of alignment
         else
+        {
           align = comparepeaks_(x[xstart + i - 1].getMZ(),
                                 y[ystart + j - 1].getMZ(),
                                 x[xstart + i - 1].getIntensity(),
                                 y[ystart + j - 1].getIntensity());
+        }
         //dynamic programming step
         if ((((dparray[i][j - 1]) > (dparray[i - 1][j - 1] + align)) ? (dparray[i][j - 1]) : (dparray[i - 1][j - 1] + align)) /*== max*/ > dparray[i - 1][j])
         {
@@ -294,7 +309,9 @@ namespace OpenMS
         consensuspeak.setMZ(x[xstart + i - 1].getMZ());
         consensuspeak.setIntensity((x[xstart + i - 1].getIntensity()) * (1 - factor_));
         if (keeppeaks_)
+        {
           lastconsensus_.push_back(consensuspeak);
+        }
         i--;
       }
       else if (trace[i][j] == -1)
@@ -303,17 +320,21 @@ namespace OpenMS
         consensuspeak.setMZ(y[ystart + j - 1].getMZ());
         consensuspeak.setIntensity((y[ystart + j - 1].getIntensity()) * factor_);
         if (keeppeaks_)
+        {
           lastconsensus_.push_back(consensuspeak);
+        }
         j--;
       }
       if (!i || !j)
+      {
         break;
+      }
     }
 
     return dparray[xend - xstart + 1][yend - ystart + 1];
   }
 
-  const PeakSpectrum & SpectrumCheapDPCorr::lastconsensus() const
+  const PeakSpectrum& SpectrumCheapDPCorr::lastconsensus() const
   {
     return lastconsensus_;
   }

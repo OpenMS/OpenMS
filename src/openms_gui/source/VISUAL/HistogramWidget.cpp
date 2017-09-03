@@ -53,7 +53,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  HistogramWidget::HistogramWidget(const Histogram<> & distribution, QWidget * parent) :
+  HistogramWidget::HistogramWidget(const Histogram<>& distribution, QWidget* parent) :
     QWidget(parent),
     dist_(distribution),
     show_splitters_(false),
@@ -73,7 +73,7 @@ namespace OpenMS
 
     //signals and slots
     setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(showContextMenu(const QPoint &)));
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
   }
 
   HistogramWidget::~HistogramWidget()
@@ -106,26 +106,26 @@ namespace OpenMS
     left_splitter_ = max(dist_.minBound(), pos);
   }
 
-  void HistogramWidget::setLegend(const String & legend)
+  void HistogramWidget::setLegend(const String& legend)
   {
     bottom_axis_->setLegend(legend);
   }
 
-  void HistogramWidget::mousePressEvent(QMouseEvent * e)
+  void HistogramWidget::mousePressEvent(QMouseEvent* e)
   {
-    if (show_splitters_ && e->button() == Qt::LeftButton)
+    if (show_splitters_ && (e->button() == Qt::LeftButton))
     {
       //left
       Int p = margin_ + UInt(((left_splitter_ - dist_.minBound()) / (dist_.maxBound() - dist_.minBound())) * (width() - 2 * margin_));
       //cout << "Mouse: " << e->x() << " p: " << p << " splitter: " << left_splitter_ << endl;
-      if (e->x() >= p && e->x() <= p + 5)
+      if ((e->x() >= p) && (e->x() <= p + 5))
       {
         moving_splitter_ = 1;
       }
 
       //right
       p = margin_ + UInt(((right_splitter_ - dist_.minBound()) / (dist_.maxBound() - dist_.minBound())) * (width() - 2 * margin_));
-      if (e->x() <= p && e->x() >= p - 5)
+      if ((e->x() <= p) && (e->x() >= p - 5))
       {
         moving_splitter_ = 2;
       }
@@ -136,7 +136,7 @@ namespace OpenMS
     }
   }
 
-  void HistogramWidget::mouseMoveEvent(QMouseEvent * e)
+  void HistogramWidget::mouseMoveEvent(QMouseEvent* e)
   {
     if (show_splitters_ && (e->buttons() & Qt::LeftButton))
     {
@@ -181,7 +181,7 @@ namespace OpenMS
     }
   }
 
-  void HistogramWidget::mouseReleaseEvent(QMouseEvent * e)
+  void HistogramWidget::mouseReleaseEvent(QMouseEvent* e)
   {
     if (show_splitters_)
     {
@@ -193,7 +193,7 @@ namespace OpenMS
     }
   }
 
-  void HistogramWidget::paintEvent(QPaintEvent * /*e*/)
+  void HistogramWidget::paintEvent(QPaintEvent* /*e*/)
   {
     //histogram from buffer
     QPainter painter2(this);
@@ -204,7 +204,9 @@ namespace OpenMS
     painter2.setPen(Qt::black);
     QString label = "count";
     if (log_mode_)
+    {
       label = "log ( count )";
+    }
     painter2.drawText(0, 0, -height(), margin_, Qt::AlignHCenter | Qt::AlignVCenter, label);
     painter2.end();
 
@@ -240,7 +242,7 @@ namespace OpenMS
     }
   }
 
-  void HistogramWidget::resizeEvent(QResizeEvent * /*e*/)
+  void HistogramWidget::resizeEvent(QResizeEvent* /*e*/)
   {
     buffer_ = QPixmap(width() - margin_, height() - bottom_axis_->height());
     bottom_axis_->setGeometry(margin_, height() - bottom_axis_->height(), width() - margin_, bottom_axis_->height());
@@ -305,18 +307,22 @@ namespace OpenMS
     update();
   }
 
-  void HistogramWidget::showContextMenu(const QPoint & pos)
+  void HistogramWidget::showContextMenu(const QPoint& pos)
   {
     //create menu
     QMenu menu(this);
-    QAction * action = menu.addAction("Normal mode");
+    QAction* action = menu.addAction("Normal mode");
     if (!log_mode_)
+    {
       action->setEnabled(false);
+    }
     action = menu.addAction("Log mode");
     if (log_mode_)
+    {
       action->setEnabled(false);
+    }
     //execute
-    QAction * result = menu.exec(mapToGlobal(pos));
+    QAction* result = menu.exec(mapToGlobal(pos));
     //change according to selected value
     if (result != 0)
     {
@@ -335,7 +341,9 @@ namespace OpenMS
   {
     log_mode_ = log_mode;
     if (!buffer_.isNull())
+    {
       invalidate_();
+    }
   }
 
 } //namespace OpenMS

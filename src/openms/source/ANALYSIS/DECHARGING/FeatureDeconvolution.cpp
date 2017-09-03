@@ -89,7 +89,7 @@ namespace OpenMS
     // Assignment
     CmpInfo_& operator=(const CmpInfo_& rhs)
     {
-      if (&rhs == this) return *this;
+      if (&rhs == this) { return *this; }
 
       s_comp = rhs.s_comp;
       idx_cp = rhs.idx_cp;
@@ -100,12 +100,12 @@ namespace OpenMS
     // Comparator
     bool operator<(const CmpInfo_& other) const
     {
-      if (s_comp < other.s_comp) return true; else return false;
+      if (s_comp < other.s_comp) { return true; }else{ return false; }
     }
 
     bool operator==(const CmpInfo_& other) const
     {
-      if (s_comp == other.s_comp) return true; else return false;
+      if (s_comp == other.s_comp) { return true; }else{ return false; }
     }
 
   };
@@ -159,11 +159,17 @@ namespace OpenMS
     map_label_[0] = param_.getValue("default_map_label");
 
     if (param_.getValue("q_try") == "feature")
+    {
       q_try_ = QFROMFEATURE;
+    }
     else if (param_.getValue("q_try") == "heuristic")
+    {
       q_try_ = QHEURISTIC;
+    }
     else
+    {
       q_try_ = QALL;
+    }
 
 
     StringList potential_adducts_s = param_.getValue("potential_adducts");
@@ -177,11 +183,13 @@ namespace OpenMS
     {
       // skip disabled adducts
       if (it->trim().hasPrefix("#"))
+      {
         continue;
+      }
 
       StringList adduct;
       it->split(':', adduct);
-      if (adduct.size() != 2 && adduct.size() != 3 && adduct.size() != 4)
+      if ((adduct.size() != 2) && (adduct.size() != 3) && (adduct.size() != 4))
       {
         String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have two, three or four entries ('Element:Probability' or 'Element:Probability:RTShift' or 'Element:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
@@ -191,7 +199,7 @@ namespace OpenMS
       l_charge -= adduct[0].remove('+').size();
       // determine probability
       float prob = adduct[1].toFloat();
-      if (prob > 1.0 || prob <= 0.0)
+      if ((prob > 1.0) || (prob <= 0.0))
       {
         String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
@@ -206,7 +214,9 @@ namespace OpenMS
       {
         rt_shift = adduct[2].toDouble();
         if (rt_shift != 0)
+        {
           had_nonzero_RT = true;
+        }
       }
 
       // Label:
@@ -379,7 +389,9 @@ namespace OpenMS
           double intersect_length = std::max(0., f_end1 - f_start2);
 
           if (intersect_length / union_length < rt_min_overlap)
+          {
             continue;
+          }
         }
 
         // start guessing charges ...
@@ -388,7 +400,9 @@ namespace OpenMS
         for (Int q1 = q_min; q1 <= q_max; ++q1) // ** q1
         {
           if (!chargeTestworthy_(f1.getCharge(), q1, true))
+          {
             continue;
+          }
 
           //DEBUG:
           /**if (fm_out[i_RT_window].getRT()>1930.08 && fm_out[i_RT_window].getRT()<1931.2 && mz1>1443 && mz2>1443 && mz1<2848 && mz2<2848)
@@ -407,8 +421,10 @@ namespace OpenMS
                ; (q2 <= q_max) && (q2 <= q1 + q_span - 1)
                ; ++q2)
           { // ** q2
-            if (!chargeTestworthy_(f2.getCharge(), q2, f1.getCharge() == q1))
+            if (!chargeTestworthy_(f2.getCharge(), q2, (f1.getCharge() == q1)))
+            {
               continue;
+            }
 
             ++possibleEdges; // internal count, not vital
 
@@ -444,7 +460,9 @@ namespace OpenMS
               {
                 // post-filter hits by local RT
                 if (fabs(f1.getRT() - f2.getRT() + md_s->getRTShift()) > rt_diff_max_local)
+                {
                   continue;
+                }
 
                 //std::cout << "neg: " << md_s->getNegativeCharges() << " pos: " << md_s->getPositiveCharges() << " p: " << md_s->getLogP() << " \n";
                 if ( // compomer fits charge assignment of left & right feature
@@ -458,7 +476,9 @@ namespace OpenMS
 
                   // compomer has better probability
                   if (best_hit.getLogP() < md_s->getLogP())
+                  {
                     best_hit = *md_s;
+                  }
 
 
                   /** testing: we just add every explaining edge
@@ -478,7 +498,7 @@ namespace OpenMS
                   int hc_right = (q2 - cmp.getPositiveCharges()) / proton.getCharge(); // this should always be positive! check!!
 
 
-                  if (hc_left < 0 || hc_right < 0)
+                  if ((hc_left < 0) || (hc_right < 0))
                   {
                     throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING!!! implicit number of H+ is negative!!! left:" + String(hc_left) + " right: " + String(hc_right) + "\n");
                   }
@@ -486,7 +506,9 @@ namespace OpenMS
                   // intensity constraint:
                   // no edge is drawn if low-prob feature has higher intensity
                   if (!intensityFilterPassed_(q1, q2, cmp, f1, f2))
+                  {
                     continue;
+                  }
 
                   // get non-default adducts of this edge
                   Compomer cmp_stripped(cmp.removeAdduct(proton));
@@ -507,9 +529,13 @@ namespace OpenMS
 
                   // add implicit H+ (if != 0)
                   if (hc_left > 0)
+                  {
                     cmp.add(proton * hc_left, Compomer::LEFT);
+                  }
                   if (hc_right > 0)
+                  {
                     cmp.add(proton * hc_right, Compomer::RIGHT);
+                  }
 
                   ChargePair cp(i_RT, i_RT_window, q1, q2, cmp, naive_mass_diff - md_s->getMass(), false);
                   //std::cout << "CP # "<< feature_relation.size() << " :" << i_RT << " " << i_RT_window<< " " << q1<< " " << q2 << " score: " << cp.getCompomer().getLogP() << "\n";
@@ -528,7 +554,7 @@ namespace OpenMS
                 ++cmp_hit;
                 // disabled while we add every hit (and not only the best - see above)
 #if 0
-                TODO if reactivated : add implicits(see above)
+                TODO if reactivated:add implicits(see above)
                 ChargePair cp(i_RT, i_RT_window, q1, q2, me.getCompomerById(best_hit.getID()), naive_mass_diff - best_hit.getMass(), false);
                 //std::cout << "CP # "<< feature_relation.size() << " :" << i_RT << " " << i_RT_window<< " " << q1<< " " << q2 << "\n";
                 feature_relation.push_back(cp);
@@ -697,7 +723,9 @@ namespace OpenMS
     for (Size i = 0; i < fm_out.size(); ++i)
     {
       if (fm_out[i].metaValueExists("dc_charge_adducts"))
+      {
         fm_out[i].removeMetaValue("dc_charge_adducts");
+      }
     }
 
     // write groups to consensusXML (with type="charge_groups")
@@ -744,7 +772,9 @@ namespace OpenMS
         if (fm_out[f0_idx].metaValueExists("dc_charge_adducts"))
         {
           if (ef_l.toString() != fm_out[f0_idx].getMetaValue("dc_charge_adducts"))
+          {
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "]", ef_l.toString());
+          }
         }
         else
         {
@@ -753,11 +783,15 @@ namespace OpenMS
         fm_out[f0_idx].setMetaValue("dc_charge_adduct_mass", ef_l.getMonoWeight());
         fm_out[f0_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(proton, Compomer::LEFT) ? 1 : 0));
         if (new_q0 != old_q0)
+        {
           fm_out[f0_idx].setMetaValue("old_charge", old_q0);
+        }
         fm_out[f0_idx].setCharge(new_q0);
         labels = c.getLabels(Compomer::LEFT);
         if (labels.size() > 1)
+        {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
+        }
         if (labels.size() > 0)
         {
           fm_out[f0_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
@@ -768,7 +802,9 @@ namespace OpenMS
         if (fm_out[f1_idx].metaValueExists("dc_charge_adducts"))
         {
           if (ef_r.toString() != fm_out[f1_idx].getMetaValue("dc_charge_adducts"))
+          {
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + "]", ef_r.toString());
+          }
         }
         else
         {
@@ -777,11 +813,15 @@ namespace OpenMS
         fm_out[f1_idx].setMetaValue("dc_charge_adduct_mass", ef_r.getMonoWeight());
         fm_out[f1_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(proton, Compomer::RIGHT) ? 1 : 0));
         if (new_q1 != old_q1)
+        {
           fm_out[f1_idx].setMetaValue("old_charge", old_q1);
+        }
         fm_out[f1_idx].setCharge(new_q1);
         labels = c.getLabels(Compomer::RIGHT);
         if (labels.size() > 1)
+        {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
+        }
         if (labels.size() > 0)
         {
           fm_out[f1_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
@@ -915,7 +955,9 @@ namespace OpenMS
     {
       // skip if empty
       if (it->getFeatures().empty())
+      {
         continue;
+      }
 
       // skip if no backbone
       Size backbone_count = 0;
@@ -962,7 +1004,9 @@ namespace OpenMS
     {
       // find the index of the ConsensusFeature for the current feature
       if (clique_register.count(i) > 0)
+      {
         continue;
+      }
 
       FeatureMapType::FeatureType f_single = fm_out_untouched[i];
       f_single.setMetaValue("is_single_feature", 1);
@@ -1020,7 +1064,9 @@ namespace OpenMS
     for (ConsensusMap::const_iterator it = cons_map.begin(); it != cons_map.end(); ++it)
     {
       if (it->size() == 1)
+      {
         continue;
+      }
 
       ++ladders_total;
       IntList charges = it->getMetaValue("distinct_charges");
@@ -1036,7 +1082,9 @@ namespace OpenMS
       }
 
       if (!has_odd)
+      {
         ++ladders_even;
+      }
     }
 
     // if more than 5% of charge ladder have this, then report
@@ -1096,13 +1144,17 @@ namespace OpenMS
           int hc_right = (cp.getCharge(1) - new_cmp.getPositiveCharges()) / default_adduct.getCharge(); // this should always be positive! check!!
 
           // we have not stepped over the charge capacity of the features
-          if (hc_left >= 0 && hc_right >= 0)
+          if ((hc_left >= 0) && (hc_right >= 0))
           {
             // fill up with defaults:
             if (hc_left > 0)
+            {
               new_cmp.add(default_adduct * hc_left, Compomer::LEFT);
+            }
             if (hc_right > 0)
+            {
               new_cmp.add(default_adduct * hc_right, Compomer::RIGHT);
+            }
 
             // charge constraints of feature still fulfilled?
             if ((new_cmp.getNegativeCharges() == cp.getCharge(0)) &&
@@ -1149,7 +1201,9 @@ namespace OpenMS
   inline bool FeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2)
   {
     if (!enable_intensity_filter_)
+    {
       return true;
+    }
 
     if (q1 == q2)
     {
@@ -1183,17 +1237,23 @@ namespace OpenMS
     else if (q_try_ == QHEURISTIC)
     {
       // do not allow two charges to change at the same time
-      if (!other_unchanged && feature_charge != putative_charge)
+      if (!other_unchanged && (feature_charge != putative_charge))
+      {
         return false;
+      }
 
       // test two adjacent charges:
       if (abs(feature_charge - putative_charge) <= 2)
+      {
         return true;
+      }
 
       // test two multiples
-      if (feature_charge * 2 == putative_charge || feature_charge * 3 == putative_charge
-         || feature_charge == putative_charge * 2 || feature_charge == putative_charge * 3)
+      if ((feature_charge * 2 == putative_charge) || (feature_charge * 3 == putative_charge)
+         || (feature_charge == putative_charge * 2) || (feature_charge == putative_charge * 3))
+      {
         return true;
+      }
 
       return false;
     }

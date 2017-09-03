@@ -51,7 +51,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TOPPASWidget::TOPPASWidget(const Param & /*preferences*/, QWidget * parent, const String & tmp_path) :
+  TOPPASWidget::TOPPASWidget(const Param& /*preferences*/, QWidget* parent, const String& tmp_path) :
     QGraphicsView(parent),
     scene_(new TOPPASScene(this, tmp_path.toQString()))
   {
@@ -69,7 +69,7 @@ namespace OpenMS
     emit aboutToBeDestroyed(window_id_);
   }
 
-  TOPPASScene * TOPPASWidget::getScene()
+  TOPPASScene* TOPPASWidget::getScene()
   {
     return scene_;
   }
@@ -96,24 +96,24 @@ namespace OpenMS
     scene_->setSceneRect(new_scene_rect);
   }
 
-  void TOPPASWidget::wheelEvent(QWheelEvent * event)
+  void TOPPASWidget::wheelEvent(QWheelEvent* event)
   {
     zoom(event->delta() < 0);
   }
 
-  void TOPPASWidget::dragEnterEvent(QDragEnterEvent * event)
+  void TOPPASWidget::dragEnterEvent(QDragEnterEvent* event)
   {
     // TODO: test mime type/source? where?
     event->acceptProposedAction();
   }
 
-  void TOPPASWidget::dragMoveEvent(QDragMoveEvent * event)
+  void TOPPASWidget::dragMoveEvent(QDragMoveEvent* event)
   {
     // TODO: test mime type/source? where?
     event->acceptProposedAction();
   }
 
-  void TOPPASWidget::dropEvent(QDropEvent * event)
+  void TOPPASWidget::dropEvent(QDropEvent* event)
   {
     // TODO: test mime type/source? where?
     //std::cerr << "Drop Event with data:\n  " << String( event->mimeData()->formats().join("\n  ")) << "\n\n";
@@ -133,20 +133,20 @@ namespace OpenMS
     event->acceptProposedAction();
   }
 
-  void TOPPASWidget::keyPressEvent(QKeyEvent * e)
+  void TOPPASWidget::keyPressEvent(QKeyEvent* e)
   {
-    if (e->key() == Qt::Key_C && e->modifiers() == Qt::ControlModifier)
+    if ((e->key() == Qt::Key_C) && (e->modifiers() == Qt::ControlModifier))
     {
       scene_->copySelected();
       e->accept();
     }
-    else if (e->key() == Qt::Key_X && e->modifiers() == Qt::ControlModifier)
+    else if ((e->key() == Qt::Key_X) && (e->modifiers() == Qt::ControlModifier))
     {
       scene_->copySelected();
       scene_->removeSelected();
       e->accept();
     }
-    else if (e->key() == Qt::Key_V && e->modifiers() == Qt::ControlModifier)
+    else if ((e->key() == Qt::Key_V) && (e->modifiers() == Qt::ControlModifier))
     {
       scene_->paste();
       e->accept();
@@ -156,10 +156,10 @@ namespace OpenMS
       setDragMode(QGraphicsView::RubberBandDrag);
       //color of hovering edge may change
       TOPPASEdge* hover_edge = scene_->getHoveringEdge();
-      if (hover_edge) hover_edge->update();
+      if (hover_edge) { hover_edge->update(); }
       e->accept();
     }
-    else if (e->key() == Qt::Key_Delete || e->key() == Qt::Key_Backspace)
+    else if ((e->key() == Qt::Key_Delete) || (e->key() == Qt::Key_Backspace))
     {
       scene_->removeSelected();
       e->accept();
@@ -180,31 +180,31 @@ namespace OpenMS
     }
   }
 
-  void TOPPASWidget::keyReleaseEvent(QKeyEvent * e)
+  void TOPPASWidget::keyReleaseEvent(QKeyEvent* e)
   {
     if (e->key() == Qt::Key_Control)
     {
       setDragMode(QGraphicsView::ScrollHandDrag);
       //color of hovering edge may change
       TOPPASEdge* hover_edge = scene_->getHoveringEdge();
-      if (hover_edge) hover_edge->update();
+      if (hover_edge) { hover_edge->update(); }
       e->accept();
     }
   }
 
-  void TOPPASWidget::leaveEvent(QEvent * /*e*/)
+  void TOPPASWidget::leaveEvent(QEvent* /*e*/)
   {
 
   }
 
-  void TOPPASWidget::enterEvent(QEvent * /*e*/)
+  void TOPPASWidget::enterEvent(QEvent* /*e*/)
   {
 #ifndef Q_WS_MAC
     setFocus();
 #endif
   }
 
-  void TOPPASWidget::resizeEvent(QResizeEvent * /*event*/)
+  void TOPPASWidget::resizeEvent(QResizeEvent* /*event*/)
   {
 // QGraphicsView::resizeEvent(event);
 // if (scene_)
@@ -214,7 +214,7 @@ namespace OpenMS
 // }
   }
 
-  void TOPPASWidget::closeEvent(QCloseEvent * e)
+  void TOPPASWidget::closeEvent(QCloseEvent* e)
   {
     bool close = scene_->saveIfChanged();
     if (close)

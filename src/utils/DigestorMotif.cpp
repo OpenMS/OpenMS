@@ -200,7 +200,7 @@ protected:
       vector<vector<double> > Y;
       vector<UInt> OVER;
       UInt total = 0;
-      if (out_opt == 1 || out_opt == 3)
+      if ((out_opt == 1) || (out_opt == 3))
       {
         fp_out << "counter" << SEP << "ProteinID" << SEP << "PeptideLocation" << SEP << "PeptideSequence" << SEP << "C" << SEP << "H" << SEP << "N" << SEP << "O" << SEP << "S" << SEP << "length" << SEP << "weight" << SEP << "min_weight" << SEP << "max_weight" << SEP << "Formula" << SEP << "D" << SEP << "E" << SEP << "K" << SEP << "R" << SEP << "H" << SEP << "Y" << SEP << "W" << SEP << "F" << SEP << "C" << SEP << "M" << SEP << "S" << SEP << "T" << SEP << "N" << SEP << "Q" << SEP << "G" << SEP << "A" << SEP << "V" << SEP << "L" << SEP << "I" << SEP << "P" << SEP << "hydrophobicity" << "\n";
       }
@@ -240,7 +240,7 @@ protected:
               protein_names.push_back(protein_accessions[0]);
               temp_peptide_hit.setSequence(temp_peptides[j]);
               peptide_identification.insertHit(temp_peptide_hit);
-              if (out_opt == 1 || out_opt == 3)
+              if ((out_opt == 1) || (out_opt == 3))
               {
                 const String unmodified_peptide = temp_peptides[j].toUnmodifiedString();
                 const Size nK = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'K');
@@ -307,7 +307,7 @@ protected:
         vector<UInt> IonCounter;
         for (UInt y = 0; y < MAX.size(); ++y)
         {
-          if ((MIN[y] < MIN[x] && MAX[y] > MIN[x]) || (MAX[y] > MAX[x] && MIN[y] < MAX[x]) || (MIN[x] == MIN[y]))
+          if (((MIN[y] < MIN[x]) && (MAX[y] > MIN[x])) || ((MAX[y] > MAX[x]) && (MIN[y] < MAX[x])) || (MIN[x] == MIN[y]))
           {
             OVER[x] = OVER[x] + 1;
             //find overlapping tandem ions

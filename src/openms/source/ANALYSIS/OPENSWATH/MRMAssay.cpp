@@ -50,7 +50,7 @@ namespace OpenMS
 
     for (std::vector<std::pair<double, std::string> >::const_iterator i_it = ions.begin(); i_it != ions.end(); ++i_it)
     {
-      if (i_it->first - mz_threshold <= fragment_ion && i_it->first + mz_threshold >= fragment_ion)
+      if ((i_it->first - mz_threshold <= fragment_ion) && (i_it->first + mz_threshold >= fragment_ion))
       {
         isoforms.push_back(i_it->second);
       }
@@ -69,7 +69,7 @@ namespace OpenMS
     // we go through all swaths in ascending order and if the transitions falls in overlap, only the upper swath will be used and checked.
     for (std::vector<std::pair<double, double> >::const_iterator it = swathes.begin(); it != swathes.end(); ++it)
     {
-      if (precursor_mz >= it->first && precursor_mz <= it->second)
+      if ((precursor_mz >= it->first) && (precursor_mz <= it->second))
       {
         swath = it - swathes.begin();
       }
@@ -94,7 +94,7 @@ namespace OpenMS
     {
       std::pair<double, double> swath = swathes[getSwath_(swathes, precursor_mz)];
 
-      if (product_mz >= swath.first && product_mz <= swath.second)
+      if ((product_mz >= swath.first) && (product_mz <= swath.second))
       {
         return true;
       }
@@ -315,7 +315,7 @@ namespace OpenMS
                                             int round_decPow,
                                             size_t max_num_alternative_localizations,
                                             boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap,
-                                            IonMapT & TargetIonMap,
+                                            IonMapT& TargetIonMap,
                                             PeptideMapT& TargetPeptideMap)
   {
     OpenMS::MRMIonSeries mrmis;
@@ -330,7 +330,7 @@ namespace OpenMS
       TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
       OpenMS::AASequence peptide_sequence = TargetedExperimentHelper::getAASequence(peptide);
       int precursor_charge = 1;
-      if (peptide.hasCharge()) 
+      if (peptide.hasCharge())
       {
         precursor_charge = peptide.getChargeState();
       }
@@ -338,7 +338,7 @@ namespace OpenMS
       int precursor_swath = getSwath_(swathes, precursor_mz);
 
       // Compute all alternative peptidoforms compatible with ModificationsDB
-      std::vector<OpenMS::AASequence> alternative_peptide_sequences = combineModifications_(peptide_sequence);  
+      std::vector<OpenMS::AASequence> alternative_peptide_sequences = combineModifications_(peptide_sequence);
 
       // Some permutations might be too complex, skip if threshold is reached
       if (alternative_peptide_sequences.size() > max_num_alternative_localizations)
@@ -349,7 +349,7 @@ namespace OpenMS
 
       // Iterate over all peptidoforms
       for (std::vector<OpenMS::AASequence>::iterator alt_aa = alternative_peptide_sequences.begin(); alt_aa != alternative_peptide_sequences.end(); ++alt_aa)
-      { 
+      {
         // Append peptidoform to index
         TargetSequenceMap[precursor_swath][alt_aa->toUnmodifiedString()].insert(alt_aa->toString());
         // Generate theoretical ion series
@@ -375,7 +375,7 @@ namespace OpenMS
   }
 
   void MRMAssay::generateDecoySequences_(boost::unordered_map<size_t,
-                                         boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap,
+                                                              boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap,
                                          boost::unordered_map<String, String>& DecoySequenceMap, int shuffle_seed)
   {
     // Step 2a: Generate decoy sequences that share peptidoform properties with targets
@@ -396,7 +396,7 @@ namespace OpenMS
     for (boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > >::iterator sm_it = TargetSequenceMap.begin(); sm_it != TargetSequenceMap.end(); ++sm_it)
     {
       setProgress(progress++);
-      // Iterate over each unmodified peptide sequence 
+      // Iterate over each unmodified peptide sequence
       for (boost::unordered_map<String, std::set<std::string> >::iterator ta_it = sm_it->second.begin(); ta_it != sm_it->second.end(); ++ta_it)
       {
         // Get a random unmodified peptide sequence as base for later modification
@@ -448,7 +448,7 @@ namespace OpenMS
                                            boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap,
                                            PeptideMapT& TargetPeptideMap,
                                            boost::unordered_map<String, String>& DecoySequenceMap,
-                                           IonMapT & DecoyIonMap,
+                                           IonMapT& DecoyIonMap,
                                            PeptideMapT& DecoyPeptideMap)
   {
     MRMIonSeries mrmis;
@@ -462,7 +462,7 @@ namespace OpenMS
 
       TargetedExperiment::Peptide peptide = exp.getPeptides()[i];
       int precursor_charge = 1;
-      if (peptide.hasCharge()) 
+      if (peptide.hasCharge())
       {
         precursor_charge = peptide.getChargeState();
       }
@@ -493,7 +493,7 @@ namespace OpenMS
       {
         // Generate theoretical ion series
         MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(*alt_aa, precursor_charge, // use same charge state as target
-                                                               fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);  
+                                                               fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses);
 
         if (enable_ms2_precursors)
         {
@@ -514,12 +514,12 @@ namespace OpenMS
     endProgress();
   }
 
- void MRMAssay::generateTargetAssays_(OpenMS::TargetedExperiment& exp,
-                                      TransitionVectorType& transitions, double mz_threshold,
-                                      std::vector<std::pair<double, double> > swathes,
-                                      int round_decPow,
-                                      PeptideMapT& TargetPeptideMap,
-                                      IonMapT & TargetIonMap)
+  void MRMAssay::generateTargetAssays_(OpenMS::TargetedExperiment& exp,
+                                       TransitionVectorType& transitions, double mz_threshold,
+                                       std::vector<std::pair<double, double> > swathes,
+                                       int round_decPow,
+                                       PeptideMapT& TargetPeptideMap,
+                                       IonMapT& TargetIonMap)
   {
     MRMIonSeries mrmis;
 
@@ -530,12 +530,12 @@ namespace OpenMS
     // Iterate over all target peptides
     int transition_index = 0;
     for (typename PeptideMapT::iterator pep_it = TargetPeptideMap.begin(); pep_it != TargetPeptideMap.end(); ++pep_it)
-    { 
+    {
       setProgress(progress++);
 
       TargetedExperiment::Peptide peptide = exp.getPeptideByRef(pep_it->first);
       int precursor_charge = 1;
-      if (peptide.hasCharge()) 
+      if (peptide.hasCharge())
       {
         precursor_charge = peptide.getChargeState();
       }
@@ -549,7 +549,7 @@ namespace OpenMS
 
       // Iterate over all transitions
       for (std::vector<std::pair<std::string, double> >::iterator tr_it = tr_vec.begin(); tr_it != tr_vec_end; ++tr_it)
-      { 
+      {
         // Check mapping of transitions to other peptidoforms
         std::vector<std::string> isoforms = getMatchingPeptidoforms_(tr_it->second, TargetIonMap[target_precursor_swath][peptide_sequence.toUnmodifiedString()], mz_threshold);
 
@@ -582,15 +582,15 @@ namespace OpenMS
     endProgress();
   }
 
- void MRMAssay::generateDecoyAssays_(OpenMS::TargetedExperiment& exp,
-                                     TransitionVectorType& transitions,
-                                     double mz_threshold,
-                                     std::vector<std::pair<double, double> > swathes,
-                                     int round_decPow,
-                                     PeptideMapT& DecoyPeptideMap,
-                                     boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap,
-                                     IonMapT DecoyIonMap,
-                                     IonMapT TargetIonMap)
+  void MRMAssay::generateDecoyAssays_(OpenMS::TargetedExperiment& exp,
+                                      TransitionVectorType& transitions,
+                                      double mz_threshold,
+                                      std::vector<std::pair<double, double> > swathes,
+                                      int round_decPow,
+                                      PeptideMapT& DecoyPeptideMap,
+                                      boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap,
+                                      IonMapT DecoyIonMap,
+                                      IonMapT TargetIonMap)
   {
     MRMIonSeries mrmis;
 
@@ -605,7 +605,7 @@ namespace OpenMS
       setProgress(progress++);
       TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(decoy_pep_it->first);
       int precursor_charge = 1;
-      if (target_peptide.hasCharge()) 
+      if (target_peptide.hasCharge())
       {
         precursor_charge = target_peptide.getChargeState();
       }
@@ -685,31 +685,31 @@ namespace OpenMS
 
       TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
       int precursor_charge = 1;
-      if (target_peptide.hasCharge()) 
+      if (target_peptide.hasCharge())
       {
         precursor_charge = target_peptide.getChargeState();
       }
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
 
       // Generate new ID (transition_group_id) for target peptide
-      target_peptide.id = String(target_peptide.protein_refs[0]) + String("_") + TargetedExperimentHelper::getAASequence(target_peptide).toString() + 
-          String("_") + String(precursor_charge) + "_" + target_peptide.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString();
+      target_peptide.id = String(target_peptide.protein_refs[0]) + String("_") + TargetedExperimentHelper::getAASequence(target_peptide).toString() +
+                          String("_") + String(precursor_charge) + "_" + target_peptide.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString();
 
       // Annotate transition: Either set correct CV terms from annotation or
       // (if enable_reannotation == true) do annotation using theoretical ion
       // series
       // Parameters set allowed fragment charges, tolerance, etc. All unannoted transitions are discarded
       mrmis.annotateTransition(tr, target_peptide, precursor_mz_threshold,
-          product_mz_threshold, enable_reannotation, fragment_types,
-          fragment_charges, enable_specific_losses, enable_unspecific_losses,
-          round_decPow);
+                               product_mz_threshold, enable_reannotation, fragment_types,
+                               fragment_charges, enable_specific_losses, enable_unspecific_losses,
+                               round_decPow);
 
       // Skip unannotated transitions from previous step
       if (tr.getProduct().getInterpretationList()[0].iontype == TargetedExperiment::IonType::NonIdentified)
       {
-        LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString() 
-          << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
-          << " " << tr.getMetaValue("annotation") << std::endl;
+        LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString()
+                  << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ()
+                  << " " << tr.getMetaValue("annotation") << std::endl;
         continue;
       }
       else
@@ -763,9 +763,9 @@ namespace OpenMS
         // Check if transition is unannotated at primary annotation and if yes, skip
         if (tr.getProduct().getInterpretationList()[0].iontype == TargetedExperiment::IonType::NonIdentified)
         {
-          LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence 
-            << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
-            << " " << tr.getMetaValue("annotation") << std::endl;
+          LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence
+                    << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ()
+                    << " " << tr.getMetaValue("annotation") << std::endl;
           continue;
         }
       }
@@ -781,7 +781,7 @@ namespace OpenMS
       }
 
       // Check if product m/z is outside of m/z boundaries and if yes, skip
-      if (tr.getProductMZ() < lower_mz_limit || tr.getProductMZ() > upper_mz_limit)
+      if ((tr.getProductMZ() < lower_mz_limit) || (tr.getProductMZ() > upper_mz_limit))
       {
         LOG_DEBUG << "[mz_limit] Skipping " << target_peptide_sequence << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << std::endl;
         continue;
@@ -847,7 +847,7 @@ namespace OpenMS
         {
           ReactionMonitoringTransition tr = *tr_it;
 
-          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY && j < (Size)max_transitions)
+          if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && (tr.getDecoyTransitionType() != ReactionMonitoringTransition::DECOY) && (j < (Size)max_transitions))
           {
             // Set meta value tag for detecting transition
             tr.setDetectingTransition(true);
@@ -911,16 +911,16 @@ namespace OpenMS
   }
 
   void MRMAssay::uisTransitions(OpenMS::TargetedExperiment& exp,
-                      std::vector<String> fragment_types,
-                      std::vector<size_t> fragment_charges,
-                      bool enable_specific_losses,
-                      bool enable_unspecific_losses,
-                      bool enable_ms2_precursors,
-                      double mz_threshold,
-                      std::vector<std::pair<double, double> > swathes,
-                      int round_decPow,
-                      size_t max_num_alternative_localizations,
-                      int shuffle_seed)
+                                std::vector<String> fragment_types,
+                                std::vector<size_t> fragment_charges,
+                                bool enable_specific_losses,
+                                bool enable_unspecific_losses,
+                                bool enable_ms2_precursors,
+                                double mz_threshold,
+                                std::vector<std::pair<double, double> > swathes,
+                                int round_decPow,
+                                size_t max_num_alternative_localizations,
+                                int shuffle_seed)
   {
     OpenMS::MRMIonSeries mrmis;
 

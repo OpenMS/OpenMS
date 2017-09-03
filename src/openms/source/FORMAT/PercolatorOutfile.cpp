@@ -49,13 +49,12 @@ namespace OpenMS
 
   // initialize static variable:
   const std::string PercolatorOutfile::score_type_names[] =
-    {"qvalue", "PEP", "score"};
+  { "qvalue", "PEP", "score" };
 
 
   PercolatorOutfile::PercolatorOutfile()
   {
   }
-
 
   enum PercolatorOutfile::ScoreType PercolatorOutfile::getScoreType(
     String score_type_name)
@@ -80,7 +79,6 @@ namespace OpenMS
                                   score_type_name);
   }
 
-
   void PercolatorOutfile::resolveMisassignedNTermMods_(String& peptide) const
   {
     boost::regex re("^[A-Z]\\[(?<MOD1>-?\\d+(\\.\\d+)?)\\](\\[(?<MOD2>-?\\d+(\\.\\d+)?)\\])?");
@@ -94,8 +92,8 @@ namespace OpenMS
       String mod1 = match["MOD1"].str();
       double mass1 = mod1.toDouble();
       maybe_nterm[0] = ModificationsDB::getInstance()->
-        getBestModificationByDiffMonoMass(mass1, 0.01, residue,
-                                          ResidueModification::N_TERM);
+                       getBestModificationByDiffMonoMass(mass1, 0.01, residue,
+                                                         ResidueModification::N_TERM);
       if (maybe_nterm[0] && !match["MOD2"].matched &&
           ((maybe_nterm[0]->getId() != "Carbamidomethyl") || (residue != "C")))
       { // only 1 mod, may be terminal -> assume terminal (unless it's CAM!):
@@ -108,47 +106,47 @@ namespace OpenMS
         String mod2 = match["MOD2"].str();
         double mass2 = mod2.toDouble();
         maybe_nterm[1] = ModificationsDB::getInstance()->
-          getBestModificationByDiffMonoMass(mass2, 0.01, residue,
-                                            ResidueModification::N_TERM);
+                         getBestModificationByDiffMonoMass(mass2, 0.01, residue,
+                                                           ResidueModification::N_TERM);
         if (maybe_nterm[0] && !maybe_nterm[1])
         { // first mod is terminal:
           String replacement = "(" + maybe_nterm[0]->getId() + ")" + residue +
-            "[" + mod2 + "]";
+                               "[" + mod2 + "]";
           peptide = boost::regex_replace(peptide, re, replacement);
         }
         else if (maybe_nterm[1] && !maybe_nterm[0])
         { // second mod is terminal:
           String replacement = "(" + maybe_nterm[1]->getId() + ")" + residue +
-            "[" + mod1 + "]";
+                               "[" + mod1 + "]";
           peptide = boost::regex_replace(peptide, re, replacement);
         }
         else // ambiguous cases
         {
           vector<const ResidueModification*> maybe_residue(2, null);
           maybe_residue[0] = ModificationsDB::getInstance()->
-            getBestModificationByDiffMonoMass(mass1, 0.01, residue,
-                                              ResidueModification::ANYWHERE);
+                             getBestModificationByDiffMonoMass(mass1, 0.01, residue,
+                                                               ResidueModification::ANYWHERE);
           maybe_residue[1] = ModificationsDB::getInstance()->
-            getBestModificationByDiffMonoMass(mass2, 0.01, residue,
-                                              ResidueModification::ANYWHERE);
+                             getBestModificationByDiffMonoMass(mass2, 0.01, residue,
+                                                               ResidueModification::ANYWHERE);
           if (maybe_nterm[0] && maybe_nterm[1]) // both mods may be terminal
           {
             if (maybe_residue[0] && !maybe_residue[1])
             { // first mod must be non-terminal -> second mod is terminal:
               String replacement = "(" + maybe_nterm[1]->getId() + ")" +
-                residue + "[" + mod1 + "]";
+                                   residue + "[" + mod1 + "]";
               peptide = boost::regex_replace(peptide, re, replacement);
             }
             else if (maybe_residue[1] && !maybe_residue[0])
             { // second mod must be non-terminal -> first mod is terminal:
               String replacement = "(" + maybe_nterm[0]->getId() + ")" +
-                residue + "[" + mod2 + "]";
+                                   residue + "[" + mod2 + "]";
               peptide = boost::regex_replace(peptide, re, replacement);
             }
             else // both mods may be terminal or non-terminal :-(
             { // arbitrarily assume first mod is terminal
               String replacement = "(" + maybe_nterm[0]->getId() + ")" +
-                residue + "[" + mod2 + "]";
+                                   residue + "[" + mod2 + "]";
               peptide = boost::regex_replace(peptide, re, replacement);
             }
           }
@@ -159,15 +157,14 @@ namespace OpenMS
     }
   }
 
-
   void PercolatorOutfile::getPeptideSequence_(String peptide, AASequence& seq)
-    const
+  const
   {
     // 'peptide' includes neighboring amino acids, e.g.: K.AAAR.A
     // but unclear to which protein neighboring AAs belong, so we ignore them:
     size_t len = peptide.size(), start = 0, count = std::string::npos;
-    if (peptide[1] == '.') start = 2;
-    if (peptide[len - 2] == '.') count = len - start - 2;
+    if (peptide[1] == '.') { start = 2; }
+    if (peptide[len - 2] == '.') { count = len - start - 2; }
     peptide = peptide.substr(start, count);
 
     // re-format modifications:
@@ -192,7 +189,6 @@ namespace OpenMS
 
     seq = AASequence::fromString(peptide);
   }
-
 
   void PercolatorOutfile::load(const String& filename,
                                ProteinIdentification& proteins,
@@ -220,7 +216,7 @@ namespace OpenMS
     CsvFile source(filename, '\t');
     source.getRow(0, items);
     String header = ListUtils::concatenate<String>(items, '\t');
-    if (header != 
+    if (header !=
         "PSMId\tscore\tq-value\tposterior_error_prob\tpeptide\tproteinIds")
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -243,7 +239,7 @@ namespace OpenMS
       catch (...)
       {
         String msg = "Error: Could not extract data for spectrum reference '" +
-          items[0] + "' from row " + String(row);
+                     items[0] + "' from row " + String(row);
         LOG_ERROR << msg << endl;
       }
 
@@ -284,23 +280,26 @@ namespace OpenMS
       hit.setMetaValue("Percolator_PEP", posterrprob);
       switch (output_score)
       {
-        case SCORE:
-          hit.setScore(score);
-          peptide.setScoreType("Percolator_score");
-          peptide.setHigherScoreBetter(true);
-          break;
-        case QVALUE:
-          hit.setScore(qvalue);
-          peptide.setScoreType("q-value");
-          peptide.setHigherScoreBetter(false);
-          break;
-        case POSTERRPROB:
-          hit.setScore(posterrprob);
-          peptide.setScoreType("Posterior Error Probability");
-          peptide.setHigherScoreBetter(false);
-          break;
-        case SIZE_OF_SCORETYPE:
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");
+      case SCORE:
+        hit.setScore(score);
+        peptide.setScoreType("Percolator_score");
+        peptide.setHigherScoreBetter(true);
+        break;
+
+      case QVALUE:
+        hit.setScore(qvalue);
+        peptide.setScoreType("q-value");
+        peptide.setHigherScoreBetter(false);
+        break;
+
+      case POSTERRPROB:
+        hit.setScore(posterrprob);
+        peptide.setScoreType("Posterior Error Probability");
+        peptide.setHigherScoreBetter(false);
+        break;
+
+      case SIZE_OF_SCORETYPE:
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'output_score' must not be 'SIZE_OF_SCORETYPE'!");
       }
 
       AASequence seq;
@@ -350,12 +349,12 @@ namespace OpenMS
     }
     if (no_rt > 0)
     {
-      LOG_WARN << no_rt << " peptide hits without retention time information." 
+      LOG_WARN << no_rt << " peptide hits without retention time information."
                << endl;
     }
     if (no_mz > 0)
     {
-      LOG_WARN << no_mz << " peptide hits without mass-to-charge information." 
+      LOG_WARN << no_mz << " peptide hits without mass-to-charge information."
                << endl;
     }
   }

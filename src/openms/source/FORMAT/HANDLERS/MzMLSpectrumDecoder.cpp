@@ -50,19 +50,19 @@ namespace OpenMS
 
   /// Small internal function to check the default data vectors
   void checkData_(std::vector<Internal::MzMLHandlerHelper::BinaryData>& data_,
-      SignedSize x_index, SignedSize int_index,
-      bool x_precision_64, bool int_precision_64)
+                  SignedSize x_index, SignedSize int_index,
+                  bool x_precision_64, bool int_precision_64)
   {
     // Error if intensity or m/z (RT) is encoded as int32|64 - they should be float32|64!
     if ((data_[x_index].ints_32.size() > 0) || (data_[x_index].ints_64.size() > 0))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "", "Encoding m/z or RT array as integer is not allowed!");
+                                  "", "Encoding m/z or RT array as integer is not allowed!");
     }
     if ((data_[int_index].ints_32.size() > 0) || (data_[int_index].ints_64.size() > 0))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "", "Encoding intensity array as integer is not allowed!");
+                                  "", "Encoding intensity array as integer is not allowed!");
     }
 
     Size mz_size = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
@@ -72,7 +72,7 @@ namespace OpenMS
     if (mz_size != int_size)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "", "Error, intensity and m/z array length are unequal");
+                                  "", "Error, intensity and m/z array length are unequal");
     }
   }
 
@@ -104,7 +104,7 @@ namespace OpenMS
     Internal::MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
 
     //Abort if no m/z or intensity array is present
-    if (int_index == -1 || x_index == -1)
+    if ((int_index == -1) || (x_index == -1))
     {
       std::cerr << "Error, intensity or m/z array is missing, skipping this spectrum" << std::endl;
       return sptr;
@@ -154,7 +154,7 @@ namespace OpenMS
     Internal::MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
 
     //Abort if no m/z or intensity array is present
-    if (int_index == -1 || x_index == -1)
+    if ((int_index == -1) || (x_index == -1))
     {
       std::cerr << "Error, intensity or RT array is missing, skipping this spectrum" << std::endl;
       return sptr;
@@ -217,8 +217,8 @@ namespace OpenMS
     for (XMLSize_t j = 0; j < nodeCount_; ++j)
     {
       xercesc::DOMNode* currentNode = index_elems->item(j);
-      if (currentNode->getNodeType() &&   // true is not NULL
-          currentNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE)   // is element
+      if (currentNode->getNodeType() && // true is not NULL
+          (currentNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE)) // is element
       {
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
         if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_binary))
@@ -236,7 +236,7 @@ namespace OpenMS
           if (currentNode->getChildNodes()->getLength() != 1)
           {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "", "Invalid XML: 'binary' element can only have a single, text node child element.");
+                                        "", "Invalid XML: 'binary' element can only have a single, text node child element.");
           }
 
           // Now we know that the <binary> node has exactly one single child node, the text that we want!
@@ -244,14 +244,14 @@ namespace OpenMS
 
           if (textNode_->getNodeType() == xercesc::DOMNode::TEXT_NODE)
           {
-            xercesc::DOMText* textNode (static_cast<xercesc::DOMText*> (textNode_));
+            xercesc::DOMText* textNode(static_cast<xercesc::DOMText*>(textNode_));
             sm.appendASCII(textNode->getData(),
-                textNode->getLength(), data_.back().base64);
+                           textNode->getLength(), data_.back().base64);
           }
           else
           {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "", "Invalid XML: 'binary' element can only have a single, text node child element.");
+                                        "", "Invalid XML: 'binary' element can only have a single, text node child element.");
           }
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_CV))
@@ -282,7 +282,7 @@ namespace OpenMS
     if (!has_binary_tag)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "", "Invalid XML: 'binary' element needs to be present at least once inside 'binaryDataArray' element.");
+                                  "", "Invalid XML: 'binary' element needs to be present at least once inside 'binaryDataArray' element.");
     }
   }
 
@@ -318,10 +318,10 @@ namespace OpenMS
     }
 
     OPENMS_PRECONDITION(
-        std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "spectrum" ||
-        std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "chromatogram",
-          (String("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '") +
-          String(xercesc::XMLString::transcode(elementRoot->getTagName())) + String("'.")).c_str() )
+      std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "spectrum" ||
+      std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "chromatogram",
+      (String("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '") +
+       String(xercesc::XMLString::transcode(elementRoot->getTagName())) + String("'.")).c_str())
 
     // defaultArrayLength is a required attribute for the spectrum and the
     // chromatogram tag (but still check for it first to be safe).
@@ -329,7 +329,7 @@ namespace OpenMS
     {
       delete parser;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          in, "Root element does not contain defaultArrayLength XML tag.");
+                                  in, "Root element does not contain defaultArrayLength XML tag.");
     }
     int default_array_length = xercesc::XMLString::parseInt(elementRoot->getAttribute(default_array_length_tag));
 

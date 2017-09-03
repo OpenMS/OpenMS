@@ -161,9 +161,13 @@ namespace OpenMS
 
     store_compact_ = compact;
     if (param_.getValue("internal:content") != "peaklist_only")
+    {
       writeHeader_(os);
+    }
     if (param_.getValue("internal:content") != "header_only")
+    {
       writeMSExperiment_(os, filename, experiment);
+    }
 
     // reset formatting:
     os.flags(old_flags);
@@ -320,7 +324,7 @@ namespace OpenMS
     if (spec.size() >= 10000)
     {
       String msg = "Spectrum to be written as MGF has " + String(spec.size()) +
-        " peaks; the upper limit is 10,000. Only centroided data is allowed - this is most likely profile data.";
+                   " peaks; the upper limit is 10,000. Only centroided data is allowed - this is most likely profile data.";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        msg);
     }
@@ -376,7 +380,10 @@ namespace OpenMS
         for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
         {
           PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
-          if (intensity == 0.0) continue; // skip zero-intensity peaks
+          if (intensity == 0.0)
+          {
+            continue;                     // skip zero-intensity peaks
+          }
           os << fixed << setprecision(HIGH_PRECISION) << it->getMZ() << " "
              << setprecision(LOW_PRECISION) << intensity << "\n";
         }

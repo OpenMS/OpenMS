@@ -76,7 +76,7 @@ namespace OpenMS
     static bool path_checked = false;
 
     // short route. Only inquire the path once. The result will be the same every time.
-    if (path_checked) return spath;
+    if (path_checked) { return spath; }
 
     char path[1024];
 
@@ -128,10 +128,14 @@ namespace OpenMS
   bool File::remove(const String& file)
   {
     if (!exists(file))
+    {
       return true;
+    }
 
     if (std::remove(file.c_str()) != 0)
+    {
       return false;
+    }
 
     return true;
   }
@@ -143,21 +147,21 @@ namespace OpenMS
 
     if (dir.exists(dir_name))
     {
-      Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
+      Q_FOREACH (QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
+      {
+        if (info.isDir())
         {
-          if (info.isDir())
-          {
-            result = removeDir(info.absoluteFilePath());
-          }
-          else
-          {
-            result = QFile::remove(info.absoluteFilePath());
-          }
-          if (!result)
-          {
-            return result;
-          }
+          result = removeDir(info.absoluteFilePath());
         }
+        else
+        {
+          result = QFile::remove(info.absoluteFilePath());
+        }
+        if (!result)
+        {
+          return result;
+        }
+      }
       result = dir.rmdir(dir_name);
     }
     return result;
@@ -249,13 +253,13 @@ namespace OpenMS
     // maybe we do not need to do anything?!
     // This check is required since calling File::find(File::find("CHEMISTRY/Elements.xml")) will otherwise fail
     // because the outer call receives an absolute path already
-    if (exists(filename)) return filename;
+    if (exists(filename)) { return filename; }
 
     String filename_new = filename;
 
     // empty string cannot be found, so throw Exception.
     // The code below would return success on empty string, since a path is prepended and thus the location exists
-    if (filename_new.trim().empty()) throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    if (filename_new.trim().empty()) { throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename); }
 
     //add data dir in OpenMS data path
     directories.push_back(getOpenMSDataPath());
@@ -354,7 +358,7 @@ namespace OpenMS
 
     // we already checked the path, just return it
     // we do not support moving the path while OpenMS is running
-    if (path_checked) return path;
+    if (path_checked) { return path; }
 
     String found_path_from;
     bool from_env(false);
@@ -363,7 +367,7 @@ namespace OpenMS
       path = getenv("OPENMS_DATA_PATH");
       from_env = true;
       path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "OPENMS_DATA_PATH (environment)";
+      if (path_checked) { found_path_from = "OPENMS_DATA_PATH (environment)"; }
     }
 
     // probe the install path
@@ -371,7 +375,7 @@ namespace OpenMS
     {
       path = OPENMS_INSTALL_DATA_PATH;
       path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)";
+      if (path_checked) { found_path_from = "OPENMS_INSTALL_DATA_PATH (compiled)"; }
     }
 
     // probe the OPENMS_DATA_PATH macro
@@ -379,7 +383,7 @@ namespace OpenMS
     {
       path = OPENMS_DATA_PATH;
       path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "OPENMS_DATA_PATH (compiled)";
+      if (path_checked) { found_path_from = "OPENMS_DATA_PATH (compiled)"; }
     }
 
 #if defined(__APPLE__)
@@ -390,7 +394,7 @@ namespace OpenMS
     {
       path = getExecutablePath() + "../../../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "bundle path (run time)";
+      if (path_checked) { found_path_from = "bundle path (run time)"; }
     }
 
     // #2 the TOPP tool
@@ -398,7 +402,7 @@ namespace OpenMS
     {
       path = getExecutablePath() + "../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
-      if (path_checked) found_path_from = "tool path (run time)";
+      if (path_checked) { found_path_from = "tool path (run time)"; }
     }
 #endif
 
@@ -435,7 +439,9 @@ namespace OpenMS
   String File::removeExtension(const OpenMS::String& file)
   {
     if (!file.has('.'))
+    {
       return file;
+    }
 
     SignedSize ext_length = file.suffix('.').size() + 1;
     return file.chop(ext_length);
@@ -450,7 +456,7 @@ namespace OpenMS
   String File::getTempDirectory()
   {
     Param p = getSystemParameters();
-    if (p.exists("temp_dir") && String(p.getValue("temp_dir")).trim() != "")
+    if (p.exists("temp_dir") && (String(p.getValue("temp_dir")).trim() != ""))
     {
       return p.getValue("temp_dir");
     }
@@ -466,7 +472,7 @@ namespace OpenMS
     {
       dir = getenv("OPENMS_HOME_PATH");
     }
-    else if (p.exists("home_dir") && String(p.getValue("home_dir")).trim() != "")
+    else if (p.exists("home_dir") && (String(p.getValue("home_dir")).trim() != ""))
     {
       dir = p.getValue("home_dir");
     }
@@ -570,19 +576,19 @@ namespace OpenMS
     String exec = File::getExecutablePath() + toolName;
 
 #if OPENMS_WINDOWSPLATFORM
-    if (!exec.hasSuffix(".exe")) exec += ".exe";
+    if (!exec.hasSuffix(".exe")) { exec += ".exe"; }
 #endif
 
-    if (File::exists(exec)) return exec;
+    if (File::exists(exec)) { return exec; }
 
 #if defined(__APPLE__)
     // check if we are in one of the bundles
     exec = File::getExecutablePath() + "../../../" + toolName;
-    if (File::exists(exec)) return exec;
+    if (File::exists(exec)) { return exec; }
 
     // check if we are in one of the bundles in an installed bundle
     exec = File::getExecutablePath() + "../../../TOPP/" + toolName;
-    if (File::exists(exec)) return exec;
+    if (File::exists(exec)) { return exec; }
 #endif
     // TODO(aiche): probe in PATH
 
@@ -592,12 +598,11 @@ namespace OpenMS
   const String& File::getTemporaryFile(const String& alternative_file)
   {
     // take no action
-    if (!alternative_file.empty()) return alternative_file;
+    if (!alternative_file.empty()) { return alternative_file; }
 
     // create temporary (and schedule for deletion)
     return temporary_files_.newFile();
   }
-
 
   File::TemporaryFiles_::TemporaryFiles_()
     : filenames_()
@@ -615,7 +620,7 @@ namespace OpenMS
   {
     for (Size i = 0; i < filenames_.size(); ++i)
     {
-      if (File::exists(filenames_[i]) && !File::remove(filenames_[i])) 
+      if (File::exists(filenames_[i]) && !File::remove(filenames_[i]))
       {
         std::cerr << "Warning: unable to remove temporary file '" << filenames_[i] << "'" << std::endl;
       }

@@ -124,7 +124,7 @@ namespace OpenMS
       // for all identifiers
       for (set<String>::const_iterator iit = identifiers.begin(); iit != identifiers.end(); ++iit)
       {
-        if (!treat_runs_separately && iit != identifiers.begin())
+        if (!treat_runs_separately && (iit != identifiers.begin()))
         {
           continue;
         }
@@ -137,14 +137,14 @@ namespace OpenMS
         for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
         {
           // if runs should be treated separately, the identifiers must be the same
-          if (treat_runs_separately && it->getIdentifier() != *iit)
+          if (treat_runs_separately && (it->getIdentifier() != *iit))
           {
             continue;
           }
 
           for (Size i = 0; i < it->getHits().size(); ++i)
           {
-            if (split_charge_variants && it->getHits()[i].getCharge() != *zit)
+            if (split_charge_variants && (it->getHits()[i].getCharge() != *zit))
             {
               continue;
             }
@@ -156,7 +156,7 @@ namespace OpenMS
             }
 
             String target_decoy(it->getHits()[i].getMetaValue("target_decoy"));
-            if (target_decoy == "target" || target_decoy == "target+decoy")
+            if ((target_decoy == "target") || (target_decoy == "target+decoy"))
             {
               target_scores.push_back(it->getHits()[i].getScore());
             }
@@ -227,7 +227,7 @@ namespace OpenMS
           for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
           {
             // if runs should be treated separately, the identifiers must be the same
-            if (treat_runs_separately && it->getIdentifier() != *iit)
+            if (treat_runs_separately && (it->getIdentifier() != *iit))
             {
               continue;
             }
@@ -235,7 +235,7 @@ namespace OpenMS
             vector<PeptideHit> hits(it->getHits()), new_hits;
             for (Size i = 0; i < hits.size(); ++i)
             {
-              if (split_charge_variants && hits[i].getCharge() != *zit)
+              if (split_charge_variants && (hits[i].getCharge() != *zit))
               {
                 new_hits.push_back(hits[i]);
                 continue;
@@ -248,7 +248,7 @@ namespace OpenMS
               }
 
               String target_decoy(hits[i].getMetaValue("target_decoy"));
-              if (target_decoy == "target" || target_decoy == "target+decoy")
+              if ((target_decoy == "target") || (target_decoy == "target+decoy"))
               {
                 // if it is a target hit, there are now decoys, fdr/q-value should be zero then
                 new_hits.push_back(hits[i]);
@@ -278,7 +278,7 @@ namespace OpenMS
         for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
         {
           // if runs should be treated separately, the identifiers must be the same
-          if (treat_runs_separately && it->getIdentifier() != *iit)
+          if (treat_runs_separately && (it->getIdentifier() != *iit))
           {
             continue;
           }
@@ -289,7 +289,7 @@ namespace OpenMS
           {
             PeptideHit hit = *pit;
 
-            if (split_charge_variants && pit->getCharge() != *zit)
+            if (split_charge_variants && (pit->getCharge() != *zit))
             {
               hits.push_back(*pit);
               continue;
@@ -297,7 +297,7 @@ namespace OpenMS
             if (hit.metaValueExists("target_decoy"))
             {
               String meta_value = (String)hit.getMetaValue("target_decoy");
-              if (meta_value == "decoy" && !add_decoy_peptides)
+              if ((meta_value == "decoy") && !add_decoy_peptides)
               {
                 continue;
               }
@@ -584,7 +584,7 @@ namespace OpenMS
         {
           // set FDR to 0 (done below automatically)
         }
-        else if (i == 0 && j == 0)
+        else if ((i == 0) && (j == 0))
         {
           while (j != decoy_scores.size()
                 && ((target_scores[i] <= decoy_scores[j] && higher_score_better) ||
@@ -606,8 +606,8 @@ namespace OpenMS
             --j;
           }
           // Since j has to be equal to the number of fps above the threshold we add one
-          if ((target_scores[i] <= decoy_scores[j] && higher_score_better)
-             || (target_scores[i] >= decoy_scores[j] && !higher_score_better))
+          if (((target_scores[i] <= decoy_scores[j]) && higher_score_better)
+             || ((target_scores[i] >= decoy_scores[j]) && !higher_score_better))
           {
             ++j;
           }

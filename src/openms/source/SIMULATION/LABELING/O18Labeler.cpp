@@ -117,9 +117,9 @@ namespace OpenMS
 
       // check if feature has tryptic c-terminus
       PeptideHit ph = (*lf_iter).getPeptideIdentifications()[0].getHits()[0];
-      if (ph.getSequence().getResidue(ph.getSequence().size() - 1) == 'R'
+      if ((ph.getSequence().getResidue(ph.getSequence().size() - 1) == 'R')
          ||
-          ph.getSequence().getResidue(ph.getSequence().size() - 1) == 'K')
+          (ph.getSequence().getResidue(ph.getSequence().size() - 1) == 'K'))
       {
         // this one will be modified since it shows a Trypsin-C-Term
         // relevant unimod modifications are

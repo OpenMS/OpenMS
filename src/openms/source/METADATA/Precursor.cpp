@@ -39,7 +39,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string Precursor::NamesOfActivationMethod[] = {"Collision-induced dissociation", "Post-source decay", "Plasma desorption", "Surface-induced dissociation", "Blackbody infrared radiative dissociation", "Electron capture dissociation", "Infrared multiphoton dissociation", "Sustained off-resonance irradiation", "High-energy collision-induced dissociation", "Low-energy collision-induced dissociation", "Photodissociation", "Electron transfer dissociation", "Pulsed q dissociation"};
+  const std::string Precursor::NamesOfActivationMethod[] = { "Collision-induced dissociation", "Post-source decay", "Plasma desorption", "Surface-induced dissociation", "Blackbody infrared radiative dissociation", "Electron capture dissociation", "Infrared multiphoton dissociation", "Sustained off-resonance irradiation", "High-energy collision-induced dissociation", "Low-energy collision-induced dissociation", "Photodissociation", "Electron transfer dissociation", "Pulsed q dissociation" };
   const std::string Precursor::NamesOfActivationMethodShort[] = { "CID", "PSD", "PD", "SID", "BIRD", "ECD", "IMD", "SORI", "HCID", "LCID", "PHD", "ETD", "PQD" };
 
   Precursor::Precursor() :
@@ -55,7 +55,7 @@ namespace OpenMS
   {
   }
 
-  Precursor::Precursor(const Precursor & source) :
+  Precursor::Precursor(const Precursor& source) :
     CVTermList(source),
     Peak1D(source),
     activation_methods_(source.activation_methods_),
@@ -72,10 +72,12 @@ namespace OpenMS
   {
   }
 
-  Precursor & Precursor::operator=(const Precursor & source)
+  Precursor& Precursor::operator=(const Precursor& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     CVTermList::operator=(source);
     Peak1D::operator=(source);
@@ -90,7 +92,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool Precursor::operator==(const Precursor & rhs) const
+  bool Precursor::operator==(const Precursor& rhs) const
   {
     return activation_methods_ == rhs.activation_methods_ &&
            activation_energy_ == rhs.activation_energy_ &&
@@ -103,22 +105,22 @@ namespace OpenMS
            CVTermList::operator==(rhs);
   }
 
-  bool Precursor::operator!=(const Precursor & rhs) const
+  bool Precursor::operator!=(const Precursor& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const set<Precursor::ActivationMethod> & Precursor::getActivationMethods() const
+  const set<Precursor::ActivationMethod>& Precursor::getActivationMethods() const
   {
     return activation_methods_;
   }
 
-  set<Precursor::ActivationMethod> & Precursor::getActivationMethods()
+  set<Precursor::ActivationMethod>& Precursor::getActivationMethods()
   {
     return activation_methods_;
   }
 
-  void Precursor::setActivationMethods(const set<Precursor::ActivationMethod> & activation_methods)
+  void Precursor::setActivationMethods(const set<Precursor::ActivationMethod>& activation_methods)
   {
     activation_methods_ = activation_methods;
   }
@@ -140,7 +142,7 @@ namespace OpenMS
 
   void Precursor::setIsolationWindowLowerOffset(double bound)
   {
-    if (bound < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowLowerOffset() received a negative lower offset", String(bound));
+    if (bound < 0) { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowLowerOffset() received a negative lower offset", String(bound)); }
     window_low_ = bound;
   }
 
@@ -151,7 +153,7 @@ namespace OpenMS
 
   void Precursor::setIsolationWindowUpperOffset(double bound)
   {
-    if (bound < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowUpperOffset() received a negative lower offset", String(bound));
+    if (bound < 0) { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor::setIsolationWindowUpperOffset() received a negative lower offset", String(bound)); }
     window_up_ = bound;
   }
 
@@ -176,17 +178,17 @@ namespace OpenMS
     return;
   }
 
-  std::vector<Int> & Precursor::getPossibleChargeStates()
+  std::vector<Int>& Precursor::getPossibleChargeStates()
   {
     return possible_charge_states_;
   }
 
-  const std::vector<Int> & Precursor::getPossibleChargeStates() const
+  const std::vector<Int>& Precursor::getPossibleChargeStates() const
   {
     return possible_charge_states_;
   }
 
-  void Precursor::setPossibleChargeStates(const std::vector<Int> & possible_charge_states)
+  void Precursor::setPossibleChargeStates(const std::vector<Int>& possible_charge_states)
   {
     possible_charge_states_ = possible_charge_states;
   }

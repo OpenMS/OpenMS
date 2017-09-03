@@ -88,8 +88,10 @@ namespace OpenMS
   {
     this->ratio_max_allowed_ = rhs;
     if (ratio_max_allowed_ < 1.0)
+    {
       ratio_max_allowed_ = 1
                            / ratio_max_allowed_;
+    }
 
   }
 
@@ -102,8 +104,10 @@ namespace OpenMS
   {
     this->absdiff_max_allowed_ = rhs;
     if (absdiff_max_allowed_ < 0.0)
+    {
       absdiff_max_allowed_
         = -absdiff_max_allowed_;
+    }
   }
 
   const StringList& FuzzyStringComparator::getWhitelist() const
@@ -121,12 +125,12 @@ namespace OpenMS
     whitelist_ = rhs;
   }
 
-  void FuzzyStringComparator::setMatchedWhitelist(const std::vector< std::pair<std::string, std::string> >& rhs)
+  void FuzzyStringComparator::setMatchedWhitelist(const std::vector<std::pair<std::string, std::string> >& rhs)
   {
     matched_whitelist_ = rhs;
   }
 
-  const std::vector< std::pair<std::string, std::string> >& FuzzyStringComparator::getMatchedWhitelist() const
+  const std::vector<std::pair<std::string, std::string> >& FuzzyStringComparator::getMatchedWhitelist() const
   {
     return matched_whitelist_;
   }
@@ -227,15 +231,15 @@ namespace OpenMS
         << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
         << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
         << "\n"
-        #ifdef WIN32
+#ifdef WIN32
         << "TortoiseMerge"
         << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
         << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\""
-        #else
+#else
         << "diff"
         << " " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString()
         << " " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString()
-        #endif
+#endif
         << std::endl;
     }
 
@@ -250,7 +254,7 @@ namespace OpenMS
 
   void FuzzyStringComparator::reportSuccess_() const
   {
-    if (is_status_success_ && verbose_level_ >= 2)
+    if (is_status_success_ && (verbose_level_ >= 2))
     {
       std::string prefix;
       if (use_prefix_)
@@ -271,7 +275,7 @@ namespace OpenMS
 
       *log_dest_ << prefix << std::endl;
 
-      if (line_num_1_max_ == -1 && line_num_2_max_ == -1)
+      if ((line_num_1_max_ == -1) && (line_num_2_max_ == -1))
       {
         *log_dest_ <<
           prefix << "No numeric differences were found.\n" <<
@@ -301,8 +305,8 @@ namespace OpenMS
          ++slit
          )
     {
-      if (line_str_1.find(*slit) != String::npos &&
-          line_str_2.find(*slit) != String::npos
+      if ((line_str_1.find(*slit) != String::npos) &&
+          (line_str_2.find(*slit) != String::npos)
           )
       {
         ++whitelist_cases_[*slit];
@@ -313,16 +317,16 @@ namespace OpenMS
 
     // check matched whitelist
     // If file 1 contains element 1 and file 2 contains element 2, they are skipped over.
-    for (std::vector< std::pair<std::string, std::string> >::const_iterator pair_it = matched_whitelist_.begin(); 
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator pair_it = matched_whitelist_.begin();
          pair_it != matched_whitelist_.end(); ++pair_it)
     {
-      if ((line_str_1.find(pair_it->first) != String::npos &&
-           line_str_2.find(pair_it->second) != String::npos
-          ) ||
-          (line_str_1.find(pair_it->second) != String::npos &&
-           line_str_2.find(pair_it->first) != String::npos
+      if (((line_str_1.find(pair_it->first) != String::npos) &&
+           (line_str_2.find(pair_it->second) != String::npos)
+           ) ||
+          ((line_str_1.find(pair_it->second) != String::npos) &&
+           (line_str_2.find(pair_it->first) != String::npos)
           )
-         )
+          )
       {
         // ++whitelist_cases_[*slit];
         // *log_dest_ << "whitelist_ case: " << *slit << '\n';
@@ -554,8 +558,10 @@ namespace OpenMS
       //std::cout << "eof: " << input_2.eof() << " failbit: " << input_2.fail() << " badbit: " << input_2.bad() << " reading " << input_2.tellg () << "chars\n";
 
       // compare the two lines of input
-      if (!compareLines_(line_str_1, line_str_2) && verbose_level_ < 3)
+      if (!compareLines_(line_str_1, line_str_2) && (verbose_level_ < 3))
+      {
         break;
+      }
 
     } // while ( input_1 || input_2 )
 
@@ -570,14 +576,18 @@ namespace OpenMS
     for (line_string.clear(); ++line_number, std::getline(input_stream, line_string); )
     {
       if (line_string.empty())
+      {
         continue; // shortcut
+      }
       std::string::const_iterator iter = line_string.begin(); // loop initialization
       for (; iter != line_string.end() && isspace((unsigned char)*iter); ++iter)
       {
       }
       // skip over whitespace
       if (iter != line_string.end())
+      {
         break; // line is not empty or whitespace only
+      }
     }
   }
 
@@ -594,11 +604,15 @@ namespace OpenMS
 
     std::ifstream input_1_f;
     if (!openInputFileStream_(input_1_name_, input_1_f))
+    {
       return false;
+    }
 
     std::ifstream input_2_f;
     if (!openInputFileStream_(input_2_name_, input_2_f))
+    {
       return false;
+    }
 
     //------------------------------------------------------------
     // main loop
@@ -634,7 +648,9 @@ namespace OpenMS
            ++wlcit)
       {
         if (wlcit->first.size() > length)
+        {
           length = wlcit->first.size();
+        }
       }
       for (std::map<String, UInt>::const_iterator wlcit =
              whitelist_cases_.begin(); wlcit != whitelist_cases_.end();
@@ -642,7 +658,7 @@ namespace OpenMS
       {
         *log_dest_ <<
           prefix << "    " << std::setw(length + 3) << std::left <<
-          ("\"" + wlcit->first + "\"") << std::setw(3) << std::right <<
+        ("\"" + wlcit->first + "\"") << std::setw(3) << std::right <<
           wlcit->second << "x\n";
       }
     }
@@ -654,7 +670,7 @@ namespace OpenMS
   {
     // we want at least one digit, otherwise it is false
     c_buffer = input_line.line_.peek();
-    if (c_buffer == EOF || !isdigit(c_buffer))
+    if ((c_buffer == EOF) || !isdigit(c_buffer))
     {
       return false;
     }
@@ -668,7 +684,7 @@ namespace OpenMS
     while (true)
     {
       c_buffer = input_line.line_.peek();
-      if (isdigit(c_buffer) && c_buffer != EOF)
+      if (isdigit(c_buffer) && (c_buffer != EOF))
       {
         target_buffer.push_back(c_buffer);
         c_buffer = input_line.line_.get();
@@ -688,7 +704,9 @@ namespace OpenMS
     std::string buffer;
 
     if (input_line.line_.eof())
+    {
       return false;
+    }
 
     c_peek = input_line.line_.peek();
 
@@ -696,7 +714,7 @@ namespace OpenMS
     bool have_seen_decimal_separator = false;
 
     // read sign or first number, otherwise abort
-    if ((c_peek == '+' || c_peek == '-' || isdigit(c_peek) || c_peek == '.') && c_peek != EOF)
+    if (((c_peek == '+') || (c_peek == '-') || isdigit(c_peek) || (c_peek == '.')) && (c_peek != EOF))
     {
       buffer.push_back(c_peek);
       c_peek = input_line.line_.get();
@@ -711,10 +729,10 @@ namespace OpenMS
     readdigits(input_line, buffer, c_peek);
 
     // if we have no decimal separator, return what we already accumulated
-    if (c_peek != '.' && !have_seen_decimal_separator)
+    if ((c_peek != '.') && !have_seen_decimal_separator)
     {
       // have we accumulated more then +/-
-      if (buffer.size() > 1 || isdigit(buffer[0]))
+      if ((buffer.size() > 1) || isdigit(buffer[0]))
       {
         target = boost::lexical_cast<double>(buffer);
         return true;
@@ -734,7 +752,7 @@ namespace OpenMS
     }
 
     // check if the number is followed by an e+/- something
-    if (c_peek == 'e' || c_peek == 'E')
+    if ((c_peek == 'e') || (c_peek == 'E'))
     {
       // add char to buffer
       buffer.push_back(c_peek);
@@ -743,7 +761,7 @@ namespace OpenMS
       c_peek = input_line.line_.peek();
 
       // check if we have a sign
-      if (c_peek == '+' || c_peek == '-')
+      if ((c_peek == '+') || (c_peek == '-'))
       {
         buffer.push_back(c_peek);
         c_peek = input_line.line_.get();
@@ -763,7 +781,7 @@ namespace OpenMS
     else // just a simple floating point number, convert
     {
       // have we accumulated more then +/-
-      if (buffer.size() > 1 || isdigit(buffer[0]))
+      if ((buffer.size() > 1) || isdigit(buffer[0]))
       {
         target = boost::lexical_cast<double>(buffer);
         return true;

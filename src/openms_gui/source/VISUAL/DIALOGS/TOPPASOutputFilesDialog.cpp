@@ -48,7 +48,7 @@
 
 namespace OpenMS
 {
-  TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(const QString & dir_name, int num_jobs)
+  TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs)
   {
     setupUi(this);
     if (dir_name != "")
@@ -63,15 +63,15 @@ namespace OpenMS
     {
       num_jobs_box->setValue(num_jobs);
     }
-    QCompleter * completer = new QCompleter(this);
-    QDirModel * dir_model = new QDirModel(completer);
+    QCompleter* completer = new QCompleter(this);
+    QDirModel* dir_model = new QDirModel(completer);
     dir_model->setFilter(QDir::AllDirs);
     completer->setModel(dir_model);
     line_edit->setCompleter(completer);
     connect(browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
     connect(ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
     connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
-    
+
     // make Ok the default (just pressing Enter will run the workflow)
     ok_button->setFocus();
   }
@@ -107,7 +107,7 @@ namespace OpenMS
     accept();
   }
 
-  bool TOPPASOutputFilesDialog::dirNameValid(const QString & dir_name)
+  bool TOPPASOutputFilesDialog::dirNameValid(const QString& dir_name)
   {
     QFileInfo fi(dir_name);
     QString file_name = dir_name;

@@ -233,7 +233,7 @@ public:
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
       defaults.setValue("spectrum_type", "automatic", "Type of MS1 spectra in input mzML file. 'automatic' determines the spectrum type directly from the input mzML file.", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
-      defaults.setValue("averagine_type","peptide","The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
+      defaults.setValue("averagine_type", "peptide", "The type of averagine to use, currently RNA, DNA or peptide", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("averagine_type", ListUtils::create<String>("peptide,RNA,DNA"));
     }
 
@@ -241,7 +241,7 @@ public:
     {
       MultiplexDeltaMassesGenerator generator;
       Param p = generator.getParameters();
-      
+
       for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
       {
         defaults.setValue(it->name, it->value, it->description, ListUtils::create<String>("advanced"));
@@ -314,12 +314,12 @@ public:
   void getParameters_labels_()
   {
     Param p = getParam_();
-    
+
     // create map of pairs (label as string, mass shift as double)
     for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
     {
       label_mass_shift_.insert(make_pair(it->name, it->value));
-    }    
+    }
   }
 
   /**
@@ -331,18 +331,18 @@ public:
   {
     std::vector<std::vector<String> > samples_labels;
     std::vector<String> temp_samples;
-    
+
     String labels(labels_);
     boost::replace_all(labels, "[]", "no_label");
     boost::replace_all(labels, "()", "no_label");
     boost::replace_all(labels, "{}", "no_label");
     boost::split(temp_samples, labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
-    
+
     for (unsigned i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())
       {
-        if (temp_samples[i]=="no_label")
+        if (temp_samples[i] == "no_label")
         {
           vector<String> temp_labels;
           temp_labels.push_back("no_label");
@@ -356,7 +356,7 @@ public:
         }
       }
     }
-    
+
     if (samples_labels.empty())
     {
       vector<String> temp_labels;
@@ -430,9 +430,9 @@ public:
         list.push_back(pattern);
       }
     }
-    
-    sort(list.begin(),list.end(),less_pattern);
-    
+
+    sort(list.begin(), list.end(), less_pattern);
+
     return list;
   }
 
@@ -698,7 +698,7 @@ public:
     // (for each sample a list of (label string, mass shift) pairs)
     // for example triple-SILAC: [(none,0)][(Lys4,4.0251),(Arg6,6.0201)][Lys8,8.0141)(Arg10,10.0082)]
     std::vector<std::vector<std::pair<String, double> > > labels;
-    
+
     for (unsigned sample = 0; sample < samples_labels_.size(); ++sample)
     {
       // The labels are required to be ordered in mass shift.
@@ -737,7 +737,7 @@ public:
     // add results from  analysis
     LOG_DEBUG << "Generating output mzQuantML file..." << endl;
     ConsensusMap numap(consensus_map);
-    
+
     //calculate ratios
     for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
     {
@@ -958,15 +958,15 @@ private:
     }
 
     bool centroided;
-    if (spectrum_type_=="automatic")
+    if (spectrum_type_ == "automatic")
     {
       centroided = spectrum_type == SpectrumSettings::PEAKS;
     }
-    else if (spectrum_type_=="centroid")
+    else if (spectrum_type_ == "centroid")
     {
       centroided = true;
     }
-    else  // "profile"
+    else // "profile"
     {
       centroided = false;
     }
@@ -1000,7 +1000,7 @@ private:
     }
     generator.printSamplesLabelsList();
     generator.printDeltaMassesList();
-    
+
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
 

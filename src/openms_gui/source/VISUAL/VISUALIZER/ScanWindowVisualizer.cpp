@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ScanWindowVisualizer::ScanWindowVisualizer(bool editable, QWidget * parent) :
+  ScanWindowVisualizer::ScanWindowVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<ScanWindow>()
   {

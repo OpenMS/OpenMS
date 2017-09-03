@@ -51,7 +51,9 @@ namespace OpenMS
     UInt y;
 
     if (x < 2)
+    {
       return 1;
+    }
     else
     {
       double z = 0;
@@ -70,7 +72,7 @@ namespace OpenMS
     UInt y_ion_count = 0;
     UInt b_ion_count = 0;
 
-    if (exp_spectrum.size() < 1 || theo_spectrum.size() < 1)
+    if ((exp_spectrum.size() < 1) || (theo_spectrum.size() < 1))
     {
       std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
       return 0.0;
@@ -105,18 +107,18 @@ namespace OpenMS
       {
         dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
-        if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
+        if (((*ion_names)[i][0] == 'y') || (*ion_names)[i].hasSubstring("$y"))
         {
-          #ifdef DEBUG_HYPERSCORE
-            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
-          #endif
+#ifdef DEBUG_HYPERSCORE
+          std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+#endif
           ++y_ion_count;
         }
-        else if ((*ion_names)[i][0] == 'b' || (*ion_names)[i].hasSubstring("$b"))
+        else if (((*ion_names)[i][0] == 'b') || (*ion_names)[i].hasSubstring("$b"))
         {
-          #ifdef DEBUG_HYPERSCORE
-            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
-          #endif
+#ifdef DEBUG_HYPERSCORE
+          std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+#endif
           ++b_ion_count;
         }
       }
@@ -137,4 +139,3 @@ namespace OpenMS
   }
 
 }
-

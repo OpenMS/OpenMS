@@ -169,13 +169,13 @@ protected:
     std::cout << "strategy " << strategy << std::endl;
     String pt_model_file(getStringOption_("pt_model"));
 
-    if (include == "" && exclude == "")
+    if ((include == "") && (exclude == ""))
     {
       writeLog_("Error: No input file given.");
       return MISSING_PARAMETERS;
     }
     // currently we can handle only inclusion OR exclusion, will be possible with the traML output
-    if (include != "" && exclude != "")
+    if ((include != "") && (exclude != ""))
     {
       writeLog_("Error: Currently only inclusion OR exclusion, both will be possible with the traML output coming soon");
       return ILLEGAL_PARAMETERS;
@@ -301,7 +301,7 @@ protected:
             {
               FeatureXMLFile().store(out, out_map);
             }
-            else list.writeTargets(out_map, out);
+            else{ list.writeTargets(out_map, out); }
           }
           catch (Exception::UnableToCreateFile)
           {
@@ -341,7 +341,7 @@ protected:
           {
             FeatureXMLFile().store(out, precursors);
           }
-          else list.writeTargets(precursors, out);
+          else{ list.writeTargets(precursors, out); }
 
         }
         else

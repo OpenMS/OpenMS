@@ -53,10 +53,12 @@ namespace OpenMS
     Base::defaultsToParam_();
   }
 
-  void SimplePairFinder::run(const std::vector<ConsensusMap> & input_maps, ConsensusMap & result_map)
+  void SimplePairFinder::run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map)
   {
     if (input_maps.size() != 2)
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "exactly two input maps required");
+    }
     checkIds_(input_maps);
 
     // progress dots
@@ -126,8 +128,8 @@ namespace OpenMS
       {
         // ... who likes him too ...
         UInt best_companion_of_fi0 = best_companion_index_0[fi0];
-        if (best_companion_index_1[best_companion_of_fi0] == fi0 &&
-            best_companion_quality_1[best_companion_of_fi0] > pair_min_quality_
+        if ((best_companion_index_1[best_companion_of_fi0] == fi0) &&
+            (best_companion_quality_1[best_companion_of_fi0] > pair_min_quality_)
             )
         {
           ConsensusFeature f;
@@ -161,15 +163,19 @@ namespace OpenMS
     pair_min_quality_ = (double)param_.getValue("similarity:pair_min_quality");
   }
 
-  double SimplePairFinder::similarity_(ConsensusFeature const & left, ConsensusFeature const & right) const
+  double SimplePairFinder::similarity_(ConsensusFeature const& left, ConsensusFeature const& right) const
   {
     double right_intensity(right.getIntensity());
     if (right_intensity == 0)
+    {
       return 0;
+    }
 
     double intensity_ratio = left.getIntensity() / right_intensity;
     if (intensity_ratio > 1.)
+    {
       intensity_ratio = 1. / intensity_ratio;
+    }
 
     // if the right map is the transformed map, take the transformed right position
     DPosition<2> position_difference = left.getPosition() - right.getPosition();

@@ -63,7 +63,7 @@ public:
     void init(std::vector<double>& x, std::vector<double>& y)
     {
       // cleanup before we use a new one
-      if (spline_ != (CubicSpline2d*) 0) delete spline_;
+      if (spline_ != (CubicSpline2d*) 0) { delete spline_; }
 
       // initialize spline
       spline_ = new CubicSpline2d(x, y);
@@ -97,14 +97,14 @@ public:
 
     void init(std::vector<double>& x, std::vector<double>& y)
     {
-      if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) 0) delete interpolator_;
+      if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) 0) { delete interpolator_; }
       // re-construct a new interpolator
       interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
     }
 
     double eval(const double& x) const
     {
-      return (* interpolator_)(x);
+      return (*interpolator_)(x);
     }
 
     ~AkimaInterpolator()
@@ -203,7 +203,7 @@ private:
     if (x_.size() < 3)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Cubic spline model needs at least 3 data points (with unique x values)");
+                                       "Cubic spline model needs at least 3 data points (with unique x values)");
     }
   }
 
@@ -234,7 +234,7 @@ private:
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "unknown/unsupported interpolation type '" + interpolation_type + "'");
+                                       "unknown/unsupported interpolation type '" + interpolation_type + "'");
     }
 
     // assign data
@@ -258,31 +258,31 @@ private:
     else if (extrapolation_type == "four-point-linear")
     {
       TransformationModel::DataPoints lm_data(2);
-      lm_data[0] = std::make_pair(x_[0], y_[0]); 
+      lm_data[0] = std::make_pair(x_[0], y_[0]);
       lm_data[1] = std::make_pair(x_[1], y_[1]);
       lm_front_ = new TransformationModelLinear(lm_data, Param());
 
-      lm_data[0] = std::make_pair(x_[ x_.size()-2 ], y_[ y_.size()-2] ); // second to last point
+      lm_data[0] = std::make_pair(x_[x_.size() - 2], y_[y_.size() - 2]); // second to last point
       lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
       lm_back_ = new TransformationModelLinear(lm_data, Param());
     }
     else
     {
-      if (interp_) 
+      if (interp_)
       {
         delete interp_;
       }
 
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
+                                       "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
     }
   }
 
   TransformationModelInterpolated::~TransformationModelInterpolated()
   {
-    if (interp_) delete interp_;
-    if (lm_front_) delete lm_front_;
-    if (lm_back_) delete lm_back_;
+    if (interp_) { delete interp_; }
+    if (lm_front_) { delete lm_front_; }
+    if (lm_back_) { delete lm_back_; }
   }
 
   double TransformationModelInterpolated::evaluate(double value) const

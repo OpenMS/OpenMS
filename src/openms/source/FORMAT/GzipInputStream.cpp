@@ -40,12 +40,12 @@ using namespace xercesc;
 
 namespace OpenMS
 {
-  GzipInputStream::GzipInputStream(const   String & file_name) :
+  GzipInputStream::GzipInputStream(const   String& file_name) :
     gzip_(new GzipIfstream(file_name.c_str())), file_current_index_(0)
   {
   }
 
-  GzipInputStream::GzipInputStream(const   char * file_name) :
+  GzipInputStream::GzipInputStream(const   char* file_name) :
     gzip_(new GzipIfstream(file_name)), file_current_index_(0)
   {
   }
@@ -61,7 +61,7 @@ namespace OpenMS
     delete gzip_;
   }
 
-  XMLSize_t GzipInputStream::readBytes(XMLByte * const  to_fill, const XMLSize_t  max_to_read)
+  XMLSize_t GzipInputStream::readBytes(XMLByte* const  to_fill, const XMLSize_t  max_to_read)
   {
     //  Figure out whether we can really read.
     if (gzip_->streamEnd())
@@ -69,13 +69,13 @@ namespace OpenMS
       return 0;
     }
 
-    unsigned char * fill_it = static_cast<unsigned char *>(to_fill);
-    XMLSize_t actual_read = (XMLSize_t) gzip_->read((char *)fill_it, static_cast<const size_t>(max_to_read));
+    unsigned char* fill_it = static_cast<unsigned char*>(to_fill);
+    XMLSize_t actual_read = (XMLSize_t) gzip_->read((char*)fill_it, static_cast<const size_t>(max_to_read));
     file_current_index_ += actual_read;
     return actual_read;
   }
 
-  const XMLCh * GzipInputStream::getContentType() const
+  const XMLCh* GzipInputStream::getContentType() const
   {
     return 0;
   }

@@ -226,7 +226,7 @@ protected:
       {
         continue;
       }
-      if (it->getPrecursors().size() == 0 || it->getPrecursors().begin()->getPosition()[0] == 0)
+      if ((it->getPrecursors().size() == 0) || (it->getPrecursors().begin()->getPosition()[0] == 0))
       {
         cerr << "Warning: no precursors found or no precursors with m/z > 0 found, skipping spectrum!" << endl;
         continue;
@@ -260,7 +260,7 @@ protected:
 
       // Filter: peptide mass < 1750 and first deciamal place < 0.2
       double peptide_weight = prec_pos * prec_charge - prec_charge * Constants::PROTON_MASS_U;
-      if (peptide_weight < 1750 && peptide_weight - floor(peptide_weight) < 0.2)
+      if ((peptide_weight < 1750) && (peptide_weight - floor(peptide_weight) < 0.2))
       {
         fractional_mass_filtered++;
 
@@ -613,7 +613,7 @@ protected:
 
     if (!pr_tmp.empty())
     {
-      ProteinIdentification &p_tmp = pr_tmp[0];
+      ProteinIdentification& p_tmp = pr_tmp[0];
       StringList ms_runs;
       exp.getPrimaryMSRunPath(ms_runs);
       p_tmp.setPrimaryMSRunPath(ms_runs);

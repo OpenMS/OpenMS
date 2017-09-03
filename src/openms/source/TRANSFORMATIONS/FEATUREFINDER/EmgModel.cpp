@@ -58,7 +58,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  EmgModel::EmgModel(const EmgModel & source) :
+  EmgModel::EmgModel(const EmgModel& source) :
     InterpolationModel(source)
   {
     setParameters(source.getParameters());
@@ -69,10 +69,12 @@ namespace OpenMS
   {
   }
 
-  EmgModel & EmgModel::operator=(const EmgModel & source)
+  EmgModel& EmgModel::operator=(const EmgModel& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     InterpolationModel::operator=(source);
     setParameters(source.getParameters());
@@ -83,10 +85,12 @@ namespace OpenMS
 
   void EmgModel::setSamples()
   {
-    LinearInterpolation::container_type & data = interpolation_.getData();
+    LinearInterpolation::container_type& data = interpolation_.getData();
     data.clear();
     if (max_ == min_)
+    {
       return;
+    }
 
     data.reserve(UInt((max_ - min_) / interpolation_step_ + 1));
     CoordinateType pos = min_;

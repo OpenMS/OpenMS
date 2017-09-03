@@ -152,7 +152,7 @@ namespace OpenMS
     if (search_params.digestion_enzyme.getRegEx() != "")
     {
       vector<String> sub_regex;
-      search_params.digestion_enzyme.getRegEx().split(")",sub_regex);
+      search_params.digestion_enzyme.getRegEx().split(")", sub_regex);
       boost::match_results<std::string::const_iterator> results;
       static const boost::regex e("(.*?)([A-Z]+)(.*?)");
       if (boost::regex_match(sub_regex[0], results, e))
@@ -373,7 +373,7 @@ namespace OpenMS
         f << "\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
           << "\" massdiff=\"0.0\" num_tol_term=\"";
         Int num_tol_term = 1;
-        if ((pe.getAABefore() == 'R' || pe.getAABefore() == 'K') && search_params.digestion_enzyme.getName() == "Trypsin")
+        if (((pe.getAABefore() == 'R') || (pe.getAABefore() == 'K')) && (search_params.digestion_enzyme.getName() == "Trypsin"))
         {
           num_tol_term = 2;
         }
@@ -452,7 +452,7 @@ namespace OpenMS
           // </analysis_result>
 
           for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = h.getAnalysisResults().begin();
-              ar_it != h.getAnalysisResults().end(); ++ar_it)
+               ar_it != h.getAnalysisResults().end(); ++ar_it)
           {
             f << "\t\t\t<analysis_result analysis=\"" << ar_it->score_type << "\">" << "\n";
 
@@ -476,15 +476,15 @@ namespace OpenMS
             f << "\t\t\t\t<" << tagname <<  " probability=\"" << ar_it->main_score;
             // TODO
             f << "\" all_ntt_prob=\"(" << ar_it->main_score << "," << ar_it->main_score
-            << "," << ar_it->main_score << ")\">" << "\n";
+              << "," << ar_it->main_score << ")\">" << "\n";
 
             if (!ar_it->sub_scores.empty())
             {
               f << "\t\t\t\t\t<search_score_summary>" << "\n";
               for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
-                  subscore_it != ar_it->sub_scores.end(); ++subscore_it)
+                   subscore_it != ar_it->sub_scores.end(); ++subscore_it)
               {
-                f << "\t\t\t\t\t\t<parameter name=\""<< subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";
+                f << "\t\t\t\t\t\t<parameter name=\"" << subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";
               }
               f << "\t\t\t\t\t</search_score_summary>" << "\n";
             }
@@ -598,12 +598,12 @@ namespace OpenMS
     vector<String> mods;
     // try more specific search first:
     ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, mod_tol_, origin, ResidueModification::ANYWHERE);
-    if (mods.empty()) ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, mod_tol_, origin);
+    if (mods.empty()) { ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, mod_tol_, origin); }
 
     // no notification about ambiguities here - that was done when the
     // modification definitions were parsed ("aminoacid_modification" and
     // "terminal_modification" elements)
-    if (!mods.empty()) modification_description = mods[0];
+    if (!mods.empty()) { modification_description = mods[0]; }
   }
 
   void PepXMLFile::readRTMZCharge_(const xercesc::Attributes& attributes)
@@ -617,7 +617,7 @@ namespace OpenMS
 
     if (!rt_present) // get RT from experiment
     {
-      if (lookup_ == NULL || lookup_->empty())
+      if ((lookup_ == NULL) || lookup_->empty())
       {
         // no lookup given, report non-fatal error
         error(LOAD, "Cannot get RT information - no spectra given");
@@ -627,7 +627,7 @@ namespace OpenMS
       // assume only one scan, i.e. ignore "end_scan":
       Size scan = attributeAsInt_(attributes, "start_scan");
       Size index = (scan != 0) ? lookup_->findByScanNumber(scan) :
-        lookup_->findByReference(attributeAsString_(attributes, "spectrum"));
+                   lookup_->findByReference(attributeAsString_(attributes, "spectrum"));
       SpectrumMetaDataLookup::SpectrumMetaData meta;
       lookup_->getSpectrumMetaData(index, meta);
       if (meta.ms_level == 2)
@@ -784,7 +784,7 @@ namespace OpenMS
           checked_base_name_ = false;
         }
       }
-      if (wrong_experiment_) return;
+      if (wrong_experiment_) { return; }
 
       // create a ProteinIdentification in case "search_summary" is missing:
       ProteinIdentification protein;
@@ -1027,7 +1027,7 @@ namespace OpenMS
         if (name == "fragment_bin_tol")
         {
           double value = attributeAsDouble_(attributes, "value");
-          params_.fragment_mass_tolerance = value/2.0;
+          params_.fragment_mass_tolerance = value / 2.0;
           params_.fragment_mass_tolerance_ppm = false;
         }
         if (name == "peptide_mass_tolerance")
@@ -1039,18 +1039,22 @@ namespace OpenMS
         if (name == "peptide_mass_units")
         {
           int value = attributeAsDouble_(attributes, "value");
-          switch (value) {
+          switch (value)
+          {
           case 0: // comet value 0 type amu
-              params_.precursor_mass_tolerance_ppm = false;
-              break;
+            params_.precursor_mass_tolerance_ppm = false;
+            break;
+
           case 1: // comet value 1 type mmu
-              params_.precursor_mass_tolerance_ppm = false;
-              break;
+            params_.precursor_mass_tolerance_ppm = false;
+            break;
+
           case 2: // comet value 1 type ppm
-              params_.precursor_mass_tolerance_ppm = true;
-              break;
+            params_.precursor_mass_tolerance_ppm = true;
+            break;
+
           default:
-              break;
+            break;
           }
         }
       }
@@ -1093,7 +1097,7 @@ namespace OpenMS
         // look up the modification in the search_summary by mass
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
-          if (mod_nterm_mass == it->mass && it->terminus == "n")
+          if ((mod_nterm_mass == it->mass) && (it->terminus == "n"))
           {
             double massdiff = (it->massdiff).toDouble();
             vector<String> mods;
@@ -1118,7 +1122,7 @@ namespace OpenMS
         // look up the modification in the search_summary by mass
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
         {
-          if (mod_cterm_mass == it->mass && it->terminus == "c")
+          if ((mod_cterm_mass == it->mass) && (it->terminus == "c"))
           {
             double massdiff = (it->massdiff).toDouble();
             vector<String> mods;
@@ -1168,7 +1172,7 @@ namespace OpenMS
         error(LOAD, String("Cannot find modification '") + String(modification_mass) + "' of residue " + String(origin) + " at position " + String(modification_position) + " in '" + current_sequence_ + "'");
       }
     }
-    else if (element == "aminoacid_modification" || element == "terminal_modification") // parent: "search_summary"
+    else if ((element == "aminoacid_modification") || (element == "terminal_modification")) // parent: "search_summary"
     {
       AminoAcidModification aa_mod;
       optionalAttributeAsString_(aa_mod.description, attributes, "description");
@@ -1230,7 +1234,7 @@ namespace OpenMS
           ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(
             mods, aa_mod.massdiff.toDouble(), mod_tol_, aa_mod.aminoacid, term_spec);
         }
-        if (mods.empty() && aa_mod.massdiff.toDouble() != 0)
+        if (mods.empty() && (aa_mod.massdiff.toDouble() != 0))
         {
           desc = aa_mod.aminoacid;
           if (aa_mod.massdiff.toDouble() >= 0)
@@ -1353,7 +1357,7 @@ namespace OpenMS
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
       enzyme_ = attributeAsString_(attributes, "name");
-      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
+      if (enzyme_ == "nonspecific") { enzyme_ = "unspecific cleavage"; }
       if (EnzymesDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
         params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
@@ -1363,7 +1367,7 @@ namespace OpenMS
     {
       //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
       enzyme_ = attributeAsString_(attributes, "enzyme");
-      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
+      if (enzyme_ == "nonspecific") { enzyme_ = "unspecific cleavage"; }
       if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
       {
         params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_.toLower());
@@ -1464,7 +1468,7 @@ namespace OpenMS
         if (residue == 0)
         {
           double new_mass = it->massdiff.toDouble();
-          if (it->aminoacid == "" && it->terminus =="n")
+          if ((it->aminoacid == "") && (it->terminus == "n"))
           {
             vector<String> mods;
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, "", ResidueModification::N_TERM);
@@ -1486,7 +1490,7 @@ namespace OpenMS
                     it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
             }
           }
-          else if (it->aminoacid == "" && it->terminus =="c")
+          else if ((it->aminoacid == "") && (it->terminus == "c"))
           {
             vector<String> mods;
             ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, "", ResidueModification::C_TERM);
@@ -1519,7 +1523,7 @@ namespace OpenMS
           double new_mass = it->mass - residue->getMonoWeight(Residue::Internal);
           vector<String> mods;
           ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, it->aminoacid, ResidueModification::ANYWHERE);
-          if (mods.empty()) ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, it->aminoacid);
+          if (mods.empty()) { ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, new_mass, mod_tol_, it->aminoacid); }
           if (!mods.empty())
           {
             for (Size i = 0; i < temp_aa_sequence.size(); ++i)
@@ -1561,4 +1565,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

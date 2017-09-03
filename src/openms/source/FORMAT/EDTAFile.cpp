@@ -53,7 +53,7 @@ namespace OpenMS
 
   double EDTAFile::checkedToDouble_(const std::vector<String>& parts, Size index, double def)
   {
-    if (index < parts.size() && parts[index] != "NA")
+    if ((index < parts.size()) && (parts[index] != "NA"))
     {
       return parts[index].toDouble();
     }
@@ -62,7 +62,7 @@ namespace OpenMS
 
   Int EDTAFile::checkedToInt_(const std::vector<String>& parts, Size index, Int def)
   {
-    if (index < parts.size() && parts[index] != "NA")
+    if ((index < parts.size()) && (parts[index] != "NA"))
     {
       return parts[index].toInt();
     }
@@ -81,11 +81,17 @@ namespace OpenMS
 
     char separator = ' ';
     if (input_it->hasSubstring("\t"))
+    {
       separator = '\t';
+    }
     else if (input_it->hasSubstring(" "))
+    {
       separator = ' ';
+    }
     else if (input_it->hasSubstring(","))
+    {
       separator = ',';
+    }
 
     // parsing header line
     std::vector<String> headers;
@@ -118,9 +124,13 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
     else if (headers.size() == 3)
+    {
       input_type = TYPE_OLD_NOCHARGE;
+    }
     else if (headers.size() == 4)
+    {
       input_type = TYPE_OLD_CHARGE;
+    }
 
     // see if we have a header
     try
@@ -140,9 +150,13 @@ namespace OpenMS
     if (headers.size() >= 5)
     {
       if (String(headers[4].trim()).toUpper() == "RT1")
+      {
         input_type = TYPE_CONSENSUS;
+      }
       else
+      {
         input_type = TYPE_OLD_CHARGE;
+      }
     }
     if (input_type == TYPE_CONSENSUS)
     {
@@ -151,7 +165,7 @@ namespace OpenMS
       input_features = headers.size() / 4;
     }
 
-    if (offset == 0 && (input_type == TYPE_OLD_CHARGE || input_type == TYPE_CONSENSUS))
+    if ((offset == 0) && ((input_type == TYPE_OLD_CHARGE) || (input_type == TYPE_CONSENSUS)))
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line 1: No HEADER provided. This is only allowed for three columns. You have more!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
@@ -173,7 +187,7 @@ namespace OpenMS
       line_trimmed.trim();
       if (line_trimmed == "")
       {
-        if ((input_it - input.begin()) < input_size - 1) LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ").";
+        if ((input_it - input.begin()) < input_size - 1) { LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ")."; }
         continue;
       }
 
@@ -211,7 +225,9 @@ namespace OpenMS
         cf.setMZ(mz);
         cf.setIntensity(it);
         if (input_type != TYPE_OLD_NOCHARGE)
+        {
           cf.setCharge(ch);
+        }
       }
       catch (Exception::BaseException&)
       {
@@ -233,7 +249,7 @@ namespace OpenMS
           ch = checkedToInt_(parts, j * 4 + 3);
 
           // Only accept features with at least RT and MZ set
-          if (rt != -1 && mz != -1)
+          if ((rt != -1) && (mz != -1))
           {
             f.setRT(rt);
             f.setMZ(mz);
@@ -257,7 +273,7 @@ namespace OpenMS
         if (part_trimmed != "")
         {
           //check if column name is ok
-          if (headers.size() <= j || headers[j] == "")
+          if ((headers.size() <= j) || (headers[j] == ""))
           {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
                                         String("Error: Missing meta data header for column ") + (j + 1) + "!"

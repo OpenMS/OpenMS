@@ -62,7 +62,8 @@ namespace OpenMS
   const double MS2Info::_MONO_O = 15.99491;
 
 //  monoisotopic masses of all amino acids:
-  const double MS2Info::mono_mass[26] = {
+  const double MS2Info::mono_mass[26] =
+  {
     71.03711, 0.0, 103.00919, 115.02694, 129.04259, 147.06841, 57.02146, 137.05891,
     113.08406, 0.0, 128.09496, 113.08406, 131.04049, 114.04293, 0.0, 97.05276, 128.05858, 156.10111, 87.03203,
     101.04768, 0.0, 99.06841, 186.07931, 0.0, 163.06333, 0.0
@@ -186,7 +187,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of MS2Info
-  MS2Info::MS2Info(const MS2Info & tmp)
+  MS2Info::MS2Info(const MS2Info& tmp)
   {
     ID = tmp.ID;
     PEP_PROB = tmp.PEP_PROB;
@@ -210,7 +211,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of MS2Info
-  MS2Info::MS2Info(const MS2Info * tmp)
+  MS2Info::MS2Info(const MS2Info* tmp)
   {
     ID = tmp->ID;
     PEP_PROB = tmp->PEP_PROB;
@@ -234,7 +235,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  MS2Info & MS2Info::operator=(const MS2Info & tmp)
+  MS2Info& MS2Info::operator=(const MS2Info& tmp)
   {
     ID = tmp.ID;
     PEP_PROB = tmp.PEP_PROB;
@@ -259,13 +260,17 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // equal operator:
-  bool MS2Info::operator==(const MS2Info & tmp)
+  bool MS2Info::operator==(const MS2Info& tmp)
   {
 
     if (SQ == tmp.SQ)
+    {
       return true;
+    }
     else
+    {
       return false;
+    }
   }
 
 //////////////////////////////////////////////////
@@ -517,7 +522,6 @@ namespace OpenMS
     return status;
   }
 
-
   std::map<int, double>::iterator MS2Info::get_Modification_list_start()
   {
     return MOD_LIST.begin();
@@ -533,7 +537,7 @@ namespace OpenMS
     return MOD_LIST.find(pos);
   }
 
-  std::map<int, double> * MS2Info::get_Modification_list()
+  std::map<int, double>* MS2Info::get_Modification_list()
   {
     return &(MOD_LIST);
   }

@@ -141,7 +141,9 @@ namespace OpenMS
     if (!filename_.isEmpty())
     {
       if (!filename_.endsWith(".ini"))
+      {
         filename_.append(".ini");
+      }
 
       editor_->store();
 

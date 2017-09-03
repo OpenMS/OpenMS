@@ -41,12 +41,12 @@
 
 namespace OpenMS
 {
-  const std::string MSNumpressCoder::NamesOfNumpressCompression[] = {"none", "linear", "pic", "slof"};
+  const std::string MSNumpressCoder::NamesOfNumpressCompression[] = { "none", "linear", "pic", "slof" };
 
   using namespace ms; // numpress namespace
 
-  void MSNumpressCoder::encodeNP(const std::vector<double> & in, String & result,
-      bool zlib_compression, const NumpressConfig & config)
+  void MSNumpressCoder::encodeNP(const std::vector<double>& in, String& result,
+                                 bool zlib_compression, const NumpressConfig& config)
   {
     result.clear();
     encodeNPRaw(in, result, config);
@@ -61,15 +61,15 @@ namespace OpenMS
     base64coder_.encodeStrings(tmp, result, zlib_compression, false);
   }
 
-  void MSNumpressCoder::encodeNP(const std::vector<float> & in, String & result,
-      bool zlib_compression, const NumpressConfig & config)
+  void MSNumpressCoder::encodeNP(const std::vector<float>& in, String& result,
+                                 bool zlib_compression, const NumpressConfig& config)
   {
     std::vector<double> dvector(in.begin(), in.end());
     encodeNP(dvector, result, zlib_compression, config);
   }
 
-  void MSNumpressCoder::decodeNP(const String & in, std::vector<double> & out,
-      bool zlib_compression, const NumpressConfig & config)
+  void MSNumpressCoder::decodeNP(const String& in, std::vector<double>& out,
+                                 bool zlib_compression, const NumpressConfig& config)
   {
     QByteArray base64_uncompressed;
     base64coder_.decodeSingleString(in, base64_uncompressed, zlib_compression);
@@ -80,16 +80,16 @@ namespace OpenMS
 
     // NOTE: it is possible (and likely faster) to call directly the const
     // unsigned char * function but this would make it necessary to deal with
-    // reinterpret_cast ugliness here ... 
+    // reinterpret_cast ugliness here ...
     //
     // decodeNP_internal_(reinterpret_cast<const unsigned char*>(base64_uncompressed.constData()), base64_uncompressed.size(), out, config);
   }
 
-  void MSNumpressCoder::encodeNPRaw(const std::vector<double>& in, String& result, const NumpressConfig & config)
+  void MSNumpressCoder::encodeNPRaw(const std::vector<double>& in, String& result, const NumpressConfig& config)
   {
-    if (in.empty()) return;
+    if (in.empty()) { return; }
 
-    if (config.np_compression == NONE) return;
+    if (config.np_compression == NONE) { return; }
 
     Size dataSize = in.size();
 
@@ -139,7 +139,7 @@ namespace OpenMS
           {
             fixedPoint = numpress::MSNumpress::optimalLinearFixedPointMass(&in[0], dataSize, config.linear_fp_mass_acc);
             // catch failure
-            if (fixedPoint < 0.0) fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize);
+            if (fixedPoint < 0.0) { fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize); }
           }
           else
           {
@@ -148,7 +148,7 @@ namespace OpenMS
         }
         byteCount = numpress::MSNumpress::encodeLinear(&in[0], dataSize, &numpressed[0], fixedPoint);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance > 0.0)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance > 0.0) // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodeLinear(numpressed, unpressed);
         }
@@ -159,7 +159,7 @@ namespace OpenMS
       {
         byteCount = numpress::MSNumpress::encodePic(&in[0], dataSize, &numpressed[0]);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance > 0.0)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance > 0.0) // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodePic(numpressed, unpressed);
         }
@@ -168,10 +168,10 @@ namespace OpenMS
 
       case SLOF:
       {
-        if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalSlofFixedPoint(&in[0], dataSize); }
+        if (config.estimate_fixed_point) { fixedPoint = numpress::MSNumpress::optimalSlofFixedPoint(&in[0], dataSize); }
         byteCount = numpress::MSNumpress::encodeSlof(&in[0], dataSize, &numpressed[0], fixedPoint);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance > 0.0)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance > 0.0) // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodeSlof(numpressed, unpressed);
         }
@@ -203,7 +203,7 @@ namespace OpenMS
       {
         if (PIC == config.np_compression) // integer rounding, abs accuracy is +- 0.5
         {
-          for (n = static_cast<int>(dataSize)-1; n>=0; n-- ) // check for overflow, strange rounding
+          for (n = static_cast<int>(dataSize) - 1; n >= 0; n--) // check for overflow, strange rounding
           {
             if ((!boost::math::isfinite(unpressed[n])) || (fabs(in[n] - unpressed[n]) >= 1.0))
             {
@@ -213,7 +213,7 @@ namespace OpenMS
         }
         else // check for tolerance as well as overflow
         {
-          for (n=static_cast<int>(dataSize)-1; n>=0; n--)
+          for (n = static_cast<int>(dataSize) - 1; n >= 0; n--)
           {
             double u = unpressed[n];
             double d = in[n];
@@ -272,7 +272,7 @@ namespace OpenMS
     {
       std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
     }
-    catch (char const * e)
+    catch (char const* e)
     {
       std::cerr << "MSNumpress encoder threw exception: " << e << std::endl;
     }
@@ -282,15 +282,15 @@ namespace OpenMS
     }
   }
 
-  void MSNumpressCoder::decodeNPRaw(const std::string & in, std::vector<double>& out, const NumpressConfig & config)
+  void MSNumpressCoder::decodeNPRaw(const std::string& in, std::vector<double>& out, const NumpressConfig& config)
   {
     decodeNPInternal_(reinterpret_cast<const unsigned char*>(in.c_str()), in.size(), out, config);
   }
 
-  void MSNumpressCoder::decodeNPInternal_(const unsigned char* in, size_t in_size, std::vector<double>& out, const NumpressConfig & config)
+  void MSNumpressCoder::decodeNPInternal_(const unsigned char* in, size_t in_size, std::vector<double>& out, const NumpressConfig& config)
   {
     out.clear();
-    if (in_size == 0) return;
+    if (in_size == 0) { return; }
 
     size_t byteCount = in_size;
 

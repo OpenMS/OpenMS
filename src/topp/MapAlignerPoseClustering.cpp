@@ -136,7 +136,7 @@ protected:
   ExitCodes main_(int, const char**)
   {
     ExitCodes ret = TOPPMapAlignerBase::checkParameters_();
-    if (ret != EXECUTION_OK) return ret;
+    if (ret != EXECUTION_OK) { return ret; }
 
     MapAlignmentAlgorithmPoseClustering algorithm;
     Param algo_params = getParam_().copy("algorithm:", true);
@@ -170,7 +170,7 @@ protected:
       for (Size i = 0; i < in_files.size(); ++i)
       {
         Size s = 0;
-        if (in_type == FileTypes::FEATUREXML) 
+        if (in_type == FileTypes::FEATUREXML)
         {
           s = f.loadSize(in_files[i]);
         }
@@ -232,8 +232,8 @@ protected:
         FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getOptions() = f_fxml.getOptions();
         f_fxml_tmp.load(in_files[i], map);
-        if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
-        else algorithm.align(map, trafo);
+        if (i == static_cast<int>(reference_index)) { trafo.fitModel("identity"); }
+        else{ algorithm.align(map, trafo); }
         if (out_files.size())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
@@ -246,8 +246,8 @@ protected:
       {
         PeakMap map;
         MzMLFile().load(in_files[i], map);
-        if (i == static_cast<int>(reference_index)) trafo.fitModel("identity");
-        else algorithm.align(map, trafo);
+        if (i == static_cast<int>(reference_index)) { trafo.fitModel("identity"); }
+        else{ algorithm.align(map, trafo); }
         if (out_files.size())
         {
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);

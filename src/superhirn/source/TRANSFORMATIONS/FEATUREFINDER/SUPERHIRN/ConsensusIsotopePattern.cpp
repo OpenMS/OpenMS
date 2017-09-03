@@ -76,7 +76,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of ConsensusIsotopePattern
-  ConsensusIsotopePattern::ConsensusIsotopePattern(const ConsensusIsotopePattern & tmp)
+  ConsensusIsotopePattern::ConsensusIsotopePattern(const ConsensusIsotopePattern& tmp)
   {
     isotopesTrace_ = tmp.isotopesTrace_;
     mzIsotopesStDev_ = tmp.mzIsotopesStDev_;
@@ -86,7 +86,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of ConsensusIsotopePattern
-  ConsensusIsotopePattern::ConsensusIsotopePattern(const ConsensusIsotopePattern * tmp)
+  ConsensusIsotopePattern::ConsensusIsotopePattern(const ConsensusIsotopePattern* tmp)
   {
     isotopesTrace_ = tmp->isotopesTrace_;
     mzIsotopesStDev_ = tmp->mzIsotopesStDev_;
@@ -96,7 +96,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  ConsensusIsotopePattern & ConsensusIsotopePattern::operator=(const ConsensusIsotopePattern & tmp)
+  ConsensusIsotopePattern& ConsensusIsotopePattern::operator=(const ConsensusIsotopePattern& tmp)
   {
     isotopesTrace_ = tmp.isotopesTrace_;
     mzIsotopesStDev_ = tmp.mzIsotopesStDev_;
@@ -163,7 +163,7 @@ namespace OpenMS
   }
 
 // copied from simple_math
-  pair<double, double> simple_math_AVERAGE_and_STDEV(vector<double> * in)
+  pair<double, double> simple_math_AVERAGE_and_STDEV(vector<double>* in)
   {
 
     double AVERAGE = 0;
@@ -202,7 +202,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // condens the pattern, make averge peaks from the traces:
-  void ConsensusIsotopePattern::condensIsotopePattern(pair<vector<double>, vector<double> > * in)
+  void ConsensusIsotopePattern::condensIsotopePattern(pair<vector<double>, vector<double> >* in)
   {
 
     // mz

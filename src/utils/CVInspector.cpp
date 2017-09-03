@@ -391,7 +391,7 @@ protected:
         if (tit->getAllowChildren())
         {
           // check whether we want to ignore this term
-          if (!(tit->getAccession().has(':') && ignore_cv_list.find(tit->getAccession().prefix(':')) != ignore_cv_list.end()))
+          if (!(tit->getAccession().has(':') && (ignore_cv_list.find(tit->getAccession().prefix(':')) != ignore_cv_list.end())))
           {
             cv.getAllChildTerms(allowed_terms, tit->getAccession());
           }

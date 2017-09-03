@@ -39,7 +39,7 @@
 
 namespace OpenMS
 {
-  ClusterFunctor * CompleteLinkage::create()
+  ClusterFunctor* CompleteLinkage::create()
   {
     return new CompleteLinkage();
   }
@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  CompleteLinkage::CompleteLinkage(const CompleteLinkage & source) :
+  CompleteLinkage::CompleteLinkage(const CompleteLinkage& source) :
     ClusterFunctor(source), ProgressLogger()
   {
   }
@@ -63,7 +63,7 @@ namespace OpenMS
   {
   }
 
-  CompleteLinkage & CompleteLinkage::operator=(const CompleteLinkage & source)
+  CompleteLinkage& CompleteLinkage::operator=(const CompleteLinkage& source)
   {
     if (this != &source)
     {
@@ -73,7 +73,7 @@ namespace OpenMS
     return *this;
   }
 
-  void CompleteLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
+  void CompleteLinkage::operator()(DistanceMatrix<float>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const float threshold /*=1*/) const
   {
     // attention: clustering process is done by clustering the indices
     // pointing to elements in inputvector and distances in inputmatrix

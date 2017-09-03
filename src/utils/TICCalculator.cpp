@@ -62,8 +62,8 @@ using namespace OpenSwath;
 /**
   @page UTILS_TICCalculator TICCalculator
 
-  @brief Calculates the TIC of a raw mass spectrometric file. 
-  
+  @brief Calculates the TIC of a raw mass spectrometric file.
+
   This class was developed to benchmark multiple methods inside OpenMS for
   reading raw mass spectrometric data. It can be used for benchmarking these
   different methods as well as benchmarking external tools. Of course you can
@@ -80,13 +80,13 @@ using namespace OpenSwath;
 /// @cond TOPPCLASSES
 
 
-class TICConsumer : 
-    public Interfaces::IMSDataConsumer
+class TICConsumer :
+  public Interfaces::IMSDataConsumer
 {
 
-    typedef PeakMap MapType;
-    typedef MapType::SpectrumType SpectrumType;
-    typedef MapType::ChromatogramType ChromatogramType;
+  typedef PeakMap MapType;
+  typedef MapType::SpectrumType SpectrumType;
+  typedef MapType::ChromatogramType ChromatogramType;
 
 public:
   double TIC;
@@ -98,13 +98,13 @@ public:
     TIC(0.0),
     nr_spectra(0.0),
     nr_peaks(0)
-    {}
+  {}
 
-  void consumeSpectrum(SpectrumType & s)
+  void consumeSpectrum(SpectrumType& s)
   {
-    for (Size i = 0; i < s.size(); i++) 
-    { 
-      TIC += s[i].getIntensity(); 
+    for (Size i = 0; i < s.size(); i++)
+    {
+      TIC += s[i].getIntensity();
     }
     nr_peaks += s.size();
     nr_spectra++;
@@ -116,7 +116,7 @@ public:
 };
 
 /**
-  @brief Abstraction of a std::ifstream 
+  @brief Abstraction of a std::ifstream
 
   Useful for parallel access to the file when each thread is given its own
   instance of this class. Each thread will then have its own file stream and
@@ -141,7 +141,7 @@ public:
   {}
 
   // access to underlying stream
-  std::ifstream & getStream()
+  std::ifstream& getStream()
   {
     return ifs_;
   }
@@ -169,7 +169,7 @@ protected:
     String formats("mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
-    
+
     registerStringOption_("read_method", "<method>", "regular", "Method to read the file", false);
     String method("regular,indexed,indexed_parallel,streaming,cached,cached_parallel");
     setValidStrings_("read_method", ListUtils::create<String>(method));
@@ -201,7 +201,7 @@ protected:
 
       PeakFileOptions opt = mzml.getOptions();
       opt.setFillData(load_data); // whether to actually load any data
-      opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
+      opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces
       opt.setMaxDataPoolSize(100);
       opt.setAlwaysAppendData(false);
       mzml.setOptions(opt);
@@ -221,13 +221,13 @@ protected:
       mzml.setLogType(log_type_);
       PeakFileOptions opt = mzml.getOptions();
       opt.setFillData(load_data); // whether to actually load any data
-      opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
+      opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces
       mzml.setOptions(opt);
       PeakMap map;
       mzml.load(in, map);
       double TIC = 0.0;
       long int nr_peaks = 0;
-      for (Size i =0; i < map.size(); i++)
+      for (Size i = 0; i < map.size(); i++)
       {
         nr_peaks += map[i].size();
         for (Size j = 0; j < map[i].size(); j++)
@@ -245,7 +245,7 @@ protected:
     else if (read_method == "indexed")
     {
       std::cout << "Read method: indexed" << std::endl;
-      
+
       IndexedMzMLFileLoader imzml;
       // load data from an indexed MzML file
       OnDiscPeakMap map;
@@ -254,7 +254,7 @@ protected:
       long int nr_peaks = 0;
       if (load_data)
       {
-        for (Size i =0; i < map.getNrSpectra(); i++)
+        for (Size i = 0; i < map.getNrSpectra(); i++)
         {
           OpenMS::Interfaces::SpectrumPtr sptr = map.getSpectrumById(i);
 
@@ -272,7 +272,7 @@ protected:
     else if (read_method == "indexed_parallel")
     {
       std::cout << "Read method: indexed (parallel)" << std::endl;
-      
+
       IndexedMzMLFileLoader imzml;
       PeakFileOptions opt = imzml.getOptions();
       opt.setFillData(load_data); // whether to actually load any data
@@ -290,11 +290,11 @@ protected:
       {
 
         // firstprivate means that each thread has its own instance of the
-        // variable, each copy initialized with the initial value 
+        // variable, each copy initialized with the initial value
 #ifdef _OPENMP
-#pragma omp parallel for firstprivate(map) 
+#pragma omp parallel for firstprivate(map)
 #endif
-        for (SignedSize i =0; i < (SignedSize)map.getNrSpectra(); i++)
+        for (SignedSize i = 0; i < (SignedSize)map.getNrSpectra(); i++)
         {
           OpenMS::Interfaces::SpectrumPtr sptr = map.getSpectrumById(i);
           double nr_peaks_l = sptr->getIntensityArray()->data.size();
@@ -320,13 +320,13 @@ protected:
     {
       std::cout << "Read method: cached" << std::endl;
 
-      // Special handling of cached mzML as input types: 
+      // Special handling of cached mzML as input types:
       // we expect two paired input files which we should read into exp
       std::vector<String> split_out;
       in.split(".cachedMzML", split_out);
       if (split_out.size() != 2)
       {
-        LOG_ERROR << "Cannot deduce base path from input '" << in << 
+        LOG_ERROR << "Cannot deduce base path from input '" << in <<
           "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
@@ -346,7 +346,7 @@ protected:
 
       double TIC = 0.0;
       long int nr_peaks = 0;
-      for (Size i=0; i < spectra_index.size(); ++i)
+      for (Size i = 0; i < spectra_index.size(); ++i)
       {
 
         BinaryDataArrayPtr mz_array(new BinaryDataArray);
@@ -373,13 +373,13 @@ protected:
     {
       std::cout << "Read method: cached parallel" << std::endl;
 
-      // Special handling of cached mzML as input types: 
+      // Special handling of cached mzML as input types:
       // we expect two paired input files which we should read into exp
       std::vector<String> split_out;
       in.split(".cachedMzML", split_out);
       if (split_out.size() != 2)
       {
-        LOG_ERROR << "Cannot deduce base path from input '" << in << 
+        LOG_ERROR << "Cannot deduce base path from input '" << in <<
           "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
@@ -399,9 +399,9 @@ protected:
       double TIC = 0.0;
       long int nr_peaks = 0;
 #ifdef _OPENMP
-#pragma omp parallel for firstprivate(filestream) 
+#pragma omp parallel for firstprivate(filestream)
 #endif
-      for (SignedSize i=0; i < (SignedSize)spectra_index.size(); ++i)
+      for (SignedSize i = 0; i < (SignedSize)spectra_index.size(); ++i)
       {
         BinaryDataArrayPtr mz_array(new BinaryDataArray);
         BinaryDataArrayPtr intensity_array(new BinaryDataArray);
@@ -448,7 +448,7 @@ int main(int argc, const char** argv)
   // Add -test at the end of the arguments in order to avoid calling the OpenMS
   // server for usage statistics (and thus making the benchmark slower)
   char testflag[] = "-test";
-  std::vector<const char *> newArgs(argc+1); // vector containing one element more than required
+  std::vector<const char*> newArgs(argc + 1); // vector containing one element more than required
   for (int arg = 0; arg < argc; ++arg)
   {
     newArgs[arg] = argv[arg];
@@ -459,7 +459,7 @@ int main(int argc, const char** argv)
   size_t after, before;
   SysInfo::getProcessMemoryConsumption(before);
   std::cout << " Memory consumption before " << before << std::endl;
-  tool.main(argc+1, (const char **)&newArgs[0]);
+  tool.main(argc + 1, (const char**)&newArgs[0]);
   SysInfo::getProcessMemoryConsumption(after);
   std::cout << " Memory consumption final " << after << std::endl;
 

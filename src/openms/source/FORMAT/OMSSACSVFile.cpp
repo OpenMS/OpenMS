@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  void OMSSACSVFile::load(const String & filename, ProteinIdentification & /* protein_identification */, vector<PeptideIdentification> & id_data) const
+  void OMSSACSVFile::load(const String& filename, ProteinIdentification& /* protein_identification */, vector<PeptideIdentification>& id_data) const
   {
     ifstream is(filename.c_str());
     if (!is)
@@ -93,7 +93,7 @@ namespace OpenMS
       }
       vector<String> split;
       line.split(',', split);
-      if (split.size() != 14 && split.size() != 14 + offset)
+      if ((split.size() != 14) && (split.size() != 14 + offset))
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, "number of columns should be 14 in line " + String(line_number));
       }

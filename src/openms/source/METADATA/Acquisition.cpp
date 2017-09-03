@@ -44,7 +44,7 @@ namespace OpenMS
   {
   }
 
-  Acquisition::Acquisition(const Acquisition & source) :
+  Acquisition::Acquisition(const Acquisition& source) :
     MetaInfoInterface(source),
     identifier_(source.identifier_)
   {
@@ -54,10 +54,12 @@ namespace OpenMS
   {
   }
 
-  Acquisition & Acquisition::operator=(const Acquisition & source)
+  Acquisition& Acquisition::operator=(const Acquisition& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     identifier_ = source.identifier_;
     MetaInfoInterface::operator=(source);
@@ -65,22 +67,22 @@ namespace OpenMS
     return *this;
   }
 
-  bool Acquisition::operator==(const Acquisition & rhs) const
+  bool Acquisition::operator==(const Acquisition& rhs) const
   {
     return identifier_ == rhs.identifier_ && MetaInfoInterface::operator==(rhs);
   }
 
-  bool Acquisition::operator!=(const Acquisition & rhs) const
+  bool Acquisition::operator!=(const Acquisition& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const String & Acquisition::getIdentifier() const
+  const String& Acquisition::getIdentifier() const
   {
     return identifier_;
   }
 
-  void Acquisition::setIdentifier(const String & identifier)
+  void Acquisition::setIdentifier(const String& identifier)
   {
     identifier_ = identifier;
   }

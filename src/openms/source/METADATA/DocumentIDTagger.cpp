@@ -42,7 +42,7 @@
 #endif
 #include <boost/interprocess/sync/file_lock.hpp>
 #ifdef _MSC_VER
-#   pragma warning( pop )  // restore old warning state
+#   pragma warning( pop ) // restore old warning state
 #endif
 
 
@@ -64,7 +64,7 @@ namespace OpenMS
     pool_file_ = File::getOpenMSDataPath() + ("/IDPool/IDPool.txt");
   }
 
-  DocumentIDTagger::DocumentIDTagger(const DocumentIDTagger & source) :
+  DocumentIDTagger::DocumentIDTagger(const DocumentIDTagger& source) :
     toolname_(source.toolname_),
     pool_file_(source.pool_file_)
   {
@@ -74,23 +74,25 @@ namespace OpenMS
   {
   }
 
-  DocumentIDTagger & DocumentIDTagger::operator=(const DocumentIDTagger & source)
+  DocumentIDTagger& DocumentIDTagger::operator=(const DocumentIDTagger& source)
   {
     if (source == *this)
+    {
       return *this;
+    }
 
     toolname_ = source.toolname_;
     pool_file_ = source.pool_file_;
     return *this;
   }
 
-  bool DocumentIDTagger::operator==(const DocumentIDTagger & rhs) const
+  bool DocumentIDTagger::operator==(const DocumentIDTagger& rhs) const
   {
     return (toolname_ == rhs.toolname_)
            && (pool_file_ == rhs.pool_file_);
   }
 
-  bool DocumentIDTagger::operator!=(const DocumentIDTagger & rhs) const
+  bool DocumentIDTagger::operator!=(const DocumentIDTagger& rhs) const
   {
     return !(operator==(rhs));
   }
@@ -100,12 +102,12 @@ namespace OpenMS
     return pool_file_;
   }
 
-  void DocumentIDTagger::setPoolFile(const String & file)
+  void DocumentIDTagger::setPoolFile(const String& file)
   {
     pool_file_ = file;
   }
 
-  bool DocumentIDTagger::getID_(String & id, Int & free, bool idcount_only) const
+  bool DocumentIDTagger::getID_(String& id, Int& free, bool idcount_only) const
   {
     free = 0;
 
@@ -169,13 +171,17 @@ namespace OpenMS
     {
       getline(in, line);
       if (line.length() == 0)
+      {
         continue;
+      }
       ++free;
       if (free == 1)
-        id = line;                 // pull out first ID
+      {
+        id = line; // pull out first ID
+      }
       if (!idcount_only)
       {
-        if (free != 1)       // delete first line
+        if (free != 1) // delete first line
         {
           out << line << "\n";
         }
@@ -199,9 +205,13 @@ namespace OpenMS
       time(&rawtime);
       strftime(time_buffer, 80, "%x %X", localtime(&rawtime));
       if (free == 0)
+      {
         outfile << time_buffer << " :: " << toolname_ << " unsuccessfully requested ID (pool is empty!)\n";
+      }
       else
+      {
         outfile << time_buffer << " :: " << toolname_ << " requested ID '" << id << "'\n";
+      }
       outfile.close();
     }
 
@@ -211,7 +221,7 @@ namespace OpenMS
     return true;
   }
 
-  bool DocumentIDTagger::tag(DocumentIdentifier & map) const
+  bool DocumentIDTagger::tag(DocumentIdentifier& map) const
   {
     String id = ""; Int free(0);
     try
@@ -233,14 +243,18 @@ namespace OpenMS
 
     String msg;
     if (free == 0)
+    {
       msg = String("Tool ") + toolname_ + String(" requested identifier from depleted ID pool '") + getPoolFile() + String("'");
+    }
     else
+    {
       msg = String("Tool ") + toolname_ + String(" requested identifier from unaccessible ID pool '") + getPoolFile() + String("'. There should be ") + String(free) + String(" identifiers available!");
+    }
 
     throw Exception::DepletedIDPool(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDTagger", msg);
   }
 
-  bool DocumentIDTagger::countFreeIDs(Int & free) const
+  bool DocumentIDTagger::countFreeIDs(Int& free) const
   {
     String id = "";
     try

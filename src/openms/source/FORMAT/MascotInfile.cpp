@@ -672,7 +672,7 @@ namespace OpenMS
               // TODO concatenate the other parts if the title contains additional '=' chars
             }
           }
-          if (line.trim().size() > 0 && isdigit(line[0]))
+          if ((line.trim().size() > 0) && isdigit(line[0]))
           {
             do
             {

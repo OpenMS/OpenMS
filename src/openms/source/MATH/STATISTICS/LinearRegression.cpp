@@ -108,8 +108,8 @@ namespace OpenMS
 
     void LinearRegression::computeGoodness_(const std::vector<Wm5::Vector2d>& points, double confidence_interval_P)
     {
-      OPENMS_PRECONDITION(static_cast<unsigned>(points.size()) > 2, 
-          "Cannot compute goodness of fit for regression with less than 3 data points");
+      OPENMS_PRECONDITION(static_cast<unsigned>(points.size()) > 2,
+                          "Cannot compute goodness of fit for regression with less than 3 data points");
       // specifically, boost throws an exception for a t-distribution with zero df
 
       unsigned N = static_cast<unsigned>(points.size());
@@ -131,7 +131,7 @@ namespace OpenMS
       double cov_XY = Math::covariance(X.begin(), X.end(), Y.begin(), Y.end());
 
       // S_xx
-      double s_XX = var_X * (N-1);
+      double s_XX = var_X * (N - 1);
       /*for (unsigned i = 0; i < N; ++i)
       {
         double d = (X[i] - x_mean);
@@ -219,4 +219,3 @@ namespace OpenMS
 
   }
 }
-

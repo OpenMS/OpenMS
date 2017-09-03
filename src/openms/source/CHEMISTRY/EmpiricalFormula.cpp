@@ -138,7 +138,7 @@ namespace OpenMS
     formula_.insert(make_pair(db->getElement("S"), (SignedSize) Math::round(S * factor)));
     formula_.insert(make_pair(db->getElement("P"), (SignedSize) Math::round(P * factor)));
 
-    double remaining_mass = average_weight-getAverageWeight();
+    double remaining_mass = average_weight - getAverageWeight();
     SignedSize adjusted_H = Math::round(remaining_mass / db->getElement("H")->getAverageWeight());
 
     // It's possible for a very small mass to get a negative value here.
@@ -171,10 +171,10 @@ namespace OpenMS
   IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const
   {
     // A fragment's isotopes can only be as high as the largest isolated precursor isotope.
-    UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
+    UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end()) + 1;
 
     // Treat *this as the fragment molecule
-    EmpiricalFormula complementary_fragment = precursor-*this;
+    EmpiricalFormula complementary_fragment = precursor - *this;
 
     IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(max_depth);
     IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(max_depth);
@@ -493,7 +493,7 @@ namespace OpenMS
       }
     }
 
-    if (suffix.size() == 1 && suffix[0] == '+')
+    if ((suffix.size() == 1) && (suffix[0] == '+'))
     {
       charge = 1;
       formula.resize(formula.size() - 1);
@@ -502,7 +502,7 @@ namespace OpenMS
     {
       if (suffix.size() > 1)
       {
-        if (suffix[0] == '-' || suffix[0] == '+')
+        if ((suffix[0] == '-') || (suffix[0] == '+'))
         {
           charge = suffix.toInt();
           return charge;
@@ -522,14 +522,14 @@ namespace OpenMS
     vector<String> splitter;
     if (formula.size() > 0)
     {
-      if (!isdigit(formula[0]) || formula[0] == '(')
+      if (!isdigit(formula[0]) || (formula[0] == '('))
       {
         bool is_isotope(false), is_symbol(false);
         String split;
         for (Size i = 0; i < formula.size(); ++i)
         {
           if ((isupper(formula[i]) && (!is_isotope || is_symbol))
-             || formula[i] == '(')
+             || (formula[i] == '('))
           {
             if (split != "")
             {
@@ -569,7 +569,7 @@ namespace OpenMS
       bool had_symbol(false);
       for (SignedSize j = split.size() - 1; j >= 0; --j)
       {
-        if (!had_symbol && (isdigit(split[j]) || split[j] == '-'))
+        if (!had_symbol && (isdigit(split[j]) || (split[j] == '-')))
         {
           number = split[j] + number;
         }
@@ -615,7 +615,7 @@ namespace OpenMS
     {
       if (it->second == 0)
       {
-        ef.erase(it++);   // Note: post increment needed! Otherwise iterator is invalidated
+        ef.erase(it++); // Note: post increment needed! Otherwise iterator is invalidated
       }
       else
       {
@@ -633,7 +633,7 @@ namespace OpenMS
     {
       if (it->second == 0)
       {
-        formula_.erase(it++);   // Note: post increment needed! Otherwise iterator is invalidated
+        formula_.erase(it++); // Note: post increment needed! Otherwise iterator is invalidated
       }
       else
       {

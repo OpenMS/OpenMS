@@ -107,7 +107,7 @@ double dvec[] =
 namespace OpenMS
 {
   //internally used variables / defaults
-  IsotopeWavelet * IsotopeWavelet::me_ = NULL;
+  IsotopeWavelet* IsotopeWavelet::me_ = NULL;
   UInt IsotopeWavelet::max_charge_ = 1;
   std::vector<double> IsotopeWavelet::gamma_table_;
   std::vector<double> IsotopeWavelet::gamma_table_new_;
@@ -120,7 +120,7 @@ namespace OpenMS
   Size IsotopeWavelet::exp_table_max_index_ = 0;
 
 
-  IsotopeWavelet * IsotopeWavelet::init(const double max_m, const UInt max_charge)
+  IsotopeWavelet* IsotopeWavelet::init(const double max_m, const UInt max_charge)
   {
     if (me_ == NULL)
     {
@@ -162,10 +162,10 @@ namespace OpenMS
   double IsotopeWavelet::getValueByLambda(const double lambda, const double tz1)
   {
     double tz(tz1 - 1);
-    double fi_lgamma(gamma_table_[(Int)(tz1 * inv_table_steps_)]);
+    double fi_lgamma(gamma_table_[(Int)(tz1* inv_table_steps_)]);
     double help(tz * Constants::WAVELET_PERIODICITY / (TWOPI));
-    double sine_index((help - (int)(help)) * TWOPI * inv_table_steps_);
-    double fac(-lambda + tz * myLog2_(lambda) * ONEOLOG2E - fi_lgamma);
+    double sine_index((help - (int)(help)) * TWOPI* inv_table_steps_);
+    double fac(-lambda + tz* myLog2_(lambda) * ONEOLOG2E - fi_lgamma);
 
     return sine_table_[(Int)(sine_index)] * exp(fac);
   }
@@ -174,7 +174,7 @@ namespace OpenMS
   {
     double fac(-lambda + (tz1 - 1) * myLog2_(lambda) * ONEOLOG2E - boost::math::lgamma(tz1));
     double help((tz1 - 1) * Constants::WAVELET_PERIODICITY / (TWOPI));
-    double sine_index((help - (int)(help)) * TWOPI * inv_table_steps_);
+    double sine_index((help - (int)(help)) * TWOPI* inv_table_steps_);
 
     return sine_table_[(Int)(sine_index)] * exp(fac);
   }
@@ -191,28 +191,40 @@ namespace OpenMS
 
   UInt IsotopeWavelet::getMzPeakCutOffAtMonoPos(const double mass, const UInt z)
   {
-    double mz(mass * z);
+    double mz(mass* z);
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz);
+    }
     if (mz > Constants::CUT_LAMBDA_BREAK_1_2)
+    {
       res = ceil(Constants::CUT_LAMBDA_L_2_A + Constants::CUT_LAMBDA_L_2_B * mz);
+    }
     if (res < 0)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_1_A + Constants::CUT_LAMBDA_Q_1_B * mz + Constants::CUT_LAMBDA_Q_1_C * mz * mz);
+    }
 
     return res;
   }
 
   UInt IsotopeWavelet::getNumPeakCutOff(const double mass, const UInt z)
   {
-    double mz(mass * z);
+    double mz(mass* z);
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (mz > Constants::CUT_LAMBDA_BREAK_1_2)
+    {
       res = ceil(Constants::CUT_LAMBDA_L_2_A + Constants::CUT_LAMBDA_L_2_B * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (res < 0)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_1_A + Constants::CUT_LAMBDA_Q_1_B * mz + Constants::CUT_LAMBDA_Q_1_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
 
     return res;
   }
@@ -221,18 +233,24 @@ namespace OpenMS
   {
     int res = -1;
     if (mz < Constants::CUT_LAMBDA_BREAK_0_1)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_0_A + Constants::CUT_LAMBDA_Q_0_B * mz + Constants::CUT_LAMBDA_Q_0_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (mz > Constants::CUT_LAMBDA_BREAK_1_2)
+    {
       res = ceil(Constants::CUT_LAMBDA_L_2_A + Constants::CUT_LAMBDA_L_2_B * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
     if (res < 0)
+    {
       res = ceil(Constants::CUT_LAMBDA_Q_1_A + Constants::CUT_LAMBDA_Q_1_B * mz + Constants::CUT_LAMBDA_Q_1_C * mz * mz - Constants::IW_QUARTER_NEUTRON_MASS);
+    }
 
     return res;
   }
 
   float IsotopeWavelet::myPow(float a, float b)
   {
-    float help(b * myLog2_(a));
+    float help(b* myLog2_(a));
     return (help > 0 && help < 127) ? myPow2_(help) : pow(2, help);
   }
 
@@ -298,7 +316,7 @@ namespace OpenMS
     }
   }
 
-  const IsotopeDistribution::ContainerType & IsotopeWavelet::getAveragine(const double mass, UInt * size)
+  const IsotopeDistribution::ContainerType& IsotopeWavelet::getAveragine(const double mass, UInt* size)
   {
 
     averagine_.estimateFromPeptideWeight(mass);

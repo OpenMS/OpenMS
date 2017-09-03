@@ -282,7 +282,7 @@ protected:
       {
         tmp.push_back(*exp[0].getDataProcessing()[i].get());
       }
-      MSQuantifications msq(features, exp.getExperimentalSettings(), tmp );
+      MSQuantifications msq(features, exp.getExperimentalSettings(), tmp);
       msq.assignUIDs();
       MzQuantMLFile file;
       file.store(out_mzq, msq);

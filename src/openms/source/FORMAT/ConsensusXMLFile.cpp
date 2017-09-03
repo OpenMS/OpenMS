@@ -48,11 +48,11 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.7"), 
-    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"), 
-    ProgressLogger(), 
-    consensus_map_(0), 
-    act_cons_element_(), 
+    XMLHandler("", "1.7"),
+    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"),
+    ProgressLogger(),
+    consensus_map_(0),
+    act_cons_element_(),
     last_meta_(0)
   {
   }
@@ -270,7 +270,9 @@ namespace OpenMS
       String file_version = "";
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version == "")
+      {
         file_version = "1.0"; //default version is 1.0
+      }
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -300,7 +302,7 @@ namespace OpenMS
       }
       last_meta_ = consensus_map_;
     }
-    else if (tag == "userParam" || tag == "UserParam") // remain backwards compatible. Correct is "UserParam"
+    else if ((tag == "userParam") || (tag == "UserParam")) // remain backwards compatible. Correct is "UserParam"
     {
       if (last_meta_ == 0)
       {
@@ -453,7 +455,7 @@ namespace OpenMS
       //insert id and accession to map
       proteinid_to_accession_[attributeAsString_(attributes, "id")] = accession;
     }
-    else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
+    else if ((tag == "PeptideIdentification") || (tag == "UnassignedPeptideIdentification"))
     {
       String id = attributeAsString_(attributes, "identification_run_ref");
       if (!id_identifier_.has(id))
@@ -515,7 +517,7 @@ namespace OpenMS
         accession_string.trim();
         vector<String> accessions;
         accession_string.split(' ', accessions);
-        if (accession_string != "" && accessions.empty())
+        if ((accession_string != "") && accessions.empty())
         {
           accessions.push_back(accession_string);
         }
@@ -544,8 +546,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -561,8 +563,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -579,8 +581,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -596,8 +598,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -615,12 +617,12 @@ namespace OpenMS
       consensus_map_->getDataProcessing().push_back(tmp);
       last_meta_ = &(consensus_map_->getDataProcessing().back());
     }
-    else if (tag == "software" && parent_tag == "dataProcessing")
+    else if ((tag == "software") && (parent_tag == "dataProcessing"))
     {
       consensus_map_->getDataProcessing().back().getSoftware().setName(attributeAsString_(attributes, "name"));
       consensus_map_->getDataProcessing().back().getSoftware().setVersion(attributeAsString_(attributes, "version"));
     }
-    else if (tag == "processingAction" && parent_tag == "dataProcessing")
+    else if ((tag == "processingAction") && (parent_tag == "dataProcessing"))
     {
       String name = attributeAsString_(attributes, "name");
       for (Size i = 0; i < DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
@@ -803,13 +805,13 @@ namespace OpenMS
 
         os << " accession=\"" << writeXMLEscape(current_prot_id.getHits()[j].getAccession()) << "\"";
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
-        
+
         double coverage = current_prot_id.getHits()[j].getCoverage();
         if (coverage != ProteinHit::COVERAGE_UNKNOWN)
         {
           os << " coverage=\"" << coverage << "\"";
         }
-        
+
         os << " sequence=\"" << writeXMLEscape(current_prot_id.getHits()[j].getSequence()) << "\">\n";
 
         writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);

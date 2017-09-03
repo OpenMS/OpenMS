@@ -50,7 +50,7 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
-  Spectrum3DWidget::Spectrum3DWidget(const Param & preferences, QWidget * parent) :
+  Spectrum3DWidget::Spectrum3DWidget(const Param& preferences, QWidget* parent) :
     SpectrumWidget(preferences, parent)
   {
     setCanvas_(new Spectrum3DCanvas(preferences, this));
@@ -86,7 +86,9 @@ namespace OpenMS
     for (ExperimentType::ConstIterator spec_it = canvas_->getCurrentLayer().getPeakData()->begin(); spec_it != canvas_->getCurrentLayer().getPeakData()->end(); ++spec_it)
     {
       if (spec_it->getMSLevel() != 1)
+      {
         continue;
+      }
       for (ExperimentType::SpectrumType::ConstIterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
       {
         tmp.inc(peak_it->getIntensity());
@@ -96,7 +98,7 @@ namespace OpenMS
     return tmp;
   }
 
-  Histogram<> Spectrum3DWidget::createMetaDistribution_(const String & name) const
+  Histogram<> Spectrum3DWidget::createMetaDistribution_(const String& name) const
   {
     Histogram<> tmp;
 
@@ -105,7 +107,9 @@ namespace OpenMS
     for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
     {
       if (s_it->getMSLevel() != 1)
+      {
         continue;
+      }
       //float arrays
       for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
       {
@@ -114,9 +118,13 @@ namespace OpenMS
           for (Size i = 0; i < it->size(); ++i)
           {
             if ((*it)[i] < m_min)
+            {
               m_min = (*it)[i];
+            }
             if ((*it)[i] > m_max)
+            {
               m_max = (*it)[i];
+            }
           }
           break;
         }
@@ -129,23 +137,31 @@ namespace OpenMS
           for (Size i = 0; i < it->size(); ++i)
           {
             if ((*it)[i] < m_min)
+            {
               m_min = (*it)[i];
+            }
             if ((*it)[i] > m_max)
+            {
               m_max = (*it)[i];
+            }
           }
           break;
         }
       }
     }
     if (m_min >= m_max)
+    {
       return tmp;
+    }
 
     //create histogram
     tmp.reset(m_min, m_max, (m_max - m_min) / 500.0);
     for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
     {
       if (s_it->getMSLevel() != 1)
+      {
         continue;
+      }
       //float arrays
       for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = s_it->getFloatDataArrays().begin(); it != s_it->getFloatDataArrays().end(); ++it)
       {
@@ -182,20 +198,20 @@ namespace OpenMS
 
   bool Spectrum3DWidget::isLegendShown() const
   {
-    return static_cast<const Spectrum3DCanvas *>(canvas_)->isLegendShown();
+    return static_cast<const Spectrum3DCanvas*>(canvas_)->isLegendShown();
   }
 
   void Spectrum3DWidget::showGoToDialog()
   {
     Spectrum2DGoToDialog goto_dialog(this);
-    const DRange<3> & area = canvas()->getDataRange();
+    const DRange<3>& area = canvas()->getDataRange();
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
     goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
     goto_dialog.enableFeatureNumber(false);
     if (goto_dialog.exec())
     {
       goto_dialog.fixRange(); // in case user did something invalid
-      SpectrumCanvas::AreaType area (goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
+      SpectrumCanvas::AreaType area(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
       correctAreaToObeyMinMaxRanges_(area);
       canvas()->setVisibleArea(area);
     }

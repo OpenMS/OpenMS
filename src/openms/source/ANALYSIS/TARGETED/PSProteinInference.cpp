@@ -173,7 +173,7 @@ namespace OpenMS
     for (Size i = 0; i < ids.size(); ++i)
     {
       // consider only first peptide hit -> should be filtered before
-      if (ids[i].getHits().empty() || ids[i].getHits().size() > 1)
+      if (ids[i].getHits().empty() || (ids[i].getHits().size() > 1))
       {
         LOG_FATAL_ERROR << "peptide id contains more than 1 peptide hit -> filter for best hits before using PSProteinInference!";
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide Id contains more than 1 peptide hit", String(ids[i].getHits().size()));
@@ -193,14 +193,14 @@ namespace OpenMS
         {
           if (it->getHits()[0].getSequence().toUnmodifiedString() == seq) // find peptide sequence
           {
-            if ((higher_better && it->getHits()[0].getScore() >= score)
-               || (!higher_better && it->getHits()[0].getScore() <= score)) // if there is the same peptide with better score
+            if ((higher_better && (it->getHits()[0].getScore() >= score))
+               || (!higher_better && (it->getHits()[0].getScore() <= score))) // if there is the same peptide with better score
             {
               insert = false; // new pep id is not inserted
               break;
             }
-            else if ((higher_better && it->getHits()[0].getScore() < score)
-                    || (!higher_better && it->getHits()[0].getScore() > score)) // if there is the same peptide with a worse score
+            else if ((higher_better && (it->getHits()[0].getScore() < score))
+                    || (!higher_better && (it->getHits()[0].getScore() > score))) // if there is the same peptide with a worse score
             {
               *it = ids[i];
               insert = false; // it is replaced by the new one
@@ -211,7 +211,9 @@ namespace OpenMS
           }
         }
         if (insert)
+        {
           pep_prot_map[*a_it].push_back(ids[i]);
+        }
       }
     }
 
@@ -237,9 +239,13 @@ namespace OpenMS
         bool higher_better = pep_prot_map[accessions_[a]][p].isHigherScoreBetter();
         //std::cout << higher_better << " "<<(pep_prot_map[accessions_[a]][p].getHits()[0].getScore()) << " "<<probabilities_[a]<<"  -> ";
         if (higher_better)
+        {
           probabilities_[a] *= (1. - pep_prot_map[accessions_[a]][p].getHits()[0].getScore());
+        }
         else
+        {
           probabilities_[a] *= (pep_prot_map[accessions_[a]][p].getHits()[0].getScore());
+        }
         //std::cout << probabilities_[a]<<std::endl;
       }
       //        std::cout << "\n";
@@ -262,7 +268,9 @@ namespace OpenMS
   {
     std::vector<String>::iterator it = std::find(accessions_.begin(), accessions_.end(), acc);
     if (it == accessions_.end())
+    {
       return 0.;
+    }
 
     return probabilities_[distance(accessions_.begin(), it)];
   }
@@ -280,7 +288,9 @@ namespace OpenMS
       // std::cout << minimal_protein_list_accessions_[i] << " "<<getProteinProbability(minimal_protein_list_accessions_[i])
       //           << " "<<protein_id_threshold;
       if (getProteinProbability(minimal_protein_list_accessions_[i]) > protein_id_threshold)
+      {
         ++num; //std::cout << "--->";}
+      }
       // std::cout <<std::endl;
     }
     return num;
@@ -294,7 +304,9 @@ namespace OpenMS
       // std::cout << minimal_protein_list_accessions_[i] << " "<<getProteinProbability(minimal_protein_list_accessions_[i])
       //           << " "<<protein_id_threshold;
       if (prot_id_counter[minimal_protein_list_accessions_[i]].size() >= (Size)min_peptides)
+      {
         ++num; //std::cout << "--->";}
+      }
       // std::cout <<std::endl;
     }
     return num;

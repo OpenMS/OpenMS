@@ -181,7 +181,7 @@ protected:
       {
         --ms1_it;
       }
-      if (ms1_it == exp.begin() && ms1_it->getMSLevel() != 1)
+      if ((ms1_it == exp.begin()) && (ms1_it->getMSLevel() != 1))
       {
         writeLog_("Did not find a MS1 scan to the MS/MS scan at RT=" + String(it->getRT()));
         continue;
@@ -217,7 +217,7 @@ protected:
         PeakSpectrum zoom_spec;
         for (PeakSpectrum::ConstIterator pit = ms1_it->begin(); pit != ms1_it->end(); ++pit)
         {
-          if (pit->getMZ() > prec_pos - 3 && pit->getMZ() < prec_pos + 3)
+          if ((pit->getMZ() > prec_pos - 3) && (pit->getMZ() < prec_pos + 3))
           {
             zoom_spec.push_back(*pit);
           }
@@ -239,8 +239,8 @@ protected:
 
         for (Size i = 0; i != features.size(); ++i)
         {
-          if (fabs(features[i].getMZ() - prec_pos) < precursor_mass_tolerance &&
-              features[i].getIntensity() > max_int)
+          if ((fabs(features[i].getMZ() - prec_pos) < precursor_mass_tolerance) &&
+              (features[i].getIntensity() > max_int))
           {
             max_int_feat_idx = i;
             max_int = features[i].getIntensity();

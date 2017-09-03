@@ -81,7 +81,7 @@ namespace OpenMS
 
   AnnotationStatistics& AnnotationStatistics::operator=(const AnnotationStatistics& rhs)
   {
-    if (this == &rhs) return *this;
+    if (this == &rhs) { return *this; }
 
     states = rhs.states;
     return *this;
@@ -130,7 +130,7 @@ namespace OpenMS
 
   FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)
   {
-    if (&rhs == this) return *this;
+    if (&rhs == this) { return *this; }
 
     Base::operator=(rhs);
     MetaInfoInterface::operator=(rhs);
@@ -174,7 +174,7 @@ namespace OpenMS
     // reset these:
     RangeManagerType::operator=(empty_map);
 
-    if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty()) LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n";
+    if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty()) { LOG_INFO << "DocumentIdentifiers are lost during merge of FeatureMaps\n"; }
     DocumentIdentifier::operator=(empty_map);
 
     UniqueIdInterface::operator=(empty_map);
@@ -283,7 +283,7 @@ namespace OpenMS
 
     // swap range information (otherwise its false in both maps)
     FeatureMap tmp;
-    tmp.RangeManagerType::operator=(* this);
+    tmp.RangeManagerType::operator=(*this);
     this->RangeManagerType::operator=(from);
     from.RangeManagerType::operator=(tmp);
   }

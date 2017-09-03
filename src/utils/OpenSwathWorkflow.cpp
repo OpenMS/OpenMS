@@ -78,7 +78,7 @@
 
 using namespace OpenMS;
 
-static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const std::pair<double,double> & right)
+static bool SortPairDoubleByFirst(const std::pair<double, double>& left, const std::pair<double, double>& right)
 {
   return left.first < right.first;
 }
@@ -384,8 +384,8 @@ static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const s
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPOpenSwathWorkflow
-  : public TOPPBase
+class TOPPOpenSwathWorkflow :
+  public TOPPBase
 {
 public:
 
@@ -499,8 +499,8 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.1);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30.0);
-      feature_finder_param.setValue("uis_threshold_sn",-1);
-      feature_finder_param.setValue("uis_threshold_peak_area",0);
+      feature_finder_param.setValue("uis_threshold_sn", -1);
+      feature_finder_param.setValue("uis_threshold_peak_area", 0);
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:stop_after_feature");
@@ -525,7 +525,7 @@ protected:
 
       p.setValue("alignmentMethod", "linear", "How to perform the alignment to the normalized RT space using anchor points. 'linear': perform linear regression (for few anchor points). 'interpolated': Interpolate between anchor points (for few, noise-free anchor points). 'lowess' Use local regression (for many, noisy anchor points). 'b_spline' use b splines for smoothing.");
       p.setValidStrings("alignmentMethod", ListUtils::create<String>("linear,interpolated,lowess,b_spline"));
-      p.setValue("lowess:span", 2.0/3, "Span parameter for lowess");
+      p.setValue("lowess:span", 2.0 / 3, "Span parameter for lowess");
       p.setMinFloat("lowess:span", 0.0);
       p.setMaxFloat("lowess:span", 1.0);
       p.setValue("b_spline:num_nodes", 5, "Number of nodes for b spline");
@@ -562,13 +562,13 @@ protected:
   }
 
   void loadSwathFiles(StringList& file_list, bool split_file, String tmp, String readoptions,
-    boost::shared_ptr<ExperimentalSettings > & exp_meta,
-    std::vector< OpenSwath::SwathMap > & swath_maps)
+                      boost::shared_ptr<ExperimentalSettings>& exp_meta,
+                      std::vector<OpenSwath::SwathMap>& swath_maps)
   {
     SwathFile swath_file;
     swath_file.setLogType(log_type_);
 
-    if (split_file || file_list.size() > 1)
+    if (split_file || (file_list.size() > 1))
     {
       // TODO cannot use data reduction here any more ...
       swath_maps = swath_file.loadSplit(file_list, tmp, exp_meta, readoptions);
@@ -576,20 +576,20 @@ protected:
     else
     {
       FileTypes::Type in_file_type = FileTypes::nameToType(file_list[0]);
-      if (in_file_type == FileTypes::MZML || file_list[0].suffix(4).toLower() == "mzml"
-        || file_list[0].suffix(7).toLower() == "mzml.gz"  )
+      if ((in_file_type == FileTypes::MZML) || (file_list[0].suffix(4).toLower() == "mzml")
+         || (file_list[0].suffix(7).toLower() == "mzml.gz"))
       {
         swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions);
       }
-      else if (in_file_type == FileTypes::MZXML || file_list[0].suffix(5).toLower() == "mzxml"
-        || file_list[0].suffix(8).toLower() == "mzxml.gz"  )
+      else if ((in_file_type == FileTypes::MZXML) || (file_list[0].suffix(5).toLower() == "mzxml")
+              || (file_list[0].suffix(8).toLower() == "mzxml.gz"))
       {
         swath_maps = swath_file.loadMzXML(file_list[0], tmp, exp_meta, readoptions);
       }
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Input file needs to have ending mzML or mzXML");
+                                         "Input file needs to have ending mzML or mzXML");
       }
     }
   }
@@ -617,9 +617,9 @@ protected:
    *
    */
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
-    std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-    const Param& feature_finder_param, const ChromExtractParams& cp_irt,
-    const Param& irt_detection_param, const String & mz_correction_function, Size debug_level, bool sonar)
+                                          std::vector<OpenSwath::SwathMap>& swath_maps, double min_rsq, double min_coverage,
+                                          const Param& feature_finder_param, const ChromExtractParams& cp_irt,
+                                          const Param& irt_detection_param, const String& mz_correction_function, Size debug_level, bool sonar)
   {
     TransformationDescription trafo_rtnorm;
     if (!trafo_in.empty())
@@ -646,12 +646,12 @@ protected:
       OpenSwathRetentionTimeNormalization wf;
       wf.setLogType(log_type_);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar);
+                                               feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar);
     }
     return trafo_rtnorm;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     ///////////////////////////////////
     // Prepare Parameters
@@ -732,15 +732,15 @@ protected:
       std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
         "not use RT-transformation (rather a null transformation will be applied)" << std::endl;
     }
-    if ( (out.empty() && out_tsv.empty() && out_osw.empty()) || (!out.empty() && !out_tsv.empty())  || (!out.empty() && !out_osw.empty())  || (!out_tsv.empty() && !out_osw.empty()) )
+    if ((out.empty() && out_tsv.empty() && out_osw.empty()) || (!out.empty() && !out_tsv.empty())  || (!out.empty() && !out_osw.empty())  || (!out_tsv.empty() && !out_osw.empty()))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Either out_features, out_tsv or out_osw needs to be set (but not two or three at the same time)");
+                                       "Either out_features, out_tsv or out_osw needs to be set (but not two or three at the same time)");
     }
-    if (!out_osw.empty() && tr_type != FileTypes::PQP)
+    if (!out_osw.empty() && (tr_type != FileTypes::PQP))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "OSW output files can only be generated in combination with PQP input files (-tr).");
+                                       "OSW output files can only be generated in combination with PQP input files (-tr).");
     }
 
     // Check swath window input
@@ -797,7 +797,7 @@ protected:
     OpenSwath::LightTargetedExperiment transition_exp;
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    if (tr_type == FileTypes::TRAML || tr_file.suffix(5).toLower() == "traml"  )
+    if ((tr_type == FileTypes::TRAML) || (tr_file.suffix(5).toLower() == "traml"))
     {
       progresslogger.startProgress(0, 1, "Load TraML file");
       TargetedExperiment targeted_exp;
@@ -805,7 +805,7 @@ protected:
       OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
       progresslogger.endProgress();
     }
-    else if (tr_type == FileTypes::PQP || tr_file.suffix(3).toLower() == "pqp"  )
+    else if ((tr_type == FileTypes::PQP) || (tr_file.suffix(3).toLower() == "pqp"))
     {
       progresslogger.startProgress(0, 1, "Load PQP file");
       TransitionPQPReader().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
@@ -820,7 +820,7 @@ protected:
         dst << src.rdbuf();
       }
     }
-    else if (tr_type == FileTypes::TSV || tr_file.suffix(3).toLower() == "tsv"  )
+    else if ((tr_type == FileTypes::TSV) || (tr_file.suffix(3).toLower() == "tsv"))
     {
       progresslogger.startProgress(0, 1, "Load TSV file");
       TransitionTSVReader tsv_reader;
@@ -833,7 +833,7 @@ protected:
       LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
       return PARSE_ERROR;
     }
-    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " << 
+    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
       transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
 
@@ -843,7 +843,7 @@ protected:
 
     // (i) Load files
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
-    std::vector< OpenSwath::SwathMap > swath_maps;
+    std::vector<OpenSwath::SwathMap> swath_maps;
     loadSwathFiles(file_list, split_file, tmp, readoptions, exp_meta, swath_maps);
 
     // (ii) Allow the user to specify the SWATH windows
@@ -854,11 +854,11 @@ protected:
 
     for (Size i = 0; i < swath_maps.size(); i++)
     {
-      LOG_DEBUG << "Found swath map " << i 
-        << " with lower " << swath_maps[i].lower
-        << " and upper " << swath_maps[i].upper 
-        << " and " << swath_maps[i].sptr->getNrSpectra()
-        << " spectra." << std::endl;
+      LOG_DEBUG << "Found swath map " << i
+                << " with lower " << swath_maps[i].lower
+                << " and upper " << swath_maps[i].upper
+                << " and " << swath_maps[i].sptr->getNrSpectra()
+                << " spectra." << std::endl;
     }
 
     // (iii) Sanity check: there should be no overlap between the windows:
@@ -874,7 +874,7 @@ protected:
 
     for (Size i = 1; i < sw_windows.size(); i++)
     {
-      double lower_map_end = sw_windows[i-1].second - min_upper_edge_dist;
+      double lower_map_end = sw_windows[i - 1].second - min_upper_edge_dist;
       double upper_map_start = sw_windows[i].first;
       LOG_DEBUG << "Extraction will go up to " << lower_map_end << " and continue at " << upper_map_start << std::endl;
 
@@ -888,13 +888,13 @@ protected:
         }
       }
 
-      if (sonar) {continue;} // skip next step as expect them to overlap ...
+      if (sonar) { continue; } // skip next step as expect them to overlap ...
 
       if (lower_map_end - upper_map_start > 0.01)
       {
         LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << std::endl;
         LOG_WARN << "This will lead to multiple extraction of the transitions in the overlapping region" <<
-                    "which will lead to duplicated output. It is very unlikely that you want this." << std::endl;
+          "which will lead to duplicated output. It is very unlikely that you want this." << std::endl;
         LOG_WARN << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
         if (!force)
         {
@@ -909,15 +909,15 @@ protected:
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in,
-        irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
-        cp_irt, irt_detection_param, mz_correction_function, debug_level,
-        sonar);
+                                                           irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
+                                                           cp_irt, irt_detection_param, mz_correction_function, debug_level,
+                                                           sonar);
 
     ///////////////////////////////////
     // Set up chromatogram output
     // Either use chrom.mzML or sqlite DB
     ///////////////////////////////////
-    Interfaces::IMSDataConsumer * chromatogramConsumer;
+    Interfaces::IMSDataConsumer* chromatogramConsumer;
     if (!out_chrom.empty())
     {
       if (out_chrom.hasSuffix(".sqMass"))
@@ -926,11 +926,11 @@ protected:
       }
       else
       {
-        PlainMSDataWritingConsumer * chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
+        PlainMSDataWritingConsumer* chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
         int expected_chromatograms = transition_exp.transitions.size();
         chromConsumer->setExpectedSize(0, expected_chromatograms);
         chromConsumer->setExperimentalSettings(*exp_meta);
-        chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
+        chromConsumer->getOptions().setWriteIndex(true); // ensure that we write the index
         chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
 
         // prepare data structures for lossy compression
@@ -969,14 +969,14 @@ protected:
       OpenSwathWorkflowSonar wf(use_ms1_traces);
       wf.setLogType(log_type_);
       wf.performExtractionSonar(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
+                                out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
     }
     else
     {
       OpenSwathWorkflow wf(use_ms1_traces);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
+                           out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
     }
 
     if (!out.empty())
@@ -993,7 +993,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPOpenSwathWorkflow tool;
   return tool.main(argc, argv);

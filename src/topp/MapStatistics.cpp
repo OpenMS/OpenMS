@@ -90,7 +90,7 @@ using namespace std;
 namespace OpenMS
 {
   /// Copy the SummaryStatistics into a vector
-  template<class T>
+  template <class T>
   static vector<double>& operator<<(vector<double>& result, const Math::SummaryStatistics<T>& stats)
   {
     result.push_back(stats.mean);
@@ -104,7 +104,7 @@ namespace OpenMS
   }
 
   /// Write SummaryStatistics to a stream.
-  template<class T>
+  template <class T>
   static ostream& operator<<(ostream& os, const Math::SummaryStatistics<T>& rhs)
   {
     return os <<
@@ -129,7 +129,7 @@ public:
   vector<double> sliceStatistics(const FeatureMap& map, Size begin, Size end) const
   {
     // If we are asked to produce stats for an empty set, return an empty vector.
-    if (end <= begin || end > map.size())
+    if ((end <= begin) || (end > map.size()))
     {
       return vector<double>(43);
     }
@@ -157,12 +157,12 @@ public:
     vector<double> results;
     results.reserve(43); // 6 7-number stats + tic
     results.push_back(tic);
-    results << Math::SummaryStatistics< vector<double> >(intensities);
-    results << Math::SummaryStatistics< vector<double> >(mz);
-    results << Math::SummaryStatistics< vector<double> >(peak_widths);
-    results << Math::SummaryStatistics< vector<double> >(overall_qualities);
-    results << Math::SummaryStatistics< vector<double> >(rt_qualities);
-    results << Math::SummaryStatistics< vector<double> >(mz_qualities);
+    results << Math::SummaryStatistics<vector<double> >(intensities);
+    results << Math::SummaryStatistics<vector<double> >(mz);
+    results << Math::SummaryStatistics<vector<double> >(peak_widths);
+    results << Math::SummaryStatistics<vector<double> >(overall_qualities);
+    results << Math::SummaryStatistics<vector<double> >(rt_qualities);
+    results << Math::SummaryStatistics<vector<double> >(mz_qualities);
 
     return results;
   }
@@ -223,7 +223,7 @@ protected:
       FeatureXMLFile().load(in, feat);
       feat.updateRanges();
     }
-    else if (in_type == FileTypes::CONSENSUSXML)     //consensus features
+    else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
       ConsensusXMLFile().load(in, cons);
       cons.updateRanges();
@@ -249,7 +249,7 @@ protected:
       {
         os << "Document id       : " << feat.getIdentifier() << endl << endl;
       }
-      else if (in_type == FileTypes::CONSENSUSXML)       //consensus features
+      else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
         os << "Document id       : " << cons.getIdentifier() << endl << endl;
       }
@@ -271,7 +271,7 @@ protected:
       {
         dp = feat.getDataProcessing();
       }
-      else if (in_type == FileTypes::CONSENSUSXML)       //consensus features
+      else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
         dp = cons.getDataProcessing();
       }
@@ -322,7 +322,7 @@ protected:
           os << "charge " << it->first << ": " << it->second << endl;
         }
       }
-      else if (in_type == FileTypes::CONSENSUSXML)       //consensus features
+      else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
         map<Size, UInt> num_consfeat_of_size;
         for (ConsensusMap::const_iterator cmit = cons.begin();
@@ -348,7 +348,7 @@ protected:
         if (!descs.empty())
         {
           os << endl <<
-          "File descriptions:" << endl;
+            "File descriptions:" << endl;
           for (ConsensusMap::FileDescriptions::const_iterator it = descs.begin(); it != descs.end(); ++it)
           {
             os << " - " << it->second.filename << endl
@@ -404,7 +404,7 @@ protected:
         rt_begin = rt_end;
       }
     }
-    else if (in_type == FileTypes::CONSENSUSXML)     //consensus features
+    else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
       Size size = cons.size();
 
@@ -479,25 +479,25 @@ protected:
       }
 
       os.precision(writtenDigits(ConsensusFeature::IntensityType()));
-      os << "Intensities of consensus features:" << endl << Math::SummaryStatistics< vector<double> >(intensities) << endl;
+      os << "Intensities of consensus features:" << endl << Math::SummaryStatistics<vector<double> >(intensities) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::QualityType()));
-      os << "Qualities of consensus features:" << endl << Math::SummaryStatistics< vector<double> >(qualities) << endl;
+      os << "Qualities of consensus features:" << endl << Math::SummaryStatistics<vector<double> >(qualities) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-      os << "Retention time differences ( element-center, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(rt_delta_by_elems) << endl;
-      os << "Absolute retention time differences ( |element-center|, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(rt_aad_by_elems) << endl;
-      os << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):" << endl << Math::SummaryStatistics< vector<double> >(rt_aad_by_cfs) << endl;
+      os << "Retention time differences ( element-center, weight 1 per element):" << endl << Math::SummaryStatistics<vector<double> >(rt_delta_by_elems) << endl;
+      os << "Absolute retention time differences ( |element-center|, weight 1 per element):" << endl << Math::SummaryStatistics<vector<double> >(rt_aad_by_elems) << endl;
+      os << "Average absolute differences of retention time within consensus features ( |element-center|, weight 1 per consensus features):" << endl << Math::SummaryStatistics<vector<double> >(rt_aad_by_cfs) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::CoordinateType()));
-      os << "Mass-to-charge differences ( element-center, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(mz_delta_by_elems) << endl;
-      os << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(mz_aad_by_elems) << endl;
-      os << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):" << endl << Math::SummaryStatistics< vector<double> >(mz_aad_by_cfs) << endl;
+      os << "Mass-to-charge differences ( element-center, weight 1 per element):" << endl << Math::SummaryStatistics<vector<double> >(mz_delta_by_elems) << endl;
+      os << "Absolute differences of mass-to-charge ( |element-center|, weight 1 per element):" << endl << Math::SummaryStatistics<vector<double> >(mz_aad_by_elems) << endl;
+      os << "Average absolute differences of mass-to-charge within consensus features ( |element-center|, weight 1 per consensus features):" << endl << Math::SummaryStatistics<vector<double> >(mz_aad_by_cfs) << endl;
 
       os.precision(writtenDigits(ConsensusFeature::IntensityType()));
-      os << "Intensity ratios ( element/center, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(it_delta_by_elems) << endl;
-      os << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):" << endl << Math::SummaryStatistics< vector<double> >(it_aad_by_elems) << endl;
-      os << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):" << endl << Math::SummaryStatistics< vector<double> >(it_aad_by_cfs) << endl;
+      os << "Intensity ratios ( element/center, weight 1 per element):" << endl << Math::SummaryStatistics<vector<double> >(it_delta_by_elems) << endl;
+      os << "Relative intensity error ( max{(element/center),(center/element)}, weight 1 per element):" << endl << Math::SummaryStatistics<vector<double> >(it_aad_by_elems) << endl;
+      os << "Average relative intensity error within consensus features ( max{(element/center),(center/element)}, weight 1 per consensus features):" << endl << Math::SummaryStatistics<vector<double> >(it_aad_by_cfs) << endl;
     }
 
     return EXECUTION_OK;

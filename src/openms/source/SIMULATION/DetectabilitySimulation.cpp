@@ -136,21 +136,21 @@ namespace OpenMS
       ParamXMLFile paramFile;
       paramFile.load(add_paramfile, additional_parameters);
 
-      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("border_length") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No border length defined in additional parameters file.");
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
-      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("k_mer_length") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No k-mer length defined in additional parameters file.");
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 
-      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("sigma") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "DetectibilitySimulation: No sigma defined in additional parameters file.");
       }

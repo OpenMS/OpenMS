@@ -81,7 +81,7 @@ namespace OpenMS
   {
   }
 
-  ResidueModification & ResidueModification::operator=(const ResidueModification& rhs)
+  ResidueModification& ResidueModification::operator=(const ResidueModification& rhs)
   {
     if (this != &rhs)
     {
@@ -207,7 +207,7 @@ namespace OpenMS
 
   const String ResidueModification::getUniModAccession() const
   {
-    if (unimod_record_id_ < 0) return "";
+    if (unimod_record_id_ < 0) { return ""; }
     return String("UniMod:") + unimod_record_id_; // return copy of temp object
   }
 
@@ -278,7 +278,7 @@ namespace OpenMS
     case N_TERM: return "N-term";
 
     case ANYWHERE: return "none";
-     
+
     default: break; // shouldn't happen
     }
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No name for this terminal specificity", String(term_spec));
@@ -315,7 +315,7 @@ namespace OpenMS
   {
     String c = classification;
     c.toLower();
-    if (c == "artifact" || c == "artefact") // unimod uses Artefact (BE) not Artifact (AE)
+    if ((c == "artifact") || (c == "artefact")) // unimod uses Artefact (BE) not Artifact (AE)
     {
       classification_ = ARTIFACT;
       return;

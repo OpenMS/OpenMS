@@ -89,11 +89,11 @@ namespace OpenSwath
   }
 
   void MRMScoring::initializeXCorrIdMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_identification, std::vector<String> native_ids_detection)
-  { 
+  {
     std::vector<double> intensityi, intensityj;
     xcorr_matrix_.resize(native_ids_identification.size());
     for (std::size_t i = 0; i < native_ids_identification.size(); i++)
-    { 
+    {
       String native_id = native_ids_identification[i];
       FeatureType fi = mrmfeature->getFeature(native_id);
       xcorr_matrix_[i].resize(native_ids_detection.size());
@@ -166,7 +166,9 @@ namespace OpenSwath
     for (size_t i = 0; i < deltas.size(); i++)
     {
       if (i != 0)
+      {
         ss << ";";
+      }
       ss << deltas[i];
     }
 
@@ -257,10 +259,12 @@ namespace OpenSwath
     }
 
     std::stringstream ss;
-    for (size_t i = 0; i <intensities.size(); i++)
+    for (size_t i = 0; i < intensities.size(); i++)
     {
       if (i != 0)
+      {
         ss << ";";
+      }
       ss << intensities[i];
     }
 
@@ -434,10 +438,12 @@ namespace OpenSwath
     }
 
     std::stringstream ss;
-    for (size_t i = 0; i <sn_score.size(); i++)
+    for (size_t i = 0; i < sn_score.size(); i++)
     {
       if (i != 0)
+      {
         ss << ";";
+      }
 
       if (sn_score[i] < 1) // everything below S/N 1 can be set to zero (and the log safely applied)
       {
@@ -451,4 +457,5 @@ namespace OpenSwath
 
     return ss.str();
   }
+
 }

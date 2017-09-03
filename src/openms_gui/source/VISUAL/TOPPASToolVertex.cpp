@@ -73,8 +73,8 @@ namespace OpenMS
     String toString() const
     {
       String s_counter;
-      if (counter != -1) s_counter = String(counter).fillLeft('0', 3) + ".";
-      return (prefix + s_counter + suffix);
+      if (counter != -1) { s_counter = String(counter).fillLeft('0', 3) + "."; }
+      return prefix + s_counter + suffix;
     }
 
   };
@@ -177,8 +177,8 @@ namespace OpenMS
       if (!File::exists(old_ini_file))
       {
         String msg = String("Could not open old INI file '") + old_ini_file + "'! File does not exist!";
-        if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
-        else LOG_ERROR << msg << std::endl;
+        if (getScene_()->isGUIMode()) { QMessageBox::critical(0, "Error", msg.c_str()); }
+        else{ LOG_ERROR << msg << std::endl; }
         tool_ready_ = false;
         return false;
       }
@@ -189,22 +189,22 @@ namespace OpenMS
     // actually request the INI
     QProcess p;
     p.start(program, arguments);
-    if (!p.waitForFinished(-1) || p.exitStatus() != 0 || p.exitCode() != 0)
+    if (!p.waitForFinished(-1) || (p.exitStatus() != 0) || (p.exitCode() != 0))
     {
       String msg = String("Error! Call to '") + program + "' '" + String(arguments.join("' '")) +
-          " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
-          "\noutput:\n" + String(QString(p.readAll())) +
-          "\n";
-      if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
-      else LOG_ERROR << msg << std::endl;
+                   " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
+                   "\noutput:\n" + String(QString(p.readAll())) +
+                   "\n";
+      if (getScene_()->isGUIMode()) { QMessageBox::critical(0, "Error", msg.c_str()); }
+      else{ LOG_ERROR << msg << std::endl; }
       tool_ready_ = false;
       return false;
     }
     if (!File::exists(ini_file))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
       String msg = String("Could not open '") + ini_file + "'! It does not exist!";
-      if (getScene_()->isGUIMode()) QMessageBox::critical(0, "Error", msg.c_str());
-      else LOG_ERROR << msg << std::endl;
+      if (getScene_()->isGUIMode()) { QMessageBox::critical(0, "Error", msg.c_str()); }
+      else{ LOG_ERROR << msg << std::endl; }
       tool_ready_ = false;
       return false;
     }
@@ -536,7 +536,7 @@ namespace OpenMS
     __DEBUG_BEGIN_METHOD__
 
     //check if everything ready (there might be more than one upstream node - ALL need to be ready)
-    if (!isUpstreamFinished()) return;
+    if (!isUpstreamFinished()) { return; }
 
     if (finished_)
     {
@@ -551,7 +551,9 @@ namespace OpenMS
                        + QDir::separator()
                        + name_.toQString();
     if (type_ != "")
+    {
       ini_file += "_" + type_.toQString();
+    }
     // do not write the ini yet - we might need to alter it
 
     RoundPackages pkg;
@@ -581,7 +583,9 @@ namespace OpenMS
 
     QStringList shared_args;
     if (type_ != "")
+    {
       shared_args << "-type" << type_.toQString();
+    }
 
     // get *all* input|output file parameters (regardless if edge exists)
     QVector<IOInfo> in_params, out_params;
@@ -606,7 +610,7 @@ namespace OpenMS
         TOPPASEdge incoming_edge = *(ite->second.edge);
 
         int param_index = incoming_edge.getTargetInParam();
-        if (param_index < 0 || param_index >= in_params.size())
+        if ((param_index < 0) || (param_index >= in_params.size()))
         {
           LOG_ERROR << "TOPPAS: Input parameter index out of bounds!" << std::endl;
           return;
@@ -622,7 +626,9 @@ namespace OpenMS
           ini_round_dependent = true;
         }
         if (!store_to_ini)
+        {
           args << "-" + param_name.toQString();
+        }
 
         const QStringList& file_list = ite->second.filenames.get();
 
@@ -666,7 +672,9 @@ namespace OpenMS
           ini_round_dependent = true;
         }
         if (!store_to_ini)
+        {
           args << "-" + param_name.toQString();
+        }
 
         const QStringList& output_files = output_files_[round][param_index].filenames.get();
 
@@ -678,7 +686,7 @@ namespace OpenMS
           }
           else
           {
-            if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+            if (output_files.size() > 1) { throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Multiple files were given to a param which supports only single files! ('" + param_name + "')"); }
             param_tmp.setValue(param_name, String(output_files[0]));
           }
         }
@@ -716,7 +724,7 @@ namespace OpenMS
       connect(p, SIGNAL(readyReadStandardOutput()), this, SLOT(forwardTOPPOutput()));
       connect(ts, SIGNAL(terminateCurrentPipeline()), p, SLOT(kill()));
       // let this node know that round is done
-      connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
+      connect(p, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(executionFinished(int,QProcess::ExitStatus)));
 
       // enqueue process
       String msg_enqueue = String("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + String(args.join("\" \"")) + "\"\n";
@@ -827,7 +835,7 @@ namespace OpenMS
       name_old_to_new[file] = nc;
       ++name_new_count[nc.toString()];
     }
-    // for all names which occur more than once, introduce a counter  
+    // for all names which occur more than once, introduce a counter
     foreach(QString file, files)
     {
       if (name_new_count[name_old_to_new[file].toString()] > 1) // candidate for counter
@@ -912,8 +920,8 @@ namespace OpenMS
 
     // iterate over input edges
     for (RoundPackageConstIt it  = pkg[0].begin();
-          it != pkg[0].end();
-          ++it)
+         it != pkg[0].end();
+         ++it)
     {
       if (it->second.edge->getSourceVertex()->isRecyclingEnabled())
       { // skip recycling input nodes
@@ -923,16 +931,16 @@ namespace OpenMS
       // we only need to find a good upstream node with a single file -- since we only output single files
       if (has_only_singlefile_output)
       { // .. take any non-recycled input edge, preferably from 'in' and/or single inputs
-        if ((max_size < 1 || (it->second.edge->getTargetInParamName() == "in") || it->second.filenames.size() == 1))
+        if (((max_size < 1) || (it->second.edge->getTargetInParamName() == "in") || (it->second.filenames.size() == 1)))
         {
           max_size_index = it->first;
           max_size       = 1;
         }
 
       }
-      else if ((it->second.filenames.size() > max_size) ||   // either just larger 
-          // ... or it's from '-in' (which we prefer as naming source).. only for non-recycling -in though
-          ((it->second.filenames.size () == max_size) && (it->second.edge->getTargetInParamName() == "in")))
+      else if ((it->second.filenames.size() > max_size) || // either just larger
+               // ... or it's from '-in' (which we prefer as naming source).. only for non-recycling -in though
+               ((it->second.filenames.size() == max_size) && (it->second.edge->getTargetInParamName() == "in")))
       {
         max_size_index = it->first;
         max_size       = it->second.filenames.size();
@@ -981,7 +989,7 @@ namespace OpenMS
     output_files_.resize(pkg.size()); // #rounds
 
     const TOPPASScene* ts = getScene_();
-    
+
     // output names for each outgoing edge
     for (int i = 0; i < out_params.size(); ++i)
     {
@@ -1011,9 +1019,12 @@ namespace OpenMS
       }
       else if (param_.exists(p_out_format))
       { // 'out_type' or alike is specified
-        if (!param_.getValue(p_out_format).toString().empty()) file_suffix = "." + param_.getValue(p_out_format).toString();
-        else LOG_WARN << "TOPPAS cannot determine output file format for param '" << out_params[i].param_name
-                      << "' of Node " + this->name_ + "(" + String(this->getTopoNr()) + "). Format is ambiguous. Use parameter '" + p_out_format + "' to name intermediate output correctly!\n";
+        if (!param_.getValue(p_out_format).toString().empty()) { file_suffix = "." + param_.getValue(p_out_format).toString(); }
+        else
+        {
+          LOG_WARN << "TOPPAS cannot determine output file format for param '" << out_params[i].param_name
+                   << "' of Node " + this->name_ + "(" + String(this->getTopoNr()) + "). Format is ambiguous. Use parameter '" + p_out_format + "' to name intermediate output correctly!\n";
+        }
       }
       if (file_suffix.empty())
       { // tag as unknown (TOPPAS will try to rename the output file once its written - see renameOutput_())
@@ -1041,7 +1052,7 @@ namespace OpenMS
 
         // list --> single file (e.g. IDMerger or FileMerger)
         bool list_to_single = (per_round_basenames[r].size() > 1 && out_params[param_index].type == IOInfo::IOT_FILE);
-        for (const QString &input_file : per_round_basenames[r])
+        for (const QString& input_file : per_round_basenames[r])
         {
           QString fn = path + QFileInfo(input_file).fileName(); // out_path + filename
           LOG_DEBUG << "Single:" << fn.toStdString() << "\n";
@@ -1076,10 +1087,13 @@ namespace OpenMS
           }
           output_files_[r][param_index].filenames.push_back(fn);
           filename_output_set.insert(fn);
-          if (list_to_single) break; // only one iteration required
+          if (list_to_single)
+          {
+            break;                   // only one iteration required
+          }
         }
       }
-          
+
       //std::cerr << "output filenames (" << out_params[i].param_name <<") final: " << ListUtils::concatenate< std::set<QString> >(filename_output_set, ", ") << std::endl;
     }
 
@@ -1117,11 +1131,14 @@ namespace OpenMS
       for (Size i = 0; i < filenames.size(); ++i)
       {
         QString p = QDir::toNativeSeparators(QFileInfo(filenames[i][0]).canonicalPath());
-        if (p.isEmpty()) continue;
+        if (p.isEmpty()) { continue; }
         //std::cout << "PATH: " << p << "\n";
         String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
         //std::cout << "INTER: " << tmp << "\n";
-        if (tmp.size() <= 2 || tmp.has(':')) continue; // too small to be reliable; might even be 'c:'
+        if ((tmp.size() <= 2) || tmp.has(':'))
+        {
+          continue;                                    // too small to be reliable; might even be 'c:'
+        }
         filenames[i][0] = tmp.toQString();
         //std::cout << "  -->: " << filenames[i][0] << "\n";
       }

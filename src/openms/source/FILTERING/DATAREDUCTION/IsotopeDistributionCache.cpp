@@ -78,11 +78,17 @@ namespace OpenMS
         if (isotope_distributions_[index].intensity[i] < intensity_percentage)
         {
           if (!is_end && !is_begin)
+          {
             is_end = true;
+          }
           if (is_begin)
+          {
             ++begin;
+          }
           else if (is_end)
+          {
             ++end;
+          }
         }
         else if (is_begin)
         {

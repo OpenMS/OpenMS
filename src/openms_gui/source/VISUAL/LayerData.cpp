@@ -39,14 +39,14 @@ using namespace std;
 
 namespace OpenMS
 {
-  const std::string LayerData::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
+  const std::string LayerData::NamesOfLabelType[] = { "None", "Index", "Label meta data", "Peptide identification", "All peptide identifications" };
 
-  const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
+  const LayerData::ExperimentType::SpectrumType& LayerData::getCurrentSpectrum() const
   {
     return (*peaks)[current_spectrum_];
   }
 
-  std::ostream & operator<<(std::ostream & os, const LayerData & rhs)
+  std::ostream& operator<<(std::ostream& os, const LayerData& rhs)
   {
     os << "--LayerData BEGIN--" << std::endl;
     os << "name: " << rhs.name << std::endl;
@@ -61,9 +61,9 @@ namespace OpenMS
     int spectrum_index = getCurrentSpectrumIndex();
 
     // Return if no valid peak layer attached
-    if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
+    if ((getPeakData()->size() == 0) || (type != LayerData::DT_PEAK)) { return; }
 
-    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    MSSpectrum& spectrum = (*getPeakData())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
 
     if (ms_level == 2)
@@ -72,7 +72,7 @@ namespace OpenMS
       vector<PeptideIdentification>& pep_ids = spectrum.getPeptideIdentifications();
 
       // no ID selected
-      if (peptide_id_index == -1 || peptide_hit_index == -1)
+      if ((peptide_id_index == -1) || (peptide_hit_index == -1))
       {
         return;
       }
@@ -96,7 +96,7 @@ namespace OpenMS
       else // PeptideIdentifications are empty, create new PepIDs and PeptideHits to store the PeakAnnotations
       {
         // copy user annotations to fragment annotation vector
-        Annotations1DContainer & las = getAnnotations(current_spectrum_);
+        Annotations1DContainer& las = getAnnotations(current_spectrum_);
 
         // no annoations so we don't need to synchronize
         bool has_peak_annotation(false);
@@ -106,7 +106,7 @@ namespace OpenMS
           Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
           if (pa != nullptr) { has_peak_annotation = true; break; }
         }
-        if (has_peak_annotation == false) return;
+        if (has_peak_annotation == false) { return; }
 
         PeptideIdentification pep_id;
         pep_id.setIdentifier("Unknown");
@@ -140,7 +140,7 @@ namespace OpenMS
   void LayerData::updatePeptideHitAnnotations_(PeptideHit& hit)
   {
     // copy user annotations to fragment annotation vector
-    Annotations1DContainer & las = getAnnotations(current_spectrum_);
+    Annotations1DContainer& las = getAnnotations(current_spectrum_);
 
     vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
 
@@ -221,12 +221,12 @@ namespace OpenMS
     int spectrum_index = getCurrentSpectrumIndex();
 
     // Return if no valid peak layer attached
-    if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
+    if ((getPeakData()->size() == 0) || (type != LayerData::DT_PEAK)) { return; }
 
     // no ID selected
-    if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
+    if ((peptide_id_index == -1) || (peptide_hit_index == -1)) { return; }
 
-    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    MSSpectrum& spectrum = (*getPeakData())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
@@ -273,4 +273,5 @@ namespace OpenMS
     }
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
+
 } //Namespace

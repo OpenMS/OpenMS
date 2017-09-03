@@ -66,9 +66,9 @@ namespace OpenMS
   }
 
   int MultiplexFiltering::positionsAndBlacklistFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum,
-                                                      const vector<double>& peak_position, int peak,
-                                                      vector<double>& mz_shifts_actual,
-                                                      vector<int>& mz_shifts_actual_indices) const
+                                                       const vector<double>& peak_position, int peak,
+                                                       vector<double>& mz_shifts_actual,
+                                                       vector<int>& mz_shifts_actual_indices) const
   {
     // Try to find peaks at the expected m/z positions
     // loop over expected m/z shifts of a peak pattern
@@ -98,7 +98,7 @@ namespace OpenMS
     }
 
     // early out: Need to find at least (peaks_per_peptide * number_of_peptides) isotopic peaks.
-    if (found_peaks < peaks_per_peptide_min_ * pattern.getMassShiftCount()) return -1;
+    if (found_peaks < peaks_per_peptide_min_ * pattern.getMassShiftCount()) { return -1; }
 
     // remove peaks which run into the next peptide
     // i.e. the isotopic peak of one peptide lies to the right of the mono-isotopic peak of the next one
@@ -261,14 +261,14 @@ namespace OpenMS
     if (pattern.getMassShiftCount() == 1)
     {
       // We are detecting peptide singlets.
-      similarity = averagine_similarity_ + averagine_similarity_scaling_*(1 - averagine_similarity_);
+      similarity = averagine_similarity_ + averagine_similarity_scaling_ * (1 - averagine_similarity_);
     }
     else
     {
       // We are detecting peptide doublets or triplets or ...
       similarity = averagine_similarity_;
     }
-    
+
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       vector<double> isotope_pattern;
@@ -304,7 +304,7 @@ namespace OpenMS
 
         // blacklist peaks in this spectrum
         peak_index = mz_shifts_actual_indices[mz_position];
-        if (peak_index != -1 && !blacklist_[spectrum][peak_index].black)
+        if ((peak_index != -1) && !blacklist_[spectrum][peak_index].black)
         {
           blacklist_[spectrum][peak_index].black = true;
           blacklist_[spectrum][peak_index].black_exception_mass_shift_index = pattern.getMassShiftIndex();
@@ -314,19 +314,19 @@ namespace OpenMS
 
         // blacklist peaks in previous spectrum
         peak_index = registry_[spectrum][mz_shifts_actual_indices[mz_position]].index_in_previous_spectrum;
-        if (peak_index != -1 && !blacklist_[spectrum - 1][peak_index].black)
+        if ((peak_index != -1) && !blacklist_[spectrum - 1][peak_index].black)
         {
           blacklist_[spectrum - 1][peak_index].black = true;
           blacklist_[spectrum - 1][peak_index].black_exception_mass_shift_index = pattern.getMassShiftIndex();
           blacklist_[spectrum - 1][peak_index].black_exception_charge = pattern.getCharge();
           blacklist_[spectrum - 1][peak_index].black_exception_mz_position = mz_position;
         }
-        
+
         // blacklist peaks in spectrum before previous one
-        if (peak_index != -1 && spectrum > 1)
+        if ((peak_index != -1) && (spectrum > 1))
         {
           int peak_index_2 = registry_[spectrum - 1][peak_index].index_in_previous_spectrum;
-          if (peak_index_2 != -1 && !blacklist_[spectrum - 2][peak_index_2].black)
+          if ((peak_index_2 != -1) && !blacklist_[spectrum - 2][peak_index_2].black)
           {
             blacklist_[spectrum - 2][peak_index_2].black = true;
             blacklist_[spectrum - 2][peak_index_2].black_exception_mass_shift_index = pattern.getMassShiftIndex();
@@ -334,22 +334,22 @@ namespace OpenMS
             blacklist_[spectrum - 2][peak_index_2].black_exception_mz_position = mz_position;
           }
         }
-        
+
         // blacklist peaks in next spectrum
         peak_index = registry_[spectrum][mz_shifts_actual_indices[mz_position]].index_in_next_spectrum;
-        if (peak_index != -1 && !blacklist_[spectrum + 1][peak_index].black)
+        if ((peak_index != -1) && !blacklist_[spectrum + 1][peak_index].black)
         {
           blacklist_[spectrum + 1][peak_index].black = true;
           blacklist_[spectrum + 1][peak_index].black_exception_mass_shift_index = pattern.getMassShiftIndex();
           blacklist_[spectrum + 1][peak_index].black_exception_charge = pattern.getCharge();
           blacklist_[spectrum + 1][peak_index].black_exception_mz_position = mz_position;
         }
-        
+
         // blacklist peaks in spectrum after next one
-        if (peak_index != -1 && spectrum + 2 < (int) blacklist_.size())
+        if ((peak_index != -1) && (spectrum + 2 < (int) blacklist_.size()))
         {
           int peak_index_2 = registry_[spectrum + 1][peak_index].index_in_next_spectrum;
-          if (peak_index_2 != -1 && !blacklist_[spectrum + 2][peak_index_2].black)
+          if ((peak_index_2 != -1) && !blacklist_[spectrum + 2][peak_index_2].black)
           {
             blacklist_[spectrum + 2][peak_index_2].black = true;
             blacklist_[spectrum + 2][peak_index_2].black_exception_mass_shift_index = pattern.getMassShiftIndex();
@@ -371,7 +371,7 @@ namespace OpenMS
     std::vector<double>::const_iterator lb = std::lower_bound(peak_position.begin(), peak_position.end(), mz_min);
     std::vector<double>::const_iterator ub = std::upper_bound(lb, peak_position.end(), mz_max);
 
-    double smallest_error = scaling * mz_tolerance_; // initialize to the maximum  allowed error 
+    double smallest_error = scaling * mz_tolerance_; // initialize to the maximum  allowed error
     int smallest_error_index = -1;
 
     for (; lb != ub; ++lb)
@@ -382,7 +382,7 @@ namespace OpenMS
         smallest_error = error;
         smallest_error_index = lb - peak_position.begin();
       }
-    }    
+    }
 
     return smallest_error_index;
   }
@@ -397,9 +397,7 @@ namespace OpenMS
     return OpenMS::Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
   }
 
-
   double MultiplexFiltering::getAveragineSimilarity_(const vector<double>& pattern, double m) const
-
   {
     // construct averagine distribution
     IsotopeDistribution distribution;
@@ -407,20 +405,20 @@ namespace OpenMS
     distribution.setMaxIsotope(pattern.size());
     if (averagine_type_ == "peptide")
     {
-        distribution.estimateFromPeptideWeight(m);
+      distribution.estimateFromPeptideWeight(m);
     }
     else if (averagine_type_ == "RNA")
     {
-        distribution.estimateFromRNAWeight(m);
+      distribution.estimateFromRNAWeight(m);
     }
     else if (averagine_type_ == "DNA")
     {
-        distribution.estimateFromDNAWeight(m);
+      distribution.estimateFromDNAWeight(m);
     }
     else
     {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Averagine type unrecognized.");;
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                        "Averagine type unrecognized.");
     }
 
     for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)

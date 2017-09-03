@@ -69,7 +69,7 @@ namespace OpenMS
     mz_(rhs.mz_),
     rt_(rhs.rt_)
   {
-    setExperimentLabel( rhs.getExperimentLabel() );
+    setExperimentLabel(rhs.getExperimentLabel());
   }
 
   PeptideIdentification::~PeptideIdentification()
@@ -89,7 +89,7 @@ namespace OpenMS
     significance_threshold_ = rhs.significance_threshold_;
     score_type_ = rhs.score_type_;
     higher_score_better_ = rhs.higher_score_better_;
-    setExperimentLabel( rhs.getExperimentLabel() );
+    setExperimentLabel(rhs.getExperimentLabel());
     base_name_ = rhs.base_name_;
     mz_ = rhs.mz_;
     rt_ = rhs.rt_;
@@ -109,7 +109,7 @@ namespace OpenMS
            && getExperimentLabel() == rhs.getExperimentLabel()
            && base_name_ == rhs.base_name_
            && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
-           && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT()));// might be NaN, so comparing == will always be false
+           && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT())); // might be NaN, so comparing == will always be false
   }
 
   // Inequality operator
@@ -309,7 +309,7 @@ namespace OpenMS
   /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
   const DataValue& PeptideIdentification::getMetaValue(const String& name) const
   {
-    if (name == "RT" || name == "MZ")
+    if ((name == "RT") || (name == "MZ"))
     { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
       std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
       exit(1);
@@ -320,7 +320,7 @@ namespace OpenMS
   /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
   void PeptideIdentification::setMetaValue(const String& name, const DataValue& value)
   {
-    if (name == "RT" || name == "MZ")
+    if ((name == "RT") || (name == "MZ"))
     { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
       std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
       exit(1);

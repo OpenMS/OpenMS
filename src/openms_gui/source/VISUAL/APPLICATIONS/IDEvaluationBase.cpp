@@ -317,7 +317,9 @@ namespace OpenMS
     {
       it->assignRanks();
       if (it->getHits().size() > 0)
+      {
         q_values.push_back(it->getHits()[0].getScore());
+      }
     }
     std::sort(q_values.begin(), q_values.end());
 
@@ -347,7 +349,7 @@ namespace OpenMS
     bool good = true;
     for (StringList::const_iterator it = list.begin(); it != list.end(); ++it)
     {
-      if (!addSearchFile(*it)) good = false;
+      if (!addSearchFile(*it)) { good = false; }
     }
     return good;
   }
@@ -357,7 +359,6 @@ namespace OpenMS
     DRange<2> range(low * 100, -1, high * 100, -1);
     spec_1d_->canvas()->setVisibleArea(range);
   }
-
 
   bool IDEvaluationBase::loadCurve(const String& file_name, MSSpectrum& points)
   {
@@ -374,13 +375,13 @@ namespace OpenMS
     bool ret = getPoints(pep_ids, q_value_thresholds_, points); // FDR calculation failed?
     points.setMetaValue("search_engine", ln);
 
-    return ret; 
+    return ret;
   }
 
   bool IDEvaluationBase::addSearchFile(const String& file_name)
   {
     MSSpectrum points;
-    if (!loadCurve(file_name, points)) return false;
+    if (!loadCurve(file_name, points)) { return false; }
 
     data_.addSpectrum(points);
 
@@ -393,10 +394,10 @@ namespace OpenMS
 
     return true;
   }
-  
+
   const PeakMap& IDEvaluationBase::getPoints() const
   {
-     return data_;
+    return data_;
   }
 
   void IDEvaluationBase::saveImageAs()
@@ -457,7 +458,7 @@ namespace OpenMS
     //   x2 = small_edge_length;
     //   y2 = (1.0 / wh_proportion) * small_edge_length;
     // }
-    
+
     double h = param_.getValue("image:height");
     double w = param_.getValue("image:width");
     setGeometry(QRect(0, 0, w, h)); // does the layout -- otherwise we'd need show() to get it right
@@ -545,8 +546,8 @@ namespace OpenMS
                            "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
                            ).arg(VersionInfo::getVersion().toQString()
-                           ).arg( // if we have a revision, embed it also into the shown version number
-                             VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");    QLabel* text_label = new QLabel(text, dlg);
+                                 ).arg( // if we have a revision, embed it also into the shown version number
+      VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");    QLabel* text_label = new QLabel(text, dlg);
     grid->addWidget(text_label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
 
     //execute

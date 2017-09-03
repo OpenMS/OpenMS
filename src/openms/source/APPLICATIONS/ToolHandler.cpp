@@ -185,7 +185,7 @@ namespace OpenMS
     util_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", util_category);
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
     util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", util_category);
-    util_map["DatabaseFilter"]= Internal::ToolDescription("DatabaseFilter", util_category);
+    util_map["DatabaseFilter"] = Internal::ToolDescription("DatabaseFilter", util_category);
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);
     util_map["Digestor"] = Internal::ToolDescription("Digestor", util_category);
     util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", util_category);
@@ -266,9 +266,13 @@ namespace OpenMS
     {
       ToolListType tools;
       if (toolname == "GenericWrapper")
+      {
         tools = getTOPPToolList(true);
+      }
       else
+      {
         tools = getTOPPToolList();
+      }
 
       if (tools.has(toolname))
       {
@@ -320,10 +324,14 @@ namespace OpenMS
       // add every tool from file to list
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
-        if (i == 0 && i_t == 0)
+        if ((i == 0) && (i_t == 0))
+        {
           tools_external_ = tools[i_t]; // init
+        }
         else
+        {
           tools_external_.append(tools[i_t]); // append
+        }
       }
     }
     tools_external_.name = "GenericWrapper";

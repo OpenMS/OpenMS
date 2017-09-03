@@ -46,9 +46,10 @@ namespace OpenMS
   {
   }
 
-  SpectrumAccessOpenMS::SpectrumAccessOpenMS(const SpectrumAccessOpenMS & rhs) :
+  SpectrumAccessOpenMS::SpectrumAccessOpenMS(const SpectrumAccessOpenMS& rhs) :
     ms_experiment_(rhs.ms_experiment_)
-  {}
+  {
+  }
 
   boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMS::lightClone() const
   {
@@ -115,7 +116,7 @@ namespace OpenMS
     // further spectra as long as they are below RT + deltaRT.
     MSExperimentType::Iterator spectrum = ms_experiment_->RTBegin(RT - deltaRT);
     std::vector<std::size_t> result;
-    if (spectrum == ms_experiment_->end()) return result;
+    if (spectrum == ms_experiment_->end()) { return result; }
 
     result.push_back(std::distance(ms_experiment_->begin(), spectrum));
     spectrum++;

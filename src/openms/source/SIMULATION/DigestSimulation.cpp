@@ -202,7 +202,9 @@ namespace OpenMS
       for (StringList::const_iterator it_key = keys.begin(); it_key != keys.end(); ++it_key)
       {
         if (!it_key->hasPrefix("intensity"))
+        {
           continue;
+        }
         intensities[*it_key] = std::max(SimTypes::SimIntensityType(1), SimTypes::SimIntensityType(protein_hit->getMetaValue(*it_key))
                                         * SimTypes::SimIntensityType(number_of_digestion_products)
                                         / SimTypes::SimIntensityType(number_atomic_whole)); // order changed for numeric stability
@@ -228,7 +230,9 @@ namespace OpenMS
            ++dp_it)
       {
         if (dp_it->size() < min_peptide_length)
+        {
           continue;
+        }
 
         // sum equal peptide's intensities
         // *dp_it -> peptide

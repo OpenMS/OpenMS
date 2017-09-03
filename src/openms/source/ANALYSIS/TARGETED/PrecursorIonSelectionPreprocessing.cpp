@@ -135,7 +135,9 @@ namespace OpenMS
       }
     }
     if (!fixed_modifications_.empty())
+    {
       fixed_mods_ = true;
+    }
   }
 
   const std::map<String, std::vector<double> >& PrecursorIonSelectionPreprocessing::getProtMasses() const
@@ -149,7 +151,9 @@ namespace OpenMS
     while (iter != prot_masses_.end() && acc != iter->first)
       ++iter;
     if (iter != prot_masses_.end())
+    {
       return iter->second;
+    }
     else
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PrecursorIonSelectionPreprocessing: protein " + acc + " could not be found.");
@@ -178,12 +182,18 @@ namespace OpenMS
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {
         if (rt_prot_map_[prot_id].size() > peptide_index)
+        {
           return rt_prot_map_[prot_id][peptide_index];
+        }
         else
+        {
           return -1;
+        }
       }
       else
+      {
         return -1;
+      }
     }
     std::cout << "rt_map is empty, no rts predicted!" << std::endl;
     return -1;
@@ -196,12 +206,18 @@ namespace OpenMS
       if (pt_prot_map_.find(prot_id) != pt_prot_map_.end())
       {
         if (pt_prot_map_[prot_id].size() > peptide_index)
+        {
           return pt_prot_map_[prot_id][peptide_index];
+        }
         else
+        {
           return 1;
+        }
       }
       else
+      {
         return 1;
+      }
     }
     std::cout << "pt_map is empty, no detectabilities predicted!" << std::endl;
     return 1;
@@ -225,21 +241,29 @@ namespace OpenMS
         ++tmp_iter;
       }
       if (tmp_iter != bin_masses_.begin())
+      {
         --tmp_iter;
+      }
 #ifdef PISP_DEBUG
       if (tmp_iter != bin_masses_.end())
+      {
         std::cout << "tmp_iter " << *tmp_iter << std::endl;
+      }
       else
+      {
         std::cout << "tmp_iter am ende" << std::endl;
+      }
       std::cout << "fmax " << f_max_ << std::endl;
 #endif
-      if ((tmp_iter + 1) == bin_masses_.end()
-         || fabs(*tmp_iter - mass) < fabs(*(tmp_iter + 1) - mass))
+      if (((tmp_iter + 1) == bin_masses_.end())
+         || (fabs(*tmp_iter - mass) < fabs(*(tmp_iter + 1) - mass)))
       {
         return (double)counter_[distance(bin_masses_.begin(), tmp_iter)] / (double)f_max_;
       }
       else
+      {
         return (double)counter_[distance(bin_masses_.begin(), tmp_iter + 1)] / (double)f_max_;
+      }
     }
   }
 
@@ -384,11 +408,15 @@ namespace OpenMS
             masses_.push_back(mass);
           }
           if (store_pep_seqs)
+          {
             peptide_seqs.push_back(vec_iter->toUnmodifiedString());
+          }
         }
         prot_masses_.insert(make_pair(entries[e].identifier, prot_masses));
         if (store_pep_seqs)
+        {
           prot_peptide_seq_map_.insert(make_pair(entries[e].identifier, peptide_seqs));
+        }
       }
 
     }
@@ -415,13 +443,15 @@ namespace OpenMS
     std::vector<AASequence> peptide_aa_sequences;
     peptide_aa_sequences.resize(std::min(sequences_.size(), max_peptides_per_run));
     if (seq_it != seq_it_end)
+    {
       --seq_it_end;
+    }
     for (; seq_it != sequences_.end(); ++seq_it)
     {
       peptide_sequences[index] = seq_it->toUnmodifiedString();
       peptide_aa_sequences[index] = *seq_it;
       ++index;
-      if (index == max_peptides_per_run || seq_it == seq_it_end)
+      if ((index == max_peptides_per_run) || (seq_it == seq_it_end))
       {
         std::cout << distance(sequences_.begin(), seq_it) << " peptides done." << std::endl;
         // now make RTPrediction using the RTSimulation class of the simulator
@@ -479,7 +509,9 @@ namespace OpenMS
         peptide_sequences.clear();
         Int size = std::min((int)distance(seq_it, sequences_.end()) - 1, (int)max_peptides_per_run);
         if (size > 0)
+        {
           peptide_sequences.resize(size);
+        }
         peptide_aa_sequences.resize(size);
         index = 0;
       }
@@ -519,7 +551,9 @@ namespace OpenMS
       for (UInt i = 0; i < counter_.size(); ++i)
       {
         if (counter_[i] >  max)
+        {
           max = counter_[i];
+        }
       }
       // store maximal frequency
       f_max_ = max;
@@ -585,14 +619,16 @@ namespace OpenMS
         {
           ++counter_[distance(bin_masses_.begin(), tmp_iter - 1)];
         }
-        else if ((tmp_iter + 1) == bin_masses_.end() // last entry
-                || fabs(*tmp_iter - masses_[i]) < fabs(*(tmp_iter + 1) - masses_[i])) // or closer to left entry
+        else if (((tmp_iter + 1) == bin_masses_.end()) // last entry
+                || (fabs(*tmp_iter - masses_[i]) < fabs(*(tmp_iter + 1) - masses_[i]))) // or closer to left entry
         {
           // increase counter for bin to the left
           ++counter_[distance(bin_masses_.begin(), tmp_iter)];
         }
         else
+        {
           ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)]; // increase right counter
+        }
         // #ifdef PISP_DEBUG
         //                      timer.stop();
         //                      std::cout << timer.getCPUTime ()<<std::endl;
@@ -603,7 +639,9 @@ namespace OpenMS
       for (UInt i = 0; i < counter_.size(); ++i)
       {
         if (counter_[i] >  max)
+        {
           max = counter_[i];
+        }
       }
       f_max_ = max;
 #ifdef PISP_DEBUG
@@ -723,7 +761,9 @@ namespace OpenMS
       for (UInt i = 0; i < counter_.size(); ++i)
       {
         if (counter_[i] >  max)
+        {
           max = counter_[i];
+        }
       }
       // store maximal frequency
       f_max_ = max;
@@ -775,7 +815,9 @@ namespace OpenMS
         timer.start();
         std::cout << "old_begin " << *old_begin << " masses_[i] " << masses_[i] << std::endl;
         if (old_begin != bin_masses_.begin())
+        {
           std::cout << "old_begin-1 " << *(old_begin - 1) << std::endl;
+        }
 #endif
         while (tmp_iter != bin_masses_.end() &&  *tmp_iter < masses_[i])
         {
@@ -794,14 +836,16 @@ namespace OpenMS
         {
           ++counter_[distance(bin_masses_.begin(), tmp_iter - 1)];
         }
-        else if ((tmp_iter + 1) == bin_masses_.end() // last entry
-                || fabs(*tmp_iter - masses_[i]) < fabs(*(tmp_iter + 1) - masses_[i])) // or closer to left entry
+        else if (((tmp_iter + 1) == bin_masses_.end()) // last entry
+                || (fabs(*tmp_iter - masses_[i]) < fabs(*(tmp_iter + 1) - masses_[i]))) // or closer to left entry
         {
           // increase counter for bin to the left
           ++counter_[distance(bin_masses_.begin(), tmp_iter)];
         }
         else
+        {
           ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)]; // increase right counter
+        }
 #ifdef PISP_DEBUG
         timer.stop();
         std::cout << timer.getCPUTime() << std::endl;
@@ -812,7 +856,9 @@ namespace OpenMS
       for (UInt i = 0; i < counter_.size(); ++i)
       {
         if (counter_[i] >  max)
+        {
           max = counter_[i];
+        }
       }
       f_max_ = max;
 #ifdef PISP_DEBUG
@@ -1043,14 +1089,20 @@ namespace OpenMS
           {
             rts.push_back(line_parts[1].toDouble());
             if (line_parts.size() == 3)
+            {
               pts.push_back(line_parts[2].toDouble());
+            }
           }
         }
         else
+        {
           masses.push_back(parts[i].toDouble());
+        }
       }
       if (parts[1].hasSubstring("."))
+      {
         parts[1] = parts[1].prefix(11);
+      }
       prot_masses_.insert(make_pair(parts[1], masses));
 
       if (!rts.empty())
@@ -1092,16 +1144,20 @@ namespace OpenMS
     {
       counter_.push_back(f_iter->toInt());
       if ((UInt)f_iter->toInt() > f_max_)
+      {
         f_max_ = f_iter->toInt();
+      }
     }
     ++iter;
 
     if (param_.getValue("precursor_mass_tolerance_unit") == "ppm")
     {
       if (iter == file.end())
+      {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "ppm is used as precursor_mass_tolerance_unit, which requires the file "
                                           + path + "_bin_masses" + ", that could not be found.");
+      }
       else if (iter->hasPrefix("###"))
       {
         ++iter;
@@ -1117,9 +1173,11 @@ namespace OpenMS
 
       }
       else
+      {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "ppm is used as precursor_mass_tolerance_unit, which requires the file "
                                           + path + "_bin_masses" + ", that could not be found.");
+      }
     }
 
 
@@ -1147,14 +1205,18 @@ namespace OpenMS
     // first adapt gaussian RT error distribution to a normal distribution with \mu = 0
     Int theo_scan = getScanNumber_(theo_rt);
     if (theo_scan == -1)
+    {
       return 0.;
+    }
 
     double obs_scan_begin = getScanNumber_(min_obs_rt);
     if (obs_scan_begin != 0)
+    {
       obs_scan_begin -= 1;
+    }
     double obs_scan_end = getScanNumber_(max_obs_rt) + 1;
 
-    if (obs_scan_begin == -1 || obs_scan_end == -1)
+    if ((obs_scan_begin == -1) || (obs_scan_end == -1))
     {
       std::cerr << "Probably an error occured during RTProb-calc: scan = -1: "
                 << obs_scan_begin << " " << obs_scan_end << std::endl;
@@ -1170,15 +1232,21 @@ namespace OpenMS
     boost::math::normal dist(0.0, sigma_);
     double prob = boost::math::cdf(dist, x1) - boost::math::cdf(dist, x2);
     if (x2 > x1)
+    {
       prob = boost::math::cdf(dist, x2) - boost::math::cdf(dist, x1);
+    }
     if ((prob < 0.) || (obs_scan_begin == obs_scan_end))
     {
       std::cerr << min_obs_rt << " " << obs_scan_begin << " " << max_obs_rt << " " << obs_scan_end << " "
                 << theo_rt << " " << theo_scan << " " << mu_ << " " << x1 << " " << x2 << " " << prob << std::endl;
       if (x2 > x1)
+      {
         std::cerr <<  boost::math::cdf(dist, x2) << " - " << boost::math::cdf(dist, x1) << std::endl;
+      }
       else
+      {
         std::cerr << boost::math::cdf(dist, x1) << " - " << boost::math::cdf(dist, x2) << std::endl;
+      }
     }
     return prob;
   }
@@ -1189,8 +1257,10 @@ namespace OpenMS
     double max_rt = param_.getValue("rt_settings:max_rt");
     double rt_step_size = param_.getValue("rt_settings:rt_step_size");
 
-    if (rt > max_rt || rt < min_rt)
+    if ((rt > max_rt) || (rt < min_rt))
+    {
       return -1;
+    }
 
     Int scan = (Int)floor((rt - min_rt) / rt_step_size);
     return scan;
@@ -1216,7 +1286,9 @@ namespace OpenMS
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {
         if (rt_prot_map_[prot_id].size() > peptide_index)
+        {
           theo_rt = rt_prot_map_[prot_id][peptide_index];
+        }
       }
     }
     if (theo_rt == 0.)

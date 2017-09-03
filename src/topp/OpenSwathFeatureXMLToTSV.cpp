@@ -81,9 +81,9 @@ using namespace OpenMS;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-std::map<String, std::vector<const ReactionMonitoringTransition *> > peptide_transition_map;
+std::map<String, std::vector<const ReactionMonitoringTransition*> > peptide_transition_map;
 
-void write_out_header(std::ostream &os, FeatureMap &feature_map, /* String main_var_name,  */ std::vector<String> &meta_value_names, bool short_format)
+void write_out_header(std::ostream& os, FeatureMap& feature_map, /* String main_var_name,  */ std::vector<String>& meta_value_names, bool short_format)
 {
   std::vector<String> meta_value_names_tmp;
 
@@ -104,7 +104,7 @@ void write_out_header(std::ostream &os, FeatureMap &feature_map, /* String main_
   feature_map[0].getKeys(meta_value_names_tmp);
   for (Size i = 0; i < meta_value_names_tmp.size(); i++)
   {
-    if (meta_value_names_tmp[i] != "PeptideRef" && meta_value_names_tmp[i] != "PrecursorMZ")
+    if ((meta_value_names_tmp[i] != "PeptideRef") && (meta_value_names_tmp[i] != "PrecursorMZ"))
     {
       meta_value_names.push_back(meta_value_names_tmp[i]);
     }
@@ -131,8 +131,8 @@ void write_out_header(std::ostream &os, FeatureMap &feature_map, /* String main_
   os << std::endl;
 }
 
-void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &transition_exp,
-                     std::vector<String> &meta_value_names, int run_id, bool short_format, String identifier, String filename)
+void write_out_body_(std::ostream& os, Feature* feature_it, TargetedExperiment& transition_exp,
+                     std::vector<String>& meta_value_names, int run_id, bool short_format, String identifier, String filename)
 {
 
   String peptide_ref = feature_it->getMetaValue("PeptideRef");
@@ -150,7 +150,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
                                      "Did not find the peptide " + peptide_ref + " in the targeted experiment.");
   }
 
-  const OpenMS::TargetedExperiment::Peptide &pep = transition_exp.getPeptideByRef(peptide_ref);
+  const OpenMS::TargetedExperiment::Peptide& pep = transition_exp.getPeptideByRef(peptide_ref);
 
   sequence = pep.sequence;
   if (pep.protein_refs.size() > 0)
@@ -168,7 +168,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   {
     charge = (String)pep.getChargeState();
   }
-  if (charge == "NA" && !full_peptide_name.empty())
+  if ((charge == "NA") && !full_peptide_name.empty())
   {
     // deal with FullPeptideNames like PEPTIDE/2
     std::vector<String> substrings;
@@ -180,23 +180,23 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
 
   // handle decoy tag
-  if (peptide_transition_map.find(peptide_ref) != peptide_transition_map.end() && peptide_transition_map[peptide_ref].size() > 0)
+  if ((peptide_transition_map.find(peptide_ref) != peptide_transition_map.end()) && (peptide_transition_map[peptide_ref].size() > 0))
   {
-    const ReactionMonitoringTransition *transition = peptide_transition_map[peptide_ref][0];
+    const ReactionMonitoringTransition* transition = peptide_transition_map[peptide_ref][0];
 #if 1
     if (transition->getCVTerms().has("decoy"))
     {
       decoy = transition->getCVTerms()["decoy"][0].getValue().toString();
     }
-    else if (transition->getCVTerms().has("MS:1002007"))    // target SRM transition
+    else if (transition->getCVTerms().has("MS:1002007")) // target SRM transition
     {
       decoy = "0";
     }
-    else if (transition->getCVTerms().has("MS:1002008"))    // decoy SRM transition
+    else if (transition->getCVTerms().has("MS:1002008")) // decoy SRM transition
     {
       decoy = "1";
     }
-    else if (transition->getCVTerms().has("MS:1002007") && transition->getCVTerms().has("MS:1002008"))    // both == illegal
+    else if (transition->getCVTerms().has("MS:1002007") && transition->getCVTerms().has("MS:1002008")) // both == illegal
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Peptide " + peptide_ref + " cannot be target and decoy at the same time.");
@@ -306,10 +306,10 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   }
 }
 
-Feature *find_best_feature(const std::vector<Feature *> &features, String score_)
+Feature* find_best_feature(const std::vector<Feature*>& features, String score_)
 {
   double best_score = -std::numeric_limits<double>::max();
-  Feature *best_feature = NULL;
+  Feature* best_feature = NULL;
 
   for (Size i = 0; i < features.size(); i++)
   {
@@ -323,13 +323,13 @@ Feature *find_best_feature(const std::vector<Feature *> &features, String score_
   return best_feature;
 }
 
-void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
-                               TargetedExperiment &transition_exp, std::vector<String> &meta_value_names,
+void write_out_body_best_score(std::ostream& os, FeatureMap& feature_map,
+                               TargetedExperiment& transition_exp, std::vector<String>& meta_value_names,
                                int run_id, bool short_format, String best_score, String filename)
 {
 
   // for each peptide reference search for the best feature
-  typedef std::map<String, std::vector<Feature *> > PeptideFeatureMapType;
+  typedef std::map<String, std::vector<Feature*> > PeptideFeatureMapType;
   PeptideFeatureMapType peptide_feature_map;
   for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
   {
@@ -349,7 +349,7 @@ void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
 
   for (PeptideFeatureMapType::iterator peptide_it = peptide_feature_map.begin(); peptide_it != peptide_feature_map.end(); ++peptide_it)
   {
-    Feature *bestfeature = find_best_feature(peptide_it->second, best_score);
+    Feature* bestfeature = find_best_feature(peptide_it->second, best_score);
     if (bestfeature == NULL)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Did not find best feature for peptide " + peptide_it->first);
@@ -358,9 +358,8 @@ void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
   }
 }
 
-
-class TOPPOpenSwathFeatureXMLToTSV
-: public TOPPBase, public ProgressLogger
+class TOPPOpenSwathFeatureXMLToTSV :
+  public TOPPBase, public ProgressLogger
 {
 public:
 
@@ -388,8 +387,8 @@ protected:
     registerStringOption_("best_scoring_peptide", "<varname>", "", "If only the best scoring feature per peptide should be printed, give the variable name", false);
   }
 
-  void write_out_body(std::ostream &os, FeatureMap &feature_map,
-                      TargetedExperiment &transition_exp, std::vector<String> &meta_value_names,
+  void write_out_body(std::ostream& os, FeatureMap& feature_map,
+                      TargetedExperiment& transition_exp, std::vector<String>& meta_value_names,
                       int run_id, bool short_format, String filename)
   {
 
@@ -403,7 +402,7 @@ protected:
     endProgress();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     StringList file_list = getStringList_("in");
@@ -422,7 +421,7 @@ protected:
     for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
     {
       setProgress(i);
-      const ReactionMonitoringTransition *transition = &transition_exp.getTransitions()[i];
+      const ReactionMonitoringTransition* transition = &transition_exp.getTransitions()[i];
 
       {
         peptide_transition_map[transition->getPeptideRef()].push_back(&transition_exp.getTransitions()[i]);
@@ -454,7 +453,7 @@ protected:
     }
     std::vector<String> meta_value_names;
 
-    if (feature_map.empty() && file_list.size() > 1)
+    if (feature_map.empty() && (file_list.size() > 1))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Feature map " + file_list[0] + " is empty.");
     }
@@ -519,7 +518,7 @@ protected:
 
 };
 
-int main(int argc, const char **argv)
+int main(int argc, const char** argv)
 {
 
   TOPPOpenSwathFeatureXMLToTSV tool;

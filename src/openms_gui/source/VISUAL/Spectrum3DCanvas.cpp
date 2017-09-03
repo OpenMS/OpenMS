@@ -55,7 +55,7 @@ namespace OpenMS
 {
   using namespace Internal;
 
-  Spectrum3DCanvas::Spectrum3DCanvas(const Param & preferences, QWidget * parent) :
+  Spectrum3DCanvas::Spectrum3DCanvas(const Param& preferences, QWidget* parent) :
     SpectrumCanvas(preferences, parent)
   {
     // Parameter handling
@@ -88,7 +88,7 @@ namespace OpenMS
   {
   }
 
-  void Spectrum3DCanvas::resizeEvent(QResizeEvent * e)
+  void Spectrum3DCanvas::resizeEvent(QResizeEvent* e)
   {
     openglcanvas_->resize(e->size().width(), e->size().height());
   }
@@ -115,11 +115,13 @@ namespace OpenMS
     current_layer_ = getLayerCount() - 1;
 
     //Abort if no data points are contained
-    if (getCurrentLayer().getPeakData()->size() == 0 || getCurrentLayer().getPeakData()->getSize() == 0)
+    if ((getCurrentLayer().getPeakData()->size() == 0) || (getCurrentLayer().getPeakData()->getSize() == 0))
     {
       layers_.resize(getLayerCount() - 1);
       if (current_layer_ != 0)
+      {
         current_layer_ = current_layer_ - 1;
+      }
       QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no survey scans. Aborting!");
       return false;
     }
@@ -143,7 +145,7 @@ namespace OpenMS
 
   void Spectrum3DCanvas::activateLayer(Size layer_index)
   {
-    if (layer_index >= getLayerCount() || layer_index == current_layer_)
+    if ((layer_index >= getLayerCount()) || (layer_index == current_layer_))
     {
       return;
     }
@@ -162,8 +164,10 @@ namespace OpenMS
     layers_.erase(layers_.begin() + layer_index);
 
     //update current layer if it became invalid
-    if (current_layer_ != 0 && current_layer_ >= getLayerCount())
+    if ((current_layer_ != 0) && (current_layer_ >= getLayerCount()))
+    {
       current_layer_ = getLayerCount() - 1;
+    }
 
     recalculateRanges_(0, 1, 2);
 
@@ -178,17 +182,17 @@ namespace OpenMS
     resetZoom();
   }
 
-  Spectrum3DOpenGLCanvas * Spectrum3DCanvas::openglwidget()
+  Spectrum3DOpenGLCanvas* Spectrum3DCanvas::openglwidget()
   {
-    return static_cast<Spectrum3DOpenGLCanvas *>(openglcanvas_);
+    return static_cast<Spectrum3DOpenGLCanvas*>(openglcanvas_);
   }
 
 #ifdef DEBUG_TOPPVIEW
-  void Spectrum3DCanvas::update_(const char * caller)
+  void Spectrum3DCanvas::update_(const char* caller)
   {
     cout << "BEGIN " << OPENMS_PRETTY_FUNCTION << " caller: " << caller << endl;
 #else
-  void Spectrum3DCanvas::update_(const char * /* caller */)
+  void Spectrum3DCanvas::update_(const char* /* caller */)
   {
 #endif
 
@@ -208,14 +212,14 @@ namespace OpenMS
   void Spectrum3DCanvas::showCurrentLayerPreferences()
   {
     Internal::Spectrum3DPrefDialog dlg(this);
-    LayerData & layer = getCurrentLayer_();
+    LayerData& layer = getCurrentLayer_();
 
 // cout << "IN: " << param_ << endl;
 
-    ColorSelector * bg_color = dlg.findChild<ColorSelector *>("bg_color");
-    QComboBox * shade = dlg.findChild<QComboBox *>("shade");
-    MultiGradientSelector * gradient = dlg.findChild<MultiGradientSelector *>("gradient");
-    QSpinBox * width  = dlg.findChild<QSpinBox *>("width");
+    ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
+    QComboBox* shade = dlg.findChild<QComboBox*>("shade");
+    MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
+    QSpinBox* width  = dlg.findChild<QSpinBox*>("width");
 
     bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
     shade->setCurrentIndex(layer.param.getValue("dot:shade_mode"));
@@ -242,14 +246,16 @@ namespace OpenMS
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
-  void Spectrum3DCanvas::contextMenuEvent(QContextMenuEvent * e)
+  void Spectrum3DCanvas::contextMenuEvent(QContextMenuEvent* e)
   {
     //Abort of there are no layers
     if (layers_.empty())
+    {
       return;
+    }
 
-    QMenu * context_menu = new QMenu(this);
-    QAction * result = 0;
+    QMenu* context_menu = new QMenu(this);
+    QAction* result = 0;
 
     //Display name and warn if current layer invisible
     String layer_name = String("Layer: ") + getCurrentLayer().name;
@@ -261,12 +267,12 @@ namespace OpenMS
     context_menu->addSeparator();
     context_menu->addAction("Layer meta data");
 
-    QMenu * save_menu = new QMenu("Save");
+    QMenu* save_menu = new QMenu("Save");
     context_menu->addMenu(save_menu);
     save_menu->addAction("Layer");
     save_menu->addAction("Visible layer data");
 
-    QMenu * settings_menu = new QMenu("Settings");
+    QMenu* settings_menu = new QMenu("Settings");
     context_menu->addMenu(settings_menu);
     settings_menu->addAction("Show/hide grid lines");
     settings_menu->addAction("Show/hide axis legends");
@@ -297,7 +303,7 @@ namespace OpenMS
       {
         emit changeLegendVisibility();
       }
-      else if (result->text() == "Layer" || result->text() == "Visible layer data")
+      else if ((result->text() == "Layer") || (result->text() == "Visible layer data"))
       {
         saveCurrentLayer(result->text() == "Visible layer data");
       }
@@ -315,11 +321,11 @@ namespace OpenMS
 
   void Spectrum3DCanvas::saveCurrentLayer(bool visible)
   {
-    const LayerData & layer = getCurrentLayer();
+    const LayerData& layer = getCurrentLayer();
 
     //determine proposed filename
     String proposed_name = param_.getValue("default_path");
-    if (visible == false && layer.filename != "")
+    if ((visible == false) && (layer.filename != ""))
     {
       proposed_name = layer.filename;
     }
@@ -356,14 +362,14 @@ namespace OpenMS
         }
       }
 
-      if (visible)   //only visible data
+      if (visible) //only visible data
       {
         ExperimentType out;
         getVisiblePeakData(out);
         addDataProcessing_(out, DataProcessing::FILTERING);
         FileHandler().storeExperiment(file_name, out, ProgressLogger::GUI);
       }
-      else       //all data
+      else //all data
       {
         FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
       }

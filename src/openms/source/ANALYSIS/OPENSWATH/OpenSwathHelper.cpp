@@ -45,8 +45,8 @@ namespace OpenMS
     for (Size i = 0; i < targeted_exp.getTransitions().size(); i++)
     {
       ReactionMonitoringTransition tr = targeted_exp.getTransitions()[i];
-      if (lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < upper &&
-          std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist)
+      if ((lower < tr.getPrecursorMZ()) && (tr.getPrecursorMZ() < upper) &&
+          (std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist))
       {
         transition_exp_used.addTransition(tr);
       }
@@ -56,7 +56,7 @@ namespace OpenMS
   void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
                                       double& lower, double& upper)
   {
-    if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)
+    if ((swath_map.size() == 0) || (swath_map[0].getPrecursors().size() == 0))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Swath map has no Spectra");
     }
@@ -77,9 +77,9 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " if of a different MS level than the first scan.");
       }
       if (
-        fabs(prec[0].getMZ() - first_prec[0].getMZ()) > 0.1 ||
-        fabs(prec[0].getIsolationWindowLowerOffset() - first_prec[0].getIsolationWindowLowerOffset()) > 0.1 ||
-        fabs(prec[0].getIsolationWindowUpperOffset() - first_prec[0].getIsolationWindowUpperOffset()) > 0.1
+        (fabs(prec[0].getMZ() - first_prec[0].getMZ()) > 0.1) ||
+        (fabs(prec[0].getIsolationWindowLowerOffset() - first_prec[0].getIsolationWindowLowerOffset()) > 0.1) ||
+        (fabs(prec[0].getIsolationWindowUpperOffset() - first_prec[0].getIsolationWindowUpperOffset()) > 0.1)
         )
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " has a different precursor isolation window than the first scan.");
@@ -96,8 +96,8 @@ namespace OpenMS
     for (Size i = 0; i < targeted_exp.transitions.size(); i++)
     {
       const OpenSwath::LightTransition& tr = targeted_exp.transitions[i];
-      if (lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < upper &&
-          std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist)
+      if ((lower < tr.getPrecursorMZ()) && (tr.getPrecursorMZ() < upper) &&
+          (std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist))
       {
         transition_exp_used.transitions.push_back(tr);
         matching_compounds.insert(tr.getPeptideRef());
@@ -108,7 +108,7 @@ namespace OpenMS
     {
       if (matching_compounds.find(targeted_exp.compounds[i].id) != matching_compounds.end())
       {
-        transition_exp_used.compounds.push_back( targeted_exp.compounds[i] );
+        transition_exp_used.compounds.push_back(targeted_exp.compounds[i]);
         for (Size j = 0; j < targeted_exp.compounds[i].protein_refs.size(); j++)
         {
           matching_proteins.insert(targeted_exp.compounds[i].protein_refs[j]);
@@ -119,50 +119,50 @@ namespace OpenMS
     {
       if (matching_proteins.find(targeted_exp.proteins[i].id) != matching_proteins.end())
       {
-        transition_exp_used.proteins.push_back( targeted_exp.proteins[i] );
+        transition_exp_used.proteins.push_back(targeted_exp.proteins[i]);
       }
     }
   }
 
-  std::pair<double,double> OpenSwathHelper::estimateRTRange(OpenSwath::LightTargetedExperiment & exp)
+  std::pair<double, double> OpenSwathHelper::estimateRTRange(OpenSwath::LightTargetedExperiment& exp)
   {
-    if (exp.getCompounds().empty()) 
+    if (exp.getCompounds().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "Input list of targets is empty.");
+                                       "Input list of targets is empty.");
     }
     double max = exp.getCompounds()[0].rt;
     double min = exp.getCompounds()[0].rt;
     for (Size i = 0; i < exp.getCompounds().size(); i++)
     {
-      if (exp.getCompounds()[i].rt < min) min = exp.getCompounds()[i].rt;
-      if (exp.getCompounds()[i].rt > max) max = exp.getCompounds()[i].rt;
+      if (exp.getCompounds()[i].rt < min) { min = exp.getCompounds()[i].rt; }
+      if (exp.getCompounds()[i].rt > max) { max = exp.getCompounds()[i].rt; }
     }
-    return std::make_pair(min,max);
+    return std::make_pair(min, max);
   }
 
   std::map<std::string, double> OpenSwathHelper::simpleFindBestFeature(
-      OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
-      bool useQualCutoff, double qualCutoff)
+    OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType& transition_group_map,
+    bool useQualCutoff, double qualCutoff)
   {
     std::map<std::string, double> result;
     for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-        trgroup_it != transition_group_map.end(); ++trgroup_it)
+         trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
-      if (trgroup_it->second.getFeatures().empty() ) {continue;}
+      if (trgroup_it->second.getFeatures().empty()) { continue; }
 
       // Find the feature with the highest score
-      const MRMFeature & bestf = trgroup_it->second.getBestFeature();
+      const MRMFeature& bestf = trgroup_it->second.getBestFeature();
 
       // Skip if we did not find a feature or do not exceed a certain quality
-      if (useQualCutoff && bestf.getOverallQuality() < qualCutoff ) 
+      if (useQualCutoff && (bestf.getOverallQuality() < qualCutoff))
       {
         continue;
       }
 
       // If we have a found a best feature, add it to the vector
       String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
-      result[ pepref ] = bestf.getRT();
+      result[pepref] = bestf.getRT();
     }
     return result;
   }

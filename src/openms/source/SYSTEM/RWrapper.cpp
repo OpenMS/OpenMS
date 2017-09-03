@@ -46,13 +46,13 @@
 namespace OpenMS
 {
 
-  bool RWrapper::runScript( const String& script_file, const QStringList& cmd_args, const QString& executable /*= "Rscript"*/, bool find_R /*= false */, bool verbose /*= true */)
+  bool RWrapper::runScript(const String& script_file, const QStringList& cmd_args, const QString& executable /*= "Rscript"*/, bool find_R /*= false */, bool verbose /*= true */)
   {
     if (find_R && !findR(executable, verbose))
     {
       return false;
     }
-    
+
     String fullscript;
     try
     {
@@ -63,7 +63,7 @@ namespace OpenMS
       return false;
     }
 
-    if (verbose) LOG_INFO << "Running R script '" << fullscript << "' ...";
+    if (verbose) { LOG_INFO << "Running R script '" << fullscript << "' ..."; }
 
     QStringList args;
     args << "--vanilla" << "--quiet" << fullscript.toQString();
@@ -73,7 +73,7 @@ namespace OpenMS
     p.start(executable, args);
     p.waitForFinished(-1);
 
-    if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
+    if ((p.error() == QProcess::FailedToStart) || (p.exitStatus() == QProcess::CrashExit) || (p.exitCode() != 0))
     {
       if (verbose)
       {
@@ -86,14 +86,14 @@ namespace OpenMS
       }
       return false;
     }
-    if (verbose) LOG_INFO << " success" << std::endl;
+    if (verbose) { LOG_INFO << " success" << std::endl; }
 
     return true;
   }
 
-  bool RWrapper::findR( const QString& executable /*= "Rscript"*/, bool verbose /*= true*/ )
+  bool RWrapper::findR(const QString& executable /*= "Rscript"*/, bool verbose /*= true*/)
   {
-    if (verbose) LOG_INFO << "Finding R interpreter 'Rscript' ...";
+    if (verbose) { LOG_INFO << "Finding R interpreter 'Rscript' ..."; }
 
     QStringList args(QStringList() << "--vanilla" << "-e" << "sessionInfo()");
     QProcess p;
@@ -119,10 +119,10 @@ namespace OpenMS
 
       return false;
     }
-    if (verbose) LOG_INFO << " success" << std::endl;
+    if (verbose) { LOG_INFO << " success" << std::endl; }
 
-    if (verbose) LOG_INFO << "Trying to invoke 'Rscript' ...";
-    if (p.exitStatus() != QProcess::NormalExit || p.exitCode() != 0)
+    if (verbose) { LOG_INFO << "Trying to invoke 'Rscript' ..."; }
+    if ((p.exitStatus() != QProcess::NormalExit) || (p.exitCode() != 0))
     {
       if (verbose)
       {
@@ -135,12 +135,12 @@ namespace OpenMS
       }
       return false;
     }
-    if (verbose) LOG_INFO << " success" << std::endl;
+    if (verbose) { LOG_INFO << " success" << std::endl; }
 
     return true;
   }
 
-  OpenMS::String RWrapper::findScript( const String& script_file, bool verbose /*= true*/ )
+  OpenMS::String RWrapper::findScript(const String& script_file, bool verbose /*= true*/)
   {
     String s;
     try
@@ -149,7 +149,7 @@ namespace OpenMS
     }
     catch (...)
     {
-      if (verbose) LOG_ERROR << "\n\nCould not find R script '" << script_file << "'!\n" << std::endl;
+      if (verbose) { LOG_ERROR << "\n\nCould not find R script '" << script_file << "'!\n" << std::endl; }
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, script_file);
     }
     return s;

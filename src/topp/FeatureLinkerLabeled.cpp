@@ -100,14 +100,14 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     FeatureGroupingAlgorithmLabeled algo;
     Param p = algo.getParameters();
     return p;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     FeatureGroupingAlgorithmLabeled algo;
     return TOPPFeatureLinkerBase::common_main_(&algo, true);
@@ -116,7 +116,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFeatureLinkerLabeled tool;
   return tool.main(argc, argv);

@@ -60,7 +60,7 @@ namespace OpenMS
   }
 
   QTCluster::QTCluster(OpenMS::GridFeature* center_point, Size num_maps,
-                       double max_distance, bool use_IDs, Int x_coord, 
+                       double max_distance, bool use_IDs, Int x_coord,
                        Int y_coord) :
     center_point_(center_point),
     neighbors_(),
@@ -82,12 +82,12 @@ namespace OpenMS
       annotations_ = center_point->getAnnotations();
     }
     if (use_IDs_ && center_point_->getAnnotations().empty())
-    { 
+    {
       collect_annotations_ = true;
     }
   }
 
-  GridFeature* QTCluster::getCenterPoint() 
+  GridFeature* QTCluster::getCenterPoint()
   {
     return center_point_;
   }
@@ -124,40 +124,40 @@ namespace OpenMS
   Size QTCluster::size() const
   {
     OPENMS_PRECONDITION(finalized_,
-        "Cannot perform operation on cluster that is not finalized")
+                        "Cannot perform operation on cluster that is not finalized")
     return neighbors_.size() + 1; // + 1 for the center
   }
 
   bool QTCluster::operator<(QTCluster& cluster)
   {
     OPENMS_PRECONDITION(finalized_,
-        "Cannot perform operation on cluster that is not finalized")
+                        "Cannot perform operation on cluster that is not finalized")
     return this->getQuality() < cluster.getQuality();
   }
 
   void QTCluster::add(OpenMS::GridFeature* element, double distance)
   {
     OPENMS_PRECONDITION(!finalized_,
-        "Cannot perform operation on cluster that is not initialized")
+                        "Cannot perform operation on cluster that is not initialized")
     // ensure we only add compatible peptide annotations
     OPENMS_PRECONDITION(distance <= max_distance_,
-        "Distance cannot be larger than max_distance")
-    // collect_annotations_ implies tmp_neighbors_ != NULL, 
-    OPENMS_PRECONDITION(!collect_annotations_ || tmp_neighbors_ != NULL, 
-        "Initialize the cluster first before adding elements")
+                        "Distance cannot be larger than max_distance")
+    // collect_annotations_ implies tmp_neighbors_ != NULL,
+    OPENMS_PRECONDITION(!collect_annotations_ || tmp_neighbors_ != NULL,
+                        "Initialize the cluster first before adding elements")
 
     Size map_index = element->getMapIndex();
 
     // Ensure we only add compatible peptide annotations. If the cluster center
     // has an annotation, then each added neighbor should have the same
     // annotation. If the center element has no annotation we add all elements
-    // and select the optimal annotation later, using optimizeAnnotations_ 
+    // and select the optimal annotation later, using optimizeAnnotations_
     if (use_IDs_)
     {
       bool one_empty = (center_point_->getAnnotations().empty() || element->getAnnotations().empty());
       if (!one_empty) // both are annotated
       {
-        if (center_point_->getAnnotations() != element->getAnnotations()) 
+        if (center_point_->getAnnotations() != element->getAnnotations())
         {
           // Both annotations are non-empty and are unequal, we don't add
           return;
@@ -167,7 +167,7 @@ namespace OpenMS
 
     // We have to store annotations in a temporary map first if we collect all
     // annotations
-    if (collect_annotations_ && map_index != center_point_->getMapIndex())
+    if (collect_annotations_ && (map_index != center_point_->getMapIndex()))
     {
       (*tmp_neighbors_)[map_index].insert(make_pair(distance, element));
       changed_ = true;
@@ -178,8 +178,8 @@ namespace OpenMS
     // the element is closer than the current element for that map
     if (map_index != center_point_->getMapIndex())
     {
-      if (neighbors_.find(map_index) == neighbors_.end() ||
-          distance < neighbors_[map_index].first)
+      if ((neighbors_.find(map_index) == neighbors_.end()) ||
+          (distance < neighbors_[map_index].first))
       {
         neighbors_[map_index] = make_pair(distance, element);
         changed_ = true;
@@ -190,7 +190,7 @@ namespace OpenMS
   void QTCluster::getElements(OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>& elements)
   {
     OPENMS_PRECONDITION(finalized_,
-        "Cannot perform operation on cluster that is not finalized")
+                        "Cannot perform operation on cluster that is not finalized")
 
     elements.clear();
     elements[center_point_->getMapIndex()] = center_point_;
@@ -208,14 +208,14 @@ namespace OpenMS
   }
 
   bool QTCluster::update(const OpenMSBoost::unordered_map<Size,
-      OpenMS::GridFeature*>& removed)
+                                                          OpenMS::GridFeature*>& removed)
   {
     OPENMS_PRECONDITION(finalized_,
-        "Cannot perform operation on cluster that is not finalized")
+                        "Cannot perform operation on cluster that is not finalized")
 
     // check if the cluster center was removed:
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
-        rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
+         rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
     {
       // If center point was removed, then we are done and no more work is
       // required
@@ -228,7 +228,7 @@ namespace OpenMS
 
     // update cluster contents, remove those elements we find in our cluster
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
-        rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
+         rm_it = removed.begin(); rm_it != removed.end(); ++rm_it)
     {
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
@@ -262,7 +262,7 @@ namespace OpenMS
     // ensure cluster is not finalized as we cannot call optimizeAnnotations_
     // in that case
     OPENMS_PRECONDITION(!finalized_,
-        "Cannot perform operation on cluster that is finalized")
+                        "Cannot perform operation on cluster that is finalized")
 
     Size num_other = num_maps_ - 1;
     double internal_distance = 0.0;
@@ -291,15 +291,15 @@ namespace OpenMS
     quality_ = (max_distance_ - internal_distance) / max_distance_;
   }
 
-  OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > QTCluster::getAllNeighbors() 
+  OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > QTCluster::getAllNeighbors()
   {
     OPENMS_PRECONDITION(finalized_,
-        "Cannot perform operation on cluster that is not finalized")
+                        "Cannot perform operation on cluster that is not finalized")
 
     OpenMSBoost::unordered_map<Size, std::vector<GridFeature*> > tmp;
     for (NeighborMap::iterator it = neighbors_.begin(); it != neighbors_.end(); ++it)
     {
-      tmp[ it->first ].push_back(it->second.second);
+      tmp[it->first].push_back(it->second.second);
     }
     return tmp;
   }
@@ -316,21 +316,21 @@ namespace OpenMS
   double QTCluster::optimizeAnnotations_()
   {
     OPENMS_PRECONDITION(collect_annotations_,
-        "QTCluster::optimizeAnnotations_ should only be called if we use collect_annotations_")
+                        "QTCluster::optimizeAnnotations_ should only be called if we use collect_annotations_")
     OPENMS_PRECONDITION(tmp_neighbors_ != NULL,
-        "QTCluster::optimizeAnnotations_ needs to have working tmp_neighbors_")
+                        "QTCluster::optimizeAnnotations_ needs to have working tmp_neighbors_")
     OPENMS_PRECONDITION(!finalized_,
-        "QTCluster::optimizeAnnotations_ cannot work on finalized cluster")
+                        "QTCluster::optimizeAnnotations_ cannot work on finalized cluster")
 
     // mapping: peptides -> best distance per input map
     map<set<AASequence>, vector<double> > seq_table;
 
     for (NeighborMapMulti::iterator n_it = tmp_neighbors_->begin();
-        n_it != tmp_neighbors_->end(); ++n_it)
+         n_it != tmp_neighbors_->end(); ++n_it)
     {
       Size map_index = n_it->first;
-      for (NeighborListType::iterator df_it = n_it->second.begin(); 
-          df_it != n_it->second.end(); ++df_it)
+      for (NeighborListType::iterator df_it = n_it->second.begin();
+           df_it != n_it->second.end(); ++df_it)
       {
         double dist = df_it->first;
         const set<AASequence>& current = df_it->second->getAnnotations();
@@ -342,7 +342,7 @@ namespace OpenMS
           seq_table[current].resize(num_maps_, max_distance_);
           seq_table[current][map_index] = dist;
         }
-        else 
+        else
         {
           // new dist. value for this input map
           pos->second[map_index] = min(dist, pos->second[map_index]);
@@ -356,7 +356,7 @@ namespace OpenMS
       }
     }
 
-    // combine annotation-specific and unspecific distances 
+    // combine annotation-specific and unspecific distances
     // (all unspecific ones are grouped as empty set<AASequence>):
     map<set<AASequence>, vector<double> >::iterator unspecific =
       seq_table.find(set<AASequence>());
@@ -366,7 +366,9 @@ namespace OpenMS
              seq_table.begin(); it != seq_table.end(); ++it)
       {
         if (it == unspecific)
+        {
           continue;
+        }
         for (Size i = 0; i < num_maps_; ++i)
         {
           it->second[i] = min(it->second[i], unspecific->second[i]);
@@ -418,9 +420,9 @@ namespace OpenMS
   void QTCluster::finalizeCluster()
   {
     OPENMS_PRECONDITION(tmp_neighbors_ != NULL,
-        "Try to finalize QTCluster that was not initialized")
+                        "Try to finalize QTCluster that was not initialized")
     OPENMS_PRECONDITION(!finalized_,
-        "Try to finalize QTCluster that was not initialized")
+                        "Try to finalize QTCluster that was not initialized")
 
     // calls computeQuality_ if something changed since initialization. In
     // turn, computeQuality_ calls optimizeAnnotations_ if necessary which
@@ -437,9 +439,9 @@ namespace OpenMS
   void QTCluster::initializeCluster()
   {
     OPENMS_PRECONDITION(tmp_neighbors_ == NULL,
-        "Try to initialize QTCluster that was not finalized")
+                        "Try to initialize QTCluster that was not finalized")
     OPENMS_PRECONDITION(finalized_,
-        "Try to initialize QTCluster that was not finalized")
+                        "Try to initialize QTCluster that was not finalized")
 
     finalized_ = false;
 
@@ -451,7 +453,7 @@ namespace OpenMS
       tmp_neighbors_ = NULL;
     }
 
-    // create empty map 
+    // create empty map
     tmp_neighbors_ = new NeighborMapMulti();
   }
 

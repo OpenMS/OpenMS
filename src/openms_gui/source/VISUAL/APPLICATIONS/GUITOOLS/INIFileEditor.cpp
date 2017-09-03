@@ -91,9 +91,9 @@ int main(int argc, const char** argv)
 
   //catch command line errors
   if (param.exists("help") //help requested
-     || argc > 3 //too many arguments
-     || (argc == 3 && !param.exists("print")) //three argument but no -print
-     || (param.exists("print") && param.getValue("print") == "") //-print but no file given
+     || (argc > 3) //too many arguments
+     || ((argc == 3) && !param.exists("print")) //three argument but no -print
+     || (param.exists("print") && (param.getValue("print") == "")) //-print but no file given
       )
   {
     cerr << endl

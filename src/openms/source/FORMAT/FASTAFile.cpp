@@ -52,7 +52,7 @@ namespace OpenMS
 
   FASTAFile::FASTAFile()
     : reader_(std::nullptr_t()), // point to nothing
-      entries_read_(0)
+    entries_read_(0)
   {
   }
 
@@ -73,16 +73,19 @@ namespace OpenMS
       throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    if (infile_.is_open()) infile_.close(); // precaution
+    if (infile_.is_open())
+    {
+      infile_.close();                      // precaution
 
+    }
     infile_.open(filename.c_str(), std::ios::binary | std::ios::in);
-    
+
     // automatically deletes old handles
-    reader_ = std::unique_ptr<void, std::function<void(void*) > >(new FASTARecordReader(infile_),
-      [](void* ptr)
-      { // lambda with custom cast
-        delete static_cast<FASTARecordReader*>(ptr);
-      });
+    reader_ = std::unique_ptr<void, std::function<void(void*)> >(new FASTARecordReader(infile_),
+                                                                 [](void* ptr)
+    {   // lambda with custom cast
+      delete static_cast<FASTARecordReader*>(ptr);
+    });
 
     entries_read_ = 0;
   }
@@ -91,16 +94,16 @@ namespace OpenMS
   {
     String id;
     if (atEnd(*static_cast<FASTARecordReader*>(reader_.get())))
-    { 
+    {
       infile_.close();
       return false;
     }
-    
+
     if (readRecord(id, protein.sequence, *static_cast<FASTARecordReader*>(reader_.get()), seqan::Fasta()) != 0)
     {
       String msg;
-      if (entries_read_ == 0) msg = "The first entry could not be read!";
-      else msg = "Only " + String(entries_read_) + " proteins could be read. The record after failed.";
+      if (entries_read_ == 0) { msg = "The first entry could not be read!"; }
+      else{ msg = "Only " + String(entries_read_) + " proteins could be read. The record after failed."; }
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTA file! " + msg + " Please check the file!");
     }
     ++entries_read_;
@@ -158,7 +161,7 @@ namespace OpenMS
     outfile_ << ">" << protein.identifier << " " << protein.description << "\n";
     const String& tmp(protein.sequence);
 
-    int chunks( tmp.size()/80 ); // number of complete chunks
+    int chunks(tmp.size() / 80); // number of complete chunks
     Size chunk_pos(0);
     while (--chunks >= 0)
     {

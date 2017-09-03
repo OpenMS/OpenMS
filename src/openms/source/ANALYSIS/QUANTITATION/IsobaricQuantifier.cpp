@@ -60,7 +60,9 @@ namespace OpenMS
   IsobaricQuantifier& IsobaricQuantifier::operator=(const IsobaricQuantifier& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
+    }
 
     DefaultParamHandler::operator=(rhs);
     quant_method_ = rhs.quant_method_;
@@ -135,7 +137,7 @@ namespace OpenMS
     for (size_t i = 0; i < consensus_map_out.size(); ++i)
     {
       // is whole scan empty?!
-      if (consensus_map_out[i].getIntensity() == 0) ++stats_.number_ms2_empty;
+      if (consensus_map_out[i].getIntensity() == 0) { ++stats_.number_ms2_empty; }
 
       // look at single reporters
       for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_out[i].begin();
@@ -155,11 +157,11 @@ namespace OpenMS
 
     LOG_INFO << "IsobaricQuantifier: channels with signal\n";
     for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
-      cl_it != quant_method_->getChannelInformation().end();
-      ++cl_it) // use the same iteration method for printing stats as in IsobaricChannelExtractor which have the same order, so user can make 1:1 comparison
+         cl_it != quant_method_->getChannelInformation().end();
+         ++cl_it) // use the same iteration method for printing stats as in IsobaricChannelExtractor which have the same order, so user can make 1:1 comparison
     {
       std::map<String, Size>::const_iterator it_m = stats_.empty_channels.find(cl_it->name);
-      if (it_m == stats_.empty_channels.end()) 
+      if (it_m == stats_.empty_channels.end())
       { // should not happen
         LOG_WARN << "Warning: no stats for channel '" << cl_it->name << "'" << std::endl;
         continue;

@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  PepNovoOutfile::PepNovoOutfile(const PepNovoOutfile &)
+  PepNovoOutfile::PepNovoOutfile(const PepNovoOutfile&)
   {
   }
 
@@ -61,24 +61,24 @@ namespace OpenMS
   {
   }
 
-  PepNovoOutfile & PepNovoOutfile::operator=(const PepNovoOutfile &)
+  PepNovoOutfile& PepNovoOutfile::operator=(const PepNovoOutfile&)
   {
     return *this;
   }
 
-  bool PepNovoOutfile::operator==(const PepNovoOutfile &) const
+  bool PepNovoOutfile::operator==(const PepNovoOutfile&) const
   {
     return true;
   }
 
   void
   PepNovoOutfile::load(
-    const std::string & result_filename,
-    vector<PeptideIdentification> & peptide_identifications,
-    ProteinIdentification & protein_identification,
-    const double & score_threshold,
-    const IndexPosMappingType & index_to_precursor,
-    const map<String, String> & pnovo_modkey_to_mod_id
+    const std::string& result_filename,
+    vector<PeptideIdentification>& peptide_identifications,
+    ProteinIdentification& protein_identification,
+    const double& score_threshold,
+    const IndexPosMappingType& index_to_precursor,
+    const map<String, String>& pnovo_modkey_to_mod_id
     )
   {
     // generally used variables
@@ -95,7 +95,7 @@ namespace OpenMS
       sequence,
       sequence_with_mods;
 
-    DateTime datetime = DateTime::now();     // there's no date given from PepNovo
+    DateTime datetime = DateTime::now(); // there's no date given from PepNovo
     protein_identification.setDateTime(datetime);
 
     peptide_identifications.clear();
@@ -109,8 +109,8 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
     }
 
-    Size line_number(0);     // used to report in which line an error occurred
-    Size id_count(0);        // number of IDs seen (not necessarily the ones finally returned)
+    Size line_number(0); // used to report in which line an error occurred
+    Size id_count(0); // number of IDs seen (not necessarily the ones finally returned)
 
     getSearchEngineAndVersion(result_filename, protein_identification);
     //if information could not be retrieved from the outfile use defaults
@@ -123,17 +123,19 @@ namespace OpenMS
     protein_identification.setIdentifier(identifier);
 
     map<String, String> mod_mask_map;
-    const vector<String> & mods = protein_identification.getSearchParameters().variable_modifications;
+    const vector<String>& mods = protein_identification.getSearchParameters().variable_modifications;
     for (vector<String>::const_iterator mod_it = mods.begin(); mod_it != mods.end(); ++mod_it)
     {
       if (mod_it->empty())
+      {
         continue;
+      }
       //cout<<*mod_it<<endl;
       if (pnovo_modkey_to_mod_id.find(*mod_it) != pnovo_modkey_to_mod_id.end())
       {
         //cout<<keys_to_id.find(*mod_it)->second<<endl;
         ResidueModification tmp_mod = ModificationsDB::getInstance()->getModification(pnovo_modkey_to_mod_id.find(*mod_it)->second);
-        if (mod_it->prefix(1) == "^" || mod_it->prefix(1) == "$")
+        if ((mod_it->prefix(1) == "^") || (mod_it->prefix(1) == "$"))
         {
           mod_mask_map[*mod_it] = "(" + tmp_mod.getId() + ")";
         }
@@ -144,7 +146,7 @@ namespace OpenMS
       }
       else
       {
-        if (mod_it->prefix(1) != "^" && mod_it->prefix(1) != "$")
+        if ((mod_it->prefix(1) != "^") && (mod_it->prefix(1) != "$"))
         {
           mod_mask_map[*mod_it] = mod_it->prefix(1) + "[" + mod_it->substr(1) + "]";
           //cout<<mod_mask_map[*mod_it]<<endl;
@@ -161,10 +163,13 @@ namespace OpenMS
     Size index;
     while (getline(result_file, line))
     {
-      if (!line.empty() && (line[line.length() - 1] < 33)) line.resize(line.length() - 1); // remove weird EOL character
+      if (!line.empty() && (line[line.length() - 1] < 33))
+      {
+        line.resize(line.length() - 1);                                                    // remove weird EOL character
+      }
       line.trim();
       ++line_number;
-      if (line.hasPrefix(">> "))         // >> 1 /home/shared/pepnovo/4611_raw_ms2_picked.mzXML.1001.2.dta
+      if (line.hasPrefix(">> ")) // >> 1 /home/shared/pepnovo/4611_raw_ms2_picked.mzXML.1001.2.dta
       {
         ++id_count;
         if (!peptide_identification.empty() && !peptide_identification.getHits().empty())
@@ -191,7 +196,7 @@ namespace OpenMS
         //cout<<"INDEX: "<<index<<endl;
         peptide_identification = PeptideIdentification();
         bool success = false;
-        if (index_to_precursor.size()>0)
+        if (index_to_precursor.size() > 0)
         {
           if (index_to_precursor.find(index) != index_to_precursor.end())
           {
@@ -199,7 +204,7 @@ namespace OpenMS
             peptide_identification.setMZ(index_to_precursor.find(index)->second.second);
             success = true;
           }
-          else throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
+          else{ throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename); }
         }
 
         if (!success)
@@ -221,35 +226,51 @@ namespace OpenMS
           {
 
           }
-          if (!success) throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename);
+          if (!success) { throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename); }
         }
         peptide_identification.setSignificanceThreshold(score_threshold);
         peptide_identification.setScoreType(score_type);
         peptide_identification.setIdentifier(identifier);
       }
-      else if (line.hasPrefix("#Index"))         // #Index  Prob    Score   N-mass  C-Mass  [M+H]   Charge  Sequence
+      else if (line.hasPrefix("#Index")) // #Index  Prob    Score   N-mass  C-Mass  [M+H]   Charge  Sequence
       {
-        if (columns.empty())           // map the column names to their column number
+        if (columns.empty()) // map the column names to their column number
         {
           line.split('\t', substrings);
           for (vector<String>::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i)
           {
             if ((*s_i) == "#Index")
+            {
               columns["Index"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "RnkScr")
+            {
               columns["RnkScr"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "PnvScr")
+            {
               columns["PnvScr"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "N-Gap")
+            {
               columns["N-Gap"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "C-Gap")
+            {
               columns["C-Gap"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "[M+H]")
+            {
               columns["[M+H]"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "Charge")
+            {
               columns["Charge"] = s_i - substrings.begin();
+            }
             else if ((*s_i) == "Sequence")
+            {
               columns["Sequence"] = s_i - substrings.begin();
+            }
           }
 
           if (columns.size() != 8)
@@ -263,11 +284,15 @@ namespace OpenMS
         {
           ++line_number;
           if (!line.empty() && (line[line.length() - 1] < 33))
+          {
             line.resize(line.length() - 1);
+          }
           line.trim();
 
           if (line.empty())
+          {
             break;
+          }
 
           line.split('\t', substrings);
           if (!substrings.empty())
@@ -322,8 +347,8 @@ namespace OpenMS
 
   void
   PepNovoOutfile::getSearchEngineAndVersion(
-    const String & pepnovo_output_without_parameters_filename,
-    ProteinIdentification & protein_identification)
+    const String& pepnovo_output_without_parameters_filename,
+    ProteinIdentification& protein_identification)
   {
     ifstream pepnovo_output_without_parameters(pepnovo_output_without_parameters_filename.c_str());
     if (!pepnovo_output_without_parameters)
@@ -338,10 +363,14 @@ namespace OpenMS
     while (getline(pepnovo_output_without_parameters, line))
     {
       if (!line.empty() && (line[line.length() - 1] < 33))
+      {
         line.resize(line.length() - 1);
+      }
       line.trim();
       if (line.empty())
+      {
         continue;
+      }
       if (line.hasPrefix("PepNovo"))
       {
         line.split(',', substrings);
@@ -378,7 +407,7 @@ namespace OpenMS
         {
           ptm_it->trim();
         }
-        if (!substrings.empty() && substrings[0] != "None")
+        if (!substrings.empty() && (substrings[0] != "None"))
         {
           search_param.variable_modifications = substrings;
         }

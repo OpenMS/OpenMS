@@ -72,12 +72,12 @@ using namespace std;
 
   Recalibrates an MS experiment globally using a constant, linear or quadratic calibration on the observed ppm error,
   i.e. using offset=-5, slope=0, power=0 assumes the observed data has -5 ppm decalibration, i.e. the observed m/z is too small and should be increased by 5 ppm! Slope and power
-  are coefficients for the observed m/z, i.e. y = offset + x * slope + x * x * power, where x is the observed m/z and y 
+  are coefficients for the observed m/z, i.e. y = offset + x * slope + x * x * power, where x is the observed m/z and y
   is the resulting mass correction in ppm. Usually slope and offset are very small (< 0.01).
   If you only want a 'rough' recalibration, using offset is usually sufficient.
-  
+
   The calibration function is applied to all scans (with the desired level, see below), i.e. time dependent recalibration cannot be modeled.
-    
+
   The user can select what MS levels are subjected to calibration.
   Spectra with other MS levels remain unchanged.
   Calibration must be done once for each mass analyzer.
@@ -112,15 +112,15 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
-        
+
     addEmptyLine_();
 
     registerDoubleOption_("offset", "", 0.0, "Mass offset in ppm", false);
     registerDoubleOption_("slope", "", 0.0, "Slope (dependent on m/z)", false);
     registerDoubleOption_("power", "", 0.0, "Power (dependent on m/z)", false);
-    
+
     addEmptyLine_();
-    
+
     registerIntList_("ms_level", "i j ...", ListUtils::create<int>("1,2,3"), "Target MS levels to apply the transformation onto. Scans with other levels remain unchanged.", false);
   }
 
@@ -130,8 +130,8 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
     String in = getStringOption_("in");
-    String out = getStringOption_("out"); 
-    
+    String out = getStringOption_("out");
+
     IntList ms_level = getIntList_("ms_level");
 
     double offset = getDoubleOption_("offset");

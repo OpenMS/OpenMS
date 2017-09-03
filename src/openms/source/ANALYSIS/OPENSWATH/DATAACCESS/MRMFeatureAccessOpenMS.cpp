@@ -130,7 +130,7 @@ namespace OpenMS
   std::vector<std::string> MRMFeatureOpenMS::getPrecursorIDs() const
   {
     std::vector<std::string> v;
-    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = precursor_features_.begin(); it != precursor_features_.end(); ++it) 
+    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = precursor_features_.begin(); it != precursor_features_.end(); ++it)
     {
       v.push_back(it->first);
     }
@@ -155,8 +155,8 @@ namespace OpenMS
   // default instances
   MSSpectrum spec;
   MSChromatogram chrom;
-  SignalToNoiseOpenMS< MSSpectrum> spec_signal_to_noise_openms(spec, 1.0, 3, true);
-  SignalToNoiseOpenMS< MSChromatogram > chrom_signal_to_noise_openms(chrom, 1.0, 3, true);
+  SignalToNoiseOpenMS<MSSpectrum> spec_signal_to_noise_openms(spec, 1.0, 3, true);
+  SignalToNoiseOpenMS<MSChromatogram> chrom_signal_to_noise_openms(chrom, 1.0, 3, true);
 
   MRMTransitionGroup<MSSpectrum, ReactionMonitoringTransition> trgroup;
   TransitionGroupOpenMS<MSSpectrum, ReactionMonitoringTransition> default_transition_group_openms(trgroup);

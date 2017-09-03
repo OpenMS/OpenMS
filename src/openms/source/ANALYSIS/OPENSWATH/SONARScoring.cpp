@@ -68,7 +68,7 @@ namespace OpenMS
   }
 
   void SONARScoring::computeXCorr_(std::vector<std::vector<double> >& sonar_profiles,
-                     double& xcorr_coelution_score, double& xcorr_shape_score)
+                                   double& xcorr_coelution_score, double& xcorr_shape_score)
   {
     /// Cross Correlation array
     typedef std::map<int, double> XCorrArrayType;
@@ -84,7 +84,7 @@ namespace OpenMS
       {
         // compute normalized cross correlation
         xcorr_matrix[i][j] = OpenSwath::Scoring::normalizedCrossCorrelation(
-                sonar_profiles[i], sonar_profiles[j], boost::numeric_cast<int>(sonar_profiles[i].size()), 1);
+          sonar_profiles[i], sonar_profiles[j], boost::numeric_cast<int>(sonar_profiles[i].size()), 1);
       }
     }
 
@@ -127,17 +127,17 @@ namespace OpenMS
   }
 
   void SONARScoring::computeSonarScores(OpenSwath::IMRMFeature* imrmfeature,
-                                        const std::vector<OpenSwath::LightTransition> & transitions,
+                                        const std::vector<OpenSwath::LightTransition>& transitions,
                                         std::vector<OpenSwath::SwathMap>& swath_maps,
-                                        OpenSwath_Scores & scores)
+                                        OpenSwath_Scores& scores)
   {
-    if (transitions.empty()) {return;}
+    if (transitions.empty()) { return; }
 
     double precursor_mz = transitions[0].getPrecursorMZ();
 
 #ifdef DEBUG_SONAR
     std::ofstream debug_file;
-    debug_file.open("debug_sonar_profiles.tsv",  std::fstream::in | std::fstream::out | std::fstream::app);
+    debug_file.open("debug_sonar_profiles.tsv", std::fstream::in | std::fstream::out | std::fstream::app);
 
     String native_id = 0;
     if (transitions.size() > 0)
@@ -153,7 +153,7 @@ namespace OpenMS
 
 
     std::cout << " doing RT " << imrmfeature->getRT() << " using maps: ";
-    for (Size i  = 0; i < swath_maps.size() ; i++)
+    for (Size i  = 0; i < swath_maps.size(); i++)
     {
       std::cout << (swath_maps[i].lower + swath_maps[i].upper) / 2 << " ";
     }
@@ -192,19 +192,19 @@ namespace OpenMS
         OpenSwath::SpectrumAccessPtr swath_map = swath_maps[swath_idx].sptr;
 
         bool expect_signal = false;
-        if (swath_maps[swath_idx].ms1) {continue;} // skip MS1
-        if (precursor_mz > swath_maps[swath_idx].lower && precursor_mz < swath_maps[swath_idx].upper)
+        if (swath_maps[swath_idx].ms1) { continue; } // skip MS1
+        if ((precursor_mz > swath_maps[swath_idx].lower) && (precursor_mz < swath_maps[swath_idx].upper))
         {
           expect_signal = true;
         }
 
         // find closest scan for current SONAR map (by retention time)
         std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
-        if (indices.empty() )  {continue;}
+        if (indices.empty())  { continue; }
         int closest_idx = boost::numeric_cast<int>(indices[0]);
-        if (indices[0] != 0 &&
-            std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
-            std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0])).RT - RT))
+        if ((indices[0] != 0) &&
+            (std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
+             std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0])).RT - RT)))
         {
           closest_idx--;
         }
@@ -261,7 +261,7 @@ namespace OpenMS
       double sonar_trend = 1.0;
       if (sonar_profile_pos.size() > 1)
       {
-        double int_end = sonar_profile_pos[sonar_profile_pos.size()-1] + sonar_profile_pos[sonar_profile_pos.size()-2];
+        double int_end = sonar_profile_pos[sonar_profile_pos.size() - 1] + sonar_profile_pos[sonar_profile_pos.size() - 2];
         double int_start = sonar_profile_pos[0] + sonar_profile_pos[1];
         if (int_end > 0.0)
         {
@@ -275,15 +275,21 @@ namespace OpenMS
 
       // try to find R^2 of a linear regression (optimally, there is no trend)
       std::vector<double> xvals;
-      for (Size pr_idx = 0; pr_idx < sonar_profile_pos.size(); pr_idx++) {xvals.push_back(pr_idx);}
-      double rsq = OpenSwath::cor_pearson( xvals.begin(), xvals.end(), sonar_profile_pos.begin() );
-      if (boost::math::isnan(rsq)) rsq = 0.0; // check for nan
+      for (Size pr_idx = 0; pr_idx < sonar_profile_pos.size(); pr_idx++)
+      {
+        xvals.push_back(pr_idx);
+      }
+      double rsq = OpenSwath::cor_pearson(xvals.begin(), xvals.end(), sonar_profile_pos.begin());
+      if (boost::math::isnan(rsq))
+      {
+        rsq = 0.0;                            // check for nan
 
+      }
       // try to find largest diff
       double sonar_largediff = 0.0;
-      for (Size pr_idx = 0; pr_idx < sonar_profile_pos.size()-1; pr_idx++)
+      for (Size pr_idx = 0; pr_idx < sonar_profile_pos.size() - 1; pr_idx++)
       {
-        double diff = std::fabs(sonar_profile_pos[pr_idx] - sonar_profile_pos[pr_idx+1]);
+        double diff = std::fabs(sonar_profile_pos[pr_idx] - sonar_profile_pos[pr_idx + 1]);
         if (diff > sonar_largediff)
         {
           sonar_largediff = diff;
@@ -330,7 +336,7 @@ namespace OpenMS
 
 #ifdef DEBUG_SONAR
       std::cout << " computed SN: " << sonar_sn  <<  "(from " << pos_med << " and neg " << neg_med <<  ")"
-        << " large diff: "  << sonar_largediff << " trend " << sonar_trend << std::endl;
+                << " large diff: "  << sonar_largediff << " trend " << sonar_trend << std::endl;
 #endif
       sn_score.push_back(sonar_sn);
       diff_score.push_back(sonar_largediff / pos_med);
@@ -364,6 +370,4 @@ namespace OpenMS
 #endif
   }
 
-
 }
-

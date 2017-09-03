@@ -195,7 +195,7 @@ protected:
     at.id = String(UniqueIdGenerator::getUniqueId());
     at.cvRef = "QC"; //TODO assign right cv reference
 
-    if (plot_b64 != "" || tab != "")
+    if ((plot_b64 != "") || (tab != ""))
     {
       if (plot_b64 != "")
       {

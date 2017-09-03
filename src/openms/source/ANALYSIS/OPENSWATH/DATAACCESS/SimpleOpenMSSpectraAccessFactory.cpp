@@ -61,7 +61,7 @@ namespace OpenMS
           is_cached = true;
         }
       }
-      }
+    }
     return is_cached;
   }
 
@@ -80,5 +80,4 @@ namespace OpenMS
     }
   }
 
-}//end Namespace
-
+} //end Namespace

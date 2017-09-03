@@ -81,7 +81,9 @@ namespace OpenMS
   MRMTransitionGroupPicker& MRMTransitionGroupPicker::operator=(const MRMTransitionGroupPicker& rhs)
   {
     if (&rhs == this)
+    {
       return *this;
+    }
 
     // don't copy parameters
 
@@ -103,7 +105,7 @@ namespace OpenMS
   }
 
   void MRMTransitionGroupPicker::calculateBgEstimation_(const MSChromatogram& chromatogram,
-      double best_left, double best_right, double & background, double & avg_noise_level)
+                                                        double best_left, double best_right, double& background, double& avg_noise_level)
   {
     // determine (in the chromatogram) the intensity at the left / right border
     MSChromatogram::const_iterator it = chromatogram.begin();
@@ -125,7 +127,7 @@ namespace OpenMS
       }
       nr_points++;
     }
-    if (it == chromatogram.begin() || nr_points < 1)
+    if ((it == chromatogram.begin()) || (nr_points < 1))
     {
       // something is fishy, the endpoint of the peak is the beginning of the chromatogram
       std::cerr << "Tried to calculate background but no points were found " << std::endl;
@@ -140,7 +142,7 @@ namespace OpenMS
     background = avg_noise_level * nr_points;
   }
 
-  void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx)
+  void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram>& picked_chroms, int& chr_idx, int& peak_idx)
   {
     double largest = 0.0;
     ChromatogramPeak largest_pos;
@@ -159,4 +161,3 @@ namespace OpenMS
   }
 
 }
-

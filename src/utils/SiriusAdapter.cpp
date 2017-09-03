@@ -80,7 +80,7 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPSiriusAdapter :
-    public TOPPBase
+  public TOPPBase
 {
 public:
   TOPPSiriusAdapter() :
@@ -90,9 +90,9 @@ public:
 
 protected:
 
-  static bool sortByScanIndex(const String & i, const String & j)
+  static bool sortByScanIndex(const String& i, const String& j)
   {
-    return (atoi(SiriusMzTabWriter::extract_scan_index(i).c_str()) < atoi(SiriusMzTabWriter::extract_scan_index(j).c_str()));
+    return atoi(SiriusMzTabWriter::extract_scan_index(i).c_str()) < atoi(SiriusMzTabWriter::extract_scan_index(j).c_str());
   }
 
   void registerOptionsAndFlags_()
@@ -111,14 +111,14 @@ protected:
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
     setValidFormats_("out_sirius", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out_CSIFingerID","<file>", "", "MzTab ouput file for CSI:FingerID", false);
+    registerOutputFile_("out_CSIFingerID", "<file>", "", "MzTab ouput file for CSI:FingerID", false);
     setValidFormats_("out_CSIFingerID", ListUtils::create<String>("tsv"));
 
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
     setValidStrings_("profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
     registerIntOption_("candidates", "<num>", 5, "The number of candidates in the output. Default 5 best candidates", false);
     registerStringOption_("database", "<choice>", "all", "search formulas in given database", false);
-    setValidStrings_("database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));    
+    setValidStrings_("database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));
     registerIntOption_("noise", "<num>", 0, "median intensity of noise peaks", false);
     registerIntOption_("ppm_max", "<num>", 10, "allowed ppm for decomposing masses", false);
     registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring (default). Use 'omit' to ignore isotope pattern.", false);
@@ -133,7 +133,7 @@ protected:
     registerFlag_("fingerid", "If this option is set, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // Parsing parameters
@@ -144,7 +144,7 @@ protected:
     const String out_csifingerid = getStringOption_("out_CSIFingerID");
 
     // needed for counting
-    const int number_compounds = getIntOption_("number") + 1;  // +1 needed to write the correct number of compounds
+    const int number_compounds = getIntOption_("number") + 1; // +1 needed to write the correct number of compounds
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
@@ -170,10 +170,10 @@ protected:
     if (executable.isEmpty())
     {
       const QProcessEnvironment env;
-      const QString & qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
+      const QString& qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
       executable = qsiriuspathenv.isEmpty() ? "sirius" : qsiriuspathenv;
     }
-    const QString & path_to_executable = File::path(executable).toQString();
+    const QString& path_to_executable = File::path(executable).toQString();
 
     //-------------------------------------------------------------
     // Calculations
@@ -233,9 +233,9 @@ protected:
     const bool success = qp.waitForFinished(-1); // wait till job is finished
     qp.close();
 
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    if ((success == false) || (qp.exitStatus() != 0) || (qp.exitCode() != 0))
     {
-      writeLog_( "FATAL: External invocation of Sirius failed. Standard output and error were:");
+      writeLog_("FATAL: External invocation of Sirius failed. Standard output and error were:");
       const QString sirius_stdout(qp.readAllStandardOutput());
       const QString sirius_stderr(qp.readAllStandardOutput());
       writeLog_(sirius_stdout);
@@ -265,7 +265,7 @@ protected:
     siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
-    if (out_csifingerid.empty() == false && fingerid)
+    if ((out_csifingerid.empty() == false) && fingerid)
     {
       MzTab csi_result;
       MzTabFile csifile;
@@ -276,7 +276,7 @@ protected:
     //clean tmp directory if debug level < 2
     if (debug_level_ >= 2)
     {
-      writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
+      writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + " and msfile at this location " + tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
     }
     else
     {
@@ -294,9 +294,10 @@ protected:
 
     return EXECUTION_OK;
   }
+
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSiriusAdapter tool;
   return tool.main(argc, argv);

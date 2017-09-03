@@ -43,7 +43,7 @@
 namespace OpenMS
 {
 
-  EnhancedWorkspace::EnhancedWorkspace(QWidget * parent) :
+  EnhancedWorkspace::EnhancedWorkspace(QWidget* parent) :
     QWorkspace(parent)
   {
     setAcceptDrops(true);
@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent * event)
+  void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent* event)
   {
     if (event->mimeData()->hasUrls())
     {
@@ -61,7 +61,7 @@ namespace OpenMS
     }
   }
 
-  void EnhancedWorkspace::dragMoveEvent(QDragMoveEvent * event)
+  void EnhancedWorkspace::dragMoveEvent(QDragMoveEvent* event)
   {
     if (event->mimeData()->hasUrls())
     {
@@ -69,7 +69,7 @@ namespace OpenMS
     }
   }
 
-  void EnhancedWorkspace::dropEvent(QDropEvent * event)
+  void EnhancedWorkspace::dropEvent(QDropEvent* event)
   {
     emit dropReceived(event->mimeData(), event->source(), -1);
     event->acceptProposedAction();

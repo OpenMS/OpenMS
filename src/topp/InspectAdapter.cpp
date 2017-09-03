@@ -315,7 +315,7 @@ protected:
       logfile = "temp.inspect.log";
       files[logfile] = (writable | delete_afterwards);
     }
-    else files[logfile] = writable;
+    else{ files[logfile] = writable; }
 
     inspect_in = getFlag_("inspect_in");
     inspect_out = getFlag_("inspect_out");
@@ -326,12 +326,12 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    if (inspect_in) writeDebug_("Inspect flag: mascot_in (reads in MzXML/MzData, writes Inspect generic format)", 1);
-    else if (inspect_out) writeDebug_("Inspect flag: mascot_in (reads in Inspect result file, writes idXML file)", 1);
-    else writeDebug_("No Inspect flag set: reads in MzXML/MzData, writes idXML file", 1);
+    if (inspect_in) { writeDebug_("Inspect flag: mascot_in (reads in MzXML/MzData, writes Inspect generic format)", 1); }
+    else if (inspect_out) { writeDebug_("Inspect flag: mascot_in (reads in Inspect result file, writes idXML file)", 1); }
+    else{ writeDebug_("No Inspect flag set: reads in MzXML/MzData, writes idXML file", 1); }
 
     // a 'normal' inspect run corresponds to both inspect_in and inspect_out set
-    if (!inspect_in && !inspect_out) inspect_in = inspect_out = true;
+    if (!inspect_in && !inspect_out) { inspect_in = inspect_out = true; }
 
     if (inspect_out && inspect_in)
     {
@@ -409,8 +409,8 @@ protected:
     else
     {
       string_buffer = File::absolutePath(string_buffer);
-      if (inspect_out) output_filename = string_buffer;
-      else inspect_input_filename = string_buffer;
+      if (inspect_out) { output_filename = string_buffer; }
+      else{ inspect_input_filename = string_buffer; }
       files[string_buffer] = writable;
     }
 
@@ -451,7 +451,7 @@ protected:
       {
         // get the single databases
         string_buffer.split(',', trie_database_filenames);
-        if (trie_database_filenames.empty()) trie_database_filenames.push_back(string_buffer);
+        if (trie_database_filenames.empty()) { trie_database_filenames.push_back(string_buffer); }
 
         // the database files have to be readable, (by the way changing the names using the absolute path)
         for (vector<String>::iterator trie_database_filenames_it = trie_database_filenames.begin(); trie_database_filenames_it != trie_database_filenames.end(); ++trie_database_filenames_it)
@@ -460,8 +460,8 @@ protected:
           files[*trie_database_filenames_it] = readable;
 
           // get the according index file
-          if (trie_database_filenames_it->hasSuffix(".trie")) string_buffer = trie_database_filenames_it->substr(0, trie_database_filenames_it->length() - 4) + "index";
-          else string_buffer = *trie_database_filenames_it + "index";
+          if (trie_database_filenames_it->hasSuffix(".trie")) { string_buffer = trie_database_filenames_it->substr(0, trie_database_filenames_it->length() - 4) + "index"; }
+          else{ string_buffer = *trie_database_filenames_it + "index"; }
           index_filenames.push_back(string_buffer);
           files[string_buffer] = readable;
         }
@@ -472,7 +472,7 @@ protected:
       {
         // get the single sequence files
         string_buffer.split(',', sequence_database_filenames);
-        if (sequence_database_filenames.empty()) sequence_database_filenames.push_back(string_buffer);
+        if (sequence_database_filenames.empty()) { sequence_database_filenames.push_back(string_buffer); }
         // the sequence files have to be readable, (by the way changing the names using the absolute path)
         for (vector<String>::iterator sequence_database_filenames_it = sequence_database_filenames.begin(); sequence_database_filenames_it != sequence_database_filenames.end(); ++sequence_database_filenames_it)
         {
@@ -499,7 +499,7 @@ protected:
       }
 
       trie_database_filename = getStringOption_("new_db");
-      if (trie_database_filename.empty() && (!sequence_database_filenames.empty() || trie_database_filenames.size() != 1))
+      if (trie_database_filename.empty() && (!sequence_database_filenames.empty() || (trie_database_filenames.size() != 1)))
       {
         if (!inspect_out)
         {
@@ -526,7 +526,7 @@ protected:
       else
       {
         // if only one trie database is given, this one is used
-        if (trie_database_filename.empty()) trie_database_filename = trie_database_filenames.front();
+        if (trie_database_filename.empty()) { trie_database_filename = trie_database_filenames.front(); }
 
         trie_database_filename = File::absolutePath(trie_database_filename);
         if (trie_database_filename.hasSuffix(".trie"))
@@ -613,37 +613,37 @@ protected:
       inspect_infile.setInstrument(getStringOption_("instrument"));
 
       inspect_infile.setModificationsPerPeptide(getIntOption_("max_modifications_pp"));
-      if (inspect_infile.getModificationsPerPeptide() < 1 && !inspect_infile.getModifications().empty())
+      if ((inspect_infile.getModificationsPerPeptide() < 1) && !inspect_infile.getModifications().empty())
       {
         writeLog_("Modifications specified, but max_modifications_pp not set. Setting it to 1.");
         inspect_infile.setModificationsPerPeptide(1);
       }
 
       inspect_infile.setPrecursorMassTolerance(getDoubleOption_("precursor_mass_tolerance"));
-      if ((inspect_infile.getPrecursorMassTolerance() < 0 && inspect_infile.getPrecursorMassTolerance() != -1))
+      if (((inspect_infile.getPrecursorMassTolerance() < 0) && (inspect_infile.getPrecursorMassTolerance() != -1)))
       {
         writeLog_("Illegal precursor mass tolerance (<0) given. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
 
       inspect_infile.setPeakMassTolerance(getDoubleOption_("peak_mass_tolerance"));
-      if ((inspect_infile.getPeakMassTolerance() < 0 && inspect_infile.getPeakMassTolerance() != -1))
+      if (((inspect_infile.getPeakMassTolerance() < 0) && (inspect_infile.getPeakMassTolerance() != -1)))
       {
         writeLog_("Illegal peak mass tolerance (<0) given. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
 
-      if (getFlag_("multicharge")) inspect_infile.setMulticharge(1);
+      if (getFlag_("multicharge")) { inspect_infile.setMulticharge(1); }
 
       inspect_infile.setTagCount(getIntOption_("tag_count"));
-      if ((inspect_infile.getTagCount() < 0 && inspect_infile.getTagCount() != -1))
+      if (((inspect_infile.getTagCount() < 0) && (inspect_infile.getTagCount() != -1)))
       {
         writeLog_("Illegal number of tags (tag_count <0) given. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
 
       inspect_infile.setMaxPTMsize(getDoubleOption_("blind:max_ptm_size"));
-      if ((inspect_infile.getMaxPTMsize() < 10 || inspect_infile.getMaxPTMsize() > 2000) && inspect_infile.getMaxPTMsize() != -1)
+      if (((inspect_infile.getMaxPTMsize() < 10) || (inspect_infile.getMaxPTMsize() > 2000)) && (inspect_infile.getMaxPTMsize() != -1))
       {
         writeLog_("Illegal maximum modification size (not in [10,2000]). Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -706,16 +706,16 @@ protected:
         writeLog_(String("Cannot write file ") + string_buffer + ". Aborting!");
         break;
       }
-      else if (!existed) remove(string_buffer.c_str());
+      else if (!existed) { remove(string_buffer.c_str()); }
       existed = false;
     }
 
     vector<Size> wanted_records;
 
     // creating the input file and converting and merging the databases
-    if (exit_code == EXECUTION_OK && inspect_in)
+    if ((exit_code == EXECUTION_OK) && inspect_in)
     {
-      if (!sequence_database_filenames.empty() || trie_database_filenames.size() != 1) // don't do it, if only one trie database is given
+      if (!sequence_database_filenames.empty() || (trie_database_filenames.size() != 1)) // don't do it, if only one trie database is given
       {
         // merging the trie databases (all but the first databases are appended)
         vector<String>::const_iterator index_filenames_itt = index_filenames.begin();
@@ -731,13 +731,13 @@ protected:
         }
       }
 
-      if (blind_only) inspect_infile.setBlind(true);
+      if (blind_only) { inspect_infile.setBlind(true); }
 
       inspect_infile.store(inspect_input_filename);
     }
 
     // running inspect and generating a second database from the results and running inspect in blind mode on this new database
-    if (exit_code == EXECUTION_OK && blind && inspect_in && inspect_out)
+    if ((exit_code == EXECUTION_OK) && blind && inspect_in && inspect_out)
     {
       writeLog_("Searching and generating minimised database for blind mode ...");
       writeDebug_("The Inspect process created the following output:", 1);
@@ -785,7 +785,7 @@ protected:
     }
 
     // writing the output of inspect Into an idXML file
-    if (exit_code == EXECUTION_OK && inspect_in && inspect_out)
+    if ((exit_code == EXECUTION_OK) && inspect_in && inspect_out)
     {
       String call;
       call.append(" -r ");
@@ -812,7 +812,7 @@ protected:
       }
     }
 
-    if (exit_code == EXECUTION_OK && inspect_out)
+    if ((exit_code == EXECUTION_OK) && inspect_out)
     {
       vector<PeptideIdentification> peptide_identifications;
       ProteinIdentification protein_identification;
@@ -833,10 +833,10 @@ protected:
         {
           QString output = builder.readAll();
           // set the search engine and its version and the score type
-          if (!inspect_outfile.getSearchEngineAndVersion(output, protein_identification)) LOG_WARN << "Could not read version of InsPecT from:\n" << String(output) << "\n\n";
+          if (!inspect_outfile.getSearchEngineAndVersion(output, protein_identification)) { LOG_WARN << "Could not read version of InsPecT from:\n" << String(output) << "\n\n"; }
         }
       }
-      else protein_identification.setSearchEngine("InsPecT");
+      else{ protein_identification.setSearchEngine("InsPecT"); }
 
       if (exit_code == EXECUTION_OK)
       {
@@ -848,12 +848,12 @@ protected:
           {
             sp.mass_type = ProteinIdentification::MONOISOTOPIC;
           }
-          else 
+          else
           {
             sp.mass_type = ProteinIdentification::AVERAGE;
           }
 
-          if (EnzymesDB::getInstance()->hasEnzyme(inspect_infile.getEnzyme())) 
+          if (EnzymesDB::getInstance()->hasEnzyme(inspect_infile.getEnzyme()))
           {
             sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(inspect_infile.getEnzyme());
           }
@@ -893,7 +893,7 @@ protected:
     // deleting all temporary files
     for (map<String, Size>::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it)
     {
-      if (files_it->second & delete_afterwards) remove(files_it->first.c_str());
+      if (files_it->second & delete_afterwards) { remove(files_it->first.c_str()); }
     }
 
     return exit_code;

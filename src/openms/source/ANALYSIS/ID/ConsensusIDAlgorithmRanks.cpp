@@ -47,7 +47,6 @@ namespace OpenMS
     setName("ConsensusIDAlgorithmRanks"); // DefaultParamHandler
   }
 
-
   void ConsensusIDAlgorithmRanks::preprocess_(
     vector<PeptideIdentification>& ids)
   {
@@ -60,7 +59,7 @@ namespace OpenMS
     // hit (sequence) are averaged and normalized to the range from 0
     // (exclusive, worst) to 1 (inclusive, best).
 
-    current_number_of_runs_ = ((number_of_runs_ > 0) ? 
+    current_number_of_runs_ = ((number_of_runs_ > 0) ?
                                number_of_runs_ : ids.size());
     current_considered_hits_ = considered_hits_;
     bool set_considered_hits = (considered_hits_ == 0);
@@ -87,16 +86,15 @@ namespace OpenMS
     }
   }
 
-
   double ConsensusIDAlgorithmRanks::getAggregateScore_(vector<double>& scores,
                                                        bool /* higher_better */)
   {
     double sum_scores = accumulate(scores.begin(), scores.end(), 0.0);
     // add score contributions equivalent to "not found":
-    sum_scores += ((current_number_of_runs_ - scores.size()) * 
+    sum_scores += ((current_number_of_runs_ - scores.size()) *
                    current_considered_hits_);
     // normalize to range 0-1:
-    return 1.0 - sum_scores / (current_considered_hits_ * 
+    return 1.0 - sum_scores / (current_considered_hits_ *
                                current_number_of_runs_);
   }
 

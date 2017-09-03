@@ -135,12 +135,12 @@ namespace OpenMS
 //        if (unp->hasPrefix("relationship: has_order MS:1002108")) return true;
 //      }
 //      return false;
-      //most scores are higher better, but most entries in CV for these are not annotated -> default is true
-      for (StringList::const_iterator unp = term.unparsed.begin(); unp != term.unparsed.end(); ++unp)
-      {
-        if (unp->hasPrefix("relationship: has_order MS:1002109")) return false;
-      }
-      return true;
+    //most scores are higher better, but most entries in CV for these are not annotated -> default is true
+    for (StringList::const_iterator unp = term.unparsed.begin(); unp != term.unparsed.end(); ++unp)
+    {
+      if (unp->hasPrefix("relationship: has_order MS:1002109")) { return false; }
+    }
+    return true;
   }
 
   String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const String& value) const
@@ -207,7 +207,9 @@ namespace OpenMS
 
       //do nothing for empty lines
       if (line == "")
+      {
         continue;
+      }
 
       //********************************************************************************
       //stanza line
@@ -253,7 +255,9 @@ namespace OpenMS
             //check if the parent term name is correct
             String parent_name = line.suffix('!').trim();
             if (!checkName_(parent_id, parent_name))
+            {
               cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': parent term name '" << parent_name << "' and id '" << parent_id << "' differ." << "\n";
+            }
           }
           else
           {
@@ -261,7 +265,7 @@ namespace OpenMS
           }
         }
         // brenda tissue special relationships, DRV (derived and part of)
-        else if (line_wo_spaces.hasPrefix("relationship:DRV") && name == "brenda")
+        else if (line_wo_spaces.hasPrefix("relationship:DRV") && (name == "brenda"))
         {
           if (line.has('!'))
           {
@@ -272,7 +276,9 @@ namespace OpenMS
             //check if the parent term name is correct
             String parent_name = line.suffix('!').trim();
             if (!checkName_(parent_id, parent_name))
+            {
               cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': DRV relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << "\n";
+            }
           }
           else
           {
@@ -280,7 +286,7 @@ namespace OpenMS
             term.parents.insert(line.substr(line.find("DRV") + 4).prefix(':') + ":" + line.suffix(':').trim());
           }
         }
-        else if (line_wo_spaces.hasPrefix("relationship:part_of") && name == "brenda")
+        else if (line_wo_spaces.hasPrefix("relationship:part_of") && (name == "brenda"))
         {
           if (line.has('!'))
           {
@@ -290,7 +296,9 @@ namespace OpenMS
             //check if the parent term name is correct
             String parent_name = line.suffix('!').trim();
             if (!checkName_(parent_id, parent_name))
+            {
               cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': part_of relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << "\n";
+            }
           }
           else
           {
@@ -307,7 +315,9 @@ namespace OpenMS
             //check if the parent term name is correct
             String unit_name = line.suffix('!').trim();
             if (!checkName_(unit_id, unit_name))
+            {
               cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': has_units relationship term name '" << unit_name << "' and id '" << unit_id << "' differ." << "\n";
+            }
           }
           else
           {
@@ -550,8 +560,10 @@ namespace OpenMS
   bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)
   {
     if (!exists(id))
+    {
       return true; //what?!
 
+    }
     String parent_name = name;
     String real_parent_name = getTerm(id).name;
 

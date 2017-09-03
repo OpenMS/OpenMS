@@ -72,7 +72,7 @@ namespace OpenMS
 
   ParameterInformation& ParameterInformation::operator=(const ParameterInformation& rhs)
   {
-    if (&rhs == this) return *this;
+    if (&rhs == this) { return *this; }
 
     name = rhs.name;
     type = rhs.type;

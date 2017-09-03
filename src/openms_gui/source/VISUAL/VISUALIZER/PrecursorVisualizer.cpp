@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  PrecursorVisualizer::PrecursorVisualizer(bool editable, QWidget * parent) :
+  PrecursorVisualizer::PrecursorVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<Precursor>()
   {
@@ -81,7 +81,7 @@ namespace OpenMS
     activation_methods_->clear();
     for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
     {
-      QListWidgetItem * item = new QListWidgetItem(activation_methods_);
+      QListWidgetItem* item = new QListWidgetItem(activation_methods_);
       item->setText(QString::fromStdString(Precursor::NamesOfActivationMethod[i]));
       if (temp_.getActivationMethods().count(Precursor::ActivationMethod(i)) == 1)
       {

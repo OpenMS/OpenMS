@@ -46,8 +46,8 @@ namespace OpenMS
 
     void setModification(int location, int max_size, String modification, OpenMS::AASequence& aas)
     {
-      OPENMS_PRECONDITION(location >= -1 && location <= max_size, 
-          (String("Location has invalid value") + (String)location).c_str() )
+      OPENMS_PRECONDITION(location >= -1 && location <= max_size,
+                          (String("Location has invalid value") + (String)location).c_str())
 
       if (location == -1)
       {
@@ -74,18 +74,18 @@ namespace OpenMS
 
       // Populate the AASequence with the correct modifications derived from
       // the Peptide::Modification objects.
-      for (std::vector<Peptide::Modification>::const_iterator it = peptide.mods.begin(); 
-          it != peptide.mods.end(); ++it)
+      for (std::vector<Peptide::Modification>::const_iterator it = peptide.mods.begin();
+           it != peptide.mods.end(); ++it)
       {
         // Step 1: First look whether the UniMod ID is set (we don't use a CVTerm any more but a member)
         if (it->unimod_id != -1)
         {
-          setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), 
-              "UniMod:" + String(it->unimod_id), aas);
+          setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()),
+                          "UniMod:" + String(it->unimod_id), aas);
           continue;
         }
 
-        LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence << 
+        LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence <<
           ". Will try to infer modification id by mass next." << std::endl;
 
         // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp
