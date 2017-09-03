@@ -8,6 +8,32 @@ INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 
 ------------------------------------------------------------------------------------------
+----                                OpenMS 2.3                                        ----
+------------------------------------------------------------------------------------------
+OpenMS 2.3 introduces a considerable number of new features and bug fixes.
+
+Notable changes since version 2.2 are:
+
+New tools:
+
+Deprecated and removed tools:
+
+Major changes in functionality:
+
+Library:
+
+File formats:
+
+Scripts:
+ 
+Databases:
+
+Third-party software:
+  
+Changed tool parameters:
+
+
+------------------------------------------------------------------------------------------
 ----                                OpenMS 2.2                                        ----
 ------------------------------------------------------------------------------------------
 OpenMS 2.2 introduces a considerable number of new features and bug fixes.
