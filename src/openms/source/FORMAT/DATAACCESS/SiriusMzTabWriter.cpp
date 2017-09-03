@@ -32,18 +32,10 @@
 // $Authors: Oliver Alka, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/MzTab.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 
@@ -51,7 +43,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-String SiriusMzTabWriter::extract_scan_index(const String &path)
+inline String SiriusMzTabWriter::extract_scan_index(const String &path)
 {
   return path.substr(path.find_last_not_of("0123456789") + 1);
 }
@@ -64,31 +56,20 @@ void SiriusMzTabWriter::read(const std::vector<String> & paths, Size number, MzT
   for (std::vector<String>::const_iterator it = paths.begin(); it != paths.end(); ++it)
   {
 
-    std::string pathtosiriuscsv = *it + "/summary_sirius.csv";
+    const std::string pathtosiriuscsv = *it + "/summary_sirius.csv";
 
     ifstream file(pathtosiriuscsv);
 
     if (file) 
     {
       
-      unsigned int rowcount = 0;   
-    
       CsvFile compounds(pathtosiriuscsv, '\t');
-      rowcount = compounds.rowCount();
+      const UInt rowcount = compounds.rowCount();
 
-      if (file && rowcount > 1)
+      if (rowcount > 1)
       {
-        unsigned int number_cor = 0;
+        const UInt number_cor = (number > rowcount) ? rowcount : number;
         
-        if (number > rowcount)
-        {
-          number_cor = rowcount; 
-        }
-        else
-        {
-          number_cor = number;
-        }
-
         // fill indentification structure containing all candidate hits for a single spectrum
         SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
 
@@ -136,10 +117,10 @@ void SiriusMzTabWriter::read(const std::vector<String> & paths, Size number, MzT
 
         // write results to mzTab file
         MzTabSmallMoleculeSectionRows smsd;
-        for (Size i = 0; i != sirius_result.identifications.size(); ++i)
+        for (Size i = 0; i < sirius_result.identifications.size(); ++i)
         {
           const SiriusMzTabWriter::SiriusAdapterIdentification &id = sirius_result.identifications[i];
-          for (Size j = 0; j != id.hits.size(); ++j)
+          for (Size j = 0; j < id.hits.size(); ++j)
           {
             const SiriusMzTabWriter::SiriusAdapterHit &hit = id.hits[j];
             MzTabSmallMoleculeSectionRow smsr;
@@ -180,12 +161,11 @@ void SiriusMzTabWriter::read(const std::vector<String> & paths, Size number, MzT
             smsd.push_back(smsr);
           }
         }  
-
         result.setSmallMoleculeSectionRows(smsd);
-
       }
     }
   }
 }
 
 /// @endcond
+

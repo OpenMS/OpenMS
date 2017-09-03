@@ -32,18 +32,10 @@
 // $Authors: Oliver Alka, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/MzTab.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
@@ -59,32 +51,18 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
   for (std::vector<String>::const_iterator it = paths.begin(); it != paths.end(); ++it)
   {
 
-    std::string pathtocsicsv = *it + "/summary_csi_fingerid.csv";
+    const std::string pathtocsicsv = *it + "/summary_csi_fingerid.csv";
 
     ifstream file(pathtocsicsv);
 
-
     if (file) 
     {
-      
-      unsigned int rowcount = 0;   
-      
       CsvFile compounds(pathtocsicsv, '\t');
-      rowcount = compounds.rowCount();
+      const UInt rowcount = compounds.rowCount();
     
-      if (file && rowcount > 1)
+      if (rowcount > 1)
       {
-        unsigned int number_cor = 0;
         
-        if (number > rowcount)
-        {
-          number_cor = rowcount; 
-        }
-        else
-        {
-          number_cor = number;
-        }
-
         // fill identification structure containing all candidate hits for a single spectrum
         CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id;
 
@@ -92,6 +70,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
         OpenMS::String str = File::path(pathtocsicsv);
         std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
 
+        const UInt number_cor = (number > rowcount) ? rowcount : number;
         for (Size j = 1; j < number_cor; ++j)
         {
           
@@ -130,10 +109,10 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
 
         // write results to mzTab file
         MzTabSmallMoleculeSectionRows smsd;
-        for (Size i = 0; i != csi_result.identifications.size(); ++i)
+        for (Size i = 0; i < csi_result.identifications.size(); ++i)
         {
           const CsiFingerIdMzTabWriter::CsiAdapterIdentification &id = csi_result.identifications[i];
-          for (Size j = 0; j != id.hits.size(); ++j)
+          for (Size j = 0; j < id.hits.size(); ++j)
           {
             const CsiFingerIdMzTabWriter::CsiAdapterHit &hit = id.hits[j];
             MzTabSmallMoleculeSectionRow smsr;
@@ -143,16 +122,16 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
 
             smsr.chemical_formula = MzTabString(hit.molecular_formula);
             smsr.description = MzTabString(hit.name);
-            vector <MzTabString> pubchemids;
-            for (Size k = 0; k != hit.pubchemids.size(); ++k)
+            std::vector <MzTabString> pubchemids;
+            for (Size k = 0; k < hit.pubchemids.size(); ++k)
             {
               pubchemids.push_back(MzTabString(hit.pubchemids[k]));
             }  
             smsr.identifier.set(pubchemids);
             smsr.inchi_key = MzTabString(hit.inchikey2D);
             smsr.smiles = MzTabString(hit.smiles);
-            vector < MzTabString > uri;
-            for (Size k = 0; k != hit.links.size(); ++k)
+            std::vector < MzTabString > uri;
+            for (Size k = 0; k < hit.links.size(); ++k)
             {
               uri.push_back(MzTabString(hit.links[k]));
             }  
@@ -170,9 +149,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
             smsd.push_back(smsr);
           } 
         }
-
         result.setSmallMoleculeSectionRows(smsd);
-     
       }
     }
   }
