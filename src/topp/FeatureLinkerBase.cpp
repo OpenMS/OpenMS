@@ -73,7 +73,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()   // only for "unlabeled" algorithms!
+  void registerOptionsAndFlags_() // only for "unlabeled" algorithms!
   {
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "input files separated by blanks", true);
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
@@ -85,7 +85,7 @@ protected:
     registerFlag_("keep_subelements", "For consensusXML input only: If set, the sub-features of the inputs are transferred to the output.");
   }
 
-  ExitCodes common_main_(FeatureGroupingAlgorithm * algorithm,
+  ExitCodes common_main_(FeatureGroupingAlgorithm* algorithm,
                          bool labeled = false)
   {
     //-------------------------------------------------------------
@@ -101,7 +101,7 @@ protected:
       ins = getStringList_("in");
     }
     String out = getStringOption_("out");
-    
+
     //-------------------------------------------------------------
     // check for valid input
     //-------------------------------------------------------------
@@ -138,13 +138,13 @@ protected:
       design_file = getStringOption_("design");
     }
 
-    if (file_type == FileTypes::CONSENSUSXML && !design_file.empty())
+    if ((file_type == FileTypes::CONSENSUSXML) && !design_file.empty())
     {
       writeLog_("Error: Using fractionated design with consensusXML als input is not supported!");
       return ILLEGAL_PARAMETERS;
     }
-  
-  
+
+
     if (file_type == FileTypes::FEATUREXML)
     {
       //-------------------------------------------------------------
@@ -178,7 +178,7 @@ protected:
         }
       }
 
-      vector<ConsensusMap > maps(ins.size());
+      vector<ConsensusMap> maps(ins.size());
       FeatureXMLFile f;
       FeatureFileOptions param = f.getOptions();
       // to save memory don't load convex hulls and subordinates
@@ -229,7 +229,7 @@ protected:
 
       ////////////////////////////////////////////////////
       // invoke feature grouping algorithm
-      
+
       if (frac2run.size() == 1) // group one fraction
       {
         algorithm->group(maps, out_map);
@@ -312,7 +312,7 @@ protected:
     for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin();
          i != num_consfeat_of_size.rend(); ++i)
     {
-      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) 
+      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6)
                << i->second << endl;
     }
     LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;

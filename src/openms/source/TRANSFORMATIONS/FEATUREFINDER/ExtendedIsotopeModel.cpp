@@ -65,7 +65,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ExtendedIsotopeModel::ExtendedIsotopeModel(const ExtendedIsotopeModel & source) :
+  ExtendedIsotopeModel::ExtendedIsotopeModel(const ExtendedIsotopeModel& source) :
     InterpolationModel(source)
   {
     setParameters(source.getParameters());
@@ -76,10 +76,12 @@ namespace OpenMS
   {
   }
 
-  ExtendedIsotopeModel & ExtendedIsotopeModel::operator=(const ExtendedIsotopeModel & source)
+  ExtendedIsotopeModel& ExtendedIsotopeModel::operator=(const ExtendedIsotopeModel& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     InterpolationModel::operator=(source);
     setParameters(source.getParameters());
@@ -107,15 +109,25 @@ namespace OpenMS
 
     String form("");
     if (C_num)
+    {
       form.append("C").append(String(C_num));
+    }
     if (H_num)
+    {
       form.append("H").append(String(H_num));
+    }
     if (N_num)
+    {
       form.append("N").append(String(N_num));
+    }
     if (O_num)
+    {
       form.append("O").append(String(O_num));
+    }
     if (S_num)
+    {
       form.append("S").append(String(S_num));
+    }
 
     EmpiricalFormula formula(form);
     IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(max_isotope_);
@@ -131,7 +143,7 @@ namespace OpenMS
     // "stretch" the averagine isotope distribution
     Size isotopes_exact_size = isotopes_exact.size();
     isotopes_exact.resize(Size((isotopes_exact_size - 1)
-                               * isotope_distance_ / interpolation_step_ + 1.6));                             // round up a bit more
+                               * isotope_distance_ / interpolation_step_ + 1.6)); // round up a bit more
 
     for (Size i = isotopes_exact_size - 1; i; --i)
     {
@@ -161,9 +173,9 @@ namespace OpenMS
     normal_widening_model.normalApproximation(normal_widening, normal_widening_coordinate);
 
     // fill linear interpolation
-    const ContainerType & left = isotopes_exact;
-    const ContainerType & right = normal_widening;
-    ContainerType & result = interpolation_.getData();
+    const ContainerType& left = isotopes_exact;
+    const ContainerType& right = normal_widening;
+    ContainerType& result = interpolation_.getData();
     result.clear();
 
     Int rMax = std::min(Int(left.size() + right.size() - 1), Int(2 * normal_widening_width / interpolation_step_ * max_isotope_ + 1));
@@ -174,7 +186,9 @@ namespace OpenMS
     for (SignedSize i = left.size() - 1; i >= 0; --i)
     {
       if (left[i] == 0)
+      {
         continue;
+      }
       for (SignedSize j = std::min<SignedSize>(rMax - i, right.size()) - 1; j >= 0; --j)
       {
         result[i + j] += left[i] * right[j];

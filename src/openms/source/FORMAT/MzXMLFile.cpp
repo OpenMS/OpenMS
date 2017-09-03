@@ -53,22 +53,22 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions & MzXMLFile::getOptions()
+  PeakFileOptions& MzXMLFile::getOptions()
   {
     return options_;
   }
 
-  const PeakFileOptions & MzXMLFile::getOptions() const
+  const PeakFileOptions& MzXMLFile::getOptions() const
   {
     return options_;
   }
 
-  void MzXMLFile::setOptions(const PeakFileOptions & options)
+  void MzXMLFile::setOptions(const PeakFileOptions& options)
   {
-      options_ = options;
+    options_ = options;
   }
 
-  void MzXMLFile::load(const String & filename, MapType & map)
+  void MzXMLFile::load(const String& filename, MapType& map)
   {
     map.reset();
 
@@ -81,18 +81,18 @@ namespace OpenMS
     parse_(filename, &handler);
   }
 
-  void MzXMLFile::store(const String & filename, const MapType & map) const
+  void MzXMLFile::store(const String& filename, const MapType& map) const
   {
     Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
     handler.setOptions(options_);
     save_(filename, &handler);
   }
 
-  void MzXMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count)
+  void MzXMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer
     transformFirstPass_(filename_in, consumer, skip_full_count);
-    
+
     // Second pass through the data, now read the spectra!
     {
       MapType dummy;
@@ -103,7 +103,7 @@ namespace OpenMS
     }
   }
 
-  void MzXMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, MapType& map, bool skip_full_count)
+  void MzXMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, MapType& map, bool skip_full_count)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer
     transformFirstPass_(filename_in, consumer, skip_full_count);
@@ -120,7 +120,7 @@ namespace OpenMS
     }
   }
 
-  void MzXMLFile::transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count)
+  void MzXMLFile::transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count)
   {
     // Create temporary objects and counters
     PeakFileOptions tmp_options(options_);
@@ -130,7 +130,7 @@ namespace OpenMS
 
     // set temporary options for handler
     tmp_options.setSizeOnly(true);
-    tmp_options.setMetadataOnly( skip_full_count );
+    tmp_options.setMetadataOnly(skip_full_count);
     handler.setOptions(tmp_options);
 
     parse_(filename_in, &handler);
@@ -142,4 +142,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

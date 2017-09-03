@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2017.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest, George Rosenberger $
 // $Authors: Hannes Roest, George Rosenberger $
@@ -67,19 +67,20 @@ using namespace OpenMS;
 
  <B>The algorithm parameters for the Analyzer filter are:</B>
  @htmlinclude TOPP_OpenSwathRTNormalizer.html
- 
+
  */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPOpenSwathRTNormalizer : public TOPPBase
+class TOPPOpenSwathRTNormalizer :
+  public TOPPBase
 {
 public:
 
   TOPPOpenSwathRTNormalizer() :
-  TOPPBase("OpenSwathRTNormalizer",
-           "This tool will take a description of RT peptides and their normalized retention time to write out a transformation file on how to transform the RT space into the normalized space.",
-           true)
+    TOPPBase("OpenSwathRTNormalizer",
+             "This tool will take a description of RT peptides and their normalized retention time to write out a transformation file on how to transform the RT space into the normalized space.",
+             true)
   {
   }
 
@@ -94,7 +95,7 @@ protected:
 
     registerInputFile_("tr", "<file>", "", "transition file with the RT peptides ('TraML' or 'csv')");
     setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
-    
+
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("trafoXML"));
 
@@ -113,7 +114,7 @@ protected:
     registerSubsection_("RTNormalization", "Parameters for the RTNormalization. RT normalization and outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "algorithm")
     {
@@ -147,7 +148,7 @@ protected:
     return Param();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     ///////////////////////////////////
@@ -159,7 +160,7 @@ protected:
     double min_rsq = getDoubleOption_("min_rsq");
     double min_coverage = getDoubleOption_("min_coverage");
     bool estimateBestPeptides = getFlag_("estimateBestPeptides");
-    const char * tr_file  = tr_file_str.c_str();
+    const char* tr_file  = tr_file_str.c_str();
 
     MapType all_xic_maps; // all XICs from all files
     OpenSwath::LightTargetedExperiment targeted_exp;
@@ -176,14 +177,14 @@ protected:
     String outlier_method = RTNormParams.getValue("outlierMethod");
 
     // 1. Estimate the retention time range of the whole experiment
-    std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
+    std::pair<double, double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
     std::cout << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << std::endl;
 
     // 2. Store the peptide retention times in an intermediate map
     std::map<std::string, double> PeptideRTMap;
     for (Size i = 0; i < targeted_exp.getCompounds().size(); i++)
     {
-      PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt; 
+      PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt;
     }
 
     MzMLFile f;
@@ -209,14 +210,14 @@ protected:
     std::vector<std::pair<double, double> > pairs;
     for (Size i = 0; i < file_list.size(); ++i)
     {
-      boost::shared_ptr<MapType> swath_map (new MapType()); // the map with the extracted ion chromatograms
-      boost::shared_ptr<MapType> xic_map (new MapType());
+      boost::shared_ptr<MapType> swath_map(new MapType()); // the map with the extracted ion chromatograms
+      boost::shared_ptr<MapType> xic_map(new MapType());
       FeatureMap featureFile;
       std::cout << "RT Normalization working on " << file_list[i] << std::endl;
       f.load(file_list[i], *xic_map.get());
 
       // Initialize the featureFile and set its parameters (disable for example
-      // the RT score since here do not know the RT transformation) 
+      // the RT score since here do not know the RT transformation)
       MRMFeatureFinderScoring featureFinder;
       Param scoring_params = getParam_().copy("algorithm:", true);
       scoring_params.setValue("Scores:use_rt_score", "false");
@@ -228,8 +229,8 @@ protected:
       }
       featureFinder.setParameters(scoring_params);
       featureFinder.setStrictFlag(false);
-      
-      std::vector< OpenSwath::SwathMap > swath_maps(1);
+
+      std::vector<OpenSwath::SwathMap> swath_maps(1);
       swath_maps[0].sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(xic_map);
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
@@ -243,8 +244,8 @@ protected:
 
       // find most likely correct feature for each group and add it to the
       // "pairs" vector by computing pairs of iRT and real RT
-      std::map<std::string, double> res = OpenSwathHelper::simpleFindBestFeature(transition_group_map, 
-        estimateBestPeptides, pepEstimationParams.getValue("OverallQualityCutoff"));
+      std::map<std::string, double> res = OpenSwathHelper::simpleFindBestFeature(transition_group_map,
+                                                                                 estimateBestPeptides, pepEstimationParams.getValue("OverallQualityCutoff"));
       for (std::map<std::string, double>::iterator it = res.begin(); it != res.end(); ++it)
       {
         pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
@@ -253,10 +254,10 @@ protected:
 
     // 4. Perform the outlier detection
     std::vector<std::pair<double, double> > pairs_corrected;
-    if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
+    if ((outlier_method == "iter_residual") || (outlier_method == "iter_jackknife"))
     {
       pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage,
-        RTNormParams.getValue("useIterativeChauvenet").toBool(), outlier_method);
+                                                                 RTNormParams.getValue("useIterativeChauvenet").toBool(), outlier_method);
     }
     else if (outlier_method == "ransac")
     {
@@ -267,29 +268,29 @@ protected:
       double max_rt_threshold = (RTRange.second - RTRange.first) * pcnt_rt_threshold / 100.0;
 
       pairs_corrected = MRMRTNormalizer::removeOutliersRANSAC(pairs, min_rsq, min_coverage,
-        RTNormParams.getValue("RANSACMaxIterations"), max_rt_threshold,
-        RTNormParams.getValue("RANSACSamplingSize"));
+                                                              RTNormParams.getValue("RANSACMaxIterations"), max_rt_threshold,
+                                                              RTNormParams.getValue("RANSACSamplingSize"));
     }
-    else if (outlier_method == "none") 
+    else if (outlier_method == "none")
     {
       pairs_corrected = pairs;
     }
-    else 
+    else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        String("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
+                                       String("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
     }
 
     // 5. Check whether the found peptides fulfill the binned coverage criteria
     // set by the user.
     bool enoughPeptides = MRMRTNormalizer::computeBinnedCoverage(RTRange, pairs_corrected,
-      pepEstimationParams.getValue("NrRTBins"),
-      pepEstimationParams.getValue("MinPeptidesPerBin"),
-      pepEstimationParams.getValue("MinBinsFilled") );
+                                                                 pepEstimationParams.getValue("NrRTBins"),
+                                                                 pepEstimationParams.getValue("MinPeptidesPerBin"),
+                                                                 pepEstimationParams.getValue("MinBinsFilled"));
     if (estimateBestPeptides && !enoughPeptides)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "There were not enough bins with the minimal number of peptides");
+                                       "There were not enough bins with the minimal number of peptides");
     }
 
     ///////////////////////////////////
@@ -309,7 +310,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPOpenSwathRTNormalizer tool;
   return tool.main(argc, argv);

@@ -187,8 +187,8 @@ protected:
       if (it->getMSLevel() > 1)
       {
         double mz_value = 0.0;
-        if (!it->getPrecursors().empty()) mz_value = it->getPrecursors()[0].getMZ();
-        if (mz_value < mz_l || mz_value > mz_u)
+        if (!it->getPrecursors().empty()) { mz_value = it->getPrecursors()[0].getMZ(); }
+        if ((mz_value < mz_l) || (mz_value > mz_u))
         {
           continue;
         }

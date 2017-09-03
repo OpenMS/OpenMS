@@ -90,8 +90,8 @@ using namespace OpenMS;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPOpenSwathDecoyGenerator
-: public TOPPBase
+class TOPPOpenSwathDecoyGenerator :
+  public TOPPBase
 {
 public:
 
@@ -106,7 +106,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file ('traML')");
     setValidFormats_("in", ListUtils::create<String>("traML"));
-    
+
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("traML"));
 
@@ -129,7 +129,7 @@ protected:
 
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
@@ -162,7 +162,7 @@ protected:
       allowed_fragment_charges.push_back(charge);
     }
 
-    if (method != "shuffle" && method != "pseudo-reverse" && method != "reverse" && method != "shift")
+    if ((method != "shuffle") && (method != "pseudo-reverse") && (method != "reverse") && (method != "shift"))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No valid decoy generation method selected!");
     }
@@ -194,7 +194,7 @@ protected:
 
 };
 
-int main(int argc, const char **argv)
+int main(int argc, const char** argv)
 {
   TOPPOpenSwathDecoyGenerator gen;
   return gen.main(argc, argv);

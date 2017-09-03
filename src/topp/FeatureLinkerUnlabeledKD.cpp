@@ -112,14 +112,14 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     FeatureGroupingAlgorithmKD algo;
     Param p = algo.getParameters();
     return p;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     FeatureGroupingAlgorithmKD algo;
     return TOPPFeatureLinkerBase::common_main_(&algo);
@@ -128,7 +128,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFeatureLinkerUnlabeledKD tool;
   return tool.main(argc, argv);

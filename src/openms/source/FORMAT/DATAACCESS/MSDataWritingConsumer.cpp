@@ -55,31 +55,31 @@ namespace OpenMS
     ofs_.precision(writtenDigits(double()));
   }
 
-   MSDataWritingConsumer::~MSDataWritingConsumer()
+  MSDataWritingConsumer::~MSDataWritingConsumer()
   {
     doCleanup_();
   }
 
-   void MSDataWritingConsumer::setExperimentalSettings(const ExperimentalSettings& exp)
+  void MSDataWritingConsumer::setExperimentalSettings(const ExperimentalSettings& exp)
   {
     settings_ = exp;
   }
 
-   void MSDataWritingConsumer::setExpectedSize(Size expectedSpectra, Size expectedChromatograms)
+  void MSDataWritingConsumer::setExpectedSize(Size expectedSpectra, Size expectedChromatograms)
   {
     spectra_expected_ = expectedSpectra;
     chromatograms_expected_ = expectedChromatograms;
   }
 
-   void MSDataWritingConsumer::consumeSpectrum(SpectrumType & s)
+  void MSDataWritingConsumer::consumeSpectrum(SpectrumType& s)
   {
     if (writing_chromatograms_)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Cannot write spectra after writing chromatograms.");
+                                       "Cannot write spectra after writing chromatograms.");
     }
 
-    // Process the spectrum 
+    // Process the spectrum
     SpectrumType scpy = s;
     processSpectrum_(scpy);
 
@@ -114,10 +114,10 @@ namespace OpenMS
     // TODO writeSpectrum assumes that dps_ has at least one value -> assert
     // this here ...
     Internal::MzMLHandler::writeSpectrum_(ofs_, scpy,
-            spectra_written_++, *validator_, renew_native_ids, dps_);
+                                          spectra_written_++, *validator_, renew_native_ids, dps_);
   }
 
-   void MSDataWritingConsumer::consumeChromatogram(ChromatogramType & c)
+  void MSDataWritingConsumer::consumeChromatogram(ChromatogramType& c)
   {
     // make sure to close an open List tag
     if (writing_spectra_)
@@ -156,20 +156,26 @@ namespace OpenMS
       writing_spectra_ = false;
     }
     Internal::MzMLHandler::writeChromatogram_(ofs_, ccpy,
-            chromatograms_written_++, *validator_);
+                                              chromatograms_written_++, *validator_);
   }
 
-   void MSDataWritingConsumer::addDataProcessing(DataProcessing d)
+  void MSDataWritingConsumer::addDataProcessing(DataProcessing d)
   {
-    additional_dataprocessing_ = DataProcessingPtr( new DataProcessing(d) );
+    additional_dataprocessing_ = DataProcessingPtr(new DataProcessing(d));
     add_dataprocessing_ = true;
   }
 
-   Size MSDataWritingConsumer::getNrSpectraWritten() {return spectra_written_;}
+  Size MSDataWritingConsumer::getNrSpectraWritten()
+  {
+    return spectra_written_;
+  }
 
-   Size MSDataWritingConsumer::getNrChromatogramsWritten() {return chromatograms_written_;}
+  Size MSDataWritingConsumer::getNrChromatogramsWritten()
+  {
+    return chromatograms_written_;
+  }
 
-   void MSDataWritingConsumer::doCleanup_()
+  void MSDataWritingConsumer::doCleanup_()
   {
     //--------------------------------------------------------------------------------------------
     //cleanup
@@ -184,9 +190,11 @@ namespace OpenMS
       ofs_ << "\t\t</chromatogramList>\n";
     }
 
-    // Only write the footer if we actually did start writing ... 
-    if (started_writing_) 
+    // Only write the footer if we actually did start writing ...
+    if (started_writing_)
+    {
       Internal::MzMLHandlerHelper::writeFooter_(ofs_, options_, spectra_offsets, chromatograms_offsets);
+    }
 
     delete validator_;
     ofs_.close();

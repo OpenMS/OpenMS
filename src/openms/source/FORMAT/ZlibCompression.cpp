@@ -79,7 +79,7 @@ namespace OpenMS
     compressed_data.remove(0, 4);
   }
 
-  void ZlibCompression::uncompressString(const void * tt, size_t blob_bytes, std::string& uncompressed)
+  void ZlibCompression::uncompressString(const void* tt, size_t blob_bytes, std::string& uncompressed)
   {
     // take a leap of faith and assume the input is valid
     QByteArray compressed_data = QByteArray::fromRawData((const char*)tt, blob_bytes);
@@ -110,4 +110,3 @@ namespace OpenMS
   }
 
 }
-

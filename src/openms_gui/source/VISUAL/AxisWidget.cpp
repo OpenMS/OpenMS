@@ -54,7 +54,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  AxisWidget::AxisWidget(AxisPainter::Alignment alignment, const char * legend, QWidget * parent) :
+  AxisWidget::AxisWidget(AxisPainter::Alignment alignment, const char* legend, QWidget* parent) :
     QWidget(parent),
     is_log_(false),
     show_legend_(true),
@@ -67,7 +67,7 @@ namespace OpenMS
   {
     setAxisBounds(0.0, 100.0);
 
-    if (alignment == AxisPainter::RIGHT || alignment == AxisPainter::LEFT)
+    if ((alignment == AxisPainter::RIGHT) || (alignment == AxisPainter::LEFT))
     {
       setMinimumSize(30, 100);
       setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
@@ -85,14 +85,14 @@ namespace OpenMS
   {
   }
 
-  void AxisWidget::paintEvent(QPaintEvent * e)
+  void AxisWidget::paintEvent(QPaintEvent* e)
   {
     QPainter painter(this);
     paint(&painter, e);
     painter.end();
   }
 
-  void AxisWidget::paint(QPainter * painter, QPaintEvent * e)
+  void AxisWidget::paint(QPainter* painter, QPaintEvent* e)
   {
     AxisPainter::paint(painter, e, min_, max_, grid_line_,
                        width(), height(), alignment_, margin_,
@@ -109,8 +109,10 @@ namespace OpenMS
     if (is_log_)
     {
       //abort if no change
-      if (min_ == linear2log(min) && max_ == linear2log(max))
+      if ((min_ == linear2log(min)) && (max_ == linear2log(max)))
+      {
         return;
+      }
 
       min_ = linear2log(min);
       max_ = linear2log(max);
@@ -120,8 +122,10 @@ namespace OpenMS
     else
     {
       //abort if no change
-      if (min_ == min && max_ == max)
+      if ((min_ == min) && (max_ == max))
+      {
         return;
+      }
 
       min_ = min;
       max_ = max;
@@ -190,7 +194,7 @@ namespace OpenMS
     return show_legend_;
   }
 
-  const String & AxisWidget::getLegend()
+  const String& AxisWidget::getLegend()
   {
     return legend_;
   }
@@ -209,7 +213,7 @@ namespace OpenMS
     return is_inverse_orientation_;
   }
 
-  void AxisWidget::setLegend(const String & legend)
+  void AxisWidget::setLegend(const String& legend)
   {
     legend_ = legend;
     if (!show_legend_)
@@ -220,13 +224,13 @@ namespace OpenMS
 
   void AxisWidget::setTickLevel(UInt level)
   {
-    if (level == 1 || level == 2)
+    if ((level == 1) || (level == 2))
     {
       tick_level_ = level;
     }
   }
 
-  const AxisWidget::GridVector & AxisWidget::gridLines()
+  const AxisWidget::GridVector& AxisWidget::gridLines()
   {
     return grid_line_;
   }

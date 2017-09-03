@@ -105,7 +105,7 @@ protected:
     setMinInt_("first_column", 0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -128,7 +128,7 @@ protected:
 
     OpenMS::FuzzyStringComparator fsc;
 
-    std::vector< std::pair<std::string, std::string> > parsed_matched_whitelist; 
+    std::vector<std::pair<std::string, std::string> > parsed_matched_whitelist;
     for (Size i = 0; i < raw_matched_whitelist.size(); i++)
     {
 
@@ -138,7 +138,7 @@ protected:
       if (tmp.size() != 2)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String(raw_matched_whitelist[i]) + " does not have the format String1:String2");
+                                         String(raw_matched_whitelist[i]) + " does not have the format String1:String2");
       }
 
       std::pair<std::string, std::string> tmp_tuple(tmp[0], tmp[1]);
@@ -166,7 +166,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFuzzyDiff tool;
   return tool.main(argc, argv);

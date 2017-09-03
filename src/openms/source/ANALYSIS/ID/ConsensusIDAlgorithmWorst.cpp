@@ -45,7 +45,6 @@ namespace OpenMS
     setName("ConsensusIDAlgorithmWorst"); // DefaultParamHandler
   }
 
-
   double ConsensusIDAlgorithmWorst::getAggregateScore_(vector<double>& scores,
                                                        bool higher_better)
   {

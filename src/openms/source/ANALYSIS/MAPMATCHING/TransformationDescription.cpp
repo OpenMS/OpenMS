@@ -48,7 +48,7 @@ using namespace std;
 namespace OpenMS
 {
   TransformationDescription::TransformationDescription() :
-    data_(TransformationDescription::DataPoints()), 
+    data_(TransformationDescription::DataPoints()),
     model_type_("none"),
     model_(new TransformationModel())
   {
@@ -80,7 +80,9 @@ namespace OpenMS
     const TransformationDescription& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
+    }
 
     data_ = rhs.data_;
     model_type_ = "none";
@@ -94,7 +96,7 @@ namespace OpenMS
                                            const Param& params)
   {
     // if (previous) transformation is the identity, don't fit another model:
-    if (model_type_ == "identity") return;
+    if (model_type_ == "identity") { return; }
 
     delete model_;
     model_ = 0; // avoid segmentation fault in case of exception
@@ -186,7 +188,7 @@ namespace OpenMS
     }
   }
 
-  void TransformationDescription::getDeviations(vector<double>& diffs, 
+  void TransformationDescription::getDeviations(vector<double>& diffs,
                                                 bool do_apply,
                                                 bool do_sort) const
   {
@@ -195,16 +197,16 @@ namespace OpenMS
     for (DataPoints::const_iterator it = data_.begin(); it != data_.end(); ++it)
     {
       double x = it->first;
-      if (do_apply) x = apply(x);
+      if (do_apply) { x = apply(x); }
       diffs.push_back(abs(x - it->second));
     }
-    if (do_sort) sort(diffs.begin(), diffs.end());
+    if (do_sort) { sort(diffs.begin(), diffs.end()); }
   }
 
   void TransformationDescription::printSummary(ostream& os) const
   {
     os << "Number of data points (x/y pairs): " << data_.size() << "\n";
-    if (data_.empty()) return;
+    if (data_.empty()) { return; }
     // x/y data ranges:
     double xmin, xmax, ymin, ymax;
     xmin = xmax = data_[0].first;
@@ -212,10 +214,10 @@ namespace OpenMS
     for (DataPoints::const_iterator it = ++data_.begin(); it != data_.end();
          ++it)
     {
-      if (xmin > it->first) xmin = it->first;
-      if (xmax < it->first) xmax = it->first;
-      if (ymin > it->second) ymin = it->second;
-      if (ymax < it->second) ymax = it->second;
+      if (xmin > it->first) { xmin = it->first; }
+      if (xmax < it->first) { xmax = it->first; }
+      if (ymin > it->second) { ymin = it->second; }
+      if (ymax < it->second) { ymax = it->second; }
     }
     os << "Data range (x): " << xmin << " to " << xmax
        << "\nData range (y): " << ymin << " to " << ymax << "\n";
@@ -224,8 +226,8 @@ namespace OpenMS
     getDeviations(diffs);
     bool no_model = (model_type_ == "none") || (model_type_ == "identity");
     os << String("Summary of x/y deviations") +
-      (no_model ? "" : " before transformation") + ":\n";
-    Size percents[] = {100, 99, 95, 90, 75, 50, 25};
+    (no_model ? "" : " before transformation") + ":\n";
+    Size percents[] = { 100, 99, 95, 90, 75, 50, 25 };
     for (Size i = 0; i < 7; ++i)
     {
       Size index = percents[i] / 100.0 * diffs.size() - 1;
@@ -239,7 +241,7 @@ namespace OpenMS
     }
     // else:
     getDeviations(diffs, true);
-    os << "Summary of x/y deviations after applying '" << model_type_ 
+    os << "Summary of x/y deviations after applying '" << model_type_
        << "' transformation:\n";
     for (Size i = 0; i < 7; ++i)
     {

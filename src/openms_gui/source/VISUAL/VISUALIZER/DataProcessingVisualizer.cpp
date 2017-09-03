@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  DataProcessingVisualizer::DataProcessingVisualizer(bool editable, QWidget * parent) :
+  DataProcessingVisualizer::DataProcessingVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<DataProcessing>()
   {
@@ -67,7 +67,7 @@ namespace OpenMS
     actions_->clear();
     for (Size i = 0; i < DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
     {
-      QListWidgetItem * item = new QListWidgetItem(actions_);
+      QListWidgetItem* item = new QListWidgetItem(actions_);
       item->setText(QString::fromStdString(DataProcessing::NamesOfProcessingAction[i]));
       if (temp_.getProcessingActions().count(DataProcessing::ProcessingAction(i)) == 1)
       {
@@ -97,7 +97,7 @@ namespace OpenMS
       date.set(completion_time_->text());
       ptr_->setCompletionTime(date);
     }
-    catch (exception & /*e*/)
+    catch (exception& /*e*/)
     {
       if (date.isNull())
       {

@@ -41,7 +41,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    MzQuantMLValidator::MzQuantMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
+    MzQuantMLValidator::MzQuantMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
       SemanticValidator(mapping, cv)
     {
       setCheckUnits(true);
@@ -51,5 +51,5 @@ namespace OpenMS
     {
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

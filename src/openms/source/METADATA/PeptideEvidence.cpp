@@ -45,11 +45,11 @@ namespace OpenMS
   const char PeptideEvidence::C_TERMINAL_AA = ']';
 
   PeptideEvidence::PeptideEvidence()
-   : accession_(),
-     start_(UNKNOWN_POSITION),
-     end_(UNKNOWN_POSITION),
-     aa_before_(UNKNOWN_AA),
-     aa_after_(UNKNOWN_AA)
+    : accession_(),
+    start_(UNKNOWN_POSITION),
+    end_(UNKNOWN_POSITION),
+    aa_before_(UNKNOWN_AA),
+    aa_after_(UNKNOWN_AA)
   {
   }
 
@@ -83,20 +83,19 @@ namespace OpenMS
 
   bool PeptideEvidence::operator<(const PeptideEvidence& rhs) const
   {
-    if (accession_ != rhs.accession_) return accession_ < rhs.accession_;
-    if (start_ != rhs.start_) return start_ < rhs.start_;
-    if (end_ != rhs.end_) return end_ < rhs.end_;
-    if (aa_before_ != rhs.aa_before_) return aa_before_ < rhs.aa_before_;
-    if (aa_after_ != rhs.aa_after_) return aa_after_ < rhs.aa_after_;
+    if (accession_ != rhs.accession_) { return accession_ < rhs.accession_; }
+    if (start_ != rhs.start_) { return start_ < rhs.start_; }
+    if (end_ != rhs.end_) { return end_ < rhs.end_; }
+    if (aa_before_ != rhs.aa_before_) { return aa_before_ < rhs.aa_before_; }
+    if (aa_after_ != rhs.aa_after_) { return aa_after_ < rhs.aa_after_; }
     return false;
   }
 
-  
   bool PeptideEvidence::operator!=(const PeptideEvidence& rhs) const
   {
     return !operator==(rhs);
   }
-  
+
   bool PeptideEvidence::hasValidLimits() const
   {
     return !(

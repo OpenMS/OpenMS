@@ -267,7 +267,7 @@ protected:
     registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     // path to the log file
     String logfile = "mascot.log";
@@ -316,7 +316,7 @@ protected:
 
     date_time.now();
     date_time_string = date_time.get();
-    date_time_string.substitute(':', '.');        // Windows does not allow ":" in filenames!
+    date_time_string.substitute(':', '.'); // Windows does not allow ":" in filenames!
     date_time_string.split(' ', parts);
 
     mascot_infile_name = parts[0] + "_" + parts[1] + "_" + mascot_infile_name;
@@ -360,7 +360,7 @@ protected:
       writeLog_("Both Mascot flags set. Aborting! Only one of the two flags [-mascot_in|-mascot_out] can be set!");
       return ILLEGAL_PARAMETERS;
     }
-    
+
     db = getStringOption_("db");
     hits = getStringOption_("hits");
     cleavage = getStringOption_("cleavage");
@@ -393,7 +393,7 @@ protected:
     for (Size i = 0; i < parts.size(); i++)
     {
       temp_charge = parts[i];
-      if (temp_charge[temp_charge.size() - 1] == '-' || temp_charge[0] == '-')
+      if ((temp_charge[temp_charge.size() - 1] == '-') || (temp_charge[0] == '-'))
       {
         charges.push_back(-1 * (parts[i].remove('-').toInt()));
       }
@@ -573,7 +573,7 @@ protected:
           return EXTERNAL_PROGRAM_ERROR;
         }
 
-      }           // from if(!mascot_in)
+      } // from if(!mascot_in)
       else
       {
         if (boundary != "")
@@ -584,7 +584,7 @@ protected:
                             experiment,
                             "OpenMS search");
       }
-    }         // from if(!mascot_out)
+    } // from if(!mascot_out)
     if (!mascot_in)
     {
       SpectrumMetaDataLookup lookup;
@@ -626,14 +626,14 @@ protected:
         QFile(pepXML_file_name.toQString()).remove();
       }
 
-    }             // from if(!mascot_in)
+    } // from if(!mascot_in)
     return EXECUTION_OK;
   }
 
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMascotAdapter tool;
 

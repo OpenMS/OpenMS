@@ -51,7 +51,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    XMLHandler::XMLHandler(const String & filename, const String & version) :
+    XMLHandler::XMLHandler(const String& filename, const String& version) :
       error_message_(""),
       file_(filename),
       version_(version)
@@ -67,22 +67,22 @@ namespace OpenMS
       sm_.clear();
     }
 
-    void XMLHandler::fatalError(const SAXParseException & exception)
+    void XMLHandler::fatalError(const SAXParseException& exception)
     {
       fatalError(LOAD, sm_.convert(exception.getMessage()), exception.getLineNumber(), exception.getColumnNumber());
     }
 
-    void XMLHandler::error(const SAXParseException & exception)
+    void XMLHandler::error(const SAXParseException& exception)
     {
       error(LOAD, sm_.convert(exception.getMessage()), exception.getLineNumber(), exception.getColumnNumber());
     }
 
-    void XMLHandler::warning(const SAXParseException & exception)
+    void XMLHandler::warning(const SAXParseException& exception)
     {
       warning(LOAD, sm_.convert(exception.getMessage()), exception.getLineNumber(), exception.getColumnNumber());
     }
 
-    void XMLHandler::fatalError(ActionMode mode, const String & msg, UInt line, UInt column) const
+    void XMLHandler::fatalError(ActionMode mode, const String& msg, UInt line, UInt column) const
     {
       if (mode == LOAD)
       {
@@ -92,7 +92,7 @@ namespace OpenMS
       {
         error_message_ =  String("While storing '") + file_ + "': " + msg;
       }
-      if (line != 0 || column != 0)
+      if ((line != 0) || (column != 0))
       {
         error_message_ += String("( in line ") + line + " column " + column + ")";
       }
@@ -111,7 +111,7 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_, error_message_);
     }
 
-    void XMLHandler::error(ActionMode mode, const String & msg, UInt line, UInt column) const
+    void XMLHandler::error(ActionMode mode, const String& msg, UInt line, UInt column) const
     {
       if (mode == LOAD)
       {
@@ -121,14 +121,14 @@ namespace OpenMS
       {
         error_message_ =  String("Non-fatal error while storing '") + file_ + "': " + msg;
       }
-      if (line != 0 || column != 0)
+      if ((line != 0) || (column != 0))
       {
         error_message_ += String("( in line ") + line + " column " + column + ")";
       }
       LOG_ERROR << error_message_ << std::endl;
     }
 
-    void XMLHandler::warning(ActionMode mode, const String & msg, UInt line, UInt column) const
+    void XMLHandler::warning(ActionMode mode, const String& msg, UInt line, UInt column) const
     {
       if (mode == LOAD)
       {
@@ -138,7 +138,7 @@ namespace OpenMS
       {
         error_message_ =  String("While storing '") + file_ + "': " + msg;
       }
-      if (line != 0 || column != 0)
+      if ((line != 0) || (column != 0))
       {
         error_message_ += String("( in line ") + line + " column " + column + ")";
       }
@@ -152,19 +152,19 @@ namespace OpenMS
 
     }
 
-    void XMLHandler::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
+    void XMLHandler::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
     {
     }
 
-    void XMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*localname*/, const XMLCh * const /*qname*/, const Attributes & /*attrs*/)
+    void XMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*localname*/, const XMLCh* const /*qname*/, const Attributes& /*attrs*/)
     {
     }
 
-    void XMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*localname*/, const XMLCh * const /*qname*/)
+    void XMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*localname*/, const XMLCh* const /*qname*/)
     {
     }
 
-    void XMLHandler::writeTo(std::ostream & /*os*/)
+    void XMLHandler::writeTo(std::ostream& /*os*/)
     {
     }
 
@@ -173,7 +173,7 @@ namespace OpenMS
       return error_message_;
     }
 
-    void XMLHandler::writeUserParam_(const String & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const
+    void XMLHandler::writeUserParam_(const String& tag_name, std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
     {
       std::vector<String> keys;
       meta.getKeys(keys);
@@ -185,7 +185,7 @@ namespace OpenMS
         DataValue d = meta.getMetaValue(keys[i]);
         String val;
         // determine type
-        if (d.valueType() == DataValue::STRING_VALUE || d.valueType() == DataValue::EMPTY_VALUE)
+        if ((d.valueType() == DataValue::STRING_VALUE) || (d.valueType() == DataValue::EMPTY_VALUE))
         {
           os << "string";
           val = d;
@@ -228,7 +228,7 @@ namespace OpenMS
 
     //*******************************************************************************************************************
 
-    
+
     StringManager::StringManager() :
       xml_strings_(0),
       c_strings_(0)
@@ -255,35 +255,35 @@ namespace OpenMS
       c_strings_.clear();
     }
 
-    XMLCh * StringManager::convert(const char * str) const
+    XMLCh* StringManager::convert(const char* str) const
     {
-      XMLCh * result = XMLString::transcode(str);
+      XMLCh* result = XMLString::transcode(str);
       xml_strings_.push_back(result);
       return result;
     }
 
-    XMLCh * StringManager::convert(const std::string & str) const
+    XMLCh* StringManager::convert(const std::string& str) const
     {
-      XMLCh * result = XMLString::transcode(str.c_str());
+      XMLCh* result = XMLString::transcode(str.c_str());
       xml_strings_.push_back(result);
       return result;
     }
 
-    XMLCh * StringManager::convert(const String & str) const
+    XMLCh* StringManager::convert(const String& str) const
     {
-      XMLCh * result = XMLString::transcode(str.c_str());
+      XMLCh* result = XMLString::transcode(str.c_str());
       xml_strings_.push_back(result);
       return result;
     }
 
-    char * StringManager::convert(const XMLCh * str) const
+    char* StringManager::convert(const XMLCh* str) const
     {
-      char * result = XMLString::transcode(str);
+      char* result = XMLString::transcode(str);
       c_strings_.push_back(result);
       return result;
     }
 
-    void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
+    void StringManager::appendASCII(const XMLCh* chars, const XMLSize_t length, String& result)
     {
       // XMLCh are characters in UTF16 (usually stored as 16bit unsigned
       // short but this is not guaranteed).
@@ -298,14 +298,14 @@ namespace OpenMS
       result.resize(curr_size + length);
       std::string::iterator str_it = result.begin();
       std::advance(str_it, curr_size);
-      while (it!=end)
-      {   
+      while (it != end)
+      {
         *str_it = (char)*it;
         ++str_it;
         ++it;
       }
 
-      // This is ca. 50 % faster than 
+      // This is ca. 50 % faster than
       // for (size_t i = 0; i < length; i++)
       // {
       //   result[curr_size + i] = (char)chars[i];
@@ -313,6 +313,6 @@ namespace OpenMS
 
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 
 } // namespace OpenMS

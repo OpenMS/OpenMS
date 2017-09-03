@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  TaggingVisualizer::TaggingVisualizer(bool editable, QWidget * parent) :
+  TaggingVisualizer::TaggingVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<Tagging>()
   {

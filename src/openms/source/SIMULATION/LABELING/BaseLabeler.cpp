@@ -83,7 +83,9 @@ namespace OpenMS
     for (SimTypes::FeatureMapSimVector::const_iterator maps_iterator = maps.begin(); maps_iterator != maps.end(); ++maps_iterator)
     {
       if (maps_iterator->getProteinIdentifications().size() == 0)
+      {
         continue;
+      }
 
       for (std::vector<ProteinHit>::const_iterator protein_hit = (*maps_iterator).getProteinIdentifications()[0].getHits().begin();
            protein_hit != (*maps_iterator).getProteinIdentifications()[0].getHits().end();

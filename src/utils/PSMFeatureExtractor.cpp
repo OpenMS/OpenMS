@@ -125,7 +125,7 @@ protected:
     registerFlag_("impute", "Will instead of discarding all PSM not unanimously detected by all SE, impute missing values by their respective scores min/max observed. Only valid together with -multiple_search_engines flag.", true);
     registerFlag_("limit_imputation", "Will impute missing scores with the worst numerical limit (instead of min/max observed) of the respective score. Only valid together with -multiple_search_engines flag.", true);
   }
-  
+
   ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
@@ -133,20 +133,20 @@ protected:
     //-------------------------------------------------------------
     vector<PeptideIdentification> all_peptide_ids;
     vector<ProteinIdentification> all_protein_ids;
-    
+
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
     const StringList in_list = getStringList_("in");
     bool multiple_search_engines = getFlag_("multiple_search_engines");
     LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << endl;
-    if (in_list.size() > 1 && !multiple_search_engines)
+    if ((in_list.size() > 1) && !multiple_search_engines)
     {
       writeLog_("Fatal error: multiple input files given for -in, but -multiple_search_engines flag not specified. If the same search engine was used, feed the input files into PSMFeatureExtractor one by one.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    
+
     const String out(getStringOption_("out"));
 
     //-------------------------------------------------------------
@@ -185,7 +185,7 @@ protected:
           return INCOMPATIBLE_INPUT_DATA;
         }
       }
-      
+
       if (!multiple_search_engines)
       {
         all_peptide_ids.insert(all_peptide_ids.end(), peptide_ids.begin(), peptide_ids.end());
@@ -197,7 +197,7 @@ protected:
         {
           search_engines_used.push_back(search_engine);
         }
-        
+
         if (concatenate)
         {
           // will concatenate the list
@@ -211,7 +211,7 @@ protected:
       }
       PercolatorFeatureSetHelper::mergeMULTISEProteinIds(all_protein_ids, protein_ids);
     }
-    
+
     if (all_protein_ids.empty())
     {
       writeLog_("No protein hits found in input file. Aborting!");
@@ -223,9 +223,9 @@ protected:
     // extract search engine and prepare pin
     //-------------------------------------------------------------
     String search_engine = all_protein_ids.front().getSearchEngine();
-    if (multiple_search_engines) search_engine = "multiple";
+    if (multiple_search_engines) { search_engine = "multiple"; }
     LOG_DEBUG << "Registered search engine: " << search_engine << endl;
-    
+
     StringList extra_features = getStringList_("extra");
     StringList feature_set;
 
@@ -242,10 +242,10 @@ protected:
         PercolatorFeatureSetHelper::addMULTISEFeatures(all_peptide_ids, search_engines_used, feature_set, !impute, limits);
       }
     }
-    else if (search_engine == "MS-GF+") PercolatorFeatureSetHelper::addMSGFFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "Mascot") PercolatorFeatureSetHelper::addMASCOTFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "XTandem") PercolatorFeatureSetHelper::addXTANDEMFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "Comet") PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
+    else if (search_engine == "MS-GF+") { PercolatorFeatureSetHelper::addMSGFFeatures(all_peptide_ids, feature_set); }
+    else if (search_engine == "Mascot") { PercolatorFeatureSetHelper::addMASCOTFeatures(all_peptide_ids, feature_set); }
+    else if (search_engine == "XTandem") { PercolatorFeatureSetHelper::addXTANDEMFeatures(all_peptide_ids, feature_set); }
+    else if (search_engine == "Comet") { PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set); }
     else
     {
       LOG_ERROR << "No known input to create PSM features from. Aborting" << std::endl;
@@ -256,9 +256,9 @@ protected:
     for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
     {
       it->setIdentifier(run_identifier);
-      PercolatorFeatureSetHelper::checkExtraFeatures(it->getHits(), extra_features);  // will remove inconsistently available features
+      PercolatorFeatureSetHelper::checkExtraFeatures(it->getHits(), extra_features); // will remove inconsistently available features
     }
-    
+
     if (all_protein_ids.size() > 1)
     {
       LOG_ERROR << "Multiple identifications in one file are not supported. Please resume with separate input files. Quitting." << std::endl;
@@ -267,18 +267,18 @@ protected:
     else
     {
       ProteinIdentification::SearchParameters search_parameters = all_protein_ids.front().getSearchParameters();
-      
+
       search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
       feature_set.insert(feature_set.end(), extra_features.begin(), extra_features.end());
       search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
       all_protein_ids.front().setSearchParameters(search_parameters);
     }
-    
+
     // Storing the PeptideHits with calculated q-value, pep and svm score
     FileTypes::Type out_type = FileHandler::getType(out);
-    
+
     LOG_INFO << "writing output file: " << out << endl;
-    
+
     if (out_type == FileTypes::IDXML)
     {
       IdXMLFile().store(out, all_protein_ids, all_peptide_ids);

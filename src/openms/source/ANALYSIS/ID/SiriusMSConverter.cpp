@@ -61,7 +61,7 @@ namespace OpenMS
     MSSpectrum::ConstIterator right = spectrum1.MZEnd(test_mz + right_tolerance);
 
     // no MS1 precursor peak in +- tolerance window found
-    if (left == right || left->getMZ() > test_mz + right_tolerance)
+    if ((left == right) || (left->getMZ() > test_mz + right_tolerance))
     {
       return -1;
     }
@@ -76,7 +76,7 @@ namespace OpenMS
     return max_intensity_it - spectrum1.begin();
   }
 
-  void SiriusMSFile::store(const PeakMap &spectra, const OpenMS::String & msfile)
+  void SiriusMSFile::store(const PeakMap& spectra, const OpenMS::String& msfile)
   {
 
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
@@ -122,7 +122,7 @@ namespace OpenMS
       IonSource::Polarity p = spectrum.getInstrumentSettings().getPolarity(); //charge
 
       // there should be only one precursor and MS2 should contain peaks to be considered
-      if (precursor.size() == 1 && !spectrum.empty())
+      if ((precursor.size() == 1) && !spectrum.empty())
       {
         // needed later for writing in ms file
         int int_charge = 0;
@@ -132,29 +132,29 @@ namespace OpenMS
 
         // sirius supports only single charged ions (+1; -1)
         // if charge = 0, it will be allocted to +1; -1 depending on Polarity
-        if (precursor_charge > 1 || precursor_charge <= -1)
+        if ((precursor_charge > 1) || (precursor_charge <= -1))
         {
           count_skipped_spectra = count_skipped_spectra + 1;
           continue;
         }
         // set charge value for msfile
-        if (p == IonSource::Polarity::POSITIVE && precursor_charge == +1)
+        if ((p == IonSource::Polarity::POSITIVE) && (precursor_charge == +1))
         {
           int_charge = +1;
         }
-        if (p == IonSource::Polarity::NEGATIVE && precursor_charge == -1)
+        if ((p == IonSource::Polarity::NEGATIVE) && (precursor_charge == -1))
         {
           int_charge = -1;
         }
-        if (p == IonSource::Polarity::POSITIVE && precursor_charge == 0)
+        if ((p == IonSource::Polarity::POSITIVE) && (precursor_charge == 0))
         {
           int_charge = +1;
           count_to_pos = count_to_pos + 1;
         }
-        if (p == IonSource::Polarity::NEGATIVE && precursor_charge == 0)
+        if ((p == IonSource::Polarity::NEGATIVE) && (precursor_charge == 0))
         {
           int_charge = -1;
-          count_to_neg = count_to_neg +1;
+          count_to_neg = count_to_neg + 1;
         }
 
         //get m/z and intensity of precursor != MS1 spectrum
@@ -171,7 +171,7 @@ namespace OpenMS
 
         if (s_it2->getMSLevel() != 1)
         {
-          count_no_ms1 = count_no_ms1 +1;
+          count_no_ms1 = count_no_ms1 + 1;
         }
         //get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da)
         else
@@ -224,7 +224,7 @@ namespace OpenMS
         // Use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
         Size no_isotopes = isotopes.size();
 
-        if ( no_isotopes > 0) //if ms1 spectrum was present
+        if (no_isotopes > 0) //if ms1 spectrum was present
         {
           os << ">ms1" << endl;
           //m/z and intensity have to be higher than 1e-10
@@ -235,7 +235,7 @@ namespace OpenMS
           double first_mz = isotopes[0].getMZ();
           double first_intensity = isotopes[0].getIntensity();
 
-          if (first_mz > threshold && first_intensity > threshold)
+          if ((first_mz > threshold) && (first_intensity > threshold))
           {
             os << first_mz << " " << first_intensity << endl;
           }
@@ -245,7 +245,7 @@ namespace OpenMS
             double second_mz = isotopes[1].getMZ();
             double second_intensity = isotopes[1].getIntensity();
 
-            if (second_mz > threshold && second_intensity > threshold && second_intensity < first_intensity && first_intensity > threshold)
+            if ((second_mz > threshold) && (second_intensity > threshold) && (second_intensity < first_intensity) && (first_intensity > threshold))
             {
               os << second_mz << " " << second_intensity << endl;
             }
@@ -255,7 +255,7 @@ namespace OpenMS
               double third_mz = isotopes[2].getMZ();
               double third_intensity = isotopes[2].getIntensity();
 
-              if (third_mz > threshold && third_intensity > threshold && third_intensity < second_intensity && second_intensity > threshold)
+              if ((third_mz > threshold) && (third_intensity > threshold) && (third_intensity < second_intensity) && (second_intensity > threshold))
               {
                 os << third_mz << " " << third_intensity << endl;
               }
@@ -268,7 +268,7 @@ namespace OpenMS
           if (precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
           {
             os << ">ms1" << "\n"
-                << precursor_mz << " " << precursor_int << "\n\n";
+               << precursor_mz << " " << precursor_int << "\n\n";
           }
         }
 
@@ -302,10 +302,11 @@ namespace OpenMS
 
     LOG_WARN << "No MS1 spectrum for this precursor. Occurred " << count_no_ms1 << " times." << endl;
     LOG_WARN << count_skipped_spectra << " spectra were skipped due to precursor charge below -1 and above +1." << endl;
-    LOG_WARN << "Charge of 0 was set to +1 due to positive polarity " << count_to_pos << " times."<< endl;
+    LOG_WARN << "Charge of 0 was set to +1 due to positive polarity " << count_to_pos << " times." << endl;
     LOG_WARN << "Charge of 0 was set to -1 due to negative polarity " << count_to_neg << " times." << endl;
 
   }
+
 }
 
 /// @endcond

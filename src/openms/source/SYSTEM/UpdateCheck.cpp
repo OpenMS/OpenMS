@@ -58,7 +58,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
 using namespace std;
-  
+
 namespace OpenMS
 {
   void UpdateCheck::run(const String& tool_name, const String& version, int debug_level)
@@ -67,7 +67,7 @@ namespace OpenMS
 
     // if the revision info is meaningful, show it as well
     String revision("UNKNOWN");
-    if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
+    if (!VersionInfo::getRevision().empty() && (VersionInfo::getRevision() != "exported"))
     {
       revision = VersionInfo::getRevision();
     }
@@ -117,15 +117,15 @@ namespace OpenMS
       QDateTime current_dt = QDateTime::currentDateTime();
 
       // check if at least one day passed since last request
-      if (first_run || current_dt > last_modified_dt.addDays(1))
+      if (first_run || (current_dt > last_modified_dt.addDays(1)))
       {
         // update modification time stamp
         struct stat old_stat;
         struct utimbuf new_times;
         stat(version_file_name.c_str(), &old_stat);
-        new_times.actime = old_stat.st_atime; // keep accession time unchanged 
-        new_times.modtime = time(NULL);  // mod time to current time
-        utime(version_file_name.c_str(), &new_times);          
+        new_times.actime = old_stat.st_atime; // keep accession time unchanged
+        new_times.modtime = time(NULL); // mod time to current time
+        utime(version_file_name.c_str(), &new_times);
 
         if (debug_level > 0)
         {
@@ -133,15 +133,15 @@ namespace OpenMS
           LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
           LOG_INFO << "setting the environmental variable OPENMS_DISABLE_UPDATE_CHECK to ON." << endl;
         }
-      
+
         // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
-        char const * argv2[] = { "dummyname", NULL };
+        char const* argv2[] = { "dummyname", NULL };
         int argc = 1;
         QCoreApplication event_loop(argc, const_cast<char**>(argv2));
         NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
         query->setUrl(QUrl(QString("http://openms-update.informatik.uni-tuebingen.de/check/") + tool_version_string.toQString()));
         QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
-        QTimer::singleShot(1000, query, SLOT(run()));          
+        QTimer::singleShot(1000, query, SLOT(run()));
         QTimer::singleShot(5000, query, SLOT(timeOut()));
         event_loop.exec();
 
@@ -176,4 +176,3 @@ namespace OpenMS
   }
 
 }
-

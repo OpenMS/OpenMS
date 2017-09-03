@@ -52,7 +52,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include<QDir>
+#include <QDir>
 
 using namespace std;
 
@@ -66,19 +66,19 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
     }
-    
+
     // ranges of the experiment
     double mz_min = exp_profile.getMinMZ();
     double mz_max = exp_profile.getMaxMZ();
     double rt_min = exp_profile.getMinRT();
     double rt_max = exp_profile.getMaxRT();
-    
+
     // extend the grid by a small machine-epsilon-dependent margin
     mz_min -= 2 * std::abs(mz_min) * std::numeric_limits<double>::epsilon();
     mz_max += 2 * std::abs(mz_max) * std::numeric_limits<double>::epsilon();
     rt_min -= 2 * std::abs(rt_min) * std::numeric_limits<double>::epsilon();
     rt_max += 2 * std::abs(rt_max) * std::numeric_limits<double>::epsilon();
-    
+
     // generate grid spacing
     PeakWidthEstimator estimator(exp_picked, boundaries);
     // We assume that the jitter of the peak centres are less than <scaling> times the peak width.
@@ -120,20 +120,20 @@ namespace OpenMS
     double mz_max = exp.getMaxMZ();
     double rt_min = exp.getMinRT();
     double rt_max = exp.getMaxRT();
-    
+
     // extend the grid by a small machine-epsilon-dependent margin
     mz_min -= 2 * std::abs(mz_min) * std::numeric_limits<double>::epsilon();
     mz_max += 2 * std::abs(mz_max) * std::numeric_limits<double>::epsilon();
     rt_min -= 2 * std::abs(rt_min) * std::numeric_limits<double>::epsilon();
     rt_max += 2 * std::abs(rt_max) * std::numeric_limits<double>::epsilon();
-    
+
     // generate grid spacing
     // We assume that the jitter of the peak centres are less than <scaling> times the user specified m/z tolerance.
     double scaling = 1.0;
-    
+
     if (mz_tolerance_unit)
     {
-      for (double mz = mz_min; mz < mz_max; mz = mz * (1 + scaling * mz_tolerance/1000000))
+      for (double mz = mz_min; mz < mz_max; mz = mz * (1 + scaling * mz_tolerance / 1000000))
       {
         grid_spacing_mz_.push_back(mz);
       }
@@ -167,7 +167,7 @@ namespace OpenMS
     std::sort(mz.begin(), mz.end());
     if (mz_tolerance_unit)
     {
-      rt_scaling_ = (mz[(int) mz.size() / 2] * mz_tolerance/1000000) / rt_typical_;
+      rt_scaling_ = (mz[(int) mz.size() / 2] * mz_tolerance / 1000000) / rt_typical_;
     }
     else
     {
@@ -181,14 +181,14 @@ namespace OpenMS
     // progress logger
     unsigned progress = 0;
     startProgress(0, filter_results.size(), "clustering filtered LC-MS data");
-      
+
     std::vector<std::map<int, GridBasedCluster> > cluster_results;
 
     // loop over patterns i.e. cluster each of the corresponding filter results
     for (unsigned i = 0; i < filter_results.size(); ++i)
     {
       setProgress(++progress);
-        
+
       GridBasedClustering<MultiplexDistance> clustering(MultiplexDistance(rt_scaling_), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
       clustering.cluster();
       //clustering.extendClustersY();
@@ -202,18 +202,18 @@ namespace OpenMS
   }
 
   MultiplexClustering::MultiplexDistance::MultiplexDistance(double rt_scaling)
-  : rt_scaling_(rt_scaling)
+    : rt_scaling_(rt_scaling)
   {
   }
-  
+
   MultiplexClustering::MultiplexDistance::MultiplexDistance()
-  : rt_scaling_(1)
+    : rt_scaling_(1)
   {
   }
-  
+
   double MultiplexClustering::MultiplexDistance::operator()(Point p1, Point p2)
   {
-      return sqrt((p1.getX() - p2.getX())*(p1.getX() - p2.getX()) + rt_scaling_ * rt_scaling_ * (p1.getY() - p2.getY())*(p1.getY() - p2.getY()));
+    return sqrt((p1.getX() - p2.getX()) * (p1.getX() - p2.getX()) + rt_scaling_ * rt_scaling_ * (p1.getY() - p2.getY()) * (p1.getY() - p2.getY()));
   }
 
 }

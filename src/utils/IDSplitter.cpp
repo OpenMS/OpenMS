@@ -79,7 +79,7 @@ public:
 
 protected:
 
-  void removeDuplicates_(vector<PeptideIdentification> & peptides)
+  void removeDuplicates_(vector<PeptideIdentification>& peptides)
   {
     // there is no "PeptideIdentification::operator<", so we can't use a set
     // or sort + unique to filter out duplicates...
@@ -98,7 +98,7 @@ protected:
           break;
         }
       }
-      if (!duplicate) unique.push_back(*in_it);
+      if (!duplicate) { unique.push_back(*in_it); }
     }
     peptides.swap(unique);
   }
@@ -113,7 +113,7 @@ protected:
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in"), out = getStringOption_("out"),
            id_out = getStringOption_("id_out");
@@ -172,7 +172,7 @@ protected:
         FeatureXMLFile().store(out, features);
       }
     }
-    else         // consensusXML
+    else // consensusXML
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
@@ -198,7 +198,7 @@ protected:
     {
       // IDMapper can match a peptide ID to several overlapping features,
       // resulting in duplicates; this shouldn't be the case for peak data
-      if (in_type != FileTypes::MZML) removeDuplicates_(peptides);
+      if (in_type != FileTypes::MZML) { removeDuplicates_(peptides); }
       IdXMLFile().store(id_out, proteins, peptides);
     }
 
@@ -208,7 +208,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDSplitter tool;
   return tool.main(argc, argv);

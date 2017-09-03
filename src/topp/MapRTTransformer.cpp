@@ -129,7 +129,7 @@ protected:
   }
 
   template <class TFile, class TMap>
-  void applyTransformation_(const String& in, const String& out, 
+  void applyTransformation_(const String& in, const String& out,
                             const TransformationDescription& trafo,
                             TFile& file, TMap& map)
   {

@@ -146,7 +146,7 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
 
-    IndexedMzMLFileLoader loader; 
+    IndexedMzMLFileLoader loader;
 
     //-------------------------------------------------------------
     // loading input

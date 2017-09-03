@@ -69,7 +69,7 @@ namespace OpenMS
         for (Size t = 0; t < rules[r].getCVTerms().size(); ++t) //go thru all terms
         {
           const CVMappingTerm& term = rules[r].getCVTerms()[t];
-          if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
+          if (term.getUseTerm() && (term.getAccession() == parsed_term.accession)) //check if the term itself is allowed
           {
             allowed = true;
             fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;

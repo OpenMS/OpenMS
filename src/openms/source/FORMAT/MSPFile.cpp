@@ -65,12 +65,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MSPFile::MSPFile(const MSPFile & rhs) :
+  MSPFile::MSPFile(const MSPFile& rhs) :
     DefaultParamHandler(rhs)
   {
   }
 
-  MSPFile & MSPFile::operator=(const MSPFile & rhs)
+  MSPFile& MSPFile::operator=(const MSPFile& rhs)
   {
     if (this != &rhs)
     {
@@ -83,7 +83,7 @@ namespace OpenMS
   {
   }
 
-  void MSPFile::load(const String & filename, vector<PeptideIdentification> & ids, PeakMap & exp)
+  void MSPFile::load(const String& filename, vector<PeptideIdentification>& ids, PeakMap& exp)
   {
     if (!File::exists(filename))
     {
@@ -181,7 +181,7 @@ namespace OpenMS
           {
             break;
           }
-          if (instrument != "" && it->hasPrefix("Inst="))
+          if ((instrument != "") && it->hasPrefix("Inst="))
           {
             String inst_type = it->suffix('=');
             if (instrument != inst_type)
@@ -192,7 +192,7 @@ namespace OpenMS
             break;
           }
 
-          if (it->hasPrefix("Mods=") && *it != "Mods=0")
+          if (it->hasPrefix("Mods=") && (*it != "Mods=0"))
           {
             String mods = it->suffix('=');
             // e.g. Mods=2/7,K,Carbamyl/22,K,Carbamyl
@@ -214,7 +214,7 @@ namespace OpenMS
 
               //cerr << "MSP modification: " << origin << " " << mod_name << " " << position << "\n";
 
-              if (position > 0 && position < peptide.size() - 1)
+              if ((position > 0) && (position < peptide.size() - 1))
               {
                 peptide.setModification(position, mod_name);
               }
@@ -301,7 +301,7 @@ namespace OpenMS
 
   }
 
-  void MSPFile::parseHeader_(const String & header, PeakSpectrum & spec)
+  void MSPFile::parseHeader_(const String& header, PeakSpectrum& spec)
   {
     // first header from std_protein of NIST spectra DB
     // Spec=Consensus Pep=Tryptic Fullname=R.AAANFFSASCVPCADQSSFPK.L/2 Mods=0 Parent=1074.480 Inst=it Mz_diff=0.500 Mz_exact=1074.4805 Mz_av=1075.204 Protein="TRFE_BOVIN" Organism="Protein Standard" Se=2^X23:ex=3.1e-008/1.934e-005,td=5.14e+007/2.552e+019,sd=0/0,hs=45.8/5.661,bs=6.3e-021,b2=1.2e-015,bd=5.87e+020^O22:ex=3.24e-005/0.0001075,td=304500/5.909e+297,pr=3.87e-007/1.42e-006,bs=1.65e-301,b2=1.25e-008,bd=1.3e+299 Sample=1/bovine-serotransferrin_cam,23,26 Nreps=23/34 Missing=0.3308/0.0425 Parent_med=1074.88/0.23 Max2med_orig=22.1/9.5 Dotfull=0.618/0.029 Dot_cons=0.728/0.040 Unassign_all=0.161 Unassigned=0.000 Dotbest=0.70 Naa=21 DUScorr=2.3/3.8/0.61 Dottheory=0.86 Pfin=4.3e+010 Probcorr=1 Tfratio=8e+008 Specqual=0.0
@@ -321,7 +321,7 @@ namespace OpenMS
     }
   }
 
-  void MSPFile::store(const String & filename, const PeakMap & exp) const
+  void MSPFile::store(const String& filename, const PeakMap& exp) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MSP))
     {
@@ -337,14 +337,14 @@ namespace OpenMS
 
     for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
     {
-      if (it->getPeptideIdentifications().size() > 0 && it->getPeptideIdentifications().begin()->getHits().size() > 0)
+      if ((it->getPeptideIdentifications().size() > 0) && (it->getPeptideIdentifications().begin()->getHits().size() > 0))
       {
         PeptideHit hit = *it->getPeptideIdentifications().begin()->getHits().begin();
         String peptide;
         for (AASequence::ConstIterator pit = hit.getSequence().begin(); pit != hit.getSequence().end(); ++pit)
         {
-          if (pit->isModified() && pit->getOneLetterCode() == "M" &&
-              fabs(pit->getModification()->getDiffFormula().getMonoWeight() - 16.0) < 0.01)
+          if (pit->isModified() && (pit->getOneLetterCode() == "M") &&
+              (fabs(pit->getModification()->getDiffFormula().getMonoWeight() - 16.0) < 0.01))
           {
             peptide += "M(O)";
           }
@@ -395,7 +395,7 @@ namespace OpenMS
         {
           out << " Mods=0";
         }
-        out << " Inst=it\n";         // @improvement write instrument type, protein...and other information
+        out << " Inst=it\n"; // @improvement write instrument type, protein...and other information
         out << "Num peaks: " << it->size() << "\n";
 
         // normalize to 10,000

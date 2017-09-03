@@ -287,16 +287,16 @@ protected:
           for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = msd->proteins.begin(); prot != msd->proteins.end(); ++prot)
           {
             protein_indices += (*prot)->index; //fasta_entry->identifier;
-            if (prot != --(msd->proteins.end())) protein_indices += ";";
+            if (prot != --(msd->proteins.end())) { protein_indices += ";"; }
           }
           out << protein_indices;
           //pep index
           String peptide_indices = "";
           for (list<ProteinResolver::PeptideEntry*>::const_iterator peps = msd->peptides.begin(); peps != msd->peptides.end(); ++peps)
           {
-            if (!(*peps)->experimental) continue;
+            if (!(*peps)->experimental) { continue; }
             peptide_indices +=  (*peps)->index; //identifications[(*peps)->peptide_identification].getHits()[(*pep)->peptide_hit].getSequence().toString();
-            if (peps != --(msd->peptides.end())) peptide_indices += ";";
+            if (peps != --(msd->peptides.end())) { peptide_indices += ";"; }
           }
           out << peptide_indices;
           //Peptides in MSD
@@ -308,7 +308,7 @@ protected:
           for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = isd->proteins.begin(); prot != isd->proteins.end(); ++prot)
           {
             prots_ISD += (*prot)->fasta_entry->identifier;
-            if (prot != --(isd->proteins.end())) prots_ISD += ";";
+            if (prot != --(isd->proteins.end())) { prots_ISD += ";"; }
           }
           out << prots_ISD;
           out << endl;
@@ -338,7 +338,7 @@ protected:
         for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = peptide_entry->proteins.begin(); prot != peptide_entry->proteins.end(); ++prot)
         {
           protein_indices += (*prot)->index;
-          if (prot != --(peptide_entry->proteins.end())) protein_indices += ";";
+          if (prot != --(peptide_entry->proteins.end())) { protein_indices += ";"; }
         }
         out << protein_indices;
         //Protein ID
@@ -346,7 +346,7 @@ protected:
         for (list<ProteinResolver::ProteinEntry*>::const_iterator prot = peptide_entry->proteins.begin(); prot != peptide_entry->proteins.end(); ++prot)
         {
           protein_ID += (*prot)->fasta_entry->identifier;
-          if (prot != --(peptide_entry->proteins.end())) protein_ID += ";";
+          if (prot != --(peptide_entry->proteins.end())) { protein_ID += ";"; }
         }
         out << protein_ID;
         //peptide sequence
@@ -594,7 +594,7 @@ protected:
       if (list.size() == 0)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        String("Input path ('") + input_path + "') does not contain a valid input file. Check file types! Allowed are .idXML and .consensusXML files.");
+                                          String("Input path ('") + input_path + "') does not contain a valid input file. Check file types! Allowed are .idXML and .consensusXML files.");
       }
 
       for (int i = 0; i < list.size(); ++i)

@@ -140,7 +140,7 @@ protected:
       qcmlfile.load(in);
     }
 
-    if (mappi != "" && tab != "")
+    if ((mappi != "") && (tab != ""))
     {
       CsvFile csv_file(tab);
       CsvFile map_file(mappi);

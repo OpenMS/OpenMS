@@ -294,4 +294,5 @@ namespace OpenMS
 
     return peaks_found_in_all_peptides;
   }
+
 }

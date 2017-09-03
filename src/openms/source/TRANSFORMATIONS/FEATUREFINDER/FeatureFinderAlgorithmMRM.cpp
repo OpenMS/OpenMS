@@ -103,7 +103,7 @@ namespace OpenMS
       std::cerr << "Starting feature finding #chromatograms=" << map_->getChromatograms().size() << ", #spectra=" << map_->size() << std::endl;
     }
 
-    std::vector<MSChromatogram >::const_iterator first_it = map_->getChromatograms().begin();
+    std::vector<MSChromatogram>::const_iterator first_it = map_->getChromatograms().begin();
     for (; first_it != map_->getChromatograms().end(); ++first_it)
     {
       // throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)
@@ -135,7 +135,7 @@ namespace OpenMS
             std::cerr << "CHROMATOGRAM: " << it->getMZ() << " " << it->getIntensity() << std::endl;
           }
           double rt_diff = it->getMZ() - old_rt;
-          if (rt_diff < min_distance && rt_diff > 0)
+          if ((rt_diff < min_distance) && (rt_diff > 0))
           {
             min_distance = rt_diff;
           }
@@ -146,7 +146,7 @@ namespace OpenMS
         {
           std::cerr << "Min_distance=" << min_distance << std::endl;
         }
-        if (min_distance > 50 || chromatogram.size() < min_num_peaks_per_feature)
+        if ((min_distance > 50) || (chromatogram.size() < min_num_peaks_per_feature))
         {
           continue;
         }
@@ -192,7 +192,7 @@ namespace OpenMS
         {
           std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
         }
-        if (min_signal_to_noise_ratio == 0 || sn > min_signal_to_noise_ratio)
+        if ((min_signal_to_noise_ratio == 0) || (sn > min_signal_to_noise_ratio))
         {
           sn_chrom.push_back(*sit);
         }
@@ -209,7 +209,7 @@ namespace OpenMS
           std::cerr << "SECTIONS: " << sit->getMZ() << " " << sit->getIntensity() << std::endl;
         }
         double this_rt = sit->getMZ();
-        if (sections.empty() || (this_rt - last_rt) > min_rt_distance)
+        if (sections.empty() || ((this_rt - last_rt) > min_rt_distance))
         {
           if (write_debuginfo)
           {
@@ -424,7 +424,7 @@ param.setValue( "deltaRelError", deltaRelError_);
     quality = fitter.fit1d(rt_input_data, model);
 
     // Check quality
-    if (boost::math::isnan(quality)) quality = -1.0;
+    if (boost::math::isnan(quality)) { quality = -1.0; }
 
     return quality;
   }

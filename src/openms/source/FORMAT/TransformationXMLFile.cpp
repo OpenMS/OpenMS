@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  void TransformationXMLFile::load(const String & filename, TransformationDescription & transformation, bool fit_model)
+  void TransformationXMLFile::load(const String& filename, TransformationDescription& transformation, bool fit_model)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -63,13 +63,13 @@ namespace OpenMS
 
     transformation.setDataPoints(data_);
 
-    if (fit_model) 
+    if (fit_model)
     {
       transformation.fitModel(model_type_, params_);
     }
   }
 
-  void TransformationXMLFile::store(String filename, const TransformationDescription & transformation)
+  void TransformationXMLFile::store(String filename, const TransformationDescription& transformation)
   {
     if (transformation.getModelType() == "")
     {
@@ -116,7 +116,7 @@ namespace OpenMS
           os << "\t\t<Param  type=\"string\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
           break;
 
-        default:         // no other value types are supported!
+        default: // no other value types are supported!
           fatalError(STORE, String("Unsupported parameter type of parameter '") + it->name + "' with value '" + it->value.toString() + "'");
           break;
         }
@@ -145,7 +145,7 @@ namespace OpenMS
     os.close();
   }
 
-  void TransformationXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  void TransformationXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
 
     String element = sm_.convert(qname);

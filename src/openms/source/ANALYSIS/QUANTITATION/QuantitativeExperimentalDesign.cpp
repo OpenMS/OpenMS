@@ -241,12 +241,16 @@ namespace OpenMS
           for (vector<PeptideIdentification>::iterator pep_it = additional_peptides.begin(); pep_it != additional_peptides.end(); ++pep_it)
           {
             if (pep_it->getIdentifier() == id)
+            {
               pep_it->setIdentifier(new_id);
+            }
           }
           used_ids.insert(new_id);
         }
         else
+        {
           used_ids.insert(id);
+        }
       }
 
       proteins.insert(proteins.end(), additional_proteins.begin(), additional_proteins.end());
@@ -284,7 +288,9 @@ namespace OpenMS
       }
       // iff files are provided for an setup, create a map entry
       if (!existing_files_input.empty())
+      {
         design2FilePath.insert(make_pair(iter->first, existing_files_input));
+      }
     }
   }
 
@@ -299,24 +305,34 @@ namespace OpenMS
     for (StringList::iterator iter = header.begin(); iter != header.end(); ++iter, ++col)
     {
       if (experiment.compare(*iter) == 0)
+      {
         expCol = col;
+      }
       if (fileName.compare(*iter) == 0)
+      {
         fileCol = col;
+      }
     }
 
     // in case one or all identifier could not be found throw an exception
     UInt invalid = -1;
-    if (expCol == invalid || fileCol == invalid)
+    if ((expCol == invalid) || (fileCol == invalid))
     {
-      if (expCol == invalid && fileCol == invalid)
+      if ((expCol == invalid) && (fileCol == invalid))
+      {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Both identifier (experimental design and file name) are not correct");
+      }
       if (expCol == invalid)
+      {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Identifier for experimental design is not correct");
+      }
       if (fileCol == invalid)
+      {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "Identifier for the file name is not correct");
+      }
     }
   }
 
@@ -327,13 +343,21 @@ namespace OpenMS
 
     // assign
     if (sep.compare("tab") == 0)
+    {
       separator = "\t";
+    }
     else if (sep.compare("semi-colon") == 0)
+    {
       separator = ";";
+    }
     else if (sep.compare("comma") == 0)
+    {
       separator = ",";
+    }
     else if (sep.compare("whitespace") == 0)
+    {
       separator = " ";
+    }
   }
 
   void QuantitativeExperimentalDesign::mapFiles2Design_(map<String, StringList>& experiments, TextFile& file)

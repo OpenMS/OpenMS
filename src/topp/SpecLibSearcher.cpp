@@ -214,7 +214,7 @@ protected:
             const Residue& mod = aaseq.getResidue(j);
             for (Size k = 0; k < fixed_modifications.size(); ++k)
             {
-              if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModificationName())
+              if ((mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k]).getOrigin()) && (fixed_modifications[k] != mod.getModificationName()))
               {
                 fixed_modifications_ok = false;
                 break;
@@ -232,7 +232,7 @@ protected:
               const Residue& mod = aaseq.getResidue(j);
               for (Size k = 0; k < variable_modifications.size(); ++k)
               {
-                if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModificationName())
+                if ((mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k]).getOrigin()) && (variable_modifications[k] != mod.getModificationName()))
                 {
                   variable_modifications_ok = false;
                   break;
@@ -248,7 +248,7 @@ protected:
           librar.setPrecursors(s_it->getPrecursors());
 
           // empty array would segfault
-          if ( (*s_it).getStringDataArrays().empty() )
+          if ((*s_it).getStringDataArrays().empty())
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected StringDataArray of type MSPeakInfo");
           }
@@ -330,7 +330,7 @@ protected:
         query[j].sortByIntensity(true);
         double min_high_intensity = 0;
 
-        if (query[j].empty() || query[j].getMSLevel() != 2)
+        if (query[j].empty() || (query[j].getMSLevel() != 2))
         {
           continue;
         }
@@ -345,7 +345,7 @@ protected:
         query[j].sortByPosition();
         for (UInt k = 0; k < query[j].size() && k < max_peaks; ++k)
         {
-          if (query[j][k].getIntensity() >  remove_peaks_below_threshold && query[j][k].getIntensity() >= min_high_intensity)
+          if ((query[j][k].getIntensity() >  remove_peaks_below_threshold) && (query[j][k].getIntensity() >= min_high_intensity))
           {
             Peak1D peak;
             peak.setIntensity(sqrt(query[j][k].getIntensity()));
@@ -391,7 +391,7 @@ protected:
               for (Size i = 0; i < library.size(); ++i)
               {
                 float this_MZ  = library[i].getPrecursors()[0].getMZ() * precursor_mass_multiplier;
-                if (this_MZ >= min_MZ && max_MZ >= this_MZ && ((charge_one == true && library[i].getPeptideIdentifications()[0].getHits()[0].getCharge() == 1) || charge_one == false))
+                if ((this_MZ >= min_MZ) && (max_MZ >= this_MZ) && (((charge_one == true) && (library[i].getPeptideIdentifications()[0].getHits()[0].getCharge() == 1)) || (charge_one == false)))
                 {
                   PeptideHit hit = library[i].getPeptideIdentifications()[0].getHits()[0];
                   PeakSpectrum& librar = library[i];
@@ -436,7 +436,7 @@ protected:
             Size runner_up = 1;
             for (; runner_up < pid.getHits().size(); ++runner_up)
             {
-              if (pid.getHits()[0].getSequence().toUnmodifiedString() != pid.getHits()[runner_up].getSequence().toUnmodifiedString() || runner_up > 5)
+              if ((pid.getHits()[0].getSequence().toUnmodifiedString() != pid.getHits()[runner_up].getSequence().toUnmodifiedString()) || (runner_up > 5))
               {
                 break;
               }
@@ -457,7 +457,7 @@ protected:
             pid.setRT(query_MZ);
           }
         }
-        if (top_hits != -1 && (UInt)top_hits < pid.getHits().size())
+        if ((top_hits != -1) && ((UInt)top_hits < pid.getHits().size()))
         {
           vector<PeptideHit> hits;
           hits.resize(top_hits);

@@ -39,7 +39,7 @@
 #include <Eigen/SVD>
 
 #include <cmath>
-#include <iostream>//DEBUG
+#include <iostream> //DEBUG
 
 namespace OpenMS
 {
@@ -79,7 +79,7 @@ namespace OpenMS
       int nr = frame_size_ - 1 - nl;
 
       // compute a Vandermonde matrix whose columns are powers of the vector [-nL,...,nR]
-      Eigen::MatrixXd A (frame_size_, order_ + 1);
+      Eigen::MatrixXd A(frame_size_, order_ + 1);
       for (int i = -nl; i <= nr; i++)
       {
         for (int j = 0; j <= static_cast<int>(order_); j++)
@@ -89,9 +89,9 @@ namespace OpenMS
       }
 
       // compute the singular-value decomposition of A
-      Eigen::JacobiSVD<Eigen::MatrixXd> svd (A, Eigen::ComputeThinU | Eigen::ComputeThinV);
+      Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
 
-      Eigen::VectorXd B (order_ + 1);
+      Eigen::VectorXd B(order_ + 1);
       for (UInt i = 0; i <= order_; ++i)
       {
         B(i) = svd.matrixV()(0, i) / svd.singularValues()(i);
@@ -108,4 +108,5 @@ namespace OpenMS
       }
     }
   }
+
 }

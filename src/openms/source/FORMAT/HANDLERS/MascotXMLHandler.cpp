@@ -46,7 +46,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification, vector<PeptideIdentification>& id_data, const String& filename, map<String, vector<AASequence> >& modified_peptides, const SpectrumMetaDataLookup& lookup):
+    MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification, vector<PeptideIdentification>& id_data, const String& filename, map<String, vector<AASequence> >& modified_peptides, const SpectrumMetaDataLookup& lookup) :
       XMLHandler(filename, ""), protein_identification_(protein_identification),
       id_data_(id_data), peptide_identification_index_(0), actual_title_(""),
       modified_peptides_(modified_peptides), lookup_(lookup),
@@ -84,7 +84,7 @@ namespace OpenMS
       {
         actual_query_ = attributeAsInt_(attributes, s_queries_query_number);
       }
-      else if (tag_ == "peptide" || tag_ == "u_peptide" || tag_ == "q_peptide")
+      else if ((tag_ == "peptide") || (tag_ == "u_peptide") || (tag_ == "q_peptide"))
       {
         Int attribute_value = attributeAsInt_(attributes, s_peptide_query);
         peptide_identification_index_ = attribute_value - 1;
@@ -136,7 +136,7 @@ namespace OpenMS
           lookup_.getSpectrumMetaData(title, meta, flags);
           id_data_[peptide_identification_index_].setRT(meta.rt);
           // have we looked up the m/z value?
-          if ((flags & SpectrumMetaDataLookup::MDF_PRECURSORMZ) == SpectrumMetaDataLookup::MDF_PRECURSORMZ)
+          if ((flags& SpectrumMetaDataLookup::MDF_PRECURSORMZ) == SpectrumMetaDataLookup::MDF_PRECURSORMZ)
           {
             id_data_[peptide_identification_index_].setMZ(meta.precursor_mz);
           }
@@ -152,7 +152,7 @@ namespace OpenMS
           if (!no_rt_error_) // report the error only the first time
           {
             String msg = "Could not extract RT value ";
-            if (!lookup_.empty()) msg += "or a matching spectrum reference ";
+            if (!lookup_.empty()) { msg += "or a matching spectrum reference "; }
             msg += "from <pep_scan_title> element with format '" + title + "'. Try adjusting the 'scan_regex' parameter.";
             error(LOAD, msg);
           }
@@ -188,7 +188,7 @@ namespace OpenMS
         temp_identity = character_buffer_.trim().toDouble();
         actual_peptide_hit_.setMetaValue("homology_threshold", temp_homology);
         actual_peptide_hit_.setMetaValue("identity_threshold", temp_identity);
-        if (temp_homology > temp_identity || temp_homology == 0)
+        if ((temp_homology > temp_identity) || (temp_homology == 0))
         {
           id_data_[peptide_identification_index_].setSignificanceThreshold(temp_identity);
         }
@@ -196,7 +196,7 @@ namespace OpenMS
       else if (tag_ == "pep_seq")
       {
         AASequence temp_aa_sequence = AASequence::fromString(character_buffer_.trim());
-        
+
         // if everything is just read from the MascotXML file
         if (modified_peptides_.empty())
         {
@@ -205,19 +205,19 @@ namespace OpenMS
           {
             vector<String> mod_split;
             it->split(' ', mod_split);
-            if (mod_split.size() < 2 || mod_split.size() > 3)
+            if ((mod_split.size() < 2) || (mod_split.size() > 3))
             {
               error(LOAD, String("Cannot parse fixed modification '") + *it + "'");
             }
             else
             {
               // C-term modification without specification or protein terminus
-              if (mod_split[1] == "(C-term)" || (mod_split[1] == "(Protein" && mod_split[2] == "C-term)"))
+              if ((mod_split[1] == "(C-term)") || ((mod_split[1] == "(Protein") && (mod_split[2] == "C-term)")))
               {
                 temp_aa_sequence.setCTerminalModification(mod_split[0]);
               }
               // N-term modification without specification or protein terminus
-              else if (mod_split[1] == "(N-term)" || (mod_split[1] == "(Protein" && mod_split[2] == "N-term)"))
+              else if ((mod_split[1] == "(N-term)") || ((mod_split[1] == "(Protein") && (mod_split[2] == "N-term)")))
               {
                 temp_aa_sequence.setNTerminalModification(mod_split[0]);
               }
@@ -237,7 +237,7 @@ namespace OpenMS
                   temp_aa_sequence.setNTerminalModification(mod_split[0]);
                 }
               }
-              else 
+              else
               { // e.g. Carboxymethyl (C)
                 String AA = mod_split[1];
                 AA.remove(')');
@@ -276,7 +276,7 @@ namespace OpenMS
         AASequence temp_aa_sequence = actual_peptide_hit_.getSequence();
         String temp_string = character_buffer_.trim();
         vector<String> parts;
-        
+
         // E.g. seq: QKAAGSK, pos: 4.0000000.0 -> mod at position 4 in var_mods vector is n-terminal
         // therefore it is not possible to split Phospho (ST) to Phospho (S), Phospho (T) before this,
         // because the original order is required
@@ -383,7 +383,7 @@ namespace OpenMS
           {
             for (Size j = 0; j < temp_hits.size(); ++j)
             {
-              if (temp_hits[j].isModified() && temp_hits[j].toUnmodifiedString() == temp_peptide_hits[i].getSequence().toUnmodifiedString())
+              if (temp_hits[j].isModified() && (temp_hits[j].toUnmodifiedString() == temp_peptide_hits[i].getSequence().toUnmodifiedString()))
               {
                 temp_peptide_hits[i].setSequence(temp_hits[j]);
                 break;
@@ -450,7 +450,7 @@ namespace OpenMS
           String temp_string = (character_buffer_.trim());
           vector<String> tmp_mods;
           temp_string.split(',', tmp_mods);
-          
+
           for (vector<String>::const_iterator it = tmp_mods.begin(); it != tmp_mods.end(); ++it)
           {
             // check if modification is not on the remove list
@@ -474,7 +474,7 @@ namespace OpenMS
           String temp_string = (character_buffer_.trim());
           vector<String> tmp_mods;
           temp_string.split(',', tmp_mods);
-          
+
           for (vector<String>::const_iterator it = tmp_mods.begin(); it != tmp_mods.end(); ++it)
           {
             // split because e.g. Phospho (ST)
@@ -512,16 +512,16 @@ namespace OpenMS
         // cerr << "name tag: " << character_buffer_.trim() << "\n";
         if ((major_version_ == "1")
             // new since Mascot XML version 2.1 (at least): <fixed_mods> also have a subtag called <name>, thus we need to ensure we are in <variable_mods>
-           || (tags_open_.size() >= 2 &&
-               tags_open_[tags_open_.size() - 2] == "variable_mods"))
+           || ((tags_open_.size() >= 2) &&
+               (tags_open_[tags_open_.size() - 2] == "variable_mods")))
         {
           // e.g. Phospho (ST) cannot be split for variable modifications at this point, because the order of
           // variable modifications needs to be preserved. Split before search parameters are set.
           search_parameters_.variable_modifications.push_back(character_buffer_.trim());
           // cerr << "var. mod. added: " << search_parameters_.variable_modifications.back() << "\n";
         }
-        else if (tags_open_.size() >= 2 &&
-                 tags_open_[tags_open_.size() - 2] == "fixed_mods")
+        else if ((tags_open_.size() >= 2) &&
+                 (tags_open_[tags_open_.size() - 2] == "fixed_mods"))
         {
           // check if modification is not on the remove list
           String fixed_mod = character_buffer_.trim();
@@ -541,7 +541,7 @@ namespace OpenMS
       else if (tag_ == "warning")
       {
         warning(LOAD, String("Warnings were present: '") + character_buffer_ + String("'"));
-        
+
         // check if fixed modification can only be used as variable modification
         if (character_buffer_.trim().hasSubstring("can only be used as a variable modification"))
         {
@@ -598,7 +598,7 @@ namespace OpenMS
         actual_peptide_evidence_ = PeptideEvidence();
         actual_peptide_hit_ = PeptideHit();
       }
-      else if (tag_ == "u_peptide" || tag_ == "q_peptide")
+      else if ((tag_ == "u_peptide") || (tag_ == "q_peptide"))
       {
         id_data_[peptide_identification_index_].setIdentifier(identifier_);
         id_data_[peptide_identification_index_].setScoreType("Mascot");
@@ -610,7 +610,7 @@ namespace OpenMS
       {
         protein_identification_.setSearchEngine("Mascot");
         protein_identification_.setIdentifier(identifier_);
-        
+
         // split variable modifications e.g. Phospho (ST)
         //vector<String> var_mods;
         vector<String> var_mods;
@@ -620,7 +620,7 @@ namespace OpenMS
           var_mods.insert(var_mods.end(), mods_split.begin(), mods_split.end());
         }
         search_parameters_.variable_modifications = var_mods;
-        protein_identification_.setSearchParameters(search_parameters_);        
+        protein_identification_.setSearchParameters(search_parameters_);
       }
 
       tag_ = ""; // reset tag, for the following characters() call (due to line break) of the parent tag
@@ -634,30 +634,30 @@ namespace OpenMS
       //   <COM>OpenMS_search</COM>
       //   <Date>
       // will trigger a characters() between </COM> and <Date>, which should be ignored
-      if (tag_.empty()) return;
+      if (tag_.empty()) { return; }
 
       character_buffer_ += String(sm_.convert(chars));
     }
-    
+
     vector<String> MascotXMLHandler::splitModificationBySpecifiedAA(String mod)
     {
       vector<String> mods;
       vector<String> parts;
       mod.split(' ', parts);
-      
+
       // either format "Modification (Protein C-term)" or "Modification (C-term X)"
       if (parts.size() != 2)
       {
         mods.push_back(mod);
         return mods;
       }
-      
+
       if (parts[1].hasPrefix("(N-term") || parts[1].hasPrefix("(C-term"))
       {
         mods.push_back(mod);
         return mods;
       }
-      
+
       // format e.g. Phospho (ST)
       ModificationsDB* mod_db = ModificationsDB::getInstance();
       String AAs = parts[1];

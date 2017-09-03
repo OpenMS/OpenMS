@@ -39,7 +39,7 @@ namespace OpenMS
 {
 
   void
-  UniqueIdInterface::setUniqueId(const String & rhs)
+  UniqueIdInterface::setUniqueId(const String& rhs)
   {
     clearUniqueId();
 
@@ -49,7 +49,7 @@ namespace OpenMS
     for (String::const_iterator s_i = s.begin(); s_i < s.end(); ++s_i)
     {
       int i = (*s_i - '0');
-      if (i < 0 || i > 9)
+      if ((i < 0) || (i > 9))
       {
         clearUniqueId();
         return;

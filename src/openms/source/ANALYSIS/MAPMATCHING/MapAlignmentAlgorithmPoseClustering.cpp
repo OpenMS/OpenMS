@@ -45,7 +45,7 @@ namespace OpenMS
 {
 
   MapAlignmentAlgorithmPoseClustering::MapAlignmentAlgorithmPoseClustering() :
-    DefaultParamHandler("MapAlignmentAlgorithmPoseClustering"), 
+    DefaultParamHandler("MapAlignmentAlgorithmPoseClustering"),
     ProgressLogger(), max_num_peaks_considered_(0)
   {
     defaults_.insert("superimposer:", PoseClusteringAffineSuperimposer().getParameters());
@@ -90,7 +90,7 @@ namespace OpenMS
   {
     // TODO: move this to updateMembers_? (if ConsensusMap prevails)
     // TODO: why does superimposer work on consensus map???
-    const ConsensusMap & map_model = reference_;
+    const ConsensusMap& map_model = reference_;
     ConsensusMap map_scene = map;
 
     // run superimposer to find the global transformation

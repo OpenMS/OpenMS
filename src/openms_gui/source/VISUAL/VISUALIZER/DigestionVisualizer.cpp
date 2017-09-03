@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  DigestionVisualizer::DigestionVisualizer(bool editable, QWidget * parent) :
+  DigestionVisualizer::DigestionVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<Digestion>()
   {

@@ -174,7 +174,7 @@ protected:
         fdr.apply(pep_ids);
 
         if (psm_fdr < 1)
-        {      
+        {
           LOG_INFO << "FDR control: Filtering PSMs..." << endl;
           IDFilter::filterHitsByScore(pep_ids, psm_fdr);
         }

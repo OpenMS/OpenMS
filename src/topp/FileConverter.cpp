@@ -129,20 +129,19 @@ using namespace std;
 
 String extractCachedMetaFilename(const String& in)
 {
-  // Special handling of cached mzML as input types: 
+  // Special handling of cached mzML as input types:
   // we expect two paired input files which we should read into exp
   std::vector<String> split_out;
   in.split(".cachedMzML", split_out);
   if (split_out.size() != 2)
   {
-    LOG_ERROR << "Cannot deduce base path from input '" << in 
-      << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
+    LOG_ERROR << "Cannot deduce base path from input '" << in
+              << "' (note that '.cachedMzML' should only occur once as the final ending)" << std::endl;
     return "";
   }
   String in_meta = split_out[0] + ".mzML";
   return in_meta;
 }
-
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -165,7 +164,7 @@ protected:
     String formats("mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
-    
+
     registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false, true);
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
@@ -288,10 +287,10 @@ protected:
         exp.set2DData(cm);
       }
     }
-    else if (in_type == FileTypes::FEATUREXML ||
-             in_type == FileTypes::TSV ||
-             in_type == FileTypes::PEPLIST ||
-             in_type == FileTypes::KROENIK)
+    else if ((in_type == FileTypes::FEATUREXML) ||
+             (in_type == FileTypes::TSV) ||
+             (in_type == FileTypes::PEPLIST) ||
+             (in_type == FileTypes::KROENIK))
     {
       fh.loadFeatures(in, fm, in_type);
       fm.sortByPosition();
@@ -307,7 +306,7 @@ protected:
     {
       // Determine location of meta information (empty mzML)
       String in_meta = extractCachedMetaFilename(in);
-      if (in_meta.empty()) return ILLEGAL_PARAMETERS;
+      if (in_meta.empty()) { return ILLEGAL_PARAMETERS; }
 
       MzMLFile f;
       f.setLogType(log_type_);
@@ -326,15 +325,15 @@ protected:
       }
 
       // Populate meta data with actual data points
-      for (Size i=0; i < tmp_exp.size(); ++i)
+      for (Size i = 0; i < tmp_exp.size(); ++i)
       {
         for (Size j = 0; j < tmp_exp[i].size(); j++)
         {
           exp[i].push_back(tmp_exp[i][j]);
         }
       }
-      std::vector<MSChromatogram > old_chromatograms = exp.getChromatograms();
-      for (Size i=0; i < tmp_exp.getChromatograms().size(); ++i)
+      std::vector<MSChromatogram> old_chromatograms = exp.getChromatograms();
+      for (Size i = 0; i < tmp_exp.getChromatograms().size(); ++i)
       {
         for (Size j = 0; j < tmp_exp.getChromatograms()[i].size(); j++)
         {
@@ -350,7 +349,7 @@ protected:
       // loading the complete data into memory. PlainMSDataWritingConsumer will
       // write out mzML to disk as they are read from the input.
 
-      if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML) && out_type == FileTypes::MZML)
+      if (((in_type == FileTypes::MZXML) || (in_type == FileTypes::MZML)) && (out_type == FileTypes::MZML))
       {
         // Prepare the consumer
         PlainMSDataWritingConsumer consumer(out);
@@ -381,11 +380,11 @@ protected:
           return EXECUTION_OK;
         }
       }
-      else if (in_type == FileTypes::MZML && out_type == FileTypes::CACHEDMZML)
+      else if ((in_type == FileTypes::MZML) && (out_type == FileTypes::CACHEDMZML))
       {
         // Determine output path for meta information (empty mzML)
         String out_meta = extractCachedMetaFilename(out);
-        if (out_meta.empty()) return ILLEGAL_PARAMETERS;
+        if (out_meta.empty()) { return ILLEGAL_PARAMETERS; }
 
         CachedmzML cacher;
         cacher.setLogType(log_type_);
@@ -400,7 +399,7 @@ protected:
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
+                                         "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
       }
     }
     else
@@ -493,12 +492,13 @@ protected:
         if (uid_postprocessing == "ensure")
         {
           fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-        } else if (uid_postprocessing == "reassign")
+        }
+        else if (uid_postprocessing == "reassign")
         {
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }
       }
-      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
+      else if ((in_type == FileTypes::CONSENSUSXML) || (in_type == FileTypes::EDTA))
       {
         MapConversion::convert(cm, true, fm);
       }
@@ -545,14 +545,15 @@ protected:
         if (uid_postprocessing == "ensure")
         {
           fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-        } else if (uid_postprocessing == "reassign")
+        }
+        else if (uid_postprocessing == "reassign")
         {
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }
         MapConversion::convert(0, fm, cm);
       }
       // nothing to do for consensus input
-      else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
+      else if ((in_type == FileTypes::CONSENSUSXML) || (in_type == FileTypes::EDTA))
       {
       }
       else // experimental data
@@ -566,19 +567,19 @@ protected:
     }
     else if (out_type == FileTypes::EDTA)
     {
-      if (fm.size() > 0 && cm.size() > 0)
+      if ((fm.size() > 0) && (cm.size() > 0))
       {
         LOG_ERROR << "Internal error: cannot decide on container (Consensus or Feature)! This is a bug. Please report it!";
         return INTERNAL_ERROR;
       }
-      if (fm.size() > 0) EDTAFile().store(out, fm);
-      else if (cm.size() > 0) EDTAFile().store(out, cm);
+      if (fm.size() > 0) { EDTAFile().store(out, fm); }
+      else if (cm.size() > 0) { EDTAFile().store(out, cm); }
     }
     else if (out_type == FileTypes::CACHEDMZML)
     {
       // Determine output path for meta information (empty mzML)
       String out_meta = extractCachedMetaFilename(out);
-      if (out_meta.empty()) return ILLEGAL_PARAMETERS;
+      if (out_meta.empty()) { return ILLEGAL_PARAMETERS; }
 
       CachedmzML cacher;
       MzMLFile f;

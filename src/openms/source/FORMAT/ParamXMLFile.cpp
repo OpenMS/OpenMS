@@ -218,7 +218,9 @@ namespace OpenMS
           for (std::set<String>::const_iterator tag_it = tag_list.begin(); tag_it != tag_list.end(); ++tag_it)
           {
             if (!list.empty())
+            {
               list += ",";
+            }
             list += *tag_it;
           }
           os << " tags=\"" << writeXMLEscape(list) << "\"";
@@ -282,7 +284,7 @@ namespace OpenMS
         // for files we store the restrictions as supported_formats
         if (restrictions != "")
         {
-          if (it->tags.find("input file") != it->tags.end() || it->tags.find("output file") != it->tags.end())
+          if ((it->tags.find("input file") != it->tags.end()) || (it->tags.find("output file") != it->tags.end()))
           {
             os << " supported_formats=\"" << writeXMLEscape(restrictions) << "\"";
           }

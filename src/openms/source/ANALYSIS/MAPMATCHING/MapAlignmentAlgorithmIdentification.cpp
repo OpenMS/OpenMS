@@ -71,14 +71,14 @@ namespace OpenMS
     min_run_occur_ = param_.getValue("min_run_occur");
 
     // reference is not counted as a regular run:
-    if (!reference_.empty()) runs++;
+    if (!reference_.empty()) { runs++; }
 
     if (min_run_occur_ > runs)
     {
       String msg = "Warning: Value of parameter 'min_run_occur' (here: " +
-        String(min_run_occur_) + ") is higher than the number of runs incl. "
-        "reference (here: " + String(runs) + "). Using " + String(runs) +
-        " instead.";
+                   String(min_run_occur_) + ") is higher than the number of runs incl. "
+                                            "reference (here: " + String(runs) + "). Using " + String(runs) +
+                   " instead.";
       LOG_WARN << msg << endl;
       min_run_occur_ = runs;
     }
@@ -243,7 +243,7 @@ namespace OpenMS
                  << i + 1 << " (reference)\n";
         offset = 1;
       }
-      if (i >= size) break;
+      if (i >= size) { break; }
 
       // to be useful for the alignment, a peptide sequence has to occur in the
       // current run ("medians_per_run[i]"), but also in at least one other run
@@ -269,13 +269,13 @@ namespace OpenMS
       transforms.push_back(TransformationDescription(data));
       LOG_INFO << "- " << data.size() << " data points for sample "
                << i + offset + 1;
-      if (n_outliers) LOG_INFO << " (" << n_outliers << " outliers removed)";
+      if (n_outliers) { LOG_INFO << " (" << n_outliers << " outliers removed)"; }
       LOG_INFO << "\n";
     }
     LOG_INFO << endl;
 
     // delete temporary reference
-    if (!reference_given) reference_.clear();
+    if (!reference_given) { reference_.clear(); }
   }
 
   // explicit template instantiation for Windows DLL:

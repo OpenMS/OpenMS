@@ -73,16 +73,16 @@ namespace OpenMS
   }
 
   Enzyme::Enzyme(const String& name,
-                   const String& cleavage_regex,
-                   const std::set<String>& synonyms,
-                   String regex_description,
-                   EmpiricalFormula n_term_gain,
-                   EmpiricalFormula c_term_gain,
-                   String psi_id,
-                   String xtandem_id,
-                   UInt comet_id,
-                   Int msgf_id,
-                   UInt omssa_id) :
+                 const String& cleavage_regex,
+                 const std::set<String>& synonyms,
+                 String regex_description,
+                 EmpiricalFormula n_term_gain,
+                 EmpiricalFormula c_term_gain,
+                 String psi_id,
+                 String xtandem_id,
+                 UInt comet_id,
+                 Int msgf_id,
+                 UInt omssa_id) :
     name_(name),
     cleavage_regex_(cleavage_regex),
     synonyms_(synonyms),
@@ -234,7 +234,7 @@ namespace OpenMS
   {
     return msgf_id_;
   }
-  
+
   bool Enzyme::operator==(const Enzyme& enzyme) const
   {
     return name_ == enzyme.name_ &&
@@ -273,9 +273,9 @@ namespace OpenMS
   ostream& operator<<(ostream& os, const Enzyme& enzyme)
   {
     os << enzyme.name_ << " "
-    << enzyme.cleavage_regex_ << " "
-    << enzyme.regex_description_ << " "
-    << enzyme.psi_id_;
+       << enzyme.cleavage_regex_ << " "
+       << enzyme.regex_description_ << " "
+       << enzyme.psi_id_;
     return os;
   }
 

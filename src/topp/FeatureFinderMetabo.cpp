@@ -87,7 +87,7 @@ using namespace std;
   For general metabolites, the linear model is usually more appropriate.
   To decide what is better, the total number of features can be used as indirect measure
   - the lower(!) the better (since more mass traces are assembled into single features).
-  Detailed information is stored in the featureXML output: it contains meta-values for each feature about the 
+  Detailed information is stored in the featureXML output: it contains meta-values for each feature about the
   mass trace differences (inspectable via TOPPView). If you want this in a tabular format, use TextExporter, i.e.,
   @code
      TextExporter.exe -feature:add_metavalues 1 -in <ff_metabo.featureXML> -out <ff_metabo.csv>
@@ -200,7 +200,7 @@ protected:
       if (!getFlag_("force"))
       {
         throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__,
-            "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
+                                           "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
       }
     }
 
@@ -289,7 +289,7 @@ protected:
     ms_peakmap.getPrimaryMSRunPath(ms_runs);
     feat_map.setPrimaryMSRunPath(ms_runs);
 
-    std::vector< std::vector< OpenMS::MSChromatogram > > feat_chromatograms;
+    std::vector<std::vector<OpenMS::MSChromatogram> > feat_chromatograms;
 
     FeatureFindingMetabo ffmet;
     ffmet.setParameters(ffm_param);
@@ -299,7 +299,7 @@ protected:
     for (Size i = 0; i < feat_map.size(); ++i)
     {
       OPENMS_PRECONDITION(feat_map[i].metaValueExists("num_of_masstraces"),
-          "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
+                          "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
       trace_count += (Size) feat_map[i].getMetaValue("num_of_masstraces");
     }
 
@@ -309,30 +309,30 @@ protected:
 
     if (trace_count != m_traces_final.size())
     {
-        LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
-        return UNEXPECTED_RESULT;
+      LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
+      return UNEXPECTED_RESULT;
     }
 
     // store chromatograms
     if (!out_chrom.empty())
     {
-        if (feat_chromatograms.size() == feat_map.size())
+      if (feat_chromatograms.size() == feat_map.size())
+      {
+        MSExperiment out_exp;
+        for (Size i = 0; i < feat_chromatograms.size(); ++i)
         {
-          MSExperiment out_exp;
-            for (Size i = 0; i < feat_chromatograms.size(); ++i)
-            {
-                for (Size j = 0; j < feat_chromatograms[i].size(); ++j)
-                {
-                    out_exp.addChromatogram(feat_chromatograms[i][j]);
-                }
-            }
-          MzMLFile().store(out_chrom, out_exp);
+          for (Size j = 0; j < feat_chromatograms[i].size(); ++j)
+          {
+            out_exp.addChromatogram(feat_chromatograms[i][j]);
+          }
         }
-        else
-        {
-            LOG_ERROR << "FF-Metabo: Internal error. The number of features (" << feat_chromatograms.size() << ") and chromatograms (" << feat_map.size() << ") are different! Aborting." << std::endl;
-            return UNEXPECTED_RESULT;
-        }
+        MzMLFile().store(out_chrom, out_exp);
+      }
+      else
+      {
+        LOG_ERROR << "FF-Metabo: Internal error. The number of features (" << feat_chromatograms.size() << ") and chromatograms (" << feat_map.size() << ") are different! Aborting." << std::endl;
+        return UNEXPECTED_RESULT;
+      }
     }
 
     // store ionization mode of spectra (useful for post-processing by AccurateMassSearch tool)

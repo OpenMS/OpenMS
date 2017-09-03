@@ -113,7 +113,7 @@ namespace OpenMS
       float cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
 
       // check consistency
-      computeStats_(m_x, e_mx, cf_intensity, quant_method, stats);    
+      computeStats_(m_x, e_mx, cf_intensity, quant_method, stats);
     }
 
     return stats;
@@ -165,14 +165,14 @@ namespace OpenMS
       {
         ++s_negative;
       }
-      else if ((((std::fabs(m_x(index, 0) - x(index)))/m_x(index, 0))*100) > 1)
+      else if ((((std::fabs(m_x(index, 0) - x(index))) / m_x(index, 0)) * 100) > 1)
       {
         ++s_different_count;
         s_different_intensity += std::fabs(m_x(index, 0) - x(index));
       }
     }
 
-    if (s_negative == 0 && s_different_count > 0) //some solutions are inconsistent, despite being positive
+    if ((s_negative == 0) && (s_different_count > 0)) //some solutions are inconsistent, despite being positive
     {
       LOG_WARN << "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!" << std::endl;
     }

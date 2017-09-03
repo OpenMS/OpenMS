@@ -285,6 +285,7 @@ protected:
     {
       return feature.getOverallQuality() == 0.0;
     }
+
   } feature_filter_quality_;
 
   // predicate for filtering features by assigned peptides:
@@ -294,6 +295,7 @@ protected:
     {
       return feature.getPeptideIdentifications().empty();
     }
+
   } feature_filter_peptides_;
 
   // comparison functor for (unassigned) peptide IDs
@@ -316,6 +318,7 @@ protected:
       }
       return seq1 < seq2;
     }
+
   } peptide_compare_;
 
   // comparison functor for features
@@ -331,6 +334,7 @@ protected:
       }
       return ref1 < ref2;
     }
+
   } feature_compare_;
 
   PeakMap ms_data_; // input LC-MS data
@@ -376,7 +380,7 @@ protected:
 
       transition.setNativeID(transition_name);
       transition.setPrecursorMZ(mz);
-      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
+      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U *
                               float(counter) / charge);
       transition.setLibraryIntensity(iso_it->second);
       transition.setMetaValue("annotation", annotation);
@@ -386,7 +390,6 @@ protected:
     }
   }
 
-
   void addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt)
   {
     rt_term_.setValue(rt);
@@ -394,7 +397,6 @@ protected:
     te_rt.addCVTerm(rt_term_);
     peptide.rts.push_back(te_rt);
   }
-
 
   void getRTRegions_(ChargeMap& peptide_data, vector<RTRegion>& rt_regions)
   {
@@ -459,7 +461,6 @@ protected:
     }
   }
 
-
   void annotateFeaturesFinalizeAssay_(
     FeatureMap& features, map<Size, vector<PeptideIdentification*> >& feat_ids,
     RTMap& rt_internal)
@@ -493,7 +494,7 @@ protected:
         for (Size i = 0; i < best_count; ++i)
         {
           features[best_index].getPeptideIdentifications()[i] =
-              *(feat_ids[best_index][i]);
+            *(feat_ids[best_index][i]);
         }
         assigned_ids.insert(feat_ids[best_index].begin(),
                             feat_ids[best_index].end());
@@ -513,7 +514,6 @@ protected:
     feat_ids.clear();
     rt_internal.clear();
   }
-
 
   void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map)
   {
@@ -535,7 +535,7 @@ protected:
       // annotate subordinates with theoretical isotope intensities:
       for (vector<Feature>::iterator sub_it =
              feat_it->getSubordinates().begin(); sub_it !=
-             feat_it->getSubordinates().end(); ++sub_it)
+           feat_it->getSubordinates().end(); ++sub_it)
       {
         String native_id = sub_it->getMetaValue("native_id");
         sub_it->setMetaValue("isotope_probability", isotope_probs_[native_id]);
@@ -688,7 +688,6 @@ protected:
     }
   }
 
-
   void ensureConvexHulls_(Feature& feature)
   {
     if (feature.getConvexHulls().empty()) // add hulls for mass traces
@@ -712,7 +711,6 @@ protected:
       }
     }
   }
-
 
   void createAssayLibrary_(PeptideMap& peptide_map, PeptideRefRTMap& ref_rt_map)
   {
@@ -755,7 +753,7 @@ protected:
 
       // get isotope distribution for peptide:
       Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
-      IsotopeDistribution iso_dist = 
+      IsotopeDistribution iso_dist =
         seq.getFormula(Residue::Full, 0).getIsotopeDistribution(n_isotopes);
       if (isotope_pmin_ > 0.0)
       {
@@ -798,7 +796,7 @@ protected:
                       << endl;
 
             peptide.id = peptide_id;
-            if (rt_regions.size() > 1) peptide.id += ":" + String(++counter);
+            if (rt_regions.size() > 1) { peptide.id += ":" + String(++counter); }
 
             // store beginning and end of RT region:
             peptide.rts.clear();
@@ -816,7 +814,7 @@ protected:
     }
 
     // add proteins to library:
-    for (set<String>::iterator acc_it = protein_accessions.begin(); 
+    for (set<String>::iterator acc_it = protein_accessions.begin();
          acc_it != protein_accessions.end(); ++acc_it)
     {
       TargetedExperiment::Protein protein;
@@ -825,11 +823,10 @@ protected:
     }
   }
 
-
   void addPeptideToMap_(PeptideIdentification& peptide, PeptideMap& peptide_map,
                         bool external = false)
   {
-    if (peptide.getHits().empty()) return;
+    if (peptide.getHits().empty()) { return; }
     peptide.sort();
     PeptideHit& hit = peptide.getHits()[0];
     peptide.getHits().resize(1);
@@ -846,25 +843,23 @@ protected:
     }
   }
 
-
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "")
   {
     if (n_pos < n_parts_)
     {
-      String msg = "Not enough positive observations for " + 
-        String(n_parts_) + "-fold cross-validation" + note + ".";
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
+      String msg = "Not enough positive observations for " +
+                   String(n_parts_) + "-fold cross-validation" + note + ".";
+      throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
     if (n_neg < n_parts_)
     {
-      String msg = "Not enough negative observations for " + 
-        String(n_parts_) + "-fold cross-validation" + note + ".";
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
+      String msg = "Not enough negative observations for " +
+                   String(n_parts_) + "-fold cross-validation" + note + ".";
+      throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
   }
-
 
   void getUnbiasedSample_(const multimap<double, pair<Size, bool> >& valid_obs,
                           map<Size, Int>& training_labels)
@@ -882,12 +877,12 @@ protected:
     if (valid_obs.size() < half_win_size + 1)
     {
       String msg = "Not enough observations for intensity-bias filtering.";
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
+      throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
     srand(time(0)); // seed random number generator
-    Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
-    Size counts[2] = {0, 0}; // pos./neg. counts in current window
+    Size n_obs[2] = { 0, 0 }; // counters for neg./pos. observations
+    Size counts[2] = { 0, 0 }; // pos./neg. counts in current window
     // iterators to begin, middle and past-the-end of sliding window:
     multimap<double, pair<Size, bool> >::const_iterator begin, middle, end;
     begin = middle = end = valid_obs.begin();
@@ -906,8 +901,11 @@ protected:
       if ((counts[0] > 0) && (counts[1] > 0))
       {
         // probability thresholds for neg./pos. observations:
-        double thresholds[2] = {counts[1] / float(counts[0]),
-                                counts[0] / float(counts[1])};
+        double thresholds[2] =
+        {
+          counts[1] / float(counts[0]),
+          counts[0] / float(counts[1])
+        };
         // check middle values:
         double rnd = rand() / double(RAND_MAX); // random num. in range 0-1
         if (rnd < thresholds[middle->second.second])
@@ -938,7 +936,6 @@ protected:
     checkNumObservations_(n_obs[1], n_obs[0], " after bias filtering");
   }
 
-
   void getRandomSample_(map<Size, Int>& training_labels)
   {
     // @TODO: can this be done with less copying back and forth of data?
@@ -957,7 +954,7 @@ protected:
     // "checkNumObservations_" would have thrown an error. To this end, move
     // "n_parts_" pos. observations to the beginning of sequence, followed by
     // "n_parts_" neg. observations (pos. first - see reason below):
-    Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
+    Size n_obs[2] = { 0, 0 }; // counters for neg./pos. observations
     for (Int label = 1; label >= 0; --label)
     {
       for (Size i = n_obs[1]; i < selection.size(); ++i)
@@ -968,7 +965,7 @@ protected:
           swap(selection[i], selection[n_obs[label]]);
           ++n_obs[label];
         }
-        if (n_obs[label] == n_parts_) break;
+        if (n_obs[label] == n_parts_) { break; }
       }
     }
     selection.resize(n_samples_);
@@ -982,10 +979,9 @@ protected:
     training_labels.swap(temp);
   }
 
-
   void classifyFeatures_(FeatureMap& features)
   {
-    if (features.empty()) return;
+    if (features.empty()) { return; }
 
     // get predictors for SVM:
     vector<String> predictor_names =
@@ -1001,7 +997,7 @@ protected:
          pred_it != predictor_names.end(); ++pred_it)
     {
       predictors[*pred_it].reserve(features.size());
-      for (FeatureMap::Iterator feat_it = features.begin(); 
+      for (FeatureMap::Iterator feat_it = features.begin();
            feat_it < features.end(); ++feat_it)
       {
         if (!feat_it->metaValueExists(*pred_it))
@@ -1020,13 +1016,13 @@ protected:
     bool no_selection = getFlag_("svm:no_selection");
     // mapping (for bias correction): intensity -> (index, positive?)
     multimap<double, pair<Size, bool> > valid_obs;
-    Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
+    Size n_obs[2] = { 0, 0 }; // counters for neg./pos. observations
     for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
     {
       String feature_class = features[feat_index].getMetaValue("feature_class");
       Int label = -1;
-      if (feature_class == "positive") label = 1;
-      else if (feature_class == "negative") label = 0;
+      if (feature_class == "positive") { label = 1; }
+      else if (feature_class == "negative") { label = 0; }
 
       if (label != -1)
       {
@@ -1045,7 +1041,7 @@ protected:
     }
     checkNumObservations_(n_obs[1], n_obs[0]);
 
-    if (!no_selection) getUnbiasedSample_(valid_obs, training_labels);
+    if (!no_selection) { getUnbiasedSample_(valid_obs, training_labels); }
 
     if (n_samples_ > 0) // limited number of samples for training
     {
@@ -1068,8 +1064,8 @@ protected:
     svm.setParameters(svm_params);
     svm.setup(predictors, training_labels);
     String xval_out = getStringOption_("svm:xval_out");
-    if (!xval_out.empty()) svm.writeXvalResults(xval_out);
-    if ((debug_level_ > 0) && String(svm_params.getValue("kernel")) == "linear")
+    if (!xval_out.empty()) { svm.writeXvalResults(xval_out); }
+    if ((debug_level_ > 0) && (String(svm_params.getValue("kernel")) == "linear"))
     {
       map<String, double> feature_weights;
       svm.getFeatureWeights(feature_weights);
@@ -1083,7 +1079,7 @@ protected:
 
     vector<SimpleSVM::Prediction> predictions;
     svm.predict(predictions);
-    OPENMS_POSTCONDITION(predictions.size() == features.size(), 
+    OPENMS_POSTCONDITION(predictions.size() == features.size(),
                          "SVM predictions for all features expected");
     for (Size i = 0; i < features.size(); ++i)
     {
@@ -1094,7 +1090,6 @@ protected:
       features[i].setOverallQuality(prob_positive);
     }
   }
-
 
   void filterFeaturesFinalizeAssay_(Feature& best_feature, double best_quality,
                                     const double quality_cutoff)
@@ -1112,7 +1107,7 @@ protected:
     else if (feature_class == "unknown")
     {
       svm_probs_external_.insert(best_quality);
-      if (best_quality >= quality_cutoff) 
+      if (best_quality >= quality_cutoff)
       {
         best_feature.setOverallQuality(best_quality);
         ++n_external_features_;
@@ -1120,10 +1115,9 @@ protected:
     }
   }
 
-
   void filterFeatures_(FeatureMap& features, bool classified)
   {
-    if (features.empty()) return;
+    if (features.empty()) { return; }
 
     if (classified)
     {
@@ -1190,7 +1184,6 @@ protected:
     }
   }
 
-
   void calculateFDR_(FeatureMap& features)
   {
     // cumulate the true/false positive counts, in decreasing probability order:
@@ -1215,7 +1208,7 @@ protected:
                                                    prob_it->second.second);
       LOG_INFO << "Estimated FDR of features detected based on 'external' IDs: "
                << fdr * 100.0 << "%" << endl;
-      fdr = (fdr * n_external_features_) / (n_external_features_ + 
+      fdr = (fdr * n_external_features_) / (n_external_features_ +
                                             n_internal_features_);
       LOG_INFO << "Estimated FDR of all detected features: " << fdr * 100.0
                << "%" << endl;
@@ -1230,7 +1223,7 @@ protected:
     {
       double fdr = double(prob_it->second.second) / (prob_it->second.first +
                                                      prob_it->second.second);
-      if (fdr < min_fdr) min_fdr = fdr;
+      if (fdr < min_fdr) { min_fdr = fdr; }
       qvalues.push_back(min_fdr);
     }
     // record only probabilities where q-value changes:
@@ -1264,13 +1257,13 @@ protected:
         ++ext_it;
       }
       fdr_qvalues[i] = (fdr_qvalues[i] * external_count) /
-        (external_count + n_internal_features_);
+                       (external_count + n_internal_features_);
     }
     features.setMetaValue("FDR_qvalues_corrected", fdr_qvalues);
 
     // @TODO: should we use "1 - qvalue" as overall quality for features?
     // assign q-values to features:
-    for (FeatureMap::iterator feat_it = features.begin(); 
+    for (FeatureMap::iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
       if (feat_it->getMetaValue("feature_class") == "positive")
@@ -1283,13 +1276,12 @@ protected:
         // find highest FDR prob. that is less-or-equal to the feature prob.:
         vector<double>::iterator pos = upper_bound(fdr_probs.begin(),
                                                    fdr_probs.end(), prob);
-        if (pos != fdr_probs.begin()) --pos;
+        if (pos != fdr_probs.begin()) { --pos; }
         Size dist = distance(fdr_probs.begin(), pos);
         feat_it->setMetaValue("q-value", fdr_qvalues[dist]);
       }
     }
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -1329,8 +1321,8 @@ protected:
       if ((n_samples_ > 0) && (n_samples_ < 2 * n_parts_))
       {
         String msg = "Sample size of " + String(n_samples_) +
-          " (parameter 'svm:samples') is not enough for " + String(n_parts_) +
-          "-fold cross-validation (parameter 'svm:xval').";
+                     " (parameter 'svm:samples') is not enough for " + String(n_parts_) +
+                     "-fold cross-validation (parameter 'svm:xval').";
         throw Exception::InvalidParameter(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -1352,7 +1344,7 @@ protected:
       {
         params.setValue("write_convex_hull", "true");
       }
-      if (min_peak_width < 1.0) min_peak_width *= peak_width;
+      if (min_peak_width < 1.0) { min_peak_width *= peak_width; }
       params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                       peak_width);
       params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width);
@@ -1408,7 +1400,10 @@ protected:
       {
         // calculate RT window based on other parameters and alignment quality:
         double map_tol = mapping_tolerance_;
-        if (map_tol < 1.0) map_tol *= (2 * peak_width); // relative tolerance
+        if (map_tol < 1.0)
+        {
+          map_tol *= (2 * peak_width);                  // relative tolerance
+        }
         rt_window_ = (rt_uncertainty + 2 * peak_width + map_tol) * 2;
         LOG_INFO << "RT window size calculated as " << rt_window_ << " seconds."
                  << endl;
@@ -1509,14 +1504,14 @@ protected:
       FeatureXMLFile().load(candidates_in, features);
       LOG_INFO << "Found " << features.size() << " feature candidates in total."
                << endl;
-      with_external_ids = (!features.empty() && 
+      with_external_ids = (!features.empty() &&
                            features[0].metaValueExists("predicted_class"));
 
       // extract ID information for statistics:
       set<AASequence> internal_seqs;
       for (vector<PeptideIdentification>::iterator pep_it =
              features.getUnassignedPeptideIdentifications().begin(); pep_it !=
-             features.getUnassignedPeptideIdentifications().end(); ++pep_it)
+           features.getUnassignedPeptideIdentifications().end(); ++pep_it)
       {
         const AASequence& seq = pep_it->getHits()[0].getSequence();
         if (pep_it->getMetaValue("FFId_category") == "internal")
@@ -1528,7 +1523,7 @@ protected:
       for (FeatureMap::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
-        if (feat_it->getPeptideIdentifications().empty()) continue;
+        if (feat_it->getPeptideIdentifications().empty()) { continue; }
         const PeptideIdentification& pep_id =
           feat_it->getPeptideIdentifications()[0];
         const AASequence& seq = pep_id.getHits()[0].getSequence();
@@ -1549,7 +1544,7 @@ protected:
     sort(features.begin(), features.end(), feature_compare_);
 
     // don't do SVM stuff unless we have external data to apply the model to:
-    if (with_external_ids) classifyFeatures_(features);
+    if (with_external_ids) { classifyFeatures_(features); }
 
     if (!candidates_out.empty()) // store feature candidates
     {
@@ -1559,7 +1554,7 @@ protected:
     filterFeatures_(features, with_external_ids);
     LOG_INFO << features.size() << " features left after filtering." << endl;
 
-    if (!svm_probs_internal_.empty()) calculateFDR_(features);
+    if (!svm_probs_internal_.empty()) { calculateFDR_(features); }
 
     if (elution_model != "none")
     {
@@ -1573,12 +1568,12 @@ protected:
     }
     else if (!candidates_out.empty()) // hulls not needed, remove them
     {
-      for (FeatureMap::Iterator feat_it = features.begin(); 
+      for (FeatureMap::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
         for (vector<Feature>::iterator sub_it =
-               feat_it->getSubordinates().begin(); sub_it != 
-               feat_it->getSubordinates().end(); ++sub_it)
+               feat_it->getSubordinates().begin(); sub_it !=
+             feat_it->getSubordinates().end(); ++sub_it)
         {
           sub_it->getConvexHulls().clear();
         }
@@ -1621,7 +1616,7 @@ protected:
     // number of "missing" external peptides can be negative!
     Int n_missing_external = Int(n_external_peps) - n_quant_external;
     LOG_INFO << "\nSummary statistics (counting distinct peptides including "
-      "PTMs):\n"
+                "PTMs):\n"
              << peptide_map.size() << " peptides identified ("
              << n_internal_peps << " internal, " << n_external_peps
              << " additional external)\n"

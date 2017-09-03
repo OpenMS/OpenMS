@@ -44,7 +44,7 @@ namespace OpenMS
   {
 
     // template class -- nothing here
-    
+
   } // Math
 
 } // OpenMS

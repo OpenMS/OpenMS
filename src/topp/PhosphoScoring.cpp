@@ -69,15 +69,15 @@ using namespace std;
 
   For details, see:\n
   Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based
-  approach for high-throughput protein phosphorylation analysis and site localization</a> 
+  approach for high-throughput protein phosphorylation analysis and site localization</a>
   (Nat. Biotechnol., 2006, PMID: 16964243).
-  
+
   In the output the score of the peptide hit describes the peptide score, which is a weighted
   average of all ten scores of the selected peptide sequence.  For each phosphorylation site an
   individual Ascore was calculated and listed as meta value of the peptide hit (e.g. AScore_1,
   AScore_2).
-  
-  The Ascore results of this TOPP tool differs with the results of the Ascore calculation provided 
+
+  The Ascore results of this TOPP tool differs with the results of the Ascore calculation provided
   <a href="http://ascore.med.harvard.edu/ascore.html">on the website</a>, but it seems that the
   implementation according to Beausoleil <em>et al.</em> has some calculation errors.  It is not
   possible to recalculate the Ascore using the cumulative binomial probability formula with the
@@ -110,12 +110,12 @@ protected:
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
   template <typename SpectrumType>
-  static void deisotopeAndSingleChargeMSSpectrum_(SpectrumType& in, Int min_charge, Int max_charge, 
-                                                  double fragment_tolerance, 
-                                                  bool fragment_unit_ppm, 
-                                                  bool keep_only_deisotoped = false, 
-                                                  Size min_isopeaks = 3, 
-                                                  Size max_isopeaks = 10, 
+  static void deisotopeAndSingleChargeMSSpectrum_(SpectrumType& in, Int min_charge, Int max_charge,
+                                                  double fragment_tolerance,
+                                                  bool fragment_unit_ppm,
+                                                  bool keep_only_deisotoped = false,
+                                                  Size min_isopeaks = 3,
+                                                  Size max_isopeaks = 10,
                                                   bool make_single_charged = true)
   {
     if (in.empty())
@@ -134,13 +134,13 @@ protected:
     {
       double current_mz = old_spectrum[current_peak].getPosition()[0];
 
-      for (Int q = max_charge; q >= min_charge; --q)   // important: test charge hypothesis from high to low
+      for (Int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
       {
         // try to extend isotopes from mono-isotopic peak
         // if extension larger then min_isopeaks possible:
         //   - save charge q in mono_isotopic_peak[]
         //   - annotate all isotopic peaks with feature number
-        if (features[current_peak] == -1)   // only process peaks which have no assigned feature number
+        if (features[current_peak] == -1) // only process peaks which have no assigned feature number
         {
           bool has_min_isopeaks = true;
           vector<Size> extensions;
@@ -149,7 +149,7 @@ protected:
             double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
             Size p = old_spectrum.findNearest(expected_mz);
             double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton)   // test for missing peak
+            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
             {
               if (i < min_isopeaks)
               {
@@ -258,15 +258,15 @@ protected:
     fragment_mass_tolerance_unit_valid_strings.push_back("Da");
     fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
     registerStringOption_("fragment_mass_unit", "<unit>", "Da", "Unit of fragment mass error", false, false);
-    setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);  
+    setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);
 
     registerIntOption_("max_peptide_length", "<num>", 40, "Restrict scoring to peptides with a length shorter than this value", false);
     setMinInt_("max_peptide_length", 1);
-    
+
     registerIntOption_("max_num_perm", "<num>", 16384, "Maximum number of permutations a sequence can have", false);
     setMinInt_("max_num_perm", 1);
   }
-  
+
   // If the score_type has a different name in the meta_values, it is not possible to find it.
   // E.g. Percolator_qvalue <-> q-value.
   // Improvement for the future would be to have unique names for the score_types
@@ -299,13 +299,13 @@ protected:
     bool fragment_mass_unit_ppm = getStringOption_("fragment_mass_unit") == "Da" ? false : true;
     Size max_peptide_len = getIntOption_("max_peptide_length");
     Size max_num_perm = getIntOption_("max_num_perm");
-    
+
     AScore ascore;
 
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    
+
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_out;
@@ -321,7 +321,7 @@ protected:
     f.getOptions() = options;
     f.load(in, exp);
     exp.sortSpectra(true);
-    
+
     SpectrumLookup lookup;
     lookup.readSpectra(exp.getSpectra());
 
@@ -329,15 +329,15 @@ protected:
     {
       Size scan_id = lookup.findByRT(pep_id->getRT());
       PeakSpectrum& temp = exp.getSpectrum(scan_id);
-      
+
       vector<PeptideHit> scored_peptides;
       for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
       {
         PeptideHit scored_hit = *hit;
         addScoreToMetaValues_(scored_hit, pep_id->getScoreType()); // backup score value
-        
+
         LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
-        
+
         PeptideHit phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm, max_peptide_len, max_num_perm);
         scored_peptides.push_back(phospho_sites);
       }
@@ -348,7 +348,7 @@ protected:
       new_pep_id.setHits(scored_peptides);
       pep_out.push_back(new_pep_id);
     }
-    
+
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
@@ -356,6 +356,7 @@ protected:
     IdXMLFile().store(out, prot_ids, pep_out);
     return EXECUTION_OK;
   }
+
 };
 
 int main(int argc, const char** argv)

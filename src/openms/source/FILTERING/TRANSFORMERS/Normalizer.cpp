@@ -53,12 +53,12 @@ namespace OpenMS
   {
   }
 
-  Normalizer::Normalizer(const Normalizer & source) :
+  Normalizer::Normalizer(const Normalizer& source) :
     DefaultParamHandler(source)
   {
   }
 
-  Normalizer & Normalizer::operator=(const Normalizer & source)
+  Normalizer& Normalizer::operator=(const Normalizer& source)
   {
     if (this != &source)
     {

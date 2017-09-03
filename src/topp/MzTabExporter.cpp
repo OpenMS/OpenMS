@@ -119,7 +119,6 @@ protected:
       setValidFormats_("out", ListUtils::create<String>("tsv"));
     }
 
-
     /**
       @brief Gets peptide_evidences with data from internal structures adds their info to an MzTabPSMSectionRow (pre- or unfilled)
 
@@ -214,10 +213,10 @@ protected:
       {
         const String& key = *sit;
         MzTabOptionalColumnEntry opt_entry;
-        opt_entry.first = String("opt_") + id + String("_") + String(key).substitute(' ','_');
+        opt_entry.first = String("opt_") + id + String("_") + String(key).substitute(' ', '_');
         if (meta.metaValueExists(key))
         {
-          opt_entry.second = MzTabString(meta.getMetaValue(key).toString().substitute(' ','_'));
+          opt_entry.second = MzTabString(meta.getMetaValue(key).toString().substitute(' ', '_'));
         } // otherwise it is default ("null")
         opt.push_back(opt_entry);
       }
@@ -298,14 +297,14 @@ protected:
         return generateMzTabStringFromModifications(mods);
       }
     }
- 
+
     static MzTab exportFeatureMapToMzTab(const FeatureMap& feature_map, const String& filename)
     {
       LOG_INFO << "exporting feature map: \"" << filename << "\" to mzTab: " << std::endl;
       MzTab mztab;
       MzTabMetaData meta_data;
 
-      vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();        
+      vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();
       vector<String> var_mods, fixed_mods;
       MzTabString db, db_version;
       if (!prot_ids.empty())
@@ -494,7 +493,7 @@ protected:
 
         Size current_run_index(1);
         for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin();
-         it != prot_ids.end(); ++it, ++current_run_index)
+             it != prot_ids.end(); ++it, ++current_run_index)
         {
           const std::vector<ProteinIdentification::ProteinGroup> protein_groups = it->getProteinGroups();
           const std::vector<ProteinIdentification::ProteinGroup> indist_groups = it->getIndistinguishableProteins();
@@ -509,7 +508,7 @@ protected:
 
           // pre-analyze data for occuring meta values at protein hit level
           // these are used to build optional columns containing the meta values in internal data structures
-          set<String> protein_hit_user_value_keys = 
+          set<String> protein_hit_user_value_keys =
             MetaInfoInterfaceUtils::findCommonMetaKeys<vector<ProteinHit>, set<String> >(protein_hits.begin(), protein_hits.end(), 100.0);
 
           // we do not want descriptions twice
@@ -521,25 +520,25 @@ protected:
             MzTabProteinSectionRow protein_row;
 
             protein_row.accession = MzTabString(hit.getAccession());
-            protein_row.description = MzTabString(hit.getDescription()); 
-         // protein_row.taxid = hit.getTaxonomyID(); // TODO add as meta value to protein hitNEWT taxonomy for the species.
-         // MzTabString species = hit.getSpecies(); // Human readable name of the species
+            protein_row.description = MzTabString(hit.getDescription());
+            // protein_row.taxid = hit.getTaxonomyID(); // TODO add as meta value to protein hitNEWT taxonomy for the species.
+            // MzTabString species = hit.getSpecies(); // Human readable name of the species
             protein_row.database = db; // Name of the protein database.
             protein_row.database_version = db_version; // String Version of the protein database.
             protein_row.best_search_engine_score[1] = MzTabDouble(hit.getScore());
-         // MzTabParameterList search_engine; // Search engine(s) identifying the protein.
-         // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
-         // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
-         // MzTabInteger reliability;
-         // std::map<Size, MzTabInteger> num_psms_ms_run;
-         // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
-         // std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
-         // MzTabModificationList modifications; // Modifications identified in the protein.
-         // MzTabString uri; // Location of the protein’s source entry.
-         // MzTabStringList go_terms; // List of GO terms for the protein.
+            // MzTabParameterList search_engine; // Search engine(s) identifying the protein.
+            // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
+            // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
+            // MzTabInteger reliability;
+            // std::map<Size, MzTabInteger> num_psms_ms_run;
+            // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
+            // std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
+            // MzTabModificationList modifications; // Modifications identified in the protein.
+            // MzTabString uri; // Location of the protein’s source entry.
+            // MzTabStringList go_terms; // List of GO terms for the protein.
             double coverage = hit.getCoverage();
             protein_row.protein_coverage = coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
-         // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
+            // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
 
             // create and fill opt_ columns for protein hit user values
             addMetaInfoToOptionalColumns(protein_hit_user_value_keys, protein_row.opt_, String("global"), hit);
@@ -549,7 +548,7 @@ protected:
             opt_column_entry.first = "opt_global_protein_group_type";
             opt_column_entry.second = MzTabString("single_protein");
             protein_row.opt_.push_back(opt_column_entry);
-             
+
             protein_rows.push_back(protein_row);
           }
 
@@ -560,11 +559,11 @@ protected:
             MzTabProteinSectionRow protein_row;
             protein_row.database = db; // Name of the protein database.
             protein_row.database_version = db_version; // String Version of the protein database.
-              
+
             MzTabStringList ambiguity_members;
             ambiguity_members.setSeparator(',');
             vector<MzTabString> entries;
-            for (Size j = 0; j != group.accessions.size() ; ++j)
+            for (Size j = 0; j != group.accessions.size(); ++j)
             {
               // set accession and description to first element of group
               if (j == 0)
@@ -591,11 +590,11 @@ protected:
             MzTabProteinSectionRow protein_row;
             protein_row.database = db; // Name of the protein database.
             protein_row.database_version = db_version; // String Version of the protein database.
-              
+
             MzTabStringList ambiguity_members;
             ambiguity_members.setSeparator(',');
             vector<MzTabString> entries;
-            for (Size j = 0; j != group.accessions.size() ; ++j)
+            for (Size j = 0; j != group.accessions.size(); ++j)
             {
               // set accession and description to first element of group
               if (j == 0)
@@ -706,7 +705,7 @@ protected:
       return mztab;
     }
 
-    // Generate MzTab style list of PTMs from AASequence object. 
+    // Generate MzTab style list of PTMs from AASequence object.
     // All passed fixed modifications are not reported (as suggested by the standard for the PRT and PEP section).
     // In contrast, all modifications are reported in the PSM section (see standard document for details).
     static MzTabModificationList extractModificationListFromAASequence(const AASequence& aas, const vector<String>& fixed_mods = vector<String>())
@@ -996,7 +995,7 @@ protected:
 
         // calculate coverage
         vector<PeptideIdentification> pep_ids;
-        vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();        
+        vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();
 
         for (Size i = 0; i < feature_map.size(); ++i) // collect all (assigned and unassigned to a feature) peptide ids
         {
@@ -1029,7 +1028,7 @@ protected:
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
-        mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, in); 
+        mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, in);
       }
 
       // export identification data from mzIdentML
@@ -1039,7 +1038,7 @@ protected:
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         MzIdentMLFile().load(in, prot_ids, pep_ids);
-        mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, in); 
+        mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, in);
       }
 
       // export quantification data
@@ -1054,6 +1053,7 @@ protected:
       MzTabFile().store(out, mztab);
       return EXECUTION_OK;
     }
+
   };
 } //namespace OpenMS
 
@@ -1066,4 +1066,3 @@ int main(int argc, const char** argv)
 }
 
 /// @endcond
-

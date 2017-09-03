@@ -145,7 +145,9 @@ namespace OpenMS
     for (ChannelMapType::ConstIterator it = channel_map_.begin(); it != channel_map_.end(); ++it)
     {
       if (it->second.active)
+      {
         ++active_channel_count;
+      }
     }
     if (features.size() != active_channel_count)
     {
@@ -245,7 +247,9 @@ namespace OpenMS
     for (SimTypes::MSSimExperiment::iterator it = exp.begin(); it != exp.end(); ++it)
     {
       if (it->getMSLevel() != 2)
+      {
         continue;
+      }
 
       // reset sum matrix to 0
       itraq_intensity_sum.setZero();
@@ -304,8 +308,10 @@ namespace OpenMS
     // all "K":
     for (Size i = 0; i < seq.size(); ++i)
     {
-      if (seq[i] == 'K' && !seq[i].isModified())
+      if ((seq[i] == 'K') && !seq[i].isModified())
+      {
         seq.setModification(i, modification);
+      }
     }
     result.resize(1);
     result[0] = feature;
@@ -314,11 +320,13 @@ namespace OpenMS
     // some "Y":
     // for each "Y" create two new features, depending on labeling efficiency on "Y":
     if (y_labeling_efficiency_ == 0)
+    {
       return;
+    }
 
     for (Size i = 0; i < seq.size(); ++i)
     {
-      if (seq[i] == 'Y' && !seq[i].isModified())
+      if ((seq[i] == 'Y') && !seq[i].isModified())
       {
         if (y_labeling_efficiency_ == 1)
         {
@@ -353,7 +361,7 @@ namespace OpenMS
     // check that RT is within the elution bound:
     OPENMS_POSTCONDITION(f.getConvexHull().getBoundingBox().encloses(MS2_RT_time, f.getMZ()), "The MS2 spectrum has wrong parent features! The feature does not touch the spectrum's RT!")
 
-    if (MS2_RT_time < elution_bounds[1] || elution_bounds[3] < MS2_RT_time)
+    if ((MS2_RT_time < elution_bounds[1]) || (elution_bounds[3] < MS2_RT_time))
     {
       LOG_WARN << "Warn: requesting MS2 RT for " << MS2_RT_time << ", but bounds are only from [" << elution_bounds[1] << "," << elution_bounds[3] << "]\n";
       return 0;
@@ -388,7 +396,7 @@ namespace OpenMS
         intensity = (double) f.getMetaValue(getChannelIntensityName(ch_internal));
         ++ch_internal;
       }
-      (* m)(ch, 0) = intensity * factor;
+      (*m)(ch, 0) = intensity * factor;
       ++ch;
     }
 

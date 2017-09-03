@@ -61,7 +61,7 @@ namespace OpenMS
   {
   }
 
-  TOPPASSplitterVertex & TOPPASSplitterVertex::operator=(const TOPPASSplitterVertex& rhs)
+  TOPPASSplitterVertex& TOPPASSplitterVertex::operator=(const TOPPASSplitterVertex& rhs)
   {
     TOPPASVertex::operator=(rhs);
 
@@ -165,7 +165,7 @@ namespace OpenMS
   void TOPPASSplitterVertex::run()
   {
     // check if everything ready
-    if (!isUpstreamFinished())  return;
+    if (!isUpstreamFinished()) { return; }
 
     RoundPackages pkg;
     String error_msg("");

@@ -55,7 +55,9 @@ namespace OpenMS
   IsobaricNormalizer& IsobaricNormalizer::operator=(const IsobaricNormalizer& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
+    }
 
     quant_meth_ = rhs.quant_meth_;
     reference_channel_name_ = rhs.reference_channel_name_;

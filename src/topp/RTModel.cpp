@@ -366,12 +366,12 @@ protected:
     String outputfile_name = getStringOption_("out");
     additive_cv = getFlag_("additive_cv");
     skip_cv = getFlag_("cv:skip_cv");
-    if (skip_cv) LOG_INFO << "Cross-validation disabled!\n";
-    else LOG_INFO << "Cross-validation enabled!\n";
+    if (skip_cv) { LOG_INFO << "Cross-validation disabled!\n"; }
+    else{ LOG_INFO << "Cross-validation enabled!\n"; }
 
     float total_gradient_time = getDoubleOption_("total_gradient_time");
     max_std = getDoubleOption_("max_std");
-    if (!separation_prediction && total_gradient_time < 0)
+    if (!separation_prediction && (total_gradient_time < 0))
     {
       writeLog_("No total gradient time given for RT prediction. Aborting!");
       printUsage_();
@@ -379,15 +379,15 @@ protected:
     }
     //SVM type
     String type = getStringOption_("svm_type");
-    if (type == "NU_SVR" && !separation_prediction)
+    if ((type == "NU_SVR") && !separation_prediction)
     {
       svm.setParameter(SVMWrapper::SVM_TYPE, NU_SVR);
     }
-    else if (type == "EPSILON_SVR" && !separation_prediction)
+    else if ((type == "EPSILON_SVR") && !separation_prediction)
     {
       svm.setParameter(SVMWrapper::SVM_TYPE, EPSILON_SVR);
     }
-    else if ((separation_prediction && type == "C_SVC")
+    else if ((separation_prediction && (type == "C_SVC"))
             || separation_prediction)
     {
       svm.setParameter(SVMWrapper::SVM_TYPE, C_SVC);
@@ -436,7 +436,7 @@ protected:
 
     //parameters
     svm.setParameter(SVMWrapper::C, getDoubleOption_("c"));
-    if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
+    if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR) || (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
     {
       svm.setParameter(SVMWrapper::NU, getDoubleOption_("nu"));
     }
@@ -454,7 +454,7 @@ protected:
       {
         UInt degree_start = getIntOption_("cv:degree_start");
         UInt degree_step_size = getIntOption_("cv:degree_step_size");
-        if (!additive_cv && degree_step_size <= 1)
+        if (!additive_cv && (degree_step_size <= 1))
         {
           writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
           return ILLEGAL_PARAMETERS;
@@ -467,11 +467,11 @@ protected:
       }
     }
 
-    if (svm.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR && !skip_cv)
+    if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR) && !skip_cv)
     {
       double p_start = getDoubleOption_("cv:p_start");
       double p_step_size = getDoubleOption_("cv:p_step_size");
-      if (!additive_cv && p_step_size <= 1)
+      if (!additive_cv && (p_step_size <= 1))
       {
         writeLog_("Step size of p <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -487,7 +487,7 @@ protected:
     {
       double c_start = getDoubleOption_("cv:c_start");
       double c_step_size = getDoubleOption_("cv:c_step_size");
-      if (!additive_cv && c_step_size <= 1)
+      if (!additive_cv && (c_step_size <= 1))
       {
         writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -499,12 +499,12 @@ protected:
       end_values.insert(make_pair(SVMWrapper::C, c_stop));
     }
 
-    if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)
+    if (((svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR) || (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
        && !skip_cv)
     {
       double nu_start = getDoubleOption_("cv:nu_start");
       double nu_step_size = getDoubleOption_("cv:nu_step_size");
-      if (!additive_cv && nu_step_size <= 1)
+      if (!additive_cv && (nu_step_size <= 1))
       {
         writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -530,12 +530,12 @@ protected:
     sigma_start = 0.;
     sigma_step_size = 0.;
     sigma_stop = 0.;
-    if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO
+    if ((svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
        && !skip_cv)
     {
       sigma_start = getDoubleOption_("cv:sigma_start");
       sigma_step_size = getDoubleOption_("cv:sigma_step_size");
-      if (!additive_cv && sigma_step_size <= 1)
+      if (!additive_cv && (sigma_step_size <= 1))
       {
         writeLog_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
@@ -677,7 +677,7 @@ protected:
     // the standard deviation is calculated. If this std is less or equal to the
     // maximal allowed std 'max_std', the peptide is added to the training set
     // with the median as retention time. Unique peptides are added immediately.
-    if (!separation_prediction && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+    if (!separation_prediction && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
     {
       map<AASequence, double>::iterator it = redundant_modified_peptides.begin();
 
@@ -737,7 +737,7 @@ protected:
       }
     }
 
-    if (!separation_prediction && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
+    if (!separation_prediction && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO))
     {
       map<String, double>::iterator it = redundant_peptides.begin();
       double temp_median = 0;
@@ -843,7 +843,7 @@ protected:
       }
     }
 
-    if (temp_type == LINEAR || temp_type == POLY || temp_type == RBF)
+    if ((temp_type == LINEAR) || (temp_type == POLY) || (temp_type == RBF))
     {
       // TODO What happens if the sequence exceeds this size? No error, but does it impact performance?
       // Why this magic number?

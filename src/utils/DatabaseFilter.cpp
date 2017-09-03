@@ -79,7 +79,7 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "","Input FASTA file, containing a database.");
+    registerInputFile_("in", "<file>", "", "Input FASTA file, containing a database.");
     setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerInputFile_("id", "<file>", "", "Input file containing identified peptides and proteins.");
     setValidFormats_("id", ListUtils::create<String>("idXML,mzid"));
@@ -109,7 +109,7 @@ protected:
 
     LOG_INFO << "Protein accessions: " << id_accessions.size() << endl;
 
-    for (Size i = 0; i != db.size() ; ++i)
+    for (Size i = 0; i != db.size(); ++i)
     {
       const String& fasta_accession = db[i].identifier;
       const bool found = id_accessions.find(fasta_accession) != id_accessions.end();
@@ -120,7 +120,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -187,7 +187,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDatabaseFilter tool;
   return tool.main(argc, argv);

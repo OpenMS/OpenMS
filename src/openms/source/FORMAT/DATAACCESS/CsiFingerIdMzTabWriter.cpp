@@ -51,7 +51,7 @@
 using namespace OpenMS;
 using namespace std;
 
-void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number, MzTab & result)
+void CsiFingerIdMzTabWriter::read(const std::vector<String>& paths, Size number, MzTab& result)
 {
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
@@ -114,18 +114,18 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
       MzTabSmallMoleculeSectionRows smsd;
       for (Size i = 0; i != csi_result.identifications.size(); ++i)
       {
-        const CsiFingerIdMzTabWriter::CsiAdapterIdentification &id = csi_result.identifications[i];
+        const CsiFingerIdMzTabWriter::CsiAdapterIdentification& id = csi_result.identifications[i];
         for (Size j = 0; j != id.hits.size(); ++j)
         {
-          const CsiFingerIdMzTabWriter::CsiAdapterHit &hit = id.hits[j];
+          const CsiFingerIdMzTabWriter::CsiAdapterHit& hit = id.hits[j];
           MzTabSmallMoleculeSectionRow smsr;
 
-          map <Size, MzTabDouble> engine_score = {{1, MzTabDouble(hit.score)}};
+          map<Size, MzTabDouble> engine_score = { { 1, MzTabDouble(hit.score) } };
           smsr.best_search_engine_score = engine_score;
 
           smsr.chemical_formula = MzTabString(hit.molecular_formula);
           smsr.description = MzTabString(hit.name);
-          vector <MzTabString> pubchemids;
+          vector<MzTabString> pubchemids;
           for (Size k = 0; k != hit.pubchemids.size(); ++k)
           {
             pubchemids.push_back(MzTabString(hit.pubchemids[k]));
@@ -133,7 +133,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
           smsr.identifier.set(pubchemids);
           smsr.inchi_key = MzTabString(hit.inchikey2D);
           smsr.smiles = MzTabString(hit.smiles);
-          vector < MzTabString > uri;
+          vector<MzTabString> uri;
           for (Size k = 0; k != hit.links.size(); ++k)
           {
             uri.push_back(MzTabString(hit.links[k]));

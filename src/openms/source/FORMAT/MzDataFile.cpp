@@ -50,22 +50,22 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions & MzDataFile::getOptions()
+  PeakFileOptions& MzDataFile::getOptions()
   {
     return options_;
   }
 
-  const PeakFileOptions & MzDataFile::getOptions() const
+  const PeakFileOptions& MzDataFile::getOptions() const
   {
     return options_;
   }
 
-  void MzDataFile::setOptions(const PeakFileOptions & options)
+  void MzDataFile::setOptions(const PeakFileOptions& options)
   {
-      options_ = options;
+    options_ = options;
   }
 
-  bool MzDataFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
+  bool MzDataFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
   {
     //load mapping
     CVMappings mapping;
@@ -82,7 +82,7 @@ namespace OpenMS
     return result;
   }
 
-  void MzDataFile::load(const String & filename, PeakMap & map)
+  void MzDataFile::load(const String& filename, PeakMap& map)
   {
     map.reset();
 
@@ -95,12 +95,11 @@ namespace OpenMS
     parse_(filename, &handler);
   }
 
-  void MzDataFile::store(const String & filename, const PeakMap & map) const
+  void MzDataFile::store(const String& filename, const PeakMap& map) const
   {
     Internal::MzDataHandler handler(map, filename, schema_version_, *this);
     handler.setOptions(options_);
     save_(filename, &handler);
   }
-
 
 } // namespace OpenMS

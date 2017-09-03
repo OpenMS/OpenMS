@@ -71,7 +71,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IsotopeModel::IsotopeModel(const IsotopeModel & source) :
+  IsotopeModel::IsotopeModel(const IsotopeModel& source) :
     InterpolationModel(source)
   {
     setParameters(source.getParameters());
@@ -82,10 +82,12 @@ namespace OpenMS
   {
   }
 
-  IsotopeModel & IsotopeModel::operator=(const IsotopeModel & source)
+  IsotopeModel& IsotopeModel::operator=(const IsotopeModel& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     InterpolationModel::operator=(source);
     setParameters(source.getParameters());
@@ -106,25 +108,35 @@ namespace OpenMS
 
     String form;
     if (C_num)
+    {
       form.append("C").append(String(C_num));
+    }
     if (H_num)
+    {
       form.append("H").append(String(H_num));
+    }
     if (N_num)
+    {
       form.append("N").append(String(N_num));
+    }
     if (O_num)
+    {
       form.append("O").append(String(O_num));
+    }
     if (S_num)
+    {
       form.append("S").append(String(S_num));
+    }
 
     return EmpiricalFormula(form);
   }
 
-  const IsotopeDistribution & IsotopeModel::getIsotopeDistribution() const
+  const IsotopeDistribution& IsotopeModel::getIsotopeDistribution() const
   {
     return isotope_distribution_;
   }
 
-  void IsotopeModel::setSamples(const EmpiricalFormula & formula)
+  void IsotopeModel::setSamples(const EmpiricalFormula& formula)
   {
     typedef std::vector<double> ContainerType;
     ContainerType isotopes_exact;
@@ -171,7 +183,7 @@ namespace OpenMS
     if (param_.getValue("isotope:mode:mode") == "Gaussian")
     {
       // Actual width for values in the smooth table for normal distribution
-      peak_width = isotope_stdev_ * 4.0;  // MAGIC alert, num stdev for smooth table for normal distribution
+      peak_width = isotope_stdev_ * 4.0; // MAGIC alert, num stdev for smooth table for normal distribution
       ContainerType peak_shape_values_x;
       for (double coord = -peak_width; coord <= peak_width;
            coord += interpolation_step_)
@@ -200,9 +212,9 @@ namespace OpenMS
     ///
     // fold the Gaussian/Lorentzian at each averagine peak, i.e. fill linear interpolation
     ///
-    const ContainerType & left = isotopes_exact;
-    const ContainerType & right = peak_shape_values_y;
-    ContainerType & result = interpolation_.getData();
+    const ContainerType& left = isotopes_exact;
+    const ContainerType& right = peak_shape_values_y;
+    ContainerType& result = interpolation_.getData();
     result.clear();
 
     SignedSize r_max = std::min(SignedSize(left.size() + right.size() - 1),
@@ -214,7 +226,9 @@ namespace OpenMS
     for (SignedSize i = left.size() - 1; i >= 0; --i)
     {
       if (left[i] == 0)
+      {
         continue;
+      }
       for (SignedSize j = std::min(r_max - i, SignedSize(right.size())) - 1; j >= 0; --j)
       {
         result[i + j] += left[i] * right[j];

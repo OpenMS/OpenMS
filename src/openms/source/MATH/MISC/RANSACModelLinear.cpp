@@ -82,7 +82,7 @@ namespace OpenMS
 
       for (DVecIt it = begin; it != end; ++it)
       {
-        rss += pow(it->second - (coefficients[0] + ( coefficients[1] * it->first)), 2);
+        rss += pow(it->second - (coefficients[0] + (coefficients[1] * it->first)), 2);
       }
 
       return rss;
@@ -94,7 +94,7 @@ namespace OpenMS
       //std::cerr << "\n\nRANSAC dists: ";
       for (DVecIt it = begin; it != end; ++it)
       {
-        double dist = pow(it->second - (coefficients[0] + ( coefficients[1] * it->first)), 2);
+        double dist = pow(it->second - (coefficients[0] + (coefficients[1] * it->first)), 2);
         //std::cerr << dist << ", ";
         if (dist < max_threshold)
         {
@@ -105,7 +105,6 @@ namespace OpenMS
 
       return alsoinliers;
     }
-
 
   } // Math
 

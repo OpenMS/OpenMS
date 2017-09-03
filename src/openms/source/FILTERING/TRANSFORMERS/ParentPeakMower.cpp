@@ -58,12 +58,12 @@ namespace OpenMS
   {
   }
 
-  ParentPeakMower::ParentPeakMower(const ParentPeakMower & source) :
+  ParentPeakMower::ParentPeakMower(const ParentPeakMower& source) :
     DefaultParamHandler(source)
   {
   }
 
-  ParentPeakMower & ParentPeakMower::operator=(const ParentPeakMower & source)
+  ParentPeakMower& ParentPeakMower::operator=(const ParentPeakMower& source)
   {
     if (this != &source)
     {
@@ -72,12 +72,12 @@ namespace OpenMS
     return *this;
   }
 
-  void ParentPeakMower::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void ParentPeakMower::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void ParentPeakMower::filterPeakMap(PeakMap & exp)
+  void ParentPeakMower::filterPeakMap(PeakMap& exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {

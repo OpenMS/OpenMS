@@ -130,7 +130,7 @@ protected:
       LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must not have the same value";
       return ILLEGAL_PARAMETERS;
     }
-    if (rt_calibrant_1_reference == -1 || rt_calibrant_2_reference == -1)
+    if ((rt_calibrant_1_reference == -1) || (rt_calibrant_2_reference == -1))
     {
       LOG_ERROR << "rt_calibrant_1_reference and rt_calibrant_2_reference must be set";
       return ILLEGAL_PARAMETERS;

@@ -50,12 +50,12 @@ namespace OpenMS
   {
   }
 
-  CompNovoIonScoring::CompNovoIonScoring(const CompNovoIonScoring & rhs) :
+  CompNovoIonScoring::CompNovoIonScoring(const CompNovoIonScoring& rhs) :
     CompNovoIonScoringBase(rhs)
   {
   }
 
-  CompNovoIonScoring & CompNovoIonScoring::operator=(const CompNovoIonScoring & rhs)
+  CompNovoIonScoring& CompNovoIonScoring::operator=(const CompNovoIonScoring& rhs)
   {
     if (this != &rhs)
     {
@@ -68,7 +68,7 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIonScoring::scoreSpectra(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, PeakSpectrum & ETD_spec, double precursor_weight, Size charge)
+  void CompNovoIonScoring::scoreSpectra(Map<double, IonScore>& ion_scores, PeakSpectrum& CID_spec, PeakSpectrum& ETD_spec, double precursor_weight, Size charge)
   {
 
     // adds single charged variants of putative single charged ions
@@ -114,7 +114,7 @@ namespace OpenMS
     double max_decomp_weight((double)param_.getValue("max_decomp_weight"));
     for (Map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
-      if (it->first > 19.0 && (it->first - 19.0) < max_decomp_weight)
+      if ((it->first > 19.0) && ((it->first - 19.0) < max_decomp_weight))
       {
         vector<MassDecomposition> decomps;
         decomp_algo.getDecompositions(decomps, it->first - 19.0);
@@ -127,7 +127,7 @@ namespace OpenMS
         }
       }
 
-      if (it->first < precursor_weight && precursor_weight - it->first < max_decomp_weight)
+      if ((it->first < precursor_weight) && (precursor_weight - it->first < max_decomp_weight))
       {
         vector<MassDecomposition> decomps;
         decomp_algo.getDecompositions(decomps, precursor_weight - it->first);
@@ -145,7 +145,7 @@ namespace OpenMS
     ion_scores[(CID_spec.end() - 1)->getPosition()[0]].score = 1;
   }
 
-  void CompNovoIonScoring::scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & ion_scores, const PeakSpectrum & CID_spec)
+  void CompNovoIonScoring::scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore>& ion_scores, const PeakSpectrum& CID_spec)
   {
     vector<double> diffs;
     //diffs.push_back(28.0);
@@ -213,7 +213,7 @@ namespace OpenMS
           cerr << "scoreWitnessSet: complementary " << pos1 << " (" << pos2 << ") (factor=" << factor << ") " << wit_score << " -> ";
 #endif
           // found complementary ion
-          if (ion_scores[it2->getPosition()[0]].s_isotope_pattern_1 < 0.5 || ion_scores[it2->getPosition()[0]].is_isotope_1_mono != 1)
+          if ((ion_scores[it2->getPosition()[0]].s_isotope_pattern_1 < 0.5) || (ion_scores[it2->getPosition()[0]].is_isotope_1_mono != 1))
           {
             wit_score += it2->getIntensity() /* * 0.5*/ * factor;
           }
@@ -240,7 +240,7 @@ namespace OpenMS
       }
 
       // isotope pattern ok?
-      if (ion_scores[it1->getPosition()[0]].s_isotope_pattern_1 > 0 && ion_scores[it1->getPosition()[0]].is_isotope_1_mono == 1)
+      if ((ion_scores[it1->getPosition()[0]].s_isotope_pattern_1 > 0) && (ion_scores[it1->getPosition()[0]].is_isotope_1_mono == 1))
       {
 #ifdef SCORE_WITNESSSET_DEBUG
         cerr << "scoreWitnessSet: isotope pattern: " << pos1 << " " << wit_score << " -> ";
@@ -282,7 +282,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIonScoring::scoreETDFeatures_(Size /*charge*/, double precursor_weight, Map<double, IonScore> & ion_scores, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec)
+  void CompNovoIonScoring::scoreETDFeatures_(Size /*charge*/, double precursor_weight, Map<double, IonScore>& ion_scores, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec)
   {
     //double fragment_mass_tolerance((double)param_.getValue("fragment_mass_tolerance"));
     Size max_isotope_to_score(param_.getValue("max_isotope_to_score"));
@@ -316,7 +316,7 @@ namespace OpenMS
         // check if pos2 is precursor doubly charged, which has not fragmented
         double pre_diff_lower = (precursor_weight + Constants::PROTON_MASS_U) / 2.0 - fragment_mass_tolerance_;
         double pre_diff_upper = (precursor_weight + 4.0 * Constants::PROTON_MASS_U) / 2.0 + fragment_mass_tolerance_;
-        if (pos2 > pre_diff_lower && pos2 < pre_diff_upper)
+        if ((pos2 > pre_diff_lower) && (pos2 < pre_diff_upper))
         {
 #ifdef SCORE_ETDFEATURES_DEBUG
           cerr << "scoreETDFeatures: pre-range: " << pos2 << " is in precursor peak range: " << pre_diff_lower << " <-> " << pre_diff_upper << endl;

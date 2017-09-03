@@ -64,12 +64,12 @@ namespace OpenMS
   {
   }
 
-  CompNovoIdentification::CompNovoIdentification(const CompNovoIdentification & rhs) :
+  CompNovoIdentification::CompNovoIdentification(const CompNovoIdentification& rhs) :
     CompNovoIdentificationBase(rhs)
   {
   }
 
-  CompNovoIdentification & CompNovoIdentification::operator=(const CompNovoIdentification & rhs)
+  CompNovoIdentification& CompNovoIdentification::operator=(const CompNovoIdentification& rhs)
   {
     if (this != &rhs)
     {
@@ -82,7 +82,7 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIdentification::getIdentifications(vector<PeptideIdentification> & pep_ids, const PeakMap & exp)
+  void CompNovoIdentification::getIdentifications(vector<PeptideIdentification>& pep_ids, const PeakMap& exp)
   {
     Size count(1);
     for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
@@ -98,7 +98,7 @@ namespace OpenMS
         cid_mz = it->getPrecursors().begin()->getMZ();
       }
 
-      if (it->getPrecursors().empty() || cid_mz == 0)
+      if (it->getPrecursors().empty() || (cid_mz == 0))
       {
         cerr << "CompNovoIdentification: Spectrum id=\"" << it->getNativeID() << "\" at RT=" << cid_rt << " does not have valid precursor information." << endl;
         continue;
@@ -106,13 +106,13 @@ namespace OpenMS
       id.setRT(cid_rt);
       id.setMZ(cid_mz);
 
-      if ((it + 1) != exp.end() && !(it + 1)->getPrecursors().empty())
+      if (((it + 1) != exp.end()) && !(it + 1)->getPrecursors().empty())
       {
         double etd_rt = (it + 1)->getRT();
         double etd_mz = (it + 1)->getPrecursors().begin()->getMZ();
 
-        if (fabs(etd_rt - cid_rt) < 10 &&         // RT distance is not too large
-            fabs(etd_mz - cid_mz) < 0.01)             // same precursor used
+        if ((fabs(etd_rt - cid_rt) < 10) && // RT distance is not too large
+            (fabs(etd_mz - cid_mz) < 0.01))           // same precursor used
         {
           PeakSpectrum ETD_spec(*(++it));
 
@@ -128,7 +128,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentification::getIdentification(PeptideIdentification & id, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec)
+  void CompNovoIdentification::getIdentification(PeptideIdentification& id, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec)
   {
     PeakSpectrum new_CID_spec(CID_spec), new_ETD_spec(ETD_spec);
     windowMower_(new_CID_spec, 0.3, 1);
@@ -160,7 +160,7 @@ namespace OpenMS
       precursor_weight = estimatePrecursorWeight_(new_ETD_spec, charge);
     }
 
-    if (precursor_weight == 0 || charge == 0)
+    if ((precursor_weight == 0) || (charge == 0))
     {
       if (CID_spec.getPrecursors().empty())
       {
@@ -476,7 +476,7 @@ namespace OpenMS
       hit.setScore(cid_score + etd_score);
 
       hit.setSequence(getModifiedAASequence_(*it));
-      hit.setCharge((Int)charge);   //TODO unify charge interface: int or size?
+      hit.setCharge((Int)charge); //TODO unify charge interface: int or size?
       hits.push_back(hit);
       //cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << etd_score << " " << cid_score + etd_score << endl;
     }
@@ -549,12 +549,12 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentification::getETDSpectrum_(PeakSpectrum & spec, const String & sequence, Size /* charge */, double prefix, double suffix)
+  void CompNovoIdentification::getETDSpectrum_(PeakSpectrum& spec, const String& sequence, Size /* charge */, double prefix, double suffix)
   {
     Peak1D p;
     p.setIntensity(1.0f);
 
-    double c_pos(17.0 + prefix);     // TODO high mass accuracy!!
+    double c_pos(17.0 + prefix); // TODO high mass accuracy!!
     double z_pos(3.0 + suffix);
     //double b_pos(0.0 + prefix);
     //double y_pos(18.0 + suffix);
@@ -586,7 +586,7 @@ namespace OpenMS
       if (aa_cterm != 'P')
       {
         // c-ions
-        if (c_pos + 1 >= min_mz_ && c_pos + 1 <= max_mz_)
+        if ((c_pos + 1 >= min_mz_) && (c_pos + 1 <= max_mz_))
         {
           //p.setIntensity(0.3);
           //p.setPosition(c_pos);
@@ -603,7 +603,7 @@ namespace OpenMS
       if (aa2 != 'P')
       {
         // z-ions
-        if (z_pos >= min_mz_ && z_pos <= max_mz_)
+        if ((z_pos >= min_mz_) && (z_pos <= max_mz_))
         {
           p.setIntensity(0.3f);
           p.setPosition(z_pos);
@@ -631,7 +631,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentification::reducePermuts_(set<String> & permuts, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, double prefix, double suffix)
+  void CompNovoIdentification::reducePermuts_(set<String>& permuts, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec, double prefix, double suffix)
   {
     if (permuts.size() < max_subscore_number_)
     {
@@ -714,7 +714,7 @@ namespace OpenMS
   }
 
 // divide and conquer algorithm of the sequencing
-  void CompNovoIdentification::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, Map<double, CompNovoIonScoring::IonScore> & ion_scores)
+  void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, Size left, Size right, double peptide_weight, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec, Map<double, CompNovoIonScoring::IonScore>& ion_scores)
   {
     double offset_suffix(CID_spec[left].getPosition()[0] - 19.0);
     double offset_prefix(peptide_weight - CID_spec[right].getPosition()[0]);
@@ -818,7 +818,7 @@ namespace OpenMS
     // select suitable pivot peaks
     vector<Size> pivots;
 
-    if (offset_suffix < fragment_mass_tolerance_ && offset_prefix < fragment_mass_tolerance_)
+    if ((offset_suffix < fragment_mass_tolerance_) && (offset_prefix < fragment_mass_tolerance_))
     {
       selectPivotIons_(pivots, left, right, ion_scores, CID_spec, peptide_weight, true);
     }
@@ -905,7 +905,7 @@ namespace OpenMS
         cerr << tabs_ << CID_spec[left].getPosition()[0] << " " << CID_spec[right].getPosition()[0] << " " << peptide_weight << endl;
         cerr << tabs_ << "Reducing #sequences from " << new_sequences.size() << " to " << max_subscore_number_ << "(prefix=" << offset_prefix  << ", suffix=" << offset_suffix << ")...";
 #endif
-        if (offset_prefix > fragment_mass_tolerance_ || offset_suffix > fragment_mass_tolerance_)
+        if ((offset_prefix > fragment_mass_tolerance_) || (offset_suffix > fragment_mass_tolerance_))
         {
           reducePermuts_(new_sequences, CID_spec, ETD_spec, offset_prefix, offset_suffix);
         }
@@ -933,7 +933,7 @@ namespace OpenMS
 #endif
 
     // reduce the permuts once again to reduce complexity
-    if (offset_prefix > fragment_mass_tolerance_ || offset_suffix > fragment_mass_tolerance_)
+    if ((offset_prefix > fragment_mass_tolerance_) || (offset_suffix > fragment_mass_tolerance_))
     {
       reducePermuts_(sequences, CID_spec, ETD_spec, offset_prefix, offset_suffix);
     }
@@ -952,7 +952,7 @@ namespace OpenMS
 
   }
 
-  double CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum & ETD_spec, Size & charge)
+  double CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, Size& charge)
   {
     CompNovoIonScoring ion_scoring;
     double precursor_mass_tolerance((double)param_.getValue("precursor_mass_tolerance"));
@@ -996,7 +996,7 @@ namespace OpenMS
         Size i = 0;
         for (vector<double>::const_iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3, ++i)
         {
-          if (best_correlation == 0 || *it3 > (best_correlation * 1.25))           // must be really better!
+          if ((best_correlation == 0) || (*it3 > (best_correlation * 1.25))) // must be really better!
           {
             best_correlation = *it3;
             best_pos = i;

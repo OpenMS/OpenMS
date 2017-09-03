@@ -48,7 +48,7 @@
 
 
 
-#define COULOMB_REPULSION (double)47.0  // from zhang: 47.0 kJ/mol
+#define COULOMB_REPULSION (double)47.0 // from zhang: 47.0 kJ/mol
 #define COULOMB_REPULSION2 (double)47.0 // new
 
 //#define CALC_CHARGE_STATES_DEBUG
@@ -77,7 +77,7 @@ namespace OpenMS
   {
   }
 
-  ProtonDistributionModel::ProtonDistributionModel(const ProtonDistributionModel & model) :
+  ProtonDistributionModel::ProtonDistributionModel(const ProtonDistributionModel& model) :
     DefaultParamHandler(model),
     sc_charge_(model.sc_charge_),
     bb_charge_(model.bb_charge_),
@@ -89,7 +89,7 @@ namespace OpenMS
   {
   }
 
-  ProtonDistributionModel & ProtonDistributionModel::operator=(const ProtonDistributionModel & model)
+  ProtonDistributionModel& ProtonDistributionModel::operator=(const ProtonDistributionModel& model)
   {
     if (this != &model)
     {
@@ -105,15 +105,15 @@ namespace OpenMS
     return *this;
   }
 
-  void ProtonDistributionModel::setPeptideProtonDistribution(const vector<double> & bb_charge, const vector<double> & sc_charge)
+  void ProtonDistributionModel::setPeptideProtonDistribution(const vector<double>& bb_charge, const vector<double>& sc_charge)
   {
     bb_charge_full_ = bb_charge;
     sc_charge_full_ = sc_charge;
   }
 
-  void ProtonDistributionModel::getProtonDistribution(vector<double> & bb_charges,
-                                                      vector<double> & sc_charges,
-                                                      const AASequence & peptide,
+  void ProtonDistributionModel::getProtonDistribution(vector<double>& bb_charges,
+                                                      vector<double>& sc_charges,
+                                                      const AASequence& peptide,
                                                       Int charge,
                                                       Residue::ResidueType res_type)
   {
@@ -159,13 +159,13 @@ namespace OpenMS
   // this method calculates the distribution of protons, by using two separate ions given by the precursor peptide ion and the cleavage site
   // this is needed for charge directed cases, where the activated proton needs to be distributed between the two ions
   // cleavage_site is one-based; so b1/yk-1 would be cleavage_site == 1; it can be in the range [0,peptide.size()]
-  void ProtonDistributionModel::calculateProtonDistributionIonPair_(const AASequence & peptide,
+  void ProtonDistributionModel::calculateProtonDistributionIonPair_(const AASequence& peptide,
                                                                     Residue::ResidueType n_res_type,
                                                                     Size cleavage_site)
   {
     // TODO model this using one calculation for both ions
 
-    double q(0);     // Zustandsumme = state sum
+    double q(0); // Zustandsumme = state sum
 
     double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
     double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");
@@ -329,7 +329,7 @@ namespace OpenMS
     return;
   }
 
-  void ProtonDistributionModel::calculateProtonDistributionGreater2_(const AASequence & peptide, Int charge, Residue::ResidueType /*res_type*/)
+  void ProtonDistributionModel::calculateProtonDistributionGreater2_(const AASequence& peptide, Int charge, Residue::ResidueType /*res_type*/)
   {
     //cerr << "void ProtonDistributionModel::calculateProtonDistributionGreater2_(" << peptide << ", " << charge << ", res_type=" << res_type << ")" << endl;
     //double gb_bb_l_NH2 = param_.getValue("gb_bb_l_NH2");
@@ -393,7 +393,7 @@ namespace OpenMS
       {
         if (bb_sites.find(count) == bb_sites.end())
         {
-          p_bb[count] = (double)actual_charge * *it / sum_k;
+          p_bb[count] = (double)actual_charge** it / sum_k;
           bb_charge_[count] = p_bb[count];
         }
         //cerr << "BB" << count << ": " << p_bb[count] << endl;
@@ -404,7 +404,7 @@ namespace OpenMS
       {
         if (sc_sites.find(count) == sc_sites.end())
         {
-          p_sc[count] = (double)actual_charge * *it / sum_k;
+          p_sc[count] = (double)actual_charge** it / sum_k;
           sc_charge_[count] = p_sc[count];
         }
         //cerr << "SC" << count << ": " << p_sc[count] << endl;
@@ -452,7 +452,7 @@ namespace OpenMS
             // calculate the distance between occupied side chain and this backbone site
             Size pos = *it;
             Size diff = (pos > i) ? pos - i : i - pos;
-            ++diff;             // bond to the side chain counts extra
+            ++diff; // bond to the side chain counts extra
             coulomb_sum += COULOMB_REPULSION2 / (double)diff;
           }
           bb_coulomb[i] = coulomb_sum;
@@ -518,13 +518,13 @@ namespace OpenMS
 
   }
 
-  void ProtonDistributionModel::calculateProtonDistributionCharge2_(const AASequence & peptide,
+  void ProtonDistributionModel::calculateProtonDistributionCharge2_(const AASequence& peptide,
                                                                     Residue::ResidueType res_type,
                                                                     bool fixed_proton,
                                                                     Size cleavage_site,
                                                                     bool use_most_basic_site)
   {
-    double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0);     // Zustandsumme
+    double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0); // Zustandsumme
     Size most_basic_site(0);
     bool most_basic_site_sc(false);
 
@@ -633,7 +633,7 @@ namespace OpenMS
       {
         double gb_i(0);
         // proton 1 at N-terminus
-        if (i == 0 || (i == cleavage_site && use_most_basic_site))
+        if ((i == 0) || ((i == cleavage_site) && use_most_basic_site))
         {
           if (i != peptide.size()) // added for cppcheck
           {
@@ -673,14 +673,14 @@ namespace OpenMS
           if (i != fixed_site)
           {
             Int r_ij(abs((Int)i - (Int)(fixed_site)));
-            q += exp(-(-gb_i - gb_j + COULOMB_REPULSION / r_ij) * 1000 / (Constants::R * T) -500);
+            q += exp(-(-gb_i - gb_j + COULOMB_REPULSION / r_ij) * 1000 / (Constants::R* T) -500);
 
             if (i != peptide.size())
             {
               if (peptide[i].getSideChainBasicity() != 0)
               {
                 double gb_i_sc = peptide[i].getSideChainBasicity();
-                q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500);
+                q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R* T) -500);
               }
             }
           }
@@ -692,7 +692,7 @@ namespace OpenMS
               if (peptide[i].getSideChainBasicity() != 0)
               {
                 double gb_i_sc = peptide[i].getSideChainBasicity();
-                q += exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R * T) -500);
+                q += exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R* T) -500);
               }
             }
           }
@@ -703,14 +703,14 @@ namespace OpenMS
           //
           // first, one proton at BB
           Int r_ij = abs((Int)i - (Int)fixed_site);
-          q += exp(-(-gb_i - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500);
+          q += exp(-(-gb_i - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R* T) -500);
 
           // only side chain site different from fixed one
-          if (i != fixed_site && i != peptide.size())
+          if ((i != fixed_site) && (i != peptide.size()))
           {
             double gb_i_sc(0);
             gb_i_sc = peptide[i].getSideChainBasicity();
-            q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R * T) -500);
+            q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R* T) -500);
           }
         }
       }
@@ -719,9 +719,9 @@ namespace OpenMS
       for (Size i = 0; i <= peptide.size(); ++i)
       {
         double gb_i(0);
-        if (i == 0 || (i == cleavage_site && use_most_basic_site))
+        if ((i == 0) || ((i == cleavage_site) && use_most_basic_site))
         {
-          if (i != peptide.size())  // added for cppcheck
+          if (i != peptide.size()) // added for cppcheck
           {
             gb_i = gb_bb_l_NH2 + peptide[i].getBackboneBasicityRight();
           }
@@ -757,7 +757,7 @@ namespace OpenMS
           if (i != fixed_site)
           {
             Int r_ij(abs((Int)i - (Int)(fixed_site)));
-            double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION / r_ij) * 1000 / (Constants::R * T) -500) / q;
+            double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION / r_ij) * 1000 / (Constants::R* T) -500) / q;
             bb_charge_[i] += prob;
 
             double add_E = exp(gb_i * 1000 / Constants::R / T);
@@ -775,7 +775,7 @@ namespace OpenMS
               if (peptide[i].getSideChainBasicity() != 0)
               {
                 double gb_i_sc = peptide[i].getSideChainBasicity();
-                double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+                double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R* T) -500) / q;
                 sc_charge_[i] += prob;
 
                 double add_E = exp(gb_i_sc * 1000 / Constants::R / T);
@@ -798,7 +798,7 @@ namespace OpenMS
               if (peptide[i].getSideChainBasicity() != 0)
               {
                 double gb_i_sc = peptide[i].getSideChainBasicity();
-                double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION) * 1000 / (Constants::R * T) -500) / q;
+                double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION) * 1000 / (Constants::R* T) -500) / q;
                 sc_charge_[i] += prob;
 
                 double add_E = exp(gb_i_sc * 1000 / Constants::R / T);
@@ -818,7 +818,7 @@ namespace OpenMS
         {
           // fixed site at side chain
           Int r_ij = abs((Int)i - (Int)fixed_site);
-          double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+          double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R* T) -500) / q;
           bb_charge_[i] += prob;
 
           double add_E = exp(gb_i * 1000 / Constants::R / T);
@@ -831,12 +831,12 @@ namespace OpenMS
             sum_E_c_term += add_E;
           }
 
-          if (i != fixed_site && i != peptide.size())
+          if ((i != fixed_site) && (i != peptide.size()))
           {
             if (peptide[i].getSideChainBasicity() != 0)
             {
               double gb_i_sc = peptide[i].getSideChainBasicity();
-              double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R * T) -500) / q;
+              double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R* T) -500) / q;
               sc_charge_[i] += prob;
 
               double add_E = exp(gb_i_sc * 1000 / Constants::R / T);
@@ -946,7 +946,7 @@ namespace OpenMS
           {
             // distance of protons
             Int r_ij(abs((Int)i - (Int)j));
-            q += exp(-(-gb_i - gb_j + COULOMB_REPULSION / r_ij) * 1000 / (Constants::R * T) -500);
+            q += exp(-(-gb_i - gb_j + COULOMB_REPULSION / r_ij) * 1000 / (Constants::R* T) -500);
             //cerr << "1.\t" << -(-gb_i - gb_j + COULOMB_REPULSION/r_ij) * 1000/(Constants::R * T) << endl;
             ++count;
 
@@ -954,11 +954,11 @@ namespace OpenMS
             if (i != peptide.size())
             {
               // side chain of proton 1
-              if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/ peptide[i].getSideChainBasicity() != 0)
+              if ( /*gb_sc_.has(peptide[i].getOneLetterCode())*/ peptide[i].getSideChainBasicity() != 0)
               {
                 //gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
                 gb_i_sc = peptide[i].getSideChainBasicity();
-                q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500);
+                q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R* T) -500);
                 //cerr << "2.\t" << -(-gb_i_sc - gb_j + COULOMB_REPULSION/(r_ij + 1)) * 1000/(Constants::R * T) << endl;
                 ++count;
               }
@@ -967,17 +967,17 @@ namespace OpenMS
             if (j != peptide.size())
             {
               // side chain of proton 2
-              if (/*gb_sc_.has(peptide[j].getOneLetterCode())*/ peptide[j].getSideChainBasicity() != 0)
+              if ( /*gb_sc_.has(peptide[j].getOneLetterCode())*/ peptide[j].getSideChainBasicity() != 0)
               {
                 //gb_j_sc = gb_sc_[peptide[j].getOneLetterCode()];
                 double gb_j_sc = peptide[j].getSideChainBasicity();
-                q += exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500);
+                q += exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R* T) -500);
                 //cerr << "3.\t" << -(-gb_i - gb_j_sc + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500 << endl;
                 ++count;
                 // both at side chain?
                 if (gb_i_sc != 0)
                 {
-                  q += exp(-(-gb_i_sc - gb_j_sc + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R * T) -500);
+                  q += exp(-(-gb_i_sc - gb_j_sc + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R* T) -500);
                   //cerr << "4.\t" << -(-gb_i_sc - gb_j_sc + COULOMB_REPULSION/(r_ij + 2)) * 1000 /(Constants::R * T) - 500 << endl;
                   ++count;
                 }
@@ -989,11 +989,11 @@ namespace OpenMS
             if (i != peptide.size())
             {
               // one at side chain, the other one at backbone of same residue
-              if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/ peptide[i].getSideChainBasicity() != 0)
+              if ( /*gb_sc_.has(peptide[i].getOneLetterCode())*/ peptide[i].getSideChainBasicity() != 0)
               {
                 //double gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
                 double gb_i_sc = peptide[i].getSideChainBasicity();
-                q += exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R * T) -500);
+                q += exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R* T) -500);
                 //cerr << "5.\t" << -(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000/ (Constants::R * T) -500 << endl;
                 ++count;
               }
@@ -1092,7 +1092,7 @@ namespace OpenMS
             // distance of the protons
             Int r_ij(abs((Int)i - (Int)j));
             // calculate probability
-            double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION / r_ij) * 1000 / (Constants::R * T) -500) / q;
+            double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION / r_ij) * 1000 / (Constants::R* T) -500) / q;
             // add prob to site of first proton
             bb_charge_[i] += prob;
             // add to apparent GB
@@ -1102,11 +1102,11 @@ namespace OpenMS
             double gb_i_sc(0);
             if (i != peptide.size())
             {
-              if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/ peptide[i].getSideChainBasicity() != 0)
+              if ( /*gb_sc_.has(peptide[i].getOneLetterCode())*/ peptide[i].getSideChainBasicity() != 0)
               {
                 //gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
                 gb_i_sc = peptide[i].getSideChainBasicity();
-                double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+                double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R* T) -500) / q;
                 sc_charge_[i] += prob;
                 bb_charge_[j] += prob;
               }
@@ -1114,18 +1114,18 @@ namespace OpenMS
 
             if (j != peptide.size())
             {
-              if (/*gb_sc_.has(peptide[j].getOneLetterCode())*/ peptide[j].getSideChainBasicity() != 0)
+              if ( /*gb_sc_.has(peptide[j].getOneLetterCode())*/ peptide[j].getSideChainBasicity() != 0)
               {
                 //gb_j_sc = gb_sc_[peptide[j].getOneLetterCode()];
                 double gb_j_sc = peptide[j].getSideChainBasicity();
-                double prob = exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+                double prob = exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R* T) -500) / q;
                 bb_charge_[i] += prob;
                 sc_charge_[j] += prob;
 
                 // both protons at sidechains
                 if (gb_i_sc != 0)
                 {
-                  double prob = exp(-(-gb_i_sc - gb_j_sc + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R * T) -500) / q;
+                  double prob = exp(-(-gb_i_sc - gb_j_sc + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R* T) -500) / q;
                   sc_charge_[i] += prob;
                   sc_charge_[j] += prob;
                 }
@@ -1137,11 +1137,11 @@ namespace OpenMS
             // protons at the same residue
             if (i != peptide.size())
             {
-              if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/ peptide[i].getSideChainBasicity() != 0)
+              if ( /*gb_sc_.has(peptide[i].getOneLetterCode())*/ peptide[i].getSideChainBasicity() != 0)
               {
                 //double gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
                 double gb_i_sc = peptide[i].getSideChainBasicity();
-                double prob = exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R * T) -500) / q;
+                double prob = exp(-(-gb_i - gb_i_sc + COULOMB_REPULSION) * 1000 / (Constants::R* T) -500) / q;
                 sc_charge_[i] += prob;
                 sc_charge_[j] += prob;
               }
@@ -1198,7 +1198,7 @@ namespace OpenMS
 
   }
 
-  void ProtonDistributionModel::calculateProtonDistributionCharge1_(const AASequence & peptide, Residue::ResidueType res_type)
+  void ProtonDistributionModel::calculateProtonDistributionCharge1_(const AASequence& peptide, Residue::ResidueType res_type)
   {
     // single charged
     double q(0), sum_E(0) /*, sum_E_n_term(0), sum_E_c_term(0)*/; // Zustandsumme
@@ -1320,7 +1320,7 @@ namespace OpenMS
     E_ = sum_E;
   }
 
-  void ProtonDistributionModel::calculateProtonDistribution_(const AASequence & peptide,
+  void ProtonDistributionModel::calculateProtonDistribution_(const AASequence& peptide,
                                                              Int charge, Residue::ResidueType res_type,
                                                              bool fixed_proton,
                                                              Size cleavage_site,
@@ -1389,26 +1389,26 @@ namespace OpenMS
     }
 */
 
-  void ProtonDistributionModel::getChargeStateIntensities(const AASequence & peptide,
-                                                          const AASequence & n_term_ion,
-                                                          const AASequence & c_term_ion,
+  void ProtonDistributionModel::getChargeStateIntensities(const AASequence& peptide,
+                                                          const AASequence& n_term_ion,
+                                                          const AASequence& c_term_ion,
                                                           Int charge,
                                                           Residue::ResidueType n_term_type,
-                                                          std::vector<double> & n_term_intensities,
-                                                          std::vector<double> & c_term_intensities,
+                                                          std::vector<double>& n_term_intensities,
+                                                          std::vector<double>& c_term_intensities,
                                                           FragmentationType type)
   {
     calcChargeStateIntensities_(peptide, n_term_ion, c_term_ion, charge, n_term_type, n_term_intensities, c_term_intensities, type);
     return;
   }
 
-  void ProtonDistributionModel::calcChargeStateIntensities_(const AASequence & peptide,
-                                                            const AASequence & n_term_ion,
-                                                            const AASequence & c_term_ion,
+  void ProtonDistributionModel::calcChargeStateIntensities_(const AASequence& peptide,
+                                                            const AASequence& n_term_ion,
+                                                            const AASequence& c_term_ion,
                                                             Int charge,
                                                             Residue::ResidueType n_term_type,
-                                                            vector<double> & n_term_intensities,
-                                                            vector<double> & c_term_intensities,
+                                                            vector<double>& n_term_intensities,
+                                                            vector<double>& c_term_intensities,
                                                             FragmentationType type)
   {
     // original method works well
@@ -1521,21 +1521,21 @@ namespace OpenMS
     return;
   }
 
-  void ProtonDistributionModel::calcChargeStateIntensities_(const AASequence & peptide,
-                                                            const AASequence & n_term_ion,
-                                                            const AASequence & c_term_ion,
+  void ProtonDistributionModel::calcChargeStateIntensities_(const AASequence& peptide,
+                                                            const AASequence& n_term_ion,
+                                                            const AASequence& c_term_ion,
                                                             Int charge,
                                                             Residue::ResidueType n_term_type,
-                                                            double & n_term1,
-                                                            double & c_term1,
-                                                            double & n_term2,
-                                                            double & c_term2,
+                                                            double& n_term1,
+                                                            double& c_term1,
+                                                            double& n_term2,
+                                                            double& c_term2,
                                                             FragmentationType type)
   {
 
     if (charge == 1)
     {
-      if (type == ChargeDirected || type == ChargeRemote)
+      if ((type == ChargeDirected) || (type == ChargeRemote))
       {
         // get the K_app of N and C-terminal fragment respectively
         calculateProtonDistribution_(n_term_ion, 1, n_term_type);
@@ -1641,7 +1641,7 @@ namespace OpenMS
         {
           c_term2 += bb_charge_[i] * p_c;
           singly_charged += bb_charge_[i] * p_n;
-          if (i < peptide.size() && sc_charge_[i] != 0)
+          if ((i < peptide.size()) && (sc_charge_[i] != 0))
           {
             c_term2 += sc_charge_[i]  * p_c;
             singly_charged += sc_charge_[i] * p_n;
@@ -1658,7 +1658,7 @@ namespace OpenMS
         double gb_n_term = AAIndex::calculateGB(n_term_ion);
         double gb_c_term = AAIndex::calculateGB(c_term_ion);
 
-        double b(828.18);         // kJ/mol
+        double b(828.18); // kJ/mol
 
         double gb_n_term_loss = exp(-(gb_n_term - b) / 1000.0);
         double gb_c_term_loss = exp(-(gb_c_term - b) / 1000.0);
@@ -1687,7 +1687,7 @@ namespace OpenMS
       }
       else
       {
-        if (type == ChargeRemote || type == SideChain)
+        if ((type == ChargeRemote) || (type == SideChain))
         {
           // TODO ranges correct? Missing some sites of the peptide
           double n_term_sum(0), c_term_sum(0);
@@ -1816,7 +1816,7 @@ namespace OpenMS
     return;
   }
 
-  void ProtonDistributionModel::getLeftAndRightGBValues_(const AASequence & peptide, double & left_gb, double & right_gb, Size position)
+  void ProtonDistributionModel::getLeftAndRightGBValues_(const AASequence& peptide, double& left_gb, double& right_gb, Size position)
   {
     // TODO test if position out of range
     if (position == 0)

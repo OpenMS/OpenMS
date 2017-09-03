@@ -267,8 +267,8 @@ namespace OpenMS
       if (it->isModified())
       {
         String mod = it->getModification()->getFullId();
-        if (var_names.find(mod) == var_names.end() &&
-            fixed_names.find(mod) == fixed_names.end())
+        if ((var_names.find(mod) == var_names.end()) &&
+            (fixed_names.find(mod) == fixed_names.end()))
         {
           return false;
         }
@@ -278,8 +278,8 @@ namespace OpenMS
     if (peptide.hasNTerminalModification())
     {
       String mod = peptide.getNTerminalModification()->getFullId();
-      if (var_names.find(mod) == var_names.end() &&
-          fixed_names.find(mod) == fixed_names.end())
+      if ((var_names.find(mod) == var_names.end()) &&
+          (fixed_names.find(mod) == fixed_names.end()))
       {
         return false;
       }
@@ -288,8 +288,8 @@ namespace OpenMS
     if (peptide.hasCTerminalModification())
     {
       String mod = peptide.getCTerminalModification()->getFullId();
-      if (var_names.find(mod) == var_names.end() &&
-          fixed_names.find(mod) == fixed_names.end())
+      if ((var_names.find(mod) == var_names.end()) &&
+          (fixed_names.find(mod) == fixed_names.end()))
       {
         return false;
       }
@@ -319,16 +319,16 @@ namespace OpenMS
       // do the residues match?
       char origin = mod.getOrigin();
       if (!(residue.empty() || (origin == 'X') || (residue[0] == origin) ||
-            (residue == ".") || (residue == "X"))) continue;
+            (residue == ".") || (residue == "X"))) { continue; }
       // do the term specificities match?
       if (!((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
-            (term_spec == mod.getTermSpecificity()))) continue;
+            (term_spec == mod.getTermSpecificity()))) { continue; }
       // do the masses match?
       double mass_error = tolerance;
       if (is_delta)
       {
         mass_error = fabs(mod.getDiffMonoMass() - mass);
-        if (mass_error > tolerance) continue;
+        if (mass_error > tolerance) { continue; }
       }
       else
       {
@@ -338,13 +338,13 @@ namespace OpenMS
           // no absolute mass stored? - calculate it based on the residue
           // (see 'ModificationsDB::getBestModificationByMonoMass'):
           const Residue* res = ResidueDB::getInstance()->getResidue(residue);
-          if (res == 0) continue;
-          double weight = (res->getMonoWeight() - 
+          if (res == 0) { continue; }
+          double weight = (res->getMonoWeight() -
                            res->getInternalToFull().getMonoWeight());
           mod_mass = mod.getDiffMonoMass() + weight;
         }
         mass_error = fabs(mod_mass - mass);
-        if (mass_error > tolerance) continue;
+        if (mass_error > tolerance) { continue; }
       }
       matches.insert(make_pair(mass_error, *it));
     }
@@ -418,6 +418,5 @@ namespace OpenMS
       }
     }
   }
-
 
 } // namespace OpenMS

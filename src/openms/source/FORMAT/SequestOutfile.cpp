@@ -56,7 +56,9 @@ namespace OpenMS
       os << *cit;
       ++cit;
       if (cit == rhs.end())
+      {
         break;
+      }
       os << separator;
     }
     os << suffix;
@@ -79,7 +81,9 @@ namespace OpenMS
   SequestOutfile& SequestOutfile::operator=(const SequestOutfile& sequest_outfile)
   {
     if (this == &sequest_outfile)
+    {
       return *this;
+    }
 
     return *this;
   }
@@ -108,8 +112,10 @@ namespace OpenMS
     // if no p_values were computed take all peptides
     bool no_pvalues = pvalues.empty();
     if (no_pvalues)
+    {
       pvalues.push_back(0.0); // to make sure pvalues.end() is never reached
 
+    }
     // generally used variables
     String
       line,
@@ -139,37 +145,37 @@ namespace OpenMS
     double precursor_mz_value(0.0);
     Size
       precursor_mass_type(0),
-      ion_mass_type(0),
-      number_of_columns(0),
-      displayed_peptides(0),
-      proteins_per_peptide(0),
-      line_number(0);
+    ion_mass_type(0),
+    number_of_columns(0),
+    displayed_peptides(0),
+    proteins_per_peptide(0),
+    line_number(0);
 
     Int
       charge(-1),
-      number_column(-1),
-      rank_sp_column(-1),
-      id_column(-1),
-      mh_column(-1),
-      delta_cn_column(-1),
-      xcorr_column(-1),
-      sp_column(-1),
-      sf_column(-1),
-      ions_column(-1),
-      reference_column(-1),
-      peptide_column(-1),
-      score_column(-1);
+    number_column(-1),
+    rank_sp_column(-1),
+    id_column(-1),
+    mh_column(-1),
+    delta_cn_column(-1),
+    xcorr_column(-1),
+    sp_column(-1),
+    sf_column(-1),
+    ions_column(-1),
+    reference_column(-1),
+    peptide_column(-1),
+    score_column(-1);
 
     String::size_type
       start(0),
-      end(0);
+    end(0);
 
     readOutHeader(result_filename, datetime, precursor_mz_value, charge,
-        precursor_mass_type, ion_mass_type, displayed_peptides, sequest,
-        sequest_version, database_type, number_column, rank_sp_column,
-        id_column, mh_column, delta_cn_column, xcorr_column, sp_column,
-        sf_column, ions_column, reference_column, peptide_column, score_column,
-        number_of_columns);
+                  precursor_mass_type, ion_mass_type, displayed_peptides, sequest,
+                  sequest_version, database_type, number_column, rank_sp_column,
+                  id_column, mh_column, delta_cn_column, xcorr_column, sp_column,
+                  sf_column, ions_column, reference_column, peptide_column, score_column,
+                  number_of_columns);
 
     identifier = sequest + "_" + datetime.getDate();
 
@@ -228,12 +234,18 @@ namespace OpenMS
       ++line_number;
       // if less peptides were found than may be displayed, break
       if (!getline(result_file, line))
+      {
         break;
+      }
       if (!line.empty() && (line[line.length() - 1] < 33))
+      {
         line.resize(line.length() - 1);
+      }
       line.trim();
       if (line.empty())
+      {
         continue; // skip empty lines
+      }
       ++viewed_peptides;
 
       getColumns(line, substrings, number_of_columns, reference_column);
@@ -262,7 +274,7 @@ namespace OpenMS
       }
 
       // get the peptide information and insert it
-      if (p_value != pvalues.end() && (*p_value) <= p_value_threshold)
+      if ((p_value != pvalues.end()) && ((*p_value) <= p_value_threshold))
       {
         peptide_hit.setScore(String(substrings[score_column].c_str()).toDouble());
 
@@ -404,9 +416,13 @@ namespace OpenMS
     result_file.clear();
 
     if (no_pvalues)
+    {
       pvalues.clear();
+    }
     if (!peptide_identification.getHits().empty())
+    {
       peptide_identifications.push_back(peptide_identification);
+    }
 
     protein_identification.setHits(protein_hits);
     protein_identification.setDateTime(datetime);
@@ -425,7 +441,9 @@ namespace OpenMS
     String buffer;
 
     if (line.empty())
+    {
       return false;
+    }
 
     line.split(' ', substrings);
 
@@ -467,13 +485,19 @@ namespace OpenMS
             substrings.erase(s_i + 1);
           }
           else
+          {
             ++s_i;
+          }
         }
         else
+        {
           ++s_i;
+        }
       }
       else
+      {
         ++s_i;
+      }
     }
 
     // if there are more columns than should be, there were spaces in the protein column
@@ -516,7 +540,9 @@ namespace OpenMS
 
       // empty and comment lines are skipped
       if (line.empty() || line.hasPrefix(";"))
+      {
         continue;
+      }
 
       // the sequence belonging to the predecessing protein ('>') is stored, so
       // when a new protein ('>') is found, save the sequence of the old
@@ -557,9 +583,13 @@ namespace OpenMS
     accession_type.clear();
     // if it's a FASTA line
     if (line.hasPrefix(">"))
+    {
       line.erase(0, 1);
+    }
     if (!line.empty() && (line[line.length() - 1] < 33))
+    {
       line.resize(line.length() - 1);
+    }
     line.trim();
 
     // if it's a swissprot accession
@@ -580,29 +610,45 @@ namespace OpenMS
         accession_type = line.substr(snd, third - 1 - snd);
       }
       if (accession_type == "gb")
+      {
         accession_type = "GenBank";
+      }
       else if (accession_type == "emb")
+      {
         accession_type = "EMBL";
+      }
       else if (accession_type == "dbj")
+      {
         accession_type = "DDBJ";
+      }
       else if (accession_type == "ref")
+      {
         accession_type = "NCBI";
+      }
       else if ((accession_type == "sp") || (accession_type == "tr"))
+      {
         accession_type = "SwissProt";
+      }
       else if (accession_type == "gnl")
       {
         accession_type = accession;
         snd = line.find('|', third);
         third = line.find('|', ++snd);
         if (third != String::npos)
+        {
           accession = line.substr(snd, third - snd);
+        }
         else
         {
           third = line.find(' ', snd);
           if (third != String::npos)
+          {
             accession = line.substr(snd, third - snd);
+          }
           else
+          {
             accession = line.substr(snd);
+          }
         }
       }
       else
@@ -616,24 +662,36 @@ namespace OpenMS
           {
             accession = line.substr(pos1, pos2 - pos1);
             if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+            {
               accession_type = "SwissProt";
+            }
             else
+            {
               accession.clear();
+            }
           }
         }
         if (accession.empty())
         {
           accession_type = "gi";
           if (snd != String::npos)
+          {
             accession = line.substr(3, snd - 4);
+          }
           else
           {
             if (snd == String::npos)
+            {
               snd = line.find(' ', 3);
+            }
             if (snd != String::npos)
+            {
               accession = line.substr(3, snd - 3);
+            }
             else
+            {
               accession = line.substr(3);
+            }
           }
         }
       }
@@ -666,9 +724,13 @@ namespace OpenMS
         {
           accession = line.substr(pos1, pos2 - pos1);
           if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+          {
             accession_type = "SwissProt";
+          }
           else
+          {
             accession.clear();
+          }
         }
       }
       if (accession.empty())
@@ -676,20 +738,28 @@ namespace OpenMS
         pos1 = line.find('|');
         accession = line.substr(0, pos1);
         if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+        {
           accession_type = "SwissProt";
+        }
         else
         {
           pos1 = line.find(' ');
           accession = line.substr(0, pos1);
           if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+          {
             accession_type = "SwissProt";
+          }
           else
           {
             accession = line.substr(0, 6);
             if (String(swissprot_prefixes).find(accession[0], 0) != String::npos)
+            {
               accession_type = "SwissProt";
+            }
             else
+            {
               accession.clear();
+            }
           }
         }
       }
@@ -749,7 +819,9 @@ namespace OpenMS
     while (getline(result_file, line))
     {
       if (!line.empty() && (line[line.length() - 1] < 33))
+      {
         line.resize(line.length() - 1);
+      }
       line.trim();
       line.split(',', substrings);
 
@@ -785,13 +857,15 @@ namespace OpenMS
         String::size_type pos(0), pos1(0);
         pos1 = buffer.find("SEQUEST", 0) + strlen("SEQUEST");
         pos = line.find(' ', 0);
-        if (pos == String::npos || pos >= pos1)
+        if ((pos == String::npos) || (pos >= pos1))
         {
           sequest = line.substr(0, pos1);
           pos = 0;
         }
         else
+        {
           sequest = line.substr(pos, pos1 - pos);
+        }
         // the version
         pos = line.find(' ', pos1);
         if (pos != String::npos)
@@ -799,7 +873,7 @@ namespace OpenMS
           pos1 = line.find(',', ++pos);
           if (pos1 == String::npos)
           {
-              sequest_version = line.substr(pos);
+            sequest_version = line.substr(pos);
           }
           else
           {
@@ -829,7 +903,9 @@ namespace OpenMS
         // 12:00 = 12:00 PM; 24:00 = 12:00 AM
         Int hour = substrings[0].substr(0, 2).toInt();
         if ((hour == 12) && (substrings[1] == "AM"))
+        {
           substrings[0].replace(0, 2, "00");
+        }
         else if ((hour != 12) && (substrings[1] == "PM"))
         {
           hour += 12;
@@ -840,7 +916,7 @@ namespace OpenMS
       }
       else if (line.hasPrefix("# bases"))
       {
-          database_type = "bases";
+        database_type = "bases";
       }
       else if (line.hasPrefix("# amino acids"))
       {
@@ -918,11 +994,11 @@ namespace OpenMS
       i->trim();
       if (i->empty())
       {
-          i = substrings.erase(i);
+        i = substrings.erase(i);
       }
       else
       {
-          ++i;
+        ++i;
       }
     }
     number_of_columns = substrings.size();
@@ -1162,11 +1238,11 @@ namespace OpenMS
 //      }
 //  }
 
-  double SequestOutfile::const_weights_[] = {0.646f, -0.959f, -1.460f};
-  double SequestOutfile::xcorr_weights_[] = {5.49f, 8.362f, 9.933f};
-  double SequestOutfile::delta_cn_weights_[] = {4.643f, 7.386f, 11.149f};
-  double SequestOutfile::rank_sp_weights_[] = {-0.455f, -0.194f, -0.201f};
-  double SequestOutfile::delta_mass_weights_[] =  {-0.84f, -0.314f, -0.277f};
-  Size SequestOutfile::max_pep_lens_[] = {100, 15, 25};
-  Size SequestOutfile::num_frags_[] = {2, 2, 4};
+  double SequestOutfile::const_weights_[] = { 0.646f, -0.959f, -1.460f };
+  double SequestOutfile::xcorr_weights_[] = { 5.49f, 8.362f, 9.933f };
+  double SequestOutfile::delta_cn_weights_[] = { 4.643f, 7.386f, 11.149f };
+  double SequestOutfile::rank_sp_weights_[] = { -0.455f, -0.194f, -0.201f };
+  double SequestOutfile::delta_mass_weights_[] =  { -0.84f, -0.314f, -0.277f };
+  Size SequestOutfile::max_pep_lens_[] = { 100, 15, 25 };
+  Size SequestOutfile::num_frags_[] = { 2, 2, 4 };
 } //namespace OpenMS

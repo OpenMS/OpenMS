@@ -58,7 +58,6 @@ namespace OpenMS
     readFromOBOFile("CHEMISTRY/XLMOD.obo");
   }
 
-
   ModificationsDB::~ModificationsDB()
   {
     modification_names_.clear();
@@ -68,12 +67,10 @@ namespace OpenMS
     }
   }
 
-
   Size ModificationsDB::getNumberOfModifications() const
   {
     return mods_.size();
   }
-
 
   const ResidueModification& ModificationsDB::getModification(Size index) const
   {
@@ -83,7 +80,6 @@ namespace OpenMS
     }
     return *mods_[index];
   }
-
 
   void ModificationsDB::searchModifications(set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
@@ -100,14 +96,13 @@ namespace OpenMS
          it != temp.end(); ++it)
     {
       if (residuesMatch_(residue, (*it)->getOrigin()) &&
-          (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
+          ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
         mods.insert(*it);
       }
     }
   }
-
 
   const ResidueModification& ModificationsDB::getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const
   {
@@ -120,7 +115,7 @@ namespace OpenMS
       searchModifications(mods, mod_name, residue,
                           ResidueModification::ANYWHERE);
     }
-    if (mods.empty()) searchModifications(mods, mod_name, residue, term_spec);
+    if (mods.empty()) { searchModifications(mods, mod_name, residue, term_spec); }
 
     if (mods.empty())
     {
@@ -139,15 +134,14 @@ namespace OpenMS
     return **mods.begin();
   }
 
-
   bool ModificationsDB::has(String modification) const
   {
     OPENMS_PRECONDITION(!modification_names_.has(modification) || (int)findModificationIndex(modification) >= 0,
-        "The modification being present implies that it can be found."); // NOTE: some very smart compilers may remove this statement ...
+                        "The modification being present implies that it can be found."); // NOTE: some very smart compilers may remove this statement ...
     return modification_names_.has(modification);
   }
 
-  Size ModificationsDB::findModificationIndex(const String & mod_name) const
+  Size ModificationsDB::findModificationIndex(const String& mod_name) const
   {
     Int idx(-1);
     if (modification_names_.has(mod_name))
@@ -181,7 +175,6 @@ namespace OpenMS
     return idx;
   }
 
-
   void ModificationsDB::searchModificationsByDiffMonoMass(vector<String>& mods, double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
     mods.clear();
@@ -197,7 +190,6 @@ namespace OpenMS
       }
     }
   }
-
 
   const ResidueModification* ModificationsDB::getBestModificationByMonoMass(double mass, double max_error, const String& residue,
                                                                             ResidueModification::TermSpecificity term_spec)
@@ -215,9 +207,12 @@ namespace OpenMS
         // map to multiple residues), we calculate a monoisotopic mass from the
         // delta mass.
         // First the internal (inside an AA chain) weight of the residue:
-        if (residue_ != NULL) continue; // @TODO: throw an exception here?
+        if (residue_ != NULL)
+        {
+          continue;                     // @TODO: throw an exception here?
+        }
         double internal_weight = residue_->getMonoWeight() -
-          residue_->getInternalToFull().getMonoWeight();
+                                 residue_->getInternalToFull().getMonoWeight();
         mono_mass = (*it)->getDiffMonoMass() + internal_weight;
       }
       // using less instead of less-or-equal will pick the first matching
@@ -235,7 +230,6 @@ namespace OpenMS
     }
     return mod;
   }
-
 
   const ResidueModification* ModificationsDB::getBestModificationByDiffMonoMass(double mass, double max_error, const String& residue, ResidueModification::TermSpecificity term_spec)
   {
@@ -316,15 +310,15 @@ namespace OpenMS
       line_wo_spaces = line;
       line_wo_spaces.removeWhitespaces();
 
-      if (line == "" || line[0] == '!') //skip empty lines and comments
+      if ((line == "") || (line[0] == '!')) //skip empty lines and comments
       {
         continue;
       }
 
-      if (line_wo_spaces == "[Term]")       //new term
+      if (line_wo_spaces == "[Term]") //new term
       {
         // if the last [Term] was a moon-link, then it does not belong in CrossLinksDB
-        if (id != "" && !reading_cross_link) //store last term
+        if ((id != "") && !reading_cross_link) //store last term
         {
           // split into single residues and make unique (for XL-MS, where equal specificities for both sides are possible)
           vector<String> origins;
@@ -370,7 +364,6 @@ namespace OpenMS
           reading_cross_link = false;
         }
       }
-
       //new id line
       else if (line_wo_spaces.hasPrefix("id:"))
       {
@@ -610,10 +603,9 @@ namespace OpenMS
     sort(modifications.begin(), modifications.end());
   }
 
-
   bool ModificationsDB::residuesMatch_(const String& residue, char origin) const
   {
-    return (residue.empty() || (origin == residue[0]) || (residue == "X") || (origin == 'X') || (residue == "."));
+    return residue.empty() || (origin == residue[0]) || (residue == "X") || (origin == 'X') || (residue == ".");
   }
 
 } // namespace OpenMS

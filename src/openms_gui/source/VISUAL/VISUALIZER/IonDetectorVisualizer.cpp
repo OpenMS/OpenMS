@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget * parent) :
+  IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<IonDetector>()
   {

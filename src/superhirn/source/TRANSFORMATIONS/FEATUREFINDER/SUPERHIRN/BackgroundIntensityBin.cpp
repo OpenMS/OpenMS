@@ -61,10 +61,12 @@ namespace OpenMS
 
   using namespace std;
 
-  BackgroundIntensityBin & BackgroundIntensityBin::operator=(const BackgroundIntensityBin & bib)
+  BackgroundIntensityBin& BackgroundIntensityBin::operator=(const BackgroundIntensityBin& bib)
   {
     if (this == &bib)
+    {
       return *this;
+    }
 
     this->mzCoord_ = bib.mzCoord_;
     this->trCoord_ = bib.trCoord_;
@@ -76,7 +78,7 @@ namespace OpenMS
     return *this;
   }
 
-  BackgroundIntensityBin::BackgroundIntensityBin(const BackgroundIntensityBin & bib)
+  BackgroundIntensityBin::BackgroundIntensityBin(const BackgroundIntensityBin& bib)
   {
     this->mzCoord_ = bib.mzCoord_;
     this->trCoord_ = bib.trCoord_;
@@ -95,7 +97,7 @@ namespace OpenMS
   }
 
 // check if a peak belongs to this intenity bin
-  bool BackgroundIntensityBin::checkBelonging(MSPeak * peak)
+  bool BackgroundIntensityBin::checkBelonging(MSPeak* peak)
   {
 
     // check charge state:
@@ -130,7 +132,7 @@ namespace OpenMS
     return true;
   }
 
-  void BackgroundIntensityBin::addMSPeak(MSPeak * peak)
+  void BackgroundIntensityBin::addMSPeak(MSPeak* peak)
   {
     addIntensity(peak->get_intensity());
     peak = NULL;
@@ -142,7 +144,7 @@ namespace OpenMS
   }
 
 // copied from simple_math
-  double simple_math_WEIGHTED_AVERAGE(map<double, double> * in)
+  double simple_math_WEIGHTED_AVERAGE(map<double, double>* in)
   {
 
 
@@ -254,10 +256,19 @@ namespace OpenMS
     intensityMap_.clear();
   }
 
-  std::vector<double> * BackgroundIntensityBin::getIntensityMap()
-  {   return &intensityMap_; }
-  std::map<double, double> * BackgroundIntensityBin::getIntensityHist()
-  {   return &intensityHist_; }
+  std::vector<double>* BackgroundIntensityBin::getIntensityMap()
+  {
+    return &intensityMap_;
+  }
+
+  std::map<double, double>* BackgroundIntensityBin::getIntensityHist()
+  {
+    return &intensityHist_;
+  }
+
   double BackgroundIntensityBin::getMean()
-  {   return mean_; }
+  {
+    return mean_;
+  }
+
 }

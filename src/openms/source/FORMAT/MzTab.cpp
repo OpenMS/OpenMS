@@ -415,13 +415,13 @@ namespace OpenMS
         for (Size pos = 0; pos != ss.size(); ++pos)
         {
           // param_bracket state
-          if (ss[pos] == '[' && !in_quotes)
+          if ((ss[pos] == '[') && !in_quotes)
           {
             in_param_bracket = true;
             continue;
           }
 
-          if (ss[pos] == ']' && !in_quotes)
+          if ((ss[pos] == ']') && !in_quotes)
           {
             in_param_bracket = false;
             continue;
@@ -435,7 +435,7 @@ namespace OpenMS
           }
 
           // comma in param bracket
-          if (ss[pos] == ',' && !in_quotes && in_param_bracket)
+          if ((ss[pos] == ',') && !in_quotes && in_param_bracket)
           {
             ss[pos] = ((char)007); // use ASCII bell as temporary separator
             continue;
@@ -878,10 +878,10 @@ namespace OpenMS
             field.clear();
           }
         }
-        else if (*sit != '[' && *sit != ']')
+        else if ((*sit != '[') && (*sit != ']'))
         {
           // skip leading ws
-          if (*sit == ' ' && field.empty())
+          if ((*sit == ' ') && field.empty())
           {
             continue;
           }

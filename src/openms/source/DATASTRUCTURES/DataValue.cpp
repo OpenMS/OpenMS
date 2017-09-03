@@ -237,7 +237,9 @@ namespace OpenMS
   {
     // Check for self-assignment
     if (this == &p)
+    {
       return *this;
+    }
 
     // clean up
     clear_();
@@ -673,7 +675,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-string DataValue to bool.");
     }
-    else if (*(data_.str_) != "true" &&  *(data_.str_) != "false")
+    else if ((*(data_.str_) != "true") && (*(data_.str_) != "false"))
     {
       throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert '") + *(data_.str_) + "' to bool. Valid stings are 'true' and 'false'.");
     }

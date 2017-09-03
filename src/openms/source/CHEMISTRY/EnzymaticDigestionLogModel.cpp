@@ -56,7 +56,10 @@ namespace OpenMS
     for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it)
     {
       String tmp = *it;
-      if (tmp.trim().hasPrefix("#")) continue;  // skip comments
+      if (tmp.trim().hasPrefix("#"))
+      {
+        continue;                               // skip comments
+      }
       StringList components;
       tmp.split(' ', components);
       if (components.size() != 4)
@@ -118,7 +121,7 @@ namespace OpenMS
     }
     else
     {
-      if ((!enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode())) || *iterator == 'P') // wait for R or K
+      if ((!enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode())) || (*iterator == 'P')) // wait for R or K
       {
         return false;
       }

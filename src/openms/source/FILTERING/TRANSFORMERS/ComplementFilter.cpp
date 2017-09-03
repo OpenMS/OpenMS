@@ -48,13 +48,13 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ComplementFilter::ComplementFilter(const ComplementFilter & source) :
+  ComplementFilter::ComplementFilter(const ComplementFilter& source) :
     FilterFunctor(source)
   {
 
   }
 
-  ComplementFilter & ComplementFilter::operator=(const ComplementFilter & source)
+  ComplementFilter& ComplementFilter::operator=(const ComplementFilter& source)
   {
     if (this != &source)
     {

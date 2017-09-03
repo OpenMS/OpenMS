@@ -203,7 +203,7 @@ protected:
       if (index != String::npos)
       {
         String::size_type index_end = (it->description).find(']', index);
-        if (index_end == String::npos) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag ']'.");
+        if (index_end == String::npos) { throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag ']'."); }
 
         //std::cout << (it->description).substr(index+2,index_end-index-2) << std::endl;
         StringList meta_values = ListUtils::create<String>((it->description).substr(index + 2, index_end - index - 3).removeWhitespaces(), ',');
@@ -211,11 +211,11 @@ protected:
         {
           StringList components;
           meta_values[i].split('=', components);
-          if (components.size() != 2) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' is missing an assignment ('=').");
+          if (components.size() != 2) { throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' is missing an assignment ('=')."); }
           // check if component is known
-          if (!ListUtils::contains(valid_meta_values, components[0])) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' has an unsupported meta value.");
+          if (!ListUtils::contains(valid_meta_values, components[0])) { throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' has an unsupported meta value."); }
 
-          if (components[0] == "intensity" || String(components[0]).toUpper() == "RT")
+          if ((components[0] == "intensity") || (String(components[0]).toUpper() == "RT"))
           {
             data.setMetaValue(components[0], components[1].toDouble());
           }
@@ -239,13 +239,13 @@ protected:
     //-------------------------------------------------------------
 
     // check if at least one output file is
-    if (getStringOption_("out") == "" &&
-        getStringOption_("out_pm") == "" &&
-        getStringOption_("out_fm") == "" &&
-        getStringOption_("out_cm") == "" &&
-        getStringOption_("out_lcm") == "" &&
-        getStringOption_("out_cntm") == "" &&
-        getStringOption_("out_id") == "")
+    if ((getStringOption_("out") == "") &&
+        (getStringOption_("out_pm") == "") &&
+        (getStringOption_("out_fm") == "") &&
+        (getStringOption_("out_cm") == "") &&
+        (getStringOption_("out_lcm") == "") &&
+        (getStringOption_("out_cntm") == "") &&
+        (getStringOption_("out_id") == ""))
     {
       LOG_ERROR << "Error: At least one output file needs to specified!" << std::endl;
       return MISSING_PARAMETERS;

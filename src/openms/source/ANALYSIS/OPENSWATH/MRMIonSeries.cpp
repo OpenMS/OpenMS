@@ -69,7 +69,7 @@ namespace OpenMS
 
     for (boost::unordered_map<String, double>::iterator ordinal = ionseries.begin(); ordinal != ionseries.end(); ++ordinal)
     {
-      if (std::fabs(ordinal->second - ProductMZ) <= mz_threshold && std::fabs(ordinal->second - ProductMZ) <= closest_delta)
+      if ((std::fabs(ordinal->second - ProductMZ) <= mz_threshold) && (std::fabs(ordinal->second - ProductMZ) <= closest_delta))
       {
         closest_delta = std::fabs(ordinal->second - ProductMZ);
         ion = make_pair(ordinal->first, ordinal->second);
@@ -92,7 +92,7 @@ namespace OpenMS
     std::vector<String> best_annotation;
     annotation.split("/", best_annotation);
 
-    if (best_annotation[0] == "Precursor_i0" || best_annotation[0] == "MS2_Precursor_i0")
+    if ((best_annotation[0] == "Precursor_i0") || (best_annotation[0] == "MS2_Precursor_i0"))
     {
       return interpretation;
     }
@@ -110,7 +110,7 @@ namespace OpenMS
         int nl = boost::lexical_cast<int>(best_annotation_loss[1]);
         fragment_loss = -1 * nl;
       }
-      catch (boost::bad_lexical_cast &)
+      catch (boost::bad_lexical_cast&)
       {
         static const EmpiricalFormula nl_formula(best_annotation_loss[1]);
         fragment_loss = -1 * nl_formula.getMonoWeight();
@@ -232,7 +232,7 @@ namespace OpenMS
     {
       precursor_charge = peptide.getChargeState();
     }
-    if (tr.isProductChargeStateSet() )
+    if (tr.isProductChargeStateSet())
     {
       fragment_charge = tr.getProductChargeState();
     }
@@ -396,8 +396,8 @@ namespace OpenMS
         }
       }
 
-      if (fragment_charge >= 1 && 
-           std::find(fragment_charges.begin(), fragment_charges.end(), fragment_charge) != fragment_charges.end())
+      if ((fragment_charge >= 1) &&
+          (std::find(fragment_charges.begin(), fragment_charges.end(), fragment_charge) != fragment_charges.end()))
       {
         ionstring += "^" + String(fragment_charge);
         tr.setMetaValue("annotation", ionstring);
@@ -436,7 +436,7 @@ namespace OpenMS
       }
     }
 
-    if (!unannotated && std::fabs(tr.getProductMZ() - pos) <= product_mz_threshold && std::fabs(tr.getPrecursorMZ() - prec_pos) <= precursor_mz_threshold)
+    if (!unannotated && (std::fabs(tr.getProductMZ() - pos) <= product_mz_threshold) && (std::fabs(tr.getPrecursorMZ() - prec_pos) <= precursor_mz_threshold))
     {
       CVTerm frag_mzdelta;
       frag_mzdelta.setCVIdentifierRef("MS");
@@ -535,11 +535,11 @@ namespace OpenMS
               const std::vector<EmpiricalFormula> losses = ion[j].getLossFormulas();
               for (std::vector<EmpiricalFormula>::const_iterator lit = losses.begin(); lit != losses.end(); ++lit)
               {
-                if (enable_specific_losses && lit->toString() != String("H2O1") && lit->toString() != String("H3N1") && lit->toString() != String("C1H2N2") && lit->toString() != String("C1H2N1O1"))
+                if (enable_specific_losses && (lit->toString() != String("H2O1")) && (lit->toString() != String("H3N1")) && (lit->toString() != String("C1H2N2")) && (lit->toString() != String("C1H2N1O1")))
                 {
                   ionseries[*ft_it + String(i) + "-" + lit->toString() + "^" + String(charge)] = Math::roundDecimal(pos - lit->getMonoWeight() / charge, round_decPow);
                 }
-                else if (enable_unspecific_losses && (lit->toString() == String("H2O1") || lit->toString() == String("H3N1") || lit->toString() == String("C1H2N2") || lit->toString() == String("C1H2N1O1")))
+                else if (enable_unspecific_losses && ((lit->toString() == String("H2O1")) || (lit->toString() == String("H3N1")) || (lit->toString() == String("C1H2N2")) || (lit->toString() == String("C1H2N1O1"))))
                 {
                   ionseries[*ft_it + String(i) + "-" + lit->toString() + "^" + String(charge)] = Math::roundDecimal(pos - lit->getMonoWeight() / charge, round_decPow);
                 }

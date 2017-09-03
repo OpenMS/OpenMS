@@ -38,7 +38,7 @@
 namespace OpenMS
 {
   double ContinuousWaveletTransformNumIntegration::integrate_
-    (const std::vector<double> & processed_input,
+    (const std::vector<double>& processed_input,
     double spacing_data,
     int index)
   {
@@ -73,7 +73,7 @@ namespace OpenMS
     }
 
     // multiply by (spacing_data / 2.), but change order for better numerical stability
-    return v / 2./ sqrt(scale_) * spacing_data;
+    return v / 2. / sqrt(scale_) * spacing_data;
   }
 
   void ContinuousWaveletTransformNumIntegration::init(double scale, double spacing)

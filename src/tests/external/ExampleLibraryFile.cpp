@@ -60,4 +60,5 @@ namespace OpenMSExternal
     FeatureMap fm2;
     FeatureXMLFile().store(tmpfilename, fm2);
   }
+
 }

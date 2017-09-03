@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  AcquisitionInfoVisualizer::AcquisitionInfoVisualizer(bool editable, QWidget * parent) :
+  AcquisitionInfoVisualizer::AcquisitionInfoVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<AcquisitionInfo>()
   {

@@ -66,7 +66,9 @@ namespace OpenMS
   Fitter1D& Fitter1D::operator=(const Fitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     DefaultParamHandler::operator=(source);
     setParameters(source.getParameters());

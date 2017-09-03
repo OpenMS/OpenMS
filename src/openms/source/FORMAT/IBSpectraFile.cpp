@@ -113,7 +113,7 @@ namespace OpenMS
 
   boost::shared_ptr<IsobaricQuantitationMethod> IBSpectraFile::guessExperimentType_(const ConsensusMap& cm)
   {
-    if (cm.getExperimentType() != "labeled_MS2" && cm.getExperimentType() != "itraq")
+    if ((cm.getExperimentType() != "labeled_MS2") && (cm.getExperimentType() != "itraq"))
     {
       throw Exception::InvalidParameter(__FILE__,
                                         __LINE__,
@@ -231,7 +231,7 @@ namespace OpenMS
       std::vector<IdCSV> entries;
 
       /// 1st we extract the identification information from the consensus feature
-      if (cFeature.getPeptideIdentifications().size() == 0 || !has_proteinIdentifications)
+      if ((cFeature.getPeptideIdentifications().size() == 0) || !has_proteinIdentifications)
       {
         // we store unidentified hits anyway, because the iTRAQ quant is still helpful for normalization
         entries.push_back(IdCSV());
@@ -243,7 +243,10 @@ namespace OpenMS
         std::set<String> protein_accessions = peptide_hit.extractProteinAccessionsSet();
         if (protein_accessions.size() != 1)
         {
-          if (!allow_non_unique) continue; // we only want unique peptides
+          if (!allow_non_unique)
+          {
+            continue;                      // we only want unique peptides
+          }
         }
 
         for (std::set<String>::const_iterator prot_ac = protein_accessions.begin(); prot_ac != protein_accessions.end(); ++prot_ac)

@@ -93,32 +93,32 @@ using namespace std;
   For intensity, the closest non-zero m/z signal to the theoretical position is taken as reporter ion abundance.
   The position (RT, m/z) of the consensus centroid is the precursor position in MS1 (from the MS2 spectrum);
   the consensus sub-elements correspond to the theoretical channel m/z (with m/z values of 113-121 Th for iTRAQ and 126-131 Th for TMT, respectively).
-  
+
   For all labeling techniques, the search radius (@p reporter_mass_shift) should be set as small as possible, to avoid picking up false-positive ions as reporters.
   Usually, Orbitraps deliver precision of about 0.0001 Th at this low mass range. Low intensity reporters might have a slightly higher deviation.
   By default, the mass range is set to ~0.002 Th, which should be sufficient for all instruments (~15 ppm).
   The tool will throw an Exception if you set it below 0.0001 Th (~0.7ppm).
   The tool will also throw an Exception if you set @p reporter_mass_shift > 0.003 Th for TMT-10plex and TMT-11plex, since this could
   lead to ambiguities with neighbouring channels (which are ~0.006 Th apart in most cases).
-  
+
   For quality control purposes, the tool reports the median distance between the theoretical vs. observed reporter ion peaks in each channel.
   The search radius is fixed to 0.5 Th (regardless of the user defined search radius). This allows to track calibration issues.
   For TMT-10plex, these results are automatically omitted if they could be confused with a neighbouring channel, i.e.
   exceed the tolerance to a neighbouring channel with the same nominal mass (C/N channels).
   If the distance is too large, you might have a m/z calibration problem (see @ref TOPP_InternalCalibration).
-  
-  @note If none of the reporter ions can be detected in an MSn scan, a consensus feature will still be generated, 
+
+  @note If none of the reporter ions can be detected in an MSn scan, a consensus feature will still be generated,
   but the intensities of the overall feature and of all its sub-elements will be zero.
   (If desired, such features can be removed by applying an intensity filter in @ref TOPP_FileFilter.)
   However, if the spectrum is completely empty (no ions whatsoever), no consensus feature will be generated.
-  
+
   Isotope correction is done using non-negative least squares (NNLS), i.e.:@n
-  Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with "contaminating" isotope species), 
+  Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with "contaminating" isotope species),
   A is a correction matrix (as supplied by the manufacturer of the labeling kit) and x is the desired vector of corrected (real) reporter intensities.
-  Other software tools solve this problem by using an inverse matrix multiplication, but this can yield entries in x which are negative. 
+  Other software tools solve this problem by using an inverse matrix multiplication, but this can yield entries in x which are negative.
   In a real sample, this solution cannot possibly be true, so usually negative values (= negative reporter intensities) are set to zero.
   However, a negative result usually means that noise was not properly accounted for in the calculation.
-  We thus use NNLS to get a non-negative solution, without the need to truncate negative values. 
+  We thus use NNLS to get a non-negative solution, without the need to truncate negative values.
   In the (usual) case that inverse matrix multiplication yields only positive values, our NNLS will give the exact same optimal solution.
 
   The correction matrices can be found (and changed) in the INI file (parameter @p correction_matrix of the corresponding labeling method).
@@ -141,8 +141,8 @@ using namespace std;
 
   After the quantitation, you may want to annotate the consensus features with corresponding peptide identifications,
   obtained from an identification pipeline. Use @ref TOPP_IDMapper to perform the annotation, but make sure to set
-  suitably small RT and m/z tolerances for the mapping. Since the positions of the consensus features reported here 
-  are taken from the precursor of the MS2 (also if quant was done in MS3), it should be possible to achieve a 
+  suitably small RT and m/z tolerances for the mapping. Since the positions of the consensus features reported here
+  are taken from the precursor of the MS2 (also if quant was done in MS3), it should be possible to achieve a
   perfect one-to-one matching of every identification (from MS2) to a single consensus feature.
 
   Note that quantification will be solely on peptide level after this stage. In order to obtain protein quantities,
@@ -298,7 +298,7 @@ protected:
     quantifier.quantify(consensus_map_raw, consensus_map_quant);
 
     // assign unique ID to output file (this might throw an exception... but that's ok, as we want the program to quit then)
-    if (getStringOption_("id_pool").trim().length() > 0) getDocumentIDTagger_().tag(consensus_map_quant);
+    if (getStringOption_("id_pool").trim().length() > 0) { getDocumentIDTagger_().tag(consensus_map_quant); }
 
     //-------------------------------------------------------------
     // writing output

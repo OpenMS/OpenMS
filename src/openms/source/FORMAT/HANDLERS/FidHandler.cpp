@@ -44,8 +44,8 @@ template <typename T>
 T ByteReverse(const T in)
 {
   T out;
-  const char * pin = (const char *) &in;
-  char * pout = (char *) (&out + 1) - 1;
+  const char* pin = (const char*) &in;
+  char* pout = (char*) (&out + 1) - 1;
 
   int i;
   for (i = sizeof(T); i > 0; --i)
@@ -61,7 +61,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    FidHandler::FidHandler(const String & filename) :
+    FidHandler::FidHandler(const String& filename) :
       ifstream(filename.c_str(), ios_base::binary | ios_base::in)
     {
       index_ = 0;
@@ -81,7 +81,7 @@ namespace OpenMS
     {
       // intensity is coded in 32 bits little-endian integer format
       Int32 result = 0;
-      read((char *) &result, 4);
+      read((char*) &result, 4);
 #ifdef OPENMS_BIG_ENDIAN
       result = ByteReverse<Int32>(result);
 #endif
@@ -89,5 +89,5 @@ namespace OpenMS
       return (result > 0) ? result : 0;
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

@@ -182,7 +182,9 @@ namespace OpenMS
     DefaultParamHandler("SvmTheoreticalSpectrumGenerator")
   {
     if (!initializedMaps_)
+    {
       initializeMaps_();
+    }
 
     defaults_.setValue("svm_mode", 1, "whether to predict abundant/missing using SVC (0) or predict intensities using SVR (1)");
     defaults_.setValue("model_file_name", "examples/simulation/SvmMSim.model", "Name of the probabilistic Model file");
@@ -271,12 +273,12 @@ namespace OpenMS
     EmpiricalFormula  loss = type.loss;
 
     AASequence fragment;
-    if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
+    if ((res_type == Residue::AIon) || (res_type == Residue::BIon) || (res_type == Residue::CIon))
     {
       fragment = peptide.getPrefix(position + 1);
     }
 
-    if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
+    if ((res_type == Residue::XIon) || (res_type == Residue::YIon) || (res_type == Residue::ZIon))
     {
       fragment = peptide.getSuffix(peptide.size() - (position + 1));
     }
@@ -499,18 +501,22 @@ namespace OpenMS
 
     while (bas_dist_left > 0)
     {
-      if (peptide.getResidue(bas_dist_left).getOneLetterCode() == "H" ||
-          peptide.getResidue(bas_dist_left).getOneLetterCode() == "R" ||
-          peptide.getResidue(bas_dist_left).getOneLetterCode() == "K")
+      if ((peptide.getResidue(bas_dist_left).getOneLetterCode() == "H") ||
+          (peptide.getResidue(bas_dist_left).getOneLetterCode() == "R") ||
+          (peptide.getResidue(bas_dist_left).getOneLetterCode() == "K"))
+      {
         break;
+      }
       --bas_dist_left;
     }
     while (bas_dist_right < peptide.size())
     {
-      if (peptide.getResidue(bas_dist_right).getOneLetterCode() == "H" ||
-          peptide.getResidue(bas_dist_right).getOneLetterCode() == "R" ||
-          peptide.getResidue(bas_dist_right).getOneLetterCode() == "K")
+      if ((peptide.getResidue(bas_dist_right).getOneLetterCode() == "H") ||
+          (peptide.getResidue(bas_dist_right).getOneLetterCode() == "R") ||
+          (peptide.getResidue(bas_dist_right).getOneLetterCode() == "K"))
+      {
         break;
+      }
       ++bas_dist_right;
     }
 
@@ -710,11 +716,11 @@ namespace OpenMS
     for (Size i = 0; i < sec_ion_types.size(); ++i)
     {
       const IonType& tmp = sec_ion_types[i];
-      if (tmp.residue == Residue::BIon || tmp.residue == Residue::AIon || tmp.residue == Residue::CIon)
+      if ((tmp.residue == Residue::BIon) || (tmp.residue == Residue::AIon) || (tmp.residue == Residue::CIon))
       {
         mp_.secondary_types[IonType(Residue::BIon)].push_back(tmp);
       }
-      else if (tmp.residue == Residue::YIon || tmp.residue == Residue::XIon || tmp.residue == Residue::ZIon)
+      else if ((tmp.residue == Residue::YIon) || (tmp.residue == Residue::XIon) || (tmp.residue == Residue::ZIon))
       {
         mp_.secondary_types[IonType(Residue::YIon)].push_back(tmp);
       }
@@ -809,7 +815,7 @@ namespace OpenMS
       for (SignedSize i = 1; i < (SignedSize)peptide.size(); ++i)
       {
         //determine whether type is N- or C-terminal
-        if (residue == Residue::AIon || residue == Residue::BIon || residue == Residue::CIon)
+        if ((residue == Residue::AIon) || (residue == Residue::BIon) || (residue == Residue::CIon))
         {
           //usually no b1, a1, c1 ion added
           if ((i < 2) && !add_first_nterminals)
@@ -823,7 +829,7 @@ namespace OpenMS
           }
         }
         //same for c-terminal ions
-        else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
+        else if ((residue == Residue::XIon) || (residue == Residue::YIon) || (residue == Residue::ZIon))
         {
           if (!loss_formula.isEmpty() && (!possible_c_term_losses[i].count(loss_formula.toString()) || !add_losses))
           {
@@ -872,7 +878,7 @@ namespace OpenMS
 
         if (simulation_type == 0)
         {
-          if (predicted_class[i] == 1 && mp_.static_intensities[residue] != 0)
+          if ((predicted_class[i] == 1) && (mp_.static_intensities[residue] != 0))
           {
             double intens = mp_.static_intensities[residue];
             if (!loss_formula.isEmpty())
@@ -910,7 +916,7 @@ namespace OpenMS
 
           if (simulation_type == 0)
           {
-            if (predicted_class[i] != 0 && mp_.static_intensities[it->residue] != 0  && hide_type_[*it] == false) //no secondary ion if primary is classified as missing
+            if ((predicted_class[i] != 0) && (mp_.static_intensities[it->residue] != 0) && (hide_type_[*it] == false)) //no secondary ion if primary is classified as missing
             {
               double intens = mp_.static_intensities[it->residue];
               if (!it->loss.isEmpty())
@@ -954,11 +960,11 @@ namespace OpenMS
 
       AASequence ion;
 
-      if (residue == Residue::AIon || residue == Residue::BIon || residue == Residue::CIon)
+      if ((residue == Residue::AIon) || (residue == Residue::BIon) || (residue == Residue::CIon))
       {
         ion = peptide.getPrefix(pos);
       }
-      else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
+      else if ((residue == Residue::XIon) || (residue == Residue::YIon) || (residue == Residue::ZIon))
       {
         ion = peptide.getSuffix(peptide.size() - pos);
       }
@@ -1010,7 +1016,7 @@ namespace OpenMS
         scaleSingleFeature_(tmp_value, lower, upper, mp_.feature_min[feature_index - 1], mp_.feature_max[feature_index - 1]);
         if (tmp_value != 0)
         {
-          svm_node tmp_node = {(Int)feature_index, tmp_value};
+          svm_node tmp_node = { (Int)feature_index, tmp_value };
           tmp_desc.push_back(tmp_node);
         }
         ++feature_index;
@@ -1029,12 +1035,12 @@ namespace OpenMS
       scaleSingleFeature_(tmp_value, lower, upper, mp_.feature_min[feature_index - 1], mp_.feature_max[feature_index - 1]);
       if (tmp_value != 0)
       {
-        svm_node tmp_node = {(Int)feature_index, tmp_value};
+        svm_node tmp_node = { (Int)feature_index, tmp_value };
         tmp_desc.push_back(tmp_node);
       }
       ++feature_index;
     }
-    svm_node tmp_node = {-1, -1};
+    svm_node tmp_node = { -1, -1 };
     tmp_desc.push_back(tmp_node);
 
     desc.descriptors = tmp_desc;

@@ -363,7 +363,7 @@ namespace OpenMS
     {
       double gamma_start = (double)param_.getValue("svm:svr:gamma_start");
       double gamma_step_size = (double)param_.getValue("svm:svr:gamma_step_size");
-      if (!additive_cv && gamma_step_size <= 1)
+      if (!additive_cv && (gamma_step_size <= 1))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
       }
@@ -380,7 +380,7 @@ namespace OpenMS
 
         degree_start = (Int)param_.getValue("svm:svr:degree_start");
         degree_step_size = (Int)param_.getValue("svm:svr:degree_step_size");
-        if (!additive_cv && degree_step_size <= 1)
+        if (!additive_cv && (degree_step_size <= 1))
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of degree <= 1 and additive_cv is false. Aborting!");
         }
@@ -395,7 +395,7 @@ namespace OpenMS
       {
         double p_start = (double)param_.getValue("svm:svr:p_start");
         double p_step_size = (double)param_.getValue("svm:svr:p_step_size");
-        if (!additive_cv && p_step_size <= 1)
+        if (!additive_cv && (p_step_size <= 1))
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of p <= 1 and additive_cv is false. Aborting!");
         }
@@ -408,7 +408,7 @@ namespace OpenMS
 
       double c_start = (double)param_.getValue("svm:svr:c_start");
       double c_step_size = (double)param_.getValue("svm:svr:c_step_size");
-      if (!additive_cv && c_step_size <= 1)
+      if (!additive_cv && (c_step_size <= 1))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of c <= 1 and additive_cv is false. Aborting!");
       }
@@ -418,11 +418,11 @@ namespace OpenMS
       step_sizes_reg.insert(make_pair(SVMWrapper::C, c_step_size));
       end_values_reg.insert(make_pair(SVMWrapper::C, c_stop));
 
-      if ((wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
+      if (((wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR) || (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)))
       {
         double nu_start = (double)param_.getValue("svm:svr:nu_start");
         double nu_step_size = (double)param_.getValue("svm:svr:nu_step_size");
-        if (!additive_cv && nu_step_size <= 1)
+        if (!additive_cv && (nu_step_size <= 1))
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of nu <= 1 and additive_cv is false. Aborting!");
         }
@@ -441,7 +441,7 @@ namespace OpenMS
     {
       double gamma_start = (double)param_.getValue("svm:svc:gamma_start");
       double gamma_step_size = (double)param_.getValue("svm:svc:gamma_step_size");
-      if (!additive_cv && gamma_step_size <= 1)
+      if (!additive_cv && (gamma_step_size <= 1))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
       }
@@ -454,7 +454,7 @@ namespace OpenMS
       {
         UInt degree_start = (Int)param_.getValue("svm:svc:degree_start");
         UInt degree_step_size = (Int)param_.getValue("svm:svc:degree_step_size");
-        if (!additive_cv && degree_step_size <= 1)
+        if (!additive_cv && (degree_step_size <= 1))
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of degree <= 1 and additive_cv is false. Aborting!");
         }
@@ -467,7 +467,7 @@ namespace OpenMS
 
       double c_start = (double)param_.getValue("svm:svc:c_start");
       double c_step_size = (double)param_.getValue("svm:svc:c_step_size");
-      if (!additive_cv && c_step_size <= 1)
+      if (!additive_cv && (c_step_size <= 1))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of c <= 1 and additive_cv is false. Aborting!");
       }
@@ -477,11 +477,11 @@ namespace OpenMS
       step_sizes_class.insert(make_pair(SVMWrapper::C, c_step_size));
       end_values_class.insert(make_pair(SVMWrapper::C, c_stop));
 
-      if ((wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
+      if (((wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR) || (wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)))
       {
         double nu_start = (double)param_.getValue("svm:svc:nu_start");
         double nu_step_size = (double)param_.getValue("svm:svc:nu_step_size");
-        if (!additive_cv && nu_step_size <= 1)
+        if (!additive_cv && (nu_step_size <= 1))
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of nu <= 1 and additive_cv is false. Aborting!");
         }
@@ -596,13 +596,13 @@ namespace OpenMS
           suffix = annotations[spec_index].getSuffix(annotations[spec_index].size() - frag_pos);
 
           //N-terminal fragments
-          if (residue == Residue::AIon || residue == Residue::BIon || residue == Residue::CIon)
+          if ((residue == Residue::AIon) || (residue == Residue::BIon) || (residue == Residue::CIon))
           {
             EmpiricalFormula loss_ion = prefix.getFormula(residue, charge) - loss;
             true_offset_mass = loss_ion.getMonoWeight() / charge;
           }
           //C-terminal fragments
-          else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
+          else if ((residue == Residue::XIon) || (residue == Residue::YIon) || (residue == Residue::ZIon))
           {
             EmpiricalFormula loss_ion = suffix.getFormula(residue, charge) - loss;
             true_offset_mass = loss_ion.getMonoWeight() / charge;
@@ -1045,8 +1045,10 @@ namespace OpenMS
         for (Size j = 0; j < intensities.size(); ++j)
         {
           double intens = intensities[j];
-          if (intens == 0.0 || intens == -1.0)
+          if ((intens == 0.0) || (intens == -1.0))
+          {
             continue;
+          }
 
           Size k = 1;
           while (k<number_of_intensity_levels - 1 && intens> bin_boarders[k - 1])
@@ -1065,13 +1067,15 @@ namespace OpenMS
     {
       const IonType& type = ion_types[i];
       if (is_primary[i])
+      {
         continue;
+      }
 
       IonType primary_type = IonType(Residue::BIon);
 
-      if (type.residue == Residue::YIon ||
-          type.residue == Residue::XIon ||
-          type.residue == Residue::ZIon)
+      if ((type.residue == Residue::YIon) ||
+          (type.residue == Residue::XIon) ||
+          (type.residue == Residue::ZIon))
       {
         primary_type = IonType(Residue::YIon);
       }
@@ -1098,7 +1102,9 @@ namespace OpenMS
     {
       const IonType& type = ion_types[i];
       if (is_primary[i])
+      {
         continue;
+      }
 
       info_outfile.addLine("<IonType>");
       info_outfile.addLine(type.residue);
@@ -1178,7 +1184,7 @@ namespace OpenMS
       }
 
       //N-terminal fragments
-      if (residue == Residue::AIon || residue == Residue::BIon || residue == Residue::CIon)
+      if ((residue == Residue::AIon) || (residue == Residue::BIon) || (residue == Residue::CIon))
       {
         //if loss is not supported or no loss ions shall be generated -- continue
         if (!loss.isEmpty() && (!possible_n_term_losses.count(loss.toString())))
@@ -1190,7 +1196,7 @@ namespace OpenMS
         true_offset_mass = loss_ion.getMonoWeight() / charge;
       }
       //C-terminal fragments
-      else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
+      else if ((residue == Residue::XIon) || (residue == Residue::YIon) || (residue == Residue::ZIon))
       {
         //if loss is not supported or no loss ions shall be generated -- continue
         if (!loss.isEmpty() && (!possible_c_term_losses.count(loss.toString())))

@@ -76,9 +76,9 @@ namespace OpenMS
     delete decomposer_;
   }
 
-  void MassDecompositionAlgorithm::getDecompositions(vector<MassDecomposition> & decomps, double mass)
+  void MassDecompositionAlgorithm::getDecompositions(vector<MassDecomposition>& decomps, double mass)
   {
-    double tolerance((double) param_.getValue("tolerance"));
+    double tolerance((double)param_.getValue("tolerance"));
     ims::RealMassDecomposer::decompositions_type decompositions = decomposer_->getDecompositions(mass, tolerance);
 
     for (ims::RealMassDecomposer::decompositions_type::const_iterator pos = decompositions.begin(); pos != decompositions.end(); ++pos)
@@ -105,9 +105,9 @@ namespace OpenMS
 
     Map<char, double> aa_to_weight;
 
-    set<const Residue *> residues = ResidueDB::getInstance()->getResidues((String)param_.getValue("residue_set"));
+    set<const Residue*> residues = ResidueDB::getInstance()->getResidues((String)param_.getValue("residue_set"));
 
-    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
       aa_to_weight[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
     }
@@ -203,7 +203,7 @@ namespace OpenMS
     }
 
     // initializes weights
-    ims::Weights weights(alphabet_->getMasses(), (double) param_.getValue("decomp_weights_precision"));
+    ims::Weights weights(alphabet_->getMasses(), (double)param_.getValue("decomp_weights_precision"));
 
     // optimize alphabet by dividing by gcd
     weights.divideByGCD();

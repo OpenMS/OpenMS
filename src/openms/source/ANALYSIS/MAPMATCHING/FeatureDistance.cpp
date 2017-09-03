@@ -90,13 +90,13 @@ namespace OpenMS
   {
   }
 
-  FeatureDistance & FeatureDistance::operator=(const FeatureDistance & other)
+  FeatureDistance& FeatureDistance::operator=(const FeatureDistance& other)
   {
     DefaultParamHandler::operator=(other);
 
     max_intensity_ = other.max_intensity_;
     force_constraints_ = other.force_constraints_;
-    updateMembers_();     // this sets all other member variables
+    updateMembers_(); // this sets all other member variables
 
     return *this;
   }
@@ -123,7 +123,7 @@ namespace OpenMS
     ignore_charge_ = String(param_.getValue("ignore_charge")) == "true";
   }
 
-  double FeatureDistance::distance_(double diff, const DistanceParams_ & params) const
+  double FeatureDistance::distance_(double diff, const DistanceParams_& params) const
   {
     // manually querying for ^1 and ^2, since pow(x,2.0) is REALLY expensive and ^1 and ^2 are the defaults (so are likely to be used)
     if (params.exponent == 1)
@@ -132,11 +132,11 @@ namespace OpenMS
     }
     else if (params.exponent == 2)
     {
-      double tmp(diff * params.norm_factor);
+      double tmp(diff* params.norm_factor);
       return tmp * tmp * params.weight;
     }
-    else 
-    { 
+    else
+    {
       // this pow() is REALLY expensive, since it uses a 'double' as exponent,
       // using 'int' will make it faster, but we will loose fractional
       // exponents (might be useful?).
@@ -144,8 +144,8 @@ namespace OpenMS
     }
   }
 
-  pair<bool, double> FeatureDistance::operator()(const BaseFeature & left,
-                                                 const BaseFeature & right)
+  pair<bool, double> FeatureDistance::operator()(const BaseFeature& left,
+                                                 const BaseFeature& right)
   {
     if (!ignore_charge_)
     {
@@ -196,7 +196,7 @@ namespace OpenMS
     dist_mz = distance_(dist_mz, params_mz_);
 
     double dist_intensity = 0.0;
-    if (params_intensity_.relevant)     // not by default, so worth checking
+    if (params_intensity_.relevant) // not by default, so worth checking
     {
       if (log_transform_)
       {

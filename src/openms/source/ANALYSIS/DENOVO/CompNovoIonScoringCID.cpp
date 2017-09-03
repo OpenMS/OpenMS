@@ -53,12 +53,12 @@ namespace OpenMS
     updateMembers_();
   }
 
-  CompNovoIonScoringCID::CompNovoIonScoringCID(const CompNovoIonScoringCID & rhs) :
+  CompNovoIonScoringCID::CompNovoIonScoringCID(const CompNovoIonScoringCID& rhs) :
     CompNovoIonScoringBase(rhs)
   {
   }
 
-  CompNovoIonScoringCID & CompNovoIonScoringCID::operator=(const CompNovoIonScoringCID & rhs)
+  CompNovoIonScoringCID& CompNovoIonScoringCID::operator=(const CompNovoIonScoringCID& rhs)
   {
     if (this != &rhs)
     {
@@ -71,7 +71,7 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIonScoringCID::scoreSpectrum(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge)
+  void CompNovoIonScoringCID::scoreSpectrum(Map<double, IonScore>& ion_scores, PeakSpectrum& CID_spec, double precursor_weight, Size charge)
   {
     for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
     {
@@ -124,7 +124,7 @@ namespace OpenMS
     double max_decomp_weight(param_.getValue("max_decomp_weight"));
     for (Map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
-      if (it->first > y_offset && (it->first - y_offset) < max_decomp_weight)
+      if ((it->first > y_offset) && ((it->first - y_offset) < max_decomp_weight))
       {
         vector<MassDecomposition> decomps;
         decomp_algo.getDecompositions(decomps, it->first - y_offset);
@@ -143,7 +143,7 @@ namespace OpenMS
     // now the upper part with different tolerance
     for (Map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
-      if (it->first < precursor_weight && precursor_weight - it->first < max_decomp_weight)
+      if ((it->first < precursor_weight) && (precursor_weight - it->first < max_decomp_weight))
       {
         vector<MassDecomposition> decomps;
         decomp_algo.getDecompositions(decomps, precursor_weight - it->first);
@@ -161,7 +161,7 @@ namespace OpenMS
     ion_scores[(CID_spec.end() - 1)->getPosition()[0]].score = 1;
   }
 
-  void CompNovoIonScoringCID::scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & ion_scores, const PeakSpectrum & CID_spec)
+  void CompNovoIonScoringCID::scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore>& ion_scores, const PeakSpectrum& CID_spec)
   {
     double precursor_mass_tolerance = (double)param_.getValue("precursor_mass_tolerance");
     vector<double> diffs;
@@ -230,7 +230,7 @@ namespace OpenMS
           cerr << "scoreWitnessSet: complementary " << pos1 << " (" << pos2 << ") (factor=" << factor << ") " << wit_score << " -> ";
 #endif
           // found complementary ion
-          if (ion_scores[it2->getPosition()[0]].s_isotope_pattern_1 < 0.5 || ion_scores[it2->getPosition()[0]].is_isotope_1_mono != 1)
+          if ((ion_scores[it2->getPosition()[0]].s_isotope_pattern_1 < 0.5) || (ion_scores[it2->getPosition()[0]].is_isotope_1_mono != 1))
           {
             wit_score += it2->getIntensity() * 0.5 * factor;
           }
@@ -257,7 +257,7 @@ namespace OpenMS
       }
 
       // isotope pattern ok?
-      if (ion_scores[it1->getPosition()[0]].s_isotope_pattern_1 > 0 && ion_scores[it1->getPosition()[0]].is_isotope_1_mono == 1)
+      if ((ion_scores[it1->getPosition()[0]].s_isotope_pattern_1 > 0) && (ion_scores[it1->getPosition()[0]].is_isotope_1_mono == 1))
       {
 #ifdef SCORE_WITNESSSET_DEBUG
         cerr << "scoreWitnessSet: isotope pattern: " << pos1 << " " << wit_score << " -> ";

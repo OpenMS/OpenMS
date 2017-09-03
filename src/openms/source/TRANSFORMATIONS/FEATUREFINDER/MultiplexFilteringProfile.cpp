@@ -149,11 +149,11 @@ namespace OpenMS
            ++it_rt_profile, ++it_rt_picked, ++it_rt_boundaries)
       {
         // skip empty spectra
-        if ((*it_rt_profile).size() == 0 || (*it_rt_picked).size() == 0 || (*it_rt_boundaries).size() == 0)
+        if (((*it_rt_profile).size() == 0) || ((*it_rt_picked).size() == 0) || ((*it_rt_boundaries).size() == 0))
         {
           continue;
         }
-        
+
         if ((*it_rt_picked).size() != (*it_rt_boundaries).size())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Number of peaks and number of peak boundaries differ.");
@@ -195,10 +195,10 @@ namespace OpenMS
            */
           vector<double> mz_shifts_actual; // actual m/z shifts (differ slightly from expected m/z shifts)
           vector<int> mz_shifts_actual_indices; // peak indices in the spectrum corresponding to the actual m/z shifts
-          
+
           mz_shifts_actual.reserve(patterns_[pattern].getMZShiftCount());
           mz_shifts_actual_indices.reserve(patterns_[pattern].getMZShiftCount());
-          
+
           int peaks_found_in_all_peptides = positionsAndBlacklistFilter_(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
           if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
           {
@@ -268,7 +268,7 @@ namespace OpenMS
             // add raw data point to list that passed all filters
             MultiplexFilterResultRaw result_raw(mz, mz_shifts_actual, intensities_actual);
             results_raw.push_back(result_raw);
-            
+
             // blacklist peaks in the current spectrum and the two neighbouring ones
             if (!blacklisted)
             {
@@ -367,8 +367,8 @@ namespace OpenMS
          it_mz < it_rt->end() && it_mz_boundaries < it_rt_boundaries->end();
          ++it_mz, ++it_mz_boundaries)
     {
-      if (mz >= scaling * (*it_mz_boundaries).mz_min + (1 - scaling) * it_mz->getMZ() &&
-          mz <= scaling * (*it_mz_boundaries).mz_max + (1 - scaling) * it_mz->getMZ())
+      if ((mz >= scaling * (*it_mz_boundaries).mz_min + (1 - scaling) * it_mz->getMZ()) &&
+          (mz <= scaling * (*it_mz_boundaries).mz_max + (1 - scaling) * it_mz->getMZ()))
       {
         return it_mz - it_rt->begin();
       }

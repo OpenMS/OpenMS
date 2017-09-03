@@ -42,21 +42,20 @@ namespace OpenMS
 
   const String& SpectrumLookup::regexp_names_ = "INDEX0 INDEX1 SCAN ID RT";
 
-  SpectrumLookup::SpectrumLookup(): 
+  SpectrumLookup::SpectrumLookup() :
     rt_tolerance(0.01), n_spectra_(0),
     regexp_name_list_(ListUtils::create<String>(regexp_names_, ' '))
-  {}
-
+  {
+  }
 
   SpectrumLookup::~SpectrumLookup()
-  {}
-
+  {
+  }
 
   bool SpectrumLookup::empty() const
   {
     return n_spectra_ == 0;
   }
-
 
   Size SpectrumLookup::findByRT(double rt) const
   {
@@ -77,13 +76,12 @@ namespace OpenMS
     {
       return lower->second;
     }
-    if (upper_diff <= rt_tolerance) return upper->second;
+    if (upper_diff <= rt_tolerance) { return upper->second; }
 
     String element = "spectrum with RT " + String(rt);
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      element);
   }
-
 
   Size SpectrumLookup::findByNativeID(const String& native_id) const
   {
@@ -97,11 +95,13 @@ namespace OpenMS
     return pos->second;
   }
 
-
   Size SpectrumLookup::findByIndex(Size index, bool count_from_one) const
   {
     Size adjusted_index = index;
-    if (count_from_one) --adjusted_index; // overflow (index = 0) handled below
+    if (count_from_one)
+    {
+      --adjusted_index;                   // overflow (index = 0) handled below
+    }
     if (adjusted_index >= n_spectra_)
     {
       String element = "spectrum with index " + String(index);
@@ -110,7 +110,6 @@ namespace OpenMS
     }
     return adjusted_index;
   }
-
 
   Size SpectrumLookup::findByScanNumber(Size scan_number) const
   {
@@ -123,7 +122,6 @@ namespace OpenMS
     }
     return pos->second;
   }
-
 
   void SpectrumLookup::addReferenceFormat(const String& regexp)
   {
@@ -149,9 +147,8 @@ namespace OpenMS
     reference_formats.push_back(re);
   }
 
-
   Size SpectrumLookup::findByRegExpMatch_(const String& spectrum_ref,
-                                          const String& regexp, 
+                                          const String& regexp,
                                           const boost::smatch& match) const
   {
     if (match["INDEX0"].matched)
@@ -199,12 +196,11 @@ namespace OpenMS
       }
     }
     String msg = "Unexpected format of spectrum reference '" + spectrum_ref +
-      "'. The regular expression '" + regexp + "' matched, but no usable "
-      "information could be extracted.";
+                 "'. The regular expression '" + regexp + "' matched, but no usable "
+                                                          "information could be extracted.";
     throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         msg);
   }
-
 
   Size SpectrumLookup::findByReference(const String& spectrum_ref) const
   {
@@ -223,9 +219,8 @@ namespace OpenMS
                                 spectrum_ref, msg);
   }
 
-
   Int SpectrumLookup::extractScanNumber(const String& native_id,
-                                        const boost::regex& scan_regexp, 
+                                        const boost::regex& scan_regexp,
                                         bool no_error)
   {
     boost::smatch match;
@@ -249,15 +244,13 @@ namespace OpenMS
     return -1;
   }
 
-
   void SpectrumLookup::addEntry_(Size index, double rt, Int scan_number,
                                  const String& native_id)
   {
     rts_[rt] = index;
     ids_[native_id] = index;
-    if (scan_number != -1) scans_[scan_number] = index;
+    if (scan_number != -1) { scans_[scan_number] = index; }
   }
-
 
   void SpectrumLookup::setScanRegExp_(const String& scan_regexp)
   {

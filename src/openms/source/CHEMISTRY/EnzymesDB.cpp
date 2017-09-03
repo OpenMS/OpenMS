@@ -74,7 +74,7 @@ namespace OpenMS
     if (!enzyme_regex_.has(cleavage_regex))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Enzyme with regex "
-                                                                                       + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
+                                                                                          + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
     }
     return enzyme_regex_[cleavage_regex];
   }
@@ -118,12 +118,12 @@ namespace OpenMS
 
   bool EnzymesDB::hasEnzyme(const String& enzy_name) const
   {
-    return (enzyme_names_.find(enzy_name) != enzyme_names_.end());
+    return enzyme_names_.find(enzy_name) != enzyme_names_.end();
   }
 
   bool EnzymesDB::hasEnzyme(const Enzyme* enzyme) const
   {
-    return (const_enzymes_.find(enzyme) != const_enzymes_.end() );
+    return const_enzymes_.find(enzyme) != const_enzymes_.end();
   }
 
   void EnzymesDB::readEnzymesFromFile_(const String& file_name)
@@ -205,7 +205,7 @@ namespace OpenMS
         continue;
       }
       if (key.hasSuffix(":NTermGain"))
-     {
+      {
         enzy_ptr->setNTermGain(EmpiricalFormula(value));
         continue;
       }
@@ -327,4 +327,5 @@ namespace OpenMS
       }
     }
   }
+
 } // namespace OpenMS

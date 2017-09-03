@@ -98,13 +98,13 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  CompNovoIdentificationBase::CompNovoIdentificationBase(const CompNovoIdentificationBase & rhs) :
+  CompNovoIdentificationBase::CompNovoIdentificationBase(const CompNovoIdentificationBase& rhs) :
     DefaultParamHandler(rhs)
   {
     updateMembers_();
   }
 
-  CompNovoIdentificationBase & CompNovoIdentificationBase::operator=(const CompNovoIdentificationBase & rhs)
+  CompNovoIdentificationBase& CompNovoIdentificationBase::operator=(const CompNovoIdentificationBase& rhs)
   {
     if (this != &rhs)
     {
@@ -119,7 +119,7 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIdentificationBase::getCIDSpectrumLight_(PeakSpectrum & spec, const String & sequence, double prefix, double suffix)
+  void CompNovoIdentificationBase::getCIDSpectrumLight_(PeakSpectrum& spec, const String& sequence, double prefix, double suffix)
   {
     static double h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
     Peak1D p;
@@ -133,14 +133,14 @@ namespace OpenMS
       char aa2(sequence[sequence.size() - i - 1]);
       y_pos += aa_to_weight_[aa2];
 
-      if (b_pos > min_mz_ && b_pos < max_mz_)
+      if ((b_pos > min_mz_) && (b_pos < max_mz_))
       {
         p.setPosition(b_pos + Constants::PROTON_MASS_U);
         p.setIntensity(1.0f);
         spec.push_back(p);
       }
 
-      if (y_pos > min_mz_ && y_pos < max_mz_)
+      if ((y_pos > min_mz_) && (y_pos < max_mz_))
       {
         p.setPosition(y_pos + Constants::PROTON_MASS_U);
         p.setIntensity(1.0f);
@@ -152,7 +152,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum & spec, const String & sequence, Size charge, double prefix, double suffix)
+  void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum& spec, const String& sequence, Size charge, double prefix, double suffix)
   {
     static double h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
     static double nh3_mass = EmpiricalFormula("NH3").getMonoWeight();
@@ -172,7 +172,7 @@ namespace OpenMS
       for (Size z = 1; z <= charge && z < 3; ++z)
       {
         // b-ions
-        if (b_pos >= min_mz_ && b_pos <= max_mz_)
+        if ((b_pos >= min_mz_) && (b_pos <= max_mz_))
         {
           for (Size j = 0; j != max_isotope_; ++j)
           {
@@ -186,9 +186,9 @@ namespace OpenMS
         }
 
         // b-ion losses
-        if (b_pos - h2o_mass > min_mz_ && b_pos - h2o_mass < max_mz_)
+        if ((b_pos - h2o_mass > min_mz_) && (b_pos - h2o_mass < max_mz_))
         {
-          if (b_H2O_loss || aa == 'S' || aa == 'T' || aa == 'E' || aa == 'D')
+          if (b_H2O_loss || (aa == 'S') || (aa == 'T') || (aa == 'E') || (aa == 'D'))
           {
             b_H2O_loss = true;
             p.setPosition((b_pos + z * Constants::PROTON_MASS_U - h2o_mass) / z);
@@ -198,7 +198,7 @@ namespace OpenMS
               spec.push_back(p);
             }
           }
-          if (b_NH3_loss || aa == 'Q' || aa == 'N' || aa == 'R' || aa == 'K')
+          if (b_NH3_loss || (aa == 'Q') || (aa == 'N') || (aa == 'R') || (aa == 'K'))
           {
             b_NH3_loss = true;
             p.setPosition((b_pos + z * Constants::PROTON_MASS_U - nh3_mass) / z);
@@ -214,7 +214,7 @@ namespace OpenMS
         // a-ions only for charge 1
         if (z == 1)
         {
-          if (b_pos - co_mass > min_mz_ && b_pos - co_mass < max_mz_)
+          if ((b_pos - co_mass > min_mz_) && (b_pos - co_mass < max_mz_))
           {
             // a-ions
             p.setPosition((b_pos + z * Constants::PROTON_MASS_U - co_mass) / (double)z);
@@ -225,7 +225,7 @@ namespace OpenMS
 
 
 
-        if (y_pos > min_mz_ && y_pos < max_mz_)
+        if ((y_pos > min_mz_) && (y_pos < max_mz_))
         {
           // y-ions
           for (Size j = 0; j != max_isotope_; ++j)
@@ -241,7 +241,7 @@ namespace OpenMS
           // H2O loss
           p.setPosition((y_pos + z * Constants::PROTON_MASS_U - h2o_mass) / (double)z);
           p.setIntensity(0.1 / (double)(z * z));
-          if (aa2 == 'Q')           // pyroglutamic acid formation
+          if (aa2 == 'Q') // pyroglutamic acid formation
           {
             p.setIntensity(0.5f);
           }
@@ -251,7 +251,7 @@ namespace OpenMS
           }
 
           // NH3 loss
-          if (y_NH3_loss || aa2 == 'Q' || aa2 == 'N' || aa2 == 'R' || aa2 == 'K')
+          if (y_NH3_loss || (aa2 == 'Q') || (aa2 == 'N') || (aa2 == 'R') || (aa2 == 'K'))
           {
             y_NH3_loss = true;
             p.setPosition((y_pos + z * Constants::PROTON_MASS_U - nh3_mass) / (double)z);
@@ -268,7 +268,7 @@ namespace OpenMS
 
     // if Q1 abundant loss of water -> pyroglutamic acid formation
 
-    if (sequence[0] == 'Q' && prefix == 0 && suffix == 0)
+    if ((sequence[0] == 'Q') && (prefix == 0) && (suffix == 0))
     {
       /*
       for (PeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
@@ -292,14 +292,14 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentificationBase::filterPermuts_(set<String> & permut)
+  void CompNovoIdentificationBase::filterPermuts_(set<String>& permut)
   {
     set<String> tmp;
     for (set<String>::const_iterator it = permut.begin(); it != permut.end(); ++it)
     {
       if (tryptic_only_)
       {
-        if ((*it)[it->size() - 1] == 'K' || (*it)[it->size() - 1] == 'R')
+        if (((*it)[it->size() - 1] == 'K') || ((*it)[it->size() - 1] == 'R'))
         {
           tmp.insert(*it);
         }
@@ -313,7 +313,7 @@ namespace OpenMS
     return;
   }
 
-  Size CompNovoIdentificationBase::countMissedCleavagesTryptic_(const String & peptide) const
+  Size CompNovoIdentificationBase::countMissedCleavagesTryptic_(const String& peptide) const
   {
     Size missed_cleavages(0);
 
@@ -323,7 +323,7 @@ namespace OpenMS
     }
     for (Size i = 0; i != peptide.size() - 1; ++i)
     {
-      if ((peptide[i] == 'R' || peptide[i] == 'K') && peptide[i + 1] != 'P')
+      if (((peptide[i] == 'R') || (peptide[i] == 'K')) && (peptide[i + 1] != 'P'))
       {
         ++missed_cleavages;
       }
@@ -332,7 +332,7 @@ namespace OpenMS
     return missed_cleavages;
   }
 
-  void CompNovoIdentificationBase::permute_(String prefix, String s, set<String> & permutations)
+  void CompNovoIdentificationBase::permute_(String prefix, String s, set<String>& permutations)
   {
     if (s.size() <= 1)
     {
@@ -350,7 +350,7 @@ namespace OpenMS
     }
   }
 
-  void CompNovoIdentificationBase::getDecompositions_(vector<MassDecomposition> & decomps, double mass, bool no_caching)
+  void CompNovoIdentificationBase::getDecompositions_(vector<MassDecomposition>& decomps, double mass, bool no_caching)
   {
     //static Map<double, vector<MassDecomposition> > decomp_cache;
     if (!no_caching)
@@ -373,7 +373,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentificationBase::selectPivotIons_(vector<Size> & pivots, Size left, Size right, Map<double, CompNovoIonScoringBase::IonScore> & ion_scores, const PeakSpectrum & CID_spec, double precursor_weight, bool full_range)
+  void CompNovoIdentificationBase::selectPivotIons_(vector<Size>& pivots, Size left, Size right, Map<double, CompNovoIonScoringBase::IonScore>& ion_scores, const PeakSpectrum& CID_spec, double precursor_weight, bool full_range)
   {
 #ifdef SELECT_PIVOT_DEBUG
     cerr << "void selectPivotIons(pivots[" << pivots.size() << "], " << left << "[" << CID_spec[left].getPosition()[0] << "]" << ", " << right << "[" << CID_spec[right].getPosition()[0]  << "])" << endl;
@@ -386,7 +386,7 @@ namespace OpenMS
     {
       right -= 1;
       left += 1;
-      if (right - left < 1 || CID_spec[right].getPosition()[0] - CID_spec[left].getPosition()[0] < 57.0 - fragment_mass_tolerance_)
+      if ((right - left < 1) || (CID_spec[right].getPosition()[0] - CID_spec[left].getPosition()[0] < 57.0 - fragment_mass_tolerance_))
       {
         return;
       }
@@ -433,7 +433,7 @@ namespace OpenMS
 #ifdef SELECT_PIVOT_DEBUG
           cerr << position << " " << precursor_weight << " " << full_range << " " << score;
 #endif
-          if (score >= max && used_pos.find(i) == used_pos.end())
+          if ((score >= max) && (used_pos.find(i) == used_pos.end()))
           {
             // now check if a very similar ion is already selected +/- 3Da
             //bool has_similar(false);
@@ -447,7 +447,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 }*/
 
             // TODO this rule should be toggable
-            if (!(full_range && (position < precursor_weight / 4.0 || position > precursor_weight / 4.0 * 3.0)))
+            if (!(full_range && ((position < precursor_weight / 4.0) || (position > precursor_weight / 4.0 * 3.0))))
             {
 #ifdef SELECT_PIVOT_DEBUG
               cerr << " max score greater";
@@ -465,7 +465,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         used_pos.insert(max_pos);
 
         // no pivot ion was added
-        if (!found_pivot || (old_num_used == used_pos.size() && old_num_used != 0))
+        if (!found_pivot || ((old_num_used == used_pos.size()) && (old_num_used != 0)))
         {
           return;
         }
@@ -482,7 +482,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   }
 
   // s1 should be the original spectrum
-  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2)
+  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum& s1, const PeakSpectrum& s2)
   {
     double score(0.0);
 
@@ -519,12 +519,12 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     return score;
   }
 
-  bool Internal::PermutScoreComparator(const CompNovoIdentificationBase::Permut & p1, const CompNovoIdentificationBase::Permut & p2)
+  bool Internal::PermutScoreComparator(const CompNovoIdentificationBase::Permut& p1, const CompNovoIdentificationBase::Permut& p2)
   {
     return p1.getScore() > p2.getScore();
   }
 
-  void CompNovoIdentificationBase::windowMower_(PeakSpectrum & spec, double windowsize, Size no_peaks)
+  void CompNovoIdentificationBase::windowMower_(PeakSpectrum& spec, double windowsize, Size no_peaks)
   {
     PeakSpectrum copy(spec);
     vector<Peak1D> to_be_deleted;
@@ -569,7 +569,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
   }
 
-  void CompNovoIdentificationBase::filterDecomps_(vector<MassDecomposition> & decomps)
+  void CompNovoIdentificationBase::filterDecomps_(vector<MassDecomposition>& decomps)
   {
     Size max_number_aa_per_decomp(param_.getValue("max_number_aa_per_decomp"));
     vector<MassDecomposition> tmp;
@@ -601,7 +601,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     }
   }
 
-  AASequence CompNovoIdentificationBase::getModifiedAASequence_(const String & sequence)
+  AASequence CompNovoIdentificationBase::getModifiedAASequence_(const String& sequence)
   {
     AASequence seq;
     for (String::ConstIterator it = sequence.begin(); it != sequence.end(); ++it)
@@ -619,7 +619,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     return seq;
   }
 
-  String CompNovoIdentificationBase::getModifiedStringFromAASequence_(const AASequence & sequence)
+  String CompNovoIdentificationBase::getModifiedStringFromAASequence_(const AASequence& sequence)
   {
     String seq;
     for (AASequence::ConstIterator it = sequence.begin(); it != sequence.end(); ++it)
@@ -641,8 +641,8 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     // init residue mass table
     String residue_set(param_.getValue("residue_set"));
 
-    set<const Residue *> residues = ResidueDB::getInstance()->getResidues(residue_set);
-    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    set<const Residue*> residues = ResidueDB::getInstance()->getResidues(residue_set);
+    for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
       aa_to_weight_[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
     }

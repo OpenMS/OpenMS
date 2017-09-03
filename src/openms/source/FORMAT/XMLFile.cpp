@@ -66,7 +66,7 @@ namespace OpenMS
     class XMLCleaner_
     {
 public:
-      explicit XMLCleaner_(XMLHandler * handler) :
+      explicit XMLCleaner_(XMLHandler* handler) :
         p_(handler)
       {
 
@@ -78,14 +78,14 @@ public:
       }
 
 private:
-      XMLHandler * p_;
+      XMLHandler* p_;
     };
 
     XMLFile::XMLFile()
     {
     }
 
-    XMLFile::XMLFile(const String & schema_location, const String & version) :
+    XMLFile::XMLFile(const String& schema_location, const String& version) :
       schema_location_(schema_location),
       schema_version_(version)
     {
@@ -100,7 +100,7 @@ private:
       enforced_encoding_ = encoding;
     }
 
-    void XMLFile::parse_(const String & filename, XMLHandler * handler)
+    void XMLFile::parse_(const String& filename, XMLHandler* handler)
     {
       // ensure handler->reset() is called to save memory (in case the XMLFile
       // reader, e.g. FeatureXMLFile, is used again)
@@ -117,14 +117,14 @@ private:
       {
         xercesc::XMLPlatformUtils::Initialize();
       }
-      catch (const xercesc::XMLException & toCatch)
+      catch (const xercesc::XMLException& toCatch)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
+                                    "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
 
-      boost::shared_ptr< xercesc::SAX2XMLReader > parser(xercesc::XMLReaderFactory::createXMLReader());
+      boost::shared_ptr<xercesc::SAX2XMLReader> parser(xercesc::XMLReaderFactory::createXMLReader());
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
 
@@ -138,7 +138,7 @@ private:
       tmp_bz[2] = '\0';
       String bz = String(tmp_bz);
 
-      boost::shared_ptr< xercesc::InputSource > source;
+      boost::shared_ptr<xercesc::InputSource> source;
 
       char g1 = 0x1f;
       char g2 = 0;
@@ -147,7 +147,7 @@ private:
       g2 |= 1 << 1;
       g2 |= 1 << 0;
       //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
-      if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2))
+      if (((bz[0] == 'B') && (bz[1] == 'Z')) || ((bz[0] == g1) && (bz[1] == g2)))
       {
         source.reset(new CompressedInputSource(StringManager().convert(filename.c_str()), bz));
       }
@@ -166,17 +166,17 @@ private:
       {
         parser->parse(*source);
       }
-      catch (const xercesc::XMLException & toCatch)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", 
-            String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
-      }
-      catch (const xercesc::SAXException & toCatch)
+      catch (const xercesc::XMLException& toCatch)
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
-            String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+                                    String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
-      catch (const XMLHandler::EndParsingSoftly & /*toCatch*/)
+      catch (const xercesc::SAXException& toCatch)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
+                                    String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
+      }
+      catch (const XMLHandler::EndParsingSoftly& /*toCatch*/)
       {
         // nothing to do here, as this exception is used to softly abort the
         // parsing for whatever reason.
@@ -188,7 +188,7 @@ private:
       }
     }
 
-    void XMLFile::save_(const String & filename, XMLHandler * handler) const
+    void XMLFile::save_(const String& filename, XMLHandler* handler) const
     {
       // open file in binary mode to avoid any line ending conversions
       std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
@@ -208,11 +208,11 @@ private:
 
     String encodeTab(const String& to_encode)
     {
-      if (!to_encode.has('\t')) return to_encode;
-      else return String(to_encode).substitute("\t", "&#x9;");
+      if (!to_encode.has('\t')) { return to_encode; }
+      else{ return String(to_encode).substitute("\t", "&#x9;"); }
     }
 
-    bool XMLFile::isValid(const String & filename, std::ostream & os)
+    bool XMLFile::isValid(const String& filename, std::ostream& os)
     {
       if (schema_location_.empty())
       {
@@ -222,10 +222,10 @@ private:
       return XMLValidator().isValid(filename, current_location, os);
     }
 
-    const String & XMLFile::getVersion() const
+    const String& XMLFile::getVersion() const
     {
       return schema_version_;
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

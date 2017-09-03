@@ -137,7 +137,9 @@ namespace OpenMS
   EmgFitter1D& EmgFitter1D::operator=(const EmgFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     LevMarqFitter1D::operator=(source);
     setParameters(source.getParameters());
@@ -154,9 +156,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -229,7 +235,9 @@ namespace OpenMS
 
     QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
     if (boost::math::isnan(correlation))
+    {
       correlation = -1.0;
+    }
 
     return correlation;
   }
@@ -248,7 +256,9 @@ namespace OpenMS
     {
       count += set[i].getIntensity();
       if (count <= sum / 2)
+      {
         median = i;
+      }
     }
 
     // calculate the height of the peak
@@ -275,7 +285,9 @@ namespace OpenMS
     // For s~5 the parameter can be approximated by the Levenberg-Marquardt algorithms.
     // (the other parameters are much greater than one)
     if (symmetry_ < 1)
+    {
       symmetry_ += 5;
+    }
 
     // calculate the width of the peak
     // rt-values with intensity zero are not allowed for calculation of the width

@@ -46,13 +46,13 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IntensityBalanceFilter::IntensityBalanceFilter(const IntensityBalanceFilter & source) :
+  IntensityBalanceFilter::IntensityBalanceFilter(const IntensityBalanceFilter& source) :
     FilterFunctor(source)
   {
     check_defaults_ = false;
   }
 
-  IntensityBalanceFilter & IntensityBalanceFilter::operator=(const IntensityBalanceFilter & source)
+  IntensityBalanceFilter& IntensityBalanceFilter::operator=(const IntensityBalanceFilter& source)
   {
     if (this != &source)
     {

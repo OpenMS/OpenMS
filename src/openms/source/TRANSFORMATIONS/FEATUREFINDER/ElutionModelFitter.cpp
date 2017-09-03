@@ -43,7 +43,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-ElutionModelFitter::ElutionModelFitter():
+ElutionModelFitter::ElutionModelFitter() :
   DefaultParamHandler("ElutionModelFitter")
 {
   vector<String> truefalse = ListUtils::create<String>("true,false");
@@ -79,9 +79,9 @@ ElutionModelFitter::ElutionModelFitter():
   defaultsToParam_();
 }
 
-
-ElutionModelFitter::~ElutionModelFitter() {}
-
+ElutionModelFitter::~ElutionModelFitter()
+{
+}
 
 double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
                                                 const MassTraces& traces)
@@ -89,13 +89,13 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
   double mre = 0.0;
   double total_weights = 0.0;
   double rt_start = max(fitter->getLowerRTBound(), traces[0].peaks[0].first);
-  double rt_end = min(fitter->getUpperRTBound(), 
+  double rt_end = min(fitter->getUpperRTBound(),
                       traces[0].peaks.back().first);
 
   for (MassTraces::const_iterator tr_it = traces.begin();
        tr_it != traces.end(); ++tr_it)
   {
-    for (vector<pair<double, const Peak1D*> >::const_iterator p_it = 
+    for (vector<pair<double, const Peak1D*> >::const_iterator p_it =
            tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
     {
       double rt = p_it->first;
@@ -112,7 +112,6 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
   return mre / total_weights;
 }
 
-
 void ElutionModelFitter::fitElutionModels(FeatureMap& features)
 {
   bool asymmetric = param_.getValue("asymmetric").toBool();
@@ -122,7 +121,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   double check_boundaries = param_.getValue("check:boundaries");
   double area_limit = param_.getValue("check:min_area");
   double width_limit = param_.getValue("check:width");
-  double asym_limit = (asymmetric ? 
+  double asym_limit = (asymmetric ?
                        double(param_.getValue("check:asymmetry")) : 0.0);
 
   TraceFitter* fitter;
@@ -130,7 +129,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   {
     fitter = new EGHTraceFitter();
   }
-  else fitter = new GaussTraceFitter();
+  else{ fitter = new GaussTraceFitter(); }
   if (weighted)
   {
     Param params = fitter->getDefaults();
@@ -155,7 +154,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   // collect peaks that constitute mass traces:
   LOG_DEBUG << "Fitting elution models to features:" << endl;
   Size index = 0;
-  for (FeatureMap::Iterator feat_it = features.begin(); 
+  for (FeatureMap::Iterator feat_it = features.begin();
        feat_it != features.end(); ++feat_it, ++index)
   {
     // LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
@@ -188,9 +187,9 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       trace.peaks.reserve(points_per_hull);
       trace.theoretical_int = sub_it->getMetaValue("isotope_probability");
       const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
-      for (ConvexHull2D::PointArrayTypeConstIterator point_it = 
+      for (ConvexHull2D::PointArrayTypeConstIterator point_it =
              hull.getHullPoints().begin(); point_it !=
-             hull.getHullPoints().end(); ++point_it)
+           hull.getHullPoints().end(); ++point_it)
       {
         double intensity = point_it->getY();
         if (intensity > 0.0) // only use non-zero intensities for fitting
@@ -203,7 +202,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
         }
       }
       trace.updateMaximum();
-      if (!trace.peaks.empty()) traces.push_back(trace);
+      if (!trace.peaks.empty()) { traces.push_back(trace); }
     }
 
     // find the trace with maximal intensity:
@@ -337,13 +336,16 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       abs_diffs[i] = fabs(widths_good[i] - median_width);
     }
     // median absolute deviation (constant factor to approximate std. dev.):
-    double mad_width = 1.4826 * Math::median(abs_diffs.begin(), 
+    double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
                                              abs_diffs.end());
 
     for (Size i = 0; i < features.size(); ++i)
     {
       double width = widths_all[i];
-      if (width != width) continue; // NaN (failed model)
+      if (width != width)
+      {
+        continue;                   // NaN (failed model)
+      }
       double z_width = (width - median_width) / mad_width; // mod. z-score
       if (z_width > width_limit)
       {
@@ -378,7 +380,10 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     for (Size i = 0; i < features.size(); ++i)
     {
       double asym = asym_all[i];
-      if (asym != asym) continue; // NaN (failed model)
+      if (asym != asym)
+      {
+        continue;                 // NaN (failed model)
+      }
       double z_asym = (asym - median_asym) / mad_asym; // mod. z-score
       if (z_asym > asym_limit)
       {
@@ -397,14 +402,14 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   vector<FeatureMap::Iterator> failed_models;
   Size model_successes = 0, model_failures = 0;
 
-  for (FeatureMap::Iterator feat_it = features.begin(); 
+  for (FeatureMap::Iterator feat_it = features.begin();
        feat_it != features.end(); ++feat_it, ++index)
   {
     feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
     if (String(feat_it->getMetaValue("model_status"))[0] != '0')
     {
-      if (impute) failed_models.push_back(feat_it);
-      else feat_it->setIntensity(0.0);
+      if (impute) { failed_models.push_back(feat_it); }
+      else{ feat_it->setIntensity(0.0); }
       model_failures++;
     }
     else
@@ -414,7 +419,7 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       { // apply log-transform to weight down high outliers:
         double raw_intensity = feat_it->getIntensity();
         LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
-                  << area << "; log(x) = " << log(raw_intensity) 
+                  << area << "; log(x) = " << log(raw_intensity)
                   << ", log(y) = " << log(area) << endl;
         quant_values.push_back(make_pair(log(raw_intensity), log(area)));
       }

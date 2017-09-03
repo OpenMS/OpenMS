@@ -293,7 +293,7 @@ protected:
         return PARSE_ERROR;
       }
     }
-    else prot_id.setMetaValue("SearchNumber", search_number);
+    else{ prot_id.setMetaValue("SearchNumber", search_number); }
 
     // clean up
     delete mascot_query;
@@ -308,7 +308,7 @@ protected:
     exp.getPrimaryMSRunPath(ms_runs);
     prot_id.setPrimaryMSRunPath(ms_runs);
     IdXMLFile().store(out, prot_ids, pep_ids);
-    
+
     return EXECUTION_OK;
   }
 

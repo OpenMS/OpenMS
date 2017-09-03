@@ -83,7 +83,7 @@ namespace OpenMS
       error_string_ = error_ != QNetworkReply::NoError ? reply->errorString() : "";
       response_bytes_ = reply->readAll(); // in case of error this will just read the error html from the server
       reply->close();
-      reply->deleteLater();;
+      reply->deleteLater();
     }
     emit done();
   }

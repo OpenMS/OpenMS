@@ -74,7 +74,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////
 // constructor for the object MS2ConsensusSpectrum:
-  MS2ConsensusSpectrum::MS2ConsensusSpectrum(MS2Fragment * in)
+  MS2ConsensusSpectrum::MS2ConsensusSpectrum(MS2Fragment* in)
   {
     addMS2Fragment(in);
   }
@@ -102,7 +102,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of MS2ConsensusSpectrum
-  MS2ConsensusSpectrum::MS2ConsensusSpectrum(const MS2ConsensusSpectrum & tmp)
+  MS2ConsensusSpectrum::MS2ConsensusSpectrum(const MS2ConsensusSpectrum& tmp)
   {
     TR = tmp.TR;
     startTR = tmp.startTR;
@@ -118,7 +118,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of MS2ConsensusSpectrum
-  MS2ConsensusSpectrum::MS2ConsensusSpectrum(const MS2ConsensusSpectrum * tmp)
+  MS2ConsensusSpectrum::MS2ConsensusSpectrum(const MS2ConsensusSpectrum* tmp)
   {
     TR = tmp->TR;
     startTR = tmp->startTR;
@@ -134,7 +134,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  MS2ConsensusSpectrum & MS2ConsensusSpectrum::operator=(const MS2ConsensusSpectrum & tmp)
+  MS2ConsensusSpectrum& MS2ConsensusSpectrum::operator=(const MS2ConsensusSpectrum& tmp)
   {
     TR = tmp.TR;
     startTR = tmp.startTR;
@@ -278,7 +278,7 @@ namespace OpenMS
     else
     {
 
-      MS2Fragment * in = &(MS2FragmentPeaks.begin()->second);
+      MS2Fragment* in = &(MS2FragmentPeaks.begin()->second);
 
       // start / end scane:
       startScan = in->getStartScan();
@@ -299,7 +299,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // add a MS2 fragment:
-  void MS2ConsensusSpectrum::addMS2Fragment(MS2Fragment * in)
+  void MS2ConsensusSpectrum::addMS2Fragment(MS2Fragment* in)
   {
 
     // make a mz map:
@@ -321,7 +321,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////////////
 // find a corresponding MS2 fragment
-  MS2Fragment * MS2ConsensusSpectrum::findMS2Fragment(double mass)
+  MS2Fragment* MS2ConsensusSpectrum::findMS2Fragment(double mass)
   {
 
     ///////////////////////
@@ -413,7 +413,7 @@ namespace OpenMS
 //////////////////////////////////////////////////////
 // copmute the similarity of the elution shape of the
 // MS2 fragment to this MS2 consensus spectrum
-  double MS2ConsensusSpectrum::getLCElutionPeakSimilarity(MS2Fragment * frag)
+  double MS2ConsensusSpectrum::getLCElutionPeakSimilarity(MS2Fragment* frag)
   {
 
     //double startTR = frag->getStartTR();
@@ -439,32 +439,79 @@ namespace OpenMS
     // return corMS2 / corSpec;
   }
 
-
   // precursor mass:
-  double MS2ConsensusSpectrum::getPrecursorMZ(){return precursorMZ; }
+  double MS2ConsensusSpectrum::getPrecursorMZ()
+  {
+    return precursorMZ;
+  }
 
   // TR:
-  double MS2ConsensusSpectrum::getTR(){return TR; }
-  // start TR
-  double MS2ConsensusSpectrum::getStartTR(){return startTR; }
-  // end TR
-  double MS2ConsensusSpectrum::getEndTR(){return endTR; }
+  double MS2ConsensusSpectrum::getTR()
+  {
+    return TR;
+  }
 
+  // start TR
+  double MS2ConsensusSpectrum::getStartTR()
+  {
+    return startTR;
+  }
+
+  // end TR
+  double MS2ConsensusSpectrum::getEndTR()
+  {
+    return endTR;
+  }
 
   // set / get  the charge state of the precursor MZ:
-  void MS2ConsensusSpectrum::setPrecursorChrg(int IN){ z = IN; }
-  int MS2ConsensusSpectrum::getPrecursorChrg(){ return z; }
+  void MS2ConsensusSpectrum::setPrecursorChrg(int IN)
+  {
+    z = IN;
+  }
+
+  int MS2ConsensusSpectrum::getPrecursorChrg()
+  {
+    return z;
+  }
+
   // apex scan:
-  int MS2ConsensusSpectrum::getApexScan(){return apexScan; }
+  int MS2ConsensusSpectrum::getApexScan()
+  {
+    return apexScan;
+  }
+
   // start scan
-  int MS2ConsensusSpectrum::getStartScan(){return startScan; }
+  int MS2ConsensusSpectrum::getStartScan()
+  {
+    return startScan;
+  }
+
   // end scan
-  int MS2ConsensusSpectrum::getEndScan(){return endScan; }
+  int MS2ConsensusSpectrum::getEndScan()
+  {
+    return endScan;
+  }
+
   // get the number of consensus fragments:
-  int MS2ConsensusSpectrum::getNbMS2Fragments(){return (int) MS2FragmentPeaks.size(); }
+  int MS2ConsensusSpectrum::getNbMS2Fragments()
+  {
+    return (int) MS2FragmentPeaks.size();
+  }
 
   // get the MS2 fragments list iterator:
-  std::multimap<double, MS2Fragment>::iterator MS2ConsensusSpectrum::getMS2FragmentPeakStart(){return MS2FragmentPeaks.begin(); }
-  std::multimap<double, MS2Fragment>::iterator MS2ConsensusSpectrum::getMS2FragmentPeakEnd(){return MS2FragmentPeaks.end(); }
-  std::multimap<double, MS2Fragment> * MS2ConsensusSpectrum::getMS2FragmentMap(){return &MS2FragmentPeaks; }
+  std::multimap<double, MS2Fragment>::iterator MS2ConsensusSpectrum::getMS2FragmentPeakStart()
+  {
+    return MS2FragmentPeaks.begin();
+  }
+
+  std::multimap<double, MS2Fragment>::iterator MS2ConsensusSpectrum::getMS2FragmentPeakEnd()
+  {
+    return MS2FragmentPeaks.end();
+  }
+
+  std::multimap<double, MS2Fragment>* MS2ConsensusSpectrum::getMS2FragmentMap()
+  {
+    return &MS2FragmentPeaks;
+  }
+
 }

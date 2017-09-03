@@ -44,7 +44,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    AcqusHandler::AcqusHandler(const String & filename)
+    AcqusHandler::AcqusHandler(const String& filename)
     {
       params_.clear();
 
@@ -62,9 +62,13 @@ namespace OpenMS
       while (getline(is, line, '\n'))
       {
         if (line.size() < 5)
-          continue;                    // minimal string = "##x=x"
+        {
+          continue; // minimal string = "##x=x"
+        }
         if (line.prefix(2) != String("##"))
+        {
           continue;
+        }
 
         if (line.split('=', strings))
         {
@@ -115,7 +119,7 @@ namespace OpenMS
       return sqrt_mz_ * sqrt_mz_;
     }
 
-    String AcqusHandler::getParam(const String & param)
+    String AcqusHandler::getParam(const String& param)
     {
       if (param == String("mzMax"))
       {
@@ -128,5 +132,5 @@ namespace OpenMS
       return params_[param];
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

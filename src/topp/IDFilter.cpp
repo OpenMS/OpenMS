@@ -187,11 +187,11 @@ protected:
     registerTOPPSubsection_("digest", "Perform protein digestion and filter peptides based on digestion products");
     registerInputFile_("digest:fasta", "<file>", "", "Input sequence database in FASTA format", false);
     setValidFormats_("digest:fasta", ListUtils::create<String>("fasta"));
-    registerStringOption_("digest:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme",false);
+    registerStringOption_("digest:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme", false);
     setValidStrings_("digest:enzyme", all_enzymes);
     registerStringOption_("digest:specificity", "<specificity>", specificity[EnzymaticDigestion::SPEC_FULL], "Specificity of the filter", false);
     setValidStrings_("digest:specificity", specificity);
-    registerIntOption_("digest:missed_cleavages", "<integer>", -1, 
+    registerIntOption_("digest:missed_cleavages", "<integer>", -1,
                        "filter peptide evidences that have more than the specified missed_cleavages\n"
                        "By default missed cleavages are ignored", false);
     setMinInt_("digest:missed_cleavages", -1);
@@ -234,7 +234,6 @@ protected:
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the IDs. Usually used in combination with 'score:prot' or 'thresh:prot'.");
 
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -463,7 +462,7 @@ protected:
         }
         digestion.setMissedCleavages(missed_cleavages);
       }
-      
+
       bool methionine_cleavage = false;
       if (getFlag_("digest:methionine_cleavage"))
       {
@@ -471,9 +470,9 @@ protected:
       }
 
       // Build the digest filter function
-      IDFilter::DigestionFilter filter(fasta, 
-                                       digestion, 
-                                       ignore_missed_cleavages, 
+      IDFilter::DigestionFilter filter(fasta,
+                                       digestion,
+                                       ignore_missed_cleavages,
                                        methionine_cleavage);
       // Filter peptides
       filter.filterPeptideEvidences(peptides);
@@ -492,7 +491,7 @@ protected:
           prot_it->getSearchParameters();
         for (vector<String>::const_iterator mod_it =
                params.variable_modifications.begin(); mod_it !=
-               params.variable_modifications.end(); ++mod_it)
+             params.variable_modifications.end(); ++mod_it)
         {
           var_mods.insert(*mod_it);
         }
@@ -591,7 +590,7 @@ protected:
     // remove non-existant protein references from peptides (and optionally:
     // remove peptides with no proteins):
     bool rm_pep = getFlag_("delete_unreferenced_peptide_hits");
-    if (rm_pep) LOG_INFO << "Removing peptide hits without protein references..." << endl;
+    if (rm_pep) { LOG_INFO << "Removing peptide hits without protein references..." << endl; }
     IDFilter::updateProteinReferences(peptides, proteins, rm_pep);
 
     IDFilter::removeEmptyIdentifications(peptides);

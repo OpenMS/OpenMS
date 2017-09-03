@@ -44,7 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SourceFileVisualizer::SourceFileVisualizer(bool editable, QWidget * parent) :
+  SourceFileVisualizer::SourceFileVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<SourceFile>()
   {

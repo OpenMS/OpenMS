@@ -91,7 +91,9 @@ namespace OpenMS
   Compomer& Compomer::operator=(const Compomer& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     cmp_ = source.cmp_;
     net_charge_ = source.net_charge_;
@@ -109,7 +111,9 @@ namespace OpenMS
   void Compomer::add(const Adduct& a, UInt side)
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::add() does not support this value for 'side'!", String(side));
+    }
 
     if (a.getAmount() < 0)
     {
@@ -128,7 +132,7 @@ namespace OpenMS
     {
       cmp_[side][a.getFormula()] += a; //update adducts amount
     }
-    int mult[] = {-1, 1};
+    int mult[] = { -1, 1 };
     net_charge_ += a.getAmount() * a.getCharge() * mult[side];
     mass_ += a.getAmount() * a.getSingleMass() * mult[side];
     pos_charges_ +=  std::max(a.getAmount() * a.getCharge() * mult[side], 0);
@@ -146,9 +150,13 @@ namespace OpenMS
   bool Compomer::isConflicting(const Compomer& cmp, UInt side_this, UInt side_other) const
   {
     if (side_this  >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isConflicting() does not support this value for 'side_this'!", String(side_this));
+    }
     if (side_other >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isConflicting() does not support this value for 'side_other'!", String(side_other));
+    }
 
     bool conflict_found = false;
 
@@ -159,7 +167,7 @@ namespace OpenMS
       {
         // is it there at all?! if yes: has it the same amount?!
         CompomerSide::const_iterator it2 = cmp.getComponent()[side_other].find(it->first);
-        if (it2 == cmp.getComponent()[side_other].end() || it2->second.getAmount() != it->second.getAmount())
+        if ((it2 == cmp.getComponent()[side_other].end()) || (it2->second.getAmount() != it->second.getAmount()))
         {
           conflict_found = true;
           break;
@@ -167,7 +175,9 @@ namespace OpenMS
       }
     }
     else
+    {
       conflict_found = true;
+    }
     //
     // if (conflict_found) std::cout << "found conflict!! between \n" << (*this) << "and\n" << cmp << " at sides i:" << (left_this?"left":"right") << " and j:" << (left_other?"left":"right") << "\n"
     // << "with implicits  i:" << implicit_this.getAmount() << " && j: " << implicit_other.getAmount() << "\n";
@@ -235,7 +245,9 @@ namespace OpenMS
   String Compomer::getAdductsAsString(UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getAdductsAsString() does not support this value for 'side'!", String(side));
+    }
 
     String r;
     CompomerSide::const_iterator it = cmp_[side].begin();
@@ -244,7 +256,9 @@ namespace OpenMS
       Int f = it->second.getAmount();
 
       if (it->first.has('+'))
+      {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "An Adduct contains implicit charge. This is not allowed!", it->first);
+      }
 
       EmpiricalFormula ef(it->first);
       ef = ef * f;
@@ -257,13 +271,19 @@ namespace OpenMS
   bool Compomer::isSingleAdduct(Adduct& a, const UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::isSimpleAdduct() does not support this value for 'side'!", String(side));
+    }
 
     if (cmp_[side].size() != 1)
+    {
       return false;
+    }
 
     if (cmp_[side].count(a.getFormula()) == 0)
+    {
       return false;
+    }
 
     return true;
   }
@@ -278,14 +298,16 @@ namespace OpenMS
   Compomer Compomer::removeAdduct(const Adduct& a, const UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::removeAdduct() does not support this value for 'side'!", String(side));
+    }
 
     Compomer tmp(*this);
     if (tmp.cmp_[side].count(a.getFormula()) > 0)
     {
       { // how many instances does this side contain?
         Int amount = tmp.cmp_[side][a.getFormula()].getAmount();
-        int mult[] = {-1, 1};
+        int mult[] = { -1, 1 };
         //const Adduct &to_remove = tmp.cmp_[side][a.getFormula()];
         tmp.net_charge_ -= amount * a.getCharge() * mult[side];
         tmp.mass_ -= amount * a.getSingleMass() * mult[side];
@@ -304,7 +326,9 @@ namespace OpenMS
   StringList Compomer::getLabels(const UInt side) const
   {
     if (side >= BOTH)
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compomer::getLabels() does not support this value for 'side'!", String(side));
+    }
 
     StringList tmp;
 
@@ -334,16 +358,24 @@ namespace OpenMS
     // how to sort Compomers:
     // first by net_charge
     if (c1.net_charge_ < c2.net_charge_)
+    {
       return true;
+    }
     else if (c1.net_charge_ > c2.net_charge_)
+    {
       return false;
+    }
     else
     {
       // then my mass
       if (c1.mass_ < c2.mass_)
+      {
         return true;
+      }
       else if (c1.mass_ > c2.mass_)
+      {
         return false;
+      }
       else
       {
         // then by log probability (most probable compomers first!)

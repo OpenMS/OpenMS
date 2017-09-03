@@ -49,7 +49,7 @@ namespace OpenMS
     delta_mass(dm), label_set(ls)
   {
   }
-  
+
   MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, String l) :
     delta_mass(dm), label_set()
   {
@@ -74,11 +74,11 @@ namespace OpenMS
   {
     return delta_masses_;
   }
-  
+
   String MultiplexDeltaMasses::labelSetToString(const MultiplexDeltaMasses::LabelSet ls)
   {
     std::stringstream ss;
-    
+
     for (MultiplexDeltaMasses::LabelSet::const_iterator it = ls.begin(); it != ls.end(); ++it)
     {
       if (it != ls.begin())
@@ -91,12 +91,12 @@ namespace OpenMS
     return String(ss.str());
   }
 
-  bool operator<(const MultiplexDeltaMasses &dm1, const MultiplexDeltaMasses &dm2)
+  bool operator<(const MultiplexDeltaMasses& dm1, const MultiplexDeltaMasses& dm2)
   {
     if (dm1.getDeltaMasses().size() != dm2.getDeltaMasses().size())
     {
       // Search first for complete multiplets, then knock-out cases.
-      return (dm1.getDeltaMasses().size() > dm2.getDeltaMasses().size());
+      return dm1.getDeltaMasses().size() > dm2.getDeltaMasses().size();
     }
     else
     {
@@ -104,16 +104,16 @@ namespace OpenMS
       {
         double ms1 = dm1.getDeltaMasses()[i].delta_mass - dm1.getDeltaMasses()[0].delta_mass;
         double ms2 = dm2.getDeltaMasses()[i].delta_mass - dm2.getDeltaMasses()[0].delta_mass;
-        
+
         if (ms1 != ms2)
         {
           // Search first for cases without miscleavages.
-          return (ms1 < ms2);
+          return ms1 < ms2;
         }
       }
     }
 
-    return (false);
+    return false;
   }
-  
+
 }

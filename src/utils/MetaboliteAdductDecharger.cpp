@@ -113,7 +113,7 @@ protected:
     registerSubsection_("algorithm", "Feature decharging algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
     MetaboliteFeatureDeconvolution fdc;
@@ -122,7 +122,7 @@ protected:
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -133,7 +133,7 @@ protected:
     String outfile_p = getStringOption_("outpairs");
 
     MetaboliteFeatureDeconvolution fdc;
-    Param const & dc_param = getParam_().copy("algorithm:MetaboliteFeatureDeconvolution:", true);
+    Param const& dc_param = getParam_().copy("algorithm:MetaboliteFeatureDeconvolution:", true);
 
     writeDebug_("Parameters passed to MetaboliteAdductDecharger", dc_param, 3);
 
@@ -177,8 +177,8 @@ protected:
     ConsensusXMLFile f;
     f.store(outfile_cm, cm);
 
-    if (!outfile_p.empty()) f.store(outfile_p, cm2);
-    if (!outfile_fm.empty()) FeatureXMLFile().store(outfile_fm, map_out);
+    if (!outfile_p.empty()) { f.store(outfile_p, cm2); }
+    if (!outfile_fm.empty()) { FeatureXMLFile().store(outfile_fm, map_out); }
 
     return EXECUTION_OK;
   }
@@ -186,7 +186,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   UTILMetaboliteAdductDecharger tool;
   return tool.main(argc, argv);

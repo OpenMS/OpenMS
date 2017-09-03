@@ -182,7 +182,7 @@ namespace OpenMS
       {
         for (Size t = 0; t < rules[r].getCVTerms().size(); ++t)
         {
-          if (!rules[r].getCVTerms()[t].getIsRepeatable() && fulfilled[rules[r].getIdentifier()][rules[r].getCVTerms()[t].getAccession()] > 1)
+          if (!rules[r].getCVTerms()[t].getIsRepeatable() && (fulfilled[rules[r].getIdentifier()][rules[r].getCVTerms()[t].getAccession()] > 1))
           {
             errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' number of term repeats at element '" + getPath_() + "'");
           }
@@ -204,7 +204,7 @@ namespace OpenMS
         }
 
         //MUST / AND - all terms must be matched
-        if (rules[r].getRequirementLevel() == CVMappingRule::MUST && rules[r].getCombinationsLogic() == CVMappingRule::AND)
+        if ((rules[r].getRequirementLevel() == CVMappingRule::MUST) && (rules[r].getCombinationsLogic() == CVMappingRule::AND))
         {
           if (match_count != terms_count)
           {
@@ -212,7 +212,7 @@ namespace OpenMS
           }
         }
         //MUST / OR - at least one terms must be matched
-        else if (rules[r].getRequirementLevel() == CVMappingRule::MUST && rules[r].getCombinationsLogic() == CVMappingRule::OR)
+        else if ((rules[r].getRequirementLevel() == CVMappingRule::MUST) && (rules[r].getCombinationsLogic() == CVMappingRule::OR))
         {
           if (match_count == 0)
           {
@@ -220,7 +220,7 @@ namespace OpenMS
           }
         }
         //MUST / XOR - exactly one term must be matched
-        else if (rules[r].getRequirementLevel() == CVMappingRule::MUST && rules[r].getCombinationsLogic() == CVMappingRule::XOR)
+        else if ((rules[r].getRequirementLevel() == CVMappingRule::MUST) && (rules[r].getCombinationsLogic() == CVMappingRule::XOR))
         {
           if (match_count != 1)
           {
@@ -228,15 +228,15 @@ namespace OpenMS
           }
         }
         //MAY(SHOULD) / AND - none or all terms must be matched
-        else if (rules[r].getRequirementLevel() != CVMappingRule::SHOULD && rules[r].getCombinationsLogic() == CVMappingRule::AND)
+        else if ((rules[r].getRequirementLevel() != CVMappingRule::SHOULD) && (rules[r].getCombinationsLogic() == CVMappingRule::AND))
         {
-          if (match_count != 0 && match_count != terms_count)
+          if ((match_count != 0) && (match_count != terms_count))
           {
             errors_.push_back(String("Violated mapping rule '") + rules[r].getIdentifier() + "' at element '" + getPath_() + "', if any, all terms must be given!");
           }
         }
         //MAY(SHOULD) / XOR - zero or one terms must be matched
-        else if (rules[r].getRequirementLevel() != CVMappingRule::SHOULD && rules[r].getCombinationsLogic() == CVMappingRule::XOR)
+        else if ((rules[r].getRequirementLevel() != CVMappingRule::SHOULD) && (rules[r].getCombinationsLogic() == CVMappingRule::XOR))
         {
           if (match_count > 1)
           {
@@ -311,7 +311,7 @@ namespace OpenMS
         for (Size t = 0; t < rules[r].getCVTerms().size(); ++t) //go thru all terms
         {
           const CVMappingTerm& term = rules[r].getCVTerms()[t];
-          if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
+          if (term.getUseTerm() && (term.getAccession() == parsed_term.accession)) //check if the term itself is allowed
           {
             allowed = true;
             fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
@@ -416,7 +416,7 @@ namespace OpenMS
         ControlledVocabulary::CVTerm::XRefType type = cv_.getTerm(parsed_term.accession).xref_type;
 
         // get value, if it exists
-        if (parsed_term.has_value && (parsed_term.value != "" || type == ControlledVocabulary::CVTerm::XSD_STRING))
+        if (parsed_term.has_value && ((parsed_term.value != "") || (type == ControlledVocabulary::CVTerm::XSD_STRING)))
         {
           String value = parsed_term.value;
           if (type == ControlledVocabulary::CVTerm::NONE)
@@ -518,7 +518,7 @@ namespace OpenMS
             String value_copy = value;
             value_copy.trim();
             value_copy.toLower();
-            if (value_copy != "1" && value_copy  != "0" && value_copy != "true" && value_copy != "false")
+            if ((value_copy != "1") && (value_copy  != "0") && (value_copy != "true") && (value_copy != "false"))
             {
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:boolean: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
@@ -569,7 +569,7 @@ namespace OpenMS
         for (Size t = 0; t < rules[r].getCVTerms().size(); ++t) //go thru all terms
         {
           const CVMappingTerm& term = rules[r].getCVTerms()[t];
-          if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
+          if (term.getUseTerm() && (term.getAccession() == parsed_term.accession)) //check if the term itself is allowed
           {
             allowed = true;
             break;

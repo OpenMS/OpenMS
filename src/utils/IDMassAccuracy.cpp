@@ -145,7 +145,7 @@ protected:
     return error;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -353,7 +353,7 @@ protected:
 
       // calculate histogram for gauss fitting
       GaussFitter gf;
-      GaussFitter::GaussFitResult init_param (hist.maxValue(), median, sdv/500.0);
+      GaussFitter::GaussFitResult init_param(hist.maxValue(), median, sdv / 500.0);
       gf.setInitialParameters(init_param);
 
       try
@@ -452,7 +452,7 @@ protected:
 
       // calculate histogram for gauss fitting
       GaussFitter gf;
-      GaussFitter::GaussFitResult init_param (hist.maxValue(), median, sdv / 100.0);
+      GaussFitter::GaussFitResult init_param(hist.maxValue(), median, sdv / 100.0);
       gf.setInitialParameters(init_param);
 
       try
@@ -498,7 +498,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDMassAccuracy tool;
   return tool.main(argc, argv);

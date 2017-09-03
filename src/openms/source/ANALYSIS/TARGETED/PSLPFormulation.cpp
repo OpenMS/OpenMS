@@ -156,9 +156,13 @@ namespace OpenMS
       std::cout << "feat: " << i << " charge " << features[i].getCharge() << std::endl;
 #endif
       if (charges_set.count(features[i].getCharge()) < 1)
+      {
         continue;
+      }
       if (mass_ranges[i].empty())
+      {
         continue;
+      }
 #ifdef DEBUG_OPS
       if (mass_ranges[i].size() > 0)
       {
@@ -284,7 +288,9 @@ namespace OpenMS
       }
       // no feature occurring in this scan
       if (start == j)
+      {
         continue;
+      }
 
       Size stop = j;
       Size c = 0;
@@ -415,8 +421,8 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << value << " " << model_->getColumnType(column) << std::endl;
 #endif
-      if ((fabs(value) > 0.5 && model_->getColumnType(column) == LPWrapper::BINARY) ||
-          (fabs(value) > 0.5 && model_->getColumnType(column) == LPWrapper::INTEGER))
+      if (((fabs(value) > 0.5) && (model_->getColumnType(column) == LPWrapper::BINARY)) ||
+          ((fabs(value) > 0.5) && (model_->getColumnType(column) == LPWrapper::INTEGER)))
       {
 #ifdef DEBUG_OPS
         std::cout << model_->getColumnName(column) << " is in optimal solution" << std::endl;
@@ -530,8 +536,10 @@ namespace OpenMS
     for (Size p = 0; p < map_iter->second.size(); ++p)
     {
       // check if peptide is in desired mass range
-      if (masses[p] < min_mz || masses[p] > max_mz)
+      if ((masses[p] < min_mz) || (masses[p] > max_mz))
+      {
         continue;
+      }
       if (map_iter->second[p] > min_pt)
       {
         //          std::cout <<"feature_counter "<<feature_counter<<std::endl;
@@ -636,7 +644,9 @@ namespace OpenMS
 
           // update curr_rt
           if (curr_rt_index == 0)
+          {
             break;
+          }
           --curr_rt_index;
           curr_rt -= rt_step_size;
         }
@@ -689,9 +699,13 @@ namespace OpenMS
           ++counter;
 
           if (curr_rt_index == rt_index + 1)
+          {
             last_index = rt_center_variable_index;
+          }
           else
+          {
             last_index = current_index;
+          }
           current_index = index;
 
           // enter constraint that ensures only consecutive scans are chosen for a feature
@@ -709,7 +723,9 @@ namespace OpenMS
 
           // update curr_rt
           if (curr_rt_index >= max_index)
+          {
             break;
+          }
           ++curr_rt_index;
           curr_rt += rt_step_size;
         }
@@ -810,12 +826,16 @@ namespace OpenMS
           continue;
         }
         if ((Size)variable_indices[j].scan != i)
+        {
           break;
+        }
         ++j;
       }
       // no feature occurring in this scan
       if (start == j)
+      {
         continue;
+      }
 
       Size stop = j;
       Size c = 0;
@@ -833,7 +853,7 @@ namespace OpenMS
       //#ifdef DEBUG_OPS
       std::cout << "add row with " << entries.size() << " indices" << std::endl;
       //#endif
-      if (sequential_order && i != 0)
+      if (sequential_order && (i != 0))
       {
         model_->addRow(indices, entries, (String("RT_CAP") + i), 0, 0, LPWrapper::FIXED); // fix capacities of all other spectra than the 1st to 0
       }
@@ -873,7 +893,7 @@ namespace OpenMS
         // now go through all x_variable for this feature
         for (Size v = 0; v < variable_indices.size(); ++v)
         {
-          if (variable_indices[v].prot_acc == map_iter->first && (Int)variable_indices[v].feature == distance(map_iter->second.begin(), f_index_iter))
+          if ((variable_indices[v].prot_acc == map_iter->first) && ((Int)variable_indices[v].feature == distance(map_iter->second.begin(), f_index_iter)))
           {
             // if there are duplicates in the vector CoinModel will abort
             if (find(indices_vec.begin(), indices_vec.end(), variable_indices[v].variable) == indices_vec.end())
@@ -895,7 +915,9 @@ namespace OpenMS
             }
           }
           else if (variable_indices[v].feature > feature_counter)
+          {
             break; // the indices are sorted, hence if the current index is larger, we are finished
+          }
         }
         ++feature_counter;
       }
@@ -960,8 +982,10 @@ namespace OpenMS
       std::cout << variable_indices[var_counter] << std::endl;
 
       if (variable_indices[var_counter].scan == -1)
+      {
         continue; // we don't enter x_j variables
 
+      }
       // now get all variables belonging to the same peptide
       String acc = variable_indices[var_counter].prot_acc;
       Size feature = variable_indices[var_counter].feature;
@@ -970,7 +994,7 @@ namespace OpenMS
       // we start at var_counter as the solution indices are sorted in increasing order
       for (; end < variable_indices.size(); ++end)
       {
-        if (!(variable_indices[end].prot_acc == acc && variable_indices[end].feature == feature))
+        if (!((variable_indices[end].prot_acc == acc) && (variable_indices[end].feature == feature)))
         {
           break;
         }
@@ -989,14 +1013,20 @@ namespace OpenMS
       for (Size i = start; i < end; ++i)
       {
         if (variable_indices[i].scan == -1)
+        {
           continue; // we don't enter x_j variables
+        }
         // now check if this index is in solution
         std::vector<Int>::iterator iter = find(solution_indices.begin(), solution_indices.end(), variable_indices[i].variable);
         if (iter == solution_indices.end())
+        {
           continue;
+        }
         // we need to remember the index in the solution_indices
         else if (distance(solution_indices.begin(), iter) > (Int)max_sol_index)
+        {
           max_sol_index = distance(solution_indices.begin(), iter);
+        }
         points.push_back(DPosition<2>(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() - 0.1));
         points.push_back(DPosition<2>(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() + 3.));
 
@@ -1053,9 +1083,13 @@ namespace OpenMS
       std::cout << "feat: " << i << " charge " << features[i].getCharge() << std::endl;
 #endif
       if (charges_set.count(features[i].getCharge()) < 1)
+      {
         continue;
+      }
       if ((double)features[i].getMetaValue("msms_score") > max_int)
+      {
         max_int = features[i].getMetaValue("msms_score");
+      }
     }
 #ifdef DEBUG_OPS
     std::cout << features.size() << " features.\n";
@@ -1068,7 +1102,9 @@ namespace OpenMS
       std::cout << "feat: " << i << " charge " << features[i].getCharge() << std::endl;
 #endif
       if (charges_set.count(features[i].getCharge()) < 1)
+      {
         continue;
+      }
       if (mass_ranges[i].size() == 0)
       {
         std::cout << "No mass ranges for " << features[i].getRT() << " " << features[i].getMZ() << std::endl;
@@ -1113,7 +1149,9 @@ namespace OpenMS
         model_->setObjective(static_cast<Int>(index), intensity_weights[i][c] * (double)features[i].getMetaValue("msms_score"));
         ++counter;
         if (msms_score > max_int)
+        {
           max_int = msms_score;
+        }
         ++c;
       }
     }
@@ -1260,7 +1298,9 @@ namespace OpenMS
         ++f_v_idx;
       }
       if (f_v_idx == variable_indices.size())
+      {
         std::cout << "This should not happen!" << std::endl;
+      }
       else
       {
         // now set the corresponding variables in the ILP to 1 as this peptide is already acquired
@@ -1286,7 +1326,9 @@ namespace OpenMS
           ++f_v_idx;
         }
         if (!existing)
+        {
           std::cout << "ATTENTION!!" << std::endl;
+        }
       }
       std::map<Size, std::vector<String> >::iterator c_iter = feature_constraints_map.find(f);
       if (c_iter != feature_constraints_map.end())
@@ -1314,7 +1356,9 @@ namespace OpenMS
     for (Size i = 0; i < indexes.size(); ++i)
     {
       if (fabs(model_->getColumnValue(indexes[i]) - 1.) < 0.001)
+      {
         ++count;
+      }
     }
     return static_cast<Int>(count);
   }
@@ -1343,7 +1387,9 @@ namespace OpenMS
 #endif
     }
     if (idx != -1)
+    {
       model_->setRowBounds(idx, 0., (double)ms2_spectra_per_rt_bin, LPWrapper::UPPER_BOUND_ONLY);
+    }
   }
 
   void PSLPFormulation::updateObjFunction_(String acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
@@ -1381,7 +1427,9 @@ namespace OpenMS
           for (Size f = 0; f < features.size(); ++f)
           {
             if (features[f].getMetaValue("fragmented") == "true")
+            {
               continue;
+            }
             // and check if they match the current peptide
             if (fabs(masses[p] - features[f].getMZ()) / masses[p] * 1e06 < mz_tolerance)
             {
@@ -1430,12 +1478,14 @@ namespace OpenMS
                               << " -> " << log(1. - weight) << "*" << log_weight
                               << " obj: " << model_->getObjective(f_v_idx);
 #endif
-                    if (log_weight * weight >  obj && obj > 0.)
+                    if ((log_weight * weight >  obj) && (obj > 0.))
                     {
                       model_->setObjective(static_cast<Int>(f_v_idx), 0.001);
                     }
                     else
+                    {
                       model_->setObjective(static_cast<Int>(f_v_idx), obj - weight * log_weight);
+                    }
 #ifdef DEBUG_OPS
                     std::cout << " -> " << model_->getObjective(f_v_idx) << " columnname: " << model_->getColumnName(f_v_idx) << std::endl;
 #endif
@@ -1486,7 +1536,7 @@ namespace OpenMS
     StopWatch timer;
     timer.start();
 #endif
-    if (new_feature.getPeptideIdentifications().size() > 0 && new_feature.getPeptideIdentifications()[0].getHits().size() > 0)
+    if ((new_feature.getPeptideIdentifications().size() > 0) && (new_feature.getPeptideIdentifications()[0].getHits().size() > 0))
     {
       // if a selected feature yielded a peptide id, the peptide probability needs to be considered in the protein constraint
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();
@@ -1497,7 +1547,9 @@ namespace OpenMS
       for (Size pa = 0; pa < protein_accs.size(); ++pa)
       {
         if (find(accs.begin(), accs.end(), protein_accs[pa]) == accs.end())
+        {
           continue;
+        }
 
         Int row = model_->getRowIndex((String("PROT_COV_") + protein_accs[pa]).c_str());
 #ifdef DEBUG_OPS
@@ -1549,7 +1601,9 @@ namespace OpenMS
           protein_feature_map.insert(std::make_pair(*acc_it, vec));
         }
         else
+        {
           prot_var_iter->second.push_back((Size)new_feature.getMetaValue("feature_index"));
+        }
         // if protein prob exceeds min threshold
         if ((prot_inference.getProteinProbability(*acc_it) > min_protein_probability) && (prot_inference.isProteinInMinimalList(*acc_it)))
         {
@@ -1564,7 +1618,9 @@ namespace OpenMS
               {
                 new_protein_accs.push_back(*acc_it);
                 if (double(param_.getValue("combined_ilp:k3")) > 0.000001)
+                {
                   updateObjFunction_(*acc_it, features, preprocessed_db, variable_indices);
+                }
               }
               protein_accs.push_back(*acc_it);
               // insert protein to ILP
@@ -1669,7 +1725,9 @@ namespace OpenMS
                   for (Size f = 0; f < features.size(); ++f)
                   {
                     if (features[f].getMetaValue("fragmented") == "true")
+                    {
                       continue;
+                    }
                     // and check if they match the current peptide
                     if (fabs(masses[p] - features[f].getMZ()) / masses[p] * 1e06 < mz_tolerance)
                     {
@@ -1741,7 +1799,9 @@ namespace OpenMS
                                 entries.push_back(-log(0.000001) / log(1. - min_prot_coverage));
                               }
                               else
+                              {
                                 entries.push_back(-log(1. - weight) / log(1. - min_prot_coverage));
+                              }
 #ifdef DEBUG_OPS
                               if (features[f].metaValueExists("pred_pep_prob"))
                               {
@@ -1791,8 +1851,8 @@ namespace OpenMS
             } //if(prot_acc_iter == protein_accs.end())
             else
             {
-              if (find(new_protein_accs.begin(), new_protein_accs.end(), *acc_it) == new_protein_accs.end() &&
-                  prot_inference.getProteinProbability(*acc_it) >= min_prot_coverage && double(param_.getValue("combined_ilp:k3")) > 0.000001)
+              if ((find(new_protein_accs.begin(), new_protein_accs.end(), *acc_it) == new_protein_accs.end()) &&
+                  (prot_inference.getProteinProbability(*acc_it) >= min_prot_coverage) && (double(param_.getValue("combined_ilp:k3")) > 0.000001))
               {
                 new_protein_accs.push_back(*acc_it);
                 updateObjFunction_(*acc_it, features, preprocessed_db, variable_indices);
@@ -1856,7 +1916,6 @@ namespace OpenMS
 #endif
   }
 
-
   void PSLPFormulation::getXIC_(const std::vector<std::pair<Size, Size> >& end_points,
                                 std::vector<double>& weights,
                                 const PeakMap& experiment,
@@ -1873,7 +1932,9 @@ namespace OpenMS
         // std::cout << " add "<<experiment[end_points[i].first][j].getIntensity()<<std::endl;
       }
       if (weight > max_weight)
+      {
         max_weight = weight;
+      }
 
       weights.push_back(weight);
     }
@@ -1952,6 +2013,5 @@ namespace OpenMS
     createAndSolveCombinedLPFeatureBased_(features, intensity_weights, charges_set, mass_ranges, variable_indices, solution_indices, ms2_spectra_per_rt_bin,
                                           experiment.size(), step_size, sequential_order);
   }
-
 
 } // namespace OpenMS

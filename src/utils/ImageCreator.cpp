@@ -89,22 +89,22 @@ public:
 protected:
   StringList out_formats_; //< valid output formats for image
 
-  void addPoint_(int x, int y, QImage & image, QColor color = Qt::black,
+  void addPoint_(int x, int y, QImage& image, QColor color = Qt::black,
                  Size size = 2)
   {
     int h = image.height(), w = image.width();
     vector<int> xs(1, x), ys(1, y);
     if (size == 2)
     {
-      int xtemp[] = {x - 1, x, x, x + 1};
-      int ytemp[] = {y, y - 1, y + 1, y};
+      int xtemp[] = { x - 1, x, x, x + 1 };
+      int ytemp[] = { y, y - 1, y + 1, y };
       xs = vector<int>(xtemp, xtemp + 4);
       ys = vector<int>(ytemp, ytemp + 4);
     }
     else if (size == 3)
     {
-      int xtemp[] = {x - 2, x - 1, x - 1, x, x, x + 1, x + 1, x + 2};
-      int ytemp[] = {y, y + 1, y - 1, y + 2, y - 2, y + 1, y - 1, y};
+      int xtemp[] = { x - 2, x - 1, x - 1, x, x, x + 1, x + 1, x + 2 };
+      int ytemp[] = { y, y + 1, y - 1, y + 2, y - 2, y + 1, y - 1, y };
       xs = vector<int>(xtemp, xtemp + 8);
       ys = vector<int>(ytemp, ytemp + 8);
     }
@@ -118,15 +118,15 @@ protected:
     }
   }
 
-  void addFeatureBox_(int lower_mz, int lower_rt, int upper_mz, int upper_rt, QImage & image, QColor color = Qt::black)
+  void addFeatureBox_(int lower_mz, int lower_rt, int upper_mz, int upper_rt, QImage& image, QColor color = Qt::black)
   {
-    QPainter * painter = new QPainter(&image);
+    QPainter* painter = new QPainter(&image);
     painter->setPen(color);
     painter->drawRect(QRect(lower_rt, lower_mz, upper_rt - lower_rt, upper_mz - lower_mz));
     delete painter;
   }
 
-  void markMS2Locations_(PeakMap & exp, QImage & image, bool transpose,
+  void markMS2Locations_(PeakMap& exp, QImage& image, bool transpose,
                          QColor color, Size size)
   {
     double xcoef = image.width(), ycoef = image.height();
@@ -158,12 +158,12 @@ protected:
           x = int(xcoef * (mz - exp.getMinMZ()));
           y = int(ycoef * (exp.getMaxRT() - rt));
         }
-        addPoint_(x, y, image, color, size);  //mark MS2
+        addPoint_(x, y, image, color, size); //mark MS2
       }
     }
   }
 
-  void markFeatureLocations_(FeatureMap & feature_map, PeakMap & exp, QImage & image, bool transpose, QColor color)
+  void markFeatureLocations_(FeatureMap& feature_map, PeakMap& exp, QImage& image, bool transpose, QColor color)
   {
     double xcoef = image.width(), ycoef = image.height();
     if (transpose)
@@ -248,7 +248,7 @@ protected:
     setMaxInt_("precursor_size", 3);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //----------------------------------------------------------------
     // load data
@@ -263,7 +263,7 @@ protected:
       {
         format = out.suffix('.');
       }
-      catch (Exception::ElementNotFound & /*e*/)
+      catch (Exception::ElementNotFound& /*e*/)
       {
         format = "nosuffix";
       }
@@ -318,7 +318,7 @@ protected:
       for (PeakMap::Iterator spec_iter = exp.begin();
            spec_iter != exp.end(); ++spec_iter)
       {
-        if (spec_iter->getMSLevel() != 1) continue;
+        if (spec_iter->getMSLevel() != 1) { continue; }
         for (PeakMap::SpectrumType::ConstIterator peak1_iter =
                spec_iter->begin(); peak1_iter != spec_iter->end();
              ++peak1_iter)
@@ -328,7 +328,7 @@ protected:
         }
       }
     }
-    else     // transpose
+    else // transpose
     {
       // spectra run bottom-up:
       bilip.setMapping_0(0, exp.getMaxMZ(), rows - 1, exp.getMinMZ());
@@ -338,7 +338,7 @@ protected:
       for (PeakMap::Iterator spec_iter = exp.begin();
            spec_iter != exp.end(); ++spec_iter)
       {
-        if (spec_iter->getMSLevel() != 1) continue;
+        if (spec_iter->getMSLevel() != 1) { continue; }
         for (PeakMap::SpectrumType::ConstIterator peak1_iter =
                spec_iter->begin(); peak1_iter != spec_iter->end();
              ++peak1_iter)
@@ -375,7 +375,7 @@ protected:
     string feature_color_string = getStringOption_("feature_color");
     QColor feature_color(feature_color_string.c_str());
 
-    QPainter * painter = new QPainter(&image);
+    QPainter* painter = new QPainter(&image);
     painter->setPen(background_color);
     painter->fillRect(0, 0, peaks, scans, Qt::SolidPattern);
     delete painter;
@@ -386,7 +386,7 @@ protected:
       factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));
     }
     // logarithmize max. intensity as well:
-    if (use_log) factor = std::log(factor);
+    if (use_log) { factor = std::log(factor); }
 
     factor /= 100.0;
     for (int i = 0; i < scans; ++i)
@@ -394,7 +394,7 @@ protected:
       for (int j = 0; j < peaks; ++j)
       {
         double value = bilip.getData().getValue(i, j);
-        if (use_log) value = std::log(value);
+        if (use_log) { value = std::log(value); }
         if (value > 1e-4)
         {
           image.setPixel(j, i, gradient.interpolatedColorAt(value / factor).rgb());
@@ -421,14 +421,14 @@ protected:
       markFeatureLocations_(feature_map, exp, image, getFlag_("transpose"), feature_color);
     }
 
-    if (image.save(out.toQString(), format.c_str())) return EXECUTION_OK;
-    else return CANNOT_WRITE_OUTPUT_FILE;
+    if (image.save(out.toQString(), format.c_str())) { return EXECUTION_OK; }
+    else{ return CANNOT_WRITE_OUTPUT_FILE; }
   }
 
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPImageCreator tool;
   return tool.main(argc, argv);

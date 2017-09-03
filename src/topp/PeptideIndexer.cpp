@@ -112,7 +112,7 @@ protected:
 
     Param temp = PeptideIndexing().getParameters();
     registerFullParam_(temp);
-   }
+  }
 
   ExitCodes main_(int, const char**)
   {
@@ -169,7 +169,7 @@ protected:
     {
       if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
       {
-        return INPUT_FILE_EMPTY;       
+        return INPUT_FILE_EMPTY;
       }
       else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
       {
@@ -180,11 +180,11 @@ protected:
         return UNKNOWN_ERROR;
       }
     }
-    
+
     //-------------------------------------------------------------
     // calculate protein coverage
     //-------------------------------------------------------------
-    
+
     if (param.getValue("write_protein_sequence").toBool())
     {
       for (Size i = 0; i < prot_ids.size(); ++i)

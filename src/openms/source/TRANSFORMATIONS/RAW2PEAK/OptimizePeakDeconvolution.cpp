@@ -149,7 +149,7 @@ namespace OpenMS
 
         if (p_height <  1)
         {
-          penalty += 100000* penalty_intensity* pow(fabs(p_height - old_height), 2);
+          penalty += 100000 * penalty_intensity * pow(fabs(p_height - old_height), 2);
 
         }
         if (p_width_l < 0)
@@ -157,16 +157,20 @@ namespace OpenMS
           penalty += penalty_lwidth * peaks.size() * 10000 * pow(fabs(p_width_l - old_width_l), 2);
         }
         else if (p_width_l < 1.5)
+        {
           penalty += 10000 * pow(fabs(p_width_l - old_width_l), 2);
+        }
         if (p_width_r < 0)
         {
           penalty += penalty_rwidth * peaks.size() * 10000 * pow(fabs(p_width_r - old_width_r), 2);
         }
         else if (p_width_r < 1.5)
+        {
           penalty += 10000 * pow(fabs(p_width_r - old_width_r), 2);
+        }
         if (fabs(old_position - p_position) > 0.1)
         {
-          penalty += 10000* penalty_pos* pow(fabs(old_position - p_position), 2);
+          penalty += 10000 * penalty_pos * pow(fabs(old_position - p_position), 2);
         }
       }
       fvec(fvec.size() - 1) = penalty;
@@ -214,17 +218,17 @@ namespace OpenMS
             double denom_inv = 1. / (1. + pow(p_width * diff, 2));
 
             double ddl_left
-              = (current_position <= p_position) ? -2* p_height* pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
+              = (current_position <= p_position) ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
 
             double ddl_right
-              = (current_position  > p_position) ? -2* p_height* pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
+              = (current_position  > p_position) ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
 
             // left and right width are the same for all peaks,
             // the sums of the derivations over all peaks are stored in the first two columns
             J(current_point, 0) = J(current_point, 0) + ddl_left;
             J(current_point, 1) = J(current_point, 1) + ddl_right;
 
-            double ddx0    = 2* p_height* pow(p_width, 2) * diff * pow(denom_inv, 2);
+            double ddx0    = 2 * p_height * pow(p_width, 2) * diff * pow(denom_inv, 2);
 
             // partial derivation with respect to intensity
             J(current_point, 2 + 2 * current_peak) = denom_inv;
@@ -243,16 +247,16 @@ namespace OpenMS
 
 
             double ddl_left  = (current_position <= p_position)
-                               ? -2* p_height* sinh_term* diff* pow(denom_inv, 3) :
+                               ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) :
                                0;
             double ddl_right = (current_position  > p_position)
-                               ? -2* p_height* sinh_term* diff* pow(denom_inv, 3) :
+                               ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) :
                                0;
 
             J(current_point, 0) = J(current_point, 0) + ddl_left;
             J(current_point, 1) = J(current_point, 1) + ddl_right;
 
-            double ddx0      = 2* p_height* p_width* sinh_term* pow(denom_inv, 3);
+            double ddx0      = 2 * p_height * p_width * sinh_term * pow(denom_inv, 3);
 
             J(current_point, 2 + 2 * current_peak) = pow(denom_inv, 2);
             J(current_point, 2 + 2 * current_peak + 1) = ddx0;
@@ -303,13 +307,17 @@ namespace OpenMS
           penalty_l += peaks.size() * 2 * penalties.lWidth * 10000 * (fabs(p_width_left - old_width_left));
         }
         else if (p_width_left < 1.5)
+        {
           penalty_l += 2 * penalties.lWidth * 10000 * pow(fabs(p_width_left - old_width_left), 2);
+        }
         if (p_width_right < 0)
         {
           penalty_r += peaks.size() * 2 * penalties.rWidth * 10000 * (fabs(p_width_right - old_width_right));
         }
         else if (p_width_right < 1.5)
+        {
           penalty_r += 2 * penalties.rWidth * 10000 * pow(fabs(p_width_right - old_width_right), 2);
+        }
         if (fabs(old_position - p_position) > 0.1)
         {
           penalty_p += 10000 * penalties.pos * 2 * fabs(old_position - p_position);
@@ -372,7 +380,9 @@ namespace OpenMS
   {
 
     if (peaks.empty())
+    {
       return true;
+    }
 
 
 #ifdef DEBUG_DECONV
@@ -508,7 +518,7 @@ namespace OpenMS
           peaks[current_peak].area = area_left + area_right;
 
         }
-        else                   //It's a Sech - Peak
+        else //It's a Sech - Peak
         {
           PeakShape p = peaks[current_peak];
           double x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));

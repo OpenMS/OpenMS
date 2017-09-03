@@ -75,9 +75,9 @@ namespace OpenMS
     {
       StringList substrings;
       it.getName().split(':', substrings);
-      if (substrings.size() != 2 ||
-          substrings.back() != "url_list" ||
-          (it->value).valueType() != DataValue::STRING_LIST)
+      if ((substrings.size() != 2) ||
+          (substrings.back() != "url_list") ||
+          ((it->value).valueType() != DataValue::STRING_LIST))
       {
         std::cerr << "Invalid file format." << std::endl;
         return;

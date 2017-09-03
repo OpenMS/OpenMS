@@ -39,6 +39,6 @@ namespace OpenMS
 {
   namespace Internal
   {
-    const char * OpenMS_locale = setlocale(LC_ALL, "C");
+    const char* OpenMS_locale = setlocale(LC_ALL, "C");
   }
 }

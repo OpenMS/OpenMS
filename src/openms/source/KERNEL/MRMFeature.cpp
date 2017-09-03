@@ -43,7 +43,7 @@ namespace OpenMS
   }
 
   /// Copy constructor
-  MRMFeature::MRMFeature(const MRMFeature & rhs) :
+  MRMFeature::MRMFeature(const MRMFeature& rhs) :
     Feature(rhs),
     features_(rhs.features_),
     precursor_features_(rhs.precursor_features_),
@@ -55,12 +55,14 @@ namespace OpenMS
   }
 
   /// Assignment operator
-  MRMFeature & MRMFeature::operator = (const MRMFeature &rhs)
+  MRMFeature& MRMFeature::operator=(const MRMFeature& rhs)
   {
     if (&rhs == this)
+    {
       return *this;
+    }
 
-    Feature::operator = (rhs);
+    Feature::operator=(rhs);
     setScores(rhs.getScores());
     features_ = rhs.features_;
     precursor_features_ = rhs.precursor_features_;
@@ -74,17 +76,17 @@ namespace OpenMS
   {
   }
 
-  const MRMFeature::PGScoresType & MRMFeature::getScores() const
+  const MRMFeature::PGScoresType& MRMFeature::getScores() const
   {
     return pg_scores_;
   }
 
-  double MRMFeature::getScore(const String & score_name)
+  double MRMFeature::getScore(const String& score_name)
   {
     return pg_scores_[score_name];
   }
 
-  void MRMFeature::setScores(const PGScoresType & scores)
+  void MRMFeature::setScores(const PGScoresType& scores)
   {
 
     for (MRMFeature::PGScoresType::const_iterator score = scores.begin();
@@ -94,29 +96,29 @@ namespace OpenMS
     }
   }
 
-  void MRMFeature::addScore(const String & score_name, double score)
+  void MRMFeature::addScore(const String& score_name, double score)
   {
     pg_scores_[score_name] = score;
     setMetaValue(score_name, score);
   }
 
-  void MRMFeature::addFeature(Feature & feature, const String& key)
+  void MRMFeature::addFeature(Feature& feature, const String& key)
   {
     features_.push_back(feature);
     feature_map_[key] = Int(features_.size()) - 1;
   }
 
-  Feature & MRMFeature::getFeature(String key) 
+  Feature& MRMFeature::getFeature(String key)
   {
     return features_.at(feature_map_[key]);
   }
 
-  const std::vector<Feature> & MRMFeature::getFeatures() const
+  const std::vector<Feature>& MRMFeature::getFeatures() const
   {
     return features_;
   }
 
-  void MRMFeature::getFeatureIDs(std::vector<String> & result) const
+  void MRMFeature::getFeatureIDs(std::vector<String>& result) const
   {
     for (std::map<String, int>::const_iterator it = feature_map_.begin(); it != feature_map_.end(); ++it)
     {
@@ -124,13 +126,13 @@ namespace OpenMS
     }
   }
 
-  void MRMFeature::addPrecursorFeature(Feature & feature, const String& key)
+  void MRMFeature::addPrecursorFeature(Feature& feature, const String& key)
   {
     precursor_features_.push_back(feature);
     precursor_feature_map_[key] = Int(precursor_features_.size()) - 1;
   }
 
-  void MRMFeature::getPrecursorFeatureIDs(std::vector<String> & result) const
+  void MRMFeature::getPrecursorFeatureIDs(std::vector<String>& result) const
   {
     for (std::map<String, int>::const_iterator it = precursor_feature_map_.begin(); it != precursor_feature_map_.end(); ++it)
     {
@@ -138,10 +140,9 @@ namespace OpenMS
     }
   }
 
-  Feature & MRMFeature::getPrecursorFeature(String key)
+  Feature& MRMFeature::getPrecursorFeature(String key)
   {
     return precursor_features_.at(precursor_feature_map_[key]);
   }
 
 }
-

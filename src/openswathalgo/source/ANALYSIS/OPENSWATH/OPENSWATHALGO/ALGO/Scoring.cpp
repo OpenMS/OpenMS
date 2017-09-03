@@ -169,7 +169,7 @@ namespace OpenSwath
         for (i = 0; i < datasize; ++i)
         {
           j = i + delay;
-          if (j < 0 || j >= datasize)
+          if ((j < 0) || (j >= datasize))
           {
             continue;
           }
@@ -218,7 +218,7 @@ namespace OpenSwath
         for (i = 0; i < datasize; i++)
         {
           j = i + delay;
-          if (j < 0 || j >= datasize)
+          if ((j < 0) || (j >= datasize))
           {
             continue;
           }

@@ -177,7 +177,6 @@ protected:
     registerSubsection_("PEPMatrix", "PEPMatrix algorithm parameters");
   }
 
-
   Param getSubsectionDefaults_(const String& section) const
   {
     Param algo_params;
@@ -193,7 +192,6 @@ protected:
     algo_params.remove("filter:");
     return algo_params;
   }
-
 
   void setProteinIdentifications_(vector<ProteinIdentification>& prot_ids)
   {
@@ -230,7 +228,6 @@ protected:
     prot_ids[0].setPrimaryMSRunPath(merged_spectra_data);
   }
 
-
   template <typename MapType>
   void processFeatureOrConsensusMap_(MapType& input_map,
                                      ConsensusIDAlgorithm* consensus)
@@ -256,7 +253,7 @@ protected:
     {
       vector<PeptideIdentification>& ids = map_it->getPeptideIdentifications();
       vector<Size> times_seen(number_of_runs);
-      for (vector<PeptideIdentification>::iterator pep_it = ids.begin(); 
+      for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
            pep_it != ids.end(); ++pep_it)
       {
         ++times_seen[id_mapping[pep_it->getIdentifier()]];
@@ -271,7 +268,6 @@ protected:
     // remove outdated information (protein references will be broken):
     input_map.getUnassignedPeptideIdentifications().clear();
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -330,7 +326,7 @@ protected:
       IdXMLFile().load(in, prot_ids, pep_ids, document_id);
 
       // merge peptide IDs by precursor position - this is equivalent to a
-      // feature linking problem (peptide IDs from different ID runs <-> 
+      // feature linking problem (peptide IDs from different ID runs <->
       // features from different maps), so we bring the data into a format
       // suitable for a feature grouping algorithm:
       vector<FeatureMap> maps(prot_ids.size());

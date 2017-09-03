@@ -145,7 +145,7 @@ protected:
 
     registerInputFile_("ids", "<id file>", "", "file containing results of identification");
     setValidFormats_("ids", ListUtils::create<String>("idXML"));
-    
+
     registerIntOption_("num_precursors", "<Int>", 1, "number of precursors to be selected", false);
     registerInputFile_("raw_data", "<file>", "", "Input profile data.", false);
     setValidFormats_("raw_data", ListUtils::create<String>("mzML"));
@@ -166,14 +166,14 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String & /* section*/) const
+  Param getSubsectionDefaults_(const String& /* section*/) const
   {
     Param param = PrecursorIonSelection().getDefaults();
     //    param.insert("",PrecursorIonSelection().getDefaults().copy(""));
     return param;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -216,7 +216,7 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    else if (rt_model == "" ||  dt_model == "")
+    else if ((rt_model == "") || (dt_model == ""))
     {
       pisp.dbPreprocessing(db_path, store_preprocessing);
     }
@@ -226,7 +226,7 @@ protected:
     }
 
     PeakMap exp;
-    if (raw_data != "") MzMLFile().load(raw_data, exp);
+    if (raw_data != "") { MzMLFile().load(raw_data, exp); }
 
     //-------------------------------------------------------------
     // init pis
@@ -242,7 +242,7 @@ protected:
     {
       pis.setLPSolver(LPWrapper::SOLVER_GLPK);
     }
-    else pis.setLPSolver(LPWrapper::SOLVER_COINOR);
+    else{ pis.setLPSolver(LPWrapper::SOLVER_COINOR); }
 #endif
 
     //-------------------------------------------------------------
@@ -269,7 +269,7 @@ protected:
     else
     {
 
-      pis.rescore(f_map, pep_ids, prot_ids, pisp);  // todo: add "rescoring" for LP selection
+      pis.rescore(f_map, pep_ids, prot_ids, pisp); // todo: add "rescoring" for LP selection
       FeatureMap new_precursors;
       pis.getNextPrecursors(f_map, new_precursors, prec_num);
 
@@ -277,17 +277,17 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      if (next_prec != "") f_file.store(next_prec, new_precursors);
+      if (next_prec != "") { f_file.store(next_prec, new_precursors); }
     }
 
-    if (out != "") f_file.store(out, f_map);
+    if (out != "") { f_file.store(out, f_map); }
 
     return EXECUTION_OK;
   }
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPrecursorIonSelector tool;
   return tool.main(argc, argv);

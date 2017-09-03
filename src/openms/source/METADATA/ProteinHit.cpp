@@ -39,7 +39,7 @@ using namespace std;
 namespace OpenMS
 {
   const double ProteinHit::COVERAGE_UNKNOWN = -1;
-  
+
   // default constructor
   ProteinHit::ProteinHit() :
     MetaInfoInterface(),
@@ -63,7 +63,7 @@ namespace OpenMS
   }
 
   // copy constructor
-  ProteinHit::ProteinHit(const ProteinHit & source) :
+  ProteinHit::ProteinHit(const ProteinHit& source) :
     MetaInfoInterface(source),
     score_(source.score_),
     rank_(source.rank_),
@@ -79,7 +79,7 @@ namespace OpenMS
   }
 
   // assignment operator
-  ProteinHit & ProteinHit::operator=(const ProteinHit & source)
+  ProteinHit& ProteinHit::operator=(const ProteinHit& source)
   {
     if (this == &source)
     {
@@ -97,14 +97,14 @@ namespace OpenMS
   }
 
   // assignment operator for MetaInfoInterface
-  ProteinHit & ProteinHit::operator=(const MetaInfoInterface & source)
+  ProteinHit& ProteinHit::operator=(const MetaInfoInterface& source)
   {
     MetaInfoInterface::operator=(source);
     return *this;
   }
 
   // equality operator
-  bool ProteinHit::operator==(const ProteinHit & rhs) const
+  bool ProteinHit::operator==(const ProteinHit& rhs) const
   {
     return MetaInfoInterface::operator==(rhs)
            && score_ == rhs.score_
@@ -115,7 +115,7 @@ namespace OpenMS
   }
 
   // inequality operator
-  bool ProteinHit::operator!=(const ProteinHit & rhs) const
+  bool ProteinHit::operator!=(const ProteinHit& rhs) const
   {
     return !operator==(rhs);
   }
@@ -133,13 +133,13 @@ namespace OpenMS
   }
 
   // returns the protein sequence
-  const String & ProteinHit::getSequence() const
+  const String& ProteinHit::getSequence() const
   {
     return sequence_;
   }
 
   // returns the accession of the protein
-  const String & ProteinHit::getAccession() const
+  const String& ProteinHit::getAccession() const
   {
     return accession_;
   }
@@ -169,20 +169,20 @@ namespace OpenMS
   }
 
   // sets the protein sequence
-  void ProteinHit::setSequence(const String & sequence)
+  void ProteinHit::setSequence(const String& sequence)
   {
     sequence_ = sequence;
     sequence_.trim();
   }
 
   // sets the description of the protein
-  void ProteinHit::setDescription(const String & description)
+  void ProteinHit::setDescription(const String& description)
   {
     setMetaValue("Description", description);
   }
 
   // sets the accession of the protein
-  void ProteinHit::setAccession(const String & accession)
+  void ProteinHit::setAccession(const String& accession)
   {
     accession_ = accession;
     accession_.trim();

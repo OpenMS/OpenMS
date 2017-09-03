@@ -106,7 +106,7 @@ namespace OpenMS
     // all bins at equal position that have both intensity > 0 contribute positively to score
     for (Size i = 0; i < shared_Bins; ++i)
     {
-      if (spec1.getBins()[i] > 0 && spec2.getBins()[i] > 0)
+      if ((spec1.getBins()[i] > 0) && (spec2.getBins()[i] > 0))
       {
         sum++;
       }

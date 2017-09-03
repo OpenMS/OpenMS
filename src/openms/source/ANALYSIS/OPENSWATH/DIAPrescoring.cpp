@@ -54,7 +54,9 @@ namespace OpenMS
     {
       double libInt = transitions[i].getLibraryIntensity();
       if (libInt < 0.)
+      {
         libInt = 0.;
+      }
       totalInt += libInt;
       normalizedLibraryIntensities.push_back(libInt);
     }

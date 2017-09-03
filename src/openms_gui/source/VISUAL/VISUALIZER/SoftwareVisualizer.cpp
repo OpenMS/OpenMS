@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget * parent) :
+  SoftwareVisualizer::SoftwareVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<Software>()
   {

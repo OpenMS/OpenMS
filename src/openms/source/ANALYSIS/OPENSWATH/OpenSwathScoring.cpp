@@ -65,8 +65,8 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
-    int add_up_spectra, double spacing_for_spectra_resampling,
-    OpenSwath_Scores_Usage & su)
+                                    int add_up_spectra, double spacing_for_spectra_resampling,
+                                    OpenSwath_Scores_Usage& su)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;
@@ -75,25 +75,25 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
-                                            const std::vector<TransitionType> & transitions,
+                                            const std::vector<TransitionType>& transitions,
                                             std::vector<OpenSwath::SwathMap> swath_maps,
                                             OpenSwath::SpectrumAccessPtr ms1_map,
-                                            OpenMS::DIAScoring & diascoring,
+                                            OpenMS::DIAScoring& diascoring,
                                             const CompoundType& compound,
-                                            OpenSwath_Scores & scores)
+                                            OpenSwath_Scores& scores)
   {
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
     // Identify corresponding SONAR maps (if more than one map is used)
     std::vector<OpenSwath::SwathMap> used_swath_maps;
-    if (swath_maps.size() > 1 || transitions.empty())
+    if ((swath_maps.size() > 1) || transitions.empty())
     {
       double precursor_mz = transitions[0].getPrecursorMZ();
       for (size_t i = 0; i < swath_maps.size(); ++i)
       {
-        if (swath_maps[i].ms1) {continue;} // skip MS1
-        if (precursor_mz > swath_maps[i].lower && precursor_mz < swath_maps[i].upper)
+        if (swath_maps[i].ms1) { continue; } // skip MS1
+        if ((precursor_mz > swath_maps[i].lower) && (precursor_mz < swath_maps[i].upper))
         {
           used_swath_maps.push_back(swath_maps[i]);
         }
@@ -113,7 +113,7 @@ namespace OpenMS
 
     // Mass deviation score
     diascoring.dia_massdiff_score(transitions, (*spectrum), normalized_library_intensity,
-        scores.massdev_score, scores.weighted_massdev_score);
+                                  scores.massdev_score, scores.weighted_massdev_score);
 
     // DIA dotproduct and manhattan score based on library intensity
     diascoring.score_with_isotopes((*spectrum), transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
@@ -139,7 +139,7 @@ namespace OpenMS
     // FEATURE we should not punish so much when one transition is missing!
     scores.massdev_score = scores.massdev_score / transitions.size();
 
-    if (ms1_map && ms1_map->getNrSpectra() > 0) 
+    if (ms1_map && (ms1_map->getNrSpectra() > 0))
     {
       double precursor_mz = transitions[0].precursor_mz;
       double rt = imrmfeature->getRT();
@@ -149,24 +149,24 @@ namespace OpenMS
 
   }
 
-  void OpenSwathScoring::calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
-                                   OpenMS::DIAScoring & diascoring, 
-                                   double precursor_mz, 
-                                   double rt, 
-                                   const CompoundType& compound, 
-                                   OpenSwath_Scores & scores)
+  void OpenSwathScoring::calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map,
+                                                     OpenMS::DIAScoring& diascoring,
+                                                     double precursor_mz,
+                                                     double rt,
+                                                     const CompoundType& compound,
+                                                     OpenSwath_Scores& scores)
   {
     // Compute precursor-level scores:
     // - compute mass difference in ppm
     // - compute isotopic pattern score
-    if (ms1_map && ms1_map->getNrSpectra() > 0)
+    if (ms1_map && (ms1_map->getNrSpectra() > 0))
     {
       OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, rt, add_up_spectra_);
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
 
       // derive precursor charge state (get from data if possible)
       int precursor_charge = 1;
-      if (compound.getChargeState() != 0) 
+      if (compound.getChargeState() != 0)
       {
         precursor_charge = compound.getChargeState();
       }
@@ -187,10 +187,10 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
-                                              const TransitionType & transition,
+                                              const TransitionType& transition,
                                               std::vector<OpenSwath::SwathMap> swath_maps,
-                                              OpenMS::DIAScoring & diascoring,
-                                              OpenSwath_Scores & scores)
+                                              OpenMS::DIAScoring& diascoring,
+                                              OpenSwath_Scores& scores)
   {
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
@@ -201,8 +201,8 @@ namespace OpenMS
       double precursor_mz = transition.getPrecursorMZ();
       for (size_t i = 0; i < swath_maps.size(); ++i)
       {
-        if (swath_maps[i].ms1) {continue;} // skip MS1
-        if (precursor_mz > swath_maps[i].lower && precursor_mz < swath_maps[i].upper)
+        if (swath_maps[i].ms1) { continue; } // skip MS1
+        if ((precursor_mz > swath_maps[i].lower) && (precursor_mz < swath_maps[i].upper))
         {
           used_swath_maps.push_back(swath_maps[i]);
         }
@@ -233,12 +233,12 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::calculateChromatographicScores(
-        OpenSwath::IMRMFeature* imrmfeature,
-        const std::vector<std::string>& native_ids,
-        const std::string& precursor_feature_id,
-        const std::vector<double>& normalized_library_intensity,
-        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-        OpenSwath_Scores & scores)
+    OpenSwath::IMRMFeature* imrmfeature,
+    const std::vector<std::string>& native_ids,
+    const std::string& precursor_feature_id,
+    const std::vector<double>& normalized_library_intensity,
+    std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+    OpenSwath_Scores& scores)
   {
     OpenSwath::MRMScoring mrmscore_;
     mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
@@ -261,7 +261,7 @@ namespace OpenMS
     }
 
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
-    if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation)
+    if ((imrmfeature->getPrecursorIDs().size() > 0) && su_.use_ms1_correlation)
     {
       mrmscore_.initializeMS1XCorr(imrmfeature, native_ids, precursor_feature_id); // perform cross-correlation on monoisotopic precursor
       scores.xcorr_ms1_coelution_score = mrmscore_.calcMS1XcorrCoelutionScore();
@@ -284,11 +284,11 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::calculateChromatographicIdScores(
-        OpenSwath::IMRMFeature* imrmfeature,
-        const std::vector<std::string>& native_ids_identification,
-        const std::vector<std::string>& native_ids_detection,
-        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-        OpenSwath_Scores & idscores)
+    OpenSwath::IMRMFeature* imrmfeature,
+    const std::vector<std::string>& native_ids_identification,
+    const std::vector<std::string>& native_ids_detection,
+    std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+    OpenSwath_Scores& idscores)
   {
     OpenSwath::MRMScoring mrmscore_;
     mrmscore_.initializeXCorrIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
@@ -311,24 +311,27 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::calculateLibraryScores(
-        OpenSwath::IMRMFeature* imrmfeature,
-        const std::vector<TransitionType> & transitions,
-        const CompoundType& pep,
-        const double normalized_feature_rt,
-        OpenSwath_Scores & scores)
+    OpenSwath::IMRMFeature* imrmfeature,
+    const std::vector<TransitionType>& transitions,
+    const CompoundType& pep,
+    const double normalized_feature_rt,
+    OpenSwath_Scores& scores)
   {
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     std::vector<std::string> native_ids;
     OpenSwath::MRMScoring mrmscore_;
-    for (Size i = 0; i < transitions.size(); i++) {native_ids.push_back(transitions[i].getNativeID());}
+    for (Size i = 0; i < transitions.size(); i++)
+    {
+      native_ids.push_back(transitions[i].getNativeID());
+    }
 
     if (su_.use_library_score_)
     {
       mrmscore_.calcLibraryScore(imrmfeature, transitions,
-          scores.library_corr, scores.library_norm_manhattan, scores.library_manhattan,
-          scores.library_dotprod, scores.library_sangle, scores.library_rootmeansquare);
+                                 scores.library_corr, scores.library_norm_manhattan, scores.library_manhattan,
+                                 scores.library_dotprod, scores.library_sangle, scores.library_rootmeansquare);
     }
 
     // Retention time score
@@ -344,8 +347,8 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathScoring::getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-      std::vector<double>& normalized_library_intensity)
+  void OpenSwathScoring::getNormalized_library_intensities_(const std::vector<TransitionType>& transitions,
+                                                            std::vector<double>& normalized_library_intensity)
   {
     normalized_library_intensity.clear();
     for (Size i = 0; i < transitions.size(); i++)
@@ -384,15 +387,15 @@ namespace OpenMS
                                                             double RT, int nr_spectra_to_add)
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
-    if (indices.empty() )
+    if (indices.empty())
     {
       OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
       return sptr;
     }
     int closest_idx = boost::numeric_cast<int>(indices[0]);
-    if (indices[0] != 0 &&
-        std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
-        std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0])).RT - RT))
+    if ((indices[0] != 0) &&
+        (std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
+         std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0])).RT - RT)))
     {
       closest_idx--;
     }
@@ -424,4 +427,3 @@ namespace OpenMS
   }
 
 }
-

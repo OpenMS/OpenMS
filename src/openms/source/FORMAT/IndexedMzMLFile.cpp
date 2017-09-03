@@ -59,25 +59,26 @@ namespace OpenMS
     spectra_before_chroms_ = true;
     if (!spectra_offsets_.empty() && !chromatograms_offsets_.empty())
     {
-      if (spectra_offsets_[0].second < chromatograms_offsets_[0].second) spectra_before_chroms_ = true;
-      else spectra_before_chroms_ = false;
+      if (spectra_offsets_[0].second < chromatograms_offsets_[0].second) { spectra_before_chroms_ = true; }
+      else{ spectra_before_chroms_ = false; }
     }
 
-    if (res == 0) parsing_success_ = true;
-    else parsing_success_ = false;
+    if (res == 0) { parsing_success_ = true; }
+    else{ parsing_success_ = false; }
   }
 
   IndexedMzMLFile::IndexedMzMLFile(String filename) :
     parsing_success_(false),
-    skip_xml_checks_(false) 
+    skip_xml_checks_(false)
   {
     openFile(filename);
   }
 
   IndexedMzMLFile::IndexedMzMLFile() :
     parsing_success_(false),
-    skip_xml_checks_(false) 
-  {}
+    skip_xml_checks_(false)
+  {
+  }
 
   IndexedMzMLFile::IndexedMzMLFile(const IndexedMzMLFile& source) :
     filename_(source.filename_),
@@ -97,7 +98,7 @@ namespace OpenMS
   {
   }
 
-  void IndexedMzMLFile::openFile(String filename) 
+  void IndexedMzMLFile::openFile(String filename)
   {
     if (filestream_.is_open())
     {
@@ -128,15 +129,21 @@ namespace OpenMS
     int spectrumToGet = id;
 
     if (!parsing_success_)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          "Parsing was unsuccessful, cannot read file", "");
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Parsing was unsuccessful, cannot read file", "");
+    }
     if (spectrumToGet < 0)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          String( "id needs to be positive, was " + String(id) ));
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       String("id needs to be positive, was " + String(id)));
+    }
     if (spectrumToGet >= (int)getNrSpectra())
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String( 
-        "id needs to be smaller than the number of spectra, was " + String(id) 
-        + " maximal allowed is " + String(getNrSpectra()) ));
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(
+                                         "id needs to be smaller than the number of spectra, was " + String(id)
+                                         + " maximal allowed is " + String(getNrSpectra())));
+    }
 
     std::streampos startidx = -1;
     std::streampos endidx = -1;
@@ -191,15 +198,21 @@ namespace OpenMS
     int chromToGet = id;
 
     if (!parsing_success_)
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          "Parsing was unsuccessful, cannot read file", "");
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "Parsing was unsuccessful, cannot read file", "");
+    }
     if (chromToGet < 0)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          String( "id needs to be positive, was " + String(id) ));
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       String("id needs to be positive, was " + String(id)));
+    }
     if (chromToGet >= (int)getNrChromatograms())
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String( 
-        "id needs to be smaller than the number of spectra, was " + String(id) 
-        + " maximal allowed is " + String(getNrSpectra()) ));
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(
+                                         "id needs to be smaller than the number of spectra, was " + String(id)
+                                         + " maximal allowed is " + String(getNrSpectra())));
+    }
 
     std::streampos startidx = -1;
     std::streampos endidx = -1;

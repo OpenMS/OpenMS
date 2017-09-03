@@ -179,7 +179,7 @@ namespace OpenMS
   void TOPPASMergerVertex::run()
   {
     //check if everything ready
-    if (!isUpstreamFinished())  return;
+    if (!isUpstreamFinished()) { return; }
 
     RoundPackages pkg;
     String error_msg("");
@@ -193,7 +193,7 @@ namespace OpenMS
 
     /// update round status
     Size input_rounds = pkg.size();
-    round_total_ = (round_based_mode_ ? (int) input_rounds : 1);  // for round based: take number of rounds from previous tool(s) - should all be equal
+    round_total_ = (round_based_mode_ ? (int) input_rounds : 1); // for round based: take number of rounds from previous tool(s) - should all be equal
     round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
 
     // clear output file list

@@ -72,7 +72,9 @@ namespace OpenMS
     // avoid calling this function more than once
     static bool been_here = false;
     if (been_here)
+    {
       return console_width_;
+    }
 
     been_here = true;
 
@@ -96,8 +98,8 @@ namespace OpenMS
         GetConsoleScreenBufferInfo(hOut, &SBInfo);
         console_width_ = SBInfo.dwSize.X;
 #else // Linux / MacOS
-      // try "stty size" command
-      // don't use QProcess, since stty will not work there
+        // try "stty size" command
+        // don't use QProcess, since stty will not work there
         FILE* fp = popen("stty size", "r");
         if (fp != NULL)
         {
@@ -108,7 +110,9 @@ namespace OpenMS
             StringList components;
             output.split(' ', components);
             if (components.size() == 2)
+            {
               console_width_ = components[1].toInt();
+            }
           }
           else
           {
@@ -169,13 +173,13 @@ namespace OpenMS
           line = line.substr(1);
           ++advance_size;
         } // advance by # of \n's
-        if (line.hasSubstring("\n")) line = line.prefix('\n');
+        if (line.hasSubstring("\n")) { line = line.prefix('\n'); }
         advance_size += line.size(); // + actual chars
       }
 
       // check if we are using the full length and split a word at the same time
       // cut a little earlier in that case for nicer looks
-      if (line.size() ==  (result.size() == 0 ? line_len : short_line_len) && short_line_len > 8 && line.rfind(' ') != String::npos)
+      if ((line.size() ==  ((result.size() == 0) ? line_len : short_line_len)) && (short_line_len > 8) && (line.rfind(' ') != String::npos))
       {
         String last_word = line.suffix(' ');
         if (last_word.length() < 4)

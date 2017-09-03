@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  TOPPASTabBar::TOPPASTabBar(QWidget * parent) :
+  TOPPASTabBar::TOPPASTabBar(QWidget* parent) :
     QTabBar(parent)
   {
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(currentChanged_(int)));
@@ -80,7 +80,7 @@ namespace OpenMS
 //      e->acceptProposedAction();
 //  }
 
-  void TOPPASTabBar::contextMenuEvent(QContextMenuEvent * e)
+  void TOPPASTabBar::contextMenuEvent(QContextMenuEvent* e)
   {
     int tab = tabAt_(e->pos());
     if (tab != -1)
@@ -94,7 +94,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTabBar::mouseDoubleClickEvent(QMouseEvent * e)
+  void TOPPASTabBar::mouseDoubleClickEvent(QMouseEvent* e)
   {
     if (e->button() != Qt::LeftButton)
     {
@@ -108,7 +108,7 @@ namespace OpenMS
     }
   }
 
-  int TOPPASTabBar::addTab(const String & text, int id)
+  int TOPPASTabBar::addTab(const String& text, int id)
   {
     int tab_index = QTabBar::addTab(text.c_str());
     setTabData(tab_index, id);
@@ -145,7 +145,7 @@ namespace OpenMS
     emit currentIdChanged(tabData(id).toInt());
   }
 
-  int TOPPASTabBar::tabAt_(const QPoint & pos)
+  int TOPPASTabBar::tabAt_(const QPoint& pos)
   {
     int tab = -1;
 

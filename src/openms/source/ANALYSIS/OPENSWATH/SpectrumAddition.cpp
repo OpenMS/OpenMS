@@ -43,16 +43,16 @@ namespace OpenMS
 {
 
   OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra,
-      double sampling_rate, bool filter_zeros)
+                                                        double sampling_rate, bool filter_zeros)
   {
-    if (all_spectra.size() == 1) return all_spectra[0];
+    if (all_spectra.size() == 1) { return all_spectra[0]; }
     if (all_spectra.empty())
     {
       OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
       return sptr;
     }
     // ensure first one is not empty
-    if (all_spectra[0]->getMZArray()->data.empty() )
+    if (all_spectra[0]->getMZArray()->data.empty())
     {
       OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
       return sptr;
@@ -63,7 +63,7 @@ namespace OpenMS
     double max = all_spectra[0]->getMZArray()->data.back();
     for (Size i = 0; i < all_spectra.size(); i++)
     {
-      if (all_spectra[i]->getMZArray()->data.empty() )
+      if (all_spectra[i]->getMZArray()->data.empty())
       {
         continue;
       }
@@ -104,7 +104,7 @@ namespace OpenMS
                         resampled_peak_container->getMZArray()->data.end(),
                         resampled_peak_container->getIntensityArray()->data.begin(),
                         resampled_peak_container->getIntensityArray()->data.end()
-      );
+                        );
     }
 
     if (!filter_zeros)
@@ -128,14 +128,14 @@ namespace OpenMS
 
   OpenMS::MSSpectrum SpectrumAddition::addUpSpectra(std::vector<OpenMS::MSSpectrum> all_spectra, double sampling_rate, bool filter_zeros)
   {
-    if (all_spectra.size() == 1) return all_spectra[0];
-    if (all_spectra.empty()) return MSSpectrum();
+    if (all_spectra.size() == 1) { return all_spectra[0]; }
+    if (all_spectra.empty()) { return MSSpectrum(); }
     // ensure first one is not empty
-    if (all_spectra[0].empty() ) return MSSpectrum();
+    if (all_spectra[0].empty()) { return MSSpectrum(); }
 
     // find global min and max -> use as start/endpoints for resampling
     double min = all_spectra[0][0].getMZ();
-    double max = all_spectra[0][all_spectra[0].size()-1].getMZ();
+    double max = all_spectra[0][all_spectra[0].size() - 1].getMZ();
     double min_spacing = max - min;
     for (Size i = 0; i < all_spectra.size(); i++)
     {
@@ -148,22 +148,22 @@ namespace OpenMS
       {
         if (k > 0)
         {
-          if (min_spacing > all_spectra[i][k].getMZ() - all_spectra[i][k-1].getMZ() )
+          if (min_spacing > all_spectra[i][k].getMZ() - all_spectra[i][k - 1].getMZ())
           {
-            min_spacing = all_spectra[i][k].getMZ() - all_spectra[i][k-1].getMZ();
+            min_spacing = all_spectra[i][k].getMZ() - all_spectra[i][k - 1].getMZ();
           }
         }
 
-        if (all_spectra[i][k].getMZ() < min) min = all_spectra[i][k].getMZ();
-        if (all_spectra[i][k].getMZ() > max) max = all_spectra[i][k].getMZ();
+        if (all_spectra[i][k].getMZ() < min) { min = all_spectra[i][k].getMZ(); }
+        if (all_spectra[i][k].getMZ() > max) { max = all_spectra[i][k].getMZ(); }
       }
 
-      if (all_spectra[i][0].getMZ() < min) min = all_spectra[i][0].getMZ();
-      if (all_spectra[i][ all_spectra[i].size() -1].getMZ() > max) max = all_spectra[i][ all_spectra[i].size() -1].getMZ();
+      if (all_spectra[i][0].getMZ() < min) { min = all_spectra[i][0].getMZ(); }
+      if (all_spectra[i][all_spectra[i].size() - 1].getMZ() > max) { max = all_spectra[i][all_spectra[i].size() - 1].getMZ(); }
     }
 
     // in case we are asked to estimate the resampling rate
-    if (sampling_rate < 0) sampling_rate = min_spacing;
+    if (sampling_rate < 0) { sampling_rate = min_spacing; }
 
     // generate the resampled peaks at positions origin+i*spacing_
     int number_resampled_points = (max - min) / sampling_rate + 1;
@@ -213,4 +213,3 @@ namespace OpenMS
   }
 
 }
-

@@ -82,7 +82,7 @@ namespace OpenMS
   }
 
   void OfflinePrecursorIonSelection::createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file,
-                                                                               FeatureMap & precursors)
+                                                                               FeatureMap& precursors)
   {
     PrecursorIonSelectionPreprocessing pisp;
     Param pisp_param = pisp.getParameters();
@@ -143,7 +143,9 @@ namespace OpenMS
                                                    std::vector<std::vector<std::pair<Size, Size> > >& indices)
   {
     if (experiment.empty())
+    {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
+    }
     for (Size f = 0; f < features.size(); ++f)
     {
       std::vector<std::pair<Size, Size> > vec;
@@ -152,7 +154,9 @@ namespace OpenMS
       {
         // is scan relevant?
         if (!enclosesBoundingBox(features[f], experiment[rt].getRT(), features[f].getMZ()))
+        {
           continue;
+        }
 
         std::pair<Size, Size> start;
         std::pair<Size, Size> end;
@@ -161,7 +165,9 @@ namespace OpenMS
         MSSpectrum::ConstIterator mz_iter = experiment[rt].MZBegin(features[f].getMZ());
         MSSpectrum::ConstIterator mz_end = mz_iter;
         if (mz_iter == experiment[rt].end())
+        {
           continue;
+        }
         // check to the left
         while (enclosesBoundingBox(features[f], experiment[rt].getRT(), mz_iter->getMZ()))
         {
@@ -169,7 +175,9 @@ namespace OpenMS
           start.first = rt;
           start.second = distance(experiment[rt].begin(), mz_iter);
           if (mz_iter == experiment[rt].begin())
+          {
             break;
+          }
           --mz_iter;
           end_found = true;
           end.first = rt;
@@ -217,7 +225,9 @@ namespace OpenMS
         // we estimate the convex hull
         PeakMap::ConstIterator spec_iter = experiment.RTBegin(features[f].getRT());
         if (spec_iter == experiment.end())
+        {
           --spec_iter;
+        }
 
         double dist1 = fabs(spec_iter->getRT() - features[f].getRT());
         double dist2 = std::numeric_limits<double>::max();
@@ -230,11 +240,11 @@ namespace OpenMS
         {
           dist3 = fabs((spec_iter - 1)->getRT() - features[f].getRT());
         }
-        if (dist3 <= dist1 && dist3 <= dist2)
+        if ((dist3 <= dist1) && (dist3 <= dist2))
         {
           --spec_iter;
         }
-        else if (dist2 <= dist3 && dist2 <= dist1)
+        else if ((dist2 <= dist3) && (dist2 <= dist1))
         {
           ++spec_iter;
         }
@@ -249,14 +259,20 @@ namespace OpenMS
           indices.push_back(vec);
           continue;
         }
-        if (mz_iter == spec_iter->end() || (mz_iter->getMZ() > features[f].getMZ() && mz_iter != spec_iter->begin()))
+        if ((mz_iter == spec_iter->end()) || ((mz_iter->getMZ() > features[f].getMZ()) && (mz_iter != spec_iter->begin())))
+        {
           --mz_iter;
+        }
         while (mz_iter != spec_iter->begin())
         {
           if (fabs((mz_iter - 1)->getMZ() - features[f].getMZ()) < 0.5)
+          {
             --mz_iter;
+          }
           else
+          {
             break;
+          }
         }
         start.second = distance(spec_iter->begin(), mz_iter);
         MSSpectrum::ConstIterator mz_end = mz_iter;
@@ -265,13 +281,19 @@ namespace OpenMS
 #endif
         Int charge = features[f].getCharge();
         if (charge == 0)
+        {
           charge = 1;
+        }
         while (mz_end + 1 != spec_iter->end())
         {
           if (fabs((mz_end + 1)->getMZ() - features[f].getMZ()) < 3.0 / (double)charge)
+          {
             ++mz_end;
+          }
           else
+          {
             break;
+          }
         }
         end.second = distance(spec_iter->begin(), mz_end);
 #ifdef DEBUG_OPS
@@ -285,7 +307,9 @@ namespace OpenMS
     }
     // eliminate nearby peaks
     if (param_.getValue("exclude_overlapping_peaks") == "true")
+    {
       checkMassRanges_(indices, experiment);
+    }
   }
 
   void OfflinePrecursorIonSelection::calculateXICs_(const FeatureMap& features,
@@ -472,7 +496,7 @@ namespace OpenMS
         std::cout << "scan " << experiment[i].getRT() << ":";
 #endif
         // decrease scan counter by 1, and remove if entry on time-out
-        updateExclusionList_(exclusion_list); 
+        updateExclusionList_(exclusion_list);
 
         MSSpectrum scan = experiment[i]; // copy & sort
         scan.sortByIntensity(true);
@@ -482,13 +506,13 @@ namespace OpenMS
         double peak_rt = scan.getRT();
         for (Size j = 0; j < scan.size(); ++j)
         {
-          if (selected_peaks >= max_spec) break;
+          if (selected_peaks >= max_spec) { break; }
 
           double peak_mz = scan[j].getMZ();
 
           // is peak on exclusion? (this relies on 'exclusion_list' being sorted by its right-interval!)
           ExclusionListType_::iterator it_low = exclusion_list.lower_bound(std::make_pair(peak_mz, peak_mz)); // find the first exclusion entry which ENDS(!) behind this peak
-          if (it_low != exclusion_list.end() && it_low->first.first <= peak_mz) // does it START before this peak?
+          if ((it_low != exclusion_list.end()) && (it_low->first.first <= peak_mz)) // does it START before this peak?
           { // then this peak is within the window
             continue;
           }
@@ -577,7 +601,9 @@ namespace OpenMS
         for (Size fmr = 0; fmr < mass_ranges.size(); ++fmr)
         {
           if (fmr == f)
+          {
             continue;
+          }
           for (Size mr = 0; mr < mass_ranges[fmr].size(); mr += 2)
           {
             if (mass_ranges[fmr][mr].first ==  s) // same spectrum
@@ -602,10 +628,10 @@ namespace OpenMS
 #endif
               // all other features have to be either completely left or
               // right of the current feature
-              if (!((tmp_peak_left.getMZ() < peak_left_border.getMZ() - min_mz_peak_distance &&
-                     tmp_peak_right.getMZ() < peak_left_border.getMZ() - min_mz_peak_distance) ||
-                    (tmp_peak_left.getMZ() > peak_right_border.getMZ() + min_mz_peak_distance &&
-                     tmp_peak_right.getMZ() > peak_right_border.getMZ() + min_mz_peak_distance)))
+              if (!(((tmp_peak_left.getMZ() < peak_left_border.getMZ() - min_mz_peak_distance) &&
+                     (tmp_peak_right.getMZ() < peak_left_border.getMZ() - min_mz_peak_distance)) ||
+                    ((tmp_peak_left.getMZ() > peak_right_border.getMZ() + min_mz_peak_distance) &&
+                     (tmp_peak_right.getMZ() > peak_right_border.getMZ() + min_mz_peak_distance))))
               {
 #ifdef DEBUG_OPS
                 std::cout << "found overlapping peak" << std::endl;

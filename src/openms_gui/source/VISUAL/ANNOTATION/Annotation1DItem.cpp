@@ -40,14 +40,14 @@
 namespace OpenMS
 {
 
-  Annotation1DItem::Annotation1DItem(const QString & text) :
+  Annotation1DItem::Annotation1DItem(const QString& text) :
     bounding_box_(),
     selected_(true),
     text_(text)
   {
   }
 
-  Annotation1DItem::Annotation1DItem(const Annotation1DItem & rhs)
+  Annotation1DItem::Annotation1DItem(const Annotation1DItem& rhs)
   {
     bounding_box_ = rhs.boundingBox();
     selected_ = rhs.isSelected();
@@ -58,7 +58,7 @@ namespace OpenMS
   {
   }
 
-  void Annotation1DItem::drawBoundingBox_(QPainter & painter)
+  void Annotation1DItem::drawBoundingBox_(QPainter& painter)
   {
     // draw additional filled rectangles to highlight bounding box of selected distance_item
     painter.fillRect((int)(bounding_box_.topLeft().x()) - 3, (int)(bounding_box_.topLeft().y()) - 3, 3, 3, painter.pen().color());
@@ -67,7 +67,7 @@ namespace OpenMS
     painter.fillRect((int)(bounding_box_.bottomLeft().x()) - 3, (int)(bounding_box_.bottomLeft().y()), 3, 3, painter.pen().color());
   }
 
-  const QRectF & Annotation1DItem::boundingBox() const
+  const QRectF& Annotation1DItem::boundingBox() const
   {
     return bounding_box_;
   }
@@ -82,12 +82,12 @@ namespace OpenMS
     return selected_;
   }
 
-  void Annotation1DItem::setText(const QString & text)
+  void Annotation1DItem::setText(const QString& text)
   {
     text_ = text;
   }
 
-  const QString & Annotation1DItem::getText() const
+  const QString& Annotation1DItem::getText() const
   {
     return text_;
   }
@@ -98,7 +98,7 @@ namespace OpenMS
     QString text = QInputDialog::getText(NULL, "Edit text", "Enter text:", QLineEdit::Normal, this->getText(), &ok);
     if (ok && !text.isEmpty())
     {
-      if (text == getText()) return false;
+      if (text == getText()) { return false; }
       this->setText(text);
       return true;
     }

@@ -48,7 +48,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  NeutralLossMarker::NeutralLossMarker(const NeutralLossMarker & source) :
+  NeutralLossMarker::NeutralLossMarker(const NeutralLossMarker& source) :
     PeakMarker(source)
   {
   }
@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  NeutralLossMarker & NeutralLossMarker::operator=(const NeutralLossMarker & source)
+  NeutralLossMarker& NeutralLossMarker::operator=(const NeutralLossMarker& source)
   {
     if (this != &source)
     {

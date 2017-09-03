@@ -51,7 +51,9 @@ namespace OpenMS
   CachedmzML& CachedmzML::operator=(const CachedmzML& rhs)
   {
     if (&rhs == this)
+    {
       return *this;
+    }
 
     spectra_index_ = rhs.spectra_index_;
     chrom_index_ = rhs.chrom_index_;
@@ -101,13 +103,13 @@ namespace OpenMS
     ifs.read((char*)&file_identifier, sizeof(file_identifier));
     if (file_identifier != CACHED_MZML_FILE_IDENTIFIER)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-        "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
     }
 
     ifs.seekg(0, ifs.end); // set file pointer to end
     ifs.seekg(ifs.tellg(), ifs.beg); // set file pointer to end, in forward direction
-    ifs.seekg(- static_cast<int>(sizeof(exp_size) + sizeof(chrom_size)), ifs.cur); // move two fields to the left, start reading
+    ifs.seekg(-static_cast<int>(sizeof(exp_size) + sizeof(chrom_size)), ifs.cur); // move two fields to the left, start reading
     ifs.read((char*)&exp_size, sizeof(exp_size));
     ifs.read((char*)&chrom_size, sizeof(chrom_size));
     ifs.seekg(sizeof(file_identifier), ifs.beg); // set file pointer to beginning (after identifier), start reading
@@ -166,8 +168,8 @@ namespace OpenMS
     ifs.read((char*)&file_identifier, sizeof(file_identifier));
     if (file_identifier != CACHED_MZML_FILE_IDENTIFIER)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-          "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
     }
 
     // For spectra and chromatograms go through file, read the size of the
@@ -176,7 +178,7 @@ namespace OpenMS
 
     ifs.seekg(0, ifs.end); // set file pointer to end
     ifs.seekg(ifs.tellg(), ifs.beg); // set file pointer to end, in forward direction
-    ifs.seekg(- static_cast<int>(sizeof(exp_size) + sizeof(chrom_size)), ifs.cur); // move two fields to the left, start reading
+    ifs.seekg(-static_cast<int>(sizeof(exp_size) + sizeof(chrom_size)), ifs.cur); // move two fields to the left, start reading
     ifs.read((char*)&exp_size, sizeof(exp_size));
     ifs.read((char*)&chrom_size, sizeof(chrom_size));
     ifs.seekg(sizeof(file_identifier), ifs.beg); // set file pointer to beginning (after identifier), start reading
@@ -210,7 +212,7 @@ namespace OpenMS
   {
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
-    std::vector<MSChromatogram > chromatograms = exp.getChromatograms(); // copy
+    std::vector<MSChromatogram> chromatograms = exp.getChromatograms(); // copy
     for (Size i = 0; i < exp.size(); i++)
     {
       exp[i].clear(false);
@@ -224,17 +226,17 @@ namespace OpenMS
     if (addCacheMetaValue)
     {
       // set dataprocessing on each spectrum/chromatogram
-      boost::shared_ptr< DataProcessing > dp = boost::shared_ptr< DataProcessing >(new DataProcessing);
+      boost::shared_ptr<DataProcessing> dp = boost::shared_ptr<DataProcessing>(new DataProcessing);
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::FORMAT_CONVERSION);
       dp->setProcessingActions(actions);
       dp->setMetaValue("cached_data", "true");
-      for (Size i=0; i<exp.size(); ++i)
+      for (Size i = 0; i < exp.size(); ++i)
       {
         exp[i].getDataProcessing().push_back(dp);
       }
-      std::vector<MSChromatogram > l_chromatograms = exp.getChromatograms();
-      for (Size i=0; i<l_chromatograms.size(); ++i)
+      std::vector<MSChromatogram> l_chromatograms = exp.getChromatograms();
+      for (Size i = 0; i < l_chromatograms.size(); ++i)
       {
         l_chromatograms[i].getDataProcessing().push_back(dp);
       }
@@ -367,4 +369,3 @@ namespace OpenMS
   }
 
 }
-

@@ -308,7 +308,7 @@ namespace OpenMS
         ++retry_variance_sampling;
       }
 
-      if (variance <= 0 || (fabs(variance - egh_variance_location_) > 10 * egh_variance_scale_))
+      if ((variance <= 0) || (fabs(variance - egh_variance_location_) > 10 * egh_variance_scale_))
       {
         LOG_ERROR << "Sigma^2 was negative, resulting in a feature with width=0. Tried to resample 10 times and then stopped. Setting it to the user defined width value of " << egh_variance_location_ << "!" << std::endl;
         variance = egh_variance_location_;
@@ -342,9 +342,13 @@ namespace OpenMS
     {
       LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
       if (deleted_features.size() < 100)
+      {
         LOG_WARN << "  " << ListUtils::concatenate(deleted_features, "\n  ") << std::endl;
+      }
       else
+      {
         LOG_WARN << "  (List is too big to show)" << std::endl;
+      }
     }
     // only retain valid features:
     features.swap(fm_tmp);
@@ -363,13 +367,13 @@ namespace OpenMS
     // the actual constants from the paper:
     String aas = "ARNDCQEGHILKMFPSTWYVBZ";
     const double cterm_pkas[] = { 3.20, 3.20, 2.75, 2.75, 2.75, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 3.20, 2.75, 3.20 };
-    const double nterm_pkas[] = { 8.20, 8.20, 7.30, 8.60, 7.30, 7.70, 8.20, 8.20, 8.20, 8.20, 8.20, 7.70, 9.20, 7.7, 9.00, 7.30, 8.20, 8.20, 7.70, 8.20, 8.03, 8.00};
+    const double nterm_pkas[] = { 8.20, 8.20, 7.30, 8.60, 7.30, 7.70, 8.20, 8.20, 8.20, 8.20, 8.20, 7.70, 9.20, 7.7, 9.00, 7.30, 8.20, 8.20, 7.70, 8.20, 8.03, 8.00 };
 
     String aa_basic = "HRK";
-    double aa_basic_pkas[] = {6.20, 12.50, 10.30};
+    double aa_basic_pkas[] = { 6.20, 12.50, 10.30 };
 
     String aa_acidic = "DECY";
-    double aa_acidic_pkas[] = {3.50, 4.50, 10.30, 10.30};
+    double aa_acidic_pkas[] = { 3.50, 4.50, 10.30, 10.30 };
 
     // clear target structures
     q_cterm.clear();
@@ -425,9 +429,13 @@ namespace OpenMS
       double charge = 0;
       // C&N term charge contribution
       if (q_nterm.has(seq[0]))
+      {
         charge +=  q_nterm[seq[0]];
+      }
       if (q_cterm.has(seq.suffix(1)))
+      {
         charge +=  q_cterm[seq.suffix(1)];
+      }
 
       // sidechains ...
       Map<String, Size> frequency_table;
@@ -435,9 +443,13 @@ namespace OpenMS
       for (Map<String, Size>::const_iterator it = frequency_table.begin(); it != frequency_table.end(); ++it)
       {
         if (q_aa_basic.has(it->first))
+        {
           charge +=  q_aa_basic[it->first] * it->second;
+        }
         if (q_aa_acidic.has(it->first))
+        {
           charge +=  q_aa_acidic[it->first] * it->second;
+        }
       }
 
       // ** determine mass of peptide
@@ -516,21 +528,21 @@ namespace OpenMS
       ParamXMLFile paramFile;
       paramFile.load(add_paramfile, additional_parameters);
 
-      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("border_length") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No border length defined in additional parameters file.");
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
-      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("k_mer_length") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No k-mer length defined in additional parameters file.");
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
 
-      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("sigma") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RTSimulation: No sigma defined in additional parameters file.");
       }

@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  void FeatureGroupingAlgorithmUnlabeled::group(const std::vector<FeatureMap> & maps, ConsensusMap & out)
+  void FeatureGroupingAlgorithmUnlabeled::group(const std::vector<FeatureMap>& maps, ConsensusMap& out)
   {
     // check that the number of maps is ok
     if (maps.size() < 2)
@@ -78,7 +78,7 @@ namespace OpenMS
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
     MapConversion::convert(reference_map_index, maps[reference_map_index],
-                          input[0]);
+                           input[0]);
 
     // loop over all other maps, extend the groups
     StablePairFinder pair_finder;

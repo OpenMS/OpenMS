@@ -41,7 +41,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  void AxisPainter::paint(QPainter * painter, QPaintEvent *, const double & min, const double & max, const GridVector & grid,
+  void AxisPainter::paint(QPainter* painter, QPaintEvent*, const double& min, const double& max, const GridVector& grid,
                           const Int width, const Int height, const AxisPainter::Alignment alignment, const UInt margin,
                           bool show_legend, String legend, bool shorten_number,
                           bool is_log, bool is_inverse_orientation)
@@ -126,7 +126,7 @@ namespace OpenMS
     for (Size i = 0; i != grid.size(); i++)
     {
       // Just draw text on big intervalls
-      if (is_log && i > 0)
+      if (is_log && (i > 0))
       {
         break;
       }
@@ -195,7 +195,7 @@ namespace OpenMS
           gl_count += it->size();
         }
         //  if there are too many grid lines, hide every odd minor grid line value
-        if (gl_count >= 30 && i == 1)
+        if ((gl_count >= 30) && (i == 1))
         {
           // needed because skips occur in small grid lines at the position of big grid lines
           double dist_small = std::min<double>(fabs(grid[1][1] - grid[1][0]), fabs(grid[1][2] - grid[1][1]));
@@ -261,7 +261,7 @@ namespace OpenMS
 
     // Painting legend
     painter->setFont(QFont(painter->font().family(), font_size));
-    if (show_legend && legend != "")
+    if (show_legend && (legend != ""))
     {
       // style settings
       painter->setPen(QPen(Qt::black));
@@ -289,7 +289,7 @@ namespace OpenMS
     }
   }
 
-  void AxisPainter::getShortenedNumber_(QString & short_num, double number)
+  void AxisPainter::getShortenedNumber_(QString& short_num, double number)
   {
     if (number < 1000.0)
     {

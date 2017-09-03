@@ -57,7 +57,7 @@ namespace OpenMS
     }
     Size boundary_condition = params_.getValue("boundary_condition");
 
-    BSpline2d::BoundaryCondition bound_cond = 
+    BSpline2d::BoundaryCondition bound_cond =
       static_cast<BSpline2d::BoundaryCondition>(boundary_condition);
     vector<double> x(data.size()), y(data.size());
     xmin_ = data[0].first;
@@ -66,8 +66,11 @@ namespace OpenMS
     {
       x[i] = data[i].first;
       y[i] = data[i].second;
-      if (x[i] < xmin_) xmin_ = x[i];
-      else if (x[i] > xmax_) xmax_ = x[i];
+      if (x[i] < xmin_) { xmin_ = x[i]; }
+      else if (x[i] > xmax_)
+      {
+        xmax_ = x[i];
+      }
     }
     double wavelength = params_.getValue("wavelength");
     if (wavelength > (xmax_ - xmin_))
@@ -77,13 +80,13 @@ namespace OpenMS
 
     // since we can't initialize a BSpline2d object in the init list (no c'tor
     // that doesn't require preparation of data), we have to use a pointer:
-    spline_ = new BSpline2d(x, y, wavelength, bound_cond, 
+    spline_ = new BSpline2d(x, y, wavelength, bound_cond,
                             params_.getValue("num_nodes"));
 
     if (!spline_->ok())
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                   "TransformationModelBSpline", 
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                   "TransformationModelBSpline",
                                    "Unable to fit B-spline to data points.");
     }
 
@@ -107,7 +110,7 @@ namespace OpenMS
     {
       offset_min_ = spline_->eval(xmin_);
       offset_max_ = spline_->eval(xmax_);
-      if (extrapolate == "constant") 
+      if (extrapolate == "constant")
       {
         extrapolate_ = EX_CONSTANT;
       }
@@ -120,10 +123,9 @@ namespace OpenMS
     }
   }
 
-
   TransformationModelBSpline::~TransformationModelBSpline()
   {
-    if (spline_) delete spline_;
+    if (spline_) { delete spline_; }
   }
 
   double TransformationModelBSpline::evaluate(double value) const

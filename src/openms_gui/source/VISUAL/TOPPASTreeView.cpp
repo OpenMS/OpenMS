@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  TOPPASTreeView::TOPPASTreeView(QWidget * parent) :
+  TOPPASTreeView::TOPPASTreeView(QWidget* parent) :
     QTreeWidget(parent)
   {
     // we drag by ourselves:
@@ -58,7 +58,7 @@ namespace OpenMS
 
   }
 
-  void TOPPASTreeView::mousePressEvent(QMouseEvent * event)
+  void TOPPASTreeView::mousePressEvent(QMouseEvent* event)
   {
     QTreeWidget::mousePressEvent(event);
 
@@ -68,7 +68,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::mouseMoveEvent(QMouseEvent * event)
+  void TOPPASTreeView::mouseMoveEvent(QMouseEvent* event)
   {
     QTreeWidget::mouseMoveEvent(event);
 
@@ -80,14 +80,14 @@ namespace OpenMS
     {
       return;
     }
-    if (currentItem() && currentItem()->childCount() > 0)
+    if (currentItem() && (currentItem()->childCount() > 0))
     {
       // drag item is a category or a tool with types - one of the types must be selected
       return;
     }
 
-    QDrag * drag = new QDrag(this);
-    QMimeData * mime_data = new QMimeData;
+    QDrag* drag = new QDrag(this);
+    QMimeData* mime_data = new QMimeData;
 
     mime_data->setText(currentItem()->text(0));
     drag->setMimeData(mime_data);
@@ -96,10 +96,10 @@ namespace OpenMS
     drag->exec(Qt::CopyAction);
   }
 
-  void TOPPASTreeView::keyPressEvent(QKeyEvent * e)
+  void TOPPASTreeView::keyPressEvent(QKeyEvent* e)
   {
     QTreeWidget::keyPressEvent(e);
-    if (currentItem() && e->key() == Qt::Key_Return)
+    if (currentItem() && (e->key() == Qt::Key_Return))
     {
       e->accept();
       emit itemDoubleClicked(currentItem(), 0);
@@ -110,12 +110,12 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::enterEvent(QEvent * /*e*/)
+  void TOPPASTreeView::enterEvent(QEvent* /*e*/)
   {
     setFocus();
   }
 
-  void TOPPASTreeView::leaveEvent(QEvent * /*e*/)
+  void TOPPASTreeView::leaveEvent(QEvent* /*e*/)
   {
 
   }

@@ -37,7 +37,7 @@
 
 namespace OpenMS
 {
-  Int NonNegativeLeastSquaresSolver::solve(const Matrix<double> & A, const Matrix<double> & b, Matrix<double> & x)
+  Int NonNegativeLeastSquaresSolver::solve(const Matrix<double>& A, const Matrix<double>& b, Matrix<double>& x)
   {
 
     if (A.rows() != b.rows())
@@ -46,7 +46,7 @@ namespace OpenMS
     }
 
     // translate A to array a (column major order)
-    double * a_vec = new double[A.rows() * A.cols()];
+    double* a_vec = new double[A.rows() * A.cols()];
     size_t idx = 0;
     for (size_t col = 0; col < A.cols(); ++col)
     {
@@ -66,7 +66,7 @@ namespace OpenMS
     int a_cols = (int)A.cols();
 
     // translate b
-    double * b_vec = new double[a_rows];
+    double* b_vec = new double[a_rows];
     for (size_t row = 0; row < b.rows(); ++row)
     {
       b_vec[row] = b(row, 0);
@@ -77,11 +77,11 @@ namespace OpenMS
 #endif
 
     // prepare solution array (directly copied from example)
-    double * x_vec = new double[a_cols + 1];
+    double* x_vec = new double[a_cols + 1];
     double rnorm;
-    double * w = new double[a_cols + 1];
-    double * zz = new double[a_rows + 1];
-    int * indx = new int[a_cols + 1];
+    double* w = new double[a_cols + 1];
+    double* zz = new double[a_rows + 1];
+    int* indx = new int[a_cols + 1];
     int mode;
 
 #ifdef NNLS_DEBUG
@@ -112,13 +112,17 @@ namespace OpenMS
     delete[] indx;
 
     if (mode == 1)
+    {
       return SOLVED;
+    }
     else if (mode == 2) // this should not happen (dimensions are bad)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "NonNegativeLeastSquaresSolver::solve() Bad dimension reported!");
     }
-    else     /*if (mode==3)*/
+    else /*if (mode==3)*/
+    {
       return ITERATION_EXCEEDED;
+    }
 
   }
 

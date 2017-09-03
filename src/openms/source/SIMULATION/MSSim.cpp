@@ -100,7 +100,9 @@ namespace OpenMS
     cout << "############## END DEBUG -- FEATURE MAPS ##############" << endl;
 #else
     if (feature_maps.empty())
+    {
       cout << stage; // just to avoid warnings of unused parameters
+    }
 #endif
   }
 
@@ -157,7 +159,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "This labeler returned by the Factory is invalid!", product_name->c_str()); 
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "This labeler returned by the Factory is invalid!", product_name->c_str());
       }
     }
 
@@ -442,7 +444,7 @@ namespace OpenMS
     peptides.clear();
 
     // test if we have a feature map at all .. if not, no simulation was performed
-    if (feature_maps_.empty()) return;
+    if (feature_maps_.empty()) { return; }
 
     // we need to keep track of the proteins we write out
     set<String> accessions;
@@ -453,7 +455,7 @@ namespace OpenMS
          ++ms_it)
     {
       // skip non-ms2 spectra
-      if (ms_it->getMSLevel() != 2) continue;
+      if (ms_it->getMSLevel() != 2) { continue; }
 
       // create matching PeptideIdentification
       PeptideIdentification pep_ident;
@@ -522,7 +524,7 @@ namespace OpenMS
     peptides.clear();
 
     // test if we have a feature map at all .. if not, no simulation was performed
-    if (feature_maps_.empty()) return;
+    if (feature_maps_.empty()) { return; }
 
     // protein IDs
     const FeatureMap& fmap = feature_maps_[0];

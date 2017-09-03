@@ -92,11 +92,11 @@ protected:
     registerFlag_("no_spec", "Remove spectra, keep only chromatograms.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
 
-    if (out.empty()) out = File::removeExtension(in);
+    if (out.empty()) { out = File::removeExtension(in); }
 
     bool no_chrom = getFlag_("no_chrom"), no_spec = getFlag_("no_spec");
     if (no_chrom && no_spec)
@@ -118,10 +118,13 @@ protected:
       // use float here to avoid too many decimals in output below:
       float total_size = mzml_file.size();
       String unit = getStringOption_("unit");
-      if (unit == "KB") total_size /= 1024;
-      else if (unit == "MB") total_size /= (1024 * 1024);
-      else total_size /= (1024 * 1024 * 1024); // "GB"
+      if (unit == "KB") { total_size /= 1024; }
+      else if (unit == "MB") { total_size /= (1024 * 1024); }
+      else
+      {
+        total_size /= (1024 * 1024 * 1024);    // "GB"
 
+      }
       writeLog_("File size: " + String(total_size) + " " + unit);
       parts = ceil(total_size / size);
     }
@@ -130,8 +133,8 @@ protected:
     PeakMap experiment;
     MzMLFile().load(in, experiment);
 
-    vector<MSSpectrum > spectra;
-    vector<MSChromatogram > chromatograms;
+    vector<MSSpectrum> spectra;
+    vector<MSChromatogram> chromatograms;
 
     if (no_spec)
     {
@@ -188,7 +191,7 @@ protected:
       }
       chrom_start += n_chrom;
 
-      writeLog_("Part " + String(counter) + ": " + String(n_spec) + 
+      writeLog_("Part " + String(counter) + ": " + String(n_spec) +
                 " spectra, " + String(n_chrom) + " chromatograms");
       MzMLFile().store(out_name.str(), part);
     }

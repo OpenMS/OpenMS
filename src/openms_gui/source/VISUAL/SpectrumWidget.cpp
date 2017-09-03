@@ -91,12 +91,12 @@ namespace OpenMS
     grid_->addWidget(x_scrollbar_, row + 2, col);
     x_scrollbar_->hide();
     y_scrollbar_->hide();
-    connect(canvas_, SIGNAL(updateHScrollbar(float, float, float, float)), this, SLOT(updateHScrollbar(float, float, float, float)));
-    connect(canvas_, SIGNAL(updateVScrollbar(float, float, float, float)), this, SLOT(updateVScrollbar(float, float, float, float)));
+    connect(canvas_, SIGNAL(updateHScrollbar(float,float,float,float)), this, SLOT(updateHScrollbar(float,float,float,float)));
+    connect(canvas_, SIGNAL(updateVScrollbar(float,float,float,float)), this, SLOT(updateVScrollbar(float,float,float,float)));
     connect(x_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(horizontalScrollBarChange(int)));
     connect(y_scrollbar_, SIGNAL(valueChanged(int)), canvas_, SLOT(verticalScrollBarChange(int)));
-    connect(canvas_, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)));
-    connect(canvas_, SIGNAL(sendCursorStatus(double, double)), this, SIGNAL(sendCursorStatus(double, double)));
+    connect(canvas_, SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)), this, SIGNAL(sendStatusMessage(std::string,OpenMS::UInt)));
+    connect(canvas_, SIGNAL(sendCursorStatus(double,double)), this, SIGNAL(sendCursorStatus(double,double)));
 
     //swap axes if necessary
     updateAxes();
@@ -112,13 +112,21 @@ namespace OpenMS
   void SpectrumWidget::correctAreaToObeyMinMaxRanges_(SpectrumCanvas::AreaType& area)
   {
     if (area.maxX() > canvas()->getDataRange().maxX())
+    {
       area.setMaxX(canvas()->getDataRange().maxX());
+    }
     if (area.minX() < canvas()->getDataRange().minX())
+    {
       area.setMinX(canvas()->getDataRange().minX());
+    }
     if (area.maxY() > canvas()->getDataRange().maxY())
+    {
       area.setMaxY(canvas()->getDataRange().maxY());
+    }
     if (area.minY() < canvas()->getDataRange().minY())
+    {
       area.setMinY(canvas()->getDataRange().minY());
+    }
   }
 
   Int SpectrumWidget::getActionMode() const
@@ -232,8 +240,8 @@ namespace OpenMS
   void SpectrumWidget::updateAxes()
   {
     //change axis labels if necessary
-    if ((canvas()->isMzToXAxis() == true && x_axis_->getLegend().size() >= 2 && x_axis_->getLegend().prefix(2) == "RT")
-       || (canvas()->isMzToXAxis() == false && y_axis_->getLegend().size() >= 2 && y_axis_->getLegend().prefix(2) == "RT"))
+    if (((canvas()->isMzToXAxis() == true) && (x_axis_->getLegend().size() >= 2) && (x_axis_->getLegend().prefix(2) == "RT"))
+       || ((canvas()->isMzToXAxis() == false) && (y_axis_->getLegend().size() >= 2) && (y_axis_->getLegend().prefix(2) == "RT")))
     {
       std::string tmp = x_axis_->getLegend();
       x_axis_->setLegend(y_axis_->getLegend());
@@ -261,7 +269,7 @@ namespace OpenMS
 
   void SpectrumWidget::updateHScrollbar(float f_min, float disp_min, float disp_max, float f_max)
   {
-    if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
+    if (((disp_min == f_min) && (disp_max == f_max)) || ((disp_min < f_min) && (disp_max > f_max)))
     {
       x_scrollbar_->hide();
     }
@@ -282,7 +290,7 @@ namespace OpenMS
 
   void SpectrumWidget::updateVScrollbar(float f_min, float disp_min, float disp_max, float f_max)
   {
-    if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
+    if (((disp_min == f_min) && (disp_max == f_max)) || ((disp_min < f_min) && (disp_max > f_max)))
     {
       y_scrollbar_->hide();
     }

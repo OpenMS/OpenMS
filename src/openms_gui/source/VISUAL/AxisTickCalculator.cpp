@@ -49,14 +49,16 @@ namespace OpenMS
 {
   using namespace Math;
 
-  void AxisTickCalculator::calcGridLines(double x1, double x2, GridVector & grid)
+  void AxisTickCalculator::calcGridLines(double x1, double x2, GridVector& grid)
   {
     grid.clear();
 
     if (boost::math::isnan(x1) || boost::math::isnan(x2))
+    {
       return;
+    }
 
-    if (x1 > -0.0001 && x1 < 0.0001)
+    if ((x1 > -0.0001) && (x1 < 0.0001))
     {
       x1 = 0.0001;
     }
@@ -130,7 +132,7 @@ namespace OpenMS
     grid.push_back(small);
   }
 
-  void AxisTickCalculator::calcLogGridLines(double x1, double x2, GridVector & grid)
+  void AxisTickCalculator::calcLogGridLines(double x1, double x2, GridVector& grid)
   {
     grid.clear();
     double scalValues[8];

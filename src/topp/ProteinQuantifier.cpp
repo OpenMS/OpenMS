@@ -398,8 +398,11 @@ protected:
     for (PeptideQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
          ++q_it)
     {
-      if (q_it->second.total_abundances.empty()) continue; // not quantified
+      if (q_it->second.total_abundances.empty())
+      {
+        continue;                                          // not quantified
 
+      }
       StringList accessions;
       for (set<String>::const_iterator acc_it =
              q_it->second.accessions.begin(); acc_it !=
@@ -473,7 +476,7 @@ protected:
         }
       }
       // if ratiosSILAC-flag is set, print SILAC log2-ratios, only if three
-      if (print_SILACratios && files_.size() == 3)
+      if (print_SILACratios && (files_.size() == 3))
       {
         for (Size i = 1; i <= files_.size(); ++i)
         {
@@ -490,7 +493,7 @@ protected:
     {
       for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
              proteins_.getIndistinguishableProteins().begin(); group_it !=
-             proteins_.getIndistinguishableProteins().end(); ++group_it)
+           proteins_.getIndistinguishableProteins().end(); ++group_it)
       {
         StringList& accessions = leader_to_group[group_it->accessions[0]].first;
         accessions = group_it->accessions;
@@ -506,12 +509,15 @@ protected:
     for (ProteinQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
          ++q_it)
     {
-      if (q_it->second.total_abundances.empty()) continue; // not quantified
+      if (q_it->second.total_abundances.empty())
+      {
+        continue;                                          // not quantified
 
+      }
       if (leader_to_group.empty())
       {
         out << q_it->first << 1;
-        if (proteins_.getHits().empty()) out << 0;
+        if (proteins_.getHits().empty()) { out << 0; }
         else
         {
           vector<ProteinHit>::iterator pos = proteins_.findHit(q_it->first);
@@ -545,7 +551,7 @@ protected:
         }
       }
       // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
-      if (print_SILACratios && files_.size() == 3)
+      if (print_SILACratios && (files_.size() == 3))
       {
         ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
         double light = total_abundances[file_it->first]; ++file_it;
@@ -576,24 +582,27 @@ protected:
       if (top != 1)
       {
         relevant_params.push_back("average");
-        if (top != 0) relevant_params.push_back("include_all");
+        if (top != 0) { relevant_params.push_back("include_all"); }
       }
     }
     relevant_params.push_back("filter_charge"); // also for peptide output
     if (files_.size() > 1) // flags only for consensusXML input
     {
       relevant_params.push_back("consensus:normalize");
-      if (proteins) relevant_params.push_back("consensus:fix_peptides");
+      if (proteins) { relevant_params.push_back("consensus:fix_peptides"); }
     }
     String params;
     for (StringList::iterator it = relevant_params.begin();
          it != relevant_params.end(); ++it)
     {
       String value = algo_params_.getValue(*it);
-      if (value != "false") params += *it + "=" + value + ", ";
+      if (value != "false") { params += *it + "=" + value + ", "; }
     }
-    if (params.empty()) params = "(none)";
-    else params.resize(params.size() - 2); // remove trailing ", "
+    if (params.empty()) { params = "(none)"; }
+    else
+    {
+      params.resize(params.size() - 2);    // remove trailing ", "
+    }
     out << "# Parameters (relevant only): " + params << endl;
 
     if (files_.size() > 1)
@@ -603,10 +612,10 @@ protected:
       for (ConsensusMap::FileDescriptions::iterator it = files_.begin();
            it != files_.end(); ++it, ++counter)
       {
-        if (counter > 1) desc += ", ";
+        if (counter > 1) { desc += ", "; }
         desc += String(counter) + ": '" + it->second.filename + "'";
         String label = it->second.label;
-        if (!label.empty()) desc += " ('" + label + "')";
+        if (!label.empty()) { desc += " ('" + label + "')"; }
       }
       out << desc << endl;
     }
@@ -641,17 +650,16 @@ protected:
                << " quantified";
       if (top > 1)
       {
-        if (include_all) LOG_INFO << " (incl. ";
-        else LOG_INFO << ", ";
+        if (include_all) { LOG_INFO << " (incl. "; }
+        else{ LOG_INFO << ", "; }
         LOG_INFO << stats.too_few_peptides << " with fewer than " << top
                  << " peptides";
-        if (stats.n_samples > 1) LOG_INFO << " in every sample";
-        if (include_all) LOG_INFO << ")";
+        if (stats.n_samples > 1) { LOG_INFO << " in every sample"; }
+        if (include_all) { LOG_INFO << ")"; }
       }
     }
     LOG_INFO << endl;
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -671,7 +679,7 @@ protected:
     {
       vector<ProteinIdentification> proteins;
       IdXMLFile().load(protein_groups, proteins, peptides_);
-      if (proteins.empty() || 
+      if (proteins.empty() ||
           proteins[0].getIndistinguishableProteins().empty())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information on indistinguishable protein groups found in file '" + protein_groups + "'");
@@ -713,7 +721,7 @@ protected:
         files_[i].filename = proteins[i].getIdentifier();
       }
       // protein inference results in the idXML?
-      if (protein_groups.empty() && (proteins.size() == 1) && 
+      if (protein_groups.empty() && (proteins.size() == 1) &&
           (!proteins[0].getHits().empty()))
       {
         proteins_ = proteins[0];
@@ -745,11 +753,11 @@ protected:
     String separator = getStringOption_("format:separator");
     String replacement = getStringOption_("format:replacement");
     String quoting = getStringOption_("format:quoting");
-    if (separator == "") separator = "\t";
+    if (separator == "") { separator = "\t"; }
     String::QuotingMethod quoting_method;
-    if (quoting == "none") quoting_method = String::NONE;
-    else if (quoting == "double") quoting_method = String::DOUBLE;
-    else quoting_method = String::ESCAPE;
+    if (quoting == "none") { quoting_method = String::NONE; }
+    else if (quoting == "double") { quoting_method = String::DOUBLE; }
+    else{ quoting_method = String::ESCAPE; }
 
     if (!peptide_out.empty())
     {

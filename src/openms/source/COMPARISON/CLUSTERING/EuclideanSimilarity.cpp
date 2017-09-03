@@ -42,7 +42,7 @@ namespace OpenMS
   {
   }
 
-  EuclideanSimilarity::EuclideanSimilarity(const EuclideanSimilarity & source) :
+  EuclideanSimilarity::EuclideanSimilarity(const EuclideanSimilarity& source) :
     scale_(source.scale_)
   {
   }
@@ -51,7 +51,7 @@ namespace OpenMS
   {
   }
 
-  EuclideanSimilarity & EuclideanSimilarity::operator=(const EuclideanSimilarity & source)
+  EuclideanSimilarity& EuclideanSimilarity::operator=(const EuclideanSimilarity& source)
   {
     if (this != &source)
     {
@@ -60,13 +60,13 @@ namespace OpenMS
     return *this;
   }
 
-  float EuclideanSimilarity::operator()(const std::pair<float, float> & c) const
+  float EuclideanSimilarity::operator()(const std::pair<float, float>& c) const
   {
     return operator()(c, c);
   }
 
   // calculates euclidean distance between two points
-  float EuclideanSimilarity::operator()(const std::pair<float, float> & a, const std::pair<float, float> & b) const
+  float EuclideanSimilarity::operator()(const std::pair<float, float>& a, const std::pair<float, float>& b) const
   {
     if (scale_ == 0)
     {

@@ -46,7 +46,7 @@ namespace OpenMS
   {
   }
 
-  Identification::Identification(const Identification & rhs) :
+  Identification::Identification(const Identification& rhs) :
     MetaInfoInterface(rhs),
     id_(rhs.id_),
     creation_date_(rhs.creation_date_),
@@ -58,7 +58,7 @@ namespace OpenMS
   {
   }
 
-  Identification & Identification::operator=(const Identification & rhs)
+  Identification& Identification::operator=(const Identification& rhs)
   {
     if (this == &rhs)
     {
@@ -74,7 +74,7 @@ namespace OpenMS
   }
 
   // Equality operator
-  bool Identification::operator==(const Identification & rhs) const
+  bool Identification::operator==(const Identification& rhs) const
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
@@ -83,32 +83,32 @@ namespace OpenMS
   }
 
   // Inequality operator
-  bool Identification::operator!=(const Identification & rhs) const
+  bool Identification::operator!=(const Identification& rhs) const
   {
     return !(*this == rhs);
   }
 
-  void Identification::setCreationDate(const DateTime & date)
+  void Identification::setCreationDate(const DateTime& date)
   {
     creation_date_ = date;
   }
 
-  const DateTime & Identification::getCreationDate() const
+  const DateTime& Identification::getCreationDate() const
   {
     return creation_date_;
   }
 
-  void Identification::setSpectrumIdentifications(const vector<SpectrumIdentification> & ids)
+  void Identification::setSpectrumIdentifications(const vector<SpectrumIdentification>& ids)
   {
     spectrum_identifications_ = ids;
   }
 
-  void Identification::addSpectrumIdentification(const SpectrumIdentification & id)
+  void Identification::addSpectrumIdentification(const SpectrumIdentification& id)
   {
     spectrum_identifications_.push_back(id);
   }
 
-  const vector<SpectrumIdentification> & Identification::getSpectrumIdentifications() const
+  const vector<SpectrumIdentification>& Identification::getSpectrumIdentifications() const
   {
     return spectrum_identifications_;
   }

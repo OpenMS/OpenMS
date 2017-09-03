@@ -52,7 +52,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectrumAlignmentScore::SpectrumAlignmentScore(const SpectrumAlignmentScore & source) :
+  SpectrumAlignmentScore::SpectrumAlignmentScore(const SpectrumAlignmentScore& source) :
     PeakSpectrumCompareFunctor(source)
   {
   }
@@ -61,7 +61,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumAlignmentScore & SpectrumAlignmentScore::operator=(const SpectrumAlignmentScore & source)
+  SpectrumAlignmentScore& SpectrumAlignmentScore::operator=(const SpectrumAlignmentScore& source)
   {
     if (this != &source)
     {
@@ -70,12 +70,12 @@ namespace OpenMS
     return *this;
   }
 
-  double SpectrumAlignmentScore::operator()(const PeakSpectrum & spec) const
+  double SpectrumAlignmentScore::operator()(const PeakSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
 
-  double SpectrumAlignmentScore::operator()(const PeakSpectrum & s1, const PeakSpectrum & s2) const
+  double SpectrumAlignmentScore::operator()(const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {
     const double tolerance = (double)param_.getValue("tolerance");
     bool is_relative_tolerance = param_.getValue("is_relative_tolerance").toBool();

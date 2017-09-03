@@ -96,7 +96,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectraMerger::SpectraMerger(const SpectraMerger & source) :
+  SpectraMerger::SpectraMerger(const SpectraMerger& source) :
     DefaultParamHandler(source), ProgressLogger()
   {
   }
@@ -105,7 +105,7 @@ namespace OpenMS
   {
   }
 
-  SpectraMerger & SpectraMerger::operator=(const SpectraMerger & source)
+  SpectraMerger& SpectraMerger::operator=(const SpectraMerger& source)
   {
     if (this != &source)
     {

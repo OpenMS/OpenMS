@@ -149,7 +149,7 @@ protected:
     for (Size i = 0; i < file_list.size(); ++i)
     {
       MzMLFile swath_file;
-      MapTypePtr swath_map (new MapType);
+      MapTypePtr swath_map(new MapType);
       FeatureMap featureFile;
       std::cout << "Loading file " << file_list[i] << std::endl;
 
@@ -172,7 +172,7 @@ protected:
 
       swath_file.setLogType(log_type_);
       swath_file.load(file_list[i], *swath_map);
-      if (swath_map->size() == 0 || (*swath_map)[0].getPrecursors().size() == 0)
+      if ((swath_map->size() == 0) || ((*swath_map)[0].getPrecursors().size() == 0))
       {
         std::cerr << "WARNING: File " << swath_map->getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map?"
@@ -206,9 +206,9 @@ protected:
       //featureFinder.pickExperiment(chromatogram_ptr, out_featureFile,
       //transition_exp_used, trafo, swath_ptr, transition_group_map);
       //FeatureXMLFile().store(out, out_featureFile);
-    }         //end of for loop
+    } //end of for loop
     return EXECUTION_OK;
-  }       //end of _main
+  } //end of _main
 
 };
 

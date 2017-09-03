@@ -224,9 +224,9 @@ protected:
     String outputfile_name_positive = getStringOption_("out_id:positive");
     String outputfile_name_negative = getStringOption_("out_id:negative");
     // for separation prediction, we require both files to be present!
-    if (outputfile_name_positive != "" || outputfile_name_negative != "")
+    if ((outputfile_name_positive != "") || (outputfile_name_negative != ""))
     {
-      if (outputfile_name_positive != "" && outputfile_name_negative != "")
+      if ((outputfile_name_positive != "") && (outputfile_name_negative != ""))
       {
         separation_prediction = true;
       }
@@ -240,12 +240,12 @@ protected:
     // either or
     String input_id = getStringOption_("in_id");
     String input_text = getStringOption_("in_text");
-    if (input_text != "" && input_id != "")
+    if ((input_text != "") && (input_id != ""))
     {
       writeLog_("Two input parameter files given, only one allowed! Use either -in_id:file or -in_text:file!");
       return ILLEGAL_PARAMETERS;
     }
-    else if (input_text == "" && input_id == "")
+    else if ((input_text == "") && (input_id == ""))
     {
       writeLog_("No input file given. Aborting...");
       return ILLEGAL_PARAMETERS;
@@ -255,7 +255,7 @@ protected:
     // (can use both)
     String output_id = getStringOption_("out_id:file");
     String output_text = getStringOption_("out_text:file");
-    if (output_text == "" && output_id == "" && !separation_prediction)
+    if ((output_text == "") && (output_id == "") && !separation_prediction)
     {
       writeLog_("No output files given. Aborting...");
       return ILLEGAL_PARAMETERS;
@@ -270,13 +270,13 @@ protected:
 
     svm.loadModel(svmfile_name);
 
-    if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC || svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC) && !separation_prediction)
+    if (((svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC) || (svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC)) && !separation_prediction)
     {
       writeLog_("You cannot perform peptide separation prediction with a model trained for"
                 + String("\npeptide retention time prediction. Aborting!"));
       return ILLEGAL_PARAMETERS;
     }
-    if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) != C_SVC && svm.getIntParameter(SVMWrapper::SVM_TYPE) != NU_SVC) && separation_prediction)
+    if (((svm.getIntParameter(SVMWrapper::SVM_TYPE) != C_SVC) && (svm.getIntParameter(SVMWrapper::SVM_TYPE) != NU_SVC)) && separation_prediction)
     {
       writeLog_("You cannot perform peptide retention time prediction with a model trained for\n"
                 + String("peptide separation prediction. Aborting!"));
@@ -299,7 +299,7 @@ protected:
       ParamXMLFile paramFile;
       paramFile.load(in_params_name, additional_parameters);
       if (additional_parameters.exists("first_dim_rt")
-         && additional_parameters.getValue("first_dim_rt") != DataValue::EMPTY)
+         && (additional_parameters.getValue("first_dim_rt") != DataValue::EMPTY))
       {
         first_dim_rt = additional_parameters.getValue("first_dim_rt").toBool();
       }
@@ -308,47 +308,47 @@ protected:
         svm.setParameter(SVMWrapper::KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
       }
 
-      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("border_length") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         writeLog_("No border length saved in additional parameters file. Aborting!");
         cout << "No border length saved in additional parameters file. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
       border_length = ((String)additional_parameters.getValue("border_length")).toInt();
-      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("k_mer_length") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         writeLog_("No k-mer length saved in additional parameters file. Aborting!");
         cout << "No k-mer length saved in additional parameters file. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
       k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
-      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
-         && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
+      if ((additional_parameters.getValue("sigma") == DataValue::EMPTY)
+         && (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO))
       {
         writeLog_("No sigma saved in additional parameters file. Aborting!");
         cout << "No sigma saved in additional parameters file. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
       sigma = ((String)additional_parameters.getValue("sigma")).toDouble();
-      if (!separation_prediction && additional_parameters.getValue("sigma_0") == DataValue::EMPTY)
+      if (!separation_prediction && (additional_parameters.getValue("sigma_0") == DataValue::EMPTY))
       {
         writeLog_("No sigma_0 saved in additional parameters file. Aborting!");
         cout << "No sigma_0 length saved in additional parameters file. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      if (!separation_prediction && additional_parameters.getValue("sigma_0") != DataValue::EMPTY)
+      if (!separation_prediction && (additional_parameters.getValue("sigma_0") != DataValue::EMPTY))
       {
         sigma_0 = additional_parameters.getValue("sigma_0");
       }
-      if (!separation_prediction && additional_parameters.getValue("sigma_max") == DataValue::EMPTY)
+      if (!separation_prediction && (additional_parameters.getValue("sigma_max") == DataValue::EMPTY))
       {
         writeLog_("No sigma_max saved in additional parameters file. Aborting!");
         cout << "No sigma_max length saved in additional parameters file. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      if (!separation_prediction && additional_parameters.getValue("sigma_max") != DataValue::EMPTY)
+      if (!separation_prediction && (additional_parameters.getValue("sigma_max") != DataValue::EMPTY))
       {
         sigma_max = additional_parameters.getValue("sigma_max");
       }
@@ -483,7 +483,7 @@ protected:
       }
       for (Size i = 0; i < temp_counter; ++i)
       {
-        if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO && output_text == "")
+        if ((svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO) && (output_text == ""))
         {
           predicted_modified_data.insert(make_pair(temp_modified_peptides[i],
                                                    (predicted_retention_times[i] * total_gradient_time)));

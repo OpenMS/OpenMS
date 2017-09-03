@@ -116,7 +116,7 @@ namespace OpenMS
     lcms_ = new LCMS(name);
     lcms_->set_spectrum_ID((int) this->lcmsRuns_.size());
 
-    ProcessData * dataProcessor = new ProcessData();
+    ProcessData* dataProcessor = new ProcessData();
     unsigned int i;
 
     for (i = 0; i < datavec.size(); i++)
@@ -150,7 +150,7 @@ namespace OpenMS
 
     if (SuperHirnParameters::instance()->ms1FeatureClustering())
     {
-      MS1FeatureMerger * merg = new MS1FeatureMerger(lcms_);
+      MS1FeatureMerger* merg = new MS1FeatureMerger(lcms_);
       merg->startFeatureMerging();
       delete merg;
     }
@@ -189,7 +189,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////////
 // process MS1 level data
-  void FTPeakDetectController::process_MS1_level_data_structure(ProcessData * rawData)
+  void FTPeakDetectController::process_MS1_level_data_structure(ProcessData* rawData)
   {
 
     // FLOFLO
@@ -200,14 +200,14 @@ namespace OpenMS
     rawData->extract_elution_peaks();
 
     // get the new structure with the LC features:
-    LCMSCData * currentData = rawData->getProcessedData();
+    LCMSCData* currentData = rawData->getProcessedData();
 
     // iterator over the extracted features, convert
-    vector<LCElutionPeak *> PEAKS = currentData->get_ALL_peak();
+    vector<LCElutionPeak*> PEAKS = currentData->get_ALL_peak();
     // show program status:
     printf("\t* Processing of %d MS1 level features...\n", (int) PEAKS.size());
 
-    vector<LCElutionPeak *>::iterator P = PEAKS.begin();
+    vector<LCElutionPeak*>::iterator P = PEAKS.begin();
     while (P != PEAKS.end())
     {
       // add the LC peak for conversion to a feature structure
@@ -228,7 +228,7 @@ namespace OpenMS
 // add an observed MS2 feature to the MS1 feature
 // if an observation is already there, then
 // construct a merged MS2 feature
-  void FTPeakDetectController::addMS2FeatureToMS1Feature(MS2Feature * ms2, SHFeature * ms1)
+  void FTPeakDetectController::addMS2FeatureToMS1Feature(MS2Feature* ms2, SHFeature* ms1)
   {
 
     if (ms1->getMS2Feature() == NULL)
@@ -238,7 +238,7 @@ namespace OpenMS
     else
     {
 
-      MS2Feature * previousMS2 = ms1->getMS2Feature();
+      MS2Feature* previousMS2 = ms1->getMS2Feature();
       previousMS2->addMS2ConsensusSpectrum(ms2);
 
       // in the case where a MS1 feature was generated from a MS1,
@@ -264,10 +264,10 @@ namespace OpenMS
 ////////////////////////////////////////////////////
 // construct here fake ms1 features based on a observed MS2 feature
 // which however could not be matched to a exiting ms1 feature
-  void FTPeakDetectController::constructMS1FeatureFromMS2Feature(MS2Feature * in)
+  void FTPeakDetectController::constructMS1FeatureFromMS2Feature(MS2Feature* in)
   {
 
-    SHFeature * fakeMS1 = new SHFeature(in);
+    SHFeature* fakeMS1 = new SHFeature(in);
     lcms_->add_feature(fakeMS1);
     delete fakeMS1;
     in = NULL;
@@ -275,7 +275,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////////
 // adds an elution peak to the LC/MS run:
-  void FTPeakDetectController::add_raw_peak_to_LC_MS_run(LCElutionPeak * PEAK)
+  void FTPeakDetectController::add_raw_peak_to_LC_MS_run(LCElutionPeak* PEAK)
   {
 
     ////////////////////////////////
@@ -298,8 +298,8 @@ namespace OpenMS
 
       ////////////////////////////////////
       // construct a feature:
-      SHFeature * TMP = new SHFeature(apex_MZ, apex_TR, apex_scan, peak_start, peak_end, charge_state, peak_area,
-                                      apex_INTENSITY, 0);
+      SHFeature* TMP = new SHFeature(apex_MZ, apex_TR, apex_scan, peak_start, peak_end, charge_state, peak_area,
+                                     apex_INTENSITY, 0);
 
       // set start / end TR:
       TMP->set_retention_time_START(PEAK->get_start_retention_time());
@@ -339,7 +339,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////////////
 // add fake MS/MS information for the MS1 feature:
-  void FTPeakDetectController::addFakeMSMSToFeature(SHFeature * in)
+  void FTPeakDetectController::addFakeMSMSToFeature(SHFeature* in)
   {
 
     string tmp = in->getFeatureExtraInformation();
@@ -354,7 +354,7 @@ namespace OpenMS
     string SQ = tmp.substr(0, tmp.find(sep));
     tmp = tmp.substr(tmp.find(sep) + sep.size());
 
-    MS2Info * info = new MS2Info(AC, SQ, in->get_charge_state(), 1.0);
+    MS2Info* info = new MS2Info(AC, SQ, in->get_charge_state(), 1.0);
     info->set_MONO_MZ(in->get_MZ());
 
     info->set_SCAN_START(in->get_scan_number());
@@ -369,7 +369,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////////////
 // function to add the elution profile to the feature:
-  void FTPeakDetectController::addLCelutionProfile(SHFeature * inF, LCElutionPeak * PEAK)
+  void FTPeakDetectController::addLCelutionProfile(SHFeature* inF, LCElutionPeak* PEAK)
   {
 
     ////////////////////////////////
@@ -385,15 +385,15 @@ namespace OpenMS
     int charge_state = PEAK->get_charge_state();
 
     // create the class:
-    FeatureLCProfile * myProfile = new FeatureLCProfile(apex_MZ, apex_TR, apex_Intensity, apex_scan, charge_state,
-                                                        peak_area);
+    FeatureLCProfile* myProfile = new FeatureLCProfile(apex_MZ, apex_TR, apex_Intensity, apex_scan, charge_state,
+                                                       peak_area);
 
     // add the raw individual mono isotopic peaks peaks:
     SIGNAL_iterator P = PEAK->get_signal_list_start();
     while (P != PEAK->get_signal_list_end())
     {
 
-      MSPeak * MSpeak = &(*P).second;
+      MSPeak* MSpeak = &(*P).second;
       myProfile->addMS1elutionSignal(MSpeak->get_MZ(), MSpeak->get_intensity(), MSpeak->get_scan_number(),
                                      MSpeak->get_charge_state(), MSpeak->get_retention_time());
       P++;

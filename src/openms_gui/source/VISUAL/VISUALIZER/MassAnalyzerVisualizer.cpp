@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MassAnalyzerVisualizer::MassAnalyzerVisualizer(bool editable, QWidget * parent) :
+  MassAnalyzerVisualizer::MassAnalyzerVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<MassAnalyzer>()
   {

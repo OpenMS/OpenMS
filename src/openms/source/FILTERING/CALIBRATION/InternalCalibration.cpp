@@ -87,7 +87,7 @@ namespace OpenMS
     if (ListUtils::contains(target_mslvl, spec.getMSLevel() - 1))
     {
       applyTransformation(spec.getPrecursors(), trafo);
-    }     
+    }
   }
 
   void InternalCalibration::applyTransformation(PeakMap& exp, const IntList& target_mslvl, const MZTrafoModel& trafo)
@@ -116,7 +116,8 @@ namespace OpenMS
     for (ExpCIt it = exp.begin(); it != exp.end(); ++it)
     {
       // empty spectrum
-      if (it->empty()) {
+      if (it->empty())
+      {
         ++stats_cal_per_spectrum[0];
         continue;
       }
@@ -126,7 +127,7 @@ namespace OpenMS
       for (std::vector<InternalCalibration::LockMass>::const_iterator itl = ref_masses.begin(); itl != ref_masses.end(); ++itl)
       {
         // calibrant meant for this MS level?
-        if (it->getMSLevel() != itl->ms_level) continue;
+        if (it->getMSLevel() != itl->ms_level) { continue; }
 
         Size s = it->findNearest(itl->mz);
         const double mz_obs = (*it)[s].getMZ();
@@ -143,7 +144,7 @@ namespace OpenMS
             Size s_left = it->findNearest(mz_iso_left);
             if (Math::getPPMAbs(mz_iso_left, (*it)[s_left].getMZ()) < 0.5) // intra-scan ppm should be very good!
             { // peak nearby lock mass was not the monoisotopic
-              if (verbose) LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " is NOT monoisotopic. Skipping it!\n";
+              if (verbose) { LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " is NOT monoisotopic. Skipping it!\n"; }
               failed_lock_masses.insertCalibrationPoint(it->getRT(), itl->mz, 1.0, itl->mz, 0.0, std::distance(ref_masses.begin(), itl));
               continue;
             }
@@ -155,7 +156,7 @@ namespace OpenMS
             Size s_right = it->findNearest(mz_iso_right);
             if (!(Math::getPPMAbs(mz_iso_right, (*it)[s_right].getMZ()) < 0.5)) // intra-scan ppm should be very good!
             { // peak has no +1iso.. weird
-              if (verbose) LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " has no +1 isotope (ppm to closest: " << Math::getPPM(mz_iso_right, (*it)[s_right].getMZ()) << ")... Skipping it!\n";
+              if (verbose) { LOG_INFO << "peak at [RT, m/z] " << it->getRT() << ", " << (*it)[s].getMZ() << " has no +1 isotope (ppm to closest: " << Math::getPPM(mz_iso_right, (*it)[s_right].getMZ()) << ")... Skipping it!\n"; }
               failed_lock_masses.insertCalibrationPoint(it->getRT(), itl->mz, 2.0, itl->mz, 0.0, std::distance(ref_masses.begin(), itl));
               continue;
             }
@@ -164,7 +165,7 @@ namespace OpenMS
         }
       }
       // how many locks found in this spectrum?!
-      ++stats_cal_per_spectrum[cal_data_.size()-cnt_cd];
+      ++stats_cal_per_spectrum[cal_data_.size() - cnt_cd];
     }
 
     LOG_INFO << "Lock masses found across viable spectra:\n";
@@ -180,18 +181,18 @@ namespace OpenMS
     return cal_data_.size();
   }
 
-  Size InternalCalibration::fillCalibrants( const FeatureMap& fm, double tol_ppm )
+  Size InternalCalibration::fillCalibrants(const FeatureMap& fm, double tol_ppm)
   {
     cal_data_.clear();
     for (FeatureMap::ConstIterator it = fm.begin(); it != fm.end(); ++it)
     {
       const std::vector<PeptideIdentification>& ids = it->getPeptideIdentifications();
-      if (ids.empty() || ids[0].empty()) continue;
+      if (ids.empty() || ids[0].empty()) { continue; }
 
       PeptideIdentification pid = ids[0];
       pid.sort();
       double mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, pid.getHits()[0].getCharge());
-      if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) continue;
+      if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) { continue; }
       cal_data_.insertCalibrationPoint(it->getRT(), it->getMZ(), it->getIntensity(), mz_ref, log(it->getIntensity()));
     }
 
@@ -206,14 +207,14 @@ namespace OpenMS
     return cal_data_.size();
   }
 
-  void InternalCalibration::fillIDs_( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm )
+  void InternalCalibration::fillIDs_(const std::vector<PeptideIdentification>& pep_ids, double tol_ppm)
   {
     Size cnt_nomz(0);
     Size cnt_nort(0);
 
     for (std::vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
     {
-      if (it->empty()) continue;
+      if (it->empty()) { continue; }
       if (!it->hasMZ())
       {
         ++cnt_nomz;
@@ -228,18 +229,18 @@ namespace OpenMS
       pid.sort();
       int q = pid.getHits()[0].getCharge();
       double mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, q) / q;
-      if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) continue;
+      if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) { continue; }
 
       const double weight = 1.0;
       const double intensity = 1.0;
       cal_data_.insertCalibrationPoint(it->getRT(), it->getMZ(), intensity, mz_ref, weight);
     }
     LOG_INFO << "Found " << cal_data_.size() << " calibrants in peptide IDs." << std::endl;
-    if (cnt_nomz > 0) LOG_WARN << "Warning: " << cnt_nomz << "/" << pep_ids.size() << " were skipped, since they have no m/z value set! They cannot be used as calibration point." << std::endl;
-    if (cnt_nort > 0) LOG_WARN << "Warning: " << cnt_nort << "/" << pep_ids.size() << " were skipped, since they have no RT value set! They cannot be used as calibration point." << std::endl;
+    if (cnt_nomz > 0) { LOG_WARN << "Warning: " << cnt_nomz << "/" << pep_ids.size() << " were skipped, since they have no m/z value set! They cannot be used as calibration point." << std::endl; }
+    if (cnt_nort > 0) { LOG_WARN << "Warning: " << cnt_nort << "/" << pep_ids.size() << " were skipped, since they have no RT value set! They cannot be used as calibration point." << std::endl; }
   }
 
-  Size InternalCalibration::fillCalibrants( const std::vector<PeptideIdentification>& pep_ids, double tol_ppm )
+  Size InternalCalibration::fillCalibrants(const std::vector<PeptideIdentification>& pep_ids, double tol_ppm)
   {
     cal_data_.clear();
     fillIDs_(pep_ids, tol_ppm);
@@ -254,7 +255,7 @@ namespace OpenMS
     return cal_data_;
   }
 
-  bool InternalCalibration::calibrate(PeakMap& exp, 
+  bool InternalCalibration::calibrate(PeakMap& exp,
                                       const IntList& target_mslvl,
                                       MZTrafoModel::MODELTYPE model_type,
                                       double rt_chunk,
@@ -291,7 +292,8 @@ namespace OpenMS
         applyTransformation(exp, target_mslvl, tms[0]);
         hasValidModels = true;
       }
-    } else
+    }
+    else
     { // one model per spectrum (not all might be needed, if certain MS levels are excluded from calibration)
       tms.reserve(exp.size());
       // go through spectra and calibrate
@@ -301,8 +303,8 @@ namespace OpenMS
         setProgress(i);
 
         // skip this MS level?
-        if (!(ListUtils::contains(target_mslvl, it->getMSLevel()) ||     // scan m/z needs correction
-              ListUtils::contains(target_mslvl, it->getMSLevel() - 1)))  // precursor m/z needs correction
+        if (!(ListUtils::contains(target_mslvl, it->getMSLevel()) || // scan m/z needs correction
+              ListUtils::contains(target_mslvl, it->getMSLevel() - 1))) // precursor m/z needs correction
         {
           continue;
         }
@@ -334,7 +336,7 @@ namespace OpenMS
         // 2nd attempt to calibrate spectra using neighboring models
         // (will not be entered for global model since could_not_cal is empty)
         LOG_INFO << "\nCalibration failed on " << invalid_models.size() << "/" << tms.size() << " [" <<  invalid_models.size() * 100 / tms.size() << " %] spectra. "
-          << "Using the closest successful model on these." << std::endl;
+                 << "Using the closest successful model on these." << std::endl;
 
         std::vector<MZTrafoModel> tms_new = tms; // will contain corrected models (this wastes a bit of memory)
         for (std::map<Size, Size>::const_iterator it = invalid_models.begin(); it != invalid_models.end(); ++it)
@@ -346,13 +348,13 @@ namespace OpenMS
           std::vector<MZTrafoModel>::reverse_iterator it_center_l = tms.rbegin() + (tms.size() - p - 1); // points to 'p'
           std::vector<MZTrafoModel>::reverse_iterator it_left = std::find_if(it_center_l, tms.rend(), MZTrafoModel::isValidModel);
           Size dist_right(0), dist_left(0);
-          if (it_right != tms.end()) dist_right = std::distance(it_center_r, it_right);
-          if (it_left != tms.rend()) dist_left  = std::distance(it_center_l, it_left);
+          if (it_right != tms.end()) { dist_right = std::distance(it_center_r, it_right); }
+          if (it_left != tms.rend()) { dist_left  = std::distance(it_center_l, it_left); }
           Size model_index;
-          if (((dist_left <= dist_right) || dist_right == 0) && dist_left != 0) // left is closer in #spectra, i.e. time; or is the only valid direction
+          if (((dist_left <= dist_right) || (dist_right == 0)) && (dist_left != 0)) // left is closer in #spectra, i.e. time; or is the only valid direction
           {
             model_index = p - dist_left;
-          } 
+          }
           else
           {
             model_index = p + dist_right;
@@ -362,7 +364,8 @@ namespace OpenMS
         }
         tms_new.swap(tms);
         // consistency check: all models must be valid at this point
-        for (Size i = 0; i < tms.size(); ++i) if (!MZTrafoModel::isValidModel(tms[i])) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(i));
+        for (Size i = 0; i < tms.size(); ++i)
+          if (!MZTrafoModel::isValidModel(tms[i])) { throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "InternalCalibration::calibrate(): Internal error. Not all models are valid!", String(i)); }
       }
     }
     endProgress();
@@ -387,17 +390,23 @@ namespace OpenMS
         SVOutStream sv(out_table, ", ", ", ", String::NONE);
 
         sv << "# model parameters (for all successfully trained models)" << nl
-          << "RT" << "A (offset)" << "B (slope)" << "C (power)" << "source" << nl;
+           << "RT" << "A (offset)" << "B (slope)" << "C (power)" << "source" << nl;
         for (Size i = 0; i < tms.size(); ++i)
         {
           sv << tms[i].getRT() << tms[i].toString();
-          if (!MZTrafoModel::isValidModel(tms[i])) sv << "invalid"; // this only happens if ALL models are invalid (since otherwise they would use 'neighbour')
-          else if (invalid_models.count(i) > 0) sv << "neighbor";
-          else sv << "local";
+          if (!MZTrafoModel::isValidModel(tms[i]))
+          {
+            sv << "invalid";                                        // this only happens if ALL models are invalid (since otherwise they would use 'neighbour')
+          }
+          else if (invalid_models.count(i) > 0)
+          {
+            sv << "neighbor";
+          }
+          else{ sv << "local"; }
           sv << nl;
         }
       }
-      
+
       // plot it
       if (!file_models_plot.empty())
       {
@@ -414,7 +423,7 @@ namespace OpenMS
     // plot the residual error (after calibration)
     // go through Calibration data points
     //
-    SVOutStream* sv = NULL;      
+    SVOutStream* sv = NULL;
     String out_table_residuals;
     if (!file_residuals.empty() || !file_residuals_plot.empty())
     {
@@ -425,8 +434,11 @@ namespace OpenMS
     std::vector<double> vec_ppm_before, vec_ppm_after;
     vec_ppm_before.reserve(cal_data_.size());
     vec_ppm_after.reserve(cal_data_.size());
-    if (sv != NULL) *sv << "# residual error after calibration" << nl
-                        << "RT" << "intensity" << "mz ref" << "mz before" << "mz after" << "ppm before" << "ppm after" << nl;
+    if (sv != NULL)
+    {
+      *sv << "# residual error after calibration" << nl
+          << "RT" << "intensity" << "mz ref" << "mz before" << "mz after" << "ppm before" << "ppm after" << nl;
+    }
     Size ii(0);
     for (CalibrationData::const_iterator itc = cal_data_.begin(); itc != cal_data_.end(); ++itc, ++ii)
     {
@@ -435,7 +447,7 @@ namespace OpenMS
       Size idx = (global_model ? 0 : MZTrafoModel::findNearest(tms, rt));
 
       double mz_corrected = std::numeric_limits<double>::quiet_NaN();
-      if (MZTrafoModel::isValidModel(tms[idx])) mz_corrected = tms[idx].predict(itc->getMZ());
+      if (MZTrafoModel::isValidModel(tms[idx])) { mz_corrected = tms[idx].predict(itc->getMZ()); }
       double mz_ref = cal_data_.getRefMZ(ii);
       double ppm_before = Math::getPPM(itc->getMZ(), mz_ref);
       double ppm_after = Math::getPPM(mz_corrected, mz_ref);
@@ -443,14 +455,14 @@ namespace OpenMS
       vec_ppm_after.push_back(ppm_after);
       if (sv != NULL)
       {
-        *sv << rt 
+        *sv << rt
             << itc->getIntensity()
             << mz_ref
             << itc->getMZ();
         sv->writeValueOrNan(mz_corrected)
-            << ppm_before;
+          << ppm_before;
         sv->writeValueOrNan(ppm_after)
-            << nl;
+          << nl;
       }
     }
     delete sv;
@@ -469,7 +481,7 @@ namespace OpenMS
     if (!hasValidModels)
     { // QC tables are done; quit
       LOG_ERROR << "Error: Could not build a single local calibration model! Check your calibrants and/or extend the search window!" << std::endl;
-      if (use_RANSAC) LOG_ERROR << "       Since you are using RANSAC, check the parameters as well and test different setups." << std::endl;
+      if (use_RANSAC) { LOG_ERROR << "       Since you are using RANSAC, check the parameters as well and test different setups." << std::endl; }
 
       return false;
     }

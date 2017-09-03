@@ -201,7 +201,7 @@ namespace OpenMS
       for (Param::ParamIterator iter = arg_param_.begin(); iter != arg_param_.end(); ++iter)
       {
         str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
-        if (str.size() != 0 && str.find(":") == String::npos)
+        if ((str.size() != 0) && (str.find(":") == String::npos))
         {
           arg_map_.insert(make_pair(str, iter.getName()));
           arg_list << QStringList(str.c_str());
@@ -219,7 +219,7 @@ namespace OpenMS
       }
       output_combo_->addItems(arg_list);
       pos = arg_list.indexOf("out");
-      if (pos != -1 && getTool() != "FileInfo")
+      if ((pos != -1) && (getTool() != "FileInfo"))
       {
         output_combo_->setCurrentIndex(pos);
       }
@@ -259,7 +259,7 @@ namespace OpenMS
 
   void ToolsDialog::ok_()
   {
-    if (input_combo_->currentText() == "<select>" || tools_combo_->currentText() == "<select>")
+    if ((input_combo_->currentText() == "<select>") || (tools_combo_->currentText() == "<select>"))
     {
       QMessageBox::critical(this, "Error", "You have to select a tool and an input argument!");
     }
@@ -329,7 +329,7 @@ namespace OpenMS
     for (Param::ParamIterator iter = arg_param_.begin(); iter != arg_param_.end(); ++iter)
     {
       str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
-      if (!str.empty() && str.find(":") == String::npos)
+      if (!str.empty() && (str.find(":") == String::npos))
       {
         arg_map_.insert(make_pair(str, iter.getName()));
         arg_list << QStringList(str.c_str());
@@ -346,7 +346,7 @@ namespace OpenMS
     }
     output_combo_->addItems(arg_list);
     pos = arg_list.indexOf("out");
-    if (pos != -1 && getTool() != "FileInfo")
+    if ((pos != -1) && (getTool() != "FileInfo"))
     {
       output_combo_->setCurrentIndex(pos);
     }
@@ -356,7 +356,9 @@ namespace OpenMS
   {
     //nothing to save
     if (arg_param_.empty())
+    {
       return;
+    }
 
     filename_ = QFileDialog::getSaveFileName(this, tr("Save ini file"), default_dir_.c_str(), tr("ini files (*.ini)"));
     //not file selected
@@ -365,7 +367,9 @@ namespace OpenMS
       return;
     }
     if (!filename_.endsWith(".ini"))
+    {
       filename_.append(".ini");
+    }
     editor_->store();
     arg_param_.insert(getTool() + ":1:", vis_param_);
     try
@@ -383,7 +387,9 @@ namespace OpenMS
   String ToolsDialog::getOutput()
   {
     if (output_combo_->currentText() == "<select>")
+    {
       return "";
+    }
 
     return output_combo_->currentText();
   }

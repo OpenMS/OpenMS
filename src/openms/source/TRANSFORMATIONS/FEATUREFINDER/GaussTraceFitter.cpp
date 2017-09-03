@@ -211,7 +211,7 @@ namespace OpenMS
         double e = exp(c_fac * pow(rt - x0, 2));
         J(count, 0) = trace.theoretical_int * e * weight;
         J(count, 1) = trace.theoretical_int * height * e * (rt - x0) / sig_sq * weight;
-        J(count, 2) = 0.125* trace.theoretical_int* height* e* pow(rt - x0, 2) / sig_3 * weight;
+        J(count, 2) = 0.125 * trace.theoretical_int * height * e * pow(rt - x0, 2) / sig_3 * weight;
         ++count;
       }
     }
@@ -249,7 +249,7 @@ namespace OpenMS
       for (Size i = 0; i < N; ++i)
       {
         smoothed[i] = totals[i + LEN];
-        if (smoothed[i] > smoothed[max_index]) max_index = i;
+        if (smoothed[i] > smoothed[max_index]) { max_index = i; }
       }
     }
     else // compute moving average for smoothing
@@ -261,7 +261,7 @@ namespace OpenMS
         sum += totals[i + 2 * LEN];
         smoothed[i] = sum / (2 * LEN + 1);
         sum -= totals[i];
-        if (smoothed[i] > smoothed[max_index]) max_index = i;
+        if (smoothed[i] > smoothed[max_index]) { max_index = i; }
         // LOG_DEBUG << smoothed[i] << std::endl;
       }
     }
@@ -298,8 +298,11 @@ namespace OpenMS
 
     double delta_x = right_rt - left_rt;
     double alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
-    if (alpha >= 1) sigma_ = 1.0; // degenerate case, all values are the same
-    else sigma_ = delta_x * 0.5 / sqrt(-2.0 * log(alpha));
+    if (alpha >= 1)
+    {
+      sigma_ = 1.0;               // degenerate case, all values are the same
+    }
+    else{ sigma_ = delta_x * 0.5 / sqrt(-2.0 * log(alpha)); }
     LOG_DEBUG << "sigma: " << sigma_ << std::endl;
   }
 

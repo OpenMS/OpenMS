@@ -47,7 +47,6 @@ namespace OpenMS
     setName("ConsensusIDAlgorithmSimilarity"); // DefaultParamHandler
   }
 
-
   void ConsensusIDAlgorithmSimilarity::apply_(
     vector<PeptideIdentification>& ids, SequenceGrouping& results)
   {
@@ -71,20 +70,20 @@ namespace OpenMS
         // have we scored this sequence already? if yes, skip:
         SequenceGrouping::iterator pos = results.find(hit1->getSequence());
         if (pos != results.end())
-        { 
+        {
           compareChargeStates_(pos->second.first, hit1->getCharge(),
                                pos->first);
           continue;
         }
-        
+
         // similarity scores and PEPs of best matches for all ID runs:
         vector<pair<double, double> > best_matches;
         best_matches.reserve(ids.size() - 1);
         for (vector<PeptideIdentification>::iterator id2 = ids.begin();
              id2 != ids.end(); ++id2)
         {
-          if (id1 == id2) continue;
-          
+          if (id1 == id2) { continue; }
+
           // similarity scores and PEPs of all matches in current ID run
           // (to get the best match, we look for highest similarity, breaking
           // ties by better PEP - so we need to transform PEP so higher scores
@@ -125,7 +124,7 @@ namespace OpenMS
         {
           scores[1] = (sum_sim - 1.0) / n_other_ids;
         }
-        
+
         // don't filter based on "min_score_" yet, so we don't recompute results
         // for the same peptide sequence:
         results[hit1->getSequence()] = make_pair(hit1->getCharge(), scores);

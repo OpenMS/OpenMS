@@ -90,11 +90,11 @@ namespace OpenMS
         {
           peptide.setModification(residue_index, fixed_it->getFullName());
         }
-        else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
+        else if ((term_spec == ResidueModification::C_TERM) && (residue_index == (peptide.size() - 1)))
         {
           peptide.setCTerminalModification(fixed_it->getFullName());
         }
-        else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
+        else if ((term_spec == ResidueModification::N_TERM) && (residue_index == 0))
         {
           peptide.setNTerminalModification(fixed_it->getFullName());
         }
@@ -106,7 +106,7 @@ namespace OpenMS
   void ModifiedPeptideGenerator::applyVariableModifications(const vector<ResidueModification>::const_iterator& var_mods_begin, const vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, Size max_variable_mods_per_peptide, vector<AASequence>& all_modified_peptides, bool keep_unmodified)
   {
     // no variable modifications specified or no variable mods allowed? no compatibility map needs to be build
-    if (var_mods_begin == var_mods_end || max_variable_mods_per_peptide == 0)
+    if ((var_mods_begin == var_mods_end) || (max_variable_mods_per_peptide == 0))
     {
       // if unmodified peptides should be kept return the original list of digested peptides
       if (keep_unmodified)
@@ -185,11 +185,11 @@ namespace OpenMS
         {
           map_compatibility[static_cast<int>(residue_index)].push_back(*variable_it);
         }
-        else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
+        else if ((term_spec == ResidueModification::C_TERM) && (residue_index == (peptide.size() - 1)))
         {
           map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
         }
-        else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
+        else if ((term_spec == ResidueModification::N_TERM) && (residue_index == 0))
         {
           map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
         }
@@ -251,7 +251,6 @@ namespace OpenMS
     // add modified version of the current peptide to the list of all peptides
     all_modified_peptides.insert(all_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());
   }
-
 
   // static
   void ModifiedPeptideGenerator::recurseAndGenerateVariableModifiedPeptides_(const vector<int>& subset_indices, const map<int, vector<ResidueModification> >& map_compatibility, int depth, const AASequence& current_peptide, vector<AASequence>& modified_peptides)
@@ -331,11 +330,11 @@ namespace OpenMS
         {
           is_compatible = true;
         }
-        else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
+        else if ((term_spec == ResidueModification::C_TERM) && (residue_index == (peptide.size() - 1)))
         {
           is_compatible = true;
         }
-        else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
+        else if ((term_spec == ResidueModification::N_TERM) && (residue_index == 0))
         {
           is_compatible = true;
         }
@@ -350,5 +349,5 @@ namespace OpenMS
       }
     }
   }
-}
 
+}

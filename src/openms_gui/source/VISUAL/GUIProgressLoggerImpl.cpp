@@ -75,7 +75,7 @@ namespace OpenMS
 
   void GUIProgressLoggerImpl::setProgress(const SignedSize value, const int /* current_recursion_depth */) const
   {
-    if (value < begin_ || value > end_)
+    if ((value < begin_) || (value > end_))
     {
       std::cout << "ProgressLogger: Invalid progress value '" << value << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << std::endl;
     }
@@ -108,4 +108,5 @@ namespace OpenMS
   {
     delete dlg_;
   }
+
 }

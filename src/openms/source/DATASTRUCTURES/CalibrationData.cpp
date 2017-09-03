@@ -52,17 +52,17 @@ namespace OpenMS
 
   }
 
-  CalibrationData::CalDataType::CoordinateType CalibrationData::getMZ( Size i ) const
+  CalibrationData::CalDataType::CoordinateType CalibrationData::getMZ(Size i) const
   {
     return data_[i].getMZ();
   }
 
-  CalibrationData::CalDataType::CoordinateType CalibrationData::getRT( Size i ) const
+  CalibrationData::CalDataType::CoordinateType CalibrationData::getRT(Size i) const
   {
     return data_[i].getRT();
   }
 
-  CalibrationData::CalDataType::CoordinateType CalibrationData::getIntensity( Size i ) const
+  CalibrationData::CalDataType::CoordinateType CalibrationData::getIntensity(Size i) const
   {
     return data_[i].getIntensity();
   }
@@ -92,7 +92,7 @@ namespace OpenMS
     data_.clear();
   }
 
-  void CalibrationData::setUsePPM( bool usePPM )
+  void CalibrationData::setUsePPM(bool usePPM)
   {
     use_ppm_ = usePPM;
   }
@@ -102,12 +102,12 @@ namespace OpenMS
     return use_ppm_;
   }
 
-  void CalibrationData::insertCalibrationPoint( CalDataType::CoordinateType rt,
-                                                CalDataType::CoordinateType mz_obs,
-                                                CalDataType::IntensityType intensity,
-                                                CalDataType::CoordinateType mz_ref,
-                                                double weight,
-                                                int group /*= -1*/ )
+  void CalibrationData::insertCalibrationPoint(CalDataType::CoordinateType rt,
+                                               CalDataType::CoordinateType mz_obs,
+                                               CalDataType::IntensityType intensity,
+                                               CalDataType::CoordinateType mz_ref,
+                                               double weight,
+                                               int group /*= -1*/)
   {
     RichPeak2D p(Peak2D::PositionType(rt, mz_obs), intensity);
     p.setMetaValue("mz_ref", mz_ref);
@@ -127,7 +127,7 @@ namespace OpenMS
     return groups_.size();
   }
 
-  CalibrationData::CalDataType::CoordinateType CalibrationData::getError( Size i ) const
+  CalibrationData::CalDataType::CoordinateType CalibrationData::getError(Size i) const
   {
     if (use_ppm_)
     {
@@ -135,11 +135,11 @@ namespace OpenMS
     }
     else
     {
-      return (data_[i].getMZ() - getRefMZ(i));
+      return data_[i].getMZ() - getRefMZ(i);
     }
   }
 
-  CalibrationData::CalDataType::CoordinateType CalibrationData::getRefMZ( Size i ) const
+  CalibrationData::CalDataType::CoordinateType CalibrationData::getRefMZ(Size i) const
   {
     if (!data_[i].metaValueExists("mz_ref"))
     {
@@ -150,7 +150,7 @@ namespace OpenMS
     return data_[i].getMetaValue("mz_ref");
   }
 
-  CalibrationData::CalDataType::CoordinateType CalibrationData::getWeight( Size i ) const
+  CalibrationData::CalDataType::CoordinateType CalibrationData::getWeight(Size i) const
   {
     if (!data_[i].metaValueExists("weight"))
     {
@@ -160,7 +160,7 @@ namespace OpenMS
     return data_[i].getMetaValue("weight");
   }
 
-  int CalibrationData::getGroup( Size i ) const
+  int CalibrationData::getGroup(Size i) const
   {
     if (!data_[i].metaValueExists("peakgroup")) { return -1; }
     return data_[i].getMetaValue("peakgroup");
@@ -171,19 +171,19 @@ namespace OpenMS
     return ListUtils::create<String>("mz_ref,ppm_error,weight");
   }
 
-  OpenMS::CalibrationData CalibrationData::median( double rt_left, double rt_right ) const
+  OpenMS::CalibrationData CalibrationData::median(double rt_left, double rt_right) const
   {
     CalibrationData cd;
     cd.setUsePPM(this->usePPM());
 
     Size i = std::distance(data_.begin(), lower_bound(data_.begin(), data_.end(), rt_left, RichPeak2D::PositionLess()));
     Size ie = std::distance(data_.begin(), upper_bound(data_.begin(), data_.end(), rt_right, RichPeak2D::PositionLess()));
-    if (i==ie) return cd;
+    if (i == ie) { return cd; }
 
     double rt = (rt_left + rt_right) / 2;
 
-    for (std::set<int>::const_iterator it_group = groups_.begin(); it_group!= groups_.end(); ++it_group)
-    { 
+    for (std::set<int>::const_iterator it_group = groups_.begin(); it_group != groups_.end(); ++it_group)
+    {
       std::vector<double> mzs, ints;
       double mz_ref(0);
       for (Size j = i; j < ie; ++j)

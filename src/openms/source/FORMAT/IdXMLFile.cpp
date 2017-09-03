@@ -91,7 +91,7 @@ namespace OpenMS
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
-    
+
     endProgress();
   }
 
@@ -354,10 +354,10 @@ namespace OpenMS
       os << "\t</IdentificationRun>\n";
 
       // on more than one protein Ids (=runs) there must be wrong mappings and the message would be useless. However, a single run should not have wrong mappings!
-      if (count_wrong_id && protein_ids.size() == 1) LOG_WARN << "Omitted writing of " << count_wrong_id << " peptide identifications due to wrong protein mapping." << std::endl;
-      if (count_empty) LOG_WARN << "Omitted writing of " << count_empty << " peptide identifications due to empty hits." << std::endl;
+      if (count_wrong_id && (protein_ids.size() == 1)) { LOG_WARN << "Omitted writing of " << count_wrong_id << " peptide identifications due to wrong protein mapping." << std::endl; }
+      if (count_empty) { LOG_WARN << "Omitted writing of " << count_empty << " peptide identifications due to empty hits." << std::endl; }
     }
-    
+
     //empty protein ids  parameters
     if (protein_ids.empty())
     {
@@ -406,7 +406,9 @@ namespace OpenMS
 
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version == "")
-        file_version = "1.0";  //default version is 1.0
+      {
+        file_version = "1.0"; //default version is 1.0
+      }
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -607,7 +609,7 @@ namespace OpenMS
         accession_string.trim();
         std::vector<String> accessions;
         accession_string.split(' ', accessions);
-        if (accession_string != "" && accessions.empty())
+        if ((accession_string != "") && accessions.empty())
         {
           accessions.push_back(accession_string);
         }
@@ -839,7 +841,9 @@ namespace OpenMS
            acc_it != groups[g].accessions.end(); ++acc_it)
       {
         if (acc_it != groups[g].accessions.begin())
+        {
           accessions += ",";
+        }
         std::map<String, UInt>::const_iterator pos = accession_to_id.find(*acc_it);
         if (pos != accession_to_id.end())
         {
@@ -882,7 +886,7 @@ namespace OpenMS
     }
   }
 
-  String IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence> & pes)
+  String IdXMLFile::createFlankingAAXMLString_(const std::vector<PeptideEvidence>& pes)
   {
     // Check if information on previous/following aa available. If not, we will not write it out
     bool has_aa_before_information(false);
@@ -913,7 +917,7 @@ namespace OpenMS
         {
           aa_string += " " + String(it->getAABefore());
         }
-        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) { aa_string += "\""; }
       }
     }
 
@@ -929,13 +933,13 @@ namespace OpenMS
         {
           aa_string += " " + String(it->getAAAfter());
         }
-        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+        if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) { aa_string += "\""; }
       }
     }
     return aa_string;
   }
 
-  String IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence> & pes)
+  String IdXMLFile::createPositionXMLString_(const std::vector<PeptideEvidence>& pes)
   {
     bool has_aa_start_information(false);
     bool has_aa_end_information(false);
@@ -967,7 +971,7 @@ namespace OpenMS
           {
             aa_string += " " + String(it->getStart());
           }
-          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) { aa_string += "\""; }
         }
       }
 
@@ -983,17 +987,17 @@ namespace OpenMS
           {
             aa_string += " " + String(it->getEnd());
           }
-          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) aa_string += "\"";
+          if (static_cast<Size>(it - pes.begin()) == pes.size() - 1) { aa_string += "\""; }
         }
       }
     }
     return aa_string;
   }
 
-  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
+  void IdXMLFile::writeFragmentAnnotations_(const String& tag_name, std::ostream& os,
                                             std::vector<PeptideHit::PeakAnnotation> annotations, UInt indent)
   {
-    if (annotations.empty()) { return; } 
+    if (annotations.empty()) { return; }
 
     // sort by mz, charge, ...
     stable_sort(annotations.begin(), annotations.end());
@@ -1002,12 +1006,12 @@ namespace OpenMS
     for (auto& a : annotations)
     {
       val += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
-      if (&a != &annotations.back()) { val += "|"; }     
+      if (&a != &annotations.back()) { val += "|"; }
     }
     os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
   }
- 
-  void IdXMLFile::parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::PeakAnnotation> & annotations)
+
+  void IdXMLFile::parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::PeakAnnotation>& annotations)
   {
     if (s.empty()) { return; }
     StringList as;
@@ -1018,10 +1022,10 @@ namespace OpenMS
     {
       StringList fields;
       pa.split_quoted(',', fields);
-      if (fields.size() != 4) 
+      if (fields.size() != 4)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                "Invalid fragment annotation. Four comma-separated fields required. String is: '" + pa + "'");
+                                          "Invalid fragment annotation. Four comma-separated fields required. String is: '" + pa + "'");
       }
       PeptideHit::PeakAnnotation fa;
       fa.mz = fields[0].toDouble();
@@ -1031,4 +1035,5 @@ namespace OpenMS
       annotations.push_back(fa);
     }
   }
+
 } // namespace OpenMS

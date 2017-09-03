@@ -77,11 +77,17 @@ namespace OpenMS
   void LabeledPairFinder::run(const vector<ConsensusMap>& input_maps, ConsensusMap& result_map)
   {
     if (input_maps.size() != 1)
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "exactly one input map required");
+    }
     if (result_map.getFileDescriptions().size() != 2)
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "two file descriptions required");
+    }
     if (result_map.getFileDescriptions().begin()->second.filename != result_map.getFileDescriptions().rbegin()->second.filename)
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the two file descriptions have to contain the same file name");
+    }
     checkIds_(input_maps);
 
     //look up the light and heavy index
@@ -100,7 +106,7 @@ namespace OpenMS
         light_index = it->first;
       }
     }
-    if (light_index == numeric_limits<Size>::max() || heavy_index == numeric_limits<Size>::max())
+    if ((light_index == numeric_limits<Size>::max()) || (heavy_index == numeric_limits<Size>::max()))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the input maps have to be labeled 'light' and 'heavy'");
     }
@@ -135,9 +141,9 @@ namespace OpenMS
           for (DoubleList::const_iterator dist_it = mz_pair_dists.begin(); dist_it != mz_pair_dists.end(); ++dist_it)
           {
             double mz_pair_dist = *dist_it;
-            if (it2->getCharge() == it->getCharge()
-               && it2->getMZ() >= it->getMZ() + mz_pair_dist / it->getCharge() - mz_dev
-               && it2->getMZ() <= it->getMZ() + mz_pair_dist / it->getCharge() + mz_dev)
+            if ((it2->getCharge() == it->getCharge())
+               && (it2->getMZ() >= it->getMZ() + mz_pair_dist / it->getCharge() - mz_dev)
+               && (it2->getMZ() <= it->getMZ() + mz_pair_dist / it->getCharge() + mz_dev))
             {
               dists.push_back(it2->getRT() - it->getRT());
             }
@@ -259,18 +265,18 @@ namespace OpenMS
           //cerr << it->getRT() << " charge1=" << it->getCharge() << ", charge2=" << it2->getCharge() << ", prec_diff=" << prec_mz_diff << ", frag_diff=" << frag_mz_diff << endl;
 
           if (mrm &&
-              it2->getCharge() == it->getCharge() &&
-              prec_mz_diff < mz_dev &&
-              (frag_mz_diff < mz_dev || fabs(frag_mz_diff - mz_pair_dist) < mz_dev))
+              (it2->getCharge() == it->getCharge()) &&
+              (prec_mz_diff < mz_dev) &&
+              ((frag_mz_diff < mz_dev) || (fabs(frag_mz_diff - mz_pair_dist) < mz_dev)))
           {
             mrm_correct_dist = true;
             //cerr << "mrm_correct_dist" << endl;
           }
 
           if ((mrm && mrm_correct_dist) || (!mrm &&
-                                            it2->getCharge() == it->getCharge() &&
-                                            it2->getMZ() >= it->getMZ() + mz_pair_dist / it->getCharge() - mz_dev &&
-                                            it2->getMZ() <= it->getMZ() + mz_pair_dist / it->getCharge() + mz_dev
+                                            (it2->getCharge() == it->getCharge()) &&
+                                            (it2->getMZ() >= it->getMZ() + mz_pair_dist / it->getCharge() - mz_dev) &&
+                                            (it2->getMZ() <= it->getMZ() + mz_pair_dist / it->getCharge() + mz_dev)
                                             ))
           {
             //cerr << "dist correct" << endl;
@@ -305,8 +311,8 @@ namespace OpenMS
     for (ConsensusMap::const_iterator match = matches.begin(); match != matches.end(); ++match)
     {
       //check if features are not used yet
-      if (used_features.find(match->begin()->getUniqueId()) == used_features.end() &&
-          used_features.find(match->rbegin()->getUniqueId()) == used_features.end()
+      if ((used_features.find(match->begin()->getUniqueId()) == used_features.end()) &&
+          (used_features.find(match->rbegin()->getUniqueId()) == used_features.end())
           )
       {
         //if unused, add it to the final set of elements

@@ -112,7 +112,7 @@ protected:
 
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //----------------------------------------------------------------
     // load data
@@ -130,8 +130,8 @@ protected:
 
     Param resampler_param;
     resampler_param.setValue("spacing", sampling_rate);
-    if (ppm) resampler_param.setValue("ppm", "true");
-    else resampler_param.setValue("ppm", "false");
+    if (ppm) { resampler_param.setValue("ppm", "true"); }
+    else{ resampler_param.setValue("ppm", "false"); }
 
     if (!align_sampling)
     {
@@ -156,12 +156,12 @@ protected:
       // get max / min positions across whole map
       for (Size i = 0; i < exp.size(); ++i)
       {
-        if (!exp[i].empty() && (!start_pos_set || exp[i][0].getMZ() < start_pos) )
+        if (!exp[i].empty() && (!start_pos_set || (exp[i][0].getMZ() < start_pos)))
         {
           start_pos = exp[i][0].getMZ();
           start_pos_set = true;
         }
-        if (!exp[i].empty() && (!end_pos_set || exp[i].back().getMZ() > end_pos) )
+        if (!exp[i].empty() && (!end_pos_set || (exp[i].back().getMZ() > end_pos)))
         {
           end_pos = exp[i].back().getMZ();
           end_pos_set = true;
@@ -214,7 +214,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPResampler tool;
   return tool.main(argc, argv);

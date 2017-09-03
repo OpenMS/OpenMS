@@ -100,7 +100,7 @@ namespace OpenMS
 #endif
   }
 
-  StopWatch::StopWatch(const StopWatch & stop_watch) :
+  StopWatch::StopWatch(const StopWatch& stop_watch) :
     is_running_(stop_watch.is_running_),
     start_secs_(stop_watch.start_secs_),
     start_usecs_(stop_watch.start_usecs_),
@@ -351,36 +351,38 @@ namespace OpenMS
     }
     else
     {
-        /* stop_watch is on, return accumulated plus current */
+      /* stop_watch is on, return accumulated plus current */
 #ifdef OPENMS_WINDOWSPLATFORM
-        FILETIME kt, ut, ct, et;
-        
-        HANDLE my_id = GetCurrentProcess();
-        GetProcessTimes(my_id, &ct, &et, &kt, &ut);
+      FILETIME kt, ut, ct, et;
 
-        ULARGE_INTEGER kernel_time;
-        kernel_time.HighPart = kt.dwHighDateTime;
-        kernel_time.LowPart = kt.dwLowDateTime;
-        ULARGE_INTEGER user_time;
-        user_time.HighPart = ut.dwHighDateTime;
-        user_time.LowPart = ut.dwLowDateTime;
-        temp_value = (double)((double)(current_system_time_ - start_system_time_) + kernel_time.QuadPart / 10.0);
+      HANDLE my_id = GetCurrentProcess();
+      GetProcessTimes(my_id, &ct, &et, &kt, &ut);
+
+      ULARGE_INTEGER kernel_time;
+      kernel_time.HighPart = kt.dwHighDateTime;
+      kernel_time.LowPart = kt.dwLowDateTime;
+      ULARGE_INTEGER user_time;
+      user_time.HighPart = ut.dwHighDateTime;
+      user_time.LowPart = ut.dwLowDateTime;
+      temp_value = (double)((double)(current_system_time_ - start_system_time_) + kernel_time.QuadPart / 10.0);
 #else
-        struct tms tms_buffer;
-        times(&tms_buffer);
-        temp_value = (double)(current_system_time_ - start_system_time_ + tms_buffer.tms_stime);
+      struct tms tms_buffer;
+      times(&tms_buffer);
+      temp_value = (double)(current_system_time_ - start_system_time_ + tms_buffer.tms_stime);
 #endif
     }
 #ifdef OPENMS_WINDOWSPLATFORM
-      return (double)(temp_value / 1000000.0);
+    return (double)(temp_value / 1000000.0);
+
 #else
-      /* convert from clock ticks to seconds using the */
-      /* cpu-speed value obtained in the constructor   */
-      return (double)(temp_value / (double)cpu_speed_);
+    /* convert from clock ticks to seconds using the */
+    /* cpu-speed value obtained in the constructor   */
+    return (double)(temp_value / (double)cpu_speed_);
+
 #endif
   }
 
-  StopWatch & StopWatch::operator=(const StopWatch & stop_watch)
+  StopWatch& StopWatch::operator=(const StopWatch& stop_watch)
   {
     if (this == &stop_watch)
     {
@@ -400,7 +402,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool StopWatch::operator==(const StopWatch & stop_watch) const
+  bool StopWatch::operator==(const StopWatch& stop_watch) const
   {
     return start_secs_ == stop_watch.start_secs_
            && start_usecs_ == stop_watch.start_usecs_
@@ -412,7 +414,6 @@ namespace OpenMS
            && current_system_time_ == stop_watch.current_system_time_;
   }
 
-
   String StopWatch::toString(double time)
   {
     int d(0), h(0), m(0);
@@ -421,19 +422,19 @@ namespace OpenMS
     TimeType time_i = (TimeType) time; // trunc to integer
 
     // compute days
-    d = int(time_i / (3600*24));
-    time_i -= d*(3600*24);
-    time -= d*(3600*24);
+    d = int(time_i / (3600 * 24));
+    time_i -= d * (3600 * 24);
+    time -= d * (3600 * 24);
 
     // hours
     h = int(time_i / 3600);
-    time_i -= h*3600;
-    time -= h*3600;
+    time_i -= h * 3600;
+    time -= h * 3600;
 
     // minutes
     m = int(time_i / 60);
-    time_i -= m*60;
-    time -= m*60;
+    time_i -= m * 60;
+    time -= m * 60;
 
     s_single = time;
     s = (double) time_i;
@@ -442,25 +443,25 @@ namespace OpenMS
     String s_d = String(d);
     String s_h = String(h).fillLeft('0', 2) + ":";
     String s_m = String(m).fillLeft('0', 2) + ":";
-    String s_s = String(s).fillLeft('0', 2); // if we show seconds in combination with minutes, we round to nominal 
+    String s_s = String(s).fillLeft('0', 2); // if we show seconds in combination with minutes, we round to nominal
 
     String s_s_single = String::number(s_single, 2); // second (shown by itself with no minutes) has two digits after decimal
 
-    return ( (d>0 ? s_d + "d " + s_h + s_m + s_s + " h" :
-             (h>0 ?              s_h + s_m + s_s + " h" :
-             (m>0 ?                    s_m + s_s + " m" :
-             (                        s_s_single + " s")))));
+    return (d > 0 ? s_d + "d " + s_h + s_m + s_s + " h" :
+            (h > 0 ? s_h + s_m + s_s + " h" :
+             (m > 0 ? s_m + s_s + " m" :
+              (s_s_single + " s"))));
 
   }
 
   String StopWatch::toString() const
   {
-    return(
+    return
       StopWatch::toString(this->getClockTime()) + " (wall), " +
-      StopWatch::toString(this->getCPUTime()) + " (CPU), " + 
+      StopWatch::toString(this->getCPUTime()) + " (CPU), " +
       StopWatch::toString(this->getSystemTime()) + " (system), " +
       StopWatch::toString(this->getUserTime()) + " (user)"
-    );
+    ;
   }
 
   double StopWatch::getCPUTime() const
@@ -473,28 +474,27 @@ namespace OpenMS
     return is_running_;
   }
 
-  bool StopWatch::operator!=(const StopWatch & stop_watch) const
+  bool StopWatch::operator!=(const StopWatch& stop_watch) const
   {
     return !(*this == stop_watch);
   }
 
-  bool StopWatch::operator<(const StopWatch & stop_watch) const
+  bool StopWatch::operator<(const StopWatch& stop_watch) const
   {
     return getCPUTime() < stop_watch.getCPUTime();
   }
 
- 
-  bool StopWatch::operator<=(const StopWatch & stop_watch) const
+  bool StopWatch::operator<=(const StopWatch& stop_watch) const
   {
     return !(stop_watch < *this);
   }
 
-  bool StopWatch::operator>=(const StopWatch & stop_watch) const
+  bool StopWatch::operator>=(const StopWatch& stop_watch) const
   {
     return !(*this < stop_watch);
   }
 
-  bool StopWatch::operator>(const StopWatch & stop_watch) const
+  bool StopWatch::operator>(const StopWatch& stop_watch) const
   {
     return stop_watch < *this;
   }

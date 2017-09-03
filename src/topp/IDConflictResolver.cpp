@@ -103,13 +103,13 @@ protected:
   // compare peptide IDs by score of best hit (hits must be sorted first!)
   // (note to self: the "static" is necessary to avoid cryptic "no matching
   // function" errors from gcc when the comparator is used below)
-  static bool compareIDsSmallerScores_(const PeptideIdentification & left,
-                          const PeptideIdentification & right)
+  static bool compareIDsSmallerScores_(const PeptideIdentification& left,
+                                       const PeptideIdentification& right)
   {
     // if any of them is empty, the other is considered "greater"
     // independent of the score in the first hit
-    if (left.getHits().empty()) return true;
-    if (right.getHits().empty()) return false;
+    if (left.getHits().empty()) { return true; }
+    if (right.getHits().empty()) { return false; }
     if (left.getHits()[0].getScore() < right.getHits()[0].getScore())
     {
       return true;
@@ -117,9 +117,9 @@ protected:
     return false;
   }
 
-  void resolveConflict_(vector<PeptideIdentification> & peptides)
+  void resolveConflict_(vector<PeptideIdentification>& peptides)
   {
-    if (peptides.empty()) return;
+    if (peptides.empty()) { return; }
 
     for (vector<PeptideIdentification>::iterator pep_id = peptides.begin();
          pep_id != peptides.end(); ++pep_id)
@@ -127,11 +127,11 @@ protected:
       pep_id->sort();
     }
     vector<PeptideIdentification>::iterator pos;
-    if (peptides[0].isHigherScoreBetter())     // find highest-scoring ID
+    if (peptides[0].isHigherScoreBetter()) // find highest-scoring ID
     {
       pos = max_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
     }
-    else  // find lowest-scoring ID
+    else // find lowest-scoring ID
     {
       pos = min_element(peptides.begin(), peptides.end(), compareIDsSmallerScores_);
     }
@@ -154,7 +154,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
     FileTypes::Type in_type = FileHandler::getType(in);
@@ -171,7 +171,7 @@ protected:
                          getProcessingInfo_(DataProcessing::FILTERING));
       FeatureXMLFile().store(out, features);
     }
-    else     // consensusXML
+    else // consensusXML
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
@@ -190,7 +190,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDConflictResolver tool;
   return tool.main(argc, argv);

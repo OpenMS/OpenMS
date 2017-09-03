@@ -50,7 +50,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectrumPrecursorComparator::SpectrumPrecursorComparator(const SpectrumPrecursorComparator & source) :
+  SpectrumPrecursorComparator::SpectrumPrecursorComparator(const SpectrumPrecursorComparator& source) :
     PeakSpectrumCompareFunctor(source)
   {
   }
@@ -59,7 +59,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumPrecursorComparator & SpectrumPrecursorComparator::operator=(const SpectrumPrecursorComparator & source)
+  SpectrumPrecursorComparator& SpectrumPrecursorComparator::operator=(const SpectrumPrecursorComparator& source)
   {
     if (this != &source)
     {
@@ -68,21 +68,25 @@ namespace OpenMS
     return *this;
   }
 
-  double SpectrumPrecursorComparator::operator()(const PeakSpectrum & spec) const
+  double SpectrumPrecursorComparator::operator()(const PeakSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
 
-  double SpectrumPrecursorComparator::operator()(const PeakSpectrum & x, const PeakSpectrum & y) const
+  double SpectrumPrecursorComparator::operator()(const PeakSpectrum& x, const PeakSpectrum& y) const
   {
     double window = (double)param_.getValue("window");
 
     double mz1 = 0.0;
     if (!x.getPrecursors().empty())
+    {
       mz1 = x.getPrecursors()[0].getMZ();
+    }
     double mz2 = 0.0;
     if (!y.getPrecursors().empty())
+    {
       mz2 = y.getPrecursors()[0].getMZ();
+    }
 
     if (fabs(mz1 - mz2) > window)
     {

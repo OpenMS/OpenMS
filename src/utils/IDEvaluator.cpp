@@ -147,7 +147,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    if (!out.empty() && format == "") // get from filename
+    if (!out.empty() && (format == "")) // get from filename
     {
       try
       {
@@ -190,7 +190,7 @@ protected:
     {
       String error;
       bool r = mw->exportAsImage(out.toQString(), error, format.toQString());
-      if (r) return EXECUTION_OK;
+      if (r) { return EXECUTION_OK; }
       else
       {
         LOG_ERROR << error << std::endl;

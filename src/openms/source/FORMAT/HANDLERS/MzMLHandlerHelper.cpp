@@ -42,332 +42,338 @@ namespace OpenMS
 {
   namespace Internal
   {
-    void MzMLHandlerHelper::warning(int mode, const String & msg, UInt line, UInt column)
+    void MzMLHandlerHelper::warning(int mode, const String& msg, UInt line, UInt column)
     {
       String error_message_;
       if (mode == 0)
+      {
         error_message_ =  String("While loading '") + "': " + msg;
+      }
       else if (mode == 1)
+      {
         error_message_ =  String("While storing '") + "': " + msg;
-      if (line != 0 || column != 0)
+      }
+      if ((line != 0) || (column != 0))
+      {
         error_message_ += String("( in line ") + line + " column " + column + ")";
+      }
       LOG_WARN << error_message_ << std::endl;
     }
 
-  String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, String indent, bool use_numpress)
-  {
-    if (opt.getCompression())
+    String MzMLHandlerHelper::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, String indent, bool use_numpress)
     {
-      if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
+      if (opt.getCompression())
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
+        if ((np.np_compression == MSNumpressCoder::NONE) || !use_numpress)
+        {
+          return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
+        }
+        else if (np.np_compression == MSNumpressCoder::LINEAR)
+        {
+          return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002746\" name=\"MS-Numpress linear prediction compression followed by zlib compression\" />";
+        }
+        else if (np.np_compression == MSNumpressCoder::PIC)
+        {
+          return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002747\" name=\"MS-Numpress positive integer compression followed by zlib compression\" />";
+        }
+        else if (np.np_compression == MSNumpressCoder::SLOF)
+        {
+          return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002748\" name=\"MS-Numpress short logged float compression followed by zlib compression\" />";
+        }
       }
-      else if (np.np_compression == MSNumpressCoder::LINEAR)
+      else
       {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002746\" name=\"MS-Numpress linear prediction compression followed by zlib compression\" />";
+        if ((np.np_compression == MSNumpressCoder::NONE) || !use_numpress)
+        {
+          // default
+          return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+        }
+        else if (np.np_compression == MSNumpressCoder::LINEAR)
+        {
+          return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
+        }
+        else if (np.np_compression == MSNumpressCoder::PIC)
+        {
+          return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
+        }
+        else if (np.np_compression == MSNumpressCoder::SLOF)
+        {
+          return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
+        }
       }
-      else if (np.np_compression == MSNumpressCoder::PIC)
-      {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002747\" name=\"MS-Numpress positive integer compression followed by zlib compression\" />";
-      }
-      else if (np.np_compression == MSNumpressCoder::SLOF)
-      {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002748\" name=\"MS-Numpress short logged float compression followed by zlib compression\" />";
-      }
-    } else
-    {
-      if (np.np_compression == MSNumpressCoder::NONE || !use_numpress)
-      {
-        // default
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
-      }
-      else if (np.np_compression == MSNumpressCoder::LINEAR)
-      {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
-      }
-      else if (np.np_compression == MSNumpressCoder::PIC)
-      {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
-      }
-      else if (np.np_compression == MSNumpressCoder::SLOF)
-      {
-        return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
-      }
+      // default
+      return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
     }
-    // default
-    return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
-  }
 
-  void MzMLHandlerHelper::writeFooter_(std::ostream& os, const PeakFileOptions& options_, 
-    std::vector< std::pair<std::string, long> > & spectra_offsets,
-    std::vector< std::pair<std::string, long> > & chromatograms_offsets)
-  {
-    os << "\t</run>\n";
-    os << "</mzML>";
-
-    if (options_.getWriteIndex())
+    void MzMLHandlerHelper::writeFooter_(std::ostream& os, const PeakFileOptions& options_,
+                                         std::vector<std::pair<std::string, long> >& spectra_offsets,
+                                         std::vector<std::pair<std::string, long> >& chromatograms_offsets)
     {
-      int indexlists = (int) !spectra_offsets.empty() + (int) !chromatograms_offsets.empty();
+      os << "\t</run>\n";
+      os << "</mzML>";
 
-      long indexlistoffset = os.tellp();
-      os << "\n";
-      // NOTE: indexList is required, so we need to write one 
-      os << "<indexList count=\"" << indexlists << "\">\n";
-      if (!spectra_offsets.empty())
+      if (options_.getWriteIndex())
       {
-        os << "\t<index name=\"spectrum\">\n";
-        for (Size i = 0; i < spectra_offsets.size(); i++)
+        int indexlists = (int) !spectra_offsets.empty() + (int) !chromatograms_offsets.empty();
+
+        long indexlistoffset = os.tellp();
+        os << "\n";
+        // NOTE: indexList is required, so we need to write one
+        os << "<indexList count=\"" << indexlists << "\">\n";
+        if (!spectra_offsets.empty())
         {
-          os << "\t\t<offset idRef=\"" << spectra_offsets[i].first << "\">" << spectra_offsets[i].second << "</offset>\n";
+          os << "\t<index name=\"spectrum\">\n";
+          for (Size i = 0; i < spectra_offsets.size(); i++)
+          {
+            os << "\t\t<offset idRef=\"" << spectra_offsets[i].first << "\">" << spectra_offsets[i].second << "</offset>\n";
+          }
+          os << "\t</index>\n";
         }
-        os << "\t</index>\n";
-      }
-      if (!chromatograms_offsets.empty())
-      {
-        os << "\t<index name=\"chromatogram\">\n";
-        for (Size i = 0; i < chromatograms_offsets.size(); i++)
+        if (!chromatograms_offsets.empty())
         {
-          os << "\t\t<offset idRef=\"" << chromatograms_offsets[i].first << "\">" << chromatograms_offsets[i].second << "</offset>\n";
+          os << "\t<index name=\"chromatogram\">\n";
+          for (Size i = 0; i < chromatograms_offsets.size(); i++)
+          {
+            os << "\t\t<offset idRef=\"" << chromatograms_offsets[i].first << "\">" << chromatograms_offsets[i].second << "</offset>\n";
+          }
+          os << "\t</index>\n";
         }
-        os << "\t</index>\n";
-      }
-      if (indexlists == 0)
-      {
-        // dummy: at least one index subelement is required by the standard,
-        // and at least one offset element is required so we need to handle
-        // the case where no spectra/chromatograms are present.
-        os << "\t<index name=\"dummy\">\n";
+        if (indexlists == 0)
+        {
+          // dummy: at least one index subelement is required by the standard,
+          // and at least one offset element is required so we need to handle
+          // the case where no spectra/chromatograms are present.
+          os << "\t<index name=\"dummy\">\n";
           os << "\t\t<offset idRef=\"dummy\">-1</offset>\n";
-        os << "\t</index>\n";
+          os << "\t</index>\n";
+        }
+        os << "</indexList>\n";
+        os << "<indexListOffset>" << indexlistoffset << "</indexListOffset>\n";
+        os << "<fileChecksum>";
+
+        // TODO calculate checksum here:
+        //  SHA-1 checksum from beginning of file to end of 'fileChecksum' open tag.
+        String sha1_checksum = "0";
+        os << sha1_checksum << "</fileChecksum>\n";
+
+        os << "</indexedmzML>";
       }
-      os << "</indexList>\n";
-      os << "<indexListOffset>" << indexlistoffset << "</indexListOffset>\n";
-      os << "<fileChecksum>";
-
-      // TODO calculate checksum here:
-      //  SHA-1 checksum from beginning of file to end of 'fileChecksum' open tag.
-      String sha1_checksum = "0";
-      os << sha1_checksum << "</fileChecksum>\n";
-
-      os << "</indexedmzML>";
     }
-  }
 
-  void MzMLHandlerHelper::decodeBase64Arrays(std::vector<BinaryData> & data_, bool skipXMLCheck)
-  {
-    // Decoder/Encoder for Base64-data in MzML
-    Base64 decoder_;
-
-    // decode all base64 arrays
-    for (Size i = 0; i < data_.size(); i++)
+    void MzMLHandlerHelper::decodeBase64Arrays(std::vector<BinaryData>& data_, bool skipXMLCheck)
     {
-      // remove whitespaces from binary data
-      // this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
-      // NOTE: this may take up to 10% of reading time with a single thread,
-      //       either omit it or make it more efficient
-      if (!skipXMLCheck)
-      {
-        data_[i].base64.removeWhitespaces();
-      }
+      // Decoder/Encoder for Base64-data in MzML
+      Base64 decoder_;
 
-      // Catch proteowizard invalid conversion where 
-      // (i) no data type is set 
-      // (ii) data type is set to integer for pic compression
-      //
-      // Since numpress arrays are always 64 bit and decode to double arrays,
-      // this should be safe. However, we cannot generally assume that DT_NONE
-      // means that we are dealing with a 64 bit float type. 
-      if (data_[i].np_compression != MSNumpressCoder::NONE && 
-          data_[i].data_type == BinaryData::DT_NONE)
+      // decode all base64 arrays
+      for (Size i = 0; i < data_.size(); i++)
       {
-        MzMLHandlerHelper::warning(0, String("Invalid mzML format: Numpress-compressed binary data array '") + 
-            data_[i].meta.getName() + "' has no child term of MS:1000518 (binary data type) set. Assuming 64 bit float data type.");
-        data_[i].data_type = BinaryData::DT_FLOAT;
-        data_[i].precision = BinaryData::PRE_64;
-      }
-      if (data_[i].np_compression == MSNumpressCoder::PIC && 
-          data_[i].data_type == BinaryData::DT_INT)
-      {
-        data_[i].data_type = BinaryData::DT_FLOAT;
-        data_[i].precision = BinaryData::PRE_64;
-      }
-
-      // decode data and check if the length of the decoded data matches the expected length
-      if (data_[i].data_type == BinaryData::DT_FLOAT)
-      {
-        if (data_[i].np_compression != MSNumpressCoder::NONE)
+        // remove whitespaces from binary data
+        // this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+        // NOTE: this may take up to 10% of reading time with a single thread,
+        //       either omit it or make it more efficient
+        if (!skipXMLCheck)
         {
-          // If its numpress, we don't distinguish 32 / 64 bit as the numpress
-          // decoder always works with 64 bit (takes std::vector<double>)
-          MSNumpressCoder::NumpressConfig config;
-          config.np_compression = data_[i].np_compression;
-          MSNumpressCoder().decodeNP(data_[i].base64, data_[i].floats_64,  data_[i].compression, config);
+          data_[i].base64.removeWhitespaces();
+        }
 
-          // Next, ensure that we only look at the float array even if the
-          // mzML tags say 32 bit data (I am looking at you, proteowizard)
+        // Catch proteowizard invalid conversion where
+        // (i) no data type is set
+        // (ii) data type is set to integer for pic compression
+        //
+        // Since numpress arrays are always 64 bit and decode to double arrays,
+        // this should be safe. However, we cannot generally assume that DT_NONE
+        // means that we are dealing with a 64 bit float type.
+        if ((data_[i].np_compression != MSNumpressCoder::NONE) &&
+            (data_[i].data_type == BinaryData::DT_NONE))
+        {
+          MzMLHandlerHelper::warning(0, String("Invalid mzML format: Numpress-compressed binary data array '") +
+                                     data_[i].meta.getName() + "' has no child term of MS:1000518 (binary data type) set. Assuming 64 bit float data type.");
+          data_[i].data_type = BinaryData::DT_FLOAT;
           data_[i].precision = BinaryData::PRE_64;
         }
-        else if (data_[i].precision == BinaryData::PRE_64)
+        if ((data_[i].np_compression == MSNumpressCoder::PIC) &&
+            (data_[i].data_type == BinaryData::DT_INT))
         {
-          decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64, data_[i].compression);
-          if (data_[i].size != data_[i].floats_64.size())
+          data_[i].data_type = BinaryData::DT_FLOAT;
+          data_[i].precision = BinaryData::PRE_64;
+        }
+
+        // decode data and check if the length of the decoded data matches the expected length
+        if (data_[i].data_type == BinaryData::DT_FLOAT)
+        {
+          if (data_[i].np_compression != MSNumpressCoder::NONE)
           {
-            MzMLHandlerHelper::warning(0, String("Float binary data array '") + data_[i].meta.getName() + 
-                "' has length " + data_[i].floats_64.size() + ", but should have length " + data_[i].size + ".");
-            data_[i].size = data_[i].floats_64.size();
+            // If its numpress, we don't distinguish 32 / 64 bit as the numpress
+            // decoder always works with 64 bit (takes std::vector<double>)
+            MSNumpressCoder::NumpressConfig config;
+            config.np_compression = data_[i].np_compression;
+            MSNumpressCoder().decodeNP(data_[i].base64, data_[i].floats_64, data_[i].compression, config);
+
+            // Next, ensure that we only look at the float array even if the
+            // mzML tags say 32 bit data (I am looking at you, proteowizard)
+            data_[i].precision = BinaryData::PRE_64;
+          }
+          else if (data_[i].precision == BinaryData::PRE_64)
+          {
+            decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64, data_[i].compression);
+            if (data_[i].size != data_[i].floats_64.size())
+            {
+              MzMLHandlerHelper::warning(0, String("Float binary data array '") + data_[i].meta.getName() +
+                                         "' has length " + data_[i].floats_64.size() + ", but should have length " + data_[i].size + ".");
+              data_[i].size = data_[i].floats_64.size();
+            }
+          }
+          else if (data_[i].precision == BinaryData::PRE_32)
+          {
+            decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_32, data_[i].compression);
+            if (data_[i].size != data_[i].floats_32.size())
+            {
+              MzMLHandlerHelper::warning(0, String("Float binary data array '") + data_[i].meta.getName() +
+                                         "' has length " + data_[i].floats_32.size() + ", but should have length " + data_[i].size + ".");
+              data_[i].size = data_[i].floats_32.size();
+            }
           }
         }
-        else if (data_[i].precision == BinaryData::PRE_32)
+        else if (data_[i].data_type == BinaryData::DT_INT)
         {
-          decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_32, data_[i].compression);
-          if (data_[i].size != data_[i].floats_32.size())
+          if (data_[i].precision == BinaryData::PRE_64)
           {
-            MzMLHandlerHelper::warning(0, String("Float binary data array '") + data_[i].meta.getName() + 
-                "' has length " + data_[i].floats_32.size() + ", but should have length " + data_[i].size + ".");
-            data_[i].size = data_[i].floats_32.size();
+            decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_64, data_[i].compression);
+            if (data_[i].size != data_[i].ints_64.size())
+            {
+              MzMLHandlerHelper::warning(0, String("Integer binary data array '") + data_[i].meta.getName() +
+                                         "' has length " + data_[i].ints_64.size() + ", but should have length " + data_[i].size + ".");
+              data_[i].size = data_[i].ints_64.size();
+            }
+          }
+          else if (data_[i].precision == BinaryData::PRE_32)
+          {
+            decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_32, data_[i].compression);
+            if (data_[i].size != data_[i].ints_32.size())
+            {
+              MzMLHandlerHelper::warning(0, String("Integer binary data array '") + data_[i].meta.getName() +
+                                         "' has length " + data_[i].ints_32.size() + ", but should have length " + data_[i].size + ".");
+              data_[i].size = data_[i].ints_32.size();
+            }
           }
         }
-      }
-      else if (data_[i].data_type == BinaryData::DT_INT)
-      {
-        if (data_[i].precision == BinaryData::PRE_64)
+        else if (data_[i].data_type == BinaryData::DT_STRING)
         {
-          decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_64, data_[i].compression);
-          if (data_[i].size != data_[i].ints_64.size())
+          decoder_.decodeStrings(data_[i].base64, data_[i].decoded_char, data_[i].compression);
+          if (data_[i].size != data_[i].decoded_char.size())
           {
-            MzMLHandlerHelper::warning(0, String("Integer binary data array '") + data_[i].meta.getName() + 
-                "' has length " + data_[i].ints_64.size() + ", but should have length " + data_[i].size + ".");
-            data_[i].size = data_[i].ints_64.size();
+            MzMLHandlerHelper::warning(0, String("String binary data array '") + data_[i].meta.getName() +
+                                       "' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
+            data_[i].size = data_[i].decoded_char.size();
           }
         }
-        else if (data_[i].precision == BinaryData::PRE_32)
+        else
         {
-          decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_32, data_[i].compression);
-          if (data_[i].size != data_[i].ints_32.size())
-          {
-            MzMLHandlerHelper::warning(0, String("Integer binary data array '") + data_[i].meta.getName() + 
-                "' has length " + data_[i].ints_32.size() + ", but should have length " + data_[i].size + ".");
-            data_[i].size = data_[i].ints_32.size();
-          }
+          // TODO throw error?
+          MzMLHandlerHelper::warning(0, String("Invalid mzML format: Binary data array '") + data_[i].meta.getName() +
+                                     "' has no child term of MS:1000518 (binary data type) set. Cannot automatically deduce data type.");
         }
       }
-      else if (data_[i].data_type == BinaryData::DT_STRING)
+
+    }
+
+    void MzMLHandlerHelper::computeDataProperties_(std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, String index_name)
+    {
+      for (Size i = 0; i < data_.size(); i++)
       {
-        decoder_.decodeStrings(data_[i].base64, data_[i].decoded_char, data_[i].compression);
-        if (data_[i].size != data_[i].decoded_char.size())
+        if (data_[i].meta.getName() == index_name)
         {
-          MzMLHandlerHelper::warning(0, String("String binary data array '") + data_[i].meta.getName() + 
-              "' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
-          data_[i].size = data_[i].decoded_char.size();
+          index = i;
+          precision_64 = (data_[i].precision == BinaryData::PRE_64);
         }
       }
-      else 
+    }
+
+    bool MzMLHandlerHelper::handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
+                                                         const String& accession, const String& value, const String& name)
+    {
+      //MS:1000518 ! binary data type
+      if (accession == "MS:1000523") //64-bit float
       {
-        // TODO throw error?
-        MzMLHandlerHelper::warning(0, String("Invalid mzML format: Binary data array '") + data_[i].meta.getName() + 
-            "' has no child term of MS:1000518 (binary data type) set. Cannot automatically deduce data type.");
+        data_.back().precision = BinaryData::PRE_64;
+        data_.back().data_type = BinaryData::DT_FLOAT;
       }
-    }
-
-  }
-
-  void MzMLHandlerHelper::computeDataProperties_(std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, String index_name)
-  {
-    for (Size i = 0; i < data_.size(); i++)
-    {
-      if (data_[i].meta.getName() == index_name)
+      else if (accession == "MS:1000521") //32-bit float
       {
-        index = i;
-        precision_64 = (data_[i].precision == BinaryData::PRE_64);
+        data_.back().precision = BinaryData::PRE_32;
+        data_.back().data_type = BinaryData::DT_FLOAT;
       }
-    }
-  }
+      else if (accession == "MS:1000519") //32-bit integer
+      {
+        data_.back().precision = BinaryData::PRE_32;
+        data_.back().data_type = BinaryData::DT_INT;
+      }
+      else if (accession == "MS:1000522") //64-bit integer
+      {
+        data_.back().precision = BinaryData::PRE_64;
+        data_.back().data_type = BinaryData::DT_INT;
+      }
+      else if (accession == "MS:1001479")
+      {
+        data_.back().precision = BinaryData::PRE_NONE;
+        data_.back().data_type = BinaryData::DT_STRING;
+      }
+      //MS:1000513 ! binary data array
+      else if (accession == "MS:1000786") // non-standard binary data array (with name as value)
+      {
+        data_.back().meta.setName(value);
+      }
+      //MS:1000572 ! binary data compression type
+      else if (accession == "MS:1000574") //zlib compression
+      {
+        data_.back().compression = true;
+      }
+      else if (accession == "MS:1002312") //numpress compression: linear
+      {
+        data_.back().np_compression = MSNumpressCoder::LINEAR;
+      }
+      else if (accession == "MS:1002313") //numpress compression: pic
+      {
+        data_.back().np_compression = MSNumpressCoder::PIC;
+      }
+      else if (accession == "MS:1002314") //numpress compression: slof
+      {
+        data_.back().np_compression = MSNumpressCoder::SLOF;
+      }
+      else if (accession == "MS:1002746") //numpress compression: linear + zlib
+      {
+        data_.back().np_compression = MSNumpressCoder::LINEAR;
+        data_.back().compression = true;
+      }
+      else if (accession == "MS:1002747") //numpress compression: pic + zlib
+      {
+        data_.back().np_compression = MSNumpressCoder::PIC;
+        data_.back().compression = true;
+      }
+      else if (accession == "MS:1002748") //numpress compression: slof + zlib
+      {
+        data_.back().np_compression = MSNumpressCoder::SLOF;
+        data_.back().compression = true;
+      }
+      else if (accession == "MS:1000576") // no compression
+      {
+        data_.back().compression = false;
+        data_.back().np_compression = MSNumpressCoder::NONE;
+      }
+      else if ((accession == "MS:1000514") || (accession == "MS:1000515") || (accession == "MS:1000595")) // handle m/z, intensity, rt
+      {
+        data_.back().meta.setName(name);
+      }
+      else
+      {
+        // CV term not identified
+        return false;
+      }
 
-  bool MzMLHandlerHelper::handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
-    const String& accession, const String& value, const String& name)
-  {
-    //MS:1000518 ! binary data type
-    if (accession == "MS:1000523") //64-bit float
-    {
-      data_.back().precision = BinaryData::PRE_64;
-      data_.back().data_type = BinaryData::DT_FLOAT;
+      // CV term found
+      return true;
     }
-    else if (accession == "MS:1000521") //32-bit float
-    {
-      data_.back().precision = BinaryData::PRE_32;
-      data_.back().data_type = BinaryData::DT_FLOAT;
-    }
-    else if (accession == "MS:1000519") //32-bit integer
-    {
-      data_.back().precision = BinaryData::PRE_32;
-      data_.back().data_type = BinaryData::DT_INT;
-    }
-    else if (accession == "MS:1000522") //64-bit integer
-    {
-      data_.back().precision = BinaryData::PRE_64;
-      data_.back().data_type = BinaryData::DT_INT;
-    }
-    else if (accession == "MS:1001479")
-    {
-      data_.back().precision = BinaryData::PRE_NONE;
-      data_.back().data_type = BinaryData::DT_STRING;
-    }
-    //MS:1000513 ! binary data array
-    else if (accession == "MS:1000786") // non-standard binary data array (with name as value)
-    {
-      data_.back().meta.setName(value);
-    }
-    //MS:1000572 ! binary data compression type
-    else if (accession == "MS:1000574") //zlib compression
-    {
-      data_.back().compression = true;
-    }
-    else if (accession == "MS:1002312") //numpress compression: linear
-    {
-      data_.back().np_compression = MSNumpressCoder::LINEAR;
-    }
-    else if (accession == "MS:1002313") //numpress compression: pic
-    {
-      data_.back().np_compression = MSNumpressCoder::PIC;
-    }
-    else if (accession == "MS:1002314") //numpress compression: slof
-    {
-      data_.back().np_compression = MSNumpressCoder::SLOF;
-    }
-    else if (accession == "MS:1002746") //numpress compression: linear + zlib
-    {
-      data_.back().np_compression = MSNumpressCoder::LINEAR;
-      data_.back().compression = true;
-    }
-    else if (accession == "MS:1002747") //numpress compression: pic + zlib
-    {
-      data_.back().np_compression = MSNumpressCoder::PIC;
-      data_.back().compression = true;
-    }
-    else if (accession == "MS:1002748") //numpress compression: slof + zlib
-    {
-      data_.back().np_compression = MSNumpressCoder::SLOF;
-      data_.back().compression = true;
-    }
-    else if (accession == "MS:1000576") // no compression
-    {
-      data_.back().compression = false;
-      data_.back().np_compression = MSNumpressCoder::NONE;
-    }
-    else if (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595")    // handle m/z, intensity, rt
-    {
-      data_.back().meta.setName(name);
-    }
-    else
-    {
-      // CV term not identified
-      return false;
-    }
-
-    // CV term found
-    return true;
-  }
-
 
   }
 } // namespace OpenMS

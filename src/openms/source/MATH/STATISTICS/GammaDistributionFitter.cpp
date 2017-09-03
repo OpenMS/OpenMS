@@ -70,9 +70,9 @@ namespace OpenMS
       int values() const { return m_values; }
 
       GammaFunctor(unsigned dimensions, const std::vector<DPosition<2> >* data) :
-        m_inputs(dimensions), 
-        m_values(static_cast<int>(data->size())), 
-        m_data(data) 
+        m_inputs(dimensions),
+        m_values(static_cast<int>(data->size())),
+        m_data(data)
       {
       }
 
@@ -85,7 +85,7 @@ namespace OpenMS
         UInt i = 0;
 
         // gamma distribution is only defined for positive parameter values
-        if (b > 0.0 && p > 0.0)
+        if ((b > 0.0) && (p > 0.0))
         {
           for (std::vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
           {
@@ -114,7 +114,7 @@ namespace OpenMS
 
         UInt i = 0;
         // gamma distribution is only defined for positive parameter values
-        if (b > 0.0 && p > 0.0)
+        if ((b > 0.0) && (p > 0.0))
         {
           for (std::vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
           {

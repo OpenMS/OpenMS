@@ -151,7 +151,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    if (strict) IDFilter::keepBestPeptideHits(identifications, strict);
+    if (strict) { IDFilter::keepBestPeptideHits(identifications, strict); }
 
     for (SignedSize j = fdrs.size() - 1; j >= 0; --j)
     {
@@ -183,7 +183,7 @@ protected:
       IDFilter::filterHitsByScore(filtered_ids, fdrs[j]);
 
       vector<PeptideIdentification> filtered_ids_rt1 = filtered_ids,
-        filtered_ids_rt2 = filtered_ids, filtered_ids_both = filtered_ids;
+                                    filtered_ids_rt2 = filtered_ids, filtered_ids_both = filtered_ids;
 
       if (p_value_dim_1 > 0)
       {
@@ -198,14 +198,14 @@ protected:
         if (p_value_dim_1 > 0)
         {
           IDFilter::filterPeptidesByRTPredictPValue(
-          filtered_ids_both, "predicted_RT_p_value", p_value_dim_2);
+            filtered_ids_both, "predicted_RT_p_value", p_value_dim_2);
         }
       }
 
       // remove decoy hits:
       vector<PeptideIdentification> no_decoys = filtered_ids,
-        no_decoys_rt1 = filtered_ids_rt1, no_decoys_rt2 = filtered_ids_rt2,
-        no_decoys_both = filtered_ids_both;
+                                    no_decoys_rt1 = filtered_ids_rt1, no_decoys_rt2 = filtered_ids_rt2,
+                                    no_decoys_both = filtered_ids_both;
       IDFilter::removeDecoyHits(no_decoys);
       IDFilter::removeDecoyHits(no_decoys_rt1);
       IDFilter::removeDecoyHits(no_decoys_rt2);
@@ -291,33 +291,33 @@ protected:
           state_rt2 = NE;
         }
 
-        if (state_rt1 == TP && state_rt2 == TP)
+        if ((state_rt1 == TP) && (state_rt2 == TP))
         {
           ++tps_both;
         }
-        else if ((state_rt1 == TP || state_rt2 == TP) && (state_rt1 == NE || state_rt2 == NE))
+        else if (((state_rt1 == TP) || (state_rt2 == TP)) && ((state_rt1 == NE) || (state_rt2 == NE)))
         {
           ++tps_both;
         }
-        else if (state_rt1 == FP && state_rt2 == FP)
+        else if ((state_rt1 == FP) && (state_rt2 == FP))
         {
           ++fps_both;
         }
-        else if ((state_rt1 == TN || state_rt2 == TN || state_rt1 == NE || state_rt2 == NE)
-                && state == FP)
+        else if (((state_rt1 == TN) || (state_rt2 == TN) || (state_rt1 == NE) || (state_rt2 == NE))
+                && (state == FP))
         {
           ++tns_both;
         }
-        else if ((state_rt1 == FN || state_rt2 == FN || state_rt1 == NE || state_rt2 == NE) && state == TP)
+        else if (((state_rt1 == FN) || (state_rt2 == FN) || (state_rt1 == NE) || (state_rt2 == NE)) && (state == TP))
         {
           ++fns_both;
         }
-        else if ((state_rt1 == NE || state_rt2 == NE) && state == NE)
+        else if (((state_rt1 == NE) || (state_rt2 == NE)) && (state == NE))
         {
           ++nes_both;
         }
-        else if (((state_rt1 == TP && state_rt2 == FP) ||
-                  (state_rt1 == FP && state_rt2 == TP)) &&
+        else if ((((state_rt1 == TP) && (state_rt2 == FP)) ||
+                  ((state_rt1 == FP) && (state_rt2 == TP))) &&
                  !no_decoys_both[i].getHits().empty())
         {
           ++tps_both;

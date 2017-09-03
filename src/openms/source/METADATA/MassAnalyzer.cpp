@@ -39,17 +39,17 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string MassAnalyzer::NamesOfAnalyzerType[] = {"Unknown", "Quadrupole", "Quadrupole ion trap", "Radial ejection linear ion trap", "Axial ejection linear ion trap", "Time-of-flight", "Magnetic sector", "Fourier transform ion cyclotron resonance mass spectrometer", "Ion storage", "Electrostatic energy analyzer", "Ion trap", "Stored waveform inverse fourier transform", "Cyclotron", "Orbitrap", "Linear ion trap"};
+  const std::string MassAnalyzer::NamesOfAnalyzerType[] = { "Unknown", "Quadrupole", "Quadrupole ion trap", "Radial ejection linear ion trap", "Axial ejection linear ion trap", "Time-of-flight", "Magnetic sector", "Fourier transform ion cyclotron resonance mass spectrometer", "Ion storage", "Electrostatic energy analyzer", "Ion trap", "Stored waveform inverse fourier transform", "Cyclotron", "Orbitrap", "Linear ion trap" };
 
-  const std::string MassAnalyzer::NamesOfResolutionMethod[] = {"Unknown", "Full width at half max", "Ten percent valley", "Baseline"};
+  const std::string MassAnalyzer::NamesOfResolutionMethod[] = { "Unknown", "Full width at half max", "Ten percent valley", "Baseline" };
 
-  const std::string MassAnalyzer::NamesOfResolutionType[] = {"Unknown", "Constant", "Proportional"};
+  const std::string MassAnalyzer::NamesOfResolutionType[] = { "Unknown", "Constant", "Proportional" };
 
-  const std::string MassAnalyzer::NamesOfScanDirection[] = {"Unknown", "Up", "Down"};
+  const std::string MassAnalyzer::NamesOfScanDirection[] = { "Unknown", "Up", "Down" };
 
-  const std::string MassAnalyzer::NamesOfScanLaw[] = {"Unknown", "Exponential", "Linar", "Quadratic"};
+  const std::string MassAnalyzer::NamesOfScanLaw[] = { "Unknown", "Exponential", "Linar", "Quadratic" };
 
-  const std::string MassAnalyzer::NamesOfReflectronState[] = {"Unknown", "On", "Off", "None"};
+  const std::string MassAnalyzer::NamesOfReflectronState[] = { "Unknown", "On", "Off", "None" };
 
   MassAnalyzer::MassAnalyzer() :
     MetaInfoInterface(),
@@ -72,7 +72,7 @@ namespace OpenMS
 
   }
 
-  MassAnalyzer::MassAnalyzer(const MassAnalyzer & source) :
+  MassAnalyzer::MassAnalyzer(const MassAnalyzer& source) :
     MetaInfoInterface(source),
     type_(source.type_),
     resolution_method_(source.resolution_method_),
@@ -98,10 +98,12 @@ namespace OpenMS
 
   }
 
-  MassAnalyzer & MassAnalyzer::operator=(const MassAnalyzer & source)
+  MassAnalyzer& MassAnalyzer::operator=(const MassAnalyzer& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     order_ = source.order_;
     type_ = source.type_;
@@ -123,7 +125,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool MassAnalyzer::operator==(const MassAnalyzer & rhs) const
+  bool MassAnalyzer::operator==(const MassAnalyzer& rhs) const
   {
     return order_ == rhs.order_ &&
            type_ == rhs.type_ &&
@@ -143,7 +145,7 @@ namespace OpenMS
            MetaInfoInterface::operator==(rhs);
   }
 
-  bool MassAnalyzer::operator!=(const MassAnalyzer & rhs) const
+  bool MassAnalyzer::operator!=(const MassAnalyzer& rhs) const
   {
     return !(operator==(rhs));
   }

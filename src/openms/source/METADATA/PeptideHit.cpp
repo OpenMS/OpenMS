@@ -123,13 +123,16 @@ namespace OpenMS
   bool PeptideHit::operator==(const PeptideHit& rhs) const
   {
     bool ar_equal = false;
-    if (analysis_results_ == NULL && rhs.analysis_results_ == NULL) ar_equal = true;
-    else if (analysis_results_ != NULL && rhs.analysis_results_ != NULL)
+    if ((analysis_results_ == NULL) && (rhs.analysis_results_ == NULL)) { ar_equal = true; }
+    else if ((analysis_results_ != NULL) && (rhs.analysis_results_ != NULL))
     {
       ar_equal = (*analysis_results_ == *rhs.analysis_results_);
     }
-    else return false; // one is null the other isn't
+    else
+    {
+      return false;    // one is null the other isn't
 
+    }
     return MetaInfoInterface::operator==(rhs)
            && sequence_ == rhs.sequence_
            && score_ == rhs.score_
@@ -202,19 +205,19 @@ namespace OpenMS
   void PeptideHit::setAnalysisResults(std::vector<PeptideHit::PepXMLAnalysisResult> aresult)
   {
     // delete old results first
-    if (analysis_results_ != NULL) delete analysis_results_;
-    analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult> (aresult);
+    if (analysis_results_ != NULL) { delete analysis_results_; }
+    analysis_results_ = new std::vector<PeptideHit::PepXMLAnalysisResult>(aresult);
   }
 
   void PeptideHit::addAnalysisResults(PeptideHit::PepXMLAnalysisResult aresult)
   {
     if (analysis_results_ == NULL)
     {
-      analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult>();
+      analysis_results_ = new std::vector<PeptideHit::PepXMLAnalysisResult>();
     }
     analysis_results_->push_back(aresult);
   }
-  
+
   const std::vector<PeptideHit::PepXMLAnalysisResult>& PeptideHit::getAnalysisResults() const
   {
     static std::vector<PeptideHit::PepXMLAnalysisResult> empty;
@@ -222,7 +225,7 @@ namespace OpenMS
     {
       return empty;
     }
-    return (*analysis_results_);
+    return *analysis_results_;
   }
 
   // sets the rank

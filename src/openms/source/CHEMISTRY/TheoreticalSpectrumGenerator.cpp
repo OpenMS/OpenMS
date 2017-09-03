@@ -115,12 +115,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator & rhs) :
+  TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& rhs) :
     DefaultParamHandler(rhs)
   {
   }
 
-  TheoreticalSpectrumGenerator & TheoreticalSpectrumGenerator::operator=(const TheoreticalSpectrumGenerator & rhs)
+  TheoreticalSpectrumGenerator& TheoreticalSpectrumGenerator::operator=(const TheoreticalSpectrumGenerator& rhs)
   {
     if (this != &rhs)
     {
@@ -133,7 +133,7 @@ namespace OpenMS
   {
   }
 
-  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, const AASequence & peptide, Int min_charge, Int max_charge) const
+  void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge) const
   {
 
     if (peptide.empty())
@@ -161,17 +161,29 @@ namespace OpenMS
     for (Int z = min_charge; z <= max_charge; ++z)
     {
       if (add_b_ions_)
+      {
         addPeaks_(spectrum, peptide, ion_names, charges, Residue::BIon, z);
+      }
       if (add_y_ions_)
+      {
         addPeaks_(spectrum, peptide, ion_names, charges, Residue::YIon, z);
+      }
       if (add_a_ions_)
+      {
         addPeaks_(spectrum, peptide, ion_names, charges, Residue::AIon, z);
+      }
       if (add_c_ions_)
+      {
         addPeaks_(spectrum, peptide, ion_names, charges, Residue::CIon, z);
+      }
       if (add_x_ions_)
+      {
         addPeaks_(spectrum, peptide, ion_names, charges, Residue::XIon, z);
+      }
       if (add_z_ions_)
+      {
         addPeaks_(spectrum, peptide, ion_names, charges, Residue::ZIon, z);
+      }
     }
 
     if (add_precursor_peaks_)
@@ -182,7 +194,8 @@ namespace OpenMS
         {
           addPrecursorPeaks_(spectrum, peptide, ion_names, charges, z);
         }
-      } else // add_all_precursor_charges_ = false, only add precursor with highest charge
+      }
+      else   // add_all_precursor_charges_ = false, only add precursor with highest charge
       {
         addPrecursorPeaks_(spectrum, peptide, ion_names, charges, max_charge);
       }
@@ -217,7 +230,7 @@ namespace OpenMS
     return;
   }
 
-  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons_(PeakSpectrum & spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const
+  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges) const
   {
     Peak1D p;
 
@@ -324,19 +337,25 @@ namespace OpenMS
   {
     switch (res_type)
     {
-      case Residue::AIon: return 'a';
-      case Residue::BIon: return 'b';
-      case Residue::CIon: return 'c';
-      case Residue::XIon: return 'x';
-      case Residue::YIon: return 'y';
-      case Residue::ZIon: return 'z';
-      default:
-       cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
+    case Residue::AIon: return 'a';
+
+    case Residue::BIon: return 'b';
+
+    case Residue::CIon: return 'c';
+
+    case Residue::XIon: return 'x';
+
+    case Residue::YIon: return 'y';
+
+    case Residue::ZIon: return 'z';
+
+    default:
+      cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
     return ' ';
   }
 
-  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const
+  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const
   {
     double pos = ion.getMonoWeight(res_type, charge);
     Peak1D p;
@@ -359,7 +378,7 @@ namespace OpenMS
     }
   }
 
-  void TheoreticalSpectrumGenerator::addLosses_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const
+  void TheoreticalSpectrumGenerator::addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const
   {
     Peak1D p;
 
@@ -438,7 +457,7 @@ namespace OpenMS
 
   }
 
-  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge) const
+  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge) const
   {
     spectrum.reserve(peptide.size());
 
@@ -451,18 +470,24 @@ namespace OpenMS
 
     switch (res_type)
     {
-      case Residue::AIon: intensity = a_intensity_; break;
-      case Residue::BIon: intensity = b_intensity_; break;
-      case Residue::CIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = c_intensity_; break;
-      case Residue::XIon: if (peptide.size() < 2) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); intensity = x_intensity_; break;
-      case Residue::YIon: intensity = y_intensity_; break;
-      case Residue::ZIon: intensity = z_intensity_; break;
-      default: break;
+    case Residue::AIon: intensity = a_intensity_; break;
+
+    case Residue::BIon: intensity = b_intensity_; break;
+
+    case Residue::CIon: if (peptide.size() < 2) { throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); } intensity = c_intensity_; break;
+
+    case Residue::XIon: if (peptide.size() < 2) { throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 1); } intensity = x_intensity_; break;
+
+    case Residue::YIon: intensity = y_intensity_; break;
+
+    case Residue::ZIon: intensity = z_intensity_; break;
+
+    default: break;
     }
 
-    double mono_weight(Constants::PROTON_MASS_U * charge);
+    double mono_weight(Constants::PROTON_MASS_U* charge);
 
-    if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
+    if ((res_type == Residue::AIon) || (res_type == Residue::BIon) || (res_type == Residue::CIon))
     {
       if (peptide.hasNTerminalModification())
       {
@@ -472,7 +497,7 @@ namespace OpenMS
       if (!add_isotopes_) // add single peak
       {
         Size i = add_first_prefix_ion_ ? 0 : 1;
-        if (i == 1) mono_weight += peptide[0].getMonoWeight(Residue::Internal);
+        if (i == 1) { mono_weight += peptide[0].getMonoWeight(Residue::Internal); }
         for (; i < peptide.size() - 1; ++i)
         {
           mono_weight += peptide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
@@ -480,8 +505,11 @@ namespace OpenMS
           switch (res_type)
           {
           case Residue::AIon: pos = (pos + Residue::getInternalToAIon().getMonoWeight()) / charge; break;
+
           case Residue::BIon: pos = (pos + Residue::getInternalToBIon().getMonoWeight()) / charge; break;
+
           case Residue::CIon: pos = (pos + Residue::getInternalToCIon().getMonoWeight()) / charge; break;
+
           default: break;
           }
           Peak1D p;
@@ -534,8 +562,11 @@ namespace OpenMS
           switch (res_type)
           {
           case Residue::XIon: pos = (pos + Residue::getInternalToXIon().getMonoWeight()) / charge; break;
+
           case Residue::YIon: pos = (pos + Residue::getInternalToYIon().getMonoWeight()) / charge; break;
+
           case Residue::ZIon: pos = (pos + Residue::getInternalToZIon().getMonoWeight()) / charge; break;
+
           default: break;
           }
           Peak1D p;
@@ -572,7 +603,7 @@ namespace OpenMS
     return;
   }
 
-  void TheoreticalSpectrumGenerator::addPrecursorPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge) const
+  void TheoreticalSpectrumGenerator::addPrecursorPeaks_(PeakSpectrum& spectrum, const AASequence& peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Int charge) const
   {
     Peak1D p;
 
@@ -591,8 +622,8 @@ namespace OpenMS
         p.setIntensity(pre_int_ *  it->second);
         if (add_metainfo_)
         {
-            ion_names.push_back(ion_name);
-            charges.push_back(charge);
+          ion_names.push_back(ion_name);
+          charges.push_back(charge);
         }
         spectrum.push_back(p);
       }
@@ -603,8 +634,8 @@ namespace OpenMS
       p.setIntensity(pre_int_);
       if (add_metainfo_)
       {
-          ion_names.push_back(ion_name);
-          charges.push_back(charge);
+        ion_names.push_back(ion_name);
+        charges.push_back(charge);
       }
       spectrum.push_back(p);
     }
@@ -704,4 +735,5 @@ namespace OpenMS
     pre_int_H2O_ = (double)param_.getValue("precursor_H2O_intensity");
     pre_int_NH3_ = (double)param_.getValue("precursor_NH3_intensity");
   }
+
 }

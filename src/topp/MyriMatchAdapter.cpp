@@ -125,12 +125,12 @@ protected:
 
     bool operator<(const MyriMatchVersion& v) const
     {
-      if (myrimatch_major > v.myrimatch_major) return false;
-      else if (myrimatch_major < v.myrimatch_major) return true;
+      if (myrimatch_major > v.myrimatch_major) { return false; }
+      else if (myrimatch_major < v.myrimatch_major) { return true; }
       else
       {
-        if (myrimatch_minor > v.myrimatch_minor) return false;
-        else if (myrimatch_minor < v.myrimatch_minor) return true;
+        if (myrimatch_minor > v.myrimatch_minor) { return false; }
+        else if (myrimatch_minor < v.myrimatch_minor) { return true; }
         else
         {
           return myrimatch_patch < v.myrimatch_patch;
@@ -144,7 +144,7 @@ protected:
   {
     // we expect three components
     IntList nums = ListUtils::create<Int>(ListUtils::create<String>(version, '.'));
-    if (nums.size() != 3) return false;
+    if (nums.size() != 3) { return false; }
 
     myrimatch_version_i.myrimatch_major = nums[0];
     myrimatch_version_i.myrimatch_minor = nums[1];
@@ -314,7 +314,7 @@ protected:
     // the version is expected to be something like:
     // MyriMatch 2.1.111 (2011-12-27)
     lines[1].split(' ', version_split);
-    if (version_split.size() == 3 && getVersion_(version_split[1], myrimatch_version_i))
+    if ((version_split.size() == 3) && getVersion_(version_split[1], myrimatch_version_i))
     {
       myrimatch_version = version_split[1].removeWhitespaces();
       writeDebug_("Setting MyriMatch version to " + myrimatch_version, 1);
@@ -324,12 +324,12 @@ protected:
       writeLog_("Warning: MyriMatch version output (" + output + ") not formatted as expected!");
       return EXTERNAL_PROGRAM_ERROR;
     }
-    if (! (   (myrimatch_version_i.myrimatch_major == 2) &&  // major must be 2
-              (myrimatch_version_i.myrimatch_minor == 1 || myrimatch_version_i.myrimatch_minor == 2) // minor .1 or .2
+    if (!((myrimatch_version_i.myrimatch_major == 2) && // major must be 2
+          ((myrimatch_version_i.myrimatch_minor == 1) || (myrimatch_version_i.myrimatch_minor == 2)) // minor .1 or .2
           ))
     {
       writeLog_("Warning: unsupported MyriMatch version (" + myrimatch_version + "). Tested only for MyriMatch 2.1.x and 2.2.x."
-                "\nIf you encounter parameter errors, you can try the flag 'ignoreConfigErrors', but be aware that MyriMatch might be misconfigured.");
+                                                                                 "\nIf you encounter parameter errors, you can try the flag 'ignoreConfigErrors', but be aware that MyriMatch might be misconfigured.");
     }
 
     //-------------------------------------------------------------
@@ -343,16 +343,20 @@ protected:
     // building parameter String
     StringList parameters;
 
-    if (getFlag_("ignoreConfigErrors")) parameters << "-ignoreConfigErrors";
+    if (getFlag_("ignoreConfigErrors")) { parameters << "-ignoreConfigErrors"; }
 
     // Common Identification engine options
     StringList static_mod_list;
     StringList dynamic_mod_list;
     translateModifications(static_mod_list, dynamic_mod_list);
     if (!static_mod_list.empty())
+    {
       parameters << "-StaticMods" << ListUtils::concatenate(static_mod_list, " ");
+    }
     if (!dynamic_mod_list.empty())
+    {
       parameters << "-DynamicMods" << ListUtils::concatenate(dynamic_mod_list, " ");
+    }
 
     parameters << "-ProteinDatabase"  << File::absolutePath(db_name);
 
@@ -376,7 +380,7 @@ protected:
     parameters << "-FragmentMzTolerance" << String(getDoubleOption_("fragment_mass_tolerance")) + " " + fragment_mass_tolerance_unit;
 
     StringList slf = getStringList_("SpectrumListFilters");
-    if (slf.size() > 0) 
+    if (slf.size() > 0)
     {
       if (myrimatch_version_i.myrimatch_minor <= 1)
       { // use quotes around the slf arguments (will be added automatically by Qt during call), i.e. "-SpectrumListFilters" "peakPicking false 2-"
@@ -386,7 +390,7 @@ protected:
       { // no quotes -- pass a single argument, i.e. "-SpectrumListFilters peakPicking false 2-"
         parameters << "-SpectrumListFilters " + ListUtils::concatenate(slf, ";") << "";
       }
-      
+
     }
     //parameters << "-ThreadCountMultiplier" << String(getIntOption_("threads")); // MyriMatch does not recognise this, even though it's in the manual.
 
@@ -448,7 +452,7 @@ protected:
     String myri_err(QString(process.readAllStandardError()));
     writeDebug_(myri_msg, 1);
     writeDebug_(myri_err, 0);
-    if (!success || process.exitStatus() != 0 || process.exitCode() != 0)
+    if (!success || (process.exitStatus() != 0) || (process.exitCode() != 0))
     {
       writeLog_("Error: MyriMatch problem! (Details can be seen in the logfile: \"" + logfile + "\")");
       writeLog_("Note: This message can also be triggered if you run out of space in your tmp directory");

@@ -54,14 +54,13 @@ namespace OpenMS
   {
   }
 
-
   struct IDFilter::HasMinPeptideLength
   {
     typedef PeptideHit argument_type; // for use as a predicate
 
     Size length;
 
-    explicit HasMinPeptideLength(Size length):
+    explicit HasMinPeptideLength(Size length) :
       length(length)
     {}
 
@@ -69,6 +68,7 @@ namespace OpenMS
     {
       return hit.getSequence().size() >= length;
     }
+
   };
 
 
@@ -78,7 +78,7 @@ namespace OpenMS
 
     Int charge;
 
-    explicit HasMinCharge(Int charge):
+    explicit HasMinCharge(Int charge) :
       charge(charge)
     {}
 
@@ -86,6 +86,7 @@ namespace OpenMS
     {
       return hit.getCharge() >= charge;
     }
+
   };
 
 
@@ -95,20 +96,21 @@ namespace OpenMS
 
     double precursor_mz, tolerance;
 
-    HasLowMZError(double precursor_mz, double tolerance, bool unit_ppm):
+    HasLowMZError(double precursor_mz, double tolerance, bool unit_ppm) :
       precursor_mz(precursor_mz), tolerance(tolerance)
     {
-      if (unit_ppm) this->tolerance *= precursor_mz / 1.0e6;
+      if (unit_ppm) { this->tolerance *= precursor_mz / 1.0e6; }
     }
 
     bool operator()(const PeptideHit& hit) const
     {
       Int z = hit.getCharge();
-      if (z == 0) z = 1;
+      if (z == 0) { z = 1; }
       double peptide_mz = (hit.getSequence().getMonoWeight(Residue::Full, z) /
                            double(z));
       return fabs(precursor_mz - peptide_mz) <= tolerance;
     }
+
   };
 
 
@@ -118,21 +120,21 @@ namespace OpenMS
 
     const set<String>& mods;
 
-    explicit HasMatchingModification(const set<String>& mods):
+    explicit HasMatchingModification(const set<String>& mods) :
       mods(mods)
     {}
 
     bool operator()(const PeptideHit& hit) const
     {
       const AASequence& seq = hit.getSequence();
-      if (mods.empty()) return seq.isModified();
+      if (mods.empty()) { return seq.isModified(); }
 
       for (Size i = 0; i < seq.size(); ++i)
       {
         if (seq[i].isModified())
         {
           String mod_name = seq[i].getModification()->getFullId();
-          if (mods.count(mod_name) > 0) return true;
+          if (mods.count(mod_name) > 0) { return true; }
         }
       }
 
@@ -140,16 +142,17 @@ namespace OpenMS
       if (seq.hasNTerminalModification())
       {
         String mod_name = seq.getNTerminalModification()->getFullId();
-        if (mods.count(mod_name) > 0) return true;
+        if (mods.count(mod_name) > 0) { return true; }
       }
       if (seq.hasCTerminalModification())
       {
         String mod_name = seq.getCTerminalModification()->getFullId();
-        if (mods.count(mod_name) > 0) return true;
+        if (mods.count(mod_name) > 0) { return true; }
       }
 
       return false;
     }
+
   };
 
 
@@ -160,7 +163,7 @@ namespace OpenMS
     const set<String>& sequences;
     bool ignore_mods;
 
-    HasMatchingSequence(const set<String>& sequences, bool ignore_mods = false):
+    HasMatchingSequence(const set<String>& sequences, bool ignore_mods = false) :
       sequences(sequences), ignore_mods(ignore_mods)
     {}
 
@@ -169,8 +172,9 @@ namespace OpenMS
       const String& query = (ignore_mods ?
                              hit.getSequence().toUnmodifiedString() :
                              hit.getSequence().toString());
-      return (sequences.count(query) > 0);
+      return sequences.count(query) > 0;
     }
+
   };
 
 
@@ -182,6 +186,7 @@ namespace OpenMS
     {
       return hit.getPeptideEvidences().empty();
     }
+
   };
 
   struct IDFilter::HasRTInRange
@@ -190,7 +195,7 @@ namespace OpenMS
 
     double rt_min, rt_max;
 
-    HasRTInRange(double rt_min, double rt_max):
+    HasRTInRange(double rt_min, double rt_max) :
       rt_min(rt_min), rt_max(rt_max)
     {}
 
@@ -199,6 +204,7 @@ namespace OpenMS
       double rt = id.getRT();
       return (rt >= rt_min) && (rt <= rt_max);
     }
+
   };
 
 
@@ -208,7 +214,7 @@ namespace OpenMS
 
     double mz_min, mz_max;
 
-    HasMZInRange(double mz_min, double mz_max):
+    HasMZInRange(double mz_min, double mz_max) :
       mz_min(mz_min), mz_max(mz_max)
     {}
 
@@ -217,6 +223,7 @@ namespace OpenMS
       double mz = id.getMZ();
       return (mz >= mz_min) && (mz <= mz_max);
     }
+
   };
 
 
@@ -243,7 +250,6 @@ namespace OpenMS
     }
   }
 
-
   void IDFilter::removeUnreferencedProteins(
     vector<ProteinIdentification>& proteins,
     const vector<PeptideIdentification>& peptides)
@@ -260,7 +266,7 @@ namespace OpenMS
            ++hit_it)
       {
 
-        const set<String>& current_accessions = 
+        const set<String>& current_accessions =
           hit_it->extractProteinAccessionsSet();
 
         run_to_accessions[run_id].insert(current_accessions.begin(),
@@ -277,7 +283,6 @@ namespace OpenMS
       keepMatchingItems(prot_it->getHits(), acc_filter);
     }
   }
-
 
   void IDFilter::updateProteinReferences(
     vector<PeptideIdentification>& peptides,
@@ -325,13 +330,15 @@ namespace OpenMS
     }
   }
 
-
   bool IDFilter::updateProteinGroups(
     vector<ProteinIdentification::ProteinGroup>& groups,
     const vector<ProteinHit>& hits)
   {
-    if (groups.empty()) return true; // nothing to update
+    if (groups.empty())
+    {
+      return true;                   // nothing to update
 
+    }
     // we'll do lots of look-ups, so use a suitable data structure:
     set<String> valid_accessions;
     for (vector<ProteinHit>::const_iterator hit_it = hits.begin();
@@ -364,7 +371,6 @@ namespace OpenMS
 
     return valid;
   }
-
 
   void IDFilter::keepBestPeptideHits(vector<PeptideIdentification>& peptides,
                                      bool strict)
@@ -408,7 +414,6 @@ namespace OpenMS
     }
   }
 
-
   void IDFilter::filterPeptidesByLength(vector<PeptideIdentification>& peptides,
                                         Size min_length, Size max_length)
   {
@@ -433,7 +438,6 @@ namespace OpenMS
     }
   }
 
-
   void IDFilter::filterPeptidesByCharge(vector<PeptideIdentification>& peptides,
                                         Int min_charge, Int max_charge)
   {
@@ -455,7 +459,6 @@ namespace OpenMS
     }
   }
 
-
   void IDFilter::filterPeptidesByRT(vector<PeptideIdentification>& peptides,
                                     double min_rt, double max_rt)
   {
@@ -463,14 +466,12 @@ namespace OpenMS
     keepMatchingItems(peptides, rt_filter);
   }
 
-
   void IDFilter::filterPeptidesByMZ(vector<PeptideIdentification>& peptides,
                                     double min_mz, double max_mz)
   {
     struct HasMZInRange mz_filter(min_mz, max_mz);
     keepMatchingItems(peptides, mz_filter);
   }
-
 
   void IDFilter::filterPeptidesByMZError(
     vector<PeptideIdentification>& peptides, double mass_error, bool unit_ppm)
@@ -482,7 +483,6 @@ namespace OpenMS
       keepMatchingItems(pep_it->getHits(), error_filter);
     }
   }
-
 
   void IDFilter::filterPeptidesByRTPredictPValue(
     vector<PeptideIdentification>& peptides, const String& metavalue_key,
@@ -511,7 +511,6 @@ namespace OpenMS
     }
   }
 
-
   void IDFilter::removePeptidesWithMatchingModifications(
     vector<PeptideIdentification>& peptides,
     const set<String>& modifications)
@@ -524,7 +523,6 @@ namespace OpenMS
     }
   }
 
-
   void IDFilter::keepPeptidesWithMatchingModifications(
     vector<PeptideIdentification>& peptides,
     const set<String>& modifications)
@@ -536,7 +534,6 @@ namespace OpenMS
       keepMatchingItems(pep_it->getHits(), mod_filter);
     }
   }
-
 
   void IDFilter::removePeptidesWithMatchingSequences(
     vector<PeptideIdentification>& peptides,
@@ -552,7 +549,6 @@ namespace OpenMS
     }
   }
 
-
   void IDFilter::keepPeptidesWithMatchingSequences(
     vector<PeptideIdentification>& peptides,
     const vector<PeptideIdentification>& good_peptides, bool ignore_mods)
@@ -566,7 +562,6 @@ namespace OpenMS
       keepMatchingItems(pep_it->getHits(), seq_filter);
     }
   }
-
 
   void IDFilter::keepUniquePeptidesPerProtein(vector<PeptideIdentification>&
                                               peptides)
@@ -594,7 +589,6 @@ namespace OpenMS
                << "('protein_references', added by PeptideIndexer)." << endl;
     }
   }
-
 
   // @TODO: generalize this to protein hits?
   void IDFilter::removeDuplicatePeptideHits(vector<PeptideIdentification>&
@@ -633,6 +627,5 @@ namespace OpenMS
       pep_it->getHits().swap(filtered_hits);
     }
   }
-  
 
 } // namespace OpenMS

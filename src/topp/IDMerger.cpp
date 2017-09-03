@@ -200,7 +200,7 @@ protected:
                            vector<PeptideIdentification>& peptides,
                            String filename)
   {
-    if (test_mode_) filename = File::basename(filename);
+    if (test_mode_) { filename = File::basename(filename); }
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
     {
@@ -320,12 +320,12 @@ protected:
                    peptides_by_file[i].begin(); pep_it !=
                  peptides_by_file[i].end(); ++pep_it)
             {
-              if (pep_it->getIdentifier() == id) pep_it->setIdentifier(new_id);
+              if (pep_it->getIdentifier() == id) { pep_it->setIdentifier(new_id); }
             }
             id = new_id;
           }
           proteins_by_id[id] = *prot_it;
-          if (i == 0) add_to_ids.push_back(id);
+          if (i == 0) { add_to_ids.push_back(id); }
         }
       }
 
@@ -358,7 +358,7 @@ protected:
         for (vector<PeptideIdentification>::iterator pep_it =
                base_peptides.begin(); pep_it != base_peptides.end(); ++pep_it)
         {
-          if (pep_it->getHits().empty()) continue;
+          if (pep_it->getHits().empty()) { continue; }
           pep_it->sort();
           sequences.insert(pep_it->getHits()[0].getSequence());
         }
@@ -373,12 +373,12 @@ protected:
           for (vector<PeptideIdentification>::iterator pep_it =
                  file_it->begin(); pep_it != file_it->end(); ++pep_it)
           {
-            if (pep_it->getHits().empty()) continue;
+            if (pep_it->getHits().empty()) { continue; }
             pep_it->sort();
             const PeptideHit& hit = pep_it->getHits()[0];
             LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
             // skip ahead if peptide is not new:
-            if (sequences.find(hit.getSequence()) != sequences.end()) continue;
+            if (sequences.find(hit.getSequence()) != sequences.end()) { continue; }
             LOG_DEBUG << "new peptide!" << endl;
             pep_it->getHits().resize(1); // restrict to best hit for simplicity
             peptides.push_back(*pep_it);
@@ -390,7 +390,7 @@ protected:
             {
               LOG_DEBUG << "accession: " << *acc_it << endl;
               // skip ahead if accession is not new:
-              if (accessions.find(*acc_it) != accessions.end()) continue;
+              if (accessions.find(*acc_it) != accessions.end()) { continue; }
               LOG_DEBUG << "new accession!" << endl;
               // first find the right protein identification:
               const String& id = pep_it->getIdentifier();

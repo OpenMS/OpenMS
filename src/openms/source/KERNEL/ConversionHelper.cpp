@@ -83,8 +83,8 @@ namespace OpenMS
     output_map.resize(input_map.size());
     output_map.DocumentIdentifier::operator=(input_map);
 
-    if (keep_uids) output_map.UniqueIdInterface::operator=(input_map);
-    else output_map.setUniqueId();
+    if (keep_uids) { output_map.UniqueIdInterface::operator=(input_map); }
+    else{ output_map.setUniqueId(); }
 
     output_map.setProteinIdentifications(input_map.getProteinIdentifications());
     output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
@@ -94,7 +94,7 @@ namespace OpenMS
       Feature& f = output_map[i];
       const ConsensusFeature& c = input_map[i];
       f.BaseFeature::operator=(c);
-      if (!keep_uids) f.setUniqueId();
+      if (!keep_uids) { f.setUniqueId(); }
     }
 
     output_map.updateRanges();

@@ -51,12 +51,12 @@ using namespace OpenMS;
 using namespace std;
 
 
-String SiriusMzTabWriter::extract_scan_index(const String &path)
+String SiriusMzTabWriter::extract_scan_index(const String& path)
 {
   return path.substr(path.find_last_not_of("0123456789") + 1);
 }
 
-void SiriusMzTabWriter::read(const std::vector<String> & paths, Size number, MzTab & result)
+void SiriusMzTabWriter::read(const std::vector<String>& paths, Size number, MzTab& result)
 {
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
@@ -128,10 +128,10 @@ void SiriusMzTabWriter::read(const std::vector<String> & paths, Size number, MzT
       MzTabSmallMoleculeSectionRows smsd;
       for (Size i = 0; i != sirius_result.identifications.size(); ++i)
       {
-        const SiriusMzTabWriter::SiriusAdapterIdentification &id = sirius_result.identifications[i];
+        const SiriusMzTabWriter::SiriusAdapterIdentification& id = sirius_result.identifications[i];
         for (Size j = 0; j != id.hits.size(); ++j)
         {
-          const SiriusMzTabWriter::SiriusAdapterHit &hit = id.hits[j];
+          const SiriusMzTabWriter::SiriusAdapterHit& hit = id.hits[j];
           MzTabSmallMoleculeSectionRow smsr;
 
           map<Size, MzTabDouble> engine_score;

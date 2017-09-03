@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2017.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -59,7 +59,7 @@ using namespace std;
   This class will serialize a spectra and/or chromatogram mzML file and store
   it in a binary format that contains ONLY the spectra and chromatogram data
   (no metadata).
- 
+
   This is implemented using the write_memdump and read_memdump functions.
   For reading there are 2 options
   - read the whole file into the OpenMS datastructures
@@ -79,24 +79,24 @@ using namespace std;
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h>
 
-class TOPPOpenSwathMzMLFileCacher
-  : public TOPPBase,
-    public ProgressLogger
+class TOPPOpenSwathMzMLFileCacher :
+  public TOPPBase,
+  public ProgressLogger
 {
- public:
+public:
 
   TOPPOpenSwathMzMLFileCacher()
-    : TOPPBase("OpenSwathMzMLFileCacher","This tool caches the spectra and chromatogram data of an mzML to disk.", false)
+    : TOPPBase("OpenSwathMzMLFileCacher", "This tool caches the spectra and chromatogram data of an mzML to disk.", false)
   {
   }
 
- typedef PeakMap MapType;
+  typedef PeakMap MapType;
 
- protected:
+protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in","<file>","","Input mzML file");
+    registerInputFile_("in", "<file>", "", "Input mzML file");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     String formats("mzML,sqMass");
     setValidFormats_("in", ListUtils::create<String>(formats));
@@ -114,7 +114,7 @@ class TOPPOpenSwathMzMLFileCacher
     registerFlag_("convert_back", "Convert back to mzML");
   }
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int, const char**)
   {
     String out_meta = getStringOption_("out");
     String out_cached = out_meta + ".cached";
@@ -154,7 +154,7 @@ class TOPPOpenSwathMzMLFileCacher
       return PARSE_ERROR;
     }
 
-    if (in_type == FileTypes::SQMASS && out_type == FileTypes::MZML)
+    if ((in_type == FileTypes::SQMASS) && (out_type == FileTypes::MZML))
     {
       MapType exp;
       SqMassFile sqfile;
@@ -163,7 +163,7 @@ class TOPPOpenSwathMzMLFileCacher
       f.store(out, exp);
       return EXECUTION_OK;
     }
-    else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS)
+    else if ((in_type == FileTypes::MZML) && (out_type == FileTypes::SQMASS))
     {
       MzMLFile f;
       SqMassFile sqfile;
@@ -183,7 +183,7 @@ class TOPPOpenSwathMzMLFileCacher
       cacher.setLogType(log_type_);
       f.setLogType(log_type_);
 
-      f.load(in,exp);
+      f.load(in, exp);
       cacher.writeMemdump(exp, out_cached);
       cacher.writeMetadata(exp, out_meta, true);
     }
@@ -197,33 +197,33 @@ class TOPPOpenSwathMzMLFileCacher
       cacher.setLogType(log_type_);
       f.setLogType(log_type_);
 
-      f.load(in,meta_exp);
+      f.load(in, meta_exp);
       cacher.readMemdump(exp_reading, in_cached);
 
       std::cout << " read back, got " << exp_reading.size() << " spectra " << exp_reading.getChromatograms().size() << " chromats " << std::endl;
 
       {
-      for (Size i=0; i<meta_exp.size(); ++i)
-      {
-        for (Size j = 0; j < meta_exp[i].getDataProcessing().size(); j++)
+        for (Size i = 0; i < meta_exp.size(); ++i)
         {
-          if (meta_exp[i].getDataProcessing()[j]->metaValueExists("cached_data"))
+          for (Size j = 0; j < meta_exp[i].getDataProcessing().size(); j++)
           {
-            meta_exp[i].getDataProcessing()[j]->removeMetaValue("cached_data");
+            if (meta_exp[i].getDataProcessing()[j]->metaValueExists("cached_data"))
+            {
+              meta_exp[i].getDataProcessing()[j]->removeMetaValue("cached_data");
+            }
           }
         }
-      }
 
-      for (Size i=0; i < meta_exp.getNrChromatograms(); ++i)
-      {
-        for (Size j = 0; j < meta_exp.getChromatogram(i).getDataProcessing().size(); j++)
+        for (Size i = 0; i < meta_exp.getNrChromatograms(); ++i)
         {
-          if (meta_exp.getChromatogram(i).getDataProcessing()[j]->metaValueExists("cached_data"))
+          for (Size j = 0; j < meta_exp.getChromatogram(i).getDataProcessing().size(); j++)
           {
-            meta_exp.getChromatogram(i).getDataProcessing()[j]->removeMetaValue("cached_data");
+            if (meta_exp.getChromatogram(i).getDataProcessing()[j]->metaValueExists("cached_data"))
+            {
+              meta_exp.getChromatogram(i).getDataProcessing()[j]->removeMetaValue("cached_data");
+            }
           }
         }
-      }
       }
 
       if (meta_exp.size() != exp_reading.size())
@@ -231,16 +231,16 @@ class TOPPOpenSwathMzMLFileCacher
         std::cerr << " Both experiments need to have the same size!";
       }
 
-      for (Size i=0; i<exp_reading.size(); ++i)
+      for (Size i = 0; i < exp_reading.size(); ++i)
       {
         for (Size j = 0; j < exp_reading[i].size(); j++)
         {
           meta_exp[i].push_back(exp_reading[i][j]);
         }
       }
-      std::vector<MSChromatogram > chromatograms = exp_reading.getChromatograms();
-      std::vector<MSChromatogram > old_chromatograms = meta_exp.getChromatograms();
-      for (Size i=0; i<chromatograms.size(); ++i)
+      std::vector<MSChromatogram> chromatograms = exp_reading.getChromatograms();
+      std::vector<MSChromatogram> old_chromatograms = meta_exp.getChromatograms();
+      for (Size i = 0; i < chromatograms.size(); ++i)
       {
         for (Size j = 0; j < chromatograms[i].size(); j++)
         {
@@ -250,18 +250,19 @@ class TOPPOpenSwathMzMLFileCacher
       meta_exp.setChromatograms(old_chromatograms);
 
 
-      f.store(out_meta,meta_exp);
+      f.store(out_meta, meta_exp);
     }
 
     return EXECUTION_OK;
   }
+
 };
 
-int main( int argc, const char** argv )
+int main(int argc, const char** argv)
 {
 
   TOPPOpenSwathMzMLFileCacher tool;
-  return tool.main(argc,argv);
+  return tool.main(argc, argv);
 }
 
 /// @endcond

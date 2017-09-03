@@ -39,9 +39,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  const std::string IonDetector::NamesOfType[] = {"Unknown", "Electron multiplier", "Photo multiplier", "Focal plane array", "Faraday cup", "Conversion dynode electron multiplier", "Conversion dynode photo multiplier", "Multi-collector", "Channel electron multiplier", "channeltron", "daly detector", "microchannel plate detector", "array detector", "conversion dynode", "dynode", "focal plane collector", "ion-to-photon detector", "point collector", "postacceleration detector", "photodiode array detector", "inductive detector", "electron multiplier tube"};
+  const std::string IonDetector::NamesOfType[] = { "Unknown", "Electron multiplier", "Photo multiplier", "Focal plane array", "Faraday cup", "Conversion dynode electron multiplier", "Conversion dynode photo multiplier", "Multi-collector", "Channel electron multiplier", "channeltron", "daly detector", "microchannel plate detector", "array detector", "conversion dynode", "dynode", "focal plane collector", "ion-to-photon detector", "point collector", "postacceleration detector", "photodiode array detector", "inductive detector", "electron multiplier tube" };
 
-  const std::string IonDetector::NamesOfAcquisitionMode[] = {"Unknown", "Pulse counting", "Analog-digital converter", "Time-digital converter", "Transient recorder"};
+  const std::string IonDetector::NamesOfAcquisitionMode[] = { "Unknown", "Pulse counting", "Analog-digital converter", "Time-digital converter", "Transient recorder" };
 
   IonDetector::IonDetector() :
     MetaInfoInterface(),
@@ -54,7 +54,7 @@ namespace OpenMS
 
   }
 
-  IonDetector::IonDetector(const IonDetector & source) :
+  IonDetector::IonDetector(const IonDetector& source) :
     MetaInfoInterface(source),
     type_(source.type_),
     acquisition_mode_(source.acquisition_mode_),
@@ -70,10 +70,12 @@ namespace OpenMS
 
   }
 
-  IonDetector & IonDetector::operator=(const IonDetector & source)
+  IonDetector& IonDetector::operator=(const IonDetector& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     order_ = source.order_;
     type_ = source.type_;
@@ -85,7 +87,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool IonDetector::operator==(const IonDetector & rhs) const
+  bool IonDetector::operator==(const IonDetector& rhs) const
   {
     return order_ == rhs.order_ &&
            type_ == rhs.type_ &&
@@ -95,7 +97,7 @@ namespace OpenMS
            MetaInfoInterface::operator==(rhs);
   }
 
-  bool IonDetector::operator!=(const IonDetector & rhs) const
+  bool IonDetector::operator!=(const IonDetector& rhs) const
   {
     return !(operator==(rhs));
   }

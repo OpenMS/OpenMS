@@ -42,9 +42,9 @@
 namespace OpenSwath
 {
   void normalize(
-    const std::vector<double> & intensities,
+    const std::vector<double>& intensities,
     double normalizer,
-    std::vector<double> & normalized_intensities)
+    std::vector<double>& normalized_intensities)
   {
     //compute total intensities
     //normalize intensities
@@ -54,7 +54,6 @@ namespace OpenSwath
       std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(), std::bind2nd(std::divides<double>(), normalizer));
     }
   }
-
 
   double dotprodScoring(std::vector<double> intExp, std::vector<double> theorint)
   {

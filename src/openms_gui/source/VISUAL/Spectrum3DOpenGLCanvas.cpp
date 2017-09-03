@@ -47,7 +47,7 @@ using std::max;
 namespace OpenMS
 {
 
-  Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget * parent, Spectrum3DCanvas & canvas_3d) :
+  Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget* parent, Spectrum3DCanvas& canvas_3d) :
     QGLWidget(parent),
     canvas_3d_(canvas_3d)
   {
@@ -120,7 +120,9 @@ namespace OpenMS
 
     //abort if no layers are displayed
     if (canvas_3d_.getLayerCount() == 0)
+    {
       return;
+    }
 
     if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM)
     {
@@ -231,7 +233,7 @@ namespace OpenMS
       glCallList(axes_);
       glCallList(axes_ticks_);
       drawAxesLegend();
-      if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM || canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
+      if ((canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM) || (canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE))
       {
         glCallList(stickdata_);
       }
@@ -269,7 +271,7 @@ namespace OpenMS
         renderText(-corner_ - 15.0, -corner_ - 5.0, -near_ - 2 * corner_ - scaledRT(grid_rt_[0][i]), text, font);
       }
     }
-    if (zoom_ < 3.0 && grid_rt_.size() >= 2)
+    if ((zoom_ < 3.0) && (grid_rt_.size() >= 2))
     {
       for (Size i = 0; i < grid_rt_[1].size(); i++)
       {
@@ -277,7 +279,7 @@ namespace OpenMS
         renderText(-corner_ - 15.0, -corner_ - 5.0, -near_ - 2 * corner_ - scaledRT(grid_rt_[1][i]), text, font);
       }
     }
-    if (zoom_ < 2.0 && grid_rt_.size() >= 3)
+    if ((zoom_ < 2.0) && (grid_rt_.size() >= 3))
     {
       for (Size i = 0; i < grid_rt_[2].size(); i++)
       {
@@ -295,7 +297,7 @@ namespace OpenMS
         renderText(-corner_ - text.length() + scaledMZ(grid_mz_[0][i]), -corner_ - 5.0, -near_ - 2 * corner_ + 15.0, text, font);
       }
     }
-    if (zoom_ < 3.0 && grid_mz_.size() >= 2)
+    if ((zoom_ < 3.0) && (grid_mz_.size() >= 2))
     {
       for (Size i = 0; i < grid_mz_[1].size(); i++)
       {
@@ -303,7 +305,7 @@ namespace OpenMS
         renderText(-corner_ - text.length() + scaledMZ(grid_mz_[1][i]), -corner_ - 5.0, -near_ - 2 * corner_ + 15.0, text, font);
       }
     }
-    if (zoom_ < 2.0 && grid_mz_.size() >= 3)
+    if ((zoom_ < 2.0) && (grid_mz_.size() >= 3))
     {
       for (Size i = 0; i < grid_mz_[2].size(); i++)
       {
@@ -327,7 +329,7 @@ namespace OpenMS
           font.setPixelSize(10);
         }
 
-        if (zoom_ < 3.0 && grid_intensity_.size() >= 2)
+        if ((zoom_ < 3.0) && (grid_intensity_.size() >= 2))
         {
           for (Size i = 0; i < grid_intensity_[0].size(); i++)
           {
@@ -384,7 +386,7 @@ namespace OpenMS
         }
 
 
-        if (zoom_ < 3.0 && grid_intensity_.size() >= 2)
+        if ((zoom_ < 3.0) && (grid_intensity_.size() >= 2))
         {
           for (Size i = 0; i < grid_intensity_[0].size(); i++)
           {
@@ -399,7 +401,7 @@ namespace OpenMS
             renderText(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + scaledIntensity(grid_intensity_[1][i], canvas_3d_.current_layer_), -near_ - 2 * corner_, text, font);
           }
         }
-        if (width_ > 800 && height_ > 600 && zoom_ < 2.0 && grid_intensity_.size() >= 3)
+        if ((width_ > 800) && (height_ > 600) && (zoom_ < 2.0) && (grid_intensity_.size() >= 3))
         {
           for (Size i = 0; i < grid_intensity_[2].size(); i++)
           {
@@ -460,7 +462,7 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); ++i)
     {
-      const LayerData & layer = canvas_3d_.getLayer(i);
+      const LayerData& layer = canvas_3d_.getLayer(i);
       if (layer.visible)
       {
         if ((Int)layer.param.getValue("dot:shade_mode"))
@@ -548,7 +550,7 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); i++)
     {
-      const LayerData & layer = canvas_3d_.getLayer(i);
+      const LayerData& layer = canvas_3d_.getLayer(i);
       if (layer.visible)
       {
         recalculateDotGradient_(i);
@@ -902,7 +904,7 @@ namespace OpenMS
     return scaledintensity;
   }
 
-  void Spectrum3DOpenGLCanvas::normalizeAngle(int * angle)
+  void Spectrum3DOpenGLCanvas::normalizeAngle(int* angle)
   {
     while (*angle < 0)
     {
@@ -940,17 +942,17 @@ namespace OpenMS
     }
   }
 
-  void Spectrum3DOpenGLCanvas::focusOutEvent(QFocusEvent * e)
+  void Spectrum3DOpenGLCanvas::focusOutEvent(QFocusEvent* e)
   {
     canvas_3d_.focusOutEvent(e);
   }
 
-  void Spectrum3DOpenGLCanvas::mousePressEvent(QMouseEvent * e)
+  void Spectrum3DOpenGLCanvas::mousePressEvent(QMouseEvent* e)
   {
     mouse_move_begin_ = e->pos();
     mouse_move_end_ = e->pos();
 
-    if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && e->button() == Qt::LeftButton)
+    if ((canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM) && (e->button() == Qt::LeftButton))
     {
       canvas_3d_.rubber_band_.setGeometry(QRect(e->pos(), QSize()));
       canvas_3d_.rubber_band_.show();
@@ -959,7 +961,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum3DOpenGLCanvas::mouseMoveEvent(QMouseEvent * e)
+  void Spectrum3DOpenGLCanvas::mouseMoveEvent(QMouseEvent* e)
   {
     if (e->buttons() & Qt::LeftButton)
     {
@@ -986,9 +988,9 @@ namespace OpenMS
     }
   }
 
-  void Spectrum3DOpenGLCanvas::mouseReleaseEvent(QMouseEvent * e)
+  void Spectrum3DOpenGLCanvas::mouseReleaseEvent(QMouseEvent* e)
   {
-    if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && e->button() == Qt::LeftButton)
+    if ((canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM) && (e->button() == Qt::LeftButton))
     {
       computeSelection();
     }

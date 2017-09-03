@@ -124,7 +124,7 @@ protected:
   ExitCodes main_(int, const char**)
   {
     ExitCodes ret = checkParameters_();
-    if (ret != EXECUTION_OK) return ret;
+    if (ret != EXECUTION_OK) { return ret; }
 
     MapAlignmentAlgorithmSpectrumAlignment algorithm;
     Param algo_params = getParam_().copy("algorithm:", true);
@@ -146,7 +146,7 @@ protected:
     progresslogger.setLogType(log_type_);
 
     // load input
-    std::vector<PeakMap > peak_maps(ins.size());
+    std::vector<PeakMap> peak_maps(ins.size());
     MzMLFile f;
     f.setLogType(log_type_);
     progresslogger.startProgress(0, ins.size(), "loading input files");
@@ -161,7 +161,7 @@ protected:
     algorithm.align(peak_maps, transformations);
     if (model_type != "none")
     {
-      for (vector<TransformationDescription>::iterator it = 
+      for (vector<TransformationDescription>::iterator it =
              transformations.begin(); it != transformations.end(); ++it)
       {
         it->fitModel(model_type, model_params);
@@ -174,10 +174,10 @@ protected:
     {
       progresslogger.setProgress(i);
 
-      MapAlignmentTransformer::transformRetentionTimes(peak_maps[i], 
+      MapAlignmentTransformer::transformRetentionTimes(peak_maps[i],
                                                        transformations[i]);
       // annotate output with data processing info
-      addDataProcessing_(peak_maps[i], 
+      addDataProcessing_(peak_maps[i],
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
 
       f.store(outs[i], peak_maps[i]);

@@ -49,12 +49,12 @@ namespace OpenMS
   {
   }
 
-  ThresholdMower::ThresholdMower(const ThresholdMower & source) :
+  ThresholdMower::ThresholdMower(const ThresholdMower& source) :
     DefaultParamHandler(source)
   {
   }
 
-  ThresholdMower & ThresholdMower::operator=(const ThresholdMower & source)
+  ThresholdMower& ThresholdMower::operator=(const ThresholdMower& source)
   {
     if (this != &source)
     {
@@ -63,12 +63,12 @@ namespace OpenMS
     return *this;
   }
 
-  void ThresholdMower::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void ThresholdMower::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void ThresholdMower::filterPeakMap(PeakMap & exp)
+  void ThresholdMower::filterPeakMap(PeakMap& exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {

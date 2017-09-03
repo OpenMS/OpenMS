@@ -100,21 +100,18 @@ protected:
     registerFlag_("proteins", "Apply to protein scores instead of PSM scores");
   }
 
-
   String describeHit_(const PeptideHit& hit)
   {
     return "peptide hit with sequence '" + hit.getSequence().toString() +
-      "', charge " + String(hit.getCharge()) + ", score " + 
-      String(hit.getScore());
+           "', charge " + String(hit.getCharge()) + ", score " +
+           String(hit.getScore());
   }
-
 
   String describeHit_(const ProteinHit& hit)
   {
     return "protein hit with accession '" + hit.getAccession() + "', score " +
-      String(hit.getScore());
+           String(hit.getScore());
   }
-
 
   template <typename IDType>
   void switchScores_(IDType& id, Size& counter)
@@ -124,13 +121,13 @@ protected:
     {
       if (!hit_it->metaValueExists(new_score_))
       {
-        String msg = "Meta value '" + new_score_ + "' not found for " + 
-          describeHit_(*hit_it);
+        String msg = "Meta value '" + new_score_ + "' not found for " +
+                     describeHit_(*hit_it);
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
 
-      String old_score_meta = (old_score_.empty() ? id.getScoreType() : 
+      String old_score_meta = (old_score_.empty() ? id.getScoreType() :
                                old_score_);
       DataValue dv = hit_it->getMetaValue(old_score_meta);
       if (!dv.isEmpty()) // meta value for old score already exists
@@ -139,7 +136,7 @@ protected:
                  (double(dv) + hit_it->getScore())) > tolerance_)
         {
           String msg = "Meta value '" + old_score_meta + "' already exists "
-            "with a conflicting value for " + describeHit_(*hit_it);
+                                                         "with a conflicting value for " + describeHit_(*hit_it);
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         msg, dv.toString());
         } // else: values match, nothing to do
@@ -154,7 +151,6 @@ protected:
     id.setHigherScoreBetter(higher_better_);
   }
 
-
   ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
@@ -162,10 +158,10 @@ protected:
     new_score_ = getStringOption_("new_score");
     new_score_type_ = getStringOption_("new_score_type");
     old_score_ = getStringOption_("old_score");
-    higher_better_ = (getStringOption_("new_score_orientation") == 
+    higher_better_ = (getStringOption_("new_score_orientation") ==
                       "higher_better");
 
-    if (new_score_type_.empty()) new_score_type_ = new_score_;
+    if (new_score_type_.empty()) { new_score_type_ = new_score_; }
 
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;

@@ -207,7 +207,7 @@ public:
       y.push_back(it->second);
     }
 
-    if (rate2score.find(100.0) == rate2score.end() && x[x.size() - 1] < 100.0)
+    if ((rate2score.find(100.0) == rate2score.end()) && (x[x.size() - 1] < 100.0))
     {
       x.push_back(100.0);
       y.push_back(0);
@@ -234,7 +234,7 @@ public:
         cout << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
       }
 
-      if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
+      if ((last_dxdy > 0.0) && (dxdy <= 0) && (yi > threshold))
       {
         RateScorePair rsp;
         rsp.rate = xi;
@@ -759,14 +759,14 @@ public:
     }
   }
 
-  static void createQualityReport(String tmp_path, 
-                                  String qc_output_directory, 
-                                  String file_suffix, 
-                                  const String& file_extension, 
-                                  const vector<vector<SIPPeptide> >& sip_peptide_cluster, 
-                                  Size n_heatmap_bins, 
-                                  double score_plot_y_axis_min, 
-                                  bool report_natural_peptides, 
+  static void createQualityReport(String tmp_path,
+                                  String qc_output_directory,
+                                  String file_suffix,
+                                  const String& file_extension,
+                                  const vector<vector<SIPPeptide> >& sip_peptide_cluster,
+                                  Size n_heatmap_bins,
+                                  double score_plot_y_axis_min,
+                                  bool report_natural_peptides,
                                   const QString& executable = QString("R"))
   {
     vector<SIPPeptide> sip_peptides;
@@ -775,7 +775,7 @@ public:
       for (vector<SIPPeptide>::const_iterator sit = cit->begin(); sit != cit->end(); ++sit)
       {
         // skip non natural peptides for repoting if flag is set
-        if (!report_natural_peptides && sit->incorporations.size() == 1 && sit->incorporations[0].rate < 5.0)
+        if (!report_natural_peptides && (sit->incorporations.size() == 1) && (sit->incorporations[0].rate < 5.0))
         {
           continue;
         }
@@ -1132,7 +1132,7 @@ public:
       const SIPPeptide& current_SIPpeptide = peptide_to_cluster_index[i].first;
 
       // skip non natural peptides for repoting if flag is set
-      if (!report_natural_peptides && current_SIPpeptide.incorporations.size() == 1 && current_SIPpeptide.incorporations[0].rate < 5.0)
+      if (!report_natural_peptides && (current_SIPpeptide.incorporations.size() == 1) && (current_SIPpeptide.incorporations[0].rate < 5.0))
       {
         continue;
       }
@@ -1402,7 +1402,7 @@ public:
 
   static Size getNumberOfLabelingElements(String labeling_element, const AASequence& peptide)
   {
-    const Element * e;
+    const Element* e;
     if (labeling_element == "N")
     {
       e = ElementDB::getInstance()->getElement("Nitrogen");
@@ -1410,13 +1410,16 @@ public:
     else if (labeling_element == "C")
     {
       e = ElementDB::getInstance()->getElement("Carbon");
-    } else if (labeling_element == "H")
+    }
+    else if (labeling_element == "H")
     {
       e = ElementDB::getInstance()->getElement("Hydrogen");
-    } else if (labeling_element == "O")
+    }
+    else if (labeling_element == "O")
     {
       e = ElementDB::getInstance()->getElement("Oxygen");
-    } else
+    }
+    else
     {
       return 0;
     }
@@ -1434,7 +1437,7 @@ public:
     if (diff >= 0) // common case, mod added unlabeled elements
     {
       return labeling_element_mods_excluded;
-    } 
+    }
     else // special case, mod results in loss of labeling element
     {
       return labeling_element_mods_included;
@@ -1596,7 +1599,7 @@ public:
     Element* e2 = const_cast<Element*>(e1);
 
     EmpiricalFormula peptide_ef = peptide.getFormula();
-    Size MAXISOTOPES = (Size)peptide_ef.getNumberOf(e1); 
+    Size MAXISOTOPES = (Size)peptide_ef.getNumberOf(e1);
     // calculate empirical formula of modifications - these can not be labeled via substrate feeding and must be taken care of in pattern calculation
     AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
     EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
@@ -1662,7 +1665,7 @@ public:
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
-  
+
   static IsotopePatterns calculateIsotopePatternsFor15NRangeOfAveraginePeptide(double mass)
   {
     IsotopePatterns ret;
@@ -1790,7 +1793,7 @@ public:
 
     const Element* e1 = ElementDB::getInstance()->getElement("Oxygen");
     Element* e2 = const_cast<Element*>(e1);
-    Size element_count = mass * 0.01329399039;  
+    Size element_count = mass * 0.01329399039;
 
     // calculate isotope distribution for a given peptide and varying incoperation rates
     // modification of isotope distribution in static ElementDB
@@ -1825,6 +1828,7 @@ public:
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
+
 };
 
 class MetaProSIPXICExtraction
@@ -1964,7 +1968,7 @@ public:
       p.start(executable, checkRinPathQParam);
       p.waitForFinished(-1);
 
-      if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
+      if ((p.error() == QProcess::FailedToStart) || (p.exitStatus() == QProcess::CrashExit) || (p.exitCode() != 0))
       {
         LOG_INFO << " failed" << std::endl;
         LOG_ERROR << "Can't execute R. Do you have R installed? Check if the path to R is in your system path variable." << std::endl;
@@ -2204,18 +2208,21 @@ protected:
     }
 
     double TIC_threshold(0.0);
-    
+
     // N15 has smaller RIA resolution and multiple RIA peaks tend to overlap more in correlation. This reduces the width of the pattern leading to better distinction
     if (labeling_element == "N")
     {
       TIC_threshold = getDoubleOption_("pattern_15N_TIC_threshold");
-    } else if (labeling_element == "C")
+    }
+    else if (labeling_element == "C")
     {
       TIC_threshold = getDoubleOption_("pattern_13C_TIC_threshold");
-    } else if (labeling_element == "H")
+    }
+    else if (labeling_element == "H")
     {
       TIC_threshold = getDoubleOption_("pattern_2H_TIC_threshold");
-    } else if (labeling_element == "O")
+    }
+    else if (labeling_element == "O")
     {
       TIC_threshold = getDoubleOption_("pattern_18O_TIC_threshold");
     }
@@ -2300,7 +2307,7 @@ protected:
       double correlation_score = Math::pearsonCorrelationCoefficient(pattern_begin, pattern_end, intensities_begin, intensities_end);
 
       // remove correlations that show higher similarity to an averagine peptide
-      if (rate > 5.0 && correlation_score < averagine_correlation[ii] + min_correlation_distance_to_averagine)
+      if ((rate > 5.0) && (correlation_score < averagine_correlation[ii] + min_correlation_distance_to_averagine))
       {
         map_rate_to_correlation_score[rate] = 0;
         continue;
@@ -2699,7 +2706,7 @@ protected:
     }
 
     bool non_natural = false;
-    if (highest_non_natural_rate > 5.0 && highest_non_natural_abundance > min_decomposition_weight)
+    if ((highest_non_natural_rate > 5.0) && (highest_non_natural_abundance > min_decomposition_weight))
     {
       non_natural = true;
     }
@@ -2711,7 +2718,7 @@ protected:
       double decomposition_weight = mit->second;
       TIC += decomposition_weight;
 
-      if (non_natural && decomposition_weight > 0.05 * highest_non_natural_abundance && decomposition_rate > 5.0)
+      if (non_natural && (decomposition_weight > 0.05 * highest_non_natural_abundance) && (decomposition_rate > 5.0))
       {
         ++non_zero_decomposition_coefficients;
       }
@@ -2763,14 +2770,14 @@ protected:
     {
       if (mc_it->first < 10.0) // lowRIA region
       {
-        if (mc_it->second >= min_low_RIA_threshold && md_it->second >= min_decomposition_weight)
+        if ((mc_it->second >= min_low_RIA_threshold) && (md_it->second >= min_decomposition_weight))
         {
           seeds_weight_rate_pair.insert(make_pair(md_it->second, md_it->first));
         }
       }
       else // non-low RIA region
       {
-        if (mc_it->second >= min_corr_threshold && md_it->second >= min_decomposition_weight)
+        if ((mc_it->second >= min_corr_threshold) && (md_it->second >= min_decomposition_weight))
         {
           seeds_weight_rate_pair.insert(make_pair(md_it->second, md_it->first));
           //cout << "Seeds insert: " << md_it->second << " " << md_it->first << endl;
@@ -2877,7 +2884,7 @@ protected:
       double decomposition_weight = mit->second;
       TIC += decomposition_weight;
 
-      if (non_natural && decomposition_weight > 0.05 * highest_non_natural_abundance && decomposition_rate > 5.0)
+      if (non_natural && (decomposition_weight > 0.05 * highest_non_natural_abundance) && (decomposition_rate > 5.0))
       {
         ++non_zero_decomposition_coefficients;
       }
@@ -2942,7 +2949,7 @@ protected:
     String tmp_path = File::getTempDirectory();
     tmp_path.substitute('\\', '/');
 
-    // Do we want to create a qc report?  
+    // Do we want to create a qc report?
     if (!qc_output_directory.empty())
     {
       // convert path to absolute path
@@ -2954,7 +2961,7 @@ protected:
       {
         qc_dir.mkpath(qc_output_directory.toQString());
       }
-      // check if R and dependencies are installed    
+      // check if R and dependencies are installed
       StringList package_names;
       package_names.push_back("gplots");
 
@@ -3110,7 +3117,7 @@ protected:
       for (Size i = 0; i != peak_map.size(); ++i)
       {
         // precursor not blacklisted?
-        if (find(blacklist_idx.begin(), blacklist_idx.end(), i) == blacklist_idx.end() && !peak_map[i].getPrecursors().empty())
+        if ((find(blacklist_idx.begin(), blacklist_idx.end(), i) == blacklist_idx.end()) && !peak_map[i].getPrecursors().empty())
         {
           // store feature with id generated from averagine peptide (pseudo id)
           Feature f;
@@ -3174,7 +3181,7 @@ protected:
       const double feature_hit_center_rt = feature_it->getRT();
 
       // check if out of experiment bounds
-      if (feature_hit_center_rt > peak_map.getMaxRT() || feature_hit_center_rt < peak_map.getMinRT())
+      if ((feature_hit_center_rt > peak_map.getMaxRT()) || (feature_hit_center_rt < peak_map.getMinRT()))
       {
         continue;
       }
@@ -3225,7 +3232,7 @@ protected:
       //   mz of sequence if we have a sequence identified
       // otherwise:
       //   mz of precursor (stored in feature mz) if no sequence identified
-      if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
+      if ((sip_peptide.feature_type == FEATURE_STRING) || (sip_peptide.feature_type == UNASSIGNED_ID_STRING))
       {
         feature_hit_aaseq = feature_hit.getSequence();
         feature_hit_seq = feature_hit_aaseq.toString();
@@ -3265,23 +3272,26 @@ protected:
       if (labeling_element == "C")
       {
         sip_peptide.mass_diff = 1.003354837810;
-      } else if (labeling_element == "N")
+      }
+      else if (labeling_element == "N")
       {
         sip_peptide.mass_diff = 0.9970349;
-      } else if (labeling_element == "H")
+      }
+      else if (labeling_element == "H")
       {
         sip_peptide.mass_diff = 1.00627675;
-      } else if (labeling_element == "O")
+      }
+      else if (labeling_element == "O")
       {
         // 18O-16O distance is approx. 2.0042548 Dalton but natural isotopic pattern is dominated by 13C-12C distance (approx. 1.0033548)
-        // After the convolution of the O-isotope distribution with the natural one we get multiple copies of the O-distribution (with 2 Da spaces) 
+        // After the convolution of the O-isotope distribution with the natural one we get multiple copies of the O-distribution (with 2 Da spaces)
         // shifted by 13C-12C distances. Choosing (18O-16O) / 2 as expected mass trace distance should therefor collect all of them.
         sip_peptide.mass_diff = 2.0042548 / 2.0;
       }
 
       Size element_count(0);
       Size isotopic_trace_count(0);
-      if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
+      if ((sip_peptide.feature_type == FEATURE_STRING) || (sip_peptide.feature_type == UNASSIGNED_ID_STRING))
       {
         element_count = MetaProSIPDecomposition::getNumberOfLabelingElements(labeling_element, feature_hit_aaseq);
       }
@@ -3291,19 +3301,22 @@ protected:
         if (labeling_element == "C")
         {
           element_count = sip_peptide.mass_theo * 0.0444398894906044;
-        } else if (labeling_element == "N")
+        }
+        else if (labeling_element == "N")
         {
           element_count = sip_peptide.mass_theo * 0.0122177302837372;
-        } else if (labeling_element == "H")
+        }
+        else if (labeling_element == "H")
         {
           element_count = sip_peptide.mass_theo * 0.06981572169;
-        } else if (labeling_element == "O")
+        }
+        else if (labeling_element == "O")
         {
           element_count = sip_peptide.mass_theo * 0.01329399039;
         }
       }
 
-      isotopic_trace_count = labeling_element != "O" ? element_count : element_count * 2; 
+      isotopic_trace_count = labeling_element != "O" ? element_count : element_count * 2;
 
       // collect 13C / 15N peaks
       if (debug_level_ >= 10)
@@ -3316,7 +3329,7 @@ protected:
       // set intensity to zero if not enough neighboring isotopic peaks are present
       for (Size i = 0; i != isotopic_intensities.size(); ++i)
       {
-        if (isotopic_intensities[i] < 1e-4) continue;
+        if (isotopic_intensities[i] < 1e-4) { continue; }
         Size consecutive_isotopes = 0;
         Int j = i;
 
@@ -3407,37 +3420,43 @@ protected:
       IsotopePatterns patterns;
 
       // calculate isotopic patterns for the given sequence, incoroporation interval/steps
-      if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
+      if ((sip_peptide.feature_type == FEATURE_STRING) || (sip_peptide.feature_type == UNASSIGNED_ID_STRING))
       {
-       if (labeling_element == "N")
-       {
-         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor15NRange(AASequence::fromString(feature_hit_seq));
-       } else if (labeling_element == "C")
-       {
-         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor13CRange(AASequence::fromString(feature_hit_seq));
-       } else if (labeling_element == "H")
-       {
-         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor2HRange(AASequence::fromString(feature_hit_seq));
-       } else if (labeling_element == "O")
-       { 
-         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor18ORange(AASequence::fromString(feature_hit_seq));
-       }
+        if (labeling_element == "N")
+        {
+          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor15NRange(AASequence::fromString(feature_hit_seq));
+        }
+        else if (labeling_element == "C")
+        {
+          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor13CRange(AASequence::fromString(feature_hit_seq));
+        }
+        else if (labeling_element == "H")
+        {
+          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor2HRange(AASequence::fromString(feature_hit_seq));
+        }
+        else if (labeling_element == "O")
+        {
+          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor18ORange(AASequence::fromString(feature_hit_seq));
+        }
       }
       else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
-       if (labeling_element == "N")
-       {
-         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor15NRangeOfAveraginePeptide(sip_peptide.mass_theo);
-       } else if (labeling_element == "C")
-       {
-         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor13CRangeOfAveraginePeptide(sip_peptide.mass_theo);
-       } else if (labeling_element == "H")
-       {
-         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor2HRangeOfAveraginePeptide(sip_peptide.mass_theo);
-       } else if (labeling_element == "O")
-       {
-         patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor18ORangeOfAveraginePeptide(sip_peptide.mass_theo);
-       }
+        if (labeling_element == "N")
+        {
+          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor15NRangeOfAveraginePeptide(sip_peptide.mass_theo);
+        }
+        else if (labeling_element == "C")
+        {
+          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor13CRangeOfAveraginePeptide(sip_peptide.mass_theo);
+        }
+        else if (labeling_element == "H")
+        {
+          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor2HRangeOfAveraginePeptide(sip_peptide.mass_theo);
+        }
+        else if (labeling_element == "O")
+        {
+          patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor18ORangeOfAveraginePeptide(sip_peptide.mass_theo);
+        }
       }
 
       // store theoretical patterns for visualization
@@ -3509,7 +3528,7 @@ protected:
       }
 
       // store sip peptide
-      if (sip_peptide.incorporations.size() != 0 && sip_peptide.RR > decomposition_threshold)
+      if ((sip_peptide.incorporations.size() != 0) && (sip_peptide.RR > decomposition_threshold))
       {
         if (debug_level > 0)
         {

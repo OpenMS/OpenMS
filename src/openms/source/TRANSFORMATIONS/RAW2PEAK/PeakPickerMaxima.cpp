@@ -42,9 +42,9 @@
 
 namespace OpenMS
 {
-  PeakPickerMaxima::PeakPickerMaxima(double signal_to_noise, 
-      double spacing_difference, double spacing_difference_gap, 
-      double sn_window_length, unsigned missing) :
+  PeakPickerMaxima::PeakPickerMaxima(double signal_to_noise,
+                                     double spacing_difference, double spacing_difference_gap,
+                                     double sn_window_length, unsigned missing) :
     signal_to_noise_(signal_to_noise),
     sn_window_length_(sn_window_length),
     spacing_difference_(spacing_difference),
@@ -53,12 +53,12 @@ namespace OpenMS
   {
   }
 
-  void PeakPickerMaxima::findMaxima(const std::vector<double>& mz_array, 
-      const std::vector<double>& int_array, std::vector<PeakCandidate>& pc, 
-      bool check_spacings)
+  void PeakPickerMaxima::findMaxima(const std::vector<double>& mz_array,
+                                    const std::vector<double>& int_array, std::vector<PeakCandidate>& pc,
+                                    bool check_spacings)
   {
     // don't pick a spectrum with less than 5 data points
-    if (mz_array.size() < 5) return;
+    if (mz_array.size() < 5) { return; }
 
     // signal-to-noise estimation
     SignalToNoiseEstimatorMedianRapid::NoiseEstimator noise_estimator(0, 0, 0);
@@ -76,8 +76,8 @@ namespace OpenMS
       double right_neighbor_mz = mz_array[i + 1], right_neighbor_int = int_array[i + 1];
 
       // do not interpolate when the left or right support is a zero-data-point
-      if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
-      if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
+      if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon()) { continue; }
+      if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon()) { continue; }
 
       // MZ spacing sanity checks
       double left_to_central = std::fabs(central_peak_mz - left_neighbor_mz);
@@ -93,13 +93,13 @@ namespace OpenMS
       }
 
       // look for peak cores meeting MZ and intensity/SNT criteria
-      if ((central_peak_int > left_neighbor_int) && 
-          (central_peak_int > right_neighbor_int) && 
-          (act_snt >= signal_to_noise_) && 
-          (act_snt_l1 >= signal_to_noise_) && 
+      if ((central_peak_int > left_neighbor_int) &&
+          (central_peak_int > right_neighbor_int) &&
+          (act_snt >= signal_to_noise_) &&
+          (act_snt_l1 >= signal_to_noise_) &&
           (act_snt_r1 >= signal_to_noise_) &&
-          (!check_spacings || 
-           ((left_to_central < spacing_difference_ * min_spacing) && 
+          (!check_spacings ||
+           ((left_to_central < spacing_difference_ * min_spacing) &&
             (central_to_right < spacing_difference_ * min_spacing))))
       {
         // special case: if a peak core is surrounded by more intense
@@ -118,14 +118,14 @@ namespace OpenMS
           act_snt_r2 = int_array[i + 2] / noise_estimator.get_noise_value(mz_array[i + 2]);
         }
 
-        if (i > 1
-            && (i + 2) < mz_array.size()
-            && left_neighbor_int < int_array[i - 2]
-            && right_neighbor_int < int_array[i + 2]
-            && act_snt_l2 >= signal_to_noise_
-            && act_snt_r2 >= signal_to_noise_
-            && (!check_spacings || std::fabs(left_neighbor_mz - mz_array[i - 2]) < spacing_difference_ * min_spacing)
-            && (!check_spacings || std::fabs(mz_array[i + 2] - right_neighbor_mz) < spacing_difference_ * min_spacing)
+        if ((i > 1)
+           && ((i + 2) < mz_array.size())
+           && (left_neighbor_int < int_array[i - 2])
+           && (right_neighbor_int < int_array[i + 2])
+           && (act_snt_l2 >= signal_to_noise_)
+           && (act_snt_r2 >= signal_to_noise_)
+           && (!check_spacings || (std::fabs(left_neighbor_mz - mz_array[i - 2]) < spacing_difference_ * min_spacing))
+           && (!check_spacings || (std::fabs(mz_array[i + 2] - right_neighbor_mz) < spacing_difference_ * min_spacing))
             )
         {
           ++i;
@@ -138,8 +138,8 @@ namespace OpenMS
         // to the left
         size_t k = 2;
 
-        bool previous_zero_left(false);    // no need to extend peak if previous intensity was zero
-        bool previous_zero_right(false);   // no need to extend peak if previous intensity was zero
+        bool previous_zero_left(false); // no need to extend peak if previous intensity was zero
+        bool previous_zero_right(false); // no need to extend peak if previous intensity was zero
         size_t missing_left(0);
         size_t missing_right(0);
 
@@ -152,7 +152,7 @@ namespace OpenMS
               && (missing_left < missing_)
               && int_array[i - k] <= boundary_int
               && (!check_spacings || (std::fabs(mz_array[i - k] - boundary_mz) < spacing_difference_gap_ * min_spacing))
-              )
+               )
         {
           // Obtain S/N value (only if parameter is turned on)
           double act_snt_lk = 0.0;
@@ -161,8 +161,8 @@ namespace OpenMS
             act_snt_lk = int_array[i - k] / noise_estimator.get_noise_value(mz_array[i - k]);
           }
 
-          if (act_snt_lk >= signal_to_noise_ 
-              && (!check_spacings || (std::fabs(mz_array[i - k] - boundary_mz) < spacing_difference_ * min_spacing)))
+          if ((act_snt_lk >= signal_to_noise_)
+             && (!check_spacings || (std::fabs(mz_array[i - k] - boundary_mz) < spacing_difference_ * min_spacing)))
           {
             boundary_mz = mz_array[i - k];
             boundary_int = int_array[i - k];
@@ -180,7 +180,7 @@ namespace OpenMS
         candidate.left_boundary = i - k + 1;
 
         // If we walked one too far, lets backtrack
-        if (missing_left >= missing_) candidate.left_boundary--;
+        if (missing_left >= missing_) { candidate.left_boundary--; }
 
         // to the right
         k = 2;
@@ -191,7 +191,7 @@ namespace OpenMS
               && (missing_right < missing_)
               && int_array[i + k] <= boundary_int
               && (!check_spacings || (std::fabs(mz_array[i + k] - boundary_mz) < spacing_difference_gap_ * min_spacing))
-              )
+               )
         {
           // Obtain S/N value (only if parameter is turned on)
           double act_snt_rk = 0.0;
@@ -200,8 +200,8 @@ namespace OpenMS
             act_snt_rk = int_array[i + k] / noise_estimator.get_noise_value(mz_array[i + k]);
           }
 
-          if (act_snt_rk >= signal_to_noise_ 
-              && (!check_spacings || (std::fabs(mz_array[i + k] - boundary_mz) < spacing_difference_ * min_spacing)))
+          if ((act_snt_rk >= signal_to_noise_)
+             && (!check_spacings || (std::fabs(mz_array[i + k] - boundary_mz) < spacing_difference_ * min_spacing)))
           {
             boundary_mz = mz_array[i + k];
             boundary_int = int_array[i + k];
@@ -219,7 +219,7 @@ namespace OpenMS
         candidate.right_boundary = i + k - 1;
 
         // If we walked one too far, lets backtrack
-        if (missing_right >= missing_) candidate.right_boundary--;
+        if (missing_right >= missing_) { candidate.right_boundary--; }
 
         // jump over raw data points that have been considered already
         i = i + k - 1;
@@ -228,12 +228,12 @@ namespace OpenMS
     }
   }
 
-  void PeakPickerMaxima::pick(std::vector<double>& mz_array, 
-      std::vector<double>& int_array, 
-      std::vector<PeakCandidate>& pc,
-      bool check_spacings)
+  void PeakPickerMaxima::pick(std::vector<double>& mz_array,
+                              std::vector<double>& int_array,
+                              std::vector<PeakCandidate>& pc,
+                              bool check_spacings)
   {
-    if (mz_array.size() < 5) return;
+    if (mz_array.size() < 5) { return; }
 
     findMaxima(mz_array, int_array, pc, check_spacings);
 
@@ -243,8 +243,8 @@ namespace OpenMS
       PeakCandidate candidate = pc[j];
 
       double central_peak_mz = mz_array[candidate.pos], central_peak_int = int_array[candidate.pos];
-      double left_neighbor_mz = mz_array[candidate.pos - 1];   //, left_neighbor_int = int_array[candidate.pos - 1];
-      double right_neighbor_mz = mz_array[candidate.pos + 1];   //, right_neighbor_int = int_array[candidate.pos + 1];
+      double left_neighbor_mz = mz_array[candidate.pos - 1]; //, left_neighbor_int = int_array[candidate.pos - 1];
+      double right_neighbor_mz = mz_array[candidate.pos + 1]; //, right_neighbor_int = int_array[candidate.pos + 1];
 
       std::vector<double> raw_mz_values;
       std::vector<double> raw_int_values;
@@ -252,13 +252,13 @@ namespace OpenMS
       raw_mz_values.reserve(candidate.right_boundary - candidate.left_boundary);
       raw_int_values.reserve(candidate.right_boundary - candidate.left_boundary);
 
-      raw_mz_values.insert(raw_mz_values.begin(), mz_array.begin() + candidate.left_boundary, 
-                                                  mz_array.begin() + candidate.right_boundary + 1);
+      raw_mz_values.insert(raw_mz_values.begin(), mz_array.begin() + candidate.left_boundary,
+                           mz_array.begin() + candidate.right_boundary + 1);
       raw_int_values.insert(raw_int_values.begin(), int_array.begin() + candidate.left_boundary,
-                                                    int_array.begin() + candidate.right_boundary + 1);
+                            int_array.begin() + candidate.right_boundary + 1);
 
       // skip if the minimal number of 3 points for fitting is not reached
-      if (raw_mz_values.size() < 4) continue;
+      if (raw_mz_values.size() < 4) { continue; }
 
       CubicSpline2d peak_spline(raw_mz_values, raw_int_values);
 
@@ -310,4 +310,3 @@ namespace OpenMS
   }
 
 }
-

@@ -194,7 +194,7 @@ protected:
     while (getline(is, line))
     {
       line.trim();
-      if (line.empty() || line[0] == '#')
+      if (line.empty() || (line[0] == '#'))
       {
         continue;
       }
@@ -237,7 +237,7 @@ protected:
     FeatureMap all_features;
     for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
     {
-      if (it->size() == 0 || it->getMSLevel() != 1 || !it->getInstrumentSettings().getZoomScan())
+      if ((it->size() == 0) || (it->getMSLevel() != 1) || !it->getInstrumentSettings().getZoomScan())
       {
         continue;
       }
@@ -275,14 +275,14 @@ protected:
         for (PeakSpectrum::ConstIterator sit = it->begin(); sit != it->end(); ++sit)
         {
           double mz(sit->getMZ());
-          if (mz - (pit->mz_light - precursor_mass_tolerance) > 0 &&
-              (pit->mz_light + (double)max_isotope * Constants::NEUTRON_MASS_U / (double)pit->charge + precursor_mass_tolerance) - mz  > 0)
+          if ((mz - (pit->mz_light - precursor_mass_tolerance) > 0) &&
+              ((pit->mz_light + (double)max_isotope * Constants::NEUTRON_MASS_U / (double)pit->charge + precursor_mass_tolerance) - mz  > 0))
           {
             light_spec.push_back(*sit);
           }
 
-          if (mz - (pit->mz_heavy - precursor_mass_tolerance) > 0 &&
-              (pit->mz_heavy + (double)max_isotope * Constants::NEUTRON_MASS_U / (double)pit->charge + precursor_mass_tolerance) - mz  > 0)
+          if ((mz - (pit->mz_heavy - precursor_mass_tolerance) > 0) &&
+              ((pit->mz_heavy + (double)max_isotope * Constants::NEUTRON_MASS_U / (double)pit->charge + precursor_mass_tolerance) - mz  > 0))
           {
             heavy_spec.push_back(*sit);
           }
@@ -379,15 +379,15 @@ protected:
           {
             for (vector<MatchedFeature>::const_iterator fit2 = heavy.begin(); fit2 != heavy.end(); ++fit2)
             {
-              if (fit1->idx != fit2->idx || fit1->f.getCharge() != fit2->f.getCharge() ||
-                  fabs(fit1->f.getMZ() - pairs[fit1->idx].mz_light) > precursor_mass_tolerance ||
-                  fabs(fit2->f.getMZ() - pairs[fit2->idx].mz_heavy) > precursor_mass_tolerance)
+              if ((fit1->idx != fit2->idx) || (fit1->f.getCharge() != fit2->f.getCharge()) ||
+                  (fabs(fit1->f.getMZ() - pairs[fit1->idx].mz_light) > precursor_mass_tolerance) ||
+                  (fabs(fit2->f.getMZ() - pairs[fit2->idx].mz_heavy) > precursor_mass_tolerance))
               {
                 continue;
               }
               double deviation(0);
               deviation = fabs((fit1->f.getMZ() - pairs[fit1->idx].mz_light) - (fit2->f.getMZ() - pairs[fit2->idx].mz_heavy));
-              if (deviation < best_deviation && deviation < precursor_mass_tolerance)
+              if ((deviation < best_deviation) && (deviation < precursor_mass_tolerance))
               {
                 best_light = fit1->f;
                 best_heavy = fit2->f;

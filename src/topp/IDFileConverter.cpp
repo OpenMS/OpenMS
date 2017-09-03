@@ -150,52 +150,52 @@ public:
 private:
   bool add_ionmatches_(vector<PeptideIdentification>& peptide_identifications, String filename, double tolerance)
   {
-      TheoreticalSpectrumGenerator tg;
-      Param tgp(tg.getDefaults());
-      tgp.setValue("add_metainfo", "true");
-      tgp.setValue("add_losses", "true");
-      tgp.setValue("add_precursor_peaks", "true");
-      tgp.setValue("add_abundant_immonium_ions", "true");
-      tgp.setValue("add_first_prefix_ion", "true");
-      tgp.setValue("add_y_ions", "true");
-      tgp.setValue("add_b_ions", "true");
-      tgp.setValue("add_a_ions", "true");
-      tgp.setValue("add_x_ions", "true");
-      tg.setParameters(tgp);    
+    TheoreticalSpectrumGenerator tg;
+    Param tgp(tg.getDefaults());
+    tgp.setValue("add_metainfo", "true");
+    tgp.setValue("add_losses", "true");
+    tgp.setValue("add_precursor_peaks", "true");
+    tgp.setValue("add_abundant_immonium_ions", "true");
+    tgp.setValue("add_first_prefix_ion", "true");
+    tgp.setValue("add_y_ions", "true");
+    tgp.setValue("add_b_ions", "true");
+    tgp.setValue("add_a_ions", "true");
+    tgp.setValue("add_x_ions", "true");
+    tg.setParameters(tgp);
 
-      SpectrumAlignment sa;
-      Param sap = sa.getDefaults();
-      sap.setValue("tolerance", tolerance, "...");
-      sa.setParameters(sap);
-      SpectrumAnnotator annot;
-      bool ret = true;
-      PeakMap expmap;
-      SpectrumLookup lookup;
-      FileHandler().loadExperiment(filename, expmap);
-      lookup.readSpectra(expmap.getSpectra());
+    SpectrumAlignment sa;
+    Param sap = sa.getDefaults();
+    sap.setValue("tolerance", tolerance, "...");
+    sa.setParameters(sap);
+    SpectrumAnnotator annot;
+    bool ret = true;
+    PeakMap expmap;
+    SpectrumLookup lookup;
+    FileHandler().loadExperiment(filename, expmap);
+    lookup.readSpectra(expmap.getSpectra());
 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (SignedSize i = 0; i < (SignedSize)peptide_identifications.size(); ++i)
+    for (SignedSize i = 0; i < (SignedSize)peptide_identifications.size(); ++i)
+    {
+      try
       {
-        try
-        {
-          String ref = peptide_identifications[i].getMetaValue("spectrum_reference");
-          Size index = lookup.findByNativeID(ref);
-          annot.addIonMatchStatistics(peptide_identifications[i], expmap[index], tg, sa);
-        }
-        catch (Exception::ElementNotFound&)
-        {
+        String ref = peptide_identifications[i].getMetaValue("spectrum_reference");
+        Size index = lookup.findByNativeID(ref);
+        annot.addIonMatchStatistics(peptide_identifications[i], expmap[index], tg, sa);
+      }
+      catch (Exception::ElementNotFound&)
+      {
 #ifdef _OPENMP
 #pragma omp critical (IDFileConverter_ERROR)
 #endif
-          {
-            LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
-            ret = false;
-          }
+        {
+          LOG_ERROR << "Error: Failed to look up spectrum - none with corresponding native ID found." << endl;
+          ret = false;
         }
       }
+    }
     return ret;
   }
 
@@ -229,7 +229,7 @@ protected:
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, pepXML, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
     registerFlag_("no_spectra_data_override", "[+mz_file only] Setting this flag will avoid overriding 'spectra_data' in ProteinIdentifications if mz_file is given and 'spectrum_reference's are added/updated. Use only if you are sure it is absolutely the same mz_file as used for identification.", true);
-    registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
+    registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0, "[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
   }
 
   ExitCodes main_(int, const char**)
@@ -377,7 +377,7 @@ protected:
           PeakMap exp;
           fh.loadExperiment(mz_file, exp, FileTypes::UNKNOWN, log_type_, false,
                             false);
-          if (mz_name.empty()) mz_name = mz_file;
+          if (mz_name.empty()) { mz_name = mz_file; }
           String scan_regex = getStringOption_("scan_regex");
           // we may have to parse Mascot spectrum references in pepXML, too:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
@@ -385,7 +385,6 @@ protected:
                             peptide_identifications, mz_name, lookup);
         }
       }
-
       else if (in_type == FileTypes::IDXML)
       {
         IdXMLFile().load(in, protein_identifications, peptide_identifications);
@@ -402,7 +401,6 @@ protected:
           }
         }
       }
-
       else if (in_type == FileTypes::MZIDENTML)
       {
         LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
@@ -422,7 +420,6 @@ protected:
           }
         }
       }
-
       else if (in_type == FileTypes::PROTXML)
       {
         protein_identifications.resize(1);
@@ -430,14 +427,12 @@ protected:
         ProtXMLFile().load(in, protein_identifications[0],
                            peptide_identifications[0]);
       }
-
       else if (in_type == FileTypes::OMSSAXML)
       {
         protein_identifications.resize(1);
         OMSSAXMLFile().load(in, protein_identifications[0],
                             peptide_identifications, true);
       }
-
       else if (in_type == FileTypes::MASCOTXML)
       {
         if (!mz_file.empty())
@@ -451,10 +446,9 @@ protected:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
         protein_identifications.resize(1);
-        MascotXMLFile().load(in, protein_identifications[0], 
+        MascotXMLFile().load(in, protein_identifications[0],
                              peptide_identifications, lookup);
       }
-
       else if (in_type == FileTypes::XML) // X! Tandem
       {
         ProteinIdentification protein_id;
@@ -472,7 +466,7 @@ protected:
                             false);
           for (vector<PeptideIdentification>::iterator it =
                  peptide_identifications.begin(); it !=
-                 peptide_identifications.end(); ++it)
+               peptide_identifications.end(); ++it)
           {
             UInt id = (Int)it->getMetaValue("spectrum_id");
             --id; // native IDs were written 1-based
@@ -494,7 +488,6 @@ protected:
           }
         }
       }
-
       else if (in_type == FileTypes::PSMS) // Percolator
       {
         String score_type = getStringOption_("score_type");
@@ -507,12 +500,11 @@ protected:
           lookup.readSpectra(experiment.getSpectra());
         }
         String scan_regex = getStringOption_("scan_regex");
-        if (!scan_regex.empty()) lookup.addReferenceFormat(scan_regex);
+        if (!scan_regex.empty()) { lookup.addReferenceFormat(scan_regex); }
         protein_identifications.resize(1);
         PercolatorOutfile().load(in, protein_identifications[0],
                                  peptide_identifications, lookup, perc_score);
       }
-
       else if (in_type == FileTypes::TSV)
       {
         ProteinIdentification protein_id;
@@ -526,13 +518,13 @@ protected:
         {
           it->trim();
           // skip empty and comment lines
-          if (it->empty() || it->hasPrefix("#")) continue;
+          if (it->empty() || it->hasPrefix("#")) { continue; }
 
           PeptideIdentification pepid;
           StringList peps;
           it->split('\t', peps, false);
           std::vector<PeptideHit> hits;
-          for (StringList::const_iterator sit=peps.begin(); sit != peps.end(); ++sit)
+          for (StringList::const_iterator sit = peps.begin(); sit != peps.end(); ++sit)
           {
             PeptideHit hit;
             hit.setSequence(AASequence::fromString(*sit));
@@ -575,18 +567,15 @@ protected:
       PepXMLFile().store(out, protein_identifications, peptide_identifications,
                          mz_file, mz_name, peptideprophet_analyzed);
     }
-
     else if (out_type == FileTypes::IDXML)
     {
       IdXMLFile().store(out, protein_identifications, peptide_identifications);
     }
-
     else if (out_type == FileTypes::MZIDENTML)
     {
       MzIdentMLFile().store(out, protein_identifications,
                             peptide_identifications);
     }
-
     else if (out_type == FileTypes::FASTA)
     {
       Size count = 0;
@@ -600,7 +589,7 @@ protected:
           std::set<String> prot = hit.extractProteinAccessionsSet();
           fasta << ">" << seq
                 << " " << ++count
-                << " " << hit.getSequence().toString() 
+                << " " << hit.getSequence().toString()
                 << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
                 << "\n";
           // FASTA files should have at most 60 characters of sequence info per line
@@ -613,7 +602,6 @@ protected:
       }
       fasta.close();
     }
-
     else
     {
       writeLog_("Unsupported output file type given. Aborting!");

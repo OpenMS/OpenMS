@@ -63,7 +63,7 @@ namespace OpenMS
   int TOPPASIOMappingDialog::firstExec()
   {
     // check if only 1 parameter, if yes: select it
-    if (source_combo->count() == 2)     // <select> + 1 parameter
+    if (source_combo->count() == 2) // <select> + 1 parameter
     {
       source_combo->setCurrentIndex(1);
     }
@@ -73,8 +73,8 @@ namespace OpenMS
     }
 
     // is there only 1 possible mapping? -> do not show dialog
-    if ((source_combo->count() == 2 || source_combo->count() == 0) &&
-        (target_combo->count() == 2 || target_combo->count() == 0))
+    if (((source_combo->count() == 2) || (source_combo->count() == 0)) &&
+        ((target_combo->count() == 2) || (target_combo->count() == 0)))
     {
       checkValidity_();
       return QDialog::Accepted;
@@ -121,7 +121,10 @@ namespace OpenMS
         String item_name;
         if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
         {
-          if (target_splitter) continue; // inputs for splitters must be lists
+          if (target_splitter)
+          {
+            continue;                    // inputs for splitters must be lists
+          }
           item_name = "File: ";
         }
         else
@@ -182,7 +185,7 @@ namespace OpenMS
         for (TOPPASVertex::ConstEdgeIterator it = target->inEdgesBegin(); it != target->inEdgesEnd(); ++it)
         {
           int param_index = (*it)->getTargetInParam();
-          if (*it != edge_ && param_index >= 0 && param_index < target_input_files.size())
+          if ((*it != edge_) && (param_index >= 0) && (param_index < target_input_files.size()))
           {
             if (info.param_name == target_input_files[param_index].param_name)
             {
@@ -199,7 +202,10 @@ namespace OpenMS
         String item_name;
         if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
         {
-          if (source_merger && !source_merger->roundBasedMode()) continue; // collectors produce lists
+          if (source_merger && !source_merger->roundBasedMode())
+          {
+            continue;                                                      // collectors produce lists
+          }
           item_name = "File: ";
         }
         else
@@ -282,7 +288,7 @@ namespace OpenMS
     {
       int target_index;
       int tci = target_combo->currentIndex() - 1;
-      if (0 <= tci && tci < target_input_param_indices_.size())
+      if ((0 <= tci) && (tci < target_input_param_indices_.size()))
       {
         target_index = target_input_param_indices_[tci];
       }
@@ -296,7 +302,7 @@ namespace OpenMS
     edge_->updateColor();
 
     TOPPASEdge::EdgeStatus es = edge_->getEdgeStatus();
-    if (es == TOPPASEdge::ES_VALID || es == TOPPASEdge::ES_NOT_READY_YET)
+    if ((es == TOPPASEdge::ES_VALID) || (es == TOPPASEdge::ES_NOT_READY_YET))
     {
       accept();
     }

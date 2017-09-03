@@ -41,7 +41,7 @@
 namespace OpenMS
 {
 
-  SuperHirnParameters * SuperHirnParameters::instance_ = NULL;
+  SuperHirnParameters* SuperHirnParameters::instance_ = NULL;
   bool SuperHirnParameters::haveInstance_ = false;
 
   SuperHirnParameters::SuperHirnParameters()
@@ -88,8 +88,8 @@ namespace OpenMS
     minIntensity_ = 0.0;
     intensityFloor_ = 1.0;
 
-    peptideProbabilityThreshold_ = 0.9;     // this is hardcoded. it is never configured.
-    storeAllLowProbabilityMS2Scans_ = false;     // this is hardcoded.
+    peptideProbabilityThreshold_ = 0.9; // this is hardcoded. it is never configured.
+    storeAllLowProbabilityMS2Scans_ = false; // this is hardcoded.
 
 
     createFeatureElutionProfiles_ = false;
@@ -102,7 +102,7 @@ namespace OpenMS
     featureFakeInsertionBasedOnMS2Feature_ = true;
     */
 
-    lowIntensityMSSignalThreshold_ = 1.0;     // never configured, but used
+    lowIntensityMSSignalThreshold_ = 1.0; // never configured, but used
     initIsotopeDist_ = false;
   }
 

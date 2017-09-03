@@ -278,13 +278,13 @@ namespace OpenMS
 
         os << " accession=\"" << writeXMLEscape(current_prot_id.getHits()[j].getAccession()) << "\"";
         os << " score=\"" << current_prot_id.getHits()[j].getScore() << "\"";
-        
+
         double coverage = current_prot_id.getHits()[j].getCoverage();
         if (coverage != ProteinHit::COVERAGE_UNKNOWN)
         {
           os << " coverage=\"" << coverage << "\"";
         }
-        
+
         os << " sequence=\"" << writeXMLEscape(current_prot_id.getHits()[j].getSequence()) << "\">\n";
 
         writeUserParam_("UserParam", os, current_prot_id.getHits()[j], 4);
@@ -357,23 +357,33 @@ namespace OpenMS
     // IMPORTANT: check parent tags first (i.e. tags higher in the tree), since otherwise sections might be enabled/disabled too early/late
     //            disable_parsing_ is an Int, since subordinates might be chained, thus at SO-level 2, the endelement() would switch on parsing again
     //                                      , even though the end of the parent SO was not reached
-    if ((!options_.getLoadSubordinates()) && tag == "subordinate")
+    if ((!options_.getLoadSubordinates()) && (tag == "subordinate"))
+    {
       ++disable_parsing_;
-    else if ((!options_.getLoadConvexHull()) && tag == "convexhull")
+    }
+    else if ((!options_.getLoadConvexHull()) && (tag == "convexhull"))
+    {
       ++disable_parsing_;
+    }
 
     if (disable_parsing_)
+    {
       return;
+    }
 
     // do the actual parsing:
     String parent_tag;
     if (open_tags_.size() != 0)
+    {
       parent_tag = open_tags_.back();
+    }
     open_tags_.push_back(tag);
 
     //for downward compatibility, all tags in the old description must be ignored
     if (in_description_)
+    {
       return;
+    }
 
     if (tag == "description")
     {
@@ -392,7 +402,9 @@ namespace OpenMS
     else if (tag == "featureList")
     {
       if (options_.getMetadataOnly())
+      {
         throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
       Size count = attributeAsInt_(attributes, "count");
       if (size_only_) // true if loadSize() was used instead of load()
       {
@@ -402,7 +414,7 @@ namespace OpenMS
       map_->reserve(std::min(Size(1e5), count)); // reserve vector for faster push_back, but with upper boundary of 1e5 (as >1e5 is most likely an invalid feature count)
       startProgress(0, count, "Loading featureXML file");
     }
-    else if (tag == "quality" || tag == "hposition" || tag == "position")
+    else if ((tag == "quality") || (tag == "hposition") || (tag == "position"))
     {
       dim_ = attributeAsInt_(attributes, s_dim);
     }
@@ -423,10 +435,12 @@ namespace OpenMS
     {
       String name = attributeAsString_(attributes, s_name);
       String value = attributeAsString_(attributes, s_value);
-      if (name != "" && value != "")
+      if ((name != "") && (value != ""))
+      {
         param_.setValue(name, value);
+      }
     }
-    else if (tag == "userParam" || tag == "UserParam") // correct: "UserParam". Test for backwards compatibility.
+    else if ((tag == "userParam") || (tag == "UserParam")) // correct: "UserParam". Test for backwards compatibility.
     {
       if (last_meta_ == 0)
       {
@@ -504,12 +518,12 @@ namespace OpenMS
       map_->getDataProcessing().push_back(tmp);
       last_meta_ = &(map_->getDataProcessing().back());
     }
-    else if (tag == "software" && parent_tag == "dataProcessing")
+    else if ((tag == "software") && (parent_tag == "dataProcessing"))
     {
       map_->getDataProcessing().back().getSoftware().setName(attributeAsString_(attributes, s_name));
       map_->getDataProcessing().back().getSoftware().setVersion(attributeAsString_(attributes, s_version));
     }
-    else if (tag == "processingAction" && parent_tag == "dataProcessing")
+    else if ((tag == "processingAction") && (parent_tag == "dataProcessing"))
     {
       String name = attributeAsString_(attributes, s_name);
       for (Size i = 0; i < DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
@@ -632,7 +646,7 @@ namespace OpenMS
       //insert id and accession to map
       proteinid_to_accession_[attributeAsString_(attributes, "id")] = accession;
     }
-    else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
+    else if ((tag == "PeptideIdentification") || (tag == "UnassignedPeptideIdentification"))
     {
       String id = attributeAsString_(attributes, "identification_run_ref");
       if (!id_identifier_.has(id))
@@ -694,7 +708,7 @@ namespace OpenMS
         accession_string.trim();
         vector<String> accessions;
         accession_string.split(' ', accessions);
-        if (accession_string != "" && accessions.empty())
+        if ((accession_string != "") && accessions.empty())
         {
           accessions.push_back(accession_string);
         }
@@ -722,8 +736,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -739,8 +753,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -757,8 +771,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -774,8 +788,8 @@ namespace OpenMS
         std::vector<String> splitted;
         tmp.split(' ', splitted);
         for (Size i = 0; i != splitted.size(); ++i)
-        { 
-          if (peptide_evidences_.size() < i + 1) 
+        {
+          if (peptide_evidences_.size() < i + 1)
           {
             peptide_evidences_.push_back(PeptideEvidence());
           }
@@ -794,15 +808,17 @@ namespace OpenMS
 
     // handle skipping of whole sections
     // IMPORTANT: check parent tags first (i.e. tags higher in the tree), since otherwise sections might be enabled/disabled too early/late
-    if (((!options_.getLoadSubordinates()) && tag == "subordinate")
-       || ((!options_.getLoadConvexHull()) && tag == "convexhull"))
+    if (((!options_.getLoadSubordinates()) && (tag == "subordinate"))
+       || ((!options_.getLoadConvexHull()) && (tag == "convexhull")))
     {
       --disable_parsing_;
       return; // even if disable_parsing is false now, we still exit (since this endelement() should be ignored)
     }
 
     if (disable_parsing_)
+    {
       return;
+    }
 
     // do the actual parsing:
     open_tags_.pop_back();
@@ -813,7 +829,9 @@ namespace OpenMS
       in_description_ = false;
     }
     if (in_description_)
+    {
       return;
+    }
 
     if (tag == "feature")
     {
@@ -855,7 +873,7 @@ namespace OpenMS
     {
       warning(LOAD, String("The featureXML file contains a 'model' description, but the internal datastructure has no model support since OpenMS 1.12. Model will be ignored!"));
     }
-    else if (tag == "hullpoint" || tag == "pt")
+    else if ((tag == "hullpoint") || (tag == "pt"))
     {
       current_chull_.push_back(hull_position_);
     }
@@ -890,7 +908,6 @@ namespace OpenMS
     {
       last_meta_ = &search_param_;
     }
-
     else if (tag == "ProteinHit")
     {
       prot_id_.insertHit(prot_hit_);
@@ -923,17 +940,23 @@ namespace OpenMS
   {
     // handle skipping of whole sections
     if (disable_parsing_)
+    {
       return;
+    }
 
     // do the actual parsing:
 
     //for downward compatibility, all tags in the old description must be ignored
     if (in_description_)
+    {
       return;
+    }
 
     // we are before first tag or beyond last tag
     if (open_tags_.size() == 0)
+    {
       return;
+    }
 
     String& current_tag = open_tags_.back();
     if (current_tag == "intensity")

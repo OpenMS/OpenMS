@@ -48,7 +48,7 @@ namespace OpenMS
 
     FileMapping& FileMapping::operator=(const FileMapping& rhs)
     {
-      if (this == &rhs) return *this;
+      if (this == &rhs) { return *this; }
 
       location = rhs.location;
       target = rhs.target;
@@ -57,7 +57,7 @@ namespace OpenMS
 
     OPENMS_DLLAPI MappingParam& MappingParam::operator=(const MappingParam& rhs)
     {
-      if (this == &rhs) return *this;
+      if (this == &rhs) { return *this; }
 
       mapping = rhs.mapping;
       pre_moves = rhs.pre_moves;
@@ -94,7 +94,9 @@ namespace OpenMS
     ToolDescriptionInternal& ToolDescriptionInternal::operator=(const ToolDescriptionInternal& rhs)
     {
       if (this == &rhs)
+      {
         return *this;
+      }
 
       is_internal = rhs.is_internal;
       name = rhs.name;
@@ -106,7 +108,9 @@ namespace OpenMS
     bool ToolDescriptionInternal::operator==(const ToolDescriptionInternal& rhs) const
     {
       if (this == &rhs)
+      {
         return true;
+      }
 
       return is_internal == rhs.is_internal
              && name == rhs.name
@@ -117,7 +121,9 @@ namespace OpenMS
     bool ToolDescriptionInternal::operator<(const ToolDescriptionInternal& rhs) const
     {
       if (this == &rhs)
+      {
         return false;
+      }
 
       return name + "." + ListUtils::concatenate(types, ",") < rhs.name + "." + ListUtils::concatenate(rhs.types, ",");
     }
@@ -143,13 +149,13 @@ namespace OpenMS
     void ToolDescription::append(const ToolDescription& other)
     {
       // sanity check
-      if (is_internal != other.is_internal
-         || name != other.name
+      if ((is_internal != other.is_internal)
+         || (name != other.name)
           //|| category != other.category
-         || (is_internal && external_details.size() > 0)
-         || (other.is_internal && other.external_details.size() > 0)
-         || (!is_internal && external_details.size() != types.size())
-         || (!other.is_internal && other.external_details.size() != other.types.size())
+         || (is_internal && (external_details.size() > 0))
+         || (other.is_internal && (other.external_details.size() > 0))
+         || (!is_internal && (external_details.size() != types.size()))
+         || (!other.is_internal && (other.external_details.size() != other.types.size()))
           )
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Extending (external) ToolDescription failed!", "");
@@ -176,7 +182,9 @@ namespace OpenMS
     ToolDescription& ToolDescription::operator=(const ToolDescription& rhs)
     {
       if (this == &rhs)
+      {
         return *this;
+      }
 
       ToolDescriptionInternal::operator=(rhs);
       external_details = rhs.external_details;

@@ -40,7 +40,7 @@
 
 namespace OpenMS
 {
-  ClusterFunctor * SingleLinkage::create()
+  ClusterFunctor* SingleLinkage::create()
   {
     return new SingleLinkage();
   }
@@ -55,7 +55,7 @@ namespace OpenMS
   {
   }
 
-  SingleLinkage::SingleLinkage(const SingleLinkage & source) :
+  SingleLinkage::SingleLinkage(const SingleLinkage& source) :
     ClusterFunctor(source), ProgressLogger()
   {
   }
@@ -64,7 +64,7 @@ namespace OpenMS
   {
   }
 
-  SingleLinkage & SingleLinkage::operator=(const SingleLinkage & source)
+  SingleLinkage& SingleLinkage::operator=(const SingleLinkage& source)
   {
     if (this != &source)
     {
@@ -74,7 +74,7 @@ namespace OpenMS
     return *this;
   }
 
-  void SingleLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
+  void SingleLinkage::operator()(DistanceMatrix<float>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const float threshold /*=1*/) const
   {
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)

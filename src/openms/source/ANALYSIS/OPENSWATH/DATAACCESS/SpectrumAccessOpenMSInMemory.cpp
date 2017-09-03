@@ -37,29 +37,31 @@
 namespace OpenMS
 {
 
-  SpectrumAccessOpenMSInMemory::SpectrumAccessOpenMSInMemory(OpenSwath::ISpectrumAccess & origin)
+  SpectrumAccessOpenMSInMemory::SpectrumAccessOpenMSInMemory(OpenSwath::ISpectrumAccess& origin)
   {
     for (Size i = 0; i < origin.getNrSpectra(); ++i)
     {
-      spectra_.push_back( origin.getSpectrumById(i) );
-      spectra_meta_.push_back( origin.getSpectrumMetaById(i) );
+      spectra_.push_back(origin.getSpectrumById(i));
+      spectra_meta_.push_back(origin.getSpectrumMetaById(i));
     }
     for (Size i = 0; i < origin.getNrChromatograms(); ++i)
     {
-      chromatograms_.push_back( origin.getChromatogramById(i) );
-      chromatogram_ids_.push_back( origin.getChromatogramNativeID(i) );
+      chromatograms_.push_back(origin.getChromatogramById(i));
+      chromatogram_ids_.push_back(origin.getChromatogramNativeID(i));
     }
   }
 
-  SpectrumAccessOpenMSInMemory::~SpectrumAccessOpenMSInMemory() {}
+  SpectrumAccessOpenMSInMemory::~SpectrumAccessOpenMSInMemory()
+  {
+  }
 
-  SpectrumAccessOpenMSInMemory::SpectrumAccessOpenMSInMemory(const SpectrumAccessOpenMSInMemory & rhs) :
+  SpectrumAccessOpenMSInMemory::SpectrumAccessOpenMSInMemory(const SpectrumAccessOpenMSInMemory& rhs) :
     spectra_(rhs.spectra_),
     spectra_meta_(rhs.spectra_meta_),
     chromatograms_(rhs.chromatograms_),
     chromatogram_ids_(rhs.chromatogram_ids_)
   {
-    // this only copies the pointers and not the actual data ... 
+    // this only copies the pointers and not the actual data ...
   }
 
   boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSInMemory::lightClone() const
@@ -87,8 +89,8 @@ namespace OpenMS
     std::vector<std::size_t> result;
     OpenSwath::SpectrumMeta s;
     s.RT = RT - deltaRT;
-    std::vector< OpenSwath::SpectrumMeta >::const_iterator spectrum = std::upper_bound(
-        spectra_meta_.begin(), spectra_meta_.end(), s, OpenSwath::SpectrumMeta::RTLess());
+    std::vector<OpenSwath::SpectrumMeta>::const_iterator spectrum = std::upper_bound(
+      spectra_meta_.begin(), spectra_meta_.end(), s, OpenSwath::SpectrumMeta::RTLess());
 
     result.push_back(std::distance(spectra_meta_.begin(), spectrum));
     ++spectrum;

@@ -166,12 +166,12 @@ protected:
 
     bool operator<(const OMSSAVersion& v) const
     {
-      if (omssa_major > v.omssa_major) return false;
-      else if (omssa_major < v.omssa_major) return true;
+      if (omssa_major > v.omssa_major) { return false; }
+      else if (omssa_major < v.omssa_major) { return true; }
       else // ==
       {
-        if (omssa_minor > v.omssa_minor) return false;
-        else if (omssa_minor < v.omssa_minor) return true;
+        if (omssa_minor > v.omssa_minor) { return false; }
+        else if (omssa_minor < v.omssa_minor) { return true; }
         else
         {
           return omssa_patch < v.omssa_patch;
@@ -186,7 +186,7 @@ protected:
   {
     // we expect three components
     IntList nums = ListUtils::create<Int>(ListUtils::create<String>(version, '.'));
-    if (nums.size() != 3) return false;
+    if (nums.size() != 3) { return false; }
 
     omssa_version_i.omssa_major = nums[0];
     omssa_version_i.omssa_minor = nums[1];
@@ -410,7 +410,7 @@ protected:
     String output(QString(qp.readAllStandardOutput()));
     String omssa_version;
     OMSSAVersion omssa_version_i;
-    if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    if (!success || (qp.exitStatus() != 0) || (qp.exitCode() != 0))
     {
       writeLog_("Warning: unable to determine the version of OMSSA - the process returned an error. Call string was: '" + omssa_executable + " -version'. Make sure that OMSSA exists and the path given in '-omssa_executable' is correct!");
       return ILLEGAL_PARAMETERS;
@@ -419,7 +419,7 @@ protected:
     {
       vector<String> version_split;
       output.split(' ', version_split);
-      if (version_split.size() == 2 && getVersion_(version_split[1], omssa_version_i))
+      if ((version_split.size() == 2) && getVersion_(version_split[1], omssa_version_i))
       {
         omssa_version = version_split[1].removeWhitespaces();
         writeDebug_("Setting OMSSA version to " + omssa_version, 1);
@@ -471,8 +471,8 @@ protected:
     if (!has_pin || !has_phr)
     {
       LOG_ERROR << "\nThe NCBI psq database '" << db_name << ".psq' was found, but the following associated index file(s) are missing:\n";
-      if (!has_pin) LOG_ERROR << "  missing: '" << db_name << ".pin'\n";
-      if (!has_phr) LOG_ERROR << "  missing: '" << db_name << ".phr'\n";
+      if (!has_pin) { LOG_ERROR << "  missing: '" << db_name << ".pin'\n"; }
+      if (!has_phr) { LOG_ERROR << "  missing: '" << db_name << ".phr'\n"; }
       LOG_ERROR << "Please make sure the file(s) are present!\n" << std::endl;
       return ILLEGAL_PARAMETERS;
     }
@@ -568,7 +568,7 @@ protected:
       vector<String> split;
       it->split(',', split);
 
-      if (it->size() > 0 && (*it)[0] != '#')
+      if ((it->size() > 0) && ((*it)[0] != '#'))
       {
         if (split.size() < 2)
         {
@@ -681,7 +681,7 @@ protected:
         }
         if (ts == ResidueModification::C_TERM)
         {
-          if (origin == "" || origin == "X")
+          if ((origin == "") || (origin == "X"))
           {
             out << "\t\t<MSModType value=\"modcp\">7</MSModType>" << "\n";
           }
@@ -692,7 +692,7 @@ protected:
         }
         if (ts == ResidueModification::N_TERM)
         {
-          if (origin == "" || origin == "X")
+          if ((origin == "") || (origin == "X"))
           {
             out << "\t\t<MSModType value=\"modnp\">5</MSModType>" << "\n";
           }
@@ -823,7 +823,7 @@ protected:
         else
         {
           map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), peak_map.getSpectra().begin() + i, peak_map.getSpectra().begin() + std::min(
-                  peak_map.size(), i + chunk_size));
+                                          peak_map.size(), i + chunk_size));
         }
         MascotGenericFile omssa_infile;
         String filename_chunk = unique_input_name + String(chunk) + ".mgf";
@@ -963,8 +963,8 @@ protected:
           // clear peptide evidences
           vector<PeptideHit> pep_hits = it_pep->getHits();
           for (vector<PeptideHit>::iterator it_pep_hit = pep_hits.begin();
-             it_pep_hit != pep_hits.end();
-             ++it_pep_hit)
+               it_pep_hit != pep_hits.end();
+               ++it_pep_hit)
           {
             it_pep_hit->setPeptideEvidences(std::vector<PeptideEvidence>());
           }
@@ -1026,7 +1026,7 @@ protected:
     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm";
     search_parameters.fragment_mass_tolerance_ppm = false; // OMSSA doesn't support ppm fragment mass tolerance
-    
+
     protein_identification.setSearchParameters(search_parameters);
     protein_identification.setSearchEngineVersion(omssa_version);
     protein_identification.setSearchEngine("OMSSA");

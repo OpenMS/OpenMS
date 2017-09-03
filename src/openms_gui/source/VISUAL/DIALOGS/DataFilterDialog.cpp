@@ -47,14 +47,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  DataFilterDialog::DataFilterDialog(DataFilters::DataFilter & filter, QWidget * parent) :
+  DataFilterDialog::DataFilterDialog(DataFilters::DataFilter& filter, QWidget* parent) :
     QDialog(parent),
     filter_(filter)
   {
     setupUi(this);
     connect(ok_button_, SIGNAL(clicked()), this, SLOT(check_()));
-    connect(field_, SIGNAL(activated(const QString &)), this, SLOT(field_changed_(const QString &)));
-    connect(op_, SIGNAL(activated(const QString &)), this, SLOT(op_changed_(const QString &)));
+    connect(field_, SIGNAL(activated(const QString&)), this, SLOT(field_changed_(const QString&)));
+    connect(op_, SIGNAL(activated(const QString&)), this, SLOT(op_changed_(const QString&)));
 
     //set values for edit mode
     field_->setCurrentIndex((UInt)filter.field);
@@ -67,7 +67,7 @@ namespace OpenMS
       {
         value_->setText(QString::number(filter.value));
       }
-      else       // get value from filter.value_string (a String)
+      else // get value from filter.value_string (a String)
       {
         value_->setText(filter.value_string.toQString());
       }
@@ -79,7 +79,7 @@ namespace OpenMS
         value_label_->setEnabled(false);
       }
     }
-    else     // for non meta data, the value is always numerical
+    else // for non meta data, the value is always numerical
     {
       value_->setText(QString::number(filter.value));
     }
@@ -96,7 +96,7 @@ namespace OpenMS
     }
   }
 
-  void DataFilterDialog::field_changed_(const QString & field)
+  void DataFilterDialog::field_changed_(const QString& field)
   {
     QString op(op_->currentText());
     if (field == "Meta data")
@@ -111,7 +111,7 @@ namespace OpenMS
     }
   }
 
-  void DataFilterDialog::op_changed_(const QString & op)
+  void DataFilterDialog::op_changed_(const QString& op)
   {
     QString field(field_->currentText());
     if (op != "exists")
@@ -146,7 +146,7 @@ namespace OpenMS
         QMessageBox::warning(this, "Insufficient arguments", "You must specify a meta name!");
         return;
       }
-      if (op == "<=" || op == ">=")
+      if ((op == "<=") || (op == ">="))
       {
         if (not_numerical)
         {
@@ -164,7 +164,7 @@ namespace OpenMS
         return;
       }
       //double
-      if (field == "Intensity" || field == "Quality")
+      if ((field == "Intensity") || (field == "Quality"))
       {
         QDoubleValidator v(this);
         if (v.validate(value, tmp) == QValidator::Invalid)
@@ -174,7 +174,7 @@ namespace OpenMS
         }
       }
       //int
-      if (field == "Charge" || field == "Size")
+      if ((field == "Charge") || (field == "Size"))
       {
         QIntValidator v(this);
         if (v.validate(value, tmp) == QValidator::Invalid)
@@ -187,23 +187,31 @@ namespace OpenMS
 
     //write result
     if (field == "Intensity")
+    {
       filter_.field = DataFilters::INTENSITY;
+    }
     else if (field == "Quality")
+    {
       filter_.field = DataFilters::QUALITY;
+    }
     else if (field == "Charge")
+    {
       filter_.field = DataFilters::CHARGE;
+    }
     else if (field == "Size")
+    {
       filter_.field = DataFilters::SIZE;
+    }
     else if (field == "Meta data")
     {
       filter_.field = DataFilters::META_DATA;
       filter_.meta_name = meta_name_field;
-      if (not_numerical)       // entered value is not numerical, store it in value_string (as String)
+      if (not_numerical) // entered value is not numerical, store it in value_string (as String)
       {
         filter_.value_string = String(value);
         filter_.value_is_numerical = false;
       }
-      else       // value is numerical, store it in value (as double)
+      else // value is numerical, store it in value (as double)
       {
         filter_.value = value.toDouble();
         filter_.value_is_numerical = true;
@@ -211,18 +219,30 @@ namespace OpenMS
     }
 
     if (op == ">=")
+    {
       filter_.op = DataFilters::GREATER_EQUAL;
+    }
     else if (op == "=")
+    {
       filter_.op = DataFilters::EQUAL;
+    }
     else if (op == "<=")
+    {
       filter_.op = DataFilters::LESS_EQUAL;
+    }
     else if (op == "exists")
+    {
       filter_.op = DataFilters::EXISTS;
+    }
 
-    if (field == "Intensity" || field == "Quality")
+    if ((field == "Intensity") || (field == "Quality"))
+    {
       filter_.value = value.toDouble();
-    else if (field == "Charge" || field == "Size")
+    }
+    else if ((field == "Charge") || (field == "Size"))
+    {
       filter_.value = value.toInt();
+    }
 
     accept();
   }

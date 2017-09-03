@@ -70,7 +70,7 @@ using namespace std;
 </CENTER>
 
     Reference:\n
-		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+        Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
     This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and distortions between them. Retention time adjustment may be necessary to correct for chromatography differences e.g. before data from multiple LC-MS runs can be combined (feature grouping), or when one run should be annotated with peptide identifications obtained in a different run.
 
@@ -80,7 +80,7 @@ using namespace std;
 
     @see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
 
-		Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version. This behavior is generally desired since (some) modifications can cause retention time shifts.
+        Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version. This behavior is generally desired since (some) modifications can cause retention time shifts.
 
     Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested mostly with the "b_spline" model. The different available models are:
     - @ref OpenMS::TransformationModelLinear "linear": Linear model.
@@ -115,7 +115,7 @@ public:
 
 private:
   template <typename MapType, typename FileType>
-  void loadInitialMaps_(vector<MapType>& maps, StringList& ins, 
+  void loadInitialMaps_(vector<MapType>& maps, StringList& ins,
                         FileType& input_file)
   {
     // custom progress logger for this task:
@@ -133,7 +133,7 @@ private:
   // helper function to avoid code duplication between consensusXML and
   // featureXML storage operations:
   template <typename MapType, typename FileType>
-  void storeTransformedMaps_(vector<MapType>& maps, StringList& outs, 
+  void storeTransformedMaps_(vector<MapType>& maps, StringList& outs,
                              FileType& output_file)
   {
     // custom progress logger for this task:
@@ -144,7 +144,7 @@ private:
     {
       progresslogger.setProgress(i);
       // annotate output with data processing info:
-      addDataProcessing_(maps[i], 
+      addDataProcessing_(maps[i],
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
       output_file.store(outs[i], maps[i]);
     }
@@ -175,12 +175,12 @@ private:
 
   template <typename DataType>
   void applyTransformations_(vector<DataType>& data,
-    const vector<TransformationDescription>& transformations)
+                             const vector<TransformationDescription>& transformations)
   {
     for (Size i = 0; i < data.size(); ++i)
     {
       MapAlignmentTransformer::transformRetentionTimes(data[i],
-        transformations[i]);
+                                                       transformations[i]);
     }
   }
 
@@ -190,7 +190,7 @@ private:
     // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, trafos.size(), 
+    progresslogger.startProgress(0, trafos.size(),
                                  "writing transformation files");
     for (Size i = 0; i < transformations.size(); ++i)
     {
@@ -251,7 +251,7 @@ private:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "algorithm")
     {
@@ -269,7 +269,7 @@ private:
   ExitCodes main_(int, const char**)
   {
     ExitCodes return_code = TOPPMapAlignerBase::checkParameters_();
-    if (return_code != EXECUTION_OK) return return_code;
+    if (return_code != EXECUTION_OK) { return return_code; }
 
     // set up alignment algorithm:
     MapAlignmentAlgorithmIdentification algorithm;
@@ -342,7 +342,7 @@ private:
       if (frac2run.size() == 1) // group one fraction
       {
         performAlignment_(algorithm, feature_maps, transformations,
-          reference_index);
+                          reference_index);
         applyTransformations_(feature_maps, transformations);
       }
       else // group multiple fractions
@@ -356,7 +356,7 @@ private:
             fraction_maps.push_back(feature_maps[*sit - 1]); // TODO: *sit is currently the run identifier but we need to know the corresponding feature index in ins
           }
           performAlignment_(algorithm, fraction_maps, fraction_transformations,
-            reference_index);
+                            reference_index);
           applyTransformations_(fraction_maps, fraction_transformations);
 
           // copy into transformations and feature maps
@@ -374,7 +374,6 @@ private:
         storeTransformedMaps_(feature_maps, output_files, fxml_file);
       }
     }
-
     //-------------------------------------------------------------
     // perform consensus alignment
     //-------------------------------------------------------------
@@ -393,7 +392,6 @@ private:
         storeTransformedMaps_(consensus_maps, output_files, cxml_file);
       }
     }
-
     //-------------------------------------------------------------
     // perform peptide alignment
     //-------------------------------------------------------------
@@ -419,7 +417,7 @@ private:
 
       if (!output_files.empty())
       {
-        progresslogger.startProgress(0, output_files.size(), 
+        progresslogger.startProgress(0, output_files.size(),
                                      "writing output files");
         for (Size i = 0; i < output_files.size(); ++i)
         {

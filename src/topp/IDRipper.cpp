@@ -116,7 +116,7 @@ protected:
     registerStringOption_("out_path", "<file>", "", "Directory for the output files after ripping according to 'file_origin'. If 'out_path' is set, 'out' is ignored.", false, false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -194,7 +194,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDRipper tool;
   return tool.main(argc, argv);

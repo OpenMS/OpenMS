@@ -151,7 +151,7 @@ struct HeaderInfo
       if (pos_end != std::string::npos)
       {
         String tmp = content.substr(pos, pos_end - pos - 1);
-        if (!tmp.trim().empty()) header_description = tmp;
+        if (!tmp.trim().empty()) { header_description = tmp; }
         //std::cerr << "Header info is: " << header_description << std::endl;
       }
     }
@@ -236,7 +236,7 @@ public:
     }*/
 
     // number of header files and input files must be identical
-    if (in_header.size() > 0 && in.size() != in_header.size())
+    if ((in_header.size() > 0) && (in.size() != in_header.size()))
     {
       LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
       return ILLEGAL_PARAMETERS;
@@ -282,7 +282,7 @@ public:
 
       // try to detect RT peaks (only for the first input file -- all others should align!)
       // cm.size() might change in here...
-      if (getFlag_("auto_rt:enabled") && fi == 0)
+      if (getFlag_("auto_rt:enabled") && (fi == 0))
       {
         ConsensusMap cm_local = cm; // we might have different RT peaks for each map if 'auto_rt' is enabled
         cm.clear(false); // reset global list (about to be filled)
@@ -418,9 +418,9 @@ public:
 
         double mz_da = mztol * cm[i].getMZ() / 1e6; // mz tolerance in Dalton
         PeakMap::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT() - rttol / 2,
-                                                                  cm[i].getRT() + rttol / 2,
-                                                                  cm[i].getMZ() - mz_da,
-                                                                  cm[i].getMZ() + mz_da);
+                                                           cm[i].getRT() + rttol / 2,
+                                                           cm[i].getMZ() - mz_da,
+                                                           cm[i].getMZ() + mz_da);
         Peak2D max_peak;
         max_peak.setIntensity(0);
         max_peak.setRT(cm[i].getRT());
@@ -454,7 +454,7 @@ public:
             //std::cerr << "ppm: " << itt.getRT() << " " <<  itt->getMZ() << " " << itt->getIntensity() << std::endl;
           }
 
-          if ((SignedSize)mz.size() > (low + high + 1)) LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low + high + 1 << "]" << std::endl;
+          if ((SignedSize)mz.size() > (low + high + 1)) { LOG_WARN << "Compound " << i << " has overlapping peaks [" << mz.size() << "/" << low + high + 1 << "]" << std::endl; }
 
           if (!mz.empty())
           {
@@ -481,7 +481,7 @@ public:
                          String(max_peak.getIntensity());
       }
 
-      if (not_found) LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
+      if (not_found) { LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n"; }
     }
 
     //-------------------------------------------------------------

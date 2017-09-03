@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  IonSourceVisualizer::IonSourceVisualizer(bool editable, QWidget * parent) :
+  IonSourceVisualizer::IonSourceVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<IonSource>()
   {

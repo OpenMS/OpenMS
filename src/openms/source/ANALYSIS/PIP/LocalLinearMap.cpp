@@ -110,7 +110,7 @@ namespace OpenMS
           stringstream(map) >> pos;
           i = (UInt)k / (19);
           j = (UInt)k % (19);
-          if (j > 0)       //<18)
+          if (j > 0) //<18)
           {
             A_.setValue((UInt)(k - 1) / (19), (UInt)(k - 1) % (19), pos);
           }
@@ -141,7 +141,7 @@ namespace OpenMS
   Matrix<UInt> LocalLinearMap::genCord_(Size xdim, Size ydim)
   {
     //store 2 dim coordinates
-    Matrix<UInt> foo(xdim * ydim, 2);
+    Matrix<UInt> foo(xdim* ydim, 2);
     for (Size i = 0; i < xdim * ydim; i++)
     {
       foo.setValue(i, 0, UInt(i / ydim));
@@ -150,7 +150,7 @@ namespace OpenMS
     return foo;
   }
 
-  vector<double> LocalLinearMap::neigh(const Matrix<UInt> & cord, Size win, double radius)
+  vector<double> LocalLinearMap::neigh(const Matrix<UInt>& cord, Size win, double radius)
   {
     vector<double> neighborhood(cord.rows());
 
@@ -166,7 +166,7 @@ namespace OpenMS
     return neighborhood;
   }
 
-  double LocalLinearMap::dist_(const Matrix<UInt> & u, const Matrix<UInt> & v, Size a, Size b)
+  double LocalLinearMap::dist_(const Matrix<UInt>& u, const Matrix<UInt>& v, Size a, Size b)
   {
     double dd = 0.0;
     //get euclidean distance of instances a of u and b of v
@@ -195,7 +195,7 @@ namespace OpenMS
   };
 
   //center and scale by variance
-  void LocalLinearMap::normalizeVector(vector<double> & aaIndexVariables)
+  void LocalLinearMap::normalizeVector(vector<double>& aaIndexVariables)
   {
     for (Size i = 0; i < aaIndexVariables.size(); ++i)
     {
@@ -206,27 +206,27 @@ namespace OpenMS
     }
   }
 
-  const LocalLinearMap::LLMParam & LocalLinearMap::getLLMParam() const
+  const LocalLinearMap::LLMParam& LocalLinearMap::getLLMParam() const
   {
     return param_;
   }
 
-  const Matrix<double> & LocalLinearMap::getCodebooks() const
+  const Matrix<double>& LocalLinearMap::getCodebooks() const
   {
     return code_;
   }
 
-  const Matrix<double> & LocalLinearMap::getMatrixA() const
+  const Matrix<double>& LocalLinearMap::getMatrixA() const
   {
     return A_;
   }
 
-  const vector<double> & LocalLinearMap::getVectorWout() const
+  const vector<double>& LocalLinearMap::getVectorWout() const
   {
     return wout_;
   }
 
-  const Matrix<UInt> & LocalLinearMap::getCord() const
+  const Matrix<UInt>& LocalLinearMap::getCord() const
   {
     return cord_;
   }

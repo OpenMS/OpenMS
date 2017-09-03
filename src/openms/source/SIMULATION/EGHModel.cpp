@@ -81,7 +81,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  EGHModel::EGHModel(const EGHModel & source) :
+  EGHModel::EGHModel(const EGHModel& source) :
     InterpolationModel(source)
   {
     setParameters(source.getParameters());
@@ -92,10 +92,12 @@ namespace OpenMS
   {
   }
 
-  EGHModel & EGHModel::operator=(const EGHModel & source)
+  EGHModel& EGHModel::operator=(const EGHModel& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     InterpolationModel::operator=(source);
     setParameters(source.getParameters());
@@ -106,10 +108,12 @@ namespace OpenMS
 
   void EGHModel::setSamples()
   {
-    ContainerType & data = interpolation_.getData();
+    ContainerType& data = interpolation_.getData();
     data.clear();
     if (max_ == min_)
+    {
       return;
+    }
 
     data.reserve(UInt((max_ - min_) / interpolation_step_ + 1));
     CoordinateType pos = min_;
@@ -273,7 +277,7 @@ namespace OpenMS
     max_ += apex_rt_;
     min_ += apex_rt_;
 
-    if (min_ < 0.0)  // check if we are below the absolute lower scan limit -> 0.0
+    if (min_ < 0.0) // check if we are below the absolute lower scan limit -> 0.0
     {
       min_ = 0.0;
     }

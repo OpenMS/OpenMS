@@ -46,9 +46,9 @@ namespace OpenMS
     double CumulativeBinomial::compute(Size n, Size k, double p)
     {
       double p_cumul = 0.0;
-      if (p < 1e-99) return static_cast<double>(k == 0);
-      if (1 - p < 1e-99) return static_cast<double>(k != n);
-      if (k > n)  return 1.0;
+      if (p < 1e-99) { return static_cast<double>(k == 0); }
+      if (1 - p < 1e-99) { return static_cast<double>(k != n); }
+      if (k > n) { return 1.0; }
 
       for (Size j = 0; j < k; ++j)
       {
@@ -65,7 +65,7 @@ namespace OpenMS
           coeff = std::numeric_limits<double>::max();
         }
 
-        p_cumul += coeff * pow(p,  static_cast<int>(j)) * pow((1-p), static_cast<int>((n-j)));
+        p_cumul += coeff * pow(p, static_cast<int>(j)) * pow((1 - p), static_cast<int>((n - j)));
       }
 
       // A result of p_cumul >= 1.0 does not make sense theoretically, but it might reach 1.0 because of insufficient precision,
@@ -79,6 +79,7 @@ namespace OpenMS
 
       return p_cumul;
     }
+
   } // namespace Math
 
 } // namespace OpenMS

@@ -40,7 +40,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  const std::string SourceFile::NamesOfChecksumType[] = {"Unknown", "SHA-1", "MD5"};
+  const std::string SourceFile::NamesOfChecksumType[] = { "Unknown", "SHA-1", "MD5" };
 
   SourceFile::SourceFile() :
     CVTermList(),
@@ -74,7 +74,9 @@ namespace OpenMS
   SourceFile& SourceFile::operator=(const SourceFile& source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     CVTermList::operator=(source);
     name_of_file_ = source.name_of_file_;

@@ -48,44 +48,46 @@ namespace OpenMS
 {
   const VersionInfo::VersionDetails VersionInfo::VersionDetails::EMPTY;
 
-  bool VersionInfo::VersionDetails::operator<(const VersionInfo::VersionDetails & rhs) const
+  bool VersionInfo::VersionDetails::operator<(const VersionInfo::VersionDetails& rhs) const
   {
     return (this->version_major  < rhs.version_major)
            || (this->version_major == rhs.version_major && this->version_minor  < rhs.version_minor)
            || (this->version_major == rhs.version_major && this->version_minor == rhs.version_minor && this->version_patch < rhs.version_patch);
   }
 
-  bool VersionInfo::VersionDetails::operator==(const VersionInfo::VersionDetails & rhs) const
+  bool VersionInfo::VersionDetails::operator==(const VersionInfo::VersionDetails& rhs) const
   {
     return this->version_major == rhs.version_major &&
-      this->version_minor == rhs.version_minor &&
-      this->version_patch == rhs.version_patch;
+           this->version_minor == rhs.version_minor &&
+           this->version_patch == rhs.version_patch;
   }
 
-  bool VersionInfo::VersionDetails::operator!=(const VersionInfo::VersionDetails & rhs) const
+  bool VersionInfo::VersionDetails::operator!=(const VersionInfo::VersionDetails& rhs) const
   {
     return !(this->operator==(rhs));
   }
 
-  bool VersionInfo::VersionDetails::operator>(const VersionInfo::VersionDetails & rhs) const
+  bool VersionInfo::VersionDetails::operator>(const VersionInfo::VersionDetails& rhs) const
   {
     return !(*this < rhs || *this == rhs);
   }
 
-  VersionInfo::VersionDetails VersionInfo::VersionDetails::create(const String & version) //static
+  VersionInfo::VersionDetails VersionInfo::VersionDetails::create(const String& version) //static
   {
     VersionInfo::VersionDetails result;
 
     size_t first_dot = version.find('.');
     // we demand at least one "."
     if (first_dot == string::npos)
+    {
       return VersionInfo::VersionDetails::EMPTY;
+    }
 
     try
     {
       result.version_major = String(version.substr(0, first_dot)).toInt();
     }
-    catch (Exception::ConversionError & /*e*/)
+    catch (Exception::ConversionError& /*e*/)
     {
       return VersionInfo::VersionDetails::EMPTY;
     }
@@ -96,14 +98,16 @@ namespace OpenMS
     {
       result.version_minor = String(version.substr(first_dot + 1, second_dot - (first_dot + 1))).toInt();
     }
-    catch (Exception::ConversionError & /*e*/)
+    catch (Exception::ConversionError& /*e*/)
     {
       return VersionInfo::VersionDetails::EMPTY;
     }
 
     // if there is no second dot: return
     if (second_dot == string::npos)
+    {
       return result;
+    }
 
     // returns npos if no third "." is found - which does not hurt
     size_t third_dot = version.find('.', second_dot + 1);
@@ -111,7 +115,7 @@ namespace OpenMS
     {
       result.version_patch = String(version.substr(second_dot + 1, third_dot - (second_dot + 1))).toInt();
     }
-    catch (Exception::ConversionError & /*e*/)
+    catch (Exception::ConversionError& /*e*/)
     {
       return VersionInfo::VersionDetails::EMPTY;
     }

@@ -44,7 +44,7 @@ namespace OpenMS
   PeakPickerMRM::PeakPickerMRM() :
     DefaultParamHandler("PeakPickerMRM")
   {
-    // For SWATH-MS data from 5600 TripleTOF, these settings are recommended: 
+    // For SWATH-MS data from 5600 TripleTOF, these settings are recommended:
     //
     // sgolay_frame_length = 9  (29.7s on our data)
     // gauss_width = 30  (if even gauss is used)
@@ -84,16 +84,16 @@ namespace OpenMS
                                        "Chromatogram must be sorted by position");
     }
 
-    LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
-        " with " << chromatogram.size() << " peaks ";
+    LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() <<
+      " with " << chromatogram.size() << " peaks ";
     if (chromatogram.empty())
     {
-        LOG_DEBUG << std::endl; 
-        LOG_DEBUG << " - Error: chromatogram is empty, abort picking."  << std::endl;
-        return;
+      LOG_DEBUG << std::endl;
+      LOG_DEBUG << " - Error: chromatogram is empty, abort picking."  << std::endl;
+      return;
     }
-    LOG_DEBUG << "(start at RT " << chromatogram[0].getMZ() << " to RT " << chromatogram[ chromatogram.size() -1].getMZ() << ") "
-        "using method \'" << method_ << "\'" << std::endl;
+    LOG_DEBUG << "(start at RT " << chromatogram[0].getMZ() << " to RT " << chromatogram[chromatogram.size() - 1].getMZ() << ") "
+                                                                                                                             "using method \'" << method_ << "\'" << std::endl;
 
     picked_chrom.clear(true);
     // Crawdad has its own methods, so we can call the wrapper directly
@@ -139,7 +139,9 @@ namespace OpenMS
       // Legacy is to use the original chromatogram for peak-detection
       pickChromatogram_(chromatogram, picked_chrom);
       if (remove_overlapping_)
+      {
         removeOverlappingPeaks_(chromatogram, picked_chrom);
+      }
 
       // for peak integration, we want to use the raw data
       integratePeaks_(chromatogram);
@@ -149,7 +151,9 @@ namespace OpenMS
       // use the smoothed chromatogram to derive the peak boundaries
       pickChromatogram_(smoothed_chrom, picked_chrom);
       if (remove_overlapping_)
+      {
         removeOverlappingPeaks_(smoothed_chrom, picked_chrom);
+      }
 
       // for peak integration, we want to use the raw data
       integratePeaks_(chromatogram);
@@ -173,7 +177,7 @@ namespace OpenMS
 
   void PeakPickerMRM::pickChromatogram_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
-    SignalToNoiseEstimatorMedian<MSChromatogram > snt;
+    SignalToNoiseEstimatorMedian<MSChromatogram> snt;
     Param snt_parameters = snt.getParameters();
     snt_parameters.setValue("win_len", sn_win_len_);
     snt_parameters.setValue("bin_count", sn_bin_count_);
@@ -218,7 +222,7 @@ namespace OpenMS
             && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k - 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_)
                 )
-            && (signal_to_noise_ <= 0.0 || (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) ))
+            && (signal_to_noise_ <= 0.0 || (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_)))
       {
         ++k;
       }
@@ -293,17 +297,19 @@ namespace OpenMS
     }
 
   }
+
 #else
   void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& /* chromatogram */, MSChromatogram& /* picked_chrom */)
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
   }
+
 #endif
 
   void PeakPickerMRM::removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
-    if (picked_chrom.empty()) {return; }
+    if (picked_chrom.empty()) { return; }
     LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")" << std::endl;
     Size current_peak = 0;
     // Find overlapping peaks
@@ -371,9 +377,9 @@ namespace OpenMS
       if (central_peak_mz - chromatogram[current_peak].getMZ() < 0.0)
       {
         // see which one is closer, the current one or the one before
-        if (current_peak > 0 &&
-            std::fabs(central_peak_mz - chromatogram[current_peak - 1].getMZ()) <
-            std::fabs(central_peak_mz - chromatogram[current_peak].getMZ()))
+        if ((current_peak > 0) &&
+            (std::fabs(central_peak_mz - chromatogram[current_peak - 1].getMZ()) <
+             std::fabs(central_peak_mz - chromatogram[current_peak].getMZ())))
         {
           current_peak--;
         }
@@ -416,7 +422,7 @@ namespace OpenMS
     write_sn_log_messages_ = (bool)param_.getValue("write_sn_log_messages").toBool();
     method_ = (String)param_.getValue("method");
 
-    if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")
+    if ((method_ != "crawdad") && (method_ != "corrected") && (method_ != "legacy"))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Method needs to be one of: crawdad, corrected, legacy");

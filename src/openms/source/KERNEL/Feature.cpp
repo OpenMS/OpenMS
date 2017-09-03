@@ -156,7 +156,9 @@ namespace OpenMS
     for (vector<ConvexHull2D>::const_iterator   it = convex_hulls_.begin(); it != convex_hulls_.end(); ++it)
     {
       if (it->encloses(tmp))
+      {
         return true;
+      }
     }
     return false;
   }
@@ -164,7 +166,9 @@ namespace OpenMS
   Feature& Feature::operator=(const Feature& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
+    }
 
     BaseFeature::operator=(rhs);
     copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);

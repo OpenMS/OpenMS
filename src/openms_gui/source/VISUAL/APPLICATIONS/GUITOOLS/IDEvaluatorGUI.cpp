@@ -101,16 +101,16 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML"));
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int argc, const char** argv)
   {
     //----------------------------------------------------------------
     // load data
     //----------------------------------------------------------------
     StringList in_list = getStringList_("in");
 
-    QApplicationTOPP a(argc, const_cast<char **>(argv));
+    QApplicationTOPP a(argc, const_cast<char**>(argv));
 
-    IDEvaluationBase * mw = new IDEvaluationBase();
+    IDEvaluationBase* mw = new IDEvaluationBase();
     Param alg_param = mw->getParameters();
     alg_param.insert("", getParam_().copy("algorithm:", true));
     mw->setParameters(alg_param);
@@ -118,7 +118,7 @@ protected:
     {
       LOG_ERROR << "Tool failed. See above." << std::endl;
       return INCOMPATIBLE_INPUT_DATA;
-    };
+    }
 
     mw->show();
 
@@ -129,14 +129,14 @@ protected:
 
     int result = a.exec();
     delete(mw);
-    if (result) return UNKNOWN_ERROR;
-    else return EXECUTION_OK;
+    if (result) { return UNKNOWN_ERROR; }
+    else{ return EXECUTION_OK; }
   }
 
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDEvaluatorGUI tool;
   return tool.main(argc, argv);

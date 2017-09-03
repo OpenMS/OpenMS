@@ -59,7 +59,7 @@ namespace OpenMS
     defaults_.setValidStrings("reestimate_mt_sd", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data.");
-    defaults_.setValidStrings("quant_method", std::vector<String>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
+    defaults_.setValidStrings("quant_method", std::vector<String>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod + (int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
 
     // advanced parameters
     defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", ListUtils::create<String>("advanced"));
@@ -86,7 +86,7 @@ namespace OpenMS
     double new_weight(added_int);
     double new_mz(added_mz);
 
-    double counter_tmp(1 + (new_weight * new_mz) / prev_counter);
+    double counter_tmp(1 + (new_weight* new_mz) / prev_counter);
     double denom_tmp(1 + (new_weight) / prev_denom);
     centroid_mz *= (counter_tmp / denom_tmp);
     prev_counter *= counter_tmp;
@@ -194,7 +194,6 @@ namespace OpenMS
     return;
   }
 
-
   void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces)
   {
     // make sure the output vector is empty
@@ -218,7 +217,7 @@ namespace OpenMS
     for (PeakMap::ConstIterator it = input_exp.begin(); it != input_exp.end(); ++it)
     {
       // check if this is a MS1 survey scan
-      if (it->getMSLevel() != 1) continue;
+      if (it->getMSLevel() != 1) { continue; }
 
       std::vector<Size> indices_passing;
       for (Size peak_idx = 0; peak_idx < it->size(); ++peak_idx)
@@ -263,8 +262,8 @@ namespace OpenMS
   } // end of MassTraceDetection::run
 
   void MassTraceDetection::run_(const MapIdxSortedByInt& chrom_apices,
-                                const Size total_peak_count, 
-                                const PeakMap& work_exp, 
+                                const Size total_peak_count,
+                                const PeakMap& work_exp,
                                 const std::vector<Size>& spec_offsets,
                                 std::vector<MassTrace>& found_masstraces)
   {
@@ -276,23 +275,23 @@ namespace OpenMS
     Size fwhm_meta_count(0);
     for (Size i = 0; i < work_exp.size(); ++i)
     {
-      if (work_exp[i].getFloatDataArrays().size() > 0 && 
-          work_exp[i].getFloatDataArrays()[0].getName() == "FWHM_ppm")
+      if ((work_exp[i].getFloatDataArrays().size() > 0) &&
+          (work_exp[i].getFloatDataArrays()[0].getName() == "FWHM_ppm"))
       {
-        if (work_exp[i].getFloatDataArrays()[0].size() != work_exp[i].size()) 
+        if (work_exp[i].getFloatDataArrays()[0].size() != work_exp[i].size())
         { // float data should always have the same size as the corresponding array
           throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, work_exp[i].size());
         }
         fwhm_meta_idx = 0;
         ++fwhm_meta_count;
       }
-    }    
-    if (fwhm_meta_count > 0 && fwhm_meta_count != work_exp.size())
+    }
+    if ((fwhm_meta_count > 0) && (fwhm_meta_count != work_exp.size()))
     {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     String("FWHM meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
     }
-     
+
 
     this->startProgress(0, total_peak_count, "mass trace detection");
     Size peaks_detected(0);
@@ -391,7 +390,7 @@ namespace OpenMS
               gathered_idx.push_back(std::make_pair(trace_down_idx - 1, next_down_peak_idx));
 
               // Update the m/z variance dynamically
-              if (reestimate_mt_sd_)           //  && (down_hitting_peak+1 > min_flank_scans))
+              if (reestimate_mt_sd_) //  && (down_hitting_peak+1 > min_flank_scans))
               {
                 // if (ftl_t > min_fwhm_scans)
                 {
@@ -425,7 +424,7 @@ namespace OpenMS
           {
             current_sample_rate = (double)(down_hitting_peak + up_hitting_peak + 1) /
                                   (double)(down_scan_counter + up_scan_counter + 1);
-            if (down_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
+            if ((down_scan_counter > min_scans_to_consider) && (current_sample_rate < min_sample_rate_))
             {
               // std::cout << "stopping down..." << std::endl;
               toggle_down = false;
@@ -467,7 +466,7 @@ namespace OpenMS
               gathered_idx.push_back(std::make_pair(trace_up_idx + 1, next_up_peak_idx));
 
               // Update the m/z variance dynamically
-              if (reestimate_mt_sd_)           //  && (up_hitting_peak+1 > min_flank_scans))
+              if (reestimate_mt_sd_) //  && (up_hitting_peak+1 > min_flank_scans))
               {
                 // if (ftl_t > min_fwhm_scans)
                 {
@@ -500,7 +499,7 @@ namespace OpenMS
           {
             current_sample_rate = (double)(down_hitting_peak + up_hitting_peak + 1) / (double)(down_scan_counter + up_scan_counter + 1);
 
-            if (up_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
+            if ((up_scan_counter > min_scans_to_consider) && (current_sample_rate < min_sample_rate_))
             {
               // std::cout << "stopping up" << std::endl;
               toggle_up = false;
@@ -523,7 +522,7 @@ namespace OpenMS
       // Step 2.3 check if minimum length and quality of mass trace criteria are met
       // *********************************************************** //
       bool max_trace_criteria = (max_trace_length_ < 0.0 || rt_range < max_trace_length_);
-      if (rt_range >= min_trace_length_ && max_trace_criteria && mt_quality >= min_sample_rate_)
+      if ((rt_range >= min_trace_length_) && max_trace_criteria && (mt_quality >= min_sample_rate_))
       {
         // std::cout << "T" << trace_number << "\t" << mt_quality << std::endl;
 
@@ -537,7 +536,7 @@ namespace OpenMS
         MassTrace new_trace(current_trace);
         new_trace.updateWeightedMeanRT();
         new_trace.updateWeightedMeanMZ();
-        if (!fwhms_mz.empty()) new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end());
+        if (!fwhms_mz.empty()) { new_trace.fwhm_mz_avg = Math::median(fwhms_mz.begin(), fwhms_mz.end()); }
         new_trace.setQuantMethod(quant_method_);
         //new_trace.setCentroidSD(ftl_sd);
         new_trace.updateWeightedMZsd();
@@ -554,7 +553,7 @@ namespace OpenMS
     this->endProgress();
 
   }
-  
+
   void MassTraceDetection::updateMembers_()
   {
     mass_error_ppm_ = (double)param_.getValue("mass_error_ppm");

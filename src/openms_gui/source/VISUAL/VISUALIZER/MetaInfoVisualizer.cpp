@@ -53,7 +53,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MetaInfoVisualizer::MetaInfoVisualizer(bool editable, QWidget * parent) :
+  MetaInfoVisualizer::MetaInfoVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<MetaInfoInterface>()
   {
@@ -68,7 +68,7 @@ namespace OpenMS
     row_++;
   }
 
-  void MetaInfoVisualizer::load(MetaInfoInterface & m)
+  void MetaInfoVisualizer::load(MetaInfoInterface& m)
   {
     ptr_ = &m;
     temp_ = m;
@@ -110,7 +110,7 @@ namespace OpenMS
     UInt id = (UInt)index;
 
     //Remove label
-    std::vector<std::pair<UInt, QLabel *> >::iterator iter;
+    std::vector<std::pair<UInt, QLabel*> >::iterator iter;
     for (iter = metalabels_.begin(); iter < metalabels_.end(); ++iter)
     {
       if ((*iter).first == id)
@@ -124,7 +124,7 @@ namespace OpenMS
     }
 
     //Remove QLineEdit
-    std::vector<std::pair<UInt, QLineEdit *> >::iterator iter2;
+    std::vector<std::pair<UInt, QLineEdit*> >::iterator iter2;
     for (iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); ++iter2)
     {
       if ((*iter2).first == id)
@@ -140,7 +140,7 @@ namespace OpenMS
     }
 
     //Remove QButton
-    std::vector<std::pair<UInt, QAbstractButton *> >::iterator iter3 = metabuttons_.begin();
+    std::vector<std::pair<UInt, QAbstractButton*> >::iterator iter3 = metabuttons_.begin();
     while (iter3 != metabuttons_.end())
     {
       if ((*iter3).first == id)
@@ -168,9 +168,9 @@ namespace OpenMS
     //  All metainfo goes into the viewlayout_
     //----------------------------------------------------------------------------
 
-    QLabel * lab;
-    QLineEdit * ptr;
-    QPushButton * button;
+    QLabel* lab;
+    QLineEdit* ptr;
+    QPushButton* button;
 
 
     lab = new QLabel(temp_.metaRegistry().getName(index).c_str(), this);
@@ -208,7 +208,7 @@ namespace OpenMS
     String value(newvalue_->text());
 
 
-    if (name.trim().length() == 0)    //Must have a name
+    if (name.trim().length() == 0) //Must have a name
     {
       return;
     }
@@ -234,7 +234,7 @@ namespace OpenMS
       loadData_(newindex);
 
     }
-    catch (exception & e)
+    catch (exception& e)
     {
       std::cout << "Error while trying to create new meta info data. " << e.what() << endl;
     }
@@ -250,7 +250,7 @@ namespace OpenMS
   void MetaInfoVisualizer::store()
   {
     //Store QLineEdit information
-    std::vector<std::pair<UInt, QLineEdit *> >::iterator iter2;
+    std::vector<std::pair<UInt, QLineEdit*> >::iterator iter2;
     for (iter2 = metainfoptr_.begin(); iter2 < metainfoptr_.end(); ++iter2)
     {
       UInt index = (*iter2).first;
@@ -287,7 +287,7 @@ namespace OpenMS
         loadData_(keys_[i]);
       }
     }
-    catch (exception & e)
+    catch (exception& e)
     {
       cout << "Error while trying to restore original metainfo data. " << e.what() << endl;
     }
