@@ -68,13 +68,14 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & paths, Size number
     {
       
       unsigned int rowcount = 0;   
-      unsigned int number_cor = 0;
       
       CsvFile compounds(pathtocsicsv, '\t');
       rowcount = compounds.rowCount();
     
       if (file && rowcount > 1)
       {
+        unsigned int number_cor = 0;
+        
         if (number > rowcount)
         {
           number_cor = rowcount; 
