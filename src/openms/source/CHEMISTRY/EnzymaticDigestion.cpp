@@ -219,7 +219,11 @@ namespace OpenMS
       return false;
     }
   }
-
+  
+  bool EnzymaticDigestion::filterByMissingCleavages(const String& evidence, std::function<bool(Int)> filter) const
+  {
+    return filter(tokenize_(evidence).size() - 1);
+  }
   Size EnzymaticDigestion::countMissedCleavages_(const std::vector<Size>& cleavage_positions, Size pep_start, Size pep_end) const
   {
     Size count(0);

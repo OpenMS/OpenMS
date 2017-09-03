@@ -336,6 +336,62 @@ public:
     /// Is the list of peptide evidences of this peptide hit empty?
     struct HasNoEvidence;
 
+    
+    /**
+       @brief Filter Peptide Hit by its digestion product
+
+    */
+
+    struct PeptideDigestionFilter
+    {
+
+      typedef PeptideHit argument_type;
+
+      EnzymaticDigestion& digestion_;
+      Int min_cleavages_;
+      Int max_cleavages_;
+      
+      PeptideDigestionFilter(
+        EnzymaticDigestion& digestion) :  
+      digestion_(digestion)
+      {}
+
+      inline void setMinCleavagesAllowed(const Int min_cleavages){ min_cleavages_ = min_cleavages; }
+      inline void setMaxCleavagesAllowed(const Int max_cleavages){ max_cleavages_ = max_cleavages; }
+
+      inline void disableCleavagesLowerBound(){ min_cleavages_ = disabledValue(); }
+      inline void disableCleavagesUpperBound(){ max_cleavages_ = disabledValue(); }
+
+      inline Int disabledValue(){ return -1; }
+      
+      /// Filter function on min max cutoff values 
+      bool operator()(PeptideHit& p)
+      {
+        return digestion_.filterByMissingCleavages(
+          p.getSequence().toString(), 
+          [&](const Int missed_cleavages)
+          {
+            bool max_filter = max_cleavages_ != disabledValue() ? 
+                              missed_cleavages > this->max_cleavages_ : false;
+            bool min_filter = min_cleavages_ != disabledValue() ?
+                              missed_cleavages < min_cleavages_ : false;
+            return max_filter || min_filter;
+          });
+      }
+
+      void filterPeptideSequences(std::vector<PeptideHit>& hits)
+      {
+        hits.erase(
+          std::remove_if(
+            hits.begin(), 
+            hits.end(), 
+            (*this)), 
+          hits.end());
+      }
+
+    };
+
+
     /**
        @brief Is peptide evidence digestion product of some protein
 
@@ -575,6 +631,7 @@ public:
         }
       }
     }
+    
 
     ///@}
 
