@@ -262,7 +262,7 @@ protected:
     siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
-    if (!out_csifingerid.empty())
+    if (out_csifingerid.empty() == false)
     {
       MzTab csi_result;
       MzTabFile csifile;
