@@ -43,7 +43,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-inline String SiriusMzTabWriter::extract_scan_index(const String &path)
+String SiriusMzTabWriter::extract_scan_index(const String &path)
 {
   return path.substr(path.find_last_not_of("0123456789") + 1);
 }
