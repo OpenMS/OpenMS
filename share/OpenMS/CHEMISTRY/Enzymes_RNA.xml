@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS>
+  <NODE name="Enzymes">
+    <NODE name="RNase_T1">
+      <ITEM name="Name" value="RNase_T1" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=G)" type="string" />
+      <ITEM name="RegExDescription" value="RNase T1 cuts after G." type="string" />
+    </NODE>
+  </NODE>
+</PARAMETERS>

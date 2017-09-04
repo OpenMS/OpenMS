@@ -34,7 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -53,6 +53,7 @@ namespace OpenMS
   EnzymesDB::EnzymesDB()
   {
     readEnzymesFromFile_("CHEMISTRY/Enzymes.xml");
+    readEnzymesFromFile_<DigestionEnzymeRNA>("CHEMISTRY/Enzymes_RNA.xml");
   }
 
   EnzymesDB::~EnzymesDB()
@@ -79,16 +80,11 @@ namespace OpenMS
     return enzyme_regex_[cleavage_regex];
   }
 
+  template <typename DigestionEnzymeType>
   void EnzymesDB::setEnzymes(const String& file_name)
   {
     clear();
-    readEnzymesFromFile_(file_name);
-  }
-
-  void EnzymesDB::addEnzyme(const DigestionEnzyme& enzyme)
-  {
-    const DigestionEnzyme* r = new DigestionEnzyme(enzyme);
-    addEnzyme_(r);
+    readEnzymesFromFile_<DigestionEnzymeType>(file_name);
   }
 
   void EnzymesDB::addEnzyme_(const DigestionEnzyme* r)
@@ -126,6 +122,7 @@ namespace OpenMS
     return (const_enzymes_.find(enzyme) != const_enzymes_.end() );
   }
 
+  template <typename DigestionEnzymeType>
   void EnzymesDB::readEnzymesFromFile_(const String& file_name)
   {
     String file = File::find(file_name);
@@ -136,7 +133,7 @@ namespace OpenMS
 
     if (!param.begin().getName().hasPrefix("Enzymes"))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param.begin().getName(), "prefix 'Enzymes' expected");
     }
 
     try
@@ -153,7 +150,7 @@ namespace OpenMS
         if (prefix != split[0] + split[1])
         {
           // add enzyme
-          addEnzyme_(parseEnzyme_(values));
+          addEnzyme_(parseEnzyme_<DigestionEnzymeType>(values));
           prefix = split[0] + split[1];
           values.clear();
         }
@@ -180,91 +177,19 @@ namespace OpenMS
     const_enzymes_.clear();
   }
 
+  template <typename DigestionEnzymeType>
   const DigestionEnzyme* EnzymesDB::parseEnzyme_(Map<String, String>& values) const
   {
-    DigestionEnzyme* enzy_ptr = new DigestionEnzyme("unknown_enzyme", "");
+    DigestionEnzyme* enzy_ptr = new DigestionEnzymeType();
 
     for (Map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
     {
-      String key(it->first);
-      String value(it->second);
-
-      if (key.hasSuffix(":Name"))
+      const String& key = it->first;
+      const String& value = it->second;
+      if (!enzy_ptr->setValueFromFile_(key, value))
       {
-        enzy_ptr->setName(value);
-        continue;
+        LOG_ERROR << "Error while parsing enzymes file: unknown key '" << key << "' with value '" << value << "'" << endl;
       }
-      if (key.hasSuffix(":RegEx"))
-      {
-        enzy_ptr->setRegEx(value);
-        continue;
-      }
-      if (key.hasSuffix(":RegExDescription"))
-      {
-        enzy_ptr->setRegExDescription(value);
-        continue;
-      }
-      if (key.hasSuffix(":NTermGain"))
-     {
-        enzy_ptr->setNTermGain(EmpiricalFormula(value));
-        continue;
-      }
-      if (key.hasSuffix(":CTermGain"))
-      {
-        enzy_ptr->setCTermGain(EmpiricalFormula(value));
-        continue;
-      }
-      if (key.hasSubstring("PSIID"))
-      {
-        // no PSI ID defined?
-        if (!key.hasSuffix(":"))
-        {
-          enzy_ptr->setPSIID(value);
-        }
-        continue;
-      }
-      if (key.hasSubstring("XTandemID"))
-      {
-        if (!key.hasSuffix(":"))
-        {
-          enzy_ptr->setXTandemID(value);
-        }
-        continue;
-      }
-      if (key.hasSubstring("CometID"))
-      {
-        if (!key.hasSuffix(":"))
-        {
-          enzy_ptr->setCometID(value.toInt());
-        }
-        continue;
-      }
-      if (key.hasSubstring("OMSSAID"))
-      {
-        if (!key.hasSuffix(":"))
-        {
-          enzy_ptr->setOMSSAID(value.toInt());
-        }
-        continue;
-      }
-      if (key.hasSubstring("MSGFID"))
-      {
-        if (!key.hasSuffix(":"))
-        {
-          enzy_ptr->setMSGFID(value.toInt());
-        }
-        continue;
-      }
-      if (key.hasSubstring("Synonyms"))
-      {
-        // no synonyms defined?
-        if (!key.hasSuffix(":"))
-        {
-          enzy_ptr->addSynonym(value);
-        }
-        continue;
-      }
-      cerr << "unknown key: " << key << ", with value: " << value << endl;
     }
     return enzy_ptr;
   }
@@ -283,9 +208,12 @@ namespace OpenMS
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getXTandemID() != "")
+      if ((*it)->getSubstrate() != DigestionEnzyme::PROTEIN) continue;
+
+      const DigestionEnzymeProtein* p = dynamic_cast<const DigestionEnzymeProtein*>(*it);
+      if (p->getXTandemID() != "")
       {
-        all_names.push_back((*it)->getName());
+        all_names.push_back(p->getName());
       }
     }
   }
@@ -296,9 +224,12 @@ namespace OpenMS
     all_names.push_back("unspecific cleavage");
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getCometID() != 0)
+      if ((*it)->getSubstrate() != DigestionEnzyme::PROTEIN) continue;
+
+      const DigestionEnzymeProtein* p = dynamic_cast<const DigestionEnzymeProtein*>(*it);
+      if (p->getCometID() != 0)
       {
-        all_names.push_back((*it)->getName());
+        all_names.push_back(p->getName());
       }
     }
   }
@@ -309,9 +240,12 @@ namespace OpenMS
     all_names.push_back("Trypsin");
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getOMSSAID() != 0)
+      if ((*it)->getSubstrate() != DigestionEnzyme::PROTEIN) continue;
+
+      const DigestionEnzymeProtein* p = dynamic_cast<const DigestionEnzymeProtein*>(*it);
+      if (p->getOMSSAID() != 0)
       {
-        all_names.push_back((*it)->getName());
+        all_names.push_back(p->getName());
       }
     }
   }
@@ -321,9 +255,12 @@ namespace OpenMS
     all_names.clear();
     for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
     {
-      if ((*it)->getMSGFID() != -1) // msgf+ starts enzyme numbering at 0
+      if ((*it)->getSubstrate() != DigestionEnzyme::PROTEIN) continue;
+
+      const DigestionEnzymeProtein* p = dynamic_cast<const DigestionEnzymeProtein*>(*it);
+      if (p->getMSGFID() != -1) // msgf+ starts enzyme numbering at 0
       {
-        all_names.push_back((*it)->getName());
+        all_names.push_back(p->getName());
       }
     }
   }

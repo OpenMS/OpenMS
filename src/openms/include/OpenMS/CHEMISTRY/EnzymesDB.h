@@ -35,6 +35,8 @@
 #ifndef OPENMS_CHEMISTRY_ENZYMESDB_H
 #define OPENMS_CHEMISTRY_ENZYMESDB_H
 
+#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <boost/unordered_map.hpp>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -43,7 +45,7 @@
 namespace OpenMS
 {
   // forward declarations
-  class DigestionEnzyme;
+  // class DigestionEnzyme;
 
   /** @ingroup Chemistry
 
@@ -95,11 +97,8 @@ public:
     const DigestionEnzyme* getEnzymeByRegEx(const String& cleavage_regex) const;
 
     /// load enzymes from given file
+    template <typename DigestionEnzymeType = DigestionEnzymeProtein>
     void setEnzymes(const String& filename);
-
-    /// adds a new enzyme, e.g. a new enzyme, where only the cleavage regex is known
-    /// @note name of enzyme is registered also in a toLowercase() variant
-    void addEnzyme(const DigestionEnzyme& enzyme);
 
     /// deletes all enzymes, resulting in an empty database
     void clear();
@@ -118,7 +117,6 @@ public:
 
     /// returns all the enzyme names available for MSGFPlus
     void getAllMSGFNames(std::vector<String>& all_names) const;
-
 
     //@}
 
@@ -158,9 +156,11 @@ protected:
     //@}
 
     /// reads enzymes from the given file
+    template <typename DigestionEnzymeType = DigestionEnzymeProtein>
     void readEnzymesFromFile_(const String& filename);
 
     /// parses a enzyme, given the key/value pairs from i.e. an XML file
+    template <typename DigestionEnzymeType = DigestionEnzymeProtein>
     const DigestionEnzyme* parseEnzyme_(Map<String, String>& values) const;
 
     // add to internal data; also update indices for search by name and regex
