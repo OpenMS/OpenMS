@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/CHEMISTRY/Enzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <cstdlib>
 #include <iostream>
 
@@ -41,8 +41,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  // enzyme
-  Enzyme::Enzyme() :
+  DigestionEnzyme::DigestionEnzyme() :
     name_("unknown_enzyme"),
     cleavage_regex_(""),
     synonyms_(),
@@ -57,7 +56,7 @@ namespace OpenMS
   {
   }
 
-  Enzyme::Enzyme(const Enzyme& enzyme) :
+  DigestionEnzyme::DigestionEnzyme(const DigestionEnzyme& enzyme) :
     name_(enzyme.name_),
     cleavage_regex_(enzyme.cleavage_regex_),
     synonyms_(enzyme.synonyms_),
@@ -72,17 +71,17 @@ namespace OpenMS
   {
   }
 
-  Enzyme::Enzyme(const String& name,
-                   const String& cleavage_regex,
-                   const std::set<String>& synonyms,
-                   String regex_description,
-                   EmpiricalFormula n_term_gain,
-                   EmpiricalFormula c_term_gain,
-                   String psi_id,
-                   String xtandem_id,
-                   UInt comet_id,
-                   Int msgf_id,
-                   UInt omssa_id) :
+  DigestionEnzyme::DigestionEnzyme(const String& name,
+                                   const String& cleavage_regex,
+                                   const std::set<String>& synonyms,
+                                   String regex_description,
+                                   EmpiricalFormula n_term_gain,
+                                   EmpiricalFormula c_term_gain,
+                                   String psi_id,
+                                   String xtandem_id,
+                                   UInt comet_id,
+                                   Int msgf_id,
+                                   UInt omssa_id) :
     name_(name),
     cleavage_regex_(cleavage_regex),
     synonyms_(synonyms),
@@ -97,11 +96,11 @@ namespace OpenMS
   {
   }
 
-  Enzyme::~Enzyme()
+  DigestionEnzyme::~DigestionEnzyme()
   {
   }
 
-  Enzyme& Enzyme::operator=(const Enzyme& enzyme)
+  DigestionEnzyme& DigestionEnzyme::operator=(const DigestionEnzyme& enzyme)
   {
     if (this != &enzyme)
     {
@@ -120,122 +119,122 @@ namespace OpenMS
     return *this;
   }
 
-  void Enzyme::setName(const String& name)
+  void DigestionEnzyme::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String& Enzyme::getName() const
+  const String& DigestionEnzyme::getName() const
   {
     return name_;
   }
 
-  void Enzyme::setSynonyms(const set<String>& synonyms)
+  void DigestionEnzyme::setSynonyms(const set<String>& synonyms)
   {
     synonyms_ = synonyms;
   }
 
-  void Enzyme::addSynonym(const String& synonym)
+  void DigestionEnzyme::addSynonym(const String& synonym)
   {
     synonyms_.insert(synonym);
   }
 
-  const set<String>& Enzyme::getSynonyms() const
+  const set<String>& DigestionEnzyme::getSynonyms() const
   {
     return synonyms_;
   }
 
-  void Enzyme::setRegEx(const String& cleavage_regex)
+  void DigestionEnzyme::setRegEx(const String& cleavage_regex)
   {
     cleavage_regex_ = cleavage_regex;
   }
 
-  const String& Enzyme::getRegEx() const
+  const String& DigestionEnzyme::getRegEx() const
   {
     return cleavage_regex_;
   }
 
-  void Enzyme::setRegExDescription(String value)
+  void DigestionEnzyme::setRegExDescription(String value)
   {
     regex_description_ = value;
   }
 
-  String Enzyme::getRegExDescription() const
+  String DigestionEnzyme::getRegExDescription() const
   {
     return regex_description_;
   }
 
-  void Enzyme::setNTermGain(EmpiricalFormula value)
+  void DigestionEnzyme::setNTermGain(EmpiricalFormula value)
   {
     n_term_gain_ = value;
   }
 
-  void Enzyme::setCTermGain(EmpiricalFormula value)
+  void DigestionEnzyme::setCTermGain(EmpiricalFormula value)
   {
     c_term_gain_ = value;
   }
 
-  EmpiricalFormula Enzyme::getNTermGain() const
+  EmpiricalFormula DigestionEnzyme::getNTermGain() const
   {
     return n_term_gain_;
   }
 
-  EmpiricalFormula Enzyme::getCTermGain() const
+  EmpiricalFormula DigestionEnzyme::getCTermGain() const
   {
     return c_term_gain_;
   }
 
-  void Enzyme::setPSIID(String value)
+  void DigestionEnzyme::setPSIID(String value)
   {
     psi_id_ = value;
   }
 
-  String Enzyme::getPSIID() const
+  String DigestionEnzyme::getPSIID() const
   {
     return psi_id_;
   }
 
-  void Enzyme::setXTandemID(String value)
+  void DigestionEnzyme::setXTandemID(String value)
   {
     xtandem_id_ = value;
   }
 
-  String Enzyme::getXTandemID() const
+  String DigestionEnzyme::getXTandemID() const
   {
     return xtandem_id_;
   }
 
-  void Enzyme::setCometID(UInt value)
+  void DigestionEnzyme::setCometID(UInt value)
   {
     comet_id_ = value;
   }
 
-  UInt Enzyme::getCometID() const
+  UInt DigestionEnzyme::getCometID() const
   {
     return comet_id_;
   }
 
-  void Enzyme::setOMSSAID(UInt value)
+  void DigestionEnzyme::setOMSSAID(UInt value)
   {
     omssa_id_ = value;
   }
 
-  UInt Enzyme::getOMSSAID() const
+  UInt DigestionEnzyme::getOMSSAID() const
   {
     return omssa_id_;
   }
 
-  void Enzyme::setMSGFID(Int value)
+  void DigestionEnzyme::setMSGFID(Int value)
   {
     msgf_id_ = value;
   }
 
-  Int Enzyme::getMSGFID() const
+  Int DigestionEnzyme::getMSGFID() const
   {
     return msgf_id_;
   }
-  
-  bool Enzyme::operator==(const Enzyme& enzyme) const
+
+  bool DigestionEnzyme::operator==(const DigestionEnzyme& enzyme) const
   {
     return name_ == enzyme.name_ &&
            synonyms_ == enzyme.synonyms_ &&
@@ -250,27 +249,27 @@ namespace OpenMS
            omssa_id_ == enzyme.omssa_id_;
   }
 
-  bool Enzyme::operator==(String cleavage_regex) const
+  bool DigestionEnzyme::operator==(String cleavage_regex) const
   {
     return cleavage_regex_ == cleavage_regex;
   }
 
-  bool Enzyme::operator!=(String cleavage_regex) const
+  bool DigestionEnzyme::operator!=(String cleavage_regex) const
   {
     return cleavage_regex_ != cleavage_regex;
   }
 
-  bool Enzyme::operator!=(const Enzyme& enzyme) const
+  bool DigestionEnzyme::operator!=(const DigestionEnzyme& enzyme) const
   {
     return !(*this == enzyme);
   }
 
-  bool Enzyme::operator<(const Enzyme& enzyme) const
+  bool DigestionEnzyme::operator<(const DigestionEnzyme& enzyme) const
   {
     return this->getName() < enzyme.getName();
   }
 
-  ostream& operator<<(ostream& os, const Enzyme& enzyme)
+  ostream& operator<<(ostream& os, const DigestionEnzyme& enzyme)
   {
     os << enzyme.name_ << " "
     << enzyme.cleavage_regex_ << " "

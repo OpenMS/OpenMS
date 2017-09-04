@@ -5,22 +5,22 @@ from Types cimport *
 from String cimport *
 from EmpiricalFormula cimport *
 
-cdef extern from "<OpenMS/CHEMISTRY/Enzyme.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzyme.h>" namespace "OpenMS":
 
-    cdef cppclass Enzyme:
-        Enzyme(Enzyme) nogil except + # wrap-ignore
+    cdef cppclass DigestionEnzyme:
+        DigestionEnzyme(DigestionEnzyme) nogil except + # wrap-ignore
 
         # detailed constructor
-        Enzyme(String name,
-               String cleavage_regex,
-               libcpp_set[String]  synonyms,
-               String regex_description,
-               EmpiricalFormula n_term_gain,
-               EmpiricalFormula c_term_gain,
-               String psi_id,
-               String xtandem_id,
-               UInt comet_id,
-               UInt omssa_id) nogil except +
+        DigestionEnzyme(String name,
+                        String cleavage_regex,
+                        libcpp_set[String]  synonyms,
+                        String regex_description,
+                        EmpiricalFormula n_term_gain,
+                        EmpiricalFormula c_term_gain,
+                        String psi_id,
+                        String xtandem_id,
+                        UInt comet_id,
+                        UInt omssa_id) nogil except +
 
         # sets the name of the Enzyme
         void setName(String name) nogil except +
@@ -83,10 +83,10 @@ cdef extern from "<OpenMS/CHEMISTRY/Enzyme.h>" namespace "OpenMS":
         int getOMSSAID() nogil except +
 
         # equality operator
-        bool operator==(Enzyme & Enzyme) nogil except +
+        bool operator==(DigestionEnzyme& Enzyme) nogil except +
 
         # inequality operator
-        bool operator!=(Enzyme & Enzyme) nogil except +
+        bool operator!=(DigestionEnzyme& Enzyme) nogil except +
 
         # equality operator for cleavage regex
         bool operator==(EmpiricalFormula cleavage_regex) nogil except +

@@ -46,7 +46,7 @@ namespace OpenMS
 {
 
   EnzymaticDigestionLogModel::EnzymaticDigestionLogModel() :
-    enzyme_(*EnzymesDB::getInstance()->getEnzyme("Trypsin")),
+    enzyme_(EnzymesDB::getInstance()->getEnzyme("Trypsin")),
     log_model_threshold_(0.25),
     model_data_()
   {
@@ -91,12 +91,12 @@ namespace OpenMS
 
   void EnzymaticDigestionLogModel::setEnzyme(const String enzyme_name)
   {
-    enzyme_ = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+    enzyme_ = EnzymesDB::getInstance()->getEnzyme(enzyme_name);
   }
 
   String EnzymaticDigestionLogModel::getEnzymeName() const
   {
-    return enzyme_.getName();
+    return enzyme_->getName();
   }
 
   double EnzymaticDigestionLogModel::getLogThreshold() const
@@ -112,13 +112,13 @@ namespace OpenMS
   bool EnzymaticDigestionLogModel::isCleavageSite_(
     const AASequence& protein, const AASequence::ConstIterator& iterator) const
   {
-    if (enzyme_.getName() != "Trypsin") // no cleavage
+    if (enzyme_->getName() != "Trypsin") // no cleavage
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("EnzymaticDigestionLogModel: enzyme '") + enzyme_.getName() + " does not support logModel!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("EnzymaticDigestionLogModel: enzyme '") + enzyme_->getName() + " does not support logModel!");
     }
     else
     {
-      if ((!enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode())) || *iterator == 'P') // wait for R or K
+      if ((!enzyme_->getRegEx().hasSubstring(iterator->getOneLetterCode())) || *iterator == 'P') // wait for R or K
       {
         return false;
       }

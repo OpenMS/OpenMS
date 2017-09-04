@@ -34,7 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -60,7 +60,7 @@ namespace OpenMS
     clear();
   }
 
-  const Enzyme* EnzymesDB::getEnzyme(const String& name) const
+  const DigestionEnzyme* EnzymesDB::getEnzyme(const String& name) const
   {
     if (enzyme_names_.find(name) == enzyme_names_.end())
     {
@@ -69,7 +69,7 @@ namespace OpenMS
     return enzyme_names_.at(name);
   }
 
-  const Enzyme* EnzymesDB::getEnzymeByRegEx(const String& cleavage_regex) const
+  const DigestionEnzyme* EnzymesDB::getEnzymeByRegEx(const String& cleavage_regex) const
   {
     if (!enzyme_regex_.has(cleavage_regex))
     {
@@ -85,13 +85,13 @@ namespace OpenMS
     readEnzymesFromFile_(file_name);
   }
 
-  void EnzymesDB::addEnzyme(const Enzyme& enzyme)
+  void EnzymesDB::addEnzyme(const DigestionEnzyme& enzyme)
   {
-    const Enzyme* r = new Enzyme(enzyme);
+    const DigestionEnzyme* r = new DigestionEnzyme(enzyme);
     addEnzyme_(r);
   }
 
-  void EnzymesDB::addEnzyme_(const Enzyme* r)
+  void EnzymesDB::addEnzyme_(const DigestionEnzyme* r)
   {
     // add to internal storage
     const_enzymes_.insert(r);
@@ -121,7 +121,7 @@ namespace OpenMS
     return (enzyme_names_.find(enzy_name) != enzyme_names_.end());
   }
 
-  bool EnzymesDB::hasEnzyme(const Enzyme* enzyme) const
+  bool EnzymesDB::hasEnzyme(const DigestionEnzyme* enzyme) const
   {
     return (const_enzymes_.find(enzyme) != const_enzymes_.end() );
   }
@@ -180,9 +180,9 @@ namespace OpenMS
     const_enzymes_.clear();
   }
 
-  const Enzyme* EnzymesDB::parseEnzyme_(Map<String, String>& values) const
+  const DigestionEnzyme* EnzymesDB::parseEnzyme_(Map<String, String>& values) const
   {
-    Enzyme* enzy_ptr = new Enzyme("unknown_enzyme", "");
+    DigestionEnzyme* enzy_ptr = new DigestionEnzyme("unknown_enzyme", "");
 
     for (Map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
     {

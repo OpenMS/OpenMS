@@ -353,12 +353,12 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
+  DigestionEnzyme_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
   EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
-  Enzyme_test
   EnzymesDB_test
   FastaIteratorIntern_test
   FastaIterator_test

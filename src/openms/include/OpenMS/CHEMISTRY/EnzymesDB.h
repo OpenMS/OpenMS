@@ -43,7 +43,7 @@
 namespace OpenMS
 {
   // forward declarations
-  class Enzyme;
+  class DigestionEnzyme;
 
   /** @ingroup Chemistry
 
@@ -60,8 +60,8 @@ public:
     /** @name Typedefs
     */
     //@{
-    typedef std::set<const Enzyme*>::const_iterator ConstEnzymeIterator;
-    typedef std::set<const Enzyme*>::iterator EnzymeIterator;
+    typedef std::set<const DigestionEnzyme*>::const_iterator ConstEnzymeIterator;
+    typedef std::set<const DigestionEnzyme*>::iterator EnzymeIterator;
     //@}
 
     /// this member function serves as a replacement of the constructor
@@ -88,18 +88,18 @@ public:
     /// returns a pointer to the enzyme with name (supports synonym names)
     /// @throw Exception::ElementNotFound if enzyme is unknown
     /// @note enzymes are registered in regular and in toLowercase() style, if unsure use toLowercase
-    const Enzyme* getEnzyme(const String& name) const;
+    const DigestionEnzyme* getEnzyme(const String& name) const;
 
     /// returns a pointer to the enzyme with cleavage regex
     /// @throw Exception::IllegalArgument if enzyme regex  is unregistered.
-    const Enzyme* getEnzymeByRegEx(const String& cleavage_regex) const;
+    const DigestionEnzyme* getEnzymeByRegEx(const String& cleavage_regex) const;
 
     /// load enzymes from given file
     void setEnzymes(const String& filename);
 
     /// adds a new enzyme, e.g. a new enzyme, where only the cleavage regex is known
     /// @note name of enzyme is registered also in a toLowercase() variant
-    void addEnzyme(const Enzyme& enzyme);
+    void addEnzyme(const DigestionEnzyme& enzyme);
 
     /// deletes all enzymes, resulting in an empty database
     void clear();
@@ -133,7 +133,7 @@ public:
     bool hasRegEx(const String& cleavage_regex) const;
 
     /// returns true if the db contains the enzyme of the given pointer
-    bool hasEnzyme(const Enzyme* enzyme) const;
+    bool hasEnzyme(const DigestionEnzyme* enzyme) const;
     //@}
 
     /** @name Iterators
@@ -147,7 +147,7 @@ protected:
     EnzymesDB();
 
     ///copy constructor
-    EnzymesDB(const EnzymesDB& enzyme_db);
+    EnzymesDB(const EnzymesDB& enzymes_db);
     //@}
 
     /** @name Assignment
@@ -161,16 +161,16 @@ protected:
     void readEnzymesFromFile_(const String& filename);
 
     /// parses a enzyme, given the key/value pairs from i.e. an XML file
-    const Enzyme* parseEnzyme_(Map<String, String>& values) const;
+    const DigestionEnzyme* parseEnzyme_(Map<String, String>& values) const;
 
     // add to internal data; also update indices for search by name and regex
-    void addEnzyme_(const Enzyme* enzyme);
+    void addEnzyme_(const DigestionEnzyme* enzyme);
 
-    boost::unordered_map<String, const Enzyme*> enzyme_names_;  // index by names
+    boost::unordered_map<String, const DigestionEnzyme*> enzyme_names_;  // index by names
 
-    Map<String, const Enzyme*> enzyme_regex_; // index by regex
+    Map<String, const DigestionEnzyme*> enzyme_regex_; // index by regex
 
-    std::set<const Enzyme*> const_enzymes_; // set of enzymes
+    std::set<const DigestionEnzyme*> const_enzymes_; // set of enzymes
 
   };
 }

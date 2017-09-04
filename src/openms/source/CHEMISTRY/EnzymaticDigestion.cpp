@@ -50,7 +50,7 @@ namespace OpenMS
 
   EnzymaticDigestion::EnzymaticDigestion() :
     missed_cleavages_(0),
-    enzyme_(*EnzymesDB::getInstance()->getEnzyme("Trypsin")),
+    enzyme_(EnzymesDB::getInstance()->getEnzyme("Trypsin")),
     specificity_(SPEC_FULL)
   {
   }
@@ -84,14 +84,14 @@ namespace OpenMS
     missed_cleavages_ = missed_cleavages;
   }
 
-  void EnzymaticDigestion::setEnzyme(const String enzyme_name)
+  void EnzymaticDigestion::setEnzyme(const String& enzyme_name)
   {
-    enzyme_ = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+    enzyme_ = EnzymesDB::getInstance()->getEnzyme(enzyme_name);
   }
 
   String EnzymaticDigestion::getEnzymeName() const
   {
-    return enzyme_.getName();
+    return enzyme_->getName();
   }
 
   EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificityByName(const String& name)
@@ -117,9 +117,9 @@ namespace OpenMS
   {
     std::vector<Size> pep_positions;
     Size pos = 0;
-    if (enzyme_.getRegEx() != "()") // if it's not "no cleavage"
+    if (enzyme_->getRegEx() != "()") // if it's not "no cleavage"
     {
-      boost::regex re(enzyme_.getRegEx());
+      boost::regex re(enzyme_->getRegEx());
       boost::sregex_token_iterator i(protein.begin(), protein.end(), re, -1);
       boost::sregex_token_iterator j;
       while (i != j)
@@ -138,10 +138,10 @@ namespace OpenMS
 
 
   bool EnzymaticDigestion::isValidProduct(const AASequence& protein,
-    Size pep_pos,
-    Size pep_length,
-    bool methionine_cleavage,
-    bool ignore_missed_cleavages) const
+                                          Size pep_pos,
+                                          Size pep_length,
+                                          bool methionine_cleavage,
+                                          bool ignore_missed_cleavages) const
   {
     return isValidProduct(protein.toUnmodifiedString(), pep_pos, pep_length, methionine_cleavage, ignore_missed_cleavages);
   }
@@ -167,10 +167,10 @@ namespace OpenMS
       LOG_WARN << "Error: peptide or protein must not be empty!" << endl;
       return false;
     }
-    
+
     // ignore specificity and missed cleavage settings for unspecific cleavage
-    if (enzyme_.getName() == UnspecificCleavage) { return true; }
-    
+    if (enzyme_->getName() == UnspecificCleavage) { return true; }
+
     const Size pep_end = pep_pos + pep_length; // past-the-end index into protein of last peptide amino acid
 
     if (specificity_ == SPEC_NONE)
@@ -196,12 +196,12 @@ namespace OpenMS
         // if there were a real cleavage site at pos '1' it would be found in the first if-block, so we're not overlooking a MC here
         spec_n = true;
       }
-      
+
       // C-term:
       if (pep_end == protein.size())
       { // full length match (protein C-term is not in cleavage_positions)
         spec_c = true;
-      } 
+      }
       else if (std::find(cleavage_positions.begin(), cleavage_positions.end(), pep_end) != cleavage_positions.end())
       {
         spec_c = true;
@@ -233,8 +233,8 @@ namespace OpenMS
   Size EnzymaticDigestion::peptideCount(const AASequence& protein)
   {
     // For unspecific cleavage every cutting position may be skipped. Thus, we get (n + 1) \choose 2 products.
-    if (enzyme_.getName() == UnspecificCleavage) { return (protein.size() + 1) * (protein.size()) / 2; };
-    
+    if (enzyme_->getName() == UnspecificCleavage) { return (protein.size() + 1) * (protein.size()) / 2; };
+
     std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
     Size count = pep_positions.size();
     // missed cleavages
@@ -251,9 +251,9 @@ namespace OpenMS
   {
     // initialization
     output.clear();
-    
-    Size mc = (enzyme_.getName() == UnspecificCleavage) ? std::numeric_limits<Size>::max() : missed_cleavages_;
-    
+
+    Size mc = (enzyme_->getName() == UnspecificCleavage) ? std::numeric_limits<Size>::max() : missed_cleavages_;
+
     // naive cleavage sites
     std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
     Size count = pep_positions.size();
@@ -296,7 +296,7 @@ namespace OpenMS
     // Unspecific cleavage:
     // For unspecific cleavage every amino acid is a cutting position.
     // All substrings of legnth min_size..max_size are generated.
-    if (enzyme_.getName() == UnspecificCleavage)
+    if (enzyme_->getName() == UnspecificCleavage)
     {
       output.reserve(sequence.size() * (max_length - min_length + 1));
       for (Size i = 0; i <= sequence.size() - min_length; ++i)
@@ -309,13 +309,13 @@ namespace OpenMS
       }
       return;
     }
-    
+
     // naive cleavage sites
     std::vector<Size> pep_positions = tokenize_(sequence.getString());
     Size count = pep_positions.size();
 
     // no cleavage sites? return full string
-    if (count == 0) 
+    if (count == 0)
     {
       if (sequence.size() >= min_length && sequence.size() <= max_length)
       {

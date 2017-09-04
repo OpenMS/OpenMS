@@ -37,7 +37,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
 #include <string>
 #include <vector>
@@ -71,7 +71,7 @@ public:
     };
     /// Names of the Specificity
     static const std::string NamesOfSpecificity[SIZE_OF_SPECIFICITY];
-    
+
     /// Name for unspecific cleavage
     static const std::string UnspecificCleavage;
 
@@ -94,7 +94,7 @@ public:
     String getEnzymeName() const;
 
     /// Sets the enzyme for the digestion
-    void setEnzyme(const String name);
+    void setEnzyme(const String& name);
 
     /// Returns the specificity for the digestion
     Specificity getSpecificity() const;
@@ -138,7 +138,7 @@ protected:
     Size missed_cleavages_;
 
     /// Used enzyme
-    Enzyme enzyme_;
+    const DigestionEnzyme* enzyme_;
 
     /// specificity of enzyme
     Specificity specificity_;

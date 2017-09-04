@@ -10,7 +10,7 @@ ElementDB.h
 EmpiricalFormula.h
 EnzymaticDigestionLogModel.h
 EnzymaticDigestion.h
-Enzyme.h
+DigestionEnzyme.h
 EnzymesDB.h
 IsotopeDistribution.h
 ModificationDefinition.h
