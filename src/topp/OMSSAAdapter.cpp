@@ -533,7 +533,7 @@ protected:
     parameters << "-i" << getStringOption_("i");
     parameters << "-z1" << String(getDoubleOption_("z1"));
     parameters << "-v" << String(getIntOption_("v"));
-    parameters << "-e" << String(EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"))->getOMSSAID());
+    parameters << "-e" << String(dynamic_cast<const DigestionEnzymeProtein*>(EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme")))->getOMSSAID());
     parameters << "-tez" << String(getIntOption_("tez"));
 
 
@@ -1020,7 +1020,7 @@ protected:
     search_parameters.mass_type = mass_type;
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");
     search_parameters.variable_modifications = getStringList_("variable_modifications");
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+    search_parameters.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme")));
     search_parameters.missed_cleavages = getIntOption_("v");
     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");

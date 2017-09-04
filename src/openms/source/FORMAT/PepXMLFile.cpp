@@ -1295,7 +1295,7 @@ namespace OpenMS
       fixed_modifications_.clear();
       variable_modifications_.clear();
       params_ = ProteinIdentification::SearchParameters();
-      params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+      params_.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(enzyme_));
       String mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1356,7 +1356,7 @@ namespace OpenMS
       if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
       if (EnzymesDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+        params_.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(enzyme_));
       }
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
@@ -1366,7 +1366,7 @@ namespace OpenMS
       if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
       if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
       {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_.toLower());
+        params_.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(enzyme_.toLower()));
       }
 
       int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");

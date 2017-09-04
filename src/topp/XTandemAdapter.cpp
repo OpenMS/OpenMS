@@ -295,7 +295,7 @@ protected:
     double max_evalue = getDoubleOption_("max_valid_expect");
     infile.setMaxValidEValue(max_evalue);
     String enzyme_name = getStringOption_("enzyme");
-    infile.setCleavageSite(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getXTandemID());
+    infile.setCleavageSite(dynamic_cast<const DigestionEnzymeProtein*>(EnzymesDB::getInstance()->getEnzyme(enzyme_name))->getXTandemID());
     infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
     infile.setSemiCleavage(getFlag_("semi_cleavage"));
     infile.setAllowIsotopeError(!getFlag_("no_isotope_error"));
@@ -402,7 +402,7 @@ protected:
       search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
       search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm" ? true : false;
       search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_error_units") == "ppm" ? true : false;
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+      search_parameters.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(enzyme_name));
       protein_id.setSearchParameters(search_parameters);
       protein_id.setSearchEngineVersion("");
       protein_id.setSearchEngine("XTandem");

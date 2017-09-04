@@ -168,7 +168,7 @@ namespace OpenMS
     tmp.missed_cleavages = missed_cleavages_->text().toInt();
     tmp.fragment_mass_tolerance = peak_tolerance_->text().toFloat();
     tmp.precursor_mass_tolerance = precursor_tolerance_->text().toFloat();
-    tmp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_->text());
+    tmp.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(enzyme_->text()));
     tmp.mass_type = (ProteinIdentification::PeakMassType)(mass_type_->currentIndex());
     ptr_->setSearchParameters(tmp);
 

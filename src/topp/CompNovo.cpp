@@ -184,11 +184,11 @@ protected:
     search_parameters.charges = "+2-+3";
     if (algorithm_param.getValue("tryptic_only").toBool())
     {
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("Trypsin");
+      search_parameters.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme("Trypsin"));
     }
     else
     {
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("no cleavage");
+      search_parameters.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme("no cleavage"));
     }
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
     search_parameters.fixed_modifications = algorithm_param.getValue("fixed_modifications");

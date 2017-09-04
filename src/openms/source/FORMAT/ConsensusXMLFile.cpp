@@ -394,7 +394,7 @@ namespace OpenMS
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
       if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+        search_param_.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(enzyme));
       }
       last_meta_ = &search_param_;
     }

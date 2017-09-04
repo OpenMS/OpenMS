@@ -488,7 +488,7 @@ namespace OpenMS
         String temp_string = (character_buffer_.trim());
         if (EnzymesDB::getInstance()->hasEnzyme(temp_string))
         {
-          search_parameters_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(temp_string);
+          search_parameters_.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(temp_string));
         }
       }
       else if (tag_ == "TOL")

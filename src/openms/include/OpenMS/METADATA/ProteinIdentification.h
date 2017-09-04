@@ -38,7 +38,7 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <set>
 
 namespace OpenMS
@@ -116,7 +116,7 @@ public:
       bool fragment_mass_tolerance_ppm; ///< Mass tolerance unit of fragment ions (true: ppm, false: Dalton)
       double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
       bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
-      DigestionEnzyme digestion_enzyme; ///< The cleavage site information in details (from EnzymesDB)
+      DigestionEnzymeProtein digestion_enzyme; ///< The cleavage site information in details (from EnzymesDB)
 
       SearchParameters();
 

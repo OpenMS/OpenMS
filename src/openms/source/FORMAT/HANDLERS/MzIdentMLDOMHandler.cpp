@@ -1056,7 +1056,7 @@ namespace OpenMS
                 }
                 if (EnzymesDB::getInstance()->hasEnzyme(enzymename))
                 {
-                  sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzymename);
+                  sp.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(enzymename));
                 }
                 enzyme = enzyme->getNextElementSibling();
               }

@@ -277,7 +277,7 @@ protected:
     // search enzyme
 
     String enzyme_name = getStringOption_("enzyme");
-    String enzyme_number = String(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
+    String enzyme_number = String(dynamic_cast<const DigestionEnzymeProtein*>(EnzymesDB::getInstance()->getEnzyme(enzyme_name))->getCometID());
 
     map<string,int> num_enzyme_termini;
     num_enzyme_termini["semi"] = 1;

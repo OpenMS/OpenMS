@@ -277,11 +277,11 @@ namespace OpenMS
         // General
         if (this->is_openproxl_) // Enzyme via name
         {
-          search_params.digestion_enzyme = *this->enzymes_db_->getEnzyme(this->attributeAsString_(attributes, "enzyme_name"));
+          search_params.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*this->enzymes_db_->getEnzyme(this->attributeAsString_(attributes, "enzyme_name")));
         }
         else // Enzyme via enzyme number in xQuest
         {
-          search_params.digestion_enzyme = *this->enzymes_db_->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]);
+          search_params.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*this->enzymes_db_->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]));
         }
 
         search_params.missed_cleavages = this->attributeAsInt_(attributes, "missed_cleavages");

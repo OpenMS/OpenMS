@@ -848,14 +848,14 @@ protected:
           {
             sp.mass_type = ProteinIdentification::MONOISOTOPIC;
           }
-          else 
+          else
           {
             sp.mass_type = ProteinIdentification::AVERAGE;
           }
 
-          if (EnzymesDB::getInstance()->hasEnzyme(inspect_infile.getEnzyme())) 
+          if (EnzymesDB::getInstance()->hasEnzyme(inspect_infile.getEnzyme()))
           {
-            sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(inspect_infile.getEnzyme());
+            sp.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(inspect_infile.getEnzyme()));
           }
           sp.fragment_mass_tolerance = inspect_infile.getPeakMassTolerance();
           sp.precursor_mass_tolerance = inspect_infile.getPrecursorMassTolerance();
