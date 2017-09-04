@@ -11,6 +11,8 @@ EmpiricalFormula.h
 EnzymaticDigestionLogModel.h
 EnzymaticDigestion.h
 DigestionEnzyme.h
+DigestionEnzymeProtein.h
+DigestionEnzymeRNA.h
 EnzymesDB.h
 IsotopeDistribution.h
 ModificationDefinition.h

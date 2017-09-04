@@ -11,6 +11,8 @@ EmpiricalFormula.cpp
 EnzymaticDigestionLogModel.cpp
 EnzymaticDigestion.cpp
 DigestionEnzyme.cpp
+DigestionEnzymeProtein.cpp
+DigestionEnzymeRNA.cpp
 EnzymesDB.cpp
 IsotopeDistribution.cpp
 ModificationDefinition.cpp

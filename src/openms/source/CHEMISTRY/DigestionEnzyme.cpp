@@ -34,25 +34,19 @@
 //
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
-#include <cstdlib>
 #include <iostream>
 
 using namespace std;
 
 namespace OpenMS
 {
+  const String DigestionEnzyme::NamesOfSubstrates[] = {"protein", "RNA", "DNA"};
+
   DigestionEnzyme::DigestionEnzyme() :
     name_("unknown_enzyme"),
     cleavage_regex_(""),
     synonyms_(),
-    regex_description_(""),
-    n_term_gain_(""),
-    c_term_gain_(""),
-    psi_id_(""),
-    xtandem_id_(""),
-    comet_id_(),
-    msgf_id_(-1),
-    omssa_id_()
+    regex_description_("")
   {
   }
 
@@ -60,39 +54,18 @@ namespace OpenMS
     name_(enzyme.name_),
     cleavage_regex_(enzyme.cleavage_regex_),
     synonyms_(enzyme.synonyms_),
-    regex_description_(enzyme.regex_description_),
-    n_term_gain_(enzyme.n_term_gain_),
-    c_term_gain_(enzyme.c_term_gain_),
-    psi_id_(enzyme.psi_id_),
-    xtandem_id_(enzyme.xtandem_id_),
-    comet_id_(enzyme.comet_id_),
-    msgf_id_(enzyme.msgf_id_),
-    omssa_id_(enzyme.omssa_id_)
+    regex_description_(enzyme.regex_description_)
   {
   }
 
   DigestionEnzyme::DigestionEnzyme(const String& name,
                                    const String& cleavage_regex,
                                    const std::set<String>& synonyms,
-                                   String regex_description,
-                                   EmpiricalFormula n_term_gain,
-                                   EmpiricalFormula c_term_gain,
-                                   String psi_id,
-                                   String xtandem_id,
-                                   UInt comet_id,
-                                   Int msgf_id,
-                                   UInt omssa_id) :
+                                   String regex_description) :
     name_(name),
     cleavage_regex_(cleavage_regex),
     synonyms_(synonyms),
-    regex_description_(regex_description),
-    n_term_gain_(n_term_gain),
-    c_term_gain_(c_term_gain),
-    psi_id_(psi_id),
-    xtandem_id_(xtandem_id),
-    comet_id_(comet_id),
-    msgf_id_(msgf_id),
-    omssa_id_(omssa_id)
+    regex_description_(regex_description)
   {
   }
 
@@ -108,13 +81,6 @@ namespace OpenMS
       cleavage_regex_ = enzyme.cleavage_regex_;
       synonyms_ = enzyme.synonyms_;
       regex_description_ = enzyme.regex_description_;
-      n_term_gain_ = enzyme.n_term_gain_;
-      c_term_gain_ = enzyme.c_term_gain_;
-      psi_id_ = enzyme.psi_id_;
-      xtandem_id_ = enzyme.xtandem_id_;
-      comet_id_ = enzyme.comet_id_;
-      omssa_id_ = enzyme.omssa_id_;
-      msgf_id_ = enzyme.msgf_id_;
     }
     return *this;
   }
@@ -124,7 +90,7 @@ namespace OpenMS
     name_ = name;
   }
 
-  const String& DigestionEnzyme::getName() const
+  String DigestionEnzyme::getName() const
   {
     return name_;
   }
@@ -139,7 +105,7 @@ namespace OpenMS
     synonyms_.insert(synonym);
   }
 
-  const set<String>& DigestionEnzyme::getSynonyms() const
+  set<String> DigestionEnzyme::getSynonyms() const
   {
     return synonyms_;
   }
@@ -149,12 +115,12 @@ namespace OpenMS
     cleavage_regex_ = cleavage_regex;
   }
 
-  const String& DigestionEnzyme::getRegEx() const
+  String DigestionEnzyme::getRegEx() const
   {
     return cleavage_regex_;
   }
 
-  void DigestionEnzyme::setRegExDescription(String value)
+  void DigestionEnzyme::setRegExDescription(const String& value)
   {
     regex_description_ = value;
   }
@@ -164,74 +130,9 @@ namespace OpenMS
     return regex_description_;
   }
 
-  void DigestionEnzyme::setNTermGain(EmpiricalFormula value)
+  String DigestionEnzyme::getSubstrateName() const
   {
-    n_term_gain_ = value;
-  }
-
-  void DigestionEnzyme::setCTermGain(EmpiricalFormula value)
-  {
-    c_term_gain_ = value;
-  }
-
-  EmpiricalFormula DigestionEnzyme::getNTermGain() const
-  {
-    return n_term_gain_;
-  }
-
-  EmpiricalFormula DigestionEnzyme::getCTermGain() const
-  {
-    return c_term_gain_;
-  }
-
-  void DigestionEnzyme::setPSIID(String value)
-  {
-    psi_id_ = value;
-  }
-
-  String DigestionEnzyme::getPSIID() const
-  {
-    return psi_id_;
-  }
-
-  void DigestionEnzyme::setXTandemID(String value)
-  {
-    xtandem_id_ = value;
-  }
-
-  String DigestionEnzyme::getXTandemID() const
-  {
-    return xtandem_id_;
-  }
-
-  void DigestionEnzyme::setCometID(UInt value)
-  {
-    comet_id_ = value;
-  }
-
-  UInt DigestionEnzyme::getCometID() const
-  {
-    return comet_id_;
-  }
-
-  void DigestionEnzyme::setOMSSAID(UInt value)
-  {
-    omssa_id_ = value;
-  }
-
-  UInt DigestionEnzyme::getOMSSAID() const
-  {
-    return omssa_id_;
-  }
-
-  void DigestionEnzyme::setMSGFID(Int value)
-  {
-    msgf_id_ = value;
-  }
-
-  Int DigestionEnzyme::getMSGFID() const
-  {
-    return msgf_id_;
+    return NamesOfSubstrates[getSubstrate()];
   }
 
   bool DigestionEnzyme::operator==(const DigestionEnzyme& enzyme) const
@@ -239,22 +140,15 @@ namespace OpenMS
     return name_ == enzyme.name_ &&
            synonyms_ == enzyme.synonyms_ &&
            cleavage_regex_ == enzyme.cleavage_regex_ &&
-           regex_description_ == enzyme.regex_description_ &&
-           n_term_gain_ == enzyme.n_term_gain_ &&
-           c_term_gain_ == enzyme.c_term_gain_ &&
-           psi_id_ == enzyme.psi_id_ &&
-           xtandem_id_ == enzyme.xtandem_id_ &&
-           comet_id_ == enzyme.comet_id_ &&
-           msgf_id_ == enzyme.msgf_id_ &&
-           omssa_id_ == enzyme.omssa_id_;
+           regex_description_ == enzyme.regex_description_;
   }
 
-  bool DigestionEnzyme::operator==(String cleavage_regex) const
+  bool DigestionEnzyme::operator==(const String& cleavage_regex) const
   {
     return cleavage_regex_ == cleavage_regex;
   }
 
-  bool DigestionEnzyme::operator!=(String cleavage_regex) const
+  bool DigestionEnzyme::operator!=(const String& cleavage_regex) const
   {
     return cleavage_regex_ != cleavage_regex;
   }
@@ -269,12 +163,36 @@ namespace OpenMS
     return this->getName() < enzyme.getName();
   }
 
+  bool DigestionEnzyme::setValueFromFile_(const String& key, const String& value)
+  {
+    if (key.hasSuffix(":Name"))
+    {
+      setName(value);
+      return true;
+    }
+    if (key.hasSuffix(":RegEx"))
+    {
+      setRegEx(value);
+      return true;
+    }
+    if (key.hasSuffix(":RegExDescription"))
+    {
+      setRegExDescription(value);
+      return true;
+    }
+    if (key.hasSubstring(":Synonyms:"))
+    {
+      addSynonym(value);
+      return true;
+    }
+    return false;
+  }
+
   ostream& operator<<(ostream& os, const DigestionEnzyme& enzyme)
   {
-    os << enzyme.name_ << " "
-    << enzyme.cleavage_regex_ << " "
-    << enzyme.regex_description_ << " "
-    << enzyme.psi_id_;
+    os << "digestion enzyme (substrate: " << enzyme.getSubstrateName() << "):"
+       << enzyme.name_ << " " << enzyme.cleavage_regex_ << " "
+       << enzyme.regex_description_;
     return os;
   }
 
