@@ -57,6 +57,7 @@ namespace OpenMS
     enum DigestionEnzyme::Substrate getSubstrate() const;
   };
 
+  typedef DigestionEnzymeRNA RNase;
 }
 
 #endif

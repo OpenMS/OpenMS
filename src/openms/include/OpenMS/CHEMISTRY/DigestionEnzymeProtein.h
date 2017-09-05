@@ -181,6 +181,7 @@ namespace OpenMS
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzymeProtein& enzyme);
 
+  typedef DigestionEnzymeProtein Protease;
 }
 
 #endif
