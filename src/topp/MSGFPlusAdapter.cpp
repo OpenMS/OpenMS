@@ -35,7 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -118,7 +118,7 @@ public:
     protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
     tryptic_(ListUtils::create<String>("non,semi,fully"))
   {
-    EnzymesDB::getInstance()->getAllMSGFNames(enzymes_);
+    ProteaseDB::getInstance()->getAllMSGFNames(enzymes_);
     std::sort(enzymes_.begin(),enzymes_.end());
   }
 
@@ -476,7 +476,7 @@ protected:
     // no need to handle "not found" case - would have given error during parameter parsing:
     Int fragment_method_code = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
-    Int enzyme_code = dynamic_cast<const DigestionEnzymeProtein*>(EnzymesDB::getInstance()->getEnzyme(enzyme))->getMSGFID();
+    Int enzyme_code = ProteaseDB::getInstance()->getEnzyme(enzyme)->getMSGFID();
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
@@ -579,7 +579,7 @@ protected:
           search_parameters.precursor_mass_tolerance_ppm = true;
         }
 
-        search_parameters.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*EnzymesDB::getInstance()->getEnzyme(enzyme));
+        search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
 
         // create idXML file
         vector<ProteinIdentification> protein_ids;

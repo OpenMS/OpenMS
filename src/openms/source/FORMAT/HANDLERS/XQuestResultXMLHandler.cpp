@@ -88,7 +88,7 @@ namespace OpenMS
       this->prot_ids_.push_back(prot_id);
 
       // Fetch the enzymes database
-      this->enzymes_db_ = EnzymesDB::getInstance();
+      this->enzymes_db_ = ProteaseDB::getInstance();
 
       // Produce some warnings that are associated with the reading of xQuest result files
       LOG_WARN << "WARNING: Fixed modifications are not available in the xQuest input file and will thus be not present in the loaded data!\n" << std::endl;

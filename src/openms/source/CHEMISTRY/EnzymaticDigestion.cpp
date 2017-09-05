@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <boost/regex.hpp>
@@ -50,7 +50,7 @@ namespace OpenMS
 
   EnzymaticDigestion::EnzymaticDigestion() :
     missed_cleavages_(0),
-    enzyme_(EnzymesDB::getInstance()->getEnzyme("Trypsin")),
+    enzyme_(ProteaseDB::getInstance()->getEnzyme("Trypsin")),
     specificity_(SPEC_FULL)
   {
   }
@@ -86,7 +86,7 @@ namespace OpenMS
 
   void EnzymaticDigestion::setEnzyme(const String& enzyme_name)
   {
-    enzyme_ = EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+    enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
   }
 
   String EnzymaticDigestion::getEnzymeName() const

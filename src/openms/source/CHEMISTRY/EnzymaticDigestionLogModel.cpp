@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -46,7 +46,7 @@ namespace OpenMS
 {
 
   EnzymaticDigestionLogModel::EnzymaticDigestionLogModel() :
-    enzyme_(EnzymesDB::getInstance()->getEnzyme("Trypsin")),
+    enzyme_(ProteaseDB::getInstance()->getEnzyme("Trypsin")),
     log_model_threshold_(0.25),
     model_data_()
   {
@@ -91,7 +91,7 @@ namespace OpenMS
 
   void EnzymaticDigestionLogModel::setEnzyme(const String enzyme_name)
   {
-    enzyme_ = EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+    enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
   }
 
   String EnzymaticDigestionLogModel::getEnzymeName() const

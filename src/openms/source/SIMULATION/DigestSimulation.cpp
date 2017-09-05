@@ -38,7 +38,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 namespace OpenMS
 {
@@ -71,7 +71,7 @@ namespace OpenMS
   {
     // supported enzymes
     StringList enzymes;
-    EnzymesDB::getInstance()->getAllNames(enzymes);
+    ProteaseDB::getInstance()->getAllNames(enzymes);
     defaults_.setValue("enzyme", "Trypsin", "Enzyme to use for digestion (select 'no cleavage' to skip digestion)");
     defaults_.setValidStrings("enzyme", enzymes);
 
