@@ -38,8 +38,8 @@
 
 ///////////////////////////
 
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace OpenMS;
@@ -47,19 +47,19 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(EnzymesDB, "$Id$")
+START_TEST(ProteaseDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-EnzymesDB* ptr = 0;
-EnzymesDB* nullPointer = 0;
+ProteaseDB* ptr = 0;
+ProteaseDB* nullPointer = 0;
 String RKP("(?<=R)(?!P)");
-START_SECTION(EnzymesDB* getInstance())
-    ptr = EnzymesDB::getInstance();
+START_SECTION(ProteaseDB* getInstance())
+    ptr = ProteaseDB::getInstance();
     TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION(virtual ~EnzymesDB())
+START_SECTION(virtual ~ProteaseDB())
     NOT_TESTABLE
 END_SECTION
 
@@ -68,7 +68,7 @@ START_SECTION((bool hasEnzyme(const String &name) const))
     TEST_EQUAL(ptr->hasEnzyme("Trypsin"), true)
 END_SECTION
 
-START_SECTION((const DigestionEnzyme* getEnzyme(const String &name) const))
+START_SECTION((const DigestionEnzymeProtein* getEnzyme(const String &name) const))
     TEST_EQUAL(ptr->getEnzyme("Trypsin")->getName(), "Trypsin")
     // test the synonyms
     TEST_EQUAL(ptr->getEnzyme("Clostripain")->getName(), "Arg-C")
@@ -80,13 +80,13 @@ START_SECTION((bool hasRegEx(const String& cleavage_regex) const))
     TEST_EQUAL(ptr->hasRegEx(RKP), true)
 END_SECTION
 
-START_SECTION((const DigestionEnzyme* getEnzymeByRegEx(const String& cleavage_regex) const))
+START_SECTION((const DigestionEnzymeProtein* getEnzymeByRegEx(const String& cleavage_regex) const))
     TEST_EQUAL(ptr->getEnzymeByRegEx(RKP)->getName(), "Arg-C")
 END_SECTION
 
-START_SECTION(bool hasEnzyme(const DigestionEnzyme* enzyme) const)
+START_SECTION(bool hasEnzyme(const DigestionEnzymeProtein* enzyme) const)
   TEST_EQUAL(ptr->hasEnzyme(ptr->getEnzyme("Trypsin")), true)
-  DigestionEnzyme myNewEnzyme("bla", "blubb");
+  DigestionEnzymeProtein myNewEnzyme("bla", "blubb");
   TEST_EQUAL(ptr->hasEnzyme(&myNewEnzyme), false);
 END_SECTION
 
@@ -96,32 +96,6 @@ START_SECTION(void setEnzymes(const String& filename))
     ptr->setEnzymes(File::find("CHEMISTRY/Enzymes.xml")); // full filename should also work
     TEST_EQUAL(std::distance(ptr->beginEnzyme(), ptr->endEnzyme()), 25); // should be 25 enzymes in "CHEMISTRY/Enzymes.xml"
 END_SECTION
-
-START_SECTION(void addEnzyme(const DigestionEnzyme& enzyme))
-    DigestionEnzyme enzy = DigestionEnzyme("MysticalEnzyme","(?<=[])(?!PATT)");
-    enzy.addSynonym("VeryMysticalEnzyme");
-    enzy.addSynonym("HugelyMysticalEnzyme");
-    TEST_EQUAL(ptr->hasEnzyme(enzy.getName()), false)
-    TEST_EQUAL(ptr->hasEnzyme("HugelyMysticalEnzyme"), false)
-    TEST_EQUAL(ptr->hasRegEx(enzy.getRegEx()), false)
-
-    vector<String> names;
-    ptr->getAllNames(names);
-    TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "Tryptryp") != names.end(), false)
-
-    ptr->addEnzyme(enzy);
-    TEST_EQUAL(ptr->hasEnzyme(enzy.getName()), true)
-    TEST_EQUAL(ptr->hasEnzyme("HugelyMysticalEnzyme"), true)
-    TEST_EQUAL(ptr->hasRegEx(enzy.getRegEx()), true)
-    DigestionEnzyme eout = *(ptr->getEnzyme(enzy.getName()));
-    TEST_EQUAL(enzy, eout);
-
-    Size old_size=names.size();
-    ptr->getAllNames(names); // should be bigger now by 1 (synonyms do not count)
-    TEST_EQUAL(old_size + 1, names.size())
-END_SECTION
-
 
 START_SECTION(void clear())
   TEST_EQUAL(ptr->beginEnzyme() != ptr->endEnzyme(), true)
@@ -136,7 +110,7 @@ START_SECTION(void clear())
 END_SECTION
 
 START_SECTION(ConstEnzymeIterator beginEnzyme() const)
-    EnzymesDB::EnzymeIterator it = ptr->beginEnzyme();
+    ProteaseDB::EnzymeIterator it = ptr->beginEnzyme();
     Size count(0);
     while (it != ptr->endEnzyme())
     {
