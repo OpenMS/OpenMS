@@ -569,34 +569,48 @@ protected:
       vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
       vector< OPXLDataStructs::XLPrecursor >::const_iterator up_it;
 
-      if (precursor_mass_tolerance_unit_ppm) // ppm
+      // TODO turn this into an InteregerList paramerter or something similar
+      // Consider missasignment of the monoisotopic peak
+      std::vector<double> precursor_correction_masses;
+      precursor_correction_masses.push_back(-2 * Constants::C13C12_MASSDIFF_U);
+      precursor_correction_masses.push_back(-1 * Constants::C13C12_MASSDIFF_U);
+      precursor_correction_masses.push_back(0);
+
+      for (double correction_mass : precursor_correction_masses)
       {
-        allowed_error = precursor_mass * precursor_mass_tolerance * 1e-6;
-      }
-      else // Dalton
-      {
-        allowed_error = precursor_mass_tolerance;
-      }
+
+        double corrected_precursor_mass = precursor_mass + correction_mass;
+
+        if (precursor_mass_tolerance_unit_ppm) // ppm
+        {
+          allowed_error = corrected_precursor_mass * precursor_mass_tolerance * 1e-6;
+        }
+        else // Dalton
+        {
+          allowed_error = precursor_mass_tolerance;
+        }
 #ifdef _OPENMP
 #pragma omp critical (enumerated_cross_link_masses_access)
 #endif
-      {
-        low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
-        up_it =  upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
-      }
-
-      if (low_it != up_it) // no matching precursor in data
-      {
-        for (; low_it != up_it; ++low_it)
         {
-          candidates.push_back(*low_it);
+          low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
+          up_it =  upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
         }
+
+        if (low_it != up_it) // no matching precursor in data
+        {
+          for (; low_it != up_it; ++low_it)
+          {
+            candidates.push_back(*low_it);
+          }
+        }
+
       }
 
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-      cout << "Number of candidates for this spectrum: " << candidates.size() << endl;
+      cout << "#Peaks in this spectrum: " << spectrum.size() << " |\tNumber of candidates for this spectrum: " << candidates.size() << endl;
 
       // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
       vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
@@ -717,8 +731,12 @@ protected:
         if (type_is_cross_link)
         {
           specGen_full.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
-          specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 1, precursor_charge);
-          specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, precursor_mass, false, 1, precursor_charge);
+          // specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 1, precursor_charge);
+          // specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, precursor_mass, false, 1, precursor_charge);
+
+          specGen_full.getXLinkIonSpectrumWithLosses(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
+          specGen_full.getXLinkIonSpectrumWithLosses(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
+
           // TODO complex peaks count as alpha for now,  add them to both alpha and beta? or start a third ion category?
           specGen_full.getComplexXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, 1, 3);
         } else

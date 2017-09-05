@@ -805,7 +805,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-      cout << "Number of candidates for this spectrum: " << candidates.size() << endl;
+      cout << "#Peaks in this spectrum: " << spectrum_light.size() << " |\tNumber of candidates for this spectrum: " << candidates.size() << endl;
 
       // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
       vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
