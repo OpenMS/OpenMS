@@ -116,7 +116,9 @@ namespace OpenMS
        */
       virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2 = 0) const;
 
-      virtual void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLDataStructs::ProteinProteinCrossLink crosslink, int mincharge, int maxcharge) const;
+      virtual void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLDataStructs::ProteinProteinCrossLink & crosslink, int mincharge, int maxcharge) const;
+
+      virtual void getXLinkIonSpectrumWithLosses(PeakSpectrum & spectrum, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, int mincharge, int maxcharge) const;
 
       /// overwrite
       void updateMembers_();
@@ -221,6 +223,7 @@ namespace OpenMS
 
       virtual void addXLinkIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, const AASequence & ion1, const AASequence & ion2, double ion_mass, double intensity, int charge, String ion_name) const;
 
+      virtual void addXLinkIonPeaksWithLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, Residue::ResidueType res_type, int charge) const;
 
       // TODO copied from normal TSG, but it is protected over there. Move it to Residue class maybe?
       /// helper for mapping residue type to letter
