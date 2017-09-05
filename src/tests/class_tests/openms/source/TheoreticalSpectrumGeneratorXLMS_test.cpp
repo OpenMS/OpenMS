@@ -84,7 +84,7 @@ START_SECTION(TheoreticalSpectrumGeneratorXLMS& operator = (const TheoreticalSpe
 END_SECTION
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, bool frag_alpha, int charge = 1, Size link_pos_2 = 0))
+START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, bool frag_alpha, int charge = 1, Size link_pos_2 = 0))
   PeakSpectrum spec;
   ptr->getLinearIonSpectrum(spec, peptide, 3, true, 2);
   TEST_EQUAL(spec.size(), 18)
@@ -182,20 +182,22 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
 
   // the smallest examples, that make sense for cross-linking
   spec.clear(true);
-  ptr->getLinearIonSpectrum(spec, AASequence::fromString("HA"), 0, true, 1);
+  AASequence testseq = AASequence::fromString("HA");
+  ptr->getLinearIonSpectrum(spec, testseq, 0, true, 1);
   TEST_EQUAL(spec.size(), 1)
 
   spec.clear(true);
-  ptr->getLinearIonSpectrum(spec, AASequence::fromString("HA"), 1, true, 1);
+  ptr->getLinearIonSpectrum(spec, testseq, 1, true, 1);
   TEST_EQUAL(spec.size(), 1)
 
   // loop link
   spec.clear(true);
-  ptr->getLinearIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 1, true, 1, 14);
+  testseq = AASequence::fromString("PEPTIDESAREWEIRD");
+  ptr->getLinearIonSpectrum(spec, testseq, 1, true, 1, 14);
   TEST_EQUAL(spec.size(), 2)
 
   spec.clear(true);
-  ptr->getLinearIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 2, false, 1, 14);
+  ptr->getLinearIonSpectrum(spec, testseq, 2, false, 1, 14);
   TEST_EQUAL(spec.size(), 3)
 
   // test isotopic peaks
@@ -256,7 +258,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
 
 END_SECTION
 
-START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2 = 0))
+START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, double precursor_mass, bool frag_alpha, int mincharge, int maxcharge, Size link_pos_2 = 0))
 
   // reinitialize TSG to standard parameters
   Param param(ptr->getParameters());
@@ -395,24 +397,26 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
 
   // the smallest examples, that make sense for cross-linking
   spec.clear(true);
-  ptr->getXLinkIonSpectrum(spec, AASequence::fromString("HA"), 0, 2000.0, true, 1, 1);
+  AASequence testseq = AASequence::fromString("HA");
+  ptr->getXLinkIonSpectrum(spec, testseq, 0, 2000.0, true, 1, 1);
   TEST_EQUAL(spec.size(), 1)
 
   spec.clear(true);
-  ptr->getXLinkIonSpectrum(spec, AASequence::fromString("HA"), 1, 2000.0, true, 1, 1);
+  ptr->getXLinkIonSpectrum(spec, testseq, 1, 2000.0, true, 1, 1);
   TEST_EQUAL(spec.size(), 1)
 
   // loop link
   spec.clear(true);
-  ptr->getXLinkIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 1, 2000.0, true, 1, 1, 14);
+  testseq = AASequence::fromString("PEPTIDESAREWEIRD");
+  ptr->getXLinkIonSpectrum(spec, testseq, 1, 2000.0, true, 1, 1, 14);
   TEST_EQUAL(spec.size(), 2)
 
   spec.clear(true);
-  ptr->getXLinkIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 2, 2000.0, false, 1, 1, 14);
+  ptr->getXLinkIonSpectrum(spec, testseq, 2, 2000.0, false, 1, 1, 14);
   TEST_EQUAL(spec.size(), 3)
 
   spec.clear(true);
-  ptr->getXLinkIonSpectrum(spec, AASequence::fromString("PEPTIDESAREWEIRD"), 2, 2000.0, false, 1, 1, 13);
+  ptr->getXLinkIonSpectrum(spec, testseq, 2, 2000.0, false, 1, 1, 13);
   TEST_EQUAL(spec.size(), 4)
 
   // test isotopic peaks
@@ -468,7 +472,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 END_SECTION
 
-START_SECTION(virtual void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLDataStructs::ProteinProteinCrossLink crosslink, int mincharge, int maxcharge))
+START_SECTION(virtual void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLDataStructs::ProteinProteinCrossLink & crosslink, int mincharge, int maxcharge))
 
   Param param(ptr->getParameters());
   param.setValue("add_isotopes", "false");
@@ -484,16 +488,16 @@ START_SECTION(virtual void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, O
   ptr->setParameters(param);
 
   OPXLDataStructs::ProteinProteinCrossLink crosslink;
-  crosslink.alpha = AASequence::fromString("PCRTIDE");
-  crosslink.beta = AASequence::fromString("ACDEFGHIJ");
-  crosslink.cross_link_position = std::make_pair<Size, Size>(4, 5);
+  crosslink.alpha = AASequence::fromString("ASSSPVILVGTHLDVSDEKQR");
+  crosslink.beta = AASequence::fromString("ITKELLNK");
+  crosslink.cross_link_position = std::make_pair<Size, Size>(19, 3);
   crosslink.cross_linker_mass = 200.0;
 
   PeakSpectrum spec;
-  DataArrays::StringDataArray ion_names;
-  DataArrays::IntegerDataArray charges;
-  ptr->getXLinkIonSpectrum(spec, crosslink.beta, 5, 2000.0, true, 2, 4);
-  ptr->getComplexXLinkIonSpectrum(spec, crosslink, 1, 1);
+  // DataArrays::StringDataArray ion_names;
+  // DataArrays::IntegerDataArray charges;
+  // ptr->getXLinkIonSpectrum(spec, crosslink.beta, 5, 2000.0, true, 2, 4);
+  ptr->getComplexXLinkIonSpectrum(spec, crosslink, 3, 3);
 
   TEST_EQUAL(spec.size(), 15)
   TEST_EQUAL(spec.getStringDataArrayByName("IonNames").size(), 15)
