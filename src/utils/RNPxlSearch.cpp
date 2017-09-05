@@ -562,6 +562,9 @@ protected:
     SignedSize peptide_mod_index; // enumeration index of the non-RNA peptide modification
     Size rna_mod_index; // index of the RNA modification
     double score;
+    double immonium_score;
+    double precursor_score;
+    double a_ion_score;
     double best_localization_score;
     String localization_scores;
     String best_localization;  
@@ -1734,6 +1737,9 @@ protected:
           ph.setMetaValue(String("RNPxl:localization_scores"), a_it->localization_scores);
           ph.setMetaValue(String("RNPxl:best_localization"), a_it->best_localization);
           ph.setMetaValue(String("RNPxl:fragment_annotation"), a_it->fragment_annotation_string);
+          ph.setMetaValue(String("RNPxl:immonium_score"), a_it->immonium_score);
+          ph.setMetaValue(String("RNPxl:precursor_score"), a_it->precursor_score);
+          ph.setMetaValue(String("RNPxl:a_ion_score"), a_it->a_ion_score);
           ph.setPeakAnnotations(a_it->fragment_annotations);
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
@@ -2076,8 +2082,54 @@ protected:
     TheoreticalSpectrumGenerator spectrum_generator;
     Param param(spectrum_generator.getParameters());
     param.setValue("add_first_prefix_ion", "true");
+    param.setValue("add_abundant_immonium_ions", "true");
+    param.setValue("add_precursor_peaks", "true");
     param.setValue("add_metainfo", "true");
+    param.setValue("add_a_ions", "false");
+    param.setValue("add_b_ions", "true");
+    param.setValue("add_c_ions", "false");
+    param.setValue("add_x_ions", "false");
+    param.setValue("add_y_ions", "true");
+    param.setValue("add_z_ions", "false");
     spectrum_generator.setParameters(param);
+
+    // generator for sub scores for a-ions, immonium and precursor peaks
+    TheoreticalSpectrumGenerator a_ion_sub_score_spectrum_generator;
+    param = a_ion_sub_score_spectrum_generator.getParameters();
+    param.setValue("add_abundant_immonium_ions", "false");
+    param.setValue("add_precursor_peaks", "false");
+    param.setValue("add_a_ions", "true");
+    param.setValue("add_b_ions", "false");
+    param.setValue("add_c_ions", "false");
+    param.setValue("add_x_ions", "false");
+    param.setValue("add_y_ions", "false");
+    param.setValue("add_z_ions", "false");
+    param.setValue("add_metainfo", "true");
+    a_ion_sub_score_spectrum_generator.setParameters(param);
+    TheoreticalSpectrumGenerator immonium_ion_sub_score_spectrum_generator;
+    param = immonium_ion_sub_score_spectrum_generator.getParameters();
+    param.setValue("add_abundant_immonium_ions", "true");
+    param.setValue("add_precursor_peaks", "false");
+    param.setValue("add_a_ions", "false");
+    param.setValue("add_b_ions", "false");
+    param.setValue("add_c_ions", "false");
+    param.setValue("add_x_ions", "false");
+    param.setValue("add_y_ions", "false");
+    param.setValue("add_z_ions", "false");
+    param.setValue("add_metainfo", "true");
+    immonium_ion_sub_score_spectrum_generator.setParameters(param);
+    TheoreticalSpectrumGenerator precursor_ion_sub_score_spectrum_generator;
+    param = precursor_ion_sub_score_spectrum_generator.getParameters();
+    param.setValue("add_abundant_immonium_ions", "false");
+    param.setValue("add_precursor_peaks", "true");
+    param.setValue("add_a_ions", "false");
+    param.setValue("add_b_ions", "false");
+    param.setValue("add_c_ions", "false");
+    param.setValue("add_x_ions", "false");
+    param.setValue("add_y_ions", "false");
+    param.setValue("add_z_ions", "false");
+    param.setValue("add_metainfo", "true");
+    precursor_ion_sub_score_spectrum_generator.setParameters(param);
 
     vector<vector<AnnotatedHit> > annotated_hits(spectra.size(), vector<AnnotatedHit>());
 
@@ -2173,6 +2225,9 @@ protected:
           //create empty theoretical spectrum
           PeakSpectrum complete_loss_spectrum;
 
+          // spectrum containing additional peaks for sub scoring
+          PeakSpectrum immonium_sub_score_spectrum, a_ion_sub_score_spectrum, precursor_sub_score_spectrum;
+
           // iterate over all RNA sequences, calculate peptide mass and generate complete loss spectrum only once as this can potentially be reused
           Size rna_mod_index = 0;
           for (std::map<String, double>::const_iterator rna_mod_it = mm.mod_masses.begin(); rna_mod_it != mm.mod_masses.end(); ++rna_mod_it, ++rna_mod_index)
@@ -2196,11 +2251,20 @@ protected:
 
             if (low_it == up_it) continue; // no matching precursor in data
 
-            //add peaks for b and y ions with charge 1
+            // add peaks for b- and y- ions with charge 1 (sorted by m/z)
             if (complete_loss_spectrum.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
             {
               spectrum_generator.getSpectrum(complete_loss_spectrum, candidate, 1, 1);
-              complete_loss_spectrum.sortByPosition(); //sort by mz
+              // small hack to make sub scores compatible with hyperscore. Let ion names begin with y
+              immonium_ion_sub_score_spectrum_generator.getSpectrum(immonium_sub_score_spectrum, candidate, 1, 1);
+              PeakSpectrum::StringDataArray& ion_names = immonium_sub_score_spectrum.getStringDataArrays()[0];
+              for (auto& n : ion_names) { n[0] = 'y'; }              
+              precursor_ion_sub_score_spectrum_generator.getSpectrum(precursor_sub_score_spectrum, candidate, 1, 1);
+              ion_names = precursor_sub_score_spectrum.getStringDataArrays()[0];
+              for (auto& n : ion_names) { n[0] = 'y'; }              
+              a_ion_sub_score_spectrum_generator.getSpectrum(a_ion_sub_score_spectrum, candidate, 1, 1);
+              ion_names = a_ion_sub_score_spectrum.getStringDataArrays()[0];
+              for (auto& n : ion_names) { n[0] = 'y'; }              
             }
 
             for (; low_it != up_it; ++low_it)
@@ -2209,7 +2273,21 @@ protected:
               const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
               double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
-            
+
+              // determine sub scores
+              double immonium_sub_score(0), precursor_sub_score(0), a_ion_sub_score(0);
+              if (!immonium_sub_score_spectrum.empty())
+              {
+                immonium_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, immonium_sub_score_spectrum);           
+              } 
+              if (!precursor_sub_score_spectrum.empty())
+              {
+                precursor_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, precursor_sub_score_spectrum);           
+              }
+              if (!a_ion_sub_score_spectrum.empty())
+              {
+                a_ion_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, a_ion_sub_score_spectrum);           
+              }
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
               #endif
@@ -2225,6 +2303,9 @@ protected:
               ah.sequence = *cit;
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = score;
+              ah.immonium_score = immonium_sub_score;
+              ah.precursor_score = precursor_sub_score;
+              ah.a_ion_score = a_ion_sub_score;
               ah.rna_mod_index = rna_mod_index;
 
               #ifdef DEBUG_RNPXLSEARCH
