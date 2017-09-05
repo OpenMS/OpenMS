@@ -359,7 +359,6 @@ set(chemistry_executables_list
   EmpiricalFormula_test
   EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
-  EnzymesDB_test
   FastaIteratorIntern_test
   FastaIterator_test
   IsotopeDistribution_test
@@ -369,6 +368,7 @@ set(chemistry_executables_list
   CrossLinksDB_test
   ModifierRep_test
   PepIterator_test
+  ProteaseDB_test
   ResidueDB_test
   ResidueModification_test
   Residue_test
