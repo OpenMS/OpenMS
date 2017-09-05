@@ -530,7 +530,7 @@ protected:
       filter.setMinCleavagesAllowed(min_cleavages);
 
       // Filter peptide hits      
-      for(auto& peptide : peptides)
+      for (auto& peptide : peptides)
       {
         auto hits = peptide.getHits();
         filter.filterPeptideSequences(hits);
