@@ -33,6 +33,65 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
-// implementation of template class is in the header file
+using namespace std;
+
+namespace OpenMS
+{
+  String ProteaseDB::getDBFile_() const
+  {
+    return "CHEMISTRY/Enzymes.xml";
+  }
+
+  void ProteaseDB::getAllXTandemNames(vector<String>& all_names) const
+  {
+    all_names.clear();
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      if ((*it)->getXTandemID() != "")
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
+  }
+
+  void ProteaseDB::getAllCometNames(vector<String>& all_names) const
+  {
+    all_names.clear();
+    all_names.push_back("unspecific cleavage");
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      if ((*it)->getCometID() != 0)
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
+  }
+
+  void ProteaseDB::getAllOMSSANames(vector<String>& all_names) const
+  {
+    all_names.clear();
+    all_names.push_back("Trypsin");
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      if ((*it)->getOMSSAID() != 0)
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
+  }
+
+  void ProteaseDB::getAllMSGFNames(vector<String>& all_names) const
+  {
+    all_names.clear();
+    for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+    {
+      if ((*it)->getMSGFID() != -1) // MS-GF+ starts enzyme numbering at 0
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
+  }
+
+} // namespace OpenMS

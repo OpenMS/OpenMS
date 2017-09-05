@@ -28,11 +28,20 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Xiao Liang  $
-// $Authors: Xiao Liang, Chris Bielow $
+// $Maintainer: Hendrik Weisser  $
+// $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
+#include <OpenMS/CHEMISTRY/RNaseDB.h>
 
-// implementation of template class is in the header file
+using namespace std;
+
+namespace OpenMS
+{
+  String RNaseDB::getDBFile_() const
+  {
+    return "CHEMISTRY/Enzymes_RNA.xml";
+  }
+
+} // namespace OpenMS

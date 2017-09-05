@@ -32,47 +32,46 @@
 // $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_ENZYMESDB_H
-#define OPENMS_CHEMISTRY_ENZYMESDB_H
+#ifndef OPENMS_CHEMISTRY_DIGESTIONENZYMEDB_H
+#define OPENMS_CHEMISTRY_DIGESTIONENZYMEDB_H
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <boost/unordered_map.hpp>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <boost/unordered_map.hpp>
 #include <set>
 
 namespace OpenMS
 {
-  // forward declarations
-  // class DigestionEnzyme;
+  /**
+    @ingroup Chemistry
 
-  /** @ingroup Chemistry
+    @brief Digestion enzyme database (base class)
 
-    @brief enzyme database which holds enzymes
-
-    The enzymes stored in this DB are defined in a
-    XML file under share/CHEMISTRY/Enzymes.xml
-
+    Template parameters: @p DigestionEnzymeType should be a subclass of DigestionEnzyme. @p InstanceType should be a subclass of DigestionEnzymeDB ("Curiously Recurring Template Pattern", see https://stackoverflow.com/a/34519373).
   */
-  class OPENMS_DLLAPI EnzymesDB
+  template<typename DigestionEnzymeType, typename InstanceType> class OPENMS_DLLAPI DigestionEnzymeDB
   {
-public:
+  public:
 
     /** @name Typedefs
     */
     //@{
-    typedef std::set<const DigestionEnzyme*>::const_iterator ConstEnzymeIterator;
-    typedef std::set<const DigestionEnzyme*>::iterator EnzymeIterator;
+    typedef typename std::set<const DigestionEnzymeType*>::const_iterator ConstEnzymeIterator;
+    typedef typename std::set<const DigestionEnzymeType*>::iterator EnzymeIterator;
     //@}
 
     /// this member function serves as a replacement of the constructor
-    inline static EnzymesDB* getInstance()
+    static InstanceType* getInstance()
     {
-      static EnzymesDB* db_ = 0;
+      static InstanceType* db_ = 0;
       if (db_ == 0)
       {
-        db_ = new EnzymesDB;
+        db_ = new InstanceType;
       }
       return db_;
     }
@@ -81,7 +80,10 @@ public:
     */
     //@{
     /// destructor
-    virtual ~EnzymesDB();
+    virtual ~DigestionEnzymeDB()
+    {
+      clear();
+    }
     //@}
 
     /** @name Accessors
@@ -90,48 +92,78 @@ public:
     /// returns a pointer to the enzyme with name (supports synonym names)
     /// @throw Exception::ElementNotFound if enzyme is unknown
     /// @note enzymes are registered in regular and in toLowercase() style, if unsure use toLowercase
-    const DigestionEnzyme* getEnzyme(const String& name) const;
+    const DigestionEnzymeType* getEnzyme(const String& name) const
+    {
+      if (enzyme_names_.find(name) == enzyme_names_.end())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
+      }
+      return enzyme_names_.at(name);
+    }
 
     /// returns a pointer to the enzyme with cleavage regex
     /// @throw Exception::IllegalArgument if enzyme regex  is unregistered.
-    const DigestionEnzyme* getEnzymeByRegEx(const String& cleavage_regex) const;
+    const DigestionEnzymeType* getEnzymeByRegEx(const String& cleavage_regex) const
+    {
+      if (!enzyme_regex_.has(cleavage_regex))
+      {
+        // @TODO: why does this use a different exception than "getEnzyme"?
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         String("Enzyme with regex " + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
+      }
+      return enzyme_regex_[cleavage_regex];
+    }
 
     /// load enzymes from given file
-    template <typename DigestionEnzymeType = DigestionEnzymeProtein>
-    void setEnzymes(const String& filename);
+    void setEnzymes(const String& filename)
+    {
+      clear();
+      readEnzymesFromFile_(filename);
+    }
 
     /// deletes all enzymes, resulting in an empty database
-    void clear();
+    void clear()
+    {
+      for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+      {
+        delete *it;
+      }
+      enzyme_names_.clear();
+      enzyme_regex_.clear();
+      const_enzymes_.clear();
+    }
 
     /// returns all the enzyme names (does NOT include synonym names)
-    void getAllNames(std::vector<String>& all_names) const;
-
-    /// returns all the enzyme names available for XTandem
-    void getAllXTandemNames(std::vector<String>& all_names) const;
-
-    /// returns all the enzyme names available for Comet
-    void getAllCometNames(std::vector<String>& all_names) const;
-
-    /// returns all the enzyme names available for OMSSA
-    void getAllOMSSANames(std::vector<String>& all_names) const;
-
-    /// returns all the enzyme names available for MSGFPlus
-    void getAllMSGFNames(std::vector<String>& all_names) const;
-
+    void getAllNames(std::vector<String>& all_names) const
+    {
+      all_names.clear();
+      for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
     //@}
-
 
     /** @name Predicates
     */
     //@{
     /// returns true if the db contains a enzyme with the given name (supports synonym names)
-    bool hasEnzyme(const String& name) const;
+    bool hasEnzyme(const String& name) const
+    {
+      return (enzyme_names_.find(name) != enzyme_names_.end());
+    }
 
     /// returns true if the db contains a enzyme with the given regex
-    bool hasRegEx(const String& cleavage_regex) const;
+    bool hasRegEx(const String& cleavage_regex) const
+    {
+      return enzyme_regex_.has(cleavage_regex);
+    }
 
     /// returns true if the db contains the enzyme of the given pointer
-    bool hasEnzyme(const DigestionEnzyme* enzyme) const;
+    bool hasEnzyme(const DigestionEnzymeType* enzyme) const
+    {
+      return (const_enzymes_.find(enzyme) != const_enzymes_.end() );
+    }
     //@}
 
     /** @name Iterators
@@ -141,37 +173,123 @@ public:
     inline ConstEnzymeIterator endEnzyme() const { return const_enzymes_.end(); }
 
     //@}
-protected:
-    EnzymesDB();
+  protected:
+    DigestionEnzymeDB()
+    {
+      const String& db_file = getDBFile_();
+      LOG_INFO << "DB file: " << db_file << std::endl;
+      if (!db_file.empty())
+      {
+        readEnzymesFromFile_(db_file);
+      }
+    }
 
     ///copy constructor
-    EnzymesDB(const EnzymesDB& enzymes_db);
+    DigestionEnzymeDB(const DigestionEnzymeDB& enzymes_db) = delete;
     //@}
 
     /** @name Assignment
     */
     //@{
     /// assignment operator
-    EnzymesDB& operator=(const EnzymesDB& enzymes_db);
+    DigestionEnzymeDB& operator=(const DigestionEnzymeDB& enzymes_db) = delete;
     //@}
 
-    /// reads enzymes from the given file
-    template <typename DigestionEnzymeType = DigestionEnzymeProtein>
-    void readEnzymesFromFile_(const String& filename);
+    /// get path to database file
+    virtual String getDBFile_() const
+    {
+      return "";
+    }
 
-    /// parses a enzyme, given the key/value pairs from i.e. an XML file
-    template <typename DigestionEnzymeType = DigestionEnzymeProtein>
-    const DigestionEnzyme* parseEnzyme_(Map<String, String>& values) const;
+    /// reads enzymes from the given file
+    void readEnzymesFromFile_(const String& filename)
+    {
+      String file = File::find(filename);
+
+      Param param;
+      ParamXMLFile paramFile;
+      paramFile.load(file, param);
+
+      if (!param.begin().getName().hasPrefix("Enzymes"))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param.begin().getName(), "prefix 'Enzymes' expected");
+      }
+
+      try
+      {
+        std::vector<String> split;
+        param.begin().getName().split(':', split);
+        String prefix = split[0] + split[1];
+
+        Map<String, String> values;
+
+        for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
+        {
+          it.getName().split(':', split);
+          if (prefix != split[0] + split[1])
+          {
+            // add enzyme
+            addEnzyme_(parseEnzyme_(values));
+            prefix = split[0] + split[1];
+            values.clear();
+          }
+          values[it.getName()] = it->value;
+        }
+
+        // add last enzyme
+        addEnzyme_(parseEnzyme_(values));
+      }
+      catch (Exception::BaseException& e)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, e.what(), "");
+      }
+    }
+
+    /// parses an enzyme, given the key/value pairs from i.e. an XML file
+    const DigestionEnzymeType* parseEnzyme_(Map<String, String>& values) const
+    {
+      DigestionEnzymeType* enzy_ptr = new DigestionEnzymeType();
+
+      for (Map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
+      {
+        const String& key = it->first;
+        const String& value = it->second;
+        if (!enzy_ptr->setValueFromFile_(key, value))
+        {
+          LOG_ERROR << "Error while parsing enzymes file: unknown key '" << key << "' with value '" << value << "'" << std::endl;
+        }
+      }
+      return enzy_ptr;
+    }
 
     // add to internal data; also update indices for search by name and regex
-    void addEnzyme_(const DigestionEnzyme* enzyme);
+    void addEnzyme_(const DigestionEnzymeType* enzyme)
+    {
+      // add to internal storage
+      const_enzymes_.insert(enzyme);
+      // add to internal indices (by name and its synonyms)
+      String name = enzyme->getName();
+      enzyme_names_[name] = enzyme;
+      enzyme_names_[name.toLower()] = enzyme;
+      for (std::set<String>::const_iterator it = enzyme->getSynonyms().begin(); it != enzyme->getSynonyms().end(); ++it)
+      {
+        enzyme_names_[*it] = enzyme;
+      }
+      // ... and by regex
+      if (enzyme->getRegEx() != "")
+      {
+        enzyme_regex_[enzyme->getRegEx()] = enzyme;
+      }
+      return;
+    }
 
-    boost::unordered_map<String, const DigestionEnzyme*> enzyme_names_;  // index by names
+    boost::unordered_map<String, const DigestionEnzymeType*> enzyme_names_;  // index by names
 
-    Map<String, const DigestionEnzyme*> enzyme_regex_; // index by regex
+    Map<String, const DigestionEnzymeType*> enzyme_regex_; // index by regex
 
-    std::set<const DigestionEnzyme*> const_enzymes_; // set of enzymes
+    std::set<const DigestionEnzymeType*> const_enzymes_; // set of enzymes
 
   };
 }
+
 #endif

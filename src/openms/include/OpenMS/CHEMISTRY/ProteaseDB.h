@@ -28,11 +28,47 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Xiao Liang  $
+// $Maintainer: Xiao Liang $
 // $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
-//
+
+#ifndef OPENMS_CHEMISTRY_PROTEASEDB_H
+#define OPENMS_CHEMISTRY_PROTEASEDB_H
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
-// implementation of template class is in the header file
+#include <vector>
+
+namespace OpenMS
+{
+  /**
+    @ingroup Chemistry
+
+    @brief Database for enzymes that digest proteins (proteases)
+
+    The enzymes stored in this DB are defined in an XML file under share/CHEMISTRY/Enzymes.xml.
+  */
+  class OPENMS_DLLAPI ProteaseDB: public DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>
+  {
+  protected:
+    /// get path to database file
+    virtual String getDBFile_() const;
+
+  public:
+    /// returns all the enzyme names available for XTandem
+    void getAllXTandemNames(std::vector<String>& all_names) const;
+
+    /// returns all the enzyme names available for Comet
+    void getAllCometNames(std::vector<String>& all_names) const;
+
+    /// returns all the enzyme names available for OMSSA
+    void getAllOMSSANames(std::vector<String>& all_names) const;
+
+    /// returns all the enzyme names available for MSGFPlus
+    void getAllMSGFNames(std::vector<String>& all_names) const;
+  };
+}
+
+#endif

@@ -28,11 +28,37 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Xiao Liang  $
-// $Authors: Xiao Liang, Chris Bielow $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
-//
+
+#ifndef OPENMS_CHEMISTRY_PROTEASEDB_H
+#define OPENMS_CHEMISTRY_PROTEASEDB_H
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
-// implementation of template class is in the header file
+#include <vector>
+
+namespace OpenMS
+{
+  /**
+    @ingroup Chemistry
+
+    @brief Database for enzymes that digest proteins (proteases)
+
+    The enzymes stored in this DB are defined in an XML file under share/CHEMISTRY/Enzymes.xml.
+  */
+  class OPENMS_DLLAPI RNaseDB: public DigestionEnzymeDB<DigestionEnzymeRNA, RNaseDB>
+  {
+  protected:
+    /// get path to database file
+    virtual String getDBFile_() const;
+
+    /// constructor
+    RNaseDB();
+  };
+}
+
+#endif
