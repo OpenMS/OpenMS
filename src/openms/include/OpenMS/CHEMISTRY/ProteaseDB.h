@@ -52,9 +52,12 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI ProteaseDB: public DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>
   {
+    // allow access to constructor in DigestionEnzymeDB::getInstance():
+    friend class DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>;
+
   protected:
-    /// get path to database file
-    virtual String getDBFile_() const;
+    /// constructor
+    ProteaseDB();
 
   public:
     /// returns all the enzyme names available for XTandem

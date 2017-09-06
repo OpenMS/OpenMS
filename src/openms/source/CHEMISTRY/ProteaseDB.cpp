@@ -39,9 +39,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  String ProteaseDB::getDBFile_() const
+  ProteaseDB::ProteaseDB():
+    DigestionEnzymeDB<DigestionEnzymeProtein, ProteaseDB>("CHEMISTRY/Enzymes.xml")
   {
-    return "CHEMISTRY/Enzymes.xml";
   }
 
   void ProteaseDB::getAllXTandemNames(vector<String>& all_names) const

@@ -46,16 +46,16 @@ namespace OpenMS
   /**
     @ingroup Chemistry
 
-    @brief Database for enzymes that digest proteins (proteases)
+    @brief Database for enzymes that digest RNA (RNases)
 
-    The enzymes stored in this DB are defined in an XML file under share/CHEMISTRY/Enzymes.xml.
+    The enzymes stored in this DB are defined in an XML file under share/CHEMISTRY/Enzymes_RNA.xml.
   */
   class OPENMS_DLLAPI RNaseDB: public DigestionEnzymeDB<DigestionEnzymeRNA, RNaseDB>
   {
-  protected:
-    /// get path to database file
-    virtual String getDBFile_() const;
+    // allow access to constructor in DigestionEnzymeDB::getInstance():
+    friend class DigestionEnzymeDB<DigestionEnzymeRNA, RNaseDB>;
 
+  protected:
     /// constructor
     RNaseDB();
   };

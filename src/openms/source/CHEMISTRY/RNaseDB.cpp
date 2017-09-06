@@ -39,9 +39,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  String RNaseDB::getDBFile_() const
+  RNaseDB::RNaseDB():
+    DigestionEnzymeDB<DigestionEnzymeRNA, RNaseDB>("CHEMISTRY/Enzymes_RNA.xml")
   {
-    return "CHEMISTRY/Enzymes_RNA.xml";
   }
 
 } // namespace OpenMS

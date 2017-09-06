@@ -174,10 +174,8 @@ namespace OpenMS
 
     //@}
   protected:
-    DigestionEnzymeDB()
+    DigestionEnzymeDB(const String& db_file = "")
     {
-      const String& db_file = getDBFile_();
-      LOG_INFO << "DB file: " << db_file << std::endl;
       if (!db_file.empty())
       {
         readEnzymesFromFile_(db_file);
@@ -194,12 +192,6 @@ namespace OpenMS
     /// assignment operator
     DigestionEnzymeDB& operator=(const DigestionEnzymeDB& enzymes_db) = delete;
     //@}
-
-    /// get path to database file
-    virtual String getDBFile_() const
-    {
-      return "";
-    }
 
     /// reads enzymes from the given file
     void readEnzymesFromFile_(const String& filename)
