@@ -82,7 +82,7 @@ public:
     virtual ~Spectrum3DOpenGLCanvas();
 
     ///helper function to replicate old behaviour of QGLWidget
-    //void renderText(double x, double y, double z, const QString & text, const QFont & font);
+    void renderText(double x, double y, double z, const QString & text, const QFont & font);
     ///helper function to replicate old behaviour of QGLWidget
     void qglColor(QColor color);
     ///helper function to replicate old behaviour of QGLWidget
