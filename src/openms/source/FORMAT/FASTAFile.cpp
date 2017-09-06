@@ -89,12 +89,12 @@ namespace OpenMS
 
   bool FASTAFile::readNext(FASTAEntry& protein)
   {
-    if (atEnd(*static_cast<FASTARecordReader*>(reader_.get())))
+    if (seqan::atEnd(*static_cast<FASTARecordReader*>(reader_.get())))
     { 
-      infile_.close();
+      // do NOT close(), since we still might want to seek to certain positions
       return false;
     }
-	String id, s;
+	  String id, s;
     if (readRecord(id, s, *static_cast<FASTARecordReader*>(reader_.get()), seqan::Fasta()) != 0)
     {
       if (entries_read_ == 0) s = "The first entry could not be read!";
@@ -102,8 +102,8 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTA file! " + s + " Please check the file!");
     }
     ++entries_read_;
-	s.removeWhitespaces();
-	protein.sequence = s; // assign here, since 's' might have higher capacity, thus wasting memory (usually 10-15%)
+	  s.removeWhitespaces();
+	  protein.sequence = s; // assign here, since 's' might have higher capacity, thus wasting memory (usually 10-15%)
 
     // handle id
     id.trim();
@@ -120,6 +120,21 @@ namespace OpenMS
     }
 
     return true;
+  }
+
+  std::streampos FASTAFile::position() const
+  {
+	  return seqan::position(*static_cast<FASTARecordReader*>(reader_.get()));
+  }
+
+  bool FASTAFile::setPosition(const std::streampos& pos)
+  {
+	  return (seqan::setPosition(*static_cast<FASTARecordReader*>(reader_.get()), pos) == 0);
+  }
+
+  bool FASTAFile::atEnd() const
+  {
+    return seqan::atEnd(*static_cast<FASTARecordReader*>(reader_.get()));
   }
 
   void FASTAFile::load(const String& filename, vector<FASTAEntry>& data)
