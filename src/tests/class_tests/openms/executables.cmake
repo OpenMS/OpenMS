@@ -369,6 +369,7 @@ set(chemistry_executables_list
   ModifierRep_test
   PepIterator_test
   ProteaseDB_test
+  ProteaseDigestion_test
   ResidueDB_test
   ResidueModification_test
   Residue_test
