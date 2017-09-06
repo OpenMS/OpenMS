@@ -269,12 +269,13 @@ namespace OpenMS
       }
       glCallList(axes_);
       glCallList(axes_ticks_);
-      drawAxesLegend();
       if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM || canvas_3d_.action_mode_ == SpectrumCanvas::AM_TRANSLATE)
       {
         glCallList(stickdata_);
       }
     }
+    if (canvas_3d_.getLayerCount() != 0) { drawAxesLegend(); }
+
     //Close painter
     painter.end();
     update();
