@@ -2477,7 +2477,7 @@ namespace OpenMS
     tab_bar_->setCurrentId(sw->getWindowId());
 
     //show first window maximized (only visible windows are in the list)
-    if (ws_->subWindowList().count() == 0)
+    if (ws_->subWindowList().count() == 1)
     {
       sw->showMaximized();
     }
