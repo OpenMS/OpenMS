@@ -161,18 +161,6 @@ START_SECTION((Size numMaps() const))
   TEST_EQUAL(kd_data_1.numMaps(), 1)
 END_SECTION
 
-START_SECTION((double rtTolerance() const))
-  TEST_REAL_SIMILAR(kd_data_1.rtTolerance(), 100)
-END_SECTION
-
-START_SECTION((double mzTolerance() const))
-  TEST_REAL_SIMILAR(kd_data_1.mzTolerance(), 10)
-END_SECTION
-
-START_SECTION((bool mzPPM() const))
-  TEST_EQUAL(kd_data_1.mzPPM(), true)
-END_SECTION
-
 START_SECTION((void clear()))
   kd_data_3.clear();
   TEST_EQUAL(kd_data_3.size(), 0)

@@ -367,7 +367,7 @@ END_SECTION
 
 START_SECTION((virtual void updateRanges()))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setMSLevel(1);
@@ -460,7 +460,7 @@ START_SECTION((virtual void updateRanges()))
 	//test with only one peak
 
 	PeakMap tmp2;
-	MSSpectrum< Peak1D > s2;
+	MSSpectrum s2;
 	Peak1D p2;
 
 	s2.setRT(30.0);
@@ -489,7 +489,7 @@ END_SECTION
 
 START_SECTION((void updateRanges(Int ms_level)))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setMSLevel(1);
@@ -550,7 +550,7 @@ START_SECTION((void updateRanges(Int ms_level)))
 	//test with only one peak
 
 	PeakMap tmp2;
-	MSSpectrum< Peak1D > s2;
+	MSSpectrum s2;
 	Peak1D p2;
 
 	s2.setRT(30.0);
@@ -657,7 +657,7 @@ END_SECTION
 
 START_SECTION((Iterator RTBegin(CoordinateType rt)))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setRT(30.0);
@@ -682,7 +682,7 @@ END_SECTION
 
 START_SECTION((Iterator RTEnd(CoordinateType rt)))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setRT(30.0);
@@ -707,7 +707,7 @@ END_SECTION
 
 START_SECTION((ConstIterator RTBegin(CoordinateType rt) const))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setRT(30.0);
@@ -732,7 +732,7 @@ END_SECTION
 
 START_SECTION((ConstIterator RTEnd(CoordinateType rt) const))
 	PeakMap tmp;
-	MSSpectrum< Peak1D > s;
+	MSSpectrum s;
 	Peak1D p;
 
 	s.setRT(30.0);
@@ -947,7 +947,7 @@ START_SECTION(void clear(bool clear_meta_data))
 	edit.resize(5);
 	edit.updateRanges();
 	edit.setMetaValue("label",String("bla"));
-	vector<MSChromatogram<> > tmp;
+	vector<MSChromatogram > tmp;
 	tmp.resize(5);
 	edit.setChromatograms(tmp);
 
@@ -961,7 +961,7 @@ END_SECTION
 
 START_SECTION((void sortChromatograms(bool sort_rt=true)))
   PeakMap exp;
-  MSChromatogram<> chrom1, chrom2;
+  MSChromatogram chrom1, chrom2;
   ChromatogramPeak p1, p2, p3;
   p1.setRT(0.3);
   p1.setIntensity(10.0f);
@@ -982,7 +982,7 @@ START_SECTION((void sortChromatograms(bool sort_rt=true)))
   chrom2.push_back(p2);
   chrom2.push_back(p3);
 
-  vector<MSChromatogram<> > chroms;
+  vector<MSChromatogram > chroms;
   chroms.push_back(chrom1);
   chroms.push_back(chrom2);
   exp.setChromatograms(chroms);
@@ -1009,9 +1009,9 @@ START_SECTION((void sortChromatograms(bool sort_rt=true)))
 
 END_SECTION
 
-START_SECTION((void setChromatograms(const std::vector< MSChromatogram< ChromatogramPeakType > > &chromatograms)))
+START_SECTION((void setChromatograms(const std::vector< MSChromatogram > &chromatograms)))
 	PeakMap exp;
-	MSChromatogram<> chrom1, chrom2;
+	MSChromatogram chrom1, chrom2;
 	ChromatogramPeak p1, p2, p3;
 	p1.setRT(0.1);
 	p1.setIntensity(10.0f);
@@ -1023,7 +1023,7 @@ START_SECTION((void setChromatograms(const std::vector< MSChromatogram< Chromato
 	chrom1.push_back(p2);
 	chrom2.push_back(p2);
 	chrom2.push_back(p3);
-	vector<MSChromatogram<> > chroms;
+	vector<MSChromatogram > chroms;
 	chroms.push_back(chrom1);
 	chroms.push_back(chrom2);
 	exp.setChromatograms(chroms);
@@ -1032,9 +1032,9 @@ START_SECTION((void setChromatograms(const std::vector< MSChromatogram< Chromato
 	TEST_EQUAL(exp.getChromatograms()[1] == chrom2, true)
 END_SECTION
 
-START_SECTION((void addChromatogram(const MSChromatogram< ChromatogramPeakType > &chromatogram)))
+START_SECTION((void addChromatogram(const MSChromatogram &chromatogram)))
   PeakMap exp;
-  MSChromatogram<> chrom1, chrom2;
+  MSChromatogram chrom1, chrom2;
   ChromatogramPeak p1, p2, p3;
   p1.setRT(0.1);
   p1.setIntensity(10.0f);
@@ -1057,13 +1057,13 @@ START_SECTION((void addChromatogram(const MSChromatogram< ChromatogramPeakType >
 	TEST_EQUAL(exp.getChromatograms()[1] == chrom2, true)	
 END_SECTION
 
-START_SECTION((const std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatograms() const))
+START_SECTION((const std::vector<MSChromatogram >& getChromatograms() const))
 	NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION((std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatograms()))
+START_SECTION((std::vector<MSChromatogram >& getChromatograms()))
   PeakMap exp;
-  vector<MSChromatogram<> > chromatograms(2);
+  vector<MSChromatogram > chromatograms(2);
   exp.getChromatograms().swap(chromatograms);
   TEST_EQUAL(exp.getChromatograms().size(), 2);
   TEST_EQUAL(chromatograms.size(), 0);
@@ -1072,7 +1072,7 @@ START_SECTION((std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatogr
   TEST_EQUAL(chromatograms.size(), 2);
 END_SECTION
 
-START_SECTION((const MSChromatogram<ChromatogramPeakType> getTIC() const))
+START_SECTION((const MSChromatogram getTIC() const))
   PeakMap tmp;
   tmp.resize(2);
   Peak1D p;
@@ -1086,7 +1086,7 @@ START_SECTION((const MSChromatogram<ChromatogramPeakType> getTIC() const))
   p.setIntensity(2);
   tmp[1].push_back(p);
   tmp.updateRanges();
-  MSChromatogram<> chrom = tmp.getTIC();
+  MSChromatogram chrom = tmp.getTIC();
   TEST_EQUAL(chrom.size(), 2);
   TEST_EQUAL(chrom[0].getIntensity(), 8);
   TEST_EQUAL(chrom[1].getIntensity(), 2);

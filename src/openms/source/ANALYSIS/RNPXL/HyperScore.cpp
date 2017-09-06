@@ -77,10 +77,10 @@ namespace OpenMS
     }
 
     // TODO this assumes only one StringDataArray is present and it is the right one
-    PeakSpectrum::StringDataArray ion_names;
+    const PeakSpectrum::StringDataArray* ion_names;
     if (theo_spectrum.getStringDataArrays().size() > 0)
     {
-      ion_names = theo_spectrum.getStringDataArrays()[0];
+      ion_names = &theo_spectrum.getStringDataArrays()[0];
     }
     else
     {
@@ -91,30 +91,31 @@ namespace OpenMS
     for (Size i = 0; i < theo_spectrum.size(); ++i)
     {
       const double theo_mz = theo_spectrum[i].getMZ();
-      const double theo_intensity = theo_spectrum[i].getIntensity();
 
       double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
       // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
       Size index = exp_spectrum.findNearest(theo_mz);
-      double exp_mz = exp_spectrum[index].getMZ();
+
+      const double exp_mz = exp_spectrum[index].getMZ();
+      const double theo_intensity = theo_spectrum[i].getIntensity();
 
       // found peak match
       if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
       {
         dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
-        if (ion_names[i][0] == 'y' || ion_names[i].hasSubstring("$y"))
+        if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
         {
           #ifdef DEBUG_HYPERSCORE
-            std::cout << ion_names[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
           #endif
           ++y_ion_count;
         }
-        else if (ion_names[i][0] == 'b' || ion_names[i].hasSubstring("$b"))
+        else if ((*ion_names)[i][0] == 'b' || (*ion_names)[i].hasSubstring("$b"))
         {
           #ifdef DEBUG_HYPERSCORE
-            std::cout << ion_names[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
           #endif
           ++b_ion_count;
         }

@@ -165,7 +165,7 @@ namespace OpenMS
     spec.setFloatDataArrays(PeakSpectrum::FloatDataArrays(1, error_annotations));
   }
 
-  void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum<Peak1D>& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
+  void SpectrumAnnotator::addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum& spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
   {
     if (!spec.empty())
     {
@@ -366,7 +366,7 @@ namespace OpenMS
           float nois_int = 0;
           size_t sign_count= 0;
           size_t nois_count = 0;
-          for (MSSpectrum<Peak1D>::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+          for (MSSpectrum::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
           {
             if (pt->getIntensity() <= median)
             {

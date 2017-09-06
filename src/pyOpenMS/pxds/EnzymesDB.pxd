@@ -5,7 +5,8 @@ from Enzyme cimport *
 cdef extern from "<OpenMS/CHEMISTRY/EnzymesDB.h>" namespace "OpenMS":
     
     cdef cppclass EnzymesDB "OpenMS::EnzymesDB":
-        # wrap-manual-memory
+        # wrap-manual-memory:
+        #     cdef AutowrapPtrHolder[_EnzymesDB] inst
 
         EnzymesDB() nogil except + #wrap-ignore
         EnzymesDB(EnzymesDB) nogil except + #wrap-ignore

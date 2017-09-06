@@ -224,7 +224,7 @@ public:
       std::vector< ChromatogramExtractor::ExtractionCoordinates > & coordinates,
       TransitionExpT& transition_exp_used,
       SpectrumSettings settings,
-      std::vector<OpenMS::MSChromatogram<> > & output_chromatograms,
+      std::vector<OpenMS::MSChromatogram > & output_chromatograms,
       bool ms1)
     {
       typedef std::map<String, const typename TransitionExpT::Transition* > TransitionMapType;
@@ -240,7 +240,7 @@ public:
         const ChromatogramExtractor::ExtractionCoordinates & coord = coordinates[i];
 
         // copy data
-        OpenMS::MSChromatogram<> chrom;
+        OpenMS::MSChromatogram chrom;
         OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromptr, chrom);
         chrom.setNativeID(coord.id);
 

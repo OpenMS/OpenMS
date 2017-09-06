@@ -714,7 +714,7 @@ protected:
 
         consensus_xml_file.load(in, consensus_map);
 
-  // extract common id and hit meta values
+        // extract common id and hit meta values
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
 
@@ -1294,13 +1294,13 @@ protected:
           Size output_count(0);
           Size unsupported_chromatogram_count(0);
 
-          for (vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+          for (vector<MSChromatogram >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
           {
             if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
             {
               ++output_count;
               output << "MRM Q1=" << it->getPrecursor().getMZ() << " Q3=" << it->getProduct().getMZ() << nl;
-              for (MSChromatogram<>::ConstIterator cit = it->begin(); cit != it->end(); ++cit)
+              for (MSChromatogram::ConstIterator cit = it->begin(); cit != it->end(); ++cit)
               {
                 output << cit->getRT() << " " << cit->getIntensity() << nl;
               }

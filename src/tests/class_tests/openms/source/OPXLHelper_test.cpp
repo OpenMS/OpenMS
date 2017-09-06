@@ -206,7 +206,7 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
 
 END_SECTION
 
-START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum))
+START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum))
   TheoreticalSpectrumGeneratorXLMS specGen;
   Param param = specGen.getParameters();
   param.setValue("add_isotopes", "false");
@@ -227,10 +227,10 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::Fragm
 
   OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment, theo_spec, exp_spec, 50, true);
 
-  std::vector<PeptideHit::FragmentAnnotation> frag_annotations;
+  std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 
   // test, that additional annotations are added and do not replace existing ones
-  PeptideHit::FragmentAnnotation frag_anno;
+  PeptideHit::PeakAnnotation frag_anno;
   frag_anno.annotation = "TEST";
   frag_anno.charge = 50;
   frag_anno.mz = 1.0;

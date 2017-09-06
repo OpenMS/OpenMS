@@ -35,32 +35,15 @@
 //not sure if more #include directives are needed
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/SYSTEM/JavaInfo.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
 #include <OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>
-
-#include <QtCore/QFile>
 #include <QtCore/QProcess>
 #include <QDir>
 #include <QDebug>
-#include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
-
 #include <QDirIterator>
-#include <regex>
 
 using namespace OpenMS;
 using namespace std;
@@ -92,7 +75,7 @@ using namespace std;
   @verbinclude UTILS_SiriusAdapter.cli
   <B>INI file documentation of this tool:</B>
   @htmlinclude UTILS_SiriusAdapter.html
-*/
+ */
 
 /// @cond TOPPCLASSES
 
@@ -101,33 +84,11 @@ class TOPPSiriusAdapter :
 {
 public:
   TOPPSiriusAdapter() :
-      TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false)
+    TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false)
   {
   }
 
 protected:
-
-  void removeTempFiles_(const String& tmp_dir, const String& ms_file)
-  {
-    if (tmp_dir.empty() && ms_file.empty())
-     {
-     return;
-     }
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + " and msfile at this location "+ ms_file + ". Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 0)
-      {
-        writeDebug_("Deleting temporary directory '" + tmp_dir +" and msfile " + ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::removeDir(tmp_dir.toQString()); // remove directory & subdirectories
-        File::remove(ms_file); // remove msfile
-      }
-    }
-  }
 
   static bool sortByScanIndex(const String & i, const String & j)
   {
@@ -137,27 +98,27 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("executable", "<executable>",
-    #if  defined(__APPLE__)
-      "sirius",
-    #else
-      "sirius-console-64.exe",
-    #endif
-      "sirius executable e.g. sirius", true, false, ListUtils::create<String>("skipexists"));
+#if  defined(__APPLE__)
+                       "sirius",
+#else
+                       "sirius-console-64.exe",
+#endif
+                       "sirius executable e.g. sirius", true, false, ListUtils::create<String>("skipexists"));
 
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
-    setValidFormats_("out_sirius", ListUtils::create<String>("csv"));
+    setValidFormats_("out_sirius", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out_CSIFingerID","<file>", "", "MzTab ouput file for CSI:FingerID", false);
-    setValidFormats_("out_CSIFingerID", ListUtils::create<String>("csv"));
+    registerOutputFile_("out_fingerid","<file>", "", "MzTab ouput file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
+    setValidFormats_("out_fingerid", ListUtils::create<String>("tsv"));
 
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
     setValidStrings_("profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
     registerIntOption_("candidates", "<num>", 5, "The number of candidates in the output. Default 5 best candidates", false);
     registerStringOption_("database", "<choice>", "all", "search formulas in given database", false);
-    setValidStrings_("database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));
+    setValidStrings_("database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));    
     registerIntOption_("noise", "<num>", 0, "median intensity of noise peaks", false);
     registerIntOption_("ppm_max", "<num>", 10, "allowed ppm for decomposing masses", false);
     registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring (default). Use 'omit' to ignore isotope pattern.", false);
@@ -169,7 +130,6 @@ protected:
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("iontree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
-    registerFlag_("fingerid", "If this option is set, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
   }
 
   ExitCodes main_(int, const char **)
@@ -179,29 +139,38 @@ protected:
     //-------------------------------------------------------------
 
     String in = getStringOption_("in");
-    String out1 = getStringOption_("out_sirius");
-    String out2 = getStringOption_("out_CSIFingerID");
+    String out_sirius = getStringOption_("out_sirius");
+    String out_csifingerid = getStringOption_("out_fingerid");
 
     // needed for counting
-    int number = getIntOption_("number");
-    number = number + 1; //needed to write the correct number of compounds
+    int number_compounds = getIntOption_("number"); 
 
     // Parameter for Sirius3
     QString executable = getStringOption_("executable").toQString();
-    QString profile = getStringOption_("profile").toQString();
-    QString elements = getStringOption_("elements").toQString();
-    QString database = getStringOption_("database").toQString();
-    QString isotope = getStringOption_("isotope").toQString();
-    QString noise = QString::number(getIntOption_("noise"));
-    QString ppm_max = QString::number(getIntOption_("ppm_max"));
-    QString candidates = QString::number(getIntOption_("candidates"));
-
-    QString path_to_executable = File::path(getStringOption_("executable")).toQString();
+    const QString profile = getStringOption_("profile").toQString();
+    const QString elements = getStringOption_("elements").toQString();
+    const QString database = getStringOption_("database").toQString();
+    const QString isotope = getStringOption_("isotope").toQString();
+    const QString noise = QString::number(getIntOption_("noise"));
+    const QString ppm_max = QString::number(getIntOption_("ppm_max"));
+    const QString candidates = QString::number(getIntOption_("candidates"));
 
     bool auto_charge = getFlag_("auto_charge");
     bool no_recalibration = getFlag_("no_recalibration");
-    bool fingerid = getFlag_("fingerid");
     bool iontree = getFlag_("iontree");
+
+    //-------------------------------------------------------------
+    // Determination of the Executable
+    //-------------------------------------------------------------
+
+    // Parameter executable not provided
+    if (executable.isEmpty())
+    {
+      const QProcessEnvironment env;
+      const QString & qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
+      executable = qsiriuspathenv.isEmpty() ? "sirius" : qsiriuspathenv;
+    }
+    const QString & path_to_executable = File::path(executable).toQString();
 
     //-------------------------------------------------------------
     // Calculations
@@ -213,24 +182,17 @@ protected:
     f.load(in, spectra);
     std::vector<String> subdirs;
 
+    QString tmp_base_dir = File::getTempDirectory().toQString();
+    QString tmp_dir = QDir(tmp_base_dir).filePath(File::getUniqueName().toQString());
+
+    String tmp_ms_file = QDir(tmp_base_dir).filePath((File::getUniqueName() + ".ms").toQString());
+    String out_dir = QDir(tmp_dir).filePath("sirius_out");
+
     //Write msfile
-    String tmp_dir = QDir::toNativeSeparators(String(File::getTempDirectory()).toQString()) + "/" + String(File::getUniqueName()).toQString();
-    String tmp_ms_file = tmp_dir + "/" + "msfile";
-    String out_dir = tmp_dir + "/" + "sirius_out";
     SiriusMSFile::store(spectra, tmp_ms_file);
 
-    //Knime hack
-    QProcessEnvironment env;
-    String siriuspath = "SIRIUS_PATH";
-    QString qsiriuspath = env.systemEnvironment().value(siriuspath.toQString());
-
-    if (!qsiriuspath.isEmpty())
-    {
-      executable = qsiriuspath;
-    }
-
-    //Start Sirius
-    QStringList process_params; // the actual process
+    // Assemble SIRIUS parameters
+    QStringList process_params;
     process_params << "-p" << profile
                    << "-e" << elements
                    << "-d" << database
@@ -239,13 +201,14 @@ protected:
                    << "--candidates" << candidates
                    << "--ppm-max" << ppm_max
                    << "--quiet"
-                   << "--output" << out_dir.toQString(); //internal output folder for temporary
+                   << "--output" << out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
 
+    // Add flags
     if (no_recalibration)
     {
       process_params << "--no-recalibration";
     }
-    if (fingerid)
+    if (!out_csifingerid.empty())
     {
       process_params << "--fingerid";
     }
@@ -260,16 +223,22 @@ protected:
 
     process_params << tmp_ms_file.toQString();
 
+    // The actual process
     QProcess qp;
-    qp.workingDirectory();
     qp.setWorkingDirectory(path_to_executable); //since library paths are relative to sirius executable path
     qp.start(executable, process_params); // does automatic escaping etc... start
-    bool success = qp.waitForFinished(-1); // wait till job is finished
+    const bool success = qp.waitForFinished(-1); // wait till job is finished
     qp.close();
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      writeLog_( "Fatal error: Running SiriusAdapter returned an error code or could no compute the input" );
+      writeLog_( "FATAL: External invocation of Sirius failed. Standard output and error were:");
+      const QString sirius_stdout(qp.readAllStandardOutput());
+      const QString sirius_stderr(qp.readAllStandardOutput());
+      writeLog_(sirius_stdout);
+      writeLog_(sirius_stderr);
+
+      return EXTERNAL_PROGRAM_ERROR;
     }
 
     //-------------------------------------------------------------
@@ -289,20 +258,36 @@ protected:
     //Convert sirius_output to mztab and store file
     MzTab sirius_result;
     MzTabFile siriusfile;
-    SiriusMzTabWriter::read(subdirs, number, sirius_result);
-    siriusfile.store(out1, sirius_result);
+    SiriusMzTabWriter::read(subdirs, number_compounds, sirius_result);
+    siriusfile.store(out_sirius, sirius_result);
 
     //Convert sirius_output to mztab and store file
-    if (!out2.empty() && fingerid == true)
+    if (out_csifingerid.empty() == false)
     {
       MzTab csi_result;
       MzTabFile csifile;
-      CsiFingerIdMzTabWriter::read(subdirs, number, csi_result);
-      csifile.store(out2, csi_result);
+      CsiFingerIdMzTabWriter::read(subdirs, number_compounds, csi_result);
+      csifile.store(out_csifingerid, csi_result);
     }
 
-    //clean tmp directory
-    removeTempFiles_(tmp_dir, tmp_ms_file);
+    //clean tmp directory if debug level < 2
+    if (debug_level_ >= 2)
+    {
+      writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
+    }
+    else
+    {
+      if (tmp_dir.isEmpty() == false)
+      {
+        writeDebug_("Deleting temporary directory '" + String(tmp_dir) + "'. Set debug level to 2 or higher to keep it.", 0);
+        File::removeDir(tmp_dir);
+      }
+      if (tmp_ms_file.empty() == false)
+      {
+        writeDebug_("Deleting temporary msfile '" + tmp_ms_file + "'. Set debug level to 2 or higher to keep it.", 0);
+        File::remove(tmp_ms_file); // remove msfile
+      }
+    }
 
     return EXECUTION_OK;
   }

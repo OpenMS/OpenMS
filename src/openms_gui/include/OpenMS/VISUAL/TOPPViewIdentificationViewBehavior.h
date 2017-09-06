@@ -121,7 +121,7 @@ private:
   String n_times(Size n, String input);
 
   /// Helper function, that turns fragment annotations into coverage Strings for visuaization with the sequence
-  void extractCoverageStrings(std::vector<PeptideHit::FragmentAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);
+  void extractCoverageStrings(std::vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);
 
   /// Helper function, that collapses a vector of Strings into one String
   String collapseStringVector(std::vector<String> strings);

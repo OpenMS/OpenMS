@@ -238,8 +238,8 @@ class TOPPOpenSwathMzMLFileCacher
           meta_exp[i].push_back(exp_reading[i][j]);
         }
       }
-      std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp_reading.getChromatograms();
-      std::vector<MSChromatogram<ChromatogramPeak> > old_chromatograms = meta_exp.getChromatograms();
+      std::vector<MSChromatogram > chromatograms = exp_reading.getChromatograms();
+      std::vector<MSChromatogram > old_chromatograms = meta_exp.getChromatograms();
       for (Size i=0; i<chromatograms.size(); ++i)
       {
         for (Size j = 0; j < chromatograms[i].size(); j++)

@@ -73,7 +73,7 @@ namespace OpenMS
     // Also transform chromatograms
     for (Size i = 0; i < msexp.getNrChromatograms(); ++i)
     {
-      MSChromatogram<ChromatogramPeak>& chromatogram = msexp.getChromatogram(i);
+      MSChromatogram& chromatogram = msexp.getChromatogram(i);
       vector<double> original_rts;
       if (store_original_rt) original_rts.reserve(chromatogram.size());
       for (Size j = 0; j < chromatogram.size(); j++)

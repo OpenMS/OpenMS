@@ -11,5 +11,5 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>" namespac
         SpectrumAlignmentScore() nogil except +
         SpectrumAlignmentScore(SpectrumAlignmentScore) nogil except +
 
-        double operator()(MSSpectrum[Peak1D] &, MSSpectrum[Peak1D] &) nogil except + #wrap-ignore
-        double operator()(MSSpectrum[Peak1D] &) nogil except + #wrap-ignore
+        double operator()(MSSpectrum &, MSSpectrum &) nogil except + #wrap-ignore
+        double operator()(MSSpectrum &) nogil except + #wrap-ignore
