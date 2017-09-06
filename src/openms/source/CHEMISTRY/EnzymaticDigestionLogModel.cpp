@@ -164,7 +164,7 @@ namespace OpenMS
     while (iterator != protein.end())
     {
       ++count;
-      nextCleavageSite_(protein,iterator)
+      nextCleavageSite_(protein,iterator);
     }
     Size sum = count;
     return sum;
@@ -178,7 +178,7 @@ namespace OpenMS
     AASequence::ConstIterator end = protein.begin();
     while (end != protein.end())
     {
-      nextCleavageSite_(protein, end)
+      nextCleavageSite_(protein, end);
       output.push_back(protein.getSubsequence(begin - protein.begin(), end - begin));
       begin = end;
     }
