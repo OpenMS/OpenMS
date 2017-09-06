@@ -244,8 +244,9 @@ namespace OpenMS
   {
     // Start a painter for renderText here? If you add this you will
     // get errors and nothing but axes will be painted.
-    //QPainter painter(this);
-    //painter.begin(this);
+    QPainter painter(this);
+    painter.begin(this);
+    // painter.beginNativePainting();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
@@ -275,7 +276,7 @@ namespace OpenMS
       }
     }
     //Close painter
-    //painter.end();
+    painter.end();
     update();
   }
 
