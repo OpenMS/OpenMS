@@ -1115,16 +1115,16 @@ public:
     _M_empty_initialise();
     // this is slow:
     // this->insert(begin(), __x.begin(), __x.end());
-    // this->optimize();
+    // this->optimise();
 
     // this is much faster, as it skips a lot of useless work
     // do the optimisation before inserting
-    // Needs to be stored in a vector first as _M_optimize()
+    // Needs to be stored in a vector first as _M_optimise()
     // sorts the data in the passed iterators directly.
     std::vector<value_type> temp;
     temp.reserve(__x.size());
     std::copy(__x.begin(),__x.end(),std::back_inserter(temp));
-    _M_optimize(temp.begin(), temp.end(), 0);
+    _M_optimise(temp.begin(), temp.end(), 0);
   }
 
   template<typename _InputIterator>
@@ -1137,16 +1137,16 @@ public:
     _M_empty_initialise();
     // this is slow:
     // this->insert(begin(), __first, __last);
-    // this->optimize();
+    // this->optimise();
 
     // this is much faster, as it skips a lot of useless work
     // do the optimisation before inserting
-    // Needs to be stored in a vector first as _M_optimize()
+    // Needs to be stored in a vector first as _M_optimise()
     // sorts the data in the passed iterators directly.
     std::vector<value_type> temp;
     temp.reserve(std::distance(__first,__last));
     std::copy(__first,__last,std::back_inserter(temp));
-    _M_optimize(temp.begin(), temp.end(), 0);
+    _M_optimise(temp.begin(), temp.end(), 0);
 
     // NOTE: this will BREAK users that are passing in
     // read-once data via the iterator...
@@ -1165,11 +1165,11 @@ public:
   //
   // Paul: I use this when I have already built up a vector of data
   // that I want to add, and I don't mind if its contents get shuffled
-  // by the kdtree optimize routine.
-  void efficient_replace_and_optimize( std::vector<value_type> & writable_vector )
+  // by the kdtree optimise routine.
+  void efficient_replace_and_optimise( std::vector<value_type> & writable_vector )
   {
     this->clear();
-    _M_optimize(writable_vector.begin(), writable_vector.end(), 0);
+    _M_optimise(writable_vector.begin(), writable_vector.end(), 0);
   }
 
 
@@ -1184,16 +1184,16 @@ public:
       _M_cmp = __x._M_cmp;
       // this is slow:
       // this->insert(begin(), __x.begin(), __x.end());
-      // this->optimize();
+      // this->optimise();
 
       // this is much faster, as it skips a lot of useless work
       // do the optimisation before inserting
-      // Needs to be stored in a vector first as _M_optimize()
+      // Needs to be stored in a vector first as _M_optimise()
       // sorts the data in the passed iterators directly.
       std::vector<value_type> temp;
       temp.reserve(__x.size());
       std::copy(__x.begin(),__x.end(),std::back_inserter(temp));
-      efficient_replace_and_optimize(temp);
+      efficient_replace_and_optimise(temp);
     }
     return *this;
   }
@@ -1277,7 +1277,7 @@ public:
   typedef std::reverse_iterator<iterator> reverse_iterator;
 
   // Note: the static_cast in end() is invalid (_M_header is not convertable to a _Link_type), but
-  // that's ok as it just means undefined behaviour if the user dereferences the end() iterator.
+  // thats ok as it just means undefined behaviour if the user dereferences the end() iterator.
 
   const_iterator begin() const { return const_iterator(_M_get_leftmost()); }
   const_iterator end() const { return const_iterator(static_cast<_Link_const_type>(&_M_header)); }
@@ -1570,17 +1570,17 @@ public:
   }
 
   void
-  optimize()
+  optimise()
   {
     std::vector<value_type> __v(this->begin(),this->end());
     this->clear();
-    _M_optimize(__v.begin(), __v.end(), 0);
+    _M_optimise(__v.begin(), __v.end(), 0);
   }
 
   void
   optimize()
   { // cater for people who cannot spell :)
-    this->optimize();
+    this->optimise();
   }
 
   void check_tree()
@@ -1683,7 +1683,7 @@ protected:
       _S_set_right(_S_parent(dead_dad), step_dad);
 
     // deal with the left and right edges of the tree...
-    // if the dead_dad was at the edge, then substitute...
+    // if the dead_dad was at the edge, then substitude...
     // but if there IS no new dead, then left_most is the dead_dad's parent
     if (dead_dad == _M_get_leftmost())
       _M_set_leftmost( (step_dad ? step_dad : _S_parent(dead_dad)) );
@@ -2001,7 +2001,7 @@ protected:
 
   template <typename _Iter>
   void
-  _M_optimize(_Iter const& __A, _Iter const& __B,
+  _M_optimise(_Iter const& __A, _Iter const& __B,
               size_type const __L)
   {
     if (__A == __B) return;
@@ -2009,8 +2009,8 @@ protected:
     _Iter __m = __A + (__B - __A) / 2;
     std::nth_element(__A, __m, __B, compare);
     this->insert(*__m);
-    if (__m != __A) _M_optimize(__A, __m, __L+1);
-    if (++__m != __B) _M_optimize(__m, __B, __L+1);
+    if (__m != __A) _M_optimise(__A, __m, __L+1);
+    if (++__m != __B) _M_optimise(__m, __B, __L+1);
   }
 
   _Link_const_type
