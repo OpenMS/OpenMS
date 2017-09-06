@@ -21,6 +21,7 @@ ModificationsDB.h
 ModifierRep.h
 PepIterator.h
 ProteaseDB.h
+ProteaseDigestion.h
 Residue.h
 ResidueDB.h
 ResidueModification.h

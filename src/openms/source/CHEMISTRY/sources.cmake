@@ -21,6 +21,7 @@ ModificationsDB.cpp
 ModifierRep.cpp
 PepIterator.cpp
 ProteaseDB.cpp
+ProteaseDigestion.cpp
 Residue.cpp
 ResidueDB.cpp
 ResidueModification.cpp
