@@ -36,14 +36,14 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm>
 
@@ -114,10 +114,10 @@ public:
     OpenMS::Size filter_rejected;
 
 private:
-    EnzymaticDigestion enzyme_;
+    ProteaseDigestion enzyme_;
 
 public:
-    explicit FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
+    explicit FoundProteinFunctor(const ProteaseDigestion& enzyme) :
       pep_to_prot(), filter_passed(0), filter_rejected(0), enzyme_(enzyme)
     {
     }
@@ -154,8 +154,7 @@ public:
                 const OpenMS::String& seq_pep, const OpenMS::String& protein,
                 OpenMS::Size position)
     {
-      if (enzyme_.isValidProduct(protein, position,
-                                 seq_pep.length(), true))
+      if (enzyme_.isValidProduct(protein, position, seq_pep.length(), true))
       {
         PeptideProteinMatchInformation match;
         match.protein_index = idx_prot;
@@ -475,7 +474,7 @@ DefaultParamHandler("PeptideIndexing")
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    EnzymaticDigestion enzyme;
+    ProteaseDigestion enzyme;
     enzyme.setEnzyme(enzyme_name_);
     enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
 

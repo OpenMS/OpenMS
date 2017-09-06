@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -445,7 +446,7 @@ namespace OpenMS
   void ProteinResolver::buildingISDGroups_(vector<ProteinEntry> & protein_nodes, vector<PeptideEntry> & peptide_nodes,
                                            vector<ISDGroup> & isd_groups)
   {
-    EnzymaticDigestion digestor;
+    ProteaseDigestion digestor;
     String enzyme_name = param_.getValue("resolver:enzyme");
     digestor.setEnzyme(enzyme_name);
     UInt min_size = param_.getValue("resolver:min_length");

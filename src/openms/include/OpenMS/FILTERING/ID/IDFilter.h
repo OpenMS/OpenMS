@@ -36,7 +36,7 @@
 #define OPENMS_FILTERING_ID_IDFILTER_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -347,20 +347,20 @@ public:
 
       // Build an accession index to avoid the linear search cost
       GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry>accession_resolver_;
-      EnzymaticDigestion& digestion_;
+      ProteaseDigestion& digestion_;
       bool ignore_missed_cleavages_;
       bool methionine_cleavage_;
 
       DigestionFilter(std::vector<FASTAFile::FASTAEntry>& entries,
-                      EnzymaticDigestion& digestion,
+                      ProteaseDigestion& digestion,
                       bool ignore_missed_cleavages,
-                      bool methionine_cleavage) : 
-        accession_resolver_(entries), 
+                      bool methionine_cleavage) :
+        accession_resolver_(entries),
         digestion_(digestion),
         ignore_missed_cleavages_(ignore_missed_cleavages),
         methionine_cleavage_(methionine_cleavage)
       {}
- 
+
       bool operator()(const PeptideEvidence& evidence) const
       {
         if(!evidence.hasValidLimits())
@@ -368,29 +368,28 @@ public:
           LOG_WARN << "Invalid limits! Peptide '" << evidence.getProteinAccession() << "' not filtered" << std::endl;
           return true;
         }
-        
-        if(accession_resolver_.exists(evidence))
+
+        if (accession_resolver_.exists(evidence))
         {
           return digestion_.isValidProduct(
             AASequence::fromString(accession_resolver_.getValue(evidence).sequence),
-            evidence.getStart(), evidence.getEnd() - evidence.getStart(), methionine_cleavage_, ignore_missed_cleavages_);
+            evidence.getStart(), evidence.getEnd() - evidence.getStart(), ignore_missed_cleavages_, methionine_cleavage_);
         }
         else
         {
-          if(evidence.getProteinAccession().empty())
+          if (evidence.getProteinAccession().empty())
           {
             LOG_WARN << "Peptide accession not available! Skipping Evidence." << std::endl;
           }
           else
           {
-            LOG_WARN << "Peptide accession '" << 
-              evidence.getProteinAccession() << 
-              "' not found in fasta file!" << std::endl;
+            LOG_WARN << "Peptide accession '" << evidence.getProteinAccession()
+                     << "' not found in fasta file!" << std::endl;
           }
           return true;
         }
       }
-      
+
       void filterPeptideEvidences(std::vector<PeptideIdentification>& peptides)
       {
         IDFilter::FilterPeptideEvidences<IDFilter::DigestionFilter>(*this,peptides);
