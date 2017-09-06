@@ -40,11 +40,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  DigestionEnzymeRNA::DigestionEnzymeRNA() :
-    DigestionEnzyme("unknown_RNase", "", set<String>(), "")
-  {
-  }
-
   enum DigestionEnzyme::Substrate DigestionEnzymeRNA::getSubstrate() const
   {
     return DigestionEnzyme::RNA;

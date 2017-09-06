@@ -48,10 +48,6 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI DigestionEnzymeRNA: public DigestionEnzyme
   {
-  public:
-    /// default constructor
-    DigestionEnzymeRNA();
-
   protected:
     /// returns the substrate (here: RNA)
     enum DigestionEnzyme::Substrate getSubstrate() const;
