@@ -41,7 +41,7 @@ using namespace std;
 namespace OpenMS
 {
   DigestionEnzymeProtein::DigestionEnzymeProtein() :
-    DigestionEnzyme("unknown_enzyme", "", set<String>(), ""),
+    DigestionEnzyme(),
     n_term_gain_(""),
     c_term_gain_(""),
     psi_id_(""),
