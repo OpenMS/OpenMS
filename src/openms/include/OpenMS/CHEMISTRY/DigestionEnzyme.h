@@ -104,7 +104,7 @@ namespace OpenMS
     void addSynonym(const String& synonym);
 
     /// returns the synonyms
-    std::set<String> getSynonyms() const;
+    const std::set<String>& getSynonyms() const;
 
     /// sets the cleavage regex
     void setRegEx(const String& cleavage_regex);

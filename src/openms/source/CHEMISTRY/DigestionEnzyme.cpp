@@ -105,7 +105,7 @@ namespace OpenMS
     synonyms_.insert(synonym);
   }
 
-  set<String> DigestionEnzyme::getSynonyms() const
+  const set<String>& DigestionEnzyme::getSynonyms() const
   {
     return synonyms_;
   }
