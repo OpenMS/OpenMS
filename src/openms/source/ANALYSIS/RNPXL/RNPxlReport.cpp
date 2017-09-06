@@ -99,11 +99,11 @@ namespace OpenMS
 
     // marker ion fields
     RNPxlMarkerIonExtractor::MarkerIonsType marker_ions = RNPxlMarkerIonExtractor::extractMarkerIons(PeakSpectrum(), 0.0); // call only to generate header entries
-    for (RNPxlMarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    for (const auto & ma : marker_ions)
     {
-      for (Size i = 0; i != it->second.size(); ++i)
+      for (Size i = 0; i != ma.second.size(); ++i)
       {
-        sl << String(it->first + "_" + it->second[i].first);
+        sl << String(ma.first + "_" + ma.second[i].first);
       }
     }
     sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H" << "fragment_annotation";
