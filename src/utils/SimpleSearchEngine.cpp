@@ -42,8 +42,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
@@ -156,7 +156,7 @@ class SimpleSearchEngine :
       registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
 
       vector<String> all_enzymes;
-      EnzymesDB::getInstance()->getAllNames(all_enzymes);
+      ProteaseDB::getInstance()->getAllNames(all_enzymes);
       registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
       setValidStrings_("enzyme", all_enzymes);
 
@@ -398,7 +398,7 @@ class SimpleSearchEngine :
       search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
       search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
       search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+      search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
       protein_ids[0].setSearchParameters(search_parameters);
     }
 
@@ -508,7 +508,7 @@ class SimpleSearchEngine :
       progresslogger.endProgress();
 
       const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
-      EnzymaticDigestion digestor;
+      ProteaseDigestion digestor;
       digestor.setEnzyme(getStringOption_("enzyme"));
       digestor.setMissedCleavages(missed_cleavages);
 
@@ -532,12 +532,12 @@ class SimpleSearchEngine :
         }
 
         vector<StringView> current_digest;
-        digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
+        digestor.digest(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
 
         for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
         {
           if (cit->getString().has('X')) continue;
-        
+
           bool already_processed = false;
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)

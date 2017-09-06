@@ -36,7 +36,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -438,8 +438,8 @@ protected:
       vector<FASTAFile::FASTAEntry> fasta;
       FASTAFile().load(protein_fasta, fasta);
 
-      // Configure Enzymatic digestion
-      EnzymaticDigestion digestion;
+      // Configure digestion
+      ProteaseDigestion digestion;
       String enzyme = getStringOption_("digest:enzyme").trim();
       if (!enzyme.empty())
       {
@@ -463,7 +463,7 @@ protected:
         }
         digestion.setMissedCleavages(missed_cleavages);
       }
-      
+
       bool methionine_cleavage = false;
       if (getFlag_("digest:methionine_cleavage"))
       {
@@ -471,9 +471,9 @@ protected:
       }
 
       // Build the digest filter function
-      IDFilter::DigestionFilter filter(fasta, 
-                                       digestion, 
-                                       ignore_missed_cleavages, 
+      IDFilter::DigestionFilter filter(fasta,
+                                       digestion,
+                                       ignore_missed_cleavages,
                                        methionine_cleavage);
       // Filter peptides
       filter.filterPeptideEvidences(peptides);
