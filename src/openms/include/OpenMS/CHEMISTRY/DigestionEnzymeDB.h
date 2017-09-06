@@ -199,35 +199,34 @@ namespace OpenMS
       String file = File::find(filename);
 
       Param param;
-      ParamXMLFile paramFile;
-      paramFile.load(file, param);
+      ParamXMLFile().load(file, param);
+      if (param.empty()) return;
 
-      if (!param.begin().getName().hasPrefix("Enzymes"))
+      std::vector<String> split;
+      param.begin().getName().split(':', split);
+      if (split[0] != "Enzymes")
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param.begin().getName(), "prefix 'Enzymes' expected");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, split[0], "name 'Enzymes' expected");
       }
 
       try
       {
-        std::vector<String> split;
-        param.begin().getName().split(':', split);
-        String prefix = split[0] + split[1];
-
         Map<String, String> values;
-
+        String previous_enzyme = split[1];
+        // this iterates over all the "ITEM" elements in the XML file:
         for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
         {
           it.getName().split(':', split);
-          if (prefix != split[0] + split[1])
+          if (split[0] != "Enzymes") break; // unexpected content in the XML file
+          if (split[1] != previous_enzyme)
           {
-            // add enzyme
+            // add enzyme and reset:
             addEnzyme_(parseEnzyme_(values));
-            prefix = split[0] + split[1];
+            previous_enzyme = split[1];
             values.clear();
           }
           values[it.getName()] = it->value;
         }
-
         // add last enzyme
         addEnzyme_(parseEnzyme_(values));
       }
@@ -237,7 +236,7 @@ namespace OpenMS
       }
     }
 
-    /// parses an enzyme, given the key/value pairs from i.e. an XML file
+    /// parses an enzyme, given the key/value pairs from an XML file
     const DigestionEnzymeType* parseEnzyme_(Map<String, String>& values) const
     {
       DigestionEnzymeType* enzy_ptr = new DigestionEnzymeType();
