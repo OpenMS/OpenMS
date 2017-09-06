@@ -34,15 +34,12 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<PeptideHit score="40" sequence="MDCDEFGKADCRA" charge="2" >
-				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 			<PeptideHit score="40" sequence="MDCDEFGKADCRAAAKAAR" charge="2" >
-				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 			<PeptideHit score="40" sequence="MDCDEFGKADCRAAAKAARPDDDD" charge="2" >
-				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -56,15 +53,12 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<PeptideHit score="40" sequence="DCDEFGKADCRA" charge="2" >
-				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 			<PeptideHit score="40" sequence="DCDEFGKADCRAAAKAAR" charge="2" >
-				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 			<PeptideHit score="40" sequence="DCDEFGKADCRAAAKAARPDDDD" charge="2" >
-				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -78,11 +72,9 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<PeptideHit score="0.0001" sequence="DEFGK" charge="2" >
-				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 			<PeptideHit score="0.0001" sequence="GKADCRAA" charge="2" >
-				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 		</PeptideIdentification>

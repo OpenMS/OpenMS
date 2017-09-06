@@ -45,7 +45,6 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<PeptideHit score="40" sequence="MDCDEFGKADCRAAAKAARPDDDD" charge="2" >
-				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -67,7 +66,6 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<PeptideHit score="40" sequence="DCDEFGKADCRAAAKAARPDDDD" charge="2" >
-				<UserParam type="string" name="target_decoy" value=""/>
 				<UserParam type="string" name="protein_references" value="unmatched"/>
 			</PeptideHit>
 		</PeptideIdentification>
