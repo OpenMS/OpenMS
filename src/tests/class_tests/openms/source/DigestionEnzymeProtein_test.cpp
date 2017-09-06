@@ -38,52 +38,50 @@
 
 ///////////////////////////
 
-#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 using namespace OpenMS;
 using namespace std;
 
 ///////////////////////////
 
-START_TEST(DigestionEnzyme, "$Id$")
+START_TEST(DigestionEnzymeProtein, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-DigestionEnzyme* e_ptr = 0;
-/*
-DigestionEnzyme* e_nullPointer = 0;
+DigestionEnzymeProtein* e_ptr = 0;
+DigestionEnzymeProtein* e_null = 0;
 
-START_SECTION((DigestionEnzyme()))
-	e_ptr = new DigestionEnzyme();
-	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+START_SECTION((DigestionEnzymeProtein()))
+	e_ptr = new DigestionEnzymeProtein();
+	TEST_NOT_EQUAL(e_ptr, e_null)
 END_SECTION
-*/
 
-START_SECTION((virtual ~DigestionEnzyme()))
+START_SECTION((virtual ~DigestionEnzymeProtein()))
 	delete e_ptr;
 END_SECTION
 
-EnzymesDB* db = EnzymesDB::getInstance();
-e_ptr = new DigestionEnzyme(*db->getEnzyme("Trypsin"));
+ProteaseDB* db = ProteaseDB::getInstance();
+e_ptr = new DigestionEnzymeProtein(*db->getEnzyme("Trypsin"));
 
 String RKP("(?<=[RKP])(?!P)");
 
-START_SECTION(DigestionEnzyme(const DigestionEnzyme& enzyme))
-	DigestionEnzyme copy(*e_ptr);
+START_SECTION(DigestionEnzymeProtein(const DigestionEnzymeProtein& enzyme))
+	DigestionEnzymeProtein copy(*e_ptr);
 	TEST_EQUAL(copy, *e_ptr)
 END_SECTION
 
-START_SECTION(DigestionEnzyme(const String& name,
-                              const String& cleavage_regex,
-                              const std::set<String> & synonyms,
-                              String regex_description,
-                              EmpiricalFormula n_term_gain,
-                              EmpiricalFormula c_term_gain,
-                              String psi_id,
-                              String xtandem_id,
-                              UInt omssa_id))
-	DigestionEnzyme copy(e_ptr->getName(), e_ptr->getRegEx(), e_ptr->getSynonyms(), e_ptr->getRegExDescription(), e_ptr->getNTermGain(), e_ptr->getCTermGain(), e_ptr->getPSIID(), e_ptr->getXTandemID(), e_ptr->getOMSSAID());
+START_SECTION(DigestionEnzymeProtein(const String& name,
+                                     const String& cleavage_regex,
+                                     const std::set<String> & synonyms,
+                                     String regex_description,
+                                     EmpiricalFormula n_term_gain,
+                                     EmpiricalFormula c_term_gain,
+                                     String psi_id,
+                                     String xtandem_id,
+                                     UInt omssa_id))
+	DigestionEnzymeProtein copy(e_ptr->getName(), e_ptr->getRegEx(), e_ptr->getSynonyms(), e_ptr->getRegExDescription(), e_ptr->getNTermGain(), e_ptr->getCTermGain(), e_ptr->getPSIID(), e_ptr->getXTandemID(), e_ptr->getOMSSAID());
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 	TEST_EQUAL(copy.getRegEx(), e_ptr->getRegEx())
   TEST_EQUAL(copy.getRegExDescription(), e_ptr->getRegExDescription())
@@ -94,14 +92,14 @@ START_SECTION(DigestionEnzyme(const String& name,
   TEST_EQUAL(copy.getOMSSAID(), e_ptr->getOMSSAID())
 END_SECTION
 
-START_SECTION(DigestionEnzyme& operator=(const DigestionEnzyme& enzyme))
-  DigestionEnzyme copy("","");
+START_SECTION(DigestionEnzymeProtein& operator=(const DigestionEnzymeProtein& enzyme))
+  DigestionEnzymeProtein copy("","");
   copy = *e_ptr;
   TEST_EQUAL(copy, *e_ptr)
 END_SECTION
 
 START_SECTION(void setName(const String& name))
-  DigestionEnzyme copy(*e_ptr);
+  DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setName("PepsinA");
   TEST_NOT_EQUAL(copy, *e_ptr)
 END_SECTION
@@ -111,7 +109,7 @@ START_SECTION(const String& getName() const)
 END_SECTION
 
 START_SECTION(void setSynonyms(const std::set<String>& synonyms))
-  DigestionEnzyme copy(*e_ptr);
+  DigestionEnzymeProtein copy(*e_ptr);
   set<String> syn;
   syn.insert("BLI");
   syn.insert("BLA");
@@ -120,7 +118,7 @@ START_SECTION(void setSynonyms(const std::set<String>& synonyms))
 END_SECTION
 
 START_SECTION(void addSynonym(const String& synonym))
-  DigestionEnzyme copy(*e_ptr);
+  DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->addSynonym("Tryp");
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
@@ -130,7 +128,7 @@ START_SECTION(const std::set<String>& getSynonyms() const)
 END_SECTION
 
 START_SECTION(void setRegEx(const String& cleavage_regex))
-  DigestionEnzyme copy(*e_ptr);
+  DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setRegEx(RKP);
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
@@ -140,7 +138,7 @@ START_SECTION(const String& getRegEx() const)
 END_SECTION
 
 START_SECTION(void setRegExDescription(String value))
-  DigestionEnzyme copy(*e_ptr);
+  DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setRegExDescription("cutting after R K unless followed by P");
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
@@ -150,7 +148,7 @@ START_SECTION(String getRegExDescription() const)
 END_SECTION
 
 START_SECTION(void setNTermGain(EmpiricalFormula value))
-  DigestionEnzyme copy(*e_ptr);
+  DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setNTermGain(EmpiricalFormula("H2"));
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
@@ -160,7 +158,7 @@ START_SECTION(EmpiricalFormula getNTermGain() const)
 END_SECTION
 
 START_SECTION(void setCTermGain(EmpiricalFormula value))
-  DigestionEnzyme copy(*e_ptr);
+  DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setCTermGain(EmpiricalFormula("OH2"));
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
@@ -170,7 +168,7 @@ START_SECTION(EmpiricalFormula getCTermGain() const)
 END_SECTION
 
 START_SECTION(void setPSIID(String value))
-  DigestionEnzyme copy(*e_ptr);
+  DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setPSIID("MS:000");
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
@@ -180,7 +178,7 @@ START_SECTION(String getPSIID() const)
 END_SECTION
 
 START_SECTION(void setXTandemID(String value))
-  DigestionEnzyme copy(*e_ptr);
+  DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setXTandemID("[]|[]");
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
@@ -190,7 +188,7 @@ START_SECTION(String getXTandemID() const)
 END_SECTION
 
 START_SECTION(void setOMSSAID(UInt value))
-  DigestionEnzyme copy(*e_ptr);
+  DigestionEnzymeProtein copy(*e_ptr);
   e_ptr->setOMSSAID(2);
   TEST_NOT_EQUAL(*e_ptr, copy)
 END_SECTION
@@ -199,8 +197,8 @@ START_SECTION(UInt getOMSSAID() const)
   TEST_EQUAL(e_ptr->getOMSSAID(), 2)
 END_SECTION
 
-START_SECTION(bool operator==(const DigestionEnzyme& enzyme) const)
-  DigestionEnzyme r("","");
+START_SECTION(bool operator==(const DigestionEnzymeProtein& enzyme) const)
+  DigestionEnzymeProtein r("","");
   r = *e_ptr;
   TEST_EQUAL(r == *e_ptr, true)
   r.setName("other_name");
@@ -244,8 +242,8 @@ START_SECTION(bool operator==(const DigestionEnzyme& enzyme) const)
   TEST_EQUAL(r == *e_ptr, false)
 END_SECTION
 
-START_SECTION(bool operator!=(const DigestionEnzyme& enzyme) const)
-  DigestionEnzyme r("","");
+START_SECTION(bool operator!=(const DigestionEnzymeProtein& enzyme) const)
+  DigestionEnzymeProtein r("","");
   r = *e_ptr;
   TEST_EQUAL(r != *e_ptr, false)
   r.setName("other_name");

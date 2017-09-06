@@ -353,7 +353,7 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
-  DigestionEnzyme_test
+  DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
