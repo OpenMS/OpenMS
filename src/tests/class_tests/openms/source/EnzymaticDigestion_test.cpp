@@ -45,7 +45,7 @@ using namespace std;
 
 ///////////////////////////
 
-START_TEST(ProteaseDigestion, "$Id$")
+START_TEST(EnzymaticDigestion, "$Id$")
 
 /////////////////////////////////////////////////////////////
 EnzymaticDigestion* ed_ptr = 0;
@@ -56,7 +56,7 @@ START_SECTION((EnzymaticDigestion()))
     TEST_NOT_EQUAL(ed_ptr, ed_null)
 END_SECTION
 
-START_SECTION([EXTRA] ~EnzymaticDigestion())
+START_SECTION([EXTRA] virtual ~EnzymaticDigestion())
     delete ed_ptr;
 END_SECTION
 

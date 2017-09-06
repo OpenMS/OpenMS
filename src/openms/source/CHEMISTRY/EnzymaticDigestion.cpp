@@ -55,6 +55,10 @@ namespace OpenMS
   {
   }
 
+  EnzymaticDigestion::~EnzymaticDigestion()
+  {
+  }
+
   Size EnzymaticDigestion::getMissedCleavages() const
   {
     return missed_cleavages_;

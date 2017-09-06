@@ -77,6 +77,9 @@ public:
     /// Default constructor
     EnzymaticDigestion();
 
+    /// Destructor
+    virtual ~EnzymaticDigestion();
+
     /// Returns the number of missed cleavages for the digestion
     Size getMissedCleavages() const;
 
