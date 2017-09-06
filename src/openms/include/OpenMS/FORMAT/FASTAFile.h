@@ -49,7 +49,7 @@ namespace OpenMS
   /**
     @brief This class serves for reading in and writing FASTA files
 
-    You can use aggegate methods load() and store() to read/write a
+    You can use aggregate methods load() and store() to read/write a
     set of protein sequences at the cost of memory.
     
     Or use single read/write of protein sequences using readStart(), readNext()
