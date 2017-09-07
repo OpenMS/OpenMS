@@ -174,7 +174,8 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    PeptideIndexing::ExitCodes indexer_exit = indexer.run(FASTAContainer<TFI_File>(db_name), prot_ids, pep_ids);
+    FASTAContainer<TFI_File> proteins(db_name);
+    PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
 	
 	  //-------------------------------------------------------------
 	  // calculate protein coverage

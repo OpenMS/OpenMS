@@ -84,8 +84,8 @@ public:
   FASTAContainer(const String& FASTA_file)
     : f_(),
     offsets_(),
-    data_bg_(),
     data_fg_(),
+    data_bg_(),
     chunk_offset_(0)
   {
     f_.readStart(FASTA_file);

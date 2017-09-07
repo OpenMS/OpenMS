@@ -141,7 +141,8 @@ public:
     /// forward for old interface and pyOpenMS; use run<T>() for more control
     inline ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
     {
-      return run(FASTAContainer<TFI_Vector>(proteins), prot_ids, pep_ids);
+      FASTAContainer<TFI_Vector> protein_container(proteins);
+      return run<TFI_Vector>(protein_container, prot_ids, pep_ids);
     }
 
     /**

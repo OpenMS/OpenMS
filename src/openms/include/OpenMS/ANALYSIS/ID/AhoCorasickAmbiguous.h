@@ -324,8 +324,6 @@ namespace seqan
     {
       SEQAN_CHECKPOINT
       max_ambAA = max_AAA;
-      typedef typename Value<TNeedle>::Type TKeyword;
-      typedef typename Value<TKeyword>::Type TAlphabet;
       if (std::numeric_limits<TSize>::max() < length(ndl)) // check 4 billion peptide limit; use length(ndl) directly, since TSize might be too small
       {
         throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, "Pattern<FuzzyAC>(PeptideSet)", std::string("Input contains more than 2^32 peptides. Cannot create trie.").c_str(), OpenMS::String(length(ndl)));
@@ -582,9 +580,8 @@ namespace seqan
   {
     assert(isAmbiguous(c));
 
-	  DEBUG_ONLY std::cout << "found AAA: " << c << "\n";
+    DEBUG_ONLY std::cout << "found AAA: " << c << "\n";
     typedef typename Size<AAcid>::Type TSize;
-    typedef typename Pattern<TNeedle, FuzzyAC>::KeyWordLengthType KeyWordLengthType;
     typedef typename Pattern<TNeedle, FuzzyAC>::TVert TVert;
     TSize idxFirst, idxLast;
     _getSpawnRange(c, idxFirst, idxLast);
@@ -610,16 +607,14 @@ namespace seqan
   {
     assert(isAmbiguous(c));
 
-	  DEBUG_ONLY std::cout << "\n\ntrying to spawn from spawn on AAA: " << c << " with path: " << getPath(me, spawn.current_state) << "\n";
+    DEBUG_ONLY std::cout << "\n\ntrying to spawn from spawn on AAA: " << c << " with path: " << getPath(me, spawn.current_state) << "\n";
     typedef typename Size<AAcid>::Type TSize;
-    typedef typename Pattern<TNeedle, FuzzyAC>::KeyWordLengthType KeyWordLengthType;
     TSize idxFirst, idxLast;
     _getSpawnRange(c, idxFirst, idxLast);
     for (TSize idx = idxFirst + 1; idx <= idxLast; ++idx) // first iteration is left for the parent
     {
       Spawn<TNeedle> spawn2 = spawn; // a potential spawn
-      AAcid cc = AAcid(idx);
-      //std::cout << "spawn aa is " << cc << "\n";
+      //std::cout << "spawn aa is " << AAcid(idx) << "\n";
       if (_consumeChar(me, dh, spawn2, AAcid(idx), Tag<FixedAASpec>()))
       {
         // Spawn2 inherits the depths from its parent
@@ -680,10 +675,15 @@ namespace seqan
     return true;
   }
 
+#ifdef NDEBUG  
+  template<class TNeedle> inline std::string getPath(const Pattern<TNeedle, FuzzyAC>& /*me*/, typename Pattern<TNeedle, FuzzyAC>::TVert /*current_state*/)
+  {
+    return "";
+  }
+#else
   /// for debug only
   template<class TNeedle> inline std::string getPath(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert current_state)
   {
-#ifndef NDEBUG
     if (atRoot(me, current_state)) return "";
 
     typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.parentMap, current_state);
@@ -691,10 +691,8 @@ namespace seqan
     while(targetVertex(it) != current_state) ++it;
     char c = (label(it));
     return getPath(me, suffix_node) + c;
-#else
-    return "";
-#endif
   }
+#endif
 
   template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, FuzzyAC>& me, Spawn<TNeedle>& spawn) {return spawn.current_state == getRoot(me.data_graph);}
   template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert& current_state)
