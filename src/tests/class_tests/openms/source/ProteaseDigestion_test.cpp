@@ -245,6 +245,10 @@ START_SECTION((void digest(const AASequence &protein, std::vector<AASequence>&ou
     TEST_EQUAL(out.size(), 4*3/2)
 END_SECTION
 
+START_SECTION((bool isValidProduct(const String& protein, Size pep_pos, Size pep_length, bool ignore_missed_cleavages, bool methionine_cleavage)))
+    NOT_TESTABLE // tested by overload below
+END_SECTION
+
 START_SECTION((bool isValidProduct(const AASequence& protein, Size pep_pos, Size pep_length, bool ignore_missed_cleavages, bool methionine_cleavage)))
     ProteaseDigestion pd;
     pd.setEnzyme("Trypsin");

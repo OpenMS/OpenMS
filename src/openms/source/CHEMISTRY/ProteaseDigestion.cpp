@@ -50,6 +50,21 @@ namespace OpenMS
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
   }
 
+  bool ProteaseDigestion::isValidProduct(const String& protein,
+                                          Size pep_pos,
+                                          Size pep_length,
+                                          bool ignore_missed_cleavages,
+                                          bool methionine_cleavage) const
+  {
+    if (methionine_cleavage && (pep_pos == 1) && (protein[0] == 'M'))
+    {
+      // check the N-terminal peptide for a C-terminal cleavage site:
+      pep_pos = 0;
+      pep_length++;
+    }
+    return EnzymaticDigestion::isValidProduct(protein, pep_pos, pep_length, ignore_missed_cleavages);
+  }
+
   bool ProteaseDigestion::isValidProduct(const AASequence& protein,
                                          Size pep_pos,
                                          Size pep_length,
@@ -57,13 +72,7 @@ namespace OpenMS
                                          bool methionine_cleavage) const
   {
     String seq = protein.toUnmodifiedString();
-    if (methionine_cleavage && (pep_pos == 1) && (seq[0] == 'M'))
-    {
-      // check the N-terminal peptide for a C-terminal cleavage site:
-      pep_pos = 0;
-      pep_length++;
-    }
-    return EnzymaticDigestion::isValidProduct(seq, pep_pos, pep_length, ignore_missed_cleavages);
+    return isValidProduct(seq, pep_pos, pep_length, ignore_missed_cleavages, methionine_cleavage);
   }
 
   Size ProteaseDigestion::peptideCount(const AASequence& protein)

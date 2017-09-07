@@ -154,7 +154,7 @@ public:
                 const OpenMS::String& seq_pep, const OpenMS::String& protein,
                 OpenMS::Size position)
     {
-      if (enzyme_.isValidProduct(protein, position, seq_pep.length(), true))
+      if (enzyme_.isValidProduct(protein, position, seq_pep.length(), true, true))
       {
         PeptideProteinMatchInformation match;
         match.protein_index = idx_prot;
