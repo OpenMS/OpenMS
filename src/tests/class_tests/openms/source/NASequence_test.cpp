@@ -88,6 +88,13 @@ START_SECTION(NASequence size())
   TEST_EQUAL(seq.size(), 0);
   seq.setSequence("UGG");
   TEST_EQUAL(seq.size(), 3);
+  // don't count terminal phosphate in sequence length:
+  seq.setSequence("pUGG");
+  TEST_EQUAL(seq.size(), 3);
+  seq.setSequence("UGGp");
+  TEST_EQUAL(seq.size(), 3);
+  seq.setSequence("pUGGp");
+  TEST_EQUAL(seq.size(), 3);
 }
 END_SECTION
 
@@ -126,11 +133,11 @@ START_SECTION(NASequence getMonoWeight(Residue::ResidueType type, Int charge))
   TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::DIon, -1), 1034.133);
   TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::AminusB, -2), 802.117);
 
-  seq = NASequence("pAAUCCAUGp");
+  seq.setSequence("pAAUCCAUGp");
   TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::Full, 0), 2652.312);
-  seq = NASequence("ACCAAAGp");
+  seq.setSequence("ACCAAAGp");
   TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::Full, 0), 2289.348);
-  seq = NASequence("AUUCACCC");
+  seq.setSequence("AUUCACCC");
   TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::Full, 0), 2428.362);
 }
 END_SECTION
