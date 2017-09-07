@@ -10,7 +10,6 @@ DecoyDatabase
 DeMeanderize
 Digestor
 DigestorMotif
-DigestorRNA
 ERPairFinder
 FeatureFinderSuperHirn
 FFEval
@@ -43,6 +42,7 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
+RNADigestor
 RNPxl
 RNPxlXICFilter
 RNPxlSearch

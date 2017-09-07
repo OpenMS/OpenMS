@@ -189,7 +189,6 @@ namespace OpenMS
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);
     util_map["Digestor"] = Internal::ToolDescription("Digestor", util_category);
     util_map["DigestorMotif"] = Internal::ToolDescription("DigestorMotif", util_category);
-    util_map["DigestorRNA"] = Internal::ToolDescription("DigestorRNA", util_category);
     util_map["ERPairFinder"] = Internal::ToolDescription("ERPairFinder", util_category);
     util_map["FFEval"] = Internal::ToolDescription("FFEval", util_category);
     util_map["FuzzyDiff"] = Internal::ToolDescription("FuzzyDiff", util_category);
@@ -228,6 +227,7 @@ namespace OpenMS
     util_map["QCImporter"] = Internal::ToolDescription("QCImporter", util_category);
     util_map["QCMerger"] = Internal::ToolDescription("QCMerger", util_category);
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
+    util_map["RNADigestor"] = Internal::ToolDescription("RNADigestor", util_category);
     util_map["RNPxl"] = Internal::ToolDescription("RNPxl", util_category);
     util_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);

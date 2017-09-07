@@ -45,14 +45,14 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_DigestorRNA DigestorRNA
+   @page UTILS_RNADigestor RNADigestor
 
     @brief Digests an RNA sequence database in-silico.
 <CENTER>
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ Digestor \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ RNADigestor \f$ \longrightarrow \f$</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
@@ -65,20 +65,20 @@ using namespace std;
     This application is used to digest an RNA sequence database to get all fragments given a cleavage enzyme.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_DigestorRNA.cli
+    @verbinclude UTILS_RNADigestor.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_DigestorRNA.html
+    @htmlinclude UTILS_RNADigestor.html
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPDigestorRNA :
+class TOPPRNADigestor :
   public TOPPBase
 {
 public:
-  TOPPDigestorRNA() :
-    TOPPBase("DigestorRNA", "Digests an RNA sequence database in-silico.", false)
+  TOPPRNADigestor() :
+    TOPPBase("RNADigestor", "Digests an RNA sequence database in-silico.", false)
   {
   }
 
@@ -173,7 +173,7 @@ protected:
 
 int main(int argc, const char** argv)
 {
-  TOPPDigestorRNA tool;
+  TOPPRNADigestor tool;
   return tool.main(argc, argv);
 }
 
