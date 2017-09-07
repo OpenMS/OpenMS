@@ -77,7 +77,7 @@ using namespace OpenMS;
   Resulting protein hits appear in the order of the FASTA file, except for orphaned proteins, which will appear first with an empty target_decoy metavalue.
   Duplicate protein accessions & sequences will not raise a warning, but create multiple hits (PeptideIndexer scans over the FASTA file once for efficiency
   reasons, and thus might not see all accessions & sequences at once).
-      
+
   All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". 
   For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) 
   as a suffix or prefix, respectively (see parameter @p prefix). 
@@ -140,7 +140,7 @@ protected:
     Param param_pi = indexer.getParameters();
     param_pi.update(param, false, Log_debug); // suppress param. update message
     indexer.setParameters(param_pi);
-	  indexer.setLogType(this->log_type_);
+    indexer.setLogType(this->log_type_);
     String db_name = getStringOption_("fasta");
     if (!File::readable(db_name))
     {
@@ -176,26 +176,26 @@ protected:
 
     FASTAContainer<TFI_File> proteins(db_name);
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(proteins, prot_ids, pep_ids);
-	
-	  //-------------------------------------------------------------
-	  // calculate protein coverage
-	  //-------------------------------------------------------------
+  
+    //-------------------------------------------------------------
+    // calculate protein coverage
+    //-------------------------------------------------------------
 
-	  if (param.getValue("write_protein_sequence").toBool())
-	  {
-		  for (Size i = 0; i < prot_ids.size(); ++i)
-		  {
-			  prot_ids[i].computeCoverage(pep_ids);
-		  }
-	  }
-	  //-------------------------------------------------------------
-	  // writing output
-	  //-------------------------------------------------------------
+    if (param.getValue("write_protein_sequence").toBool())
+    {
+      for (Size i = 0; i < prot_ids.size(); ++i)
+      {
+        prot_ids[i].computeCoverage(pep_ids);
+      }
+    }
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
     idxmlfile.store(out, prot_ids, pep_ids);
 
     if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
     {
-	    return INPUT_FILE_EMPTY;       
+      return INPUT_FILE_EMPTY;       
     }
     else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
     {
