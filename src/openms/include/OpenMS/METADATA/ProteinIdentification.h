@@ -116,7 +116,7 @@ public:
       bool fragment_mass_tolerance_ppm; ///< Mass tolerance unit of fragment ions (true: ppm, false: Dalton)
       double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
       bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
-      DigestionEnzymeProtein digestion_enzyme; ///< The cleavage site information in details (from EnzymesDB)
+      Protease digestion_enzyme; ///< The cleavage site information in details (from ProteaseDB)
 
       SearchParameters();
 
