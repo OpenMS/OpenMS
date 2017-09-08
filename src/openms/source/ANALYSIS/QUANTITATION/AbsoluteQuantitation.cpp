@@ -59,6 +59,14 @@
 
 namespace OpenMS
 {
+  
+  AbsoluteQuantitation::AbsoluteQuantitation()
+  {
+  }
+  
+  AbsoluteQuantitation::~AbsoluteQuantitation()
+  {
+  }
 
   double AbsoluteQuantitation::calculateRatio(Feature & component_1, Feature & component_2, std::string & feature_name)
   {
