@@ -60,8 +60,10 @@
 namespace OpenMS
 {
   
-  AbsoluteQuantitation::AbsoluteQuantitation()
+  AbsoluteQuantitation::AbsoluteQuantitation() :
+  DefaultParamHandler("AbsoluteQuantitation")
   {
+    //todo:  see MRMTransitionGroupPicker.cpp
   }
   
   AbsoluteQuantitation::~AbsoluteQuantitation()
