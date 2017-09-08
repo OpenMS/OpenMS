@@ -150,7 +150,7 @@ namespace OpenMS
 
        Returns whether the key was recognized and the value set successfully.
     */
-    virtual bool setValueFromFile_(const String& key, const String& value);
+    virtual bool setValueFromFile(const String& key, const String& value);
 
     /// ostream iterator to write the enzyme to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzyme& enzyme);

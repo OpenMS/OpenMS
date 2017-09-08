@@ -163,7 +163,7 @@ namespace OpenMS
     return this->getName() < enzyme.getName();
   }
 
-  bool DigestionEnzyme::setValueFromFile_(const String& key, const String& value)
+  bool DigestionEnzyme::setValueFromFile(const String& key, const String& value)
   {
     if (key.hasSuffix(":Name"))
     {

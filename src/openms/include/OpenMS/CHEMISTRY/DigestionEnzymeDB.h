@@ -245,7 +245,7 @@ namespace OpenMS
       {
         const String& key = it->first;
         const String& value = it->second;
-        if (!enzy_ptr->setValueFromFile_(key, value))
+        if (!enzy_ptr->setValueFromFile(key, value))
         {
           LOG_ERROR << "Error while parsing enzymes file: unknown key '" << key << "' with value '" << value << "'" << std::endl;
         }

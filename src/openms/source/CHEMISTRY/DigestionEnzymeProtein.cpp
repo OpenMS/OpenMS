@@ -213,9 +213,9 @@ namespace OpenMS
     return this->getName() < enzyme.getName();
   }
 
-  bool DigestionEnzymeProtein::setValueFromFile_(const String& key, const String& value)
+  bool DigestionEnzymeProtein::setValueFromFile(const String& key, const String& value)
   {
-    if (DigestionEnzyme::setValueFromFile_(key, value))
+    if (DigestionEnzyme::setValueFromFile(key, value))
     {
       return true;
     }
