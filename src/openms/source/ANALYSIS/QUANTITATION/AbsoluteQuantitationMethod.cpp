@@ -76,23 +76,23 @@ namespace OpenMS
   {
     if (transformation_model == "TransformationModelLinear")
     {
-      TransformationModelLinear::TransformationModelLinear tm;
+      TransformationModelLinear tm;
     }
     else if (transformation_model == "TransformationModelBSpline")
     {
-      TransformationModelBSpline::TransformationModelBSpline tm;
+      TransformationModelBSpline tm;
     }
     else if (transformation_model == "TransformationModelInterpolated")
     {
-      TransformationModelInterpolated::TransformationModelInterpolated tm;
+      TransformationModelInterpolated tm;
     }
     else if (transformation_model == "TransformationModelLowess")
     {
-      TransformationModelLowess::TransformationModelLowess tm;
+      TransformationModelLowess tm;
     }
     else
     {
-      TransformationModel::TransformationModel tm;
+      TransformationModel tm;
     }
     return tm;
   }
