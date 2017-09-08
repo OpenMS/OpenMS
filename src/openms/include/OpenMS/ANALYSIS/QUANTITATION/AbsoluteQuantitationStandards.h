@@ -80,10 +80,16 @@ public:
     */ 
     struct featureConcentration
     {
-      std::vector<Feature> features;
-      std::vector<double> actual_concentrations;
-      std::vector<std::string> concentration_units;
+      Feature feature;
+      double actual_concentration;
+      std::string concentration_units;
     };
+    
+     /**
+       @brief Structure to map runs to components to known concentrations
+ 
+     */ 
+     void mapConcentrationsToFeatures();
                                       
     // members
     std::map<std::string,std::vector<featureConcentration>> features_to_concentrations;

@@ -46,6 +46,32 @@
 
 namespace OpenMS
 {
+    
+  AbsoluteQuantitationMethod::AbsoluteQuantitationMethod() :
+  DefaultParamHandler("AbsoluteQuantitationMethod")
+  {
+    //todo:  see MRMTransitionGroupPicker.cpp
+  }
+  
+  AbsoluteQuantitationMethod::~AbsoluteQuantitationMethod()
+  {
+  }
+
+  bool checkLOD(const double & value)
+  {
+    //todo
+  }
+
+  bool checkLOQ(const double & value)
+  {
+    //todo
+  }
+
+  auto getTransformationModel(const std::string & transformation_model,
+    const std::string & transformation_model_params)
+  {
+    //todo
+  }
 
 } // namespace
 
