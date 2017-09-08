@@ -38,6 +38,8 @@
 // Interfaces
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <sqlite3.h>
@@ -58,6 +60,7 @@ namespace OpenMS
   {
     String output_filename_;
     String input_filename_;
+    OpenMS::UInt64 run_id_;
     bool doWrite_;
     bool use_ms1_traces_;
     bool sonar_;
@@ -68,6 +71,7 @@ namespace OpenMS
     OpenSwathOSWWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false, bool sonar = false, bool uis_scores = false) :
       output_filename_(output_filename),
       input_filename_(input_filename),
+      run_id_(OpenMS::UniqueIdGenerator::getUniqueId()),
       doWrite_(!output_filename.empty()),
       use_ms1_traces_(ms1_scores),
       sonar_(sonar),
@@ -108,10 +112,16 @@ namespace OpenMS
 
       // Create SQL structure
       const char * create_sql =
+        "CREATE TABLE RUN(" \
+        "ID INT PRIMARY KEY NOT NULL," \
+        "FILENAME TEXT NOT NULL); " \
+
         "CREATE TABLE FEATURE(" \
         "ID INT PRIMARY KEY NOT NULL," \
+        "RUN_ID INT NOT NULL," \
         "PRECURSOR_ID INT NOT NULL," \
-        "RT REAL NOT NULL," \
+        "EXP_RT REAL NOT NULL," \
+        "NORM_RT REAL NOT NULL," \
         "DELTA_RT REAL NOT NULL," \
         "LEFT_WIDTH REAL NOT NULL," \
         "RIGHT_WIDTH REAL NOT NULL); " \
@@ -177,10 +187,28 @@ namespace OpenMS
       rc = sqlite3_exec(db, create_sql, callback, 0, &zErrMsg);
       if( rc != SQLITE_OK )
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            zErrMsg);
+        std::string error_message = zErrMsg;
         sqlite3_free(zErrMsg);
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            error_message);
       }
+
+      // Insert run_id information
+      std::stringstream sql_run;
+      sql_run << "INSERT INTO RUN (ID, FILENAME) VALUES ("
+              << *(int64_t*)&run_id_ << ", '" // Conversion from UInt64 to int64_t to support SQLite
+              << input_filename_ << "'); ";
+
+      // Execute SQL insert statement
+      rc = sqlite3_exec(db, sql_run.str().c_str(), callback, 0, &zErrMsg);
+      if( rc != SQLITE_OK )
+      {
+        std::string error_message = zErrMsg;
+        sqlite3_free(zErrMsg);
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            error_message);
+      }
+
       sqlite3_close(db);
     }
 
@@ -206,20 +234,23 @@ namespace OpenMS
 
       for (FeatureMap::iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
       {
+        UInt64 uint64_feature_id = feature_it->getUniqueId();
+        int64_t feature_id = *(int64_t*)&uint64_feature_id; // Conversion from UInt64 to int64_t to support SQLite
+
         for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
         {
           if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
           {
             sql_feature_ms2_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY) VALUES (" 
-                                        << feature_it->getUniqueId() << ", " 
-                                        << (String)sub_it->getMetaValue("native_id") << ", " 
+                                        << feature_id << ", " 
+                                        << sub_it->getMetaValue("native_id") << ", " 
                                         << sub_it->getIntensity() << ", " 
                                         << sub_it->getMetaValue("peak_apex_int") << "); ";
           }
           else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
           {
             sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE) VALUES (" 
-                            << feature_it->getUniqueId() << ", " 
+                            << feature_id << ", " 
                             << sub_it->getIntensity() << ", " 
                             << sub_it->getMetaValue("peak_apex_int") << ", " 
                             << feature_it->getMetaValue("var_ms1_ppm_diff") << ", " 
@@ -230,9 +261,11 @@ namespace OpenMS
           }
         }
 
-        sql_feature << "INSERT INTO FEATURE (ID, PRECURSOR_ID, RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES (" 
-                    << feature_it->getUniqueId() << ", " 
+        sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES (" 
+                    << feature_id << ", '" 
+                    << *(int64_t*)&run_id_ << "', " 
                     << id << ", " 
+                    << feature_it->getRT() << ", " 
                     << feature_it->getMetaValue("norm_RT") << ", " 
                     << feature_it->getMetaValue("delta_rt") << ", " 
                     << feature_it->getMetaValue("leftWidth") << ", " 
@@ -270,7 +303,7 @@ namespace OpenMS
         }
 
         sql_feature_ms2 << "INSERT INTO FEATURE_MS2 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR, VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, VAR_LIBRARY_SANGLE, VAR_LOG_SN_SCORE, VAR_MANHATTAN_SCORE, VAR_MASSDEV_SCORE, VAR_MASSDEV_SCORE_WEIGHTED, VAR_NORM_RT_SCORE, VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ) VALUES (" 
-                        << feature_it->getUniqueId() << ", " 
+                        << feature_id << ", " 
                         << feature_it->getIntensity() << ", " 
                         << feature_it->getMetaValue("peak_apices_sum") << ", " 
                         << feature_it->getMetaValue("var_bseries_score") << ", " 
@@ -320,7 +353,7 @@ namespace OpenMS
             for (int i = 0; i < feature_it->getMetaValue("id_target_num_transitions").toString().toInt(); ++i)
             {
               sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
-                                          << feature_it->getUniqueId() << ", " 
+                                          << feature_id << ", " 
                                           << id_target_transition_names[i] << ", " 
                                           << id_target_area_intensity[i] << ", " 
                                           << id_target_apex_intensity[i] << ", " 
@@ -350,7 +383,7 @@ namespace OpenMS
             for (int i = 0; i < feature_it->getMetaValue("id_decoy_num_transitions").toString().toInt(); ++i)
             {
               sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
-                                          << feature_it->getUniqueId() << ", " 
+                                          << feature_id << ", " 
                                           << id_decoy_transition_names[i] << ", " 
                                           << id_decoy_area_intensity[i] << ", " 
                                           << id_decoy_apex_intensity[i] << ", " 
@@ -412,9 +445,10 @@ namespace OpenMS
         rc = sqlite3_exec(db, to_osw_output[i].c_str(), callback, 0, &zErrMsg);
         if( rc != SQLITE_OK )
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              zErrMsg);
+          std::string error_message = zErrMsg;
           sqlite3_free(zErrMsg);
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              error_message);
         }
       }
 

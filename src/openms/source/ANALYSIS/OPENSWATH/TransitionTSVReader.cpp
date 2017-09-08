@@ -1263,7 +1263,6 @@ namespace OpenMS
       {
         mytransition.label_type = pep.getMetaValue("LabelType").toString();
       }
-
     }
     else if (!it->getCompoundRef().empty())
     {
@@ -1390,6 +1389,10 @@ namespace OpenMS
     if (it->metaValueExists("annotation"))
     {
       mytransition.Annotation = it->getMetaValue("annotation").toString();
+    }
+    if (it->metaValueExists("Peptidoforms"))
+    {
+      it->getMetaValue("Peptidoforms").toString().split('|', mytransition.peptidoforms);
     }
     mytransition.detecting_transition = it->isDetectingTransition();
     mytransition.identifying_transition = it->isIdentifyingTransition();
