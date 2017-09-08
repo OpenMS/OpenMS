@@ -74,25 +74,27 @@ namespace OpenMS
 
   auto getTransformationModel(const std::string & transformation_model)
   {
+    TransformationModel::DataPoints data;
+    Parm param;
     if (transformation_model == "TransformationModelLinear")
     {
-      TransformationModelLinear tm;
+      TransformationModelLinear tm(data,param);
     }
     else if (transformation_model == "TransformationModelBSpline")
     {
-      TransformationModelBSpline tm;
+      TransformationModelBSpline tm(data,param);
     }
     else if (transformation_model == "TransformationModelInterpolated")
     {
-      TransformationModelInterpolated tm;
+      TransformationModelInterpolated tm(data,param);
     }
     else if (transformation_model == "TransformationModelLowess")
     {
-      TransformationModelLowess tm;
+      TransformationModelLowess tm(data,param);
     }
     else
     {
-      TransformationModel tm;
+      TransformationModel tm(data,param);
     }
     return tm;
   }
