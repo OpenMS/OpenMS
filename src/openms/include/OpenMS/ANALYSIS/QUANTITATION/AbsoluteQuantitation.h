@@ -32,8 +32,8 @@
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMQUANTIFICATION_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMQUANTIFICATION_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTITATION_H
+#define OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTITATION_H
 
 #include <OpenMS/config.h>
 
@@ -49,6 +49,11 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
+//Quantitation classes
+#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationStandards.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
+
+
 //Standard library
 #include <cstddef> // for size_t & ptrdiff_t
 #include <vector>
@@ -58,10 +63,10 @@ namespace OpenMS
 {
 
   /**
-    @brief MRMQuantification is a class to handle the relationship between
-    runs, transitions, and actual concentrations.
+    @brief AbsoluteQuantitation is a class to support absolute or relative quantitation for targeted or untargeted
+    quantitation workflows (e.g., Isotope Dilution Mass Spectrometry).
   */
-  class OPENMS_DLLAPI MRMQuantification
+  class OPENMS_DLLAPI AbsoluteQuantitation
   public DefaultParamHandler,
   public ProgressLogger
   {
@@ -69,10 +74,10 @@ namespace OpenMS
 public:    
     //@{
     /// Constructor
-    MRMQuantification();
+    AbsoluteQuantitation();
 
     /// Destructor
-    ~MRMQuantification();
+    ~AbsoluteQuantitation();
     //@}
  
     /**
@@ -87,7 +92,7 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    double calculateRatio(Feature & feature_1, Feature & feature_2, std::string feature_nme);
+    double calculateRatio(Feature & feature_1, Feature & feature_2, std::string feature_name);
                    
     /**
       @brief This function calculates the bias of the calibration.
@@ -106,16 +111,63 @@ public:
       @exception Exception::UnableToFit
     */ 
     double calculateBias(double & actual_concentration, double & calculated_concentration);
+            
+    /**
+      @brief This function optimizes the parameters of the calibration for a 
+        given component.
 
-    void optimizeCalibrationCurve(std::vector<MSExperiment>);
+      @param features list of features
+      @param transformation_model model used to fit the calibration points
+      @param transformation_model_params parameters used by the transformation_model
+
+      @exception Exception::UnableToFit
+    */ 
+    void optimizeCalibrationCurve(std::vector<Feature> & features,
+      std::string & transformation_model,
+      Param & transformation_model_params);
+        
+    /**
+      @brief This function optimizes the parameters of the calibration for a 
+        all components.
+
+    */ 
+    void optimizeCalibrationCurves();    
+
+    /**
+      @brief This function applies the calibration curve to the component.
+
+      @param feature the component to be quantified
+      @param IS_feature the internal standard (IS) of the component to be quantified.
+        This can be null if there is no IS for the component.
+      @param transformation_model model used to fit the calibration points
+      @param transformation_model_params parameters used by the transformation_model
+
+      @exception Exception::UnableToFit
+    */ 
+    void applyCalibration(Feature & feature,
+      Feature & IS_feature,
+      std::string & transformation_model,
+      Param & transformation_model_params);    
+      
+    /**
+      @brief This function applies the calibration curve to all components.
+
+    */ 
+    void quantifyComponents();    
     
     // members
-    std::string run_id;
-    std::string transition_id;
-    double actual_concentration;
+    /// map between features and quantitation methods
+    std::map<std::string,AbsoluteQuantitationMethod> quant_methods_;
+
+    /// map between features and known concentrations (the calibrators)
+    std::map<std::string,AbsoluteQuantitationStandards> standards_concentrations_;
+    
+    /// list of samples to quantify
+    std::vector<FeatureMap> unknowns_;
+
 
   };
 
 }
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMQUANTIFICATION_H
+#endif // OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTITATION_H
 

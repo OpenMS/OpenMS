@@ -32,8 +32,8 @@
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMQUANTIFICATIONCONCENTRATIONS_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMQUANTIFICATIONCONCENTRATIONS_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONSTANDARDS_H
+#define OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONSTANDARDS_H
 
 #include <OpenMS/config.h>
 
@@ -45,60 +45,50 @@ namespace OpenMS
 {
 
   /**
-    @brief MRMQuantificationConcentrations is a class to handle the relationship between
-    runs, transitions, and actual concentrations.
+    @brief AbsoluteQuantitationStandards is a class to handle the relationship between
+    runs, components, and actual concentrations.
   */
-  class OPENMS_DLLAPI MRMQuantificationConcentrations
+  class OPENMS_DLLAPI AbsoluteQuantitationStandards
   {
 
 public:    
     //@{
     /// Constructor
-    MRMQuantificationConcentrations();
+    AbsoluteQuantitationStandards();
 
     /// Destructor
-    ~MRMQuantificationConcentrations();
+    ~AbsoluteQuantitationStandards();
     //@}
- 
+   
     /**
-      @brief This function removes potential outliers in a linear regression dataset.
+      @brief Structure to map runs to features to known concentrations
 
-       Two thresholds need to be defined, first a lower R^2 limit to accept the
-       regression for the RT normalization and second, the lower limit of peptide
-       coverage. The algorithms then selects candidate outlier peptides using the
-       RANSAC outlier detection algorithm and returns the corrected set of peptides
-       if the two thresholds are satisfied.
-
-      @param pairs Input data (paired data of type <experimental_rt, theoretical_rt>)
-      @param rsq_limit Minimal R^2 required
-      @param coverage_limit Minimal coverage required (if the number of points
-       falls below this fraction, the algorithm aborts)
-      @param max_iterations Maximum iterations for the RANSAC algorithm
-      @param max_rt_threshold Maximum deviation from fit for the retention time.
-       This must be in the unit of the second dimension (e.g. theoretical_rt).
-      @param sampling_size The number of data points to sample for the RANSAC algorithm.
-
-      @return A vector of pairs is returned if the R^2 limit was reached without
-       reaching the coverage limit. If the limits are reached, an exception is
-       thrown.
-
-      @exception Exception::UnableToFit is thrown if fitting cannot be
-      performed (rsq_limit and coverage_limit cannot be fulfilled)
     */ 
-    static std::vector<std::pair<double, double> > removeOutliersRANSAC(std::vector<std::pair<double, double> >& pairs,
-        double rsq_limit,
-        double coverage_limit,
-        size_t max_iterations,
-        double max_rt_threshold,
-        size_t sampling_size);
+    struct runConcentrations
+    {
+      str::string run_id;
+      str::string feature_id;
+      double actual_concentration;
+      str::string concentration_units;
+    }
+
+    /**
+      @brief Structure to hold all features for a single component
+        with their corresponding known concentrations.
+
+    */ 
+    struct featureConcentrations
+    {
+      std::vector<Feature> features;
+      std::vector<double> actual_concentrations;
+      std::vector<str::string> concentration_units;
+    }
                                       
     // members
-    std::string run_id;
-    std::string transition_id;
-    double actual_concentration;
+    std::map<std::string,featureConcentrations> features_to_oncentrations;
 
   };
 
 }
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMQUANTIFICATIONCONCENTRATIONS_H
+#endif // OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONSTANDARDS_H
 
