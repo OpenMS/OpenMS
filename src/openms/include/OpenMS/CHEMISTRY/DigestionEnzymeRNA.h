@@ -48,9 +48,32 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI DigestionEnzymeRNA: public DigestionEnzyme
   {
-  protected:
+  public:
     /// returns the substrate (here: RNA)
     enum DigestionEnzyme::Substrate getSubstrate() const;
+
+    /// sets the 3' gain (as a nucleotide modification code)
+    void setThreePrimeGain(const String& value);
+
+    /// returns the 3' gain (as a nucleotide modification code)
+    String getThreePrimeGain() const;
+
+    /// sets the 5' gain (as a nucleotide modification code)
+    void setFivePrimeGain(const String& value);
+
+    /// returns the 5' gain (as a nucleotide modification code)
+    String getFivePrimeGain() const;
+
+    /**
+       @brief Set the value of a member variable based on an entry from an input file
+
+       Returns whether the key was recognized and the value set successfully.
+    */
+    bool setValueFromFile(const String& key, const String& value);
+
+  protected:
+    String three_prime_gain_;
+    String five_prime_gain_;
   };
 
   typedef DigestionEnzymeRNA RNase;

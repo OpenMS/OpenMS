@@ -5,6 +5,8 @@
       <ITEM name="Name" value="RNase_T1" type="string" />
       <ITEM name="RegEx" value="(?&lt;=G)" type="string" />
       <ITEM name="RegExDescription" value="RNase T1 cuts after G." type="string" />
+      <ITEM name="ThreePrimeGain" value="p" type="string" />
+      <ITEM name="FivePrimeGain" value="" type="string" />
     </NODE>
     <NODE name="no cleavage">
       <ITEM name="Name" value="no cleavage" type="string" />

@@ -44,4 +44,43 @@ namespace OpenMS
   {
     return DigestionEnzyme::RNA;
   }
+
+  bool DigestionEnzymeRNA::setValueFromFile(const String& key, const String& value)
+  {
+    if (DigestionEnzyme::setValueFromFile(key, value))
+    {
+      return true;
+    }
+    if (key.hasSuffix(":ThreePrimeGain"))
+    {
+      setThreePrimeGain(value);
+      return true;
+    }
+    if (key.hasSuffix(":FivePrimeGain"))
+    {
+      setFivePrimeGain(value);
+      return true;
+    }
+    return false;
+  }
+
+  void DigestionEnzymeRNA::setThreePrimeGain(const String& value)
+  {
+    three_prime_gain_ = value;
+  }
+
+  String DigestionEnzymeRNA::getThreePrimeGain() const
+  {
+    return three_prime_gain_;
+  }
+
+  void DigestionEnzymeRNA::setFivePrimeGain(const String& value)
+  {
+    five_prime_gain_ = value;
+  }
+
+  String DigestionEnzymeRNA::getFivePrimeGain() const
+  {
+    return five_prime_gain_;
+  }
 }
