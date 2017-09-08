@@ -40,6 +40,14 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 
+//Analysis classes
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -53,11 +61,37 @@ AbsoluteQuantitationMethod* ptr = 0;
 AbsoluteQuantitationMethod* nullPointer = 0;
 START_SECTION((AbsoluteQuantitationMethod()))
 	ptr = new AbsoluteQuantitationMethod();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+	TEST_NOT_EQUAL(ptr, nullPointer);
 END_SECTION
 
 START_SECTION((~AbsoluteQuantitationMethod()))
 	delete ptr;
+END_SECTION
+
+AbsoluteQuantitationMethod* ptr = 0;
+AbsoluteQuantitationMethod* nullPointer = 0;
+START_SECTION((auto getTransformationModel(const std::string & transformation_model)))
+  AbsoluteQuantitationMethod aqm;
+  std::string transformation_model;
+
+  transformation_model = "TransformationModelLinear";  
+  OpenMS::TransformationModelLinear tmlinear;
+	TEST_EQUAL(aqm.getTransformationModel(transformation_model), tmlinear);
+  
+  transformation_model = "TransformationModelBSpline";
+  OpenMS::TransformationModelBSpline tmbspline;
+  TEST_EQUAL(aqm.getTransformationModel(transformation_model), tmbspline);
+  
+  transformation_model = "TransformationModelInterpolated";
+  OpenMS::TransformationModelInterpolated tminterpolated;
+  TEST_EQUAL(aqm.getTransformationModel(transformation_model), tminterpolated);
+  
+  transformation_model = "TransformationModelLowess";
+  OpenMS::TransformationModelLowess tmlowess;
+  TEST_EQUAL(aqm.getTransformationModel(transformation_model), tmlowess);
+  
+  OpenMS::TransformationModel tm;
+  TEST_EQUAL(aqm.getTransformationModel(""), tmlinear);  
 END_SECTION
 
 /////////////////////////////////////////////////////////////
