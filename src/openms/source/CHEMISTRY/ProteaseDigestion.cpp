@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow, Xiao Liang $
-// $Authors: Marc Sturm, Chris Bielow$
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>

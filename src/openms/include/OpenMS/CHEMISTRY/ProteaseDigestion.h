@@ -66,8 +66,6 @@ namespace OpenMS
     /// Sets the enzyme for the digestion (by name)
     void setEnzyme(const String& name);
 
-    using EnzymaticDigestion::digest;
-
     /// Performs the enzymatic digestion of a protein.
     void digest(const AASequence& protein, std::vector<AASequence>& output) const;
 

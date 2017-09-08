@@ -251,7 +251,7 @@ namespace OpenMS
 
       // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)
       vector<StringView> current_digest;
-      digestor.digest(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
+      digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
       for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
