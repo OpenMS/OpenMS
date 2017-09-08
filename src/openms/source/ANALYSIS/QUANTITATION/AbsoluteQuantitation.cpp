@@ -98,7 +98,7 @@ namespace OpenMS
     // extract out the calibration points
     TransformationModel::DataPoints data;
     for (size_t i = 0; i < component_concentrations.size(); i++){
-      data.push_back(make_pair(component_concentrations[i].actual_concentration, component_concentrations[i].feature.getMetaValue(feature_name)));
+      data.push_back(std::make_pair(component_concentrations[i].actual_concentration, component_concentrations[i].feature.getMetaValue(feature_name)));
     }
 
     // fit the data to the model

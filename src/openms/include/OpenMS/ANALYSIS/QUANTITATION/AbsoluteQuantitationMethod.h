@@ -44,7 +44,7 @@
 #include <OpenMS/KERNEL/MRMFeature.h>
 
 //Analysis classes
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 
 #include <cstddef> // for size_t & ptrdiff_t
 #include <vector>
@@ -90,7 +90,7 @@ public:
     with parameters applied
 
   */ 
-  auto getTransformationModel(const std::string & transformation_model);
+  auto getTransformationModel(const std::string & transformation_model) -> TransformationModel;
                                   
   // members
 
