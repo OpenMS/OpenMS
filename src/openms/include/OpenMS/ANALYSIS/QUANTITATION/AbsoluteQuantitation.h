@@ -67,8 +67,7 @@ namespace OpenMS
     quantitation workflows (e.g., Isotope Dilution Mass Spectrometry).
   */
   class OPENMS_DLLAPI AbsoluteQuantitation :
-    public DefaultParamHandler,
-    public ProgressLogger
+    public DefaultParamHandler
   {
 
 public:    

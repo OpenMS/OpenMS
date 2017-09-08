@@ -72,7 +72,7 @@ public:
       std::string component_id;
       double actual_concentration;
       std::string concentration_units;
-    }
+    };
 
     /**
       @brief Structure to hold all components for a single component
@@ -84,7 +84,7 @@ public:
       std::vector<Feature> features;
       std::vector<double> actual_concentrations;
       std::vector<std::string> concentration_units;
-    }
+    };
                                       
     // members
     std::map<std::string,featureConcentrations> features_to_concentrations;

@@ -51,13 +51,26 @@ START_TEST(AbsoluteQuantitation, "$Id$")
 
 AbsoluteQuantitation* ptr = 0;
 AbsoluteQuantitation* nullPointer = 0;
-START_SECTION(AbsoluteQuantitation())
+START_SECTION((AbsoluteQuantitation()))
 	ptr = new AbsoluteQuantitation();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION(~AbsoluteQuantitation())
+START_SECTION((~AbsoluteQuantitation()))
 	delete ptr;
+END_SECTION
+
+START_SECTION((double calculateRatio(Feature & component_1, Feature & component_2, std::string feature_name)))
+  AbsoluteQuantitation absquant;
+  // dummy features
+  OpenMS::Feature component_1, component_2;
+  component_1.setMetaValue("peak_apex_int", 5.0);
+  component_2.setMetaValue("peak_apex_int", 5.0);
+
+  //
+  std::string feature_name = 'peak_apex_int'
+
+  TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_2,feature_name),1.0);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

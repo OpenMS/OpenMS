@@ -59,5 +59,18 @@
 namespace OpenMS
 {
 
+  double AbsoluteQuantitation::calculateRatio(Feature & component_1, Feature & component_2, std::string feature_name)
+  {
+    double ratio = 0.0;
+    if (component_1.hasMetaValue(feature_name))
+    {
+      double feature_1 = component_1.getMetaValue(feature_name);
+      double feature_2 = component_2.getMetaValue(feature_name);
+      ratio = feature_1/feature_2;
+    } 
+
+    return feature;
+  }
+
 } // namespace
 
