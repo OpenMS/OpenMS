@@ -62,7 +62,7 @@ END_SECTION
 
 START_SECTION((double calculateRatio(Feature & component_1, Feature & component_2, std::string feature_name)))
   AbsoluteQuantitation absquant;
-  std::string feature_name = 'peak_apex_int'
+  std::string feature_name = 'peak_apex_int';
   double inf = 1.0/0.0;
   // dummy features
   OpenMS::Feature component_1, component_2;
@@ -72,6 +72,15 @@ START_SECTION((double calculateRatio(Feature & component_1, Feature & component_
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_2,feature_name),1.0);
   component_2.setMetaValue("peak_apex_int", 0.0);
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_2,feature_name),inf);
+END_SECTION
+
+START_SECTION((calculateBias(double & actual_concentration, double & calculated_concentration)))
+  AbsoluteQuantitation absquant;
+  double actual_concentration = 5.0;
+  double calculated_concentration = 5.0;
+  TEST_REAL_SIMILAR(absquant.calculateBias(actual_concentration,calculated_concentration),0.0);
+  calculated_concentration = 4.0;
+  TEST_REAL_SIMILAR(absquant.calculateBias(actual_concentration,calculated_concentration),20.0);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -76,7 +76,7 @@ namespace OpenMS
   double AbsoluteQuantitation::calculateBias(double & actual_concentration, double & calculated_concentration)
   {
     double bias = 0.0;
-    bias = fabs(actual_concentration - calculated_concentration)/actual_concentration;
+    bias = fabs(actual_concentration - calculated_concentration)/actual_concentration*100;
     return bias;
   }
 
