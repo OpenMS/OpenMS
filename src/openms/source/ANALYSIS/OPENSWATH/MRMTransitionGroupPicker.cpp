@@ -202,7 +202,6 @@ namespace OpenMS
     peakShapeMetrics.points_across_baseline = 0;
     double start_intensity, end_intensity;
     double intensity, intensity_prev, retention_time, retention_time_prev;
-    double start_time_at_50, end_time_at_50;
     double delta_rt, delta_int, height_5, height_10, height_50;
     
     // pass 1

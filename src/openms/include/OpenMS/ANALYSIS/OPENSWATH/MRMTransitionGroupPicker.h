@@ -293,7 +293,6 @@ public:
         double intensity_sum(0.0), rt_sum(0.0);
         double peak_apex_int = -1;
         calculatePeakApexInt_(used_chromatogram, best_left, best_right, hull_points, intensity_sum, rt_sum, peak_apex_int, peak_apex);
-        double peak_apex_int_copy = peak_apex_int; //copy of the max peak intensity before background subtraction
 
         double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
