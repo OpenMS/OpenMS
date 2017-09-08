@@ -26,6 +26,7 @@ Residue.h
 ResidueDB.h
 ResidueModification.h
 RNaseDB.h
+RNaseDigestion.h
 TheoreticalSpectrumGenerator.h
 SpectrumAnnotator.h
 TheoreticalSpectrumGeneratorXLMS.h
