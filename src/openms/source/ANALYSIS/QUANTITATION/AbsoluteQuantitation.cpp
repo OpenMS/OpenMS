@@ -125,7 +125,7 @@ namespace OpenMS
     AbsoluteQuantitationMethod aqm;
     auto tm = aqm.getTransformationModel(transformation_model);
     tm(empty,transformation_model_params);
-    calculated_concentration = tm.apply(ratio);
+    calculated_concentration = tm.evaluate(ratio);
 
     return calculated_concentration;
   }
