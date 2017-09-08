@@ -37,6 +37,7 @@
 
 #include <OpenMS/config.h>
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/Feature.h>
 
 #include <cstddef> // for size_t & ptrdiff_t
@@ -50,7 +51,8 @@ namespace OpenMS
     @brief AbsoluteQuantitationStandards is a class to handle the relationship between
     runs, components, and actual concentrations.
   */
-  class OPENMS_DLLAPI AbsoluteQuantitationStandards
+  class OPENMS_DLLAPI AbsoluteQuantitationStandards :
+  public DefaultParamHandler
   {
 
 public:    
