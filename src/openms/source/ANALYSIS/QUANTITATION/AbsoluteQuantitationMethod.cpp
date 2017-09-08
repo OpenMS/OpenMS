@@ -72,7 +72,7 @@ namespace OpenMS
     //todo
   }
 
-  auto getTransformationModel(const std::string & transformation_model)
+  auto getTransformationModel(const std::string & transformation_model) -> TransformationModel
   {
     TransformationModel::DataPoints data;
     Param param;
