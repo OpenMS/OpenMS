@@ -92,7 +92,7 @@ namespace OpenMS
   
   void AbsoluteQuantitation::fitCalibration(std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
     std::string & feature_name,
-    auto transformation_model,
+    std::string & transformation_model,
     Param & transformation_model_params)
   {
     // extract out the calibration points
@@ -102,7 +102,9 @@ namespace OpenMS
     }
 
     // fit the data to the model
-    transformation_model(data,transformation_model_params);
+    AbsoluteQuantitationMethod aqm;
+    auto tm = aqm.getTransformationModel(transformation_model);
+    tm(data,transformation_model_params);
 
     // store the information about the fit
 
@@ -111,14 +113,20 @@ namespace OpenMS
   double AbsoluteQuantitation::applyCalibration(Feature & component,
     Feature & IS_component,
     std::string & feature_name,
-    auto transformation_model,
+    std::string & transformation_model,
     Param & transformation_model_params)
   {
-    double calculated_concentration = 0.0;
+    // calculate the ratio
     double ratio = calculateRatio(component, IS_component, feature_name);
+
+    // calculate the absolute concentration
+    double calculated_concentration = 0.0;
     TransformationModel::DataPoints empty;
-    transformation_model(empty,transformation_model_params);
-    calculated_concentration = transformation_model.apply(ratio);
+    AbsoluteQuantitationMethod aqm;
+    auto tm = aqm.getTransformationModel(transformation_model);
+    tm(empty,transformation_model_params);
+    calculated_concentration = tm.apply(ratio);
+
     return calculated_concentration;
   }
 

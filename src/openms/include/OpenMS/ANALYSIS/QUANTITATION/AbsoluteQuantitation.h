@@ -125,7 +125,7 @@ public:
     */ 
     void fitCalibration(std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       std::string & feature_name,
-      auto transformation_model,
+      std::string & transformation_model,
       Param & transformation_model_params);
       
     /**
@@ -166,7 +166,7 @@ public:
     double applyCalibration(Feature & component,
       Feature & IS_component,
       std::string & feature_name,
-      auto transformation_model,
+      std::string & transformation_model,
       Param & transformation_model_params);    
       
     /**

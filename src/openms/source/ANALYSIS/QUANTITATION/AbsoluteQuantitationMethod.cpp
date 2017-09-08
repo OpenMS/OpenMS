@@ -39,6 +39,10 @@
 
 //Analysis classes
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
 #include <cstddef> // for size_t & ptrdiff_t
 #include <vector>
@@ -67,10 +71,29 @@ namespace OpenMS
     //todo
   }
 
-  auto getTransformationModel(const std::string & transformation_model,
-    const std::string & transformation_model_params)
+  auto getTransformationModel(const std::string & transformation_model)
   {
-    //todo
+    if (transformation_model == 'TransformationModelLinear')
+    {
+      TransformationModelLinear tm;
+    }
+    else if (transformation_model == 'TransformationModelBSpline')
+    {
+      TransformationModelBSpline tm;
+    }
+    else if (transformation_model == 'TransformationModelInterpolated')
+    {
+      TransformationModelInterpolated tm;
+    }
+    else if (transformation_model == 'TransformationModelLowess')
+    {
+      TransformationModelLowess tm;
+    }
+    else
+    {
+      TransformationModel tm;
+    }
+    return tm;
   }
 
 } // namespace

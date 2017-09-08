@@ -90,8 +90,7 @@ public:
     with parameters applied
 
   */ 
-  auto getTransformationModel(const std::string & transformation_model,
-    const std::string & transformation_model_params);
+  auto getTransformationModel(const std::string & transformation_model);
                                   
   // members
 
