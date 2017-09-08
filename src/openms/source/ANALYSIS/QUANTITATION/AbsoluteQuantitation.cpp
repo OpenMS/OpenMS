@@ -80,19 +80,37 @@ namespace OpenMS
     return bias;
   }
   
-  double AbsoluteQuantitation::applyCalibration(Feature & component,
-    Feature & IS_component,
-    std::string & feature_name,
-    auto & transformation_model,
-    Param & transformation_model_params)
-  {
-    double calculated_concentration = 0.0;
-    double ratio = calculateRatio(component, IS_component, feature_name);
-    TransformationModel::DataPoints empty;
-    transformation_model(empty,transformation_model_params);
-    calculated_concentration = transformation_model.apply(ratio);
-    return calculated_concentration;
-  }
+  // void AbsoluteQuantitation::fitCalibration(std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+  //   std::string & feature_name,
+  //   auto & transformation_model,
+  //   Param & transformation_model_params)
+  // {
+  //   // extract out the calibration points
+  //   TransformationModel::DataPoints data;
+  //   for (int i = 0; i != component_concentrations.size()-1; i++){
+  //     data.push_back(make_pair(component_concentrations[i].actual_concentration, component_concentrations[i].feature.getMetaValue(feature_name)));
+  //   }
+
+  //   // fit the data to the model
+  //   transformation_model(data,transformation_model_params);
+
+  //   // store the information about the fit
+
+  // }
+  
+  // double AbsoluteQuantitation::applyCalibration(Feature & component,
+  //   Feature & IS_component,
+  //   std::string & feature_name,
+  //   auto & transformation_model,
+  //   Param & transformation_model_params)
+  // {
+  //   double calculated_concentration = 0.0;
+  //   double ratio = calculateRatio(component, IS_component, feature_name);
+  //   TransformationModel::DataPoints empty;
+  //   transformation_model(empty,transformation_model_params);
+  //   calculated_concentration = transformation_model.apply(ratio);
+  //   return calculated_concentration;
+  // }
 
 } // namespace
 

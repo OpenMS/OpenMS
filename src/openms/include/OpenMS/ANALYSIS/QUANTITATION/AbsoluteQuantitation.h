@@ -48,6 +48,7 @@
 
 //Analysis classes
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 //Quantitation classes
@@ -113,18 +114,33 @@ public:
     double calculateBias(double & actual_concentration, double & calculated_concentration);
             
     /**
-      @brief This function optimizes the parameters of the calibration for a 
-        given component.
+      @brief This function fits the calibration points to the model.
 
-      @param features list of features
+      @param component_concentrations list of structures with features and concentrations
+      @param feature_name name of the feature to calculate the absolute concentration.
       @param transformation_model model used to fit the calibration points
       @param transformation_model_params parameters used by the transformation_model
 
       @exception Exception::UnableToFit
     */ 
-    void optimizeCalibrationCurve(std::vector<Feature> & features,
-      auto & transformation_model,
-      Param & transformation_model_params);
+    // void fitCalibration(std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+    //   std::string & feature_name,
+    //   auto & transformation_model,
+    //   Param & transformation_model_params);
+      
+    /**
+      @brief This function optimizes the parameters of the calibration for a 
+        given component.
+
+      @param component_concentrations list of structures with features and concentrations
+      @param feature_name name of the feature to calculate the absolute concentration.
+      @param transformation_model model used to fit the calibration points
+      @param transformation_model_params parameters used by the transformation_model
+
+      @exception Exception::UnableToFit
+    */ 
+    void optimizeCalibrationCurve();
+
         
     /**
       @brief This function optimizes the parameters of the calibration for a 
@@ -147,11 +163,11 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    double applyCalibration(Feature & component,
-      Feature & IS_component,
-      std::string & feature_name,
-      auto & transformation_model,
-      Param & transformation_model_params);    
+    // double applyCalibration(Feature & component,
+    //   Feature & IS_component,
+    //   std::string & feature_name,
+    //   auto & transformation_model,
+    //   Param & transformation_model_params);    
       
     /**
       @brief This function applies the calibration curve to all components.

@@ -75,11 +75,10 @@ public:
     };
 
     /**
-      @brief Structure to hold all components for a single component
-        with their corresponding known concentrations.
+      @brief Structure to hold a single component and its corresponding known concentration.
 
     */ 
-    struct featureConcentrations
+    struct featureConcentration
     {
       std::vector<Feature> features;
       std::vector<double> actual_concentrations;
@@ -87,7 +86,7 @@ public:
     };
                                       
     // members
-    std::map<std::string,featureConcentrations> features_to_concentrations;
+    std::map<std::string,std::vector<featureConcentration>> features_to_concentrations;
 
   };
 
