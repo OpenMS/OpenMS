@@ -55,6 +55,7 @@
 #include <cstddef> // for size_t & ptrdiff_t
 #include <vector>
 #include <string>
+#include <math>
 
 namespace OpenMS
 {
@@ -70,6 +71,13 @@ namespace OpenMS
     } 
 
     return ratio;
+  }
+  
+  double AbsoluteQuantitation::calculateBias(double & actual_concentration, double & calculated_concentration)
+  {
+    double bias = 0.0;
+    bias = abs(actual_concentration - calculated_concentration)/actual_concentration;
+    return bias;
   }
 
 } // namespace
