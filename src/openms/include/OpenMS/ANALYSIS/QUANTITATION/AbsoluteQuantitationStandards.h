@@ -37,6 +37,8 @@
 
 #include <OpenMS/config.h>
 
+#include <OpenMS/KERNEL/Feature.h>
+
 #include <cstddef> // for size_t & ptrdiff_t
 #include <vector>
 #include <string>
@@ -61,19 +63,19 @@ public:
     //@}
    
     /**
-      @brief Structure to map runs to features to known concentrations
+      @brief Structure to map runs to components to known concentrations
 
     */ 
     struct runConcentrations
     {
-      str::string run_id;
-      str::string feature_id;
+      std::string run_id;
+      std::string component_id;
       double actual_concentration;
-      str::string concentration_units;
+      std::string concentration_units;
     }
 
     /**
-      @brief Structure to hold all features for a single component
+      @brief Structure to hold all components for a single component
         with their corresponding known concentrations.
 
     */ 
@@ -81,11 +83,11 @@ public:
     {
       std::vector<Feature> features;
       std::vector<double> actual_concentrations;
-      std::vector<str::string> concentration_units;
+      std::vector<std::string> concentration_units;
     }
                                       
     // members
-    std::map<std::string,featureConcentrations> features_to_oncentrations;
+    std::map<std::string,featureConcentrations> features_to_concentrations;
 
   };
 

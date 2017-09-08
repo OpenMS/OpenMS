@@ -93,8 +93,11 @@ public:
                                   
   // members
 
-  /// name of the component
-  std::string feature_id_;
+  /// id of the component
+  std::string component_id_;
+  
+  /// name of the feature (i.e., peak_apex_int or peak_area)
+  std::string feature_name_;
 
   /// lower limit of detection (LLOD) of the transition
   double llod_;
@@ -103,10 +106,10 @@ public:
   double lloq_;
 
   /// upper limit of detection (LLOD) of the transition
-  double llod_;
+  double ulod_;
 
   /// upper limit of quantitation (LLOQ) of the transition
-  double lloq_;
+  double uloq_;
 
   /// number of points used in a calibration curve
   double n_points_;

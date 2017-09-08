@@ -66,9 +66,9 @@ namespace OpenMS
     @brief AbsoluteQuantitation is a class to support absolute or relative quantitation for targeted or untargeted
     quantitation workflows (e.g., Isotope Dilution Mass Spectrometry).
   */
-  class OPENMS_DLLAPI AbsoluteQuantitation
-  public DefaultParamHandler,
-  public ProgressLogger
+  class OPENMS_DLLAPI AbsoluteQuantitation :
+    public DefaultParamHandler,
+    public ProgressLogger
   {
 
 public:    
@@ -83,8 +83,8 @@ public:
     /**
       @brief This function calculates the ratio between features.
 
-      @param feature_1 feature value of the numerator
-      @param feature_2 feature value of the denomenator
+      @param component_1 component of the numerator
+      @param component_2 component of the denomenator
       @param feature_name name of the feature to calculate the ratio on
        e.g., peak_apex, peak_area
 
@@ -92,7 +92,7 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    double calculateRatio(Feature & feature_1, Feature & feature_2, std::string feature_name);
+    double calculateRatio(Feature & component_1, Feature & component_2, std::string feature_name);
                    
     /**
       @brief This function calculates the bias of the calibration.
@@ -142,9 +142,11 @@ public:
       @param transformation_model model used to fit the calibration points
       @param transformation_model_params parameters used by the transformation_model
 
+      @return The absolute concentration.
+
       @exception Exception::UnableToFit
     */ 
-    void applyCalibration(Feature & feature,
+    double applyCalibration(Feature & feature,
       Feature & IS_feature,
       std::string & transformation_model,
       Param & transformation_model_params);    
@@ -164,7 +166,6 @@ public:
     
     /// list of samples to quantify
     std::vector<FeatureMap> unknowns_;
-
 
   };
 
