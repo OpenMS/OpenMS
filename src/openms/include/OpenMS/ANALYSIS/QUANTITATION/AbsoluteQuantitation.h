@@ -92,7 +92,7 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    double calculateRatio(Feature & component_1, Feature & component_2, std::string feature_name);
+    double calculateRatio(Feature & component_1, Feature & component_2, std::string & feature_name);
                    
     /**
       @brief This function calculates the bias of the calibration.
@@ -123,7 +123,7 @@ public:
       @exception Exception::UnableToFit
     */ 
     void optimizeCalibrationCurve(std::vector<Feature> & features,
-      std::string & transformation_model,
+      auto & transformation_model,
       Param & transformation_model_params);
         
     /**
@@ -136,9 +136,10 @@ public:
     /**
       @brief This function applies the calibration curve to the component.
 
-      @param feature the component to be quantified
-      @param IS_feature the internal standard (IS) of the component to be quantified.
+      @param component the component to be quantified
+      @param IS_component the internal standard (IS) of the component to be quantified.
         This can be null if there is no IS for the component.
+      @param feature_name name of the feature to calculate the absolute concentration.
       @param transformation_model model used to fit the calibration points
       @param transformation_model_params parameters used by the transformation_model
 
@@ -146,9 +147,10 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    double applyCalibration(Feature & feature,
-      Feature & IS_feature,
-      std::string & transformation_model,
+    double applyCalibration(Feature & component,
+      Feature & IS_component,
+      std::string & feature_name,
+      auto & transformation_model,
       Param & transformation_model_params);    
       
     /**

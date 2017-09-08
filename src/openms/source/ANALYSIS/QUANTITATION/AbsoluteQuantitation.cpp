@@ -43,7 +43,7 @@
 #include <OpenMS/KERNEL/MRMFeature.h>
 
 //Analysis classes
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 //Quantitation classes
@@ -60,7 +60,7 @@
 namespace OpenMS
 {
 
-  double AbsoluteQuantitation::calculateRatio(Feature & component_1, Feature & component_2, std::string feature_name)
+  double AbsoluteQuantitation::calculateRatio(Feature & component_1, Feature & component_2, std::string & feature_name)
   {
     double ratio = 0.0;
     if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
@@ -78,6 +78,20 @@ namespace OpenMS
     double bias = 0.0;
     bias = fabs(actual_concentration - calculated_concentration)/actual_concentration*100;
     return bias;
+  }
+  
+  double AbsoluteQuantitation::applyCalibration(Feature & component,
+    Feature & IS_component,
+    std::string & feature_name,
+    auto & transformation_model,
+    Param & transformation_model_params)
+  {
+    double calculated_concentration = 0.0;
+    double ratio = calculateRatio(component, IS_component, feature_name);
+    TransformationModel::DataPoints empty;
+    transformation_model(empty,transformation_model_params);
+    calculated_concentration = transformation_model.apply(ratio);
+    return calculated_concentration;
   }
 
 } // namespace
