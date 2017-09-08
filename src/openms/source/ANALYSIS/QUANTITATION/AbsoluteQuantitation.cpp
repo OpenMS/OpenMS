@@ -103,8 +103,8 @@ namespace OpenMS
 
     // fit the data to the model
     AbsoluteQuantitationMethod aqm;
-    auto tm = aqm.getTransformationModel(transformation_model);
-    tm(data,transformation_model_params);
+    aqm.setTransformationModel(transformation_model);
+    aqm.transformation_model_(data,transformation_model_params);
 
     // store the information about the fit
 
@@ -123,9 +123,9 @@ namespace OpenMS
     double calculated_concentration = 0.0;
     TransformationModel::DataPoints empty;
     AbsoluteQuantitationMethod aqm;
-    auto tm = aqm.getTransformationModel(transformation_model);
-    tm(empty,transformation_model_params);
-    calculated_concentration = tm.evaluate(ratio);
+    aqm.setTransformationModel((transformation_model);
+    aqm.transformation_model_(empty,transformation_model_params);
+    calculated_concentration = aqm.transformation_model_.evaluate(ratio);
 
     return calculated_concentration;
   }

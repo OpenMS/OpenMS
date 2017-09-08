@@ -86,11 +86,11 @@ public:
   bool checkLOQ(const double & value);
 
   /**
-  @brief This function returns the transformation model
-    with parameters applied
+  @brief This function sets the transformation model with empty data
+    and default parameters
 
   */ 
-  auto getTransformationModel(const std::string & transformation_model) -> TransformationModel;
+  void setTransformationModel(const std::string & transformation_model;
                                   
   // members
 
@@ -126,12 +126,12 @@ public:
 
   /// concentration units of the component's concentration
   std::string concentration_units_;
-
+  
   /// transformation model
-  std::string transformation_model_;
+  auto transformation_model_;
 
   /// transformation model parameters
-  std::string transformation_model_params_;  
+  Param transformation_model_params_;  
 
   };
 
