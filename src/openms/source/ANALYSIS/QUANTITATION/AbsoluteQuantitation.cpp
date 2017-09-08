@@ -32,19 +32,26 @@
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONMETHOD_H
-#define OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONMETHOD_H
-
-#include <OpenMS/config.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>
 
 //Kernal classes
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
 
 //Analysis classes
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
+//Quantitation classes
+#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationStandards.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
+
+
+//Standard library
 #include <cstddef> // for size_t & ptrdiff_t
 #include <vector>
 #include <string>
@@ -52,85 +59,5 @@
 namespace OpenMS
 {
 
-  /**
-    @brief AbsoluteQuantitationMethod is a class to handle the relationship between
-    runs, components, and actual concentrations.
-  */
-  class OPENMS_DLLAPI AbsoluteQuantitationMethod
-  {
-
-public:    
-  
-  //@{
-  /// Constructor
-  AbsoluteQuantitationMethod();
-
-  /// Destructor
-  ~AbsoluteQuantitationMethod();
-  //@}
-
-  /**
-  @brief This function checks if the value is within the
-    limits of detection (LOD)
-
-  */ 
-  bool checkLOD(const double & value);
-
-  /**
-  @brief This function checks if the value is within the
-    limits of quantitation (LOQ)
-
-  */ 
-  bool checkLOQ(const double & value);
-
-  /**
-  @brief This function returns the transformation model
-    with parameters applied
-
-  */ 
-  auto getTransformationModel(const std::string & transformation_model,
-    const std::string & transformation_model_params);
-                                  
-  // members
-
-  /// name of the component
-  std::string feature_id_;
-
-  /// lower limit of detection (LLOD) of the transition
-  double llod_;
-
-  /// lower limit of quantitation (LLOQ) of the transition
-  double lloq_;
-
-  /// upper limit of detection (LLOD) of the transition
-  double llod_;
-
-  /// upper limit of quantitation (LLOQ) of the transition
-  double lloq_;
-
-  /// number of points used in a calibration curve
-  double n_points_;
-
-  /// the Pearson R value for the correlation coefficient of the calibration curve
-  double correlation_coefficient_;
-
-  /// the internal standard (IS) name for the transition
-  String IS_name_;
-
-  /// the known concentration of the component
-  double actual_concentration_;
-
-  /// concentration units of the component's concentration
-  std::string concentration_units_;
-
-  /// transformation model
-  std::string transformation_model_;
-
-  /// transformation model parameters
-  std::string transformation_model_params_;  
-
-  };
-
-}
-#endif // OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONMETHOD_H
+} // namespace
 
