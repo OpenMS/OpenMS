@@ -49,7 +49,16 @@ START_TEST(AbsoluteQuantitationMethod, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
+AbsoluteQuantitationMethod* ptr = 0;
+AbsoluteQuantitationMethod* nullPointer = 0;
+START_SECTION((AbsoluteQuantitationMethod()))
+	ptr = new AbsoluteQuantitationMethod();
+	TEST_NOT_EQUAL(ptr, nullPointer)
+END_SECTION
 
+START_SECTION((~AbsoluteQuantitationMethod()))
+	delete ptr;
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

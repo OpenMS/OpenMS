@@ -123,10 +123,10 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    // void fitCalibration(std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-    //   std::string & feature_name,
-    //   auto & transformation_model,
-    //   Param & transformation_model_params);
+    void fitCalibration(std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+      std::string & feature_name,
+      auto transformation_model,
+      Param & transformation_model_params);
       
     /**
       @brief This function optimizes the parameters of the calibration for a 
@@ -163,11 +163,11 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    // double applyCalibration(Feature & component,
-    //   Feature & IS_component,
-    //   std::string & feature_name,
-    //   auto & transformation_model,
-    //   Param & transformation_model_params);    
+    double applyCalibration(Feature & component,
+      Feature & IS_component,
+      std::string & feature_name,
+      auto transformation_model,
+      Param & transformation_model_params);    
       
     /**
       @brief This function applies the calibration curve to all components.

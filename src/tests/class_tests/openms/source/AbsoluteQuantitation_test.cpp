@@ -51,6 +51,7 @@ START_TEST(AbsoluteQuantitation, "$Id$")
 
 AbsoluteQuantitation* ptr = 0;
 AbsoluteQuantitation* nullPointer = 0;
+
 START_SECTION((AbsoluteQuantitation()))
 	ptr = new AbsoluteQuantitation();
 	TEST_NOT_EQUAL(ptr, nullPointer)
