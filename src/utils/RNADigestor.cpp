@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
@@ -125,8 +125,8 @@ protected:
     // calculations
     //-------------------------------------------------------------
     String enzyme = getStringOption_("enzyme");
-    EnzymaticDigestion digestor;
-    digestor.setEnzyme(RNaseDB::getInstance()->getEnzyme(enzyme));
+    RNaseDigestion digestor;
+    digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(missed_cleavages);
 
     std::vector<FASTAFile::FASTAEntry> all_fragments;
@@ -135,21 +135,20 @@ protected:
     for (vector<FASTAFile::FASTAEntry>::const_iterator fa_it = seq_data.begin();
          fa_it != seq_data.end(); ++fa_it)
     {
-      vector<StringView> fragments;
+      vector<String> fragments;
       digestor.digest(fa_it->sequence, fragments, min_size, max_size);
       Size counter = 1;
-      for (vector<StringView>::const_iterator frag_it = fragments.begin();
+      for (vector<String>::const_iterator frag_it = fragments.begin();
            frag_it != fragments.end(); ++frag_it)
       {
-        String seq = frag_it->getString();
-        if (!unique || !unique_fragments.count(seq))
+        if (!unique || !unique_fragments.count(*frag_it))
         {
           String id = fa_it->identifier + "_" + String(counter);
           String desc = fa_it->description + " (fragment " + String(counter) +
             ")";
-          FASTAFile::FASTAEntry fragment(id, desc, seq);
+          FASTAFile::FASTAEntry fragment(id, desc, *frag_it);
           all_fragments.push_back(fragment);
-          unique_fragments.insert(seq);
+          unique_fragments.insert(*frag_it);
           counter++;
         }
       }

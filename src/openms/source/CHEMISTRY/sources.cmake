@@ -26,6 +26,7 @@ Residue.cpp
 ResidueDB.cpp
 ResidueModification.cpp
 RNaseDB.cpp
+RNaseDigestion.cpp
 TheoreticalSpectrumGenerator.cpp
 SpectrumAnnotator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
