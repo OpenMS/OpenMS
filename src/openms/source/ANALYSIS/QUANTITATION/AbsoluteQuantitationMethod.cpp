@@ -75,7 +75,7 @@ namespace OpenMS
   auto getTransformationModel(const std::string & transformation_model)
   {
     TransformationModel::DataPoints data;
-    Parm param;
+    Param param;
     if (transformation_model == "TransformationModelLinear")
     {
       TransformationModelLinear tm(data,param);
