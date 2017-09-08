@@ -69,7 +69,7 @@ namespace OpenMS
       ratio = feature_1/feature_2;
     } 
 
-    return feature;
+    return ratio;
   }
 
 } // namespace
