@@ -90,7 +90,7 @@ public:
     and default parameters
 
   */ 
-  void setTransformationModel(const std::string & transformation_model;
+  void setTransformationModel(const std::string & transformation_model);
                                   
   // members
 
