@@ -86,29 +86,34 @@ namespace OpenMS
     TransformationModel::DataPoints& data,
     Param& transformation_model_params)
   {
+    Param params;
     if (transformation_model == "TransformationModelLinear")
     {
       TransformationModelLinear tm(data, transformation_model_params);
+      params = tm.getParameters();
     }
     else if (transformation_model == "TransformationModelBSpline")
     {
       TransformationModelBSpline tm(data, transformation_model_params);
+      params = tm.getParameters();
     }
     else if (transformation_model == "TransformationModelInterpolated")
     {
       TransformationModelInterpolated tm(data, transformation_model_params);
+      params = tm.getParameters();
     }
     else if (transformation_model == "TransformationModelLowess")
     {
       TransformationModelLowess tm(data, transformation_model_params);
+      params = tm.getParameters();
     }
     else
     {
       LOG_INFO << "TransformationModel " << transformation_model << " is not supported.";
       LOG_INFO << "default TransformationModel will be used.";
       TransformationModel tm(data, transformation_model_params);
+      params = tm.getParameters();
     }
-    Param params = tm.getParameters();
     return params;
   }
 
