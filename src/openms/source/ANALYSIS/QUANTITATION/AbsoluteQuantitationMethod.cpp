@@ -64,18 +64,28 @@ namespace OpenMS
 
   bool checkLOD(const double & value)
   {
-    //todo
+    bool bracketted = false;
+    if (value <= ulod_ && value >= llod_)
+    {
+      bracketted = true;
+    }
+    return bracketted;
   }
 
   bool checkLOQ(const double & value)
   {
-    //todo
+    bool bracketted = false;
+    if (value <= uloq_ && value >= lloq_)
+    {
+      bracketted = true;
+    }
+    return bracketted;
   }
 
-  void AbsoluteQuantitationMethod::setTransformationModel(const std::string & transformation_model)
+  Param AbsoluteQuantitationMethod::fitTransformationModel(const std::string & transformation_model,
+    TransformationModel::DataPoints& data,
+    Param& transformation_model_params)
   {
-    TransformationModel::DataPoints data;
-    Param param;
     if (transformation_model == "TransformationModelLinear")
     {
       TransformationModelLinear tm(data,param);
@@ -96,7 +106,8 @@ namespace OpenMS
     {
       TransformationModel tm(data,param);
     }
-    transformation_model_ = tm;
+    Param params = tm.getParameters();
+    return params;
   }
 
 } // namespace

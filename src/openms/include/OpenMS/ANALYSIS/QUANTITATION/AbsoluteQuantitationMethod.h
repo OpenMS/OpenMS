@@ -86,11 +86,19 @@ public:
   bool checkLOQ(const double & value);
 
   /**
-  @brief This function sets the transformation model with empty data
-    and default parameters
+  @brief This function fits the transformation model with the data
+    and parameters
+
+  @param transformation_model name of the transformation model
+  @param data data to fit to the model
+  @param transformation_model_params model parameters
+
+  @return updated parameters.
 
   */ 
-  void setTransformationModel(const std::string & transformation_model);
+  Param fitTransformationModel(const std::string & transformation_model,
+    TransformationModel::DataPoints& data,
+    Param& transformation_model_params);
                                   
   // members
 
@@ -128,7 +136,7 @@ public:
   std::string concentration_units_;
   
   /// transformation model
-  auto transformation_model_;
+  std::string transformation_model_;
 
   /// transformation model parameters
   Param transformation_model_params_;  
