@@ -56,7 +56,10 @@ namespace OpenMS
     for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it)
     {
       String tmp = *it;
-      if (tmp.trim().hasPrefix("#")) continue;  // skip comments
+      if (tmp.trim().hasPrefix("#"))
+      {
+        continue;  // skip comments
+      }
       StringList components;
       tmp.split(' ', components);
       if (components.size() != 4)
@@ -116,45 +119,40 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("EnzymaticDigestionLogModel: enzyme '") + enzyme_.getName() + " does not support logModel!");
     }
-    else
+    if ((!enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode())) || *iterator == 'P') // wait for R or K
     {
-      if ((!enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode())) || *iterator == 'P') // wait for R or K
-      {
-        return false;
-      }
-      SignedSize pos = distance(AASequence::ConstIterator(protein.begin()),
+      return false;
+    }
+    const Size pos = distance(AASequence::ConstIterator(protein.begin()),
                                 iterator) - 4; // start position in sequence
-      double score_cleave = 0, score_missed = 0;
-      for (SignedSize i = 0; i < 9; ++i)
+    double score_cleave = 0, score_missed = 0;
+    for (Size i = 0; i < 9; ++i)
+    {
+      if ((pos + i >= 0) && (pos + i < protein.size()))
       {
-        if ((pos + i >= 0) && (pos + i < (SignedSize)protein.size()))
+        BindingSite_ bs(i, protein[pos + i].getOneLetterCode());
+        Map<BindingSite_, CleavageModel_>::const_iterator pos_it =
+        model_data_.find(bs);
+        if (pos_it != model_data_.end()) // no data for non-std. amino acids
         {
-          BindingSite_ bs(i, protein[pos + i].getOneLetterCode());
-          Map<BindingSite_, CleavageModel_>::const_iterator pos_it =
-            model_data_.find(bs);
-          if (pos_it != model_data_.end()) // no data for non-std. amino acids
-          {
-            score_cleave += pos_it->second.p_cleave;
-            score_missed += pos_it->second.p_miss;
-          }
+          score_cleave += pos_it->second.p_cleave;
+          score_missed += pos_it->second.p_miss;
         }
       }
-      return score_missed - score_cleave > log_model_threshold_;
     }
+    return score_missed - score_cleave > log_model_threshold_;
   }
 
   void EnzymaticDigestionLogModel::nextCleavageSite_(const AASequence& protein, AASequence::ConstIterator& iterator) const
   {
-    while (iterator != protein.end())
+    for (; iterator != protein.end(); ++iterator)
     {
       if (isCleavageSite_(protein, iterator))
       {
         ++iterator;
         return;
       }
-      ++iterator;
     }
-    return;
   }
 
   Size EnzymaticDigestionLogModel::peptideCount(const AASequence& protein)
