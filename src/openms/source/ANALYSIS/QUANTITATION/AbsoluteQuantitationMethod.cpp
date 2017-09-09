@@ -61,6 +61,30 @@ namespace OpenMS
   AbsoluteQuantitationMethod::~AbsoluteQuantitationMethod()
   {
   }
+  
+  void AbsoluteQuantitationMethod::setLOD(const double& llod, const double& ulod)
+  {
+    llod_ = llod;
+    ulod_ = ulod;
+  }
+  
+  void AbsoluteQuantitationMethod::getLOD(double& llod, double& ulod)
+  {
+    llod = llod_;
+    ulod = ulod_;
+  }
+  
+  void AbsoluteQuantitationMethod::setLOQ(const double& lloq, const double& uloq)
+  {
+    lloq_ = lloq;
+    uloq_ = uloq;
+  }
+  
+  void AbsoluteQuantitationMethod::getLOQ(double& lloq, double& uloq)
+  {
+    lloq = lloq_;
+    uloq = uloq_;
+  }
 
   bool AbsoluteQuantitationMethod::checkLOD(const double & value)
   {

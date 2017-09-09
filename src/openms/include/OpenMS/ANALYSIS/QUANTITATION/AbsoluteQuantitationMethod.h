@@ -71,6 +71,18 @@ public:
   ~AbsoluteQuantitationMethod();
   //@}
 
+  /// LLOD and ULOD setter
+  void setLOD(const double& llod, const double& ulod);
+
+  /// LLOD and ULOD getter
+  void getLOD(double& llod, double& ulod);
+  
+  /// LLOQ and ULOQ setter
+  void setLOQ(const double& lloq, const double& uloq);
+
+  /// LLOQ and ULOQ getter
+  void getLOQ(double& lloq, double& uloq);
+
   /**
   @brief This function checks if the value is within the
     limits of detection (LOD)
