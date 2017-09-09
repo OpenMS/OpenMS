@@ -46,6 +46,8 @@
 using namespace std;
 using namespace xercesc;
 
+#define OPENMS_XML_RINGBUFFER_SIZE 100
+
 namespace OpenMS
 {
   namespace Internal
@@ -230,8 +232,10 @@ namespace OpenMS
 
     
     StringManager::StringManager() :
-      xml_strings_(0),
-      c_strings_(0)
+      xml_strings_(OPENMS_XML_RINGBUFFER_SIZE, 0),
+      c_strings_(OPENMS_XML_RINGBUFFER_SIZE, 0),
+      idx_xml_(0),
+      idx_c_(0)
     {
     }
 
@@ -245,41 +249,43 @@ namespace OpenMS
       for (Size i = 0; i < xml_strings_.size(); ++i)
       {
         XMLString::release(&xml_strings_[i]);
+        xml_strings_[i] = 0;
       }
-      xml_strings_.clear();
 
       for (Size i = 0; i < c_strings_.size(); ++i)
       {
         XMLString::release(&c_strings_[i]);
+        c_strings_[i] = 0;
       }
-      c_strings_.clear();
+      // reset indices for ring buffer
+      idx_xml_ = idx_c_ = 0;
     }
 
     XMLCh * StringManager::convert(const char * str) const
     {
       XMLCh * result = XMLString::transcode(str);
-      xml_strings_.push_back(result);
+      XMLString::release(&xml_strings_[idx_xml_ % OPENMS_XML_RINGBUFFER_SIZE]);
+      xml_strings_[idx_xml_ % OPENMS_XML_RINGBUFFER_SIZE] = result;
+      ++idx_xml_;
       return result;
     }
 
     XMLCh * StringManager::convert(const std::string & str) const
     {
-      XMLCh * result = XMLString::transcode(str.c_str());
-      xml_strings_.push_back(result);
-      return result;
+      return convert(str.c_str());
     }
 
     XMLCh * StringManager::convert(const String & str) const
     {
-      XMLCh * result = XMLString::transcode(str.c_str());
-      xml_strings_.push_back(result);
-      return result;
+      return convert(str.c_str());
     }
 
     char * StringManager::convert(const XMLCh * str) const
     {
       char * result = XMLString::transcode(str);
-      c_strings_.push_back(result);
+      XMLString::release(&c_strings_[idx_c_ % OPENMS_XML_RINGBUFFER_SIZE]);
+      c_strings_[idx_c_ % OPENMS_XML_RINGBUFFER_SIZE] = result;
+      ++idx_c_;
       return result;
     }
 
