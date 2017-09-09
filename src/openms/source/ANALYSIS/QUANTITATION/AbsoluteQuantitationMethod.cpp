@@ -72,7 +72,7 @@ namespace OpenMS
     //todo
   }
 
-  void setTransformationModel(const std::string & transformation_model)
+  void AbsoluteQuantitationMethod::setTransformationModel(const std::string & transformation_model)
   {
     TransformationModel::DataPoints data;
     Param param;
