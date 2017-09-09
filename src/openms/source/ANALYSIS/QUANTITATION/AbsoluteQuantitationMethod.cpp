@@ -116,6 +116,40 @@ namespace OpenMS
     }
     return params;
   }
+  
+  double AbsoluteQuantitationMethod::evaluateTransformationModel(const std::string & transformation_model,
+    const double& datum,
+    Param& transformation_model_params)
+  {
+    double result = 0.0;
+    TransformationModel::DataPoints data;
+    if (transformation_model == "TransformationModelLinear")
+    {
+      TransformationModelLinear tm(data, transformation_model_params);
+      result = tm.evaluate(datum);
+    }
+    else if (transformation_model == "TransformationModelBSpline")
+    {
+      TransformationModelBSpline tm(data, transformation_model_params);
+      result = tm.evaluate(datum);
+    }
+    else if (transformation_model == "TransformationModelInterpolated")
+    {
+      TransformationModelInterpolated tm(data, transformation_model_params);
+      result = tm.evaluate(datum);
+    }
+    else if (transformation_model == "TransformationModelLowess")
+    {
+      TransformationModelLowess tm(data, transformation_model_params);
+      result = tm.evaluate(datum);
+    }
+    else
+    {
+      LOG_INFO << "TransformationModel " << transformation_model << " is not supported.";
+      LOG_INFO << "0.0 will be returned.";
+    }
+    return result;
+  }
 
 } // namespace
 

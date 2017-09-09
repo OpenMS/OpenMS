@@ -109,25 +109,23 @@ namespace OpenMS
 
   }
   
-  // double AbsoluteQuantitation::applyCalibration(Feature & component,
-  //   Feature & IS_component,
-  //   std::string & feature_name,
-  //   std::string & transformation_model,
-  //   Param & transformation_model_params)
-  // {
-  //   // calculate the ratio
-  //   double ratio = calculateRatio(component, IS_component, feature_name);
+  double AbsoluteQuantitation::applyCalibration(Feature & component,
+    Feature & IS_component,
+    std::string & feature_name,
+    std::string & transformation_model,
+    Param & transformation_model_params)
+  {
+    // calculate the ratio
+    double ratio = calculateRatio(component, IS_component, feature_name);
 
-  //   // calculate the absolute concentration
-  //   double calculated_concentration = 0.0;
-  //   TransformationModel::DataPoints empty;
-  //   AbsoluteQuantitationMethod aqm;
-  //   aqm.setTransformationModel((transformation_model);
-  //   aqm.transformation_model_(empty,transformation_model_params);
-  //   calculated_concentration = aqm.transformation_model_.evaluate(ratio);
+    // calculate the absolute concentration
+    double calculated_concentration = 0.0;
+    AbsoluteQuantitationMethod aqm;
+    calculated_concentration = aqm.evaluateTransformationModel(
+      transformation_model, ratio, transformation_model_params);
 
-  //   return calculated_concentration;
-  // }
+    return calculated_concentration;
+  }
 
 } // namespace
 

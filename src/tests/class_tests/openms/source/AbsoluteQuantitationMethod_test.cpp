@@ -68,30 +68,44 @@ START_SECTION((~AbsoluteQuantitationMethod()))
 	delete ptr;
 END_SECTION
 
-AbsoluteQuantitationMethod* ptr = 0;
-AbsoluteQuantitationMethod* nullPointer = 0;
-START_SECTION((auto getTransformationModel(const std::string & transformation_model)))
+START_SECTION((fitTransformationModel(const std::string & transformation_model,
+  TransformationModel::DataPoints& data,
+  Param& transformation_model_params)))
+  
+  TransformationModel::DataPoints data;
+  data.push_back(make_pair(0.0, 1.0));
+  data.push_back(make_pair(1.0, 2.0));
+  data.push_back(make_pair(1.0, 4.0));
+
   AbsoluteQuantitationMethod aqm;
   std::string transformation_model;
+  Param param, test;
 
   transformation_model = "TransformationModelLinear";  
-  OpenMS::TransformationModelLinear tmlinear;
-	TEST_EQUAL(aqm.getTransformationModel(transformation_model), tmlinear);
+  TransformationModelLinear tmlinear(data, param);
+  //TODO: update test
+  TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
+    data,param), test);
   
   transformation_model = "TransformationModelBSpline";
-  OpenMS::TransformationModelBSpline tmbspline;
-  TEST_EQUAL(aqm.getTransformationModel(transformation_model), tmbspline);
+  TransformationModelBSpline tmbspline(data, param);
+  TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
+    data,param), test);
   
   transformation_model = "TransformationModelInterpolated";
-  OpenMS::TransformationModelInterpolated tminterpolated;
-  TEST_EQUAL(aqm.getTransformationModel(transformation_model), tminterpolated);
+  TransformationModelInterpolated tminterpolated(data, param);
+  TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
+    data,param), test);
   
   transformation_model = "TransformationModelLowess";
-  OpenMS::TransformationModelLowess tmlowess;
-  TEST_EQUAL(aqm.getTransformationModel(transformation_model), tmlowess);
+  TransformationModelLowess tmlowess(data, param);
+  TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
+    data,param), test);
   
-  OpenMS::TransformationModel tm;
-  TEST_EQUAL(aqm.getTransformationModel(""), tmlinear);  
+  transformation_model = "";
+  TransformationModel tm(data, param);
+  TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
+    data,param), test);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

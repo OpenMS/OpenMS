@@ -94,10 +94,23 @@ public:
   @param transformation_model_params model parameters
 
   @return updated parameters.
-
   */ 
   Param fitTransformationModel(const std::string & transformation_model,
     TransformationModel::DataPoints& data,
+    Param& transformation_model_params);
+
+  /**
+  @brief This function evaluates the transformation model with the empty data
+    and fitted parameters
+
+  @param transformation_model name of the transformation model
+  @param datum datum to evaluate the model at
+  @param transformation_model_params model parameters
+
+  @return evaluated datum.
+  */ 
+  double evaluateTransformationModel(const std::string & transformation_model,
+    const double& datum,
     Param& transformation_model_params);
                                   
   // members
