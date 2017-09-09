@@ -41,11 +41,9 @@
 #elif __APPLE__
 #include <mach/mach.h>
 #include <mach/mach_init.h>
-#include <cstdlib>
 #else
 #include <cstdio>
 #include <unistd.h>
-#include <cstdlib>
 #define OMS_USELINUXMEMORYPLATFORM
 #endif
 

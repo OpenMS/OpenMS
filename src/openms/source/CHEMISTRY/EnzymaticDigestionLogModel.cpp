@@ -159,15 +159,13 @@ namespace OpenMS
 
   Size EnzymaticDigestionLogModel::peptideCount(const AASequence& protein)
   {
-    SignedSize count = 1;
-    AASequence::ConstIterator iterator = protein.begin();
-    while (iterator != protein.end())
+    Size count = 0;
+    for (AASequence::ConstIterator iterator = protein.begin();
+         iterator != protein.end(); nextCleavageSite_(protein, iterator))
     {
-      ++count;
-      nextCleavageSite_(protein,iterator);
+        ++count;
     }
-    Size sum = count;
-    return sum;
+    return count;
   }
 
   void EnzymaticDigestionLogModel::digest(const AASequence& protein, vector<AASequence>& output) const
@@ -176,13 +174,12 @@ namespace OpenMS
     output.clear();
     AASequence::ConstIterator begin = protein.begin();
     AASequence::ConstIterator end = protein.begin();
-    while (end != protein.end())
+    for (nextCleavageSite_(protein, end);
+         begin != protein.end();
+         begin = end, nextCleavageSite_(protein, end))
     {
-      nextCleavageSite_(protein, end);
       output.push_back(protein.getSubsequence(begin - protein.begin(), end - begin));
-      begin = end;
     }
-    output.push_back(protein.getSubsequence(begin - protein.begin(), end - begin));
   }
-
 } //namespace
+
