@@ -70,29 +70,29 @@ END_SECTION
 
 START_SECTION((bool checkLOD(const double & value)))
 
-  AbsoluteQuantitationMethod aqm();
+  AbsoluteQuantitationMethod aqm;
   double value = 2.0;
 
   // tests
-  aqm.setLOD(0.0,4.0)
+  aqm.setLOD(0.0,4.0);
   TEST_EQUAL(aqm.checkLOD(value),true);
-  aqm.setLOD(0.0,1.0)
+  aqm.setLOD(0.0,1.0);
   TEST_EQUAL(aqm.checkLOD(value),false);
-  aqm.setLOD(3.0,4.0)
+  aqm.setLOD(3.0,4.0);
   TEST_EQUAL(aqm.checkLOD(value),false);
 END_SECTION
 
 START_SECTION((bool checkLOQ(const double & value)))
 
-  AbsoluteQuantitationMethod aqm();
+  AbsoluteQuantitationMethod aqm;
   double value = 2.0;
 
   // tests
-  aqm.setLOQ(0.0,4.0)
+  aqm.setLOQ(0.0,4.0);
   TEST_EQUAL(aqm.checkLOQ(value),true);
-  aqm.setLOQ(0.0,1.0)
+  aqm.setLOQ(0.0,1.0);
   TEST_EQUAL(aqm.checkLOQ(value),false);
-  aqm.setLOQ(3.0,4.0)
+  aqm.setLOQ(3.0,4.0);
   TEST_EQUAL(aqm.checkLOQ(value),false);
 END_SECTION
 
