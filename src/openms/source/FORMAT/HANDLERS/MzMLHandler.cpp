@@ -1385,7 +1385,7 @@ namespace OpenMS
         }
         else if (accession == "MS:1000806") //absorption spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ABSORBTION);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ABSORPTION);
         }
         else if (accession == "MS:1000325") //constant neutral gain spectrum
         {
@@ -3740,7 +3740,7 @@ namespace OpenMS
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::ABSORBTION))
+      if (file_content.has(InstrumentSettings::ABSORPTION))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }
@@ -4707,7 +4707,7 @@ namespace OpenMS
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ABSORBTION)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ABSORPTION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }

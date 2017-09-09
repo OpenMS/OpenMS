@@ -242,7 +242,7 @@ namespace OpenMS
   }
 
   //travers Protein and peptide nodes for building MSD groups
-  void ProteinResolver::traversProtein_(ProteinEntry * prot_node, MSDGroup & group)
+  void ProteinResolver::traverseProtein_(ProteinEntry * prot_node, MSDGroup & group)
   {
     group.proteins.push_back(prot_node);
     prot_node->msd_group = group.index;
@@ -255,13 +255,13 @@ namespace OpenMS
         (*i)->traversed = false;
         if ((*i)->experimental)
         {
-          traversPeptide_((*i), group);
+          traversePeptide_((*i), group);
         }
       }
     }
   }
 
-  void ProteinResolver::traversPeptide_(PeptideEntry * pep_node, MSDGroup & group)
+  void ProteinResolver::traversePeptide_(PeptideEntry * pep_node, MSDGroup & group)
   {
     group.peptides.push_back(pep_node);
     pep_node->msd_group = group.index;
@@ -270,7 +270,7 @@ namespace OpenMS
       if ((*i)->traversed)
       {
         (*i)->traversed = false;
-        traversProtein_((*i), group);
+        traverseProtein_((*i), group);
       }
     }
   }
@@ -572,7 +572,7 @@ namespace OpenMS
           msd_group.number_of_target = 0;
           msd_group.number_of_decoy = 0;
           msd_group.number_of_target_plus_decoy = 0;
-          traversProtein_(prot_node, msd_group);
+          traverseProtein_(prot_node, msd_group);
           if (msd_group.peptides.size() > 0)
           {
             msd_groups.push_back(msd_group);
