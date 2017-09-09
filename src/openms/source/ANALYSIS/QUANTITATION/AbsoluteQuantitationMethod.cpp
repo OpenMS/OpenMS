@@ -62,7 +62,7 @@ namespace OpenMS
   {
   }
 
-  bool checkLOD(const double & value)
+  bool AbsoluteQuantitationMethod::checkLOD(const double & value)
   {
     bool bracketted = false;
     if (value <= ulod_ && value >= llod_)
@@ -72,7 +72,7 @@ namespace OpenMS
     return bracketted;
   }
 
-  bool checkLOQ(const double & value)
+  bool AbsoluteQuantitationMethod::checkLOQ(const double & value)
   {
     bool bracketted = false;
     if (value <= uloq_ && value >= lloq_)
@@ -88,23 +88,25 @@ namespace OpenMS
   {
     if (transformation_model == "TransformationModelLinear")
     {
-      TransformationModelLinear tm(data,param);
+      TransformationModelLinear tm(data, transformation_model_params);
     }
     else if (transformation_model == "TransformationModelBSpline")
     {
-      TransformationModelBSpline tm(data,param);
+      TransformationModelBSpline tm(data, transformation_model_params);
     }
     else if (transformation_model == "TransformationModelInterpolated")
     {
-      TransformationModelInterpolated tm(data,param);
+      TransformationModelInterpolated tm(data, transformation_model_params);
     }
     else if (transformation_model == "TransformationModelLowess")
     {
-      TransformationModelLowess tm(data,param);
+      TransformationModelLowess tm(data, transformation_model_params);
     }
     else
     {
-      TransformationModel tm(data,param);
+      LOG_INFO << "TransformationModel " << transformation_model << " is not supported.";
+      LOG_INFO << "default TransformationModel will be used.";
+      TransformationModel tm(data, transformation_model_params);
     }
     Param params = tm.getParameters();
     return params;
