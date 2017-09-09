@@ -123,12 +123,12 @@ namespace OpenMS
     {
       return false;
     }
-    const Size pos = distance(AASequence::ConstIterator(protein.begin()),
+    const SignedSize pos = distance(AASequence::ConstIterator(protein.begin()),
                                 iterator) - 4; // start position in sequence
     double score_cleave = 0, score_missed = 0;
-    for (Size i = 0; i < 9; ++i)
+    for (SignedSize i = 0; i < 9; ++i)
     {
-      if ((pos + i >= 0) && (pos + i < protein.size()))
+      if ((pos + i >= 0) && (pos + i < (SignedSize) protein.size()))
       {
         BindingSite_ bs(i, protein[pos + i].getOneLetterCode());
         Map<BindingSite_, CleavageModel_>::const_iterator pos_it =
