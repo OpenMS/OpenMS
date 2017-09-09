@@ -285,6 +285,7 @@ elif sys.platform == "darwin":
     shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork.framework", "QtNetwork"), "pyopenms")
     os.chmod("pyopenms/QtCore", 0o744)
     os.chmod("pyopenms/QtNetwork", 0o744)
+    shutil.copy(j(os.path.expanduser(OPEN_MS_CONTRIB_BUILD_DIR), "lib", "libz.1.dylib"), "pyopenms")
 
 else:
     print("\n")
