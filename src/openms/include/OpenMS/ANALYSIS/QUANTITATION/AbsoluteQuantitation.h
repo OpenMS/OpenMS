@@ -67,6 +67,12 @@ namespace OpenMS
   /**
     @brief AbsoluteQuantitation is a class to support absolute or relative quantitation for targeted or untargeted
     quantitation workflows (e.g., Isotope Dilution Mass Spectrometry).
+
+    Terms:
+    component: A protein, peptide, or compund fragment, transition, or whole species that is measured by e.g.,
+      LC-MS, LC-MS/MS, GC-MS, GC-MS/MS, LC-MS-TOF, HPLC-UV, HPLC-IR, etc.
+    calibration curve:  A series of standards that are used to correlate instrument measurements to
+      actual concentrations
   */
   class OPENMS_DLLAPI AbsoluteQuantitation :
     public DefaultParamHandler
@@ -140,7 +146,6 @@ public:
       @exception Exception::UnableToFit
     */ 
     void optimizeCalibrationCurve();
-
         
     /**
       @brief This function optimizes the parameters of the calibration for a 
@@ -176,10 +181,10 @@ public:
     void quantifyComponents();    
     
     // members
-    /// map between features and quantitation methods
+    /// map between components and quantitation methods
     std::map<std::string,AbsoluteQuantitationMethod> quant_methods_;
 
-    /// map between features and known concentrations (the calibrators)
+    /// map between components and known concentrations (the calibrators)
     std::map<std::string,AbsoluteQuantitationStandards> standards_concentrations_;
     
     /// list of samples to quantify

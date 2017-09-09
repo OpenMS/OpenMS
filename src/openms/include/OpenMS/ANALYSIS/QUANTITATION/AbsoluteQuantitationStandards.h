@@ -89,12 +89,15 @@ public:
     
      /**
        @brief Structure to map runs to components to known concentrations
+
+       Note that for the method to work, the features must be annotated with
+         a metaValue for "run_id"
  
      */ 
-     void mapConcentrationsToFeatures();
+     void mapConcentrationsToComponents();
                                       
     // members
-    std::map<std::string,std::vector<featureConcentration>> features_to_concentrations;
+    std::map<std::string,std::vector<featureConcentration>> components_to_concentrations;
 
   };
 

@@ -90,7 +90,8 @@ namespace OpenMS
     return bias;
   }
   
-  void AbsoluteQuantitation::fitCalibration(std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+  void AbsoluteQuantitation::fitCalibration(
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
     std::string & feature_name,
     std::string & transformation_model,
     Param & transformation_model_params)
