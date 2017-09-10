@@ -128,5 +128,24 @@ namespace OpenMS
     return calculated_concentration;
   }
 
+  // std::vector<FeatureMap> AbsoluteQuantitation::quantifyComponents(std::vector<FeatureMap> unknowns)
+  // {
+  //   std::vector<FeatureMap> unknowns_quant;
+  //   // iterate through the unknowns
+  //   for (size_t i = 0; i < unknowns.size(); i++)
+  //   {
+  //     FeatureMap unknowns_quant_feature_map;
+  //     // iterate through the quant methods for each component
+  //     // OR
+  //     // iterate through each component
+  //     for (auto const& quantmethod : quant_methods_)
+  //     {
+  //       Feature unknowns_quant_feature;
+  //       // iterate through 
+  //     }
+
+  //   }
+  // }
+
 } // namespace
 

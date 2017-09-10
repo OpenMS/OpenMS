@@ -177,15 +177,15 @@ public:
     /**
       @brief This function applies the calibration curve to all components.
 
-      @param unknowns a vector of FeatureMaps to quantify.
-      @param unknowns_quant a vector of FeatureMaps with an additional annotation
+      @param unknowns A vector of FeatureMaps to quantify.
+
+      @return A vector of FeatureMaps with an additional annotation
         for metaValue of "calculated_concentration" and "concentration_units"
         corresponding to the absolute concentration as back-calculated from the
         fitted calibration curve model and parameters.
 
     */ 
-    void quantifyComponents(std::vector<FeatureMap> unknowns,
-      std::vector<FeatureMap> unknowns_quant);    
+    std::vector<FeatureMap> quantifyComponents(std::vector<FeatureMap> unknowns);    
     
     // members
     /// map between components and quantitation methods

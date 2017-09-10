@@ -51,7 +51,7 @@ namespace OpenMS
     {
     }
 
-    void AbsoluteQuantitationStandards::mapConcentrationsToFeatures()
+    void AbsoluteQuantitationStandards::mapConcentrationsToComponents()
     {
         //todo
     }
