@@ -159,7 +159,7 @@ public:
 
       @param component the component to be quantified
       @param IS_component the internal standard (IS) of the component to be quantified.
-        This can be null if there is no IS for the component.
+        This can be an empty feature if there is no IS for the component.
       @param feature_name name of the feature to calculate the absolute concentration.
       @param transformation_model model used to fit the calibration points
       @param transformation_model_params parameters used by the transformation_model
@@ -172,7 +172,7 @@ public:
       Feature & IS_component,
       std::string & feature_name,
       std::string & transformation_model,
-      Param & transformation_model_params);    
+      Param & transformation_model_params);     
       
     /**
       @brief This function applies the calibration curve to all components.

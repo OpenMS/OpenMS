@@ -79,6 +79,11 @@ namespace OpenMS
       double feature_2 = component_2.getMetaValue(feature_name);
       ratio = feature_1/feature_2;
     } 
+    else if (component_1.metaValueExists(feature_name))
+    {
+      double feature_1 = component_1.getMetaValue(feature_name);
+      ratio = feature_1;
+    } 
 
     return ratio;
   }
@@ -145,6 +150,8 @@ namespace OpenMS
     double calculated_concentration;
     std::string concentration_units;
     bool IS_found;
+    Feature empty_feature;
+    size_t sub_it, is_sub_it; // keep sub-feature and IS sub_feature in the function scope
 
     // iterate through the unknowns
     for (size_t i = 0; i < unknowns.size(); i++)
@@ -157,7 +164,7 @@ namespace OpenMS
         Feature unknowns_quant_feature;
 
         // iterate through each component/sub-feature
-        for (size_t sub_it = 0; sub_it < feature_it->getSubordinates().size(); ++sub_it)
+        for (sub_it = 0; sub_it < feature_it->getSubordinates().size(); ++sub_it)
         {
           component_name = (std::string)feature_it->getSubordinates()[sub_it].getMetaValue("native_id");
           quant_methods_it = quant_methods_.find(component_name);
@@ -165,13 +172,13 @@ namespace OpenMS
           // apply the calibration curve to components that are in the quant_method
           if (quant_methods_it != quant_methods_.end())
           {
-            quant_methods_it->second->getISName(IS_component_name);
+            quant_methods_it->second.getISName(IS_component_name);
             if (IS_component_name != "")
             {
               // look up the internal standard for the component
               IS_found = false;
               // Optimization: 90% of the IS will be in the same component_group/feature
-              for (size_t is_sub_it = 0; is_sub_it < feature_it->getSubordinates().size(); ++is_sub_it)
+              for (is_sub_it = 0; is_sub_it < feature_it->getSubordinates().size(); ++is_sub_it)
               {
                 IS_component_name2 = (std::string)feature_it->getSubordinates()[is_sub_it].getMetaValue("native_id");              
                 if (IS_component_name == IS_component_name2)
@@ -186,7 +193,7 @@ namespace OpenMS
                 for (FeatureMap::iterator is_feature_it = unknowns[i].begin(); is_feature_it != unknowns[i].end(); ++is_feature_it)
                 {
                   //iterate through each component/sub-feature
-                  for (size_t is_sub_it = 0; is_sub_it < is_feature_it->getSubordinates().size(); ++is_sub_it)
+                  for (is_sub_it = 0; is_sub_it < is_feature_it->getSubordinates().size(); ++is_sub_it)
                   {
                     IS_component_name2 = (std::string)is_feature_it->getSubordinates()[is_sub_it].getMetaValue("native_id");                   
                     if (IS_component_name == IS_component_name2)
@@ -203,8 +210,8 @@ namespace OpenMS
               }
               if (IS_found)
               {
-                quant_methods_it->second->getFeatureName(feature_name);
-                quant_methods_it->second->getTransformationModel(transformation_model,transformation_model_params);
+                quant_methods_it->second.getFeatureName(feature_name);
+                quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
                 calculated_concentration = applyCalibration(
                   feature_it->getSubordinates()[sub_it],
                   is_feature_it->getSubordinates()[is_sub_it],
@@ -218,26 +225,26 @@ namespace OpenMS
             }
             else
             {
-              quant_methods_it->second->getFeatureName(feature_name);
-              quant_methods_it->second->getTransformationModel(transformation_model,transformation_model_params);
+              quant_methods_it->second.getFeatureName(feature_name);
+              quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
               calculated_concentration = applyCalibration(
                 feature_it->getSubordinates()[sub_it],
-                NULL,
+                empty_feature,
                 feature_name,transformation_model,transformation_model_params);
             }
 
             // add new metadata (calculated_concentration, concentration_units) to the component
-            sub_it->setMetaValue("calculated_concentration",calculated_concentration);
-            quant_methods_it->getConcentrationUnits(concentration_units);
-            sub_it->setMetaValue("concentration_units",concentration_units);
+            feature_it->getSubordinates()[sub_it].setMetaValue("calculated_concentration",calculated_concentration);
+            quant_methods_it->second.getConcentrationUnits(concentration_units);
+            feature_it->getSubordinates()[sub_it].setMetaValue("concentration_units",concentration_units);
             // calculate the bias?
           }
           else 
           {
             LOG_INFO << "Component " << component_name << " does not have a quantitation method.";
             LOG_INFO << "No concentration will be calculated.";
-            sub_it->setMetaValue("calculated_concentration",NULL);
-            sub_it->setMetaValue("concentration_units","");
+            feature_it->getSubordinates()[sub_it].setMetaValue("calculated_concentration",NULL);
+            feature_it->getSubordinates()[sub_it].setMetaValue("concentration_units","");
           }
         }
       }
