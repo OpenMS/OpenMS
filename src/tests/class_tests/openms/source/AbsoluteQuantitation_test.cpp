@@ -157,7 +157,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   TEST_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("calculated_concentration"),"");
   TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("concentration_units"),"");
   TEST_REAL_SIMILAR(unknowns[0][0].getSubordinates()[1].getMetaValue("calculated_concentration"),1.0);
-  TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("concentration_units"),"uM");
+  TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[1].getMetaValue("concentration_units"),"uM");
 END_SECTION
 
 /////////////////////////////////////////////////////////////
