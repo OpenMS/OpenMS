@@ -138,7 +138,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   unknowns.push_back(unknown_feature_map);
 
   // set-up the quant_method map
-  std::map<std::string,AbsoluteQuantitationMethod> quant_methods;
+  std::vector<AbsoluteQuantitationMethod> quant_methods;
   AbsoluteQuantitationMethod aqm;
   aqm.setComponentISFeatureNames("component","IS",feature_name);
   aqm.setConcentrationUnits("uM");
@@ -149,8 +149,9 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   param.setValue("slope",1.0);
   param.setValue("intercept",0.0);
   aqm.setTransformationModel(transformation_model, param);
-  quant_methods["component"] = aqm;
+  quant_methods.push_back(aqm);
 
+  absquant.setQuantMethods(quant_methods);
   absquant.quantifyComponents(unknowns);
 
   TEST_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("calculated_concentration"),"");

@@ -86,6 +86,9 @@ public:
     /// Destructor
     ~AbsoluteQuantitation();
     //@}
+
+    /// quant_method setter
+    void setQuantMethods(std::vector<AbsoluteQuantitationMethod>& quant_methods);
  
     /**
       @brief This function calculates the ratio between features.
