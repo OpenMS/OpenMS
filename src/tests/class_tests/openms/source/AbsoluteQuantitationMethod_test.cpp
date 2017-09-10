@@ -113,46 +113,49 @@ START_SECTION((Param fitTransformationModel(const std::string & transformation_m
 
   transformation_model = "TransformationModelLinear";  
   TransformationModelLinear tmlinear(data, param);
-  test.setValue("symmetric_regression",false);
-  test.setValue("slope",1.0);
-  test.setValue("intercept",0.0);
-  TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
-    data,param), test);
+  test = aqm.fitTransformationModel(transformation_model,
+    data,param);
+  TEST_EQUAL(test.getValue("symmetric_regression"), false);
+  TEST_REAL_SIMILAR(test.getValue("slope"), 1.0);
+  TEST_REAL_SIMILAR(test.getValue("intercept"), 0.0);
   test.clear();
   param.clear();
   
   transformation_model = "TransformationModelBSpline";
   TransformationModelBSpline tmbspline(data, param);
-  test.setValue("wavelength",0);
-  test.setValue("num_nodes",5);
-  test.setValue("extrapolate","linear");
-  test.setValue("boundary_condition",2);
-  TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
-    data,param), test);
+  test = aqm.fitTransformationModel(transformation_model,
+    data,param);
+  TEST_EQUAL(test.getValue("extrapolate"), "linear");
+  TEST_REAL_SIMILAR(test.getValue("wavelength"), 0.0);
+  TEST_REAL_SIMILAR(test.getValue("num_nodes"), 5);
+  TEST_REAL_SIMILAR(test.getValue("boundary_condition"), 2);
   test.clear();
   param.clear();
   
   transformation_model = "TransformationModelInterpolated";
   TransformationModelInterpolated tminterpolated(data, param);
-  //TODO: update test
-  TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
-    data,param), test);
+  test = aqm.fitTransformationModel(transformation_model,
+    data,param);
+  TEST_EQUAL(test.getValue("interpolation_type"), "cspline");
+  TEST_EQUAL(test.getValue("extrapolation_type"), "two-point-linear");
   test.clear();
   param.clear();
   
   transformation_model = "TransformationModelLowess";
   TransformationModelLowess tmlowess(data, param);
-  //TODO: update test
-  TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
-    data,param), test);
+  test = aqm.fitTransformationModel(transformation_model,
+    data,param);
+  TEST_EQUAL(test.getValue("interpolation_type"), "cspline");
+  TEST_REAL_SIMILAR(test.getValue("num_iterations"), 3.0);
+  TEST_REAL_SIMILAR(test.getValue("span"), 2/3.0);
   test.clear();
   param.clear();
   
   transformation_model = "";
   TransformationModel tm(data, param);
-  //TODO: update test
-  TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
-    data,param), test);
+  test = aqm.fitTransformationModel(transformation_model,
+    data,param);
+  TEST_EQUAL(test.empty(), true);
 END_SECTION
 
 START_SECTION((double evaluateTransformationModel(const std::string & transformation_model,
