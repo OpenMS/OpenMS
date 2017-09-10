@@ -50,6 +50,10 @@ namespace OpenMS
   /**
     @brief AbsoluteQuantitationStandards is a class to handle the relationship between
     runs, components, and actual concentrations.
+
+    TODO:
+    1. Move to FORMAT
+    2. Update dependencies headers
   */
   class OPENMS_DLLAPI AbsoluteQuantitationStandards :
   public DefaultParamHandler

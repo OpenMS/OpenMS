@@ -101,9 +101,11 @@ START_SECTION((Param fitTransformationModel(const std::string & transformation_m
   Param& transformation_model_params)))
   
   TransformationModel::DataPoints data;
-  data.push_back(make_pair(0.0, 1.0));
-  data.push_back(make_pair(1.0, 2.0));
-  data.push_back(make_pair(1.0, 4.0));
+  data.push_back(make_pair(0.0, 0.0));
+  data.push_back(make_pair(1.0, 1.0));
+  data.push_back(make_pair(2.0, 2.0));
+  data.push_back(make_pair(3.0, 3.0));
+  data.push_back(make_pair(4.0, 4.0));
 
   AbsoluteQuantitationMethod aqm;
   std::string transformation_model;
@@ -111,27 +113,40 @@ START_SECTION((Param fitTransformationModel(const std::string & transformation_m
 
   transformation_model = "TransformationModelLinear";  
   TransformationModelLinear tmlinear(data, param);
-  //TODO: update test
+  test.setValue("symmetric_regression",false);
+  test.setValue("slope",1.0);
+  test.setValue("intercept",0.0);
   TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
     data,param), test);
+  test.clear();
+  param.clear();
   
   transformation_model = "TransformationModelBSpline";
   TransformationModelBSpline tmbspline(data, param);
-  //TODO: update test
+  test.setValue("wavelength",0);
+  test.setValue("num_nodes",5);
+  test.setValue("extrapolate","linear");
+  test.setValue("boundary_condition",2);
   TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
     data,param), test);
+  test.clear();
+  param.clear();
   
   transformation_model = "TransformationModelInterpolated";
   TransformationModelInterpolated tminterpolated(data, param);
   //TODO: update test
   TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
     data,param), test);
+  test.clear();
+  param.clear();
   
   transformation_model = "TransformationModelLowess";
   TransformationModelLowess tmlowess(data, param);
   //TODO: update test
   TEST_EQUAL(aqm.fitTransformationModel(transformation_model,
     data,param), test);
+  test.clear();
+  param.clear();
   
   transformation_model = "";
   TransformationModel tm(data, param);
