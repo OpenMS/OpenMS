@@ -126,7 +126,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   std::vector<Feature> unknown_feature_subordinates;
   Feature unknown_feature, component, IS_component;
   std::string feature_name = "peak_apex_int";
-  unknown_feature.setMetaValue("PeptideRef","component_group")
+  unknown_feature.setMetaValue("PeptideRef","component_group");
   component.setMetaValue("native_id","component");
   component.setMetaValue(feature_name,2.0);
   IS_component.setMetaValue("native_id","IS");
@@ -148,10 +148,10 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   transformation_model = "TransformationModelLinear";  
   param.setValue("slope",1.0);
   param.setValue("intercept",0.0);
-  aqm.setTransformationModel(transformation_model, const Param& param)
+  aqm.setTransformationModel(transformation_model, param);
   quant_methods["component"] = aqm;
 
-  aqm.quantifyComponents(unknowns);
+  absquant.quantifyComponents(unknowns);
 
   TEST_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("calculated_concentration"),"");
   TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("concentration_units"),"");
