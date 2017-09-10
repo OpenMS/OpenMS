@@ -98,10 +98,10 @@ public:
   bool checkLOQ(const double & value);
 
   /// IS_name setter
-  void setISName(const std::string& is_name);
+  void setComponentISFeatureNames(const std::string& component_name, const std::string& IS_name, const std::string& feature_name);
 
   /// IS_name getter
-  void getISName(std::string& is_name);
+  void getComponentISFeatureNames(std::string& component_name, std::string& IS_name, std::string& feature_name);
   
   /// concentration_units setter
   void setConcentrationUnits(const std::string& concentration_units);
@@ -114,6 +114,12 @@ public:
 
   /// transformation_model and transformation_model_params getter
   void getTransformationModel(std::string& transformation_model, Param& transformation_model_params);
+  
+  // /// feature_name setter
+  // void setFeatureName(const std::string& feature_name);
+
+  // /// feature_name getter
+  // void getFeatureName(std::string& feature_name);
 
   /**
   @brief This function fits the transformation model with the data
@@ -146,7 +152,7 @@ public:
   // members
 
   /// id of the component
-  std::string component_id_;
+  std::string component_name_;
   
   /// name of the feature (i.e., peak_apex_int or peak_area)
   std::string feature_name_;

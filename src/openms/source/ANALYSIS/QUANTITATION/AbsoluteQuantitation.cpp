@@ -138,20 +138,26 @@ namespace OpenMS
     //Potential Optimizations: create a map for each unknown FeatureMap
     // to reduce multiple loops
 
-    // initialize all variables
+    // initialize all quant_method variables
     std::map<std::string,AbsoluteQuantitationMethod>::iterator quant_methods_it;
-    std::string component_name; //i.e., transition_id
-    std::string IS_component_name; //i.e., internal standard transition_id
-    std::string IS_component_name2; //i.e., internal standard transition_id
-    std::string component_group_name; //i.e., peptideRef
-    std::string feature_name; //i.e., peak_apex_int or peak_area
+    std::string quant_component_name; //i.e., quant_method transition_id
+    std::string quant_IS_component_name; //i.e., quant_method internal standard transition_id
+    std::string quant_feature_name; //i.e., quant_method peak_apex_int or peak_area
     std::string transformation_model;
     Param transformation_model_params;
+
+    // initialize all unknown variables
+    std::string component_name; //i.e., transition_id
+    std::string IS_component_name; //i.e., internal standard transition_id
+    std::string component_group_name; //i.e., peptideRef
     double calculated_concentration;
     std::string concentration_units;
+
+    // initalize all other variables
     bool IS_found;
     Feature empty_feature;
     size_t sub_it, is_sub_it; // keep sub-feature and IS sub_feature in the function scope
+    FeatureMap::iterator is_feature_it; // keep the IS feature in the function scope
 
     // iterate through the unknowns
     for (size_t i = 0; i < unknowns.size(); i++)
@@ -172,16 +178,16 @@ namespace OpenMS
           // apply the calibration curve to components that are in the quant_method
           if (quant_methods_it != quant_methods_.end())
           {
-            quant_methods_it->second.getISName(IS_component_name);
-            if (IS_component_name != "")
+            quant_methods_it->second.getComponentISFeatureNames(quant_component_name,quant_is_name,quant_feature_name);
+            if (quant_IS_component_name != "")
             {
               // look up the internal standard for the component
               IS_found = false;
               // Optimization: 90% of the IS will be in the same component_group/feature
               for (is_sub_it = 0; is_sub_it < feature_it->getSubordinates().size(); ++is_sub_it)
               {
-                IS_component_name2 = (std::string)feature_it->getSubordinates()[is_sub_it].getMetaValue("native_id");              
-                if (IS_component_name == IS_component_name2)
+                IS_component_name = (std::string)feature_it->getSubordinates()[is_sub_it].getMetaValue("native_id");              
+                if (quant_IS_component_name == IS_component_name)
                 {
                   IS_found = true;
                   break;
@@ -190,13 +196,13 @@ namespace OpenMS
               if (!IS_found)
               {// expand IS search to all components                
                 // iterate through each component_group/feature     
-                for (FeatureMap::iterator is_feature_it = unknowns[i].begin(); is_feature_it != unknowns[i].end(); ++is_feature_it)
+                for (is_feature_it = unknowns[i].begin(); is_feature_it != unknowns[i].end(); ++is_feature_it)
                 {
                   //iterate through each component/sub-feature
                   for (is_sub_it = 0; is_sub_it < is_feature_it->getSubordinates().size(); ++is_sub_it)
                   {
-                    IS_component_name2 = (std::string)is_feature_it->getSubordinates()[is_sub_it].getMetaValue("native_id");                   
-                    if (IS_component_name == IS_component_name2)
+                    IS_component_name = (std::string)is_feature_it->getSubordinates()[is_sub_it].getMetaValue("native_id");                   
+                    if (quant_IS_component_name == IS_component_name)
                     {
                       IS_found = true;
                       break;
@@ -209,28 +215,26 @@ namespace OpenMS
                 }
               }
               if (IS_found)
-              {
-                quant_methods_it->second.getFeatureName(feature_name);
+              {                
                 quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
                 calculated_concentration = applyCalibration(
                   feature_it->getSubordinates()[sub_it],
                   is_feature_it->getSubordinates()[is_sub_it],
-                  feature_name,transformation_model,transformation_model_params);
+                  quant_feature_name,transformation_model,transformation_model_params);
               }
               else 
               {                
-                LOG_INFO << "Component " << component_name << " IS " << IS_component_name << " was not found.";
+                LOG_INFO << "Component " << component_name << " IS " << quant_IS_component_name << " was not found.";
                 LOG_INFO << "No concentration will be calculated.";
               }
             }
             else
             {
-              quant_methods_it->second.getFeatureName(feature_name);
               quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
               calculated_concentration = applyCalibration(
                 feature_it->getSubordinates()[sub_it],
                 empty_feature,
-                feature_name,transformation_model,transformation_model_params);
+                quant_feature_name,transformation_model,transformation_model_params);
             }
 
             // add new metadata (calculated_concentration, concentration_units) to the component
@@ -243,7 +247,7 @@ namespace OpenMS
           {
             LOG_INFO << "Component " << component_name << " does not have a quantitation method.";
             LOG_INFO << "No concentration will be calculated.";
-            feature_it->getSubordinates()[sub_it].setMetaValue("calculated_concentration",NULL);
+            feature_it->getSubordinates()[sub_it].setMetaValue("calculated_concentration","");
             feature_it->getSubordinates()[sub_it].setMetaValue("concentration_units","");
           }
         }
