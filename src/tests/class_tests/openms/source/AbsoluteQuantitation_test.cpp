@@ -75,13 +75,43 @@ START_SECTION((double calculateRatio(Feature & component_1, Feature & component_
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_2,feature_name),inf);
 END_SECTION
 
-START_SECTION((calculateBias(double & actual_concentration, double & calculated_concentration)))
+START_SECTION((double calculateBias(double & actual_concentration, double & calculated_concentration)))
   AbsoluteQuantitation absquant;
   double actual_concentration = 5.0;
   double calculated_concentration = 5.0;
   TEST_REAL_SIMILAR(absquant.calculateBias(actual_concentration,calculated_concentration),0.0);
   calculated_concentration = 4.0;
   TEST_REAL_SIMILAR(absquant.calculateBias(actual_concentration,calculated_concentration),20.0);
+END_SECTION
+
+START_SECTION((double applyCalibration(Feature & component,
+  Feature & IS_component,
+  std::string & feature_name,
+  std::string & transformation_model,
+  Param & transformation_model_params)))
+
+  AbsoluteQuantitation absquant;
+
+  // set-up the features
+  Feature component, IS_component;
+  component.setMetaValue("native_id","component");
+  component.setMetaValue("peak_apex_int",2.0);
+  IS_component.setMetaValue("native_id","IS");
+  IS_component.setMetaValue("peak_apex_int",2.0);
+  std::string feature_name = "peak_apex_int";
+
+  // set-up the model and params
+  std::string transformation_model;
+  Param param;
+  transformation_model = "TransformationModelLinear";  
+  param.setValue("slope",1.0);
+  param.setValue("intercept",0.0);
+
+  TEST_REAL_SIMILAR(absquant.applyCalibration(component,
+    IS_component,
+    feature_name,
+    transformation_model,
+    transformation_model_params),1.0);
 END_SECTION
 
 /////////////////////////////////////////////////////////////
