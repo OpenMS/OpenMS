@@ -173,7 +173,7 @@ namespace OpenMS
         for (sub_it = 0; sub_it < feature_it->getSubordinates().size(); ++sub_it)
         {
           component_name = (std::string)feature_it->getSubordinates()[sub_it].getMetaValue("native_id");   
-          cout << "component_name = " << component_name << endl;       
+          std::cout << "component_name = " << component_name << std::endl;       
 
           // apply the calibration curve to components that are in the quant_method
           if (quant_methods_.count(component_name)>0)
