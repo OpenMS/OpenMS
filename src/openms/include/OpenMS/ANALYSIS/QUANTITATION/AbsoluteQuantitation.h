@@ -187,7 +187,7 @@ public:
       @param unknowns A vector of FeatureMaps to quantify.
 
     */ 
-    void quantifyComponents(std::vector<FeatureMap> unknowns);    
+    void quantifyComponents(std::vector<FeatureMap>& unknowns);    
     
     // members
     /// map between components and quantitation methods

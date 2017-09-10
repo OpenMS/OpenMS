@@ -114,6 +114,51 @@ START_SECTION((double applyCalibration(Feature & component,
     param),1.0);
 END_SECTION
 
+START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
+
+  AbsoluteQuantitation absquant;
+
+  // set-up the unknowns
+  std::vector<FeatureMap> unknowns;
+  // set-up the unknown FeatureMap
+  FeatureMap unknown_feature_map;
+  // set-up the features and sub-features
+  std::vector<Feature> unknown_feature_subordinates;
+  Feature unknown_feature, component, IS_component;
+  std::string feature_name = "peak_apex_int";
+  unknown_feature.setMetaValue("PeptideRef","component_group")
+  component.setMetaValue("native_id","component");
+  component.setMetaValue(feature_name,2.0);
+  IS_component.setMetaValue("native_id","IS");
+  IS_component.setMetaValue(feature_name,2.0);
+  unknown_feature_subordinates.push_back(IS_component);
+  unknown_feature_subordinates.push_back(component);
+  unknown_feature.setSubordinates(unknown_feature_subordinates);
+  unknown_feature_map.push_back(unknown_feature);
+  unknowns.push_back(unknown_feature_map);
+
+  // set-up the quant_method map
+  std::map<std::string,AbsoluteQuantitationMethod> quant_methods;
+  AbsoluteQuantitationMethod aqm;
+  aqm.setComponentISFeatureNames("component","IS",feature_name);
+  aqm.setConcentrationUnits("uM");
+  // set-up the model and params
+  std::string transformation_model;
+  Param param;
+  transformation_model = "TransformationModelLinear";  
+  param.setValue("slope",1.0);
+  param.setValue("intercept",0.0);
+  aqm.setTransformationModel(transformation_model, const Param& param)
+  quant_methods["component"] = aqm;
+
+  aqm.quantifyComponents(unknowns);
+
+  TEST_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("calculated_concentration"),"");
+  TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("concentration_units"),"");
+  TEST_REAL_SIMILAR(unknowns[0][0].getSubordinates()[1].getMetaValue("calculated_concentration"),1.0);
+  TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("concentration_units"),"uM");
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

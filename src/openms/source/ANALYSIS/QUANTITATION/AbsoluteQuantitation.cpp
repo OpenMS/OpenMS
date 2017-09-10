@@ -133,7 +133,7 @@ namespace OpenMS
     return calculated_concentration;
   }
 
-  void AbsoluteQuantitation::quantifyComponents(std::vector<FeatureMap> unknowns)
+  void AbsoluteQuantitation::quantifyComponents(std::vector<FeatureMap>& unknowns)
   {
     //Potential Optimizations: create a map for each unknown FeatureMap
     // to reduce multiple loops
