@@ -105,6 +105,16 @@ namespace OpenMS
     }
     return bracketted;
   }
+  
+  void AbsoluteQuantitationMethod::setISName(const std::string& IS_name)
+  {
+    IS_name_ = IS_name;
+  }
+  
+  void AbsoluteQuantitationMethod::getISName(std::string& IS_name)
+  {
+    IS_name = IS_name_;
+  }
 
   Param AbsoluteQuantitationMethod::fitTransformationModel(const std::string & transformation_model,
     TransformationModel::DataPoints& data,

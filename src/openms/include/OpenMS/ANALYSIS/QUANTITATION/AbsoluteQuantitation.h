@@ -177,6 +177,10 @@ public:
     /**
       @brief This function applies the calibration curve to all components.
 
+      It is assumed that all duplicate components have been removed.  If not,
+        the function will quantify all components, but the first internal standard found will
+        be used to calculate the ratio for the calculation.
+
       @param unknowns A vector of FeatureMaps to quantify.
 
       @return A vector of FeatureMaps with an additional annotation

@@ -128,24 +128,58 @@ namespace OpenMS
     return calculated_concentration;
   }
 
-  // std::vector<FeatureMap> AbsoluteQuantitation::quantifyComponents(std::vector<FeatureMap> unknowns)
-  // {
-  //   std::vector<FeatureMap> unknowns_quant;
-  //   // iterate through the unknowns
-  //   for (size_t i = 0; i < unknowns.size(); i++)
-  //   {
-  //     FeatureMap unknowns_quant_feature_map;
-  //     // iterate through the quant methods for each component
-  //     // OR
-  //     // iterate through each component
-  //     for (auto const& quantmethod : quant_methods_)
-  //     {
-  //       Feature unknowns_quant_feature;
-  //       // iterate through 
-  //     }
+  std::vector<FeatureMap> AbsoluteQuantitation::quantifyComponents(std::vector<FeatureMap> unknowns)
+  {
+    // initialize all variables
+    std::vector<FeatureMap> unknowns_quant;
+    std::map<std::string,AbsoluteQuantitationMethod>::iterator quant_methods_it;
+    std::string component_name; //i.e., transition_id
+    std::string IS_component_name; //i.e., internal standard transition_id
+    std::string component_group_name; //i.e., peptideRef
+    std::string feature_name; //i.e., peak_apex_int or peak_area
+    std::string transformation_model;
+    Param transformation_model_params;
+    double calculated_concentration;
+    std::string concentration_units;
 
-  //   }
-  // }
+    // iterate through the unknowns
+    for (size_t i = 0; i < unknowns.size(); i++)
+    {      
+      FeatureMap unknowns_quant_feature_map;
+
+      // iterate through each component_group/feature     
+      for (FeatureMap::iterator feature_it = unknowns[i].begin(); feature_it != unknowns[i].end(); ++feature_it)
+      {
+        component_group_name = feature_it->getMetaValue("PeptideRef");
+        Feature unknowns_quant_feature;
+
+        // iterate through each component/sub-feature
+        for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
+        {
+          component_name = feature_it->getMetaValue("native_id");
+          quant_methods_it = quant_methods_.find(component_name);
+          if (quant_methods_it != quant_methods_.end())
+          {
+            quant_methods_it->getISName(IS_component_name);
+            if (IS_component_name != "")
+            {
+
+              // look up the internal standard for the component
+            }
+            else
+            {
+              quant_methods_it->getFeatureName(feature_name);
+              quant_methods_it->getTransformationModel(transformation_model,transformation_model_params);
+              calculated_concentration = applyCalibration(sub_it,NULL,feature_name,transformation_model,transformation_model_params);
+            }
+            
+            // add new metadata (calculated_concentration, concentration_units) to the component
+
+          }
+        }
+      }
+    }
+  }
 
 } // namespace
 

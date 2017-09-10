@@ -115,7 +115,6 @@ START_SECTION((Param fitTransformationModel(const std::string & transformation_m
   TransformationModelLinear tmlinear(data, param);
   test = aqm.fitTransformationModel(transformation_model,
     data,param);
-  TEST_EQUAL(test.getValue("symmetric_regression"), false);
   TEST_REAL_SIMILAR(test.getValue("slope"), 1.0);
   TEST_REAL_SIMILAR(test.getValue("intercept"), 0.0);
   test.clear();

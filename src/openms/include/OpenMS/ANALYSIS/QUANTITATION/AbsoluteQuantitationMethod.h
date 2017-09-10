@@ -97,6 +97,12 @@ public:
   */ 
   bool checkLOQ(const double & value);
 
+  /// IS_name setter
+  void setISName(const std::string& is_name);
+
+  /// IS_name getter
+  void getISName(std::string& is_name);
+
   /**
   @brief This function fits the transformation model with the data
     and parameters
