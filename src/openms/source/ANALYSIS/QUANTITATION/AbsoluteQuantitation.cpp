@@ -164,15 +164,15 @@ namespace OpenMS
     {      
 
       // iterate through each component_group/feature     
-      for (FeatureMap::iterator feature_it = unknowns[i].begin(); feature_it != unknowns[i].end(); ++feature_it)
+      for (size_t feature_it = 0; feature_it < unknowns[i].size(); ++feature_it)
       {
-        component_group_name = (std::string)feature_it->getMetaValue("PeptideRef");
+        component_group_name = (std::string)unknowns[i][feature_it].getMetaValue("PeptideRef");
         Feature unknowns_quant_feature;
 
         // iterate through each component/sub-feature
-        for (sub_it = 0; sub_it < feature_it->getSubordinates().size(); ++sub_it)
+        for (sub_it = 0; sub_it < unknowns[i][feature_it].getSubordinates().size(); ++sub_it)
         {
-          component_name = (std::string)feature_it->getSubordinates()[sub_it].getMetaValue("native_id");   
+          component_name = (std::string)unknowns[i][feature_it].getSubordinates()[sub_it].getMetaValue("native_id");   
           std::cout << "component_name = " << component_name << std::endl;       
 
           // apply the calibration curve to components that are in the quant_method
@@ -185,9 +185,9 @@ namespace OpenMS
               // look up the internal standard for the component
               IS_found = false;
               // Optimization: 90% of the IS will be in the same component_group/feature
-              for (is_sub_it = 0; is_sub_it < feature_it->getSubordinates().size(); ++is_sub_it)
+              for (is_sub_it = 0; is_sub_it < unknowns[i][feature_it].getSubordinates().size(); ++is_sub_it)
               {
-                IS_component_name = (std::string)feature_it->getSubordinates()[is_sub_it].getMetaValue("native_id");              
+                IS_component_name = (std::string)unknowns[i][feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");              
                 if (quant_IS_component_name == IS_component_name)
                 {
                   IS_found = true;
@@ -219,7 +219,7 @@ namespace OpenMS
               {                
                 quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
                 calculated_concentration = applyCalibration(
-                  feature_it->getSubordinates()[sub_it],
+                  unknowns[i][feature_it].getSubordinates()[sub_it],
                   is_feature_it->getSubordinates()[is_sub_it],
                   quant_feature_name,transformation_model,transformation_model_params);
               }
@@ -233,23 +233,23 @@ namespace OpenMS
             {
               quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
               calculated_concentration = applyCalibration(
-                feature_it->getSubordinates()[sub_it],
+                unknowns[i][feature_it].getSubordinates()[sub_it],
                 empty_feature,
                 quant_feature_name,transformation_model,transformation_model_params);
             }
 
             // add new metadata (calculated_concentration, concentration_units) to the component
-            feature_it->getSubordinates()[sub_it].setMetaValue("calculated_concentration",calculated_concentration);
+            unknowns[i][feature_it].getSubordinates()[sub_it].setMetaValue("calculated_concentration",calculated_concentration);
             quant_methods_it->second.getConcentrationUnits(concentration_units);
-            feature_it->getSubordinates()[sub_it].setMetaValue("concentration_units",concentration_units);
+            unknowns[i][feature_it].getSubordinates()[sub_it].setMetaValue("concentration_units",concentration_units);
             // calculate the bias?
           }
           else 
           {
             LOG_INFO << "Component " << component_name << " does not have a quantitation method.";
             LOG_INFO << "No concentration will be calculated.";
-            feature_it->getSubordinates()[sub_it].setMetaValue("calculated_concentration","");
-            feature_it->getSubordinates()[sub_it].setMetaValue("concentration_units","");
+            unknowns[i][feature_it].getSubordinates()[sub_it].setMetaValue("calculated_concentration","");
+            unknowns[i][feature_it].getSubordinates()[sub_it].setMetaValue("concentration_units","");
           }
         }
       }
