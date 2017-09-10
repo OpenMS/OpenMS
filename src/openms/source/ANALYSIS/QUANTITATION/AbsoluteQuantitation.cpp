@@ -73,11 +73,11 @@ namespace OpenMS
   void AbsoluteQuantitation::setQuantMethods(std::vector<AbsoluteQuantitationMethod>& quant_methods)
   {
     quant_methods_.clear();
-    std::string quant_component_name,quant_IS_component_name,quant_feature_name;
+    std::string component_name,IS_component_name,feature_name;
     for (size_t i = 0; i < quant_methods.size(); i++)
     {
-      quant_methods[i].getComponentISFeatureNames(quant_component_name,quant_IS_component_name,quant_feature_name);
-      quant_methods_[component_name] = quantMethods[i];
+      quant_methods[i].getComponentISFeatureNames(component_name,IS_component_name,feature_name);
+      quant_methods_[component_name] = quant_methods[i];
     }
   }
 
