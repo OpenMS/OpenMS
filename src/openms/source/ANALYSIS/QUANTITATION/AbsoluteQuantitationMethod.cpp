@@ -203,7 +203,7 @@ namespace OpenMS
     const double& datum,
     Param& transformation_model_params)
   {
-    double result = 0.0;
+    double result = datum;
     TransformationModel::DataPoints data;
     if (transformation_model == "TransformationModelLinear")
     {
@@ -228,7 +228,7 @@ namespace OpenMS
     else
     {
       LOG_INFO << "TransformationModel " << transformation_model << " is not supported.";
-      LOG_INFO << "0.0 will be returned.";
+      LOG_INFO << "The original datum will be returned.";
     }
     return result;
   }

@@ -166,42 +166,44 @@ START_SECTION((double evaluateTransformationModel(const std::string & transforma
   AbsoluteQuantitationMethod aqm;
   std::string transformation_model;
   Param param;
-  double test;
 
   transformation_model = "TransformationModelLinear";  
-  //TODO: update param
+  param.setValue("slope",1.0);
+  param.setValue("intercept",0.0);
   TransformationModelLinear tmlinear(data, param);
-  //TODO: update test
   TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
-    datum,param), test);
+    datum,param), 2.0);
+  param.clear();
   
-  transformation_model = "TransformationModelBSpline";
-  //TODO: update param
-  TransformationModelBSpline tmbspline(data, param);
-  //TODO: update test
-  TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
-    datum,param), test);
+  // TODO:  No support yet for the following TransformationModels
+  // transformation_model = "TransformationModelBSpline";
+  // //TODO: update param
+  // TransformationModelBSpline tmbspline(data, param);
+  // //TODO: update test
+  // TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
+  //   datum,param), 2.0);
+  // param.clear();
   
-  transformation_model = "TransformationModelInterpolated";
-  //TODO: update param
-  TransformationModelInterpolated tminterpolated(data, param);
-  //TODO: update test
-  TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
-    datum,param), test);
+  // transformation_model = "TransformationModelInterpolated";
+  // //TODO: update param
+  // TransformationModelInterpolated tminterpolated(data, param);
+  // //TODO: update test
+  // TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
+  //   datum,param), 2.0);
+  // param.clear();
   
-  transformation_model = "TransformationModelLowess";
-  //TODO: update param
-  TransformationModelLowess tmlowess(data, param);
-  //TODO: update test
-  TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
-    datum,param), test);
+  // transformation_model = "TransformationModelLowess";
+  // //TODO: update param
+  // TransformationModelLowess tmlowess(data, param);
+  // //TODO: update test
+  // TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
+  //   datum,param), 2.0);
+  // param.clear();
   
   transformation_model = "";
-  //TODO: update param
   TransformationModel tm(data, param);
-  //TODO: update test
   TEST_REAL_SIMILAR(aqm.evaluateTransformationModel(transformation_model,
-    datum,param), test);
+    datum,param), 2.0);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

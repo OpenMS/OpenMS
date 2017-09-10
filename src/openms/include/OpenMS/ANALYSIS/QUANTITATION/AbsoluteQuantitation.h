@@ -195,9 +195,6 @@ public:
 
     /// map between components and known concentrations (the calibrators)
     std::map<std::string,AbsoluteQuantitationStandards> standards_concentrations_;
-    
-    /// list of samples to quantify
-    std::vector<FeatureMap> unknowns_;
 
   };
 
