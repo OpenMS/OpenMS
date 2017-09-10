@@ -111,7 +111,7 @@ START_SECTION((double applyCalibration(Feature & component,
     IS_component,
     feature_name,
     transformation_model,
-    transformation_model_params),1.0);
+    param),1.0);
 END_SECTION
 
 /////////////////////////////////////////////////////////////
