@@ -167,8 +167,7 @@ namespace OpenMS
     // initalize all other variables
     bool IS_found;
     Feature empty_feature;
-    size_t sub_it, is_sub_it; // keep sub-feature and IS sub_feature in the function scope
-    FeatureMap::iterator is_feature_it; // keep the IS feature in the function scope
+    size_t component_it, is_component_it, is_component_group_it; // keep sub-feature and IS sub_feature in the function scope
 
     // iterate through the unknowns
     for (size_t i = 0; i < unknowns.size(); i++)
@@ -181,14 +180,13 @@ namespace OpenMS
         Feature unknowns_quant_feature;
 
         // iterate through each component/sub-feature
-        for (sub_it = 0; sub_it < unknowns[i][feature_it].getSubordinates().size(); ++sub_it)
+        for (size_t sub_it = 0; sub_it < unknowns[i][feature_it].getSubordinates().size(); ++sub_it)
         {
           component_name = (std::string)unknowns[i][feature_it].getSubordinates()[sub_it].getMetaValue("native_id");  
 
           // apply the calibration curve to components that are in the quant_method
           if (quant_methods_.count(component_name)>0)
-          {  
-            std::cout << "component_name = " << component_name << std::endl;      
+          {     
             quant_methods_it = quant_methods_.find(component_name);
             quant_methods_it->second.getComponentISFeatureNames(quant_component_name,quant_IS_component_name,quant_feature_name);
             if (quant_IS_component_name != "")
@@ -196,27 +194,31 @@ namespace OpenMS
               // look up the internal standard for the component
               IS_found = false;
               // Optimization: 90% of the IS will be in the same component_group/feature
-              for (is_sub_it = 0; is_sub_it < unknowns[i][feature_it].getSubordinates().size(); ++is_sub_it)
+              for (size_t is_sub_it = 0; is_sub_it < unknowns[i][feature_it].getSubordinates().size(); ++is_sub_it)
               {
                 IS_component_name = (std::string)unknowns[i][feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");              
                 if (quant_IS_component_name == IS_component_name)
                 {
                   IS_found = true;
+                  IS_component_group_it = feature_it;
+                  IS_component_it = is_sub_it;
                   break;
                 }
               }
               if (!IS_found)
               {// expand IS search to all components                
                 // iterate through each component_group/feature     
-                for (is_feature_it = unknowns[i].begin(); is_feature_it != unknowns[i].end(); ++is_feature_it)
+                for (size_t is_feature_it = 0; is_feature_it < unknowns[i].size(); ++is_feature_it)
                 {
                   //iterate through each component/sub-feature
-                  for (is_sub_it = 0; is_sub_it < is_feature_it->getSubordinates().size(); ++is_sub_it)
+                  for (is_sub_it = 0; is_sub_it < unknowns[i][is_feature_it].getSubordinates().size(); ++is_sub_it)
                   {
-                    IS_component_name = (std::string)is_feature_it->getSubordinates()[is_sub_it].getMetaValue("native_id");                   
+                    IS_component_name = (std::string)unknowns[i][is_feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");                   
                     if (quant_IS_component_name == IS_component_name)
                     {
                       IS_found = true;
+                      IS_component_group_it = is_feature_it;
+                      IS_component_it = is_sub_it;
                       break;
                     }
                   }
@@ -231,7 +233,7 @@ namespace OpenMS
                 quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
                 calculated_concentration = applyCalibration(
                   unknowns[i][feature_it].getSubordinates()[sub_it],
-                  is_feature_it->getSubordinates()[is_sub_it],
+                  unknowns[i][is_feature_it].getSubordinates()[IS_component_it],
                   quant_feature_name,transformation_model,transformation_model_params);
               }
               else 
