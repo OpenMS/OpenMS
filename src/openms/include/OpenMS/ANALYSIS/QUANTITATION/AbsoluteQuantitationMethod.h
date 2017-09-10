@@ -97,10 +97,10 @@ public:
   */ 
   bool checkLOQ(const double & value);
 
-  /// IS_name setter
+  /// component_name, IS_name, and feature_name setter
   void setComponentISFeatureNames(const std::string& component_name, const std::string& IS_name, const std::string& feature_name);
 
-  /// IS_name getter
+  /// component_name, IS_name, and feature_name getter
   void getComponentISFeatureNames(std::string& component_name, std::string& IS_name, std::string& feature_name);
   
   /// concentration_units setter

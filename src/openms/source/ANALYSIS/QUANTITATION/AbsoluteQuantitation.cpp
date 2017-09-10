@@ -178,7 +178,7 @@ namespace OpenMS
           // apply the calibration curve to components that are in the quant_method
           if (quant_methods_it != quant_methods_.end())
           {
-            quant_methods_it->second.getComponentISFeatureNames(quant_component_name,quant_is_name,quant_feature_name);
+            quant_methods_it->second.getComponentISFeatureNames(quant_component_name,quant_IS_component_name,quant_feature_name);
             if (quant_IS_component_name != "")
             {
               // look up the internal standard for the component
