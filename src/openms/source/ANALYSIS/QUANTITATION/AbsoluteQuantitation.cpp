@@ -167,7 +167,7 @@ namespace OpenMS
     // initalize all other variables
     bool IS_found;
     Feature empty_feature;
-    size_t component_it, is_component_it, is_component_group_it; // keep sub-feature and IS sub_feature in the function scope
+    size_t IS_component_it, IS_component_group_it;
 
     // iterate through the unknowns
     for (size_t i = 0; i < unknowns.size(); i++)
@@ -211,7 +211,7 @@ namespace OpenMS
                 for (size_t is_feature_it = 0; is_feature_it < unknowns[i].size(); ++is_feature_it)
                 {
                   //iterate through each component/sub-feature
-                  for (is_sub_it = 0; is_sub_it < unknowns[i][is_feature_it].getSubordinates().size(); ++is_sub_it)
+                  for (size_t is_sub_it = 0; is_sub_it < unknowns[i][is_feature_it].getSubordinates().size(); ++is_sub_it)
                   {
                     IS_component_name = (std::string)unknowns[i][is_feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");                   
                     if (quant_IS_component_name == IS_component_name)
@@ -233,7 +233,7 @@ namespace OpenMS
                 quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
                 calculated_concentration = applyCalibration(
                   unknowns[i][feature_it].getSubordinates()[sub_it],
-                  unknowns[i][is_feature_it].getSubordinates()[IS_component_it],
+                  unknowns[i][IS_component_group_it].getSubordinates()[IS_component_it],
                   quant_feature_name,transformation_model,transformation_model_params);
               }
               else 
