@@ -128,24 +128,25 @@ namespace OpenMS
     return calculated_concentration;
   }
 
-  std::vector<FeatureMap> AbsoluteQuantitation::quantifyComponents(std::vector<FeatureMap> unknowns)
+  void AbsoluteQuantitation::quantifyComponents(std::vector<FeatureMap> unknowns)
   {
     // initialize all variables
-    std::vector<FeatureMap> unknowns_quant;
     std::map<std::string,AbsoluteQuantitationMethod>::iterator quant_methods_it;
     std::string component_name; //i.e., transition_id
     std::string IS_component_name; //i.e., internal standard transition_id
+    std::string IS_component_name2; //i.e., internal standard transition_id
     std::string component_group_name; //i.e., peptideRef
     std::string feature_name; //i.e., peak_apex_int or peak_area
     std::string transformation_model;
     Param transformation_model_params;
     double calculated_concentration;
     std::string concentration_units;
+    std::vector<Feature>::iterator is_sub_it;
+    bool IS_found;
 
     // iterate through the unknowns
     for (size_t i = 0; i < unknowns.size(); i++)
     {      
-      FeatureMap unknowns_quant_feature_map;
 
       // iterate through each component_group/feature     
       for (FeatureMap::iterator feature_it = unknowns[i].begin(); feature_it != unknowns[i].end(); ++feature_it)
@@ -158,13 +159,57 @@ namespace OpenMS
         {
           component_name = feature_it->getMetaValue("native_id");
           quant_methods_it = quant_methods_.find(component_name);
+
+          // apply the calibration curve to components that are in the quant_method
           if (quant_methods_it != quant_methods_.end())
           {
             quant_methods_it->getISName(IS_component_name);
             if (IS_component_name != "")
             {
-
               // look up the internal standard for the component
+              IS_found = false;
+              // Optimization: 90% of the IS will be in the same component_group/feature
+              for (is_sub_it = feature_it->getSubordinates().begin(); is_sub_it != feature_it->getSubordinates().end(); ++is_sub_it)
+              {
+                quant_methods_it->getISName(IS_component_name2);                
+                if (IS_component_name == IS_component_name2)
+                {
+                  IS_found = true;
+                  break;
+                }
+              }
+              if (!IS_found)
+              {// expand IS search to all components                
+                // iterate through each component_group/feature     
+                for (FeatureMap::iterator is_feature_it = unknowns[i].begin(); is_feature_it != unknowns[i].end(); ++is_feature_it)
+                {
+                  //iterate through each component/sub-feature
+                  for (is_sub_it = is_feature_it->getSubordinates().begin(); is_sub_it != is_feature_it->getSubordinates().end(); ++is_sub_it)
+                  {
+                    quant_methods_it->getISName(IS_component_name2);                    
+                    if (IS_component_name == IS_component_name2)
+                    {
+                      IS_found = true;
+                      break;
+                    }
+                  }
+                  if (IS_found)
+                  {
+                    break;
+                  }
+                }
+              }
+              if (IS_found)
+              {
+                quant_methods_it->getFeatureName(feature_name);
+                quant_methods_it->getTransformationModel(transformation_model,transformation_model_params);
+                calculated_concentration = applyCalibration(sub_it,is_sub_it,feature_name,transformation_model,transformation_model_params);
+              }
+              else 
+              {                
+                LOG_INFO << "Component " << component_name << " IS " << IS_component_name << " was not found.";
+                LOG_INFO << "No concentration will be calculated.";
+              }
             }
             else
             {
@@ -172,9 +217,19 @@ namespace OpenMS
               quant_methods_it->getTransformationModel(transformation_model,transformation_model_params);
               calculated_concentration = applyCalibration(sub_it,NULL,feature_name,transformation_model,transformation_model_params);
             }
-            
-            // add new metadata (calculated_concentration, concentration_units) to the component
 
+            // add new metadata (calculated_concentration, concentration_units) to the component
+            sub_it->setMetaValue("calculated_concentration",calculated_concentration);
+            quant_methods_it->getConcentrationUnits(concentration_units);
+            sub_it->setMetaValue("concentration_units",concentration_units);
+            // calculate the bias?
+          }
+          else 
+          {
+            LOG_INFO << "Component " << component_name << " does not have a quantitation method.";
+            LOG_INFO << "No concentration will be calculated.";
+            sub_it->setMetaValue("calculated_concentration",NULL);
+            sub_it->setMetaValue("concentration_units","");
           }
         }
       }

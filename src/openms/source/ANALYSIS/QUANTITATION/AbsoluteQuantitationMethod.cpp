@@ -115,6 +115,28 @@ namespace OpenMS
   {
     IS_name = IS_name_;
   }
+  
+  void AbsoluteQuantitationMethod::setConcentrationUnits(const std::string& concentration_units)
+  {
+    concentration_units_ = concentration_units;
+  }
+
+  void AbsoluteQuantitationMethod::getConcentrationUnits(std::string& concentration_units)
+  {
+    concentration_units = concentration_units_;
+  }
+  
+  void AbsoluteQuantitationMethod::setTransformationModel(const std::string& transformation_model, const Param& transformation_model_params)
+  {
+    transformation_model_ = transformation_model;
+    transformation_model_params_ = transformation_model_params;
+  }
+
+  void AbsoluteQuantitationMethod::getTransformationModel(std::string& transformation_model, Param& transformation_model_params)
+  {
+    transformation_model = transformation_model_;
+    transformation_model_params = transformation_model_params_;
+  }
 
   Param AbsoluteQuantitationMethod::fitTransformationModel(const std::string & transformation_model,
     TransformationModel::DataPoints& data,

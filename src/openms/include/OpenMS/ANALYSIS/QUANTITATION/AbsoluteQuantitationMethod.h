@@ -102,6 +102,18 @@ public:
 
   /// IS_name getter
   void getISName(std::string& is_name);
+  
+  /// concentration_units setter
+  void setConcentrationUnits(const std::string& concentration_units);
+
+  /// concentration_units getter
+  void getConcentrationUnits(std::string& concentration_units);
+  
+  /// transformation_model and transformation_model_params setter
+  void setTransformationModel(const std::string& transformation_model, const Param& transformation_model_params);
+
+  /// transformation_model and transformation_model_params getter
+  void getTransformationModel(std::string& transformation_model, Param& transformation_model_params);
 
   /**
   @brief This function fits the transformation model with the data
