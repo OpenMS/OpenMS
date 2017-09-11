@@ -19,7 +19,9 @@ addons:
          - ubuntu-toolchain-r-test
          - boost-latest
          - george-edison55-precise-backports
+         - debian-sid
       packages:
+         - libomp-dev
          - cmake
          - cmake-data
          - g++-4.8
