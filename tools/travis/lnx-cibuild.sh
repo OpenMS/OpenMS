@@ -71,6 +71,8 @@ fi
 
 # Make sure we use the same python as before to install all the pip packages
 # cmake tends to have a different opinion of where python is...
+which pip
+which python
 export PYTHON_EXE=`which python`
 
 # set os dependent folder for preinstalled libraries

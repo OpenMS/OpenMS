@@ -19,6 +19,13 @@ if [ "${PYOPENMS}" = "ON" ]; then
   # Note: ensure that cmake uses the same python!
   which pip
   which python
+  which pyenv
+  pyenv versions
+  pyenv install 2.7.13
+  pyenv global 2.7.13
+  which pip
+  which python
+
 
   # small patch to accelerate build
   pwd
