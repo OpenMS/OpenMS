@@ -4,8 +4,6 @@ language: cpp
 os:
  - linux
 
-python:
-  - "2.7"
 cache:
   - apt
   - ccache
