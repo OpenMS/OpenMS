@@ -72,6 +72,7 @@ struct OPENMS_DLLAPI RNPxlReportRow
   double m_3H;
   double m_4H;
   String fragment_annotation_string;  
+  int rank;
   String getString(const String& separator) const;
 
 };
