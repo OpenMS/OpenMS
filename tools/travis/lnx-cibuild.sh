@@ -73,6 +73,8 @@ fi
 # cmake tends to have a different opinion of where python is...
 which pip
 which python
+which pyenv
+pyenv versions
 export PYTHON_EXE=`which python`
 
 # set os dependent folder for preinstalled libraries
