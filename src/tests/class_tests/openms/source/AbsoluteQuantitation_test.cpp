@@ -186,18 +186,19 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
 
   absquant.setQuantMethods(quant_methods);
   absquant.quantifyComponents(unknowns);
-
-  for (size_t i = 0; i < unknowns.size(); ++i)
-  {
-    for (size_t j = 0; j < unknowns[i].size(); ++j)
-    {
-      for (size_t k = 0; k < unknowns[i][j].getSubordinates().size(); ++k)
-      {
-        std::cout << "component = " << unknowns[i][j].getSubordinates()[k].getMetaValue("native_id") << std::endl;
-        std::cout << "calculated_concentration = " << unknowns[i][j].getSubordinates()[k].getMetaValue("calculated_concentration") << std::endl;
-      }
-    }
-  }
+  
+  // DEBUGGIGN:
+  // for (size_t i = 0; i < unknowns.size(); ++i)
+  // {
+  //   for (size_t j = 0; j < unknowns[i].size(); ++j)
+  //   {
+  //     for (size_t k = 0; k < unknowns[i][j].getSubordinates().size(); ++k)
+  //     {
+  //       std::cout << "component = " << unknowns[i][j].getSubordinates()[k].getMetaValue("native_id") << std::endl;
+  //       std::cout << "calculated_concentration = " << unknowns[i][j].getSubordinates()[k].getMetaValue("calculated_concentration") << std::endl;
+  //     }
+  //   }
+  // }
 
   TEST_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("calculated_concentration"),"");
   TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("concentration_units"),"");
