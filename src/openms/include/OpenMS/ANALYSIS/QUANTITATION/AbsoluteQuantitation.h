@@ -86,8 +86,13 @@ public:
     /// Destructor
     ~AbsoluteQuantitation();
     //@}
+ 
+    /**
+      @brief quant_method setter.  A list of AbsoluteQuantitationMethod classes are given as input
+        and a map is constructed based on their component_name member.
 
-    /// quant_method setter
+      @param quant_methods A list of AbsoluteQuantitationMethod classes
+    */ 
     void setQuantMethods(std::vector<AbsoluteQuantitationMethod>& quant_methods);
  
     /**

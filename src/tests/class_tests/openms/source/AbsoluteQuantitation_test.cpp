@@ -118,8 +118,6 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
 
   AbsoluteQuantitation absquant;
 
-  // set-up the unknowns
-  std::vector<FeatureMap> unknowns;
   // set-up the unknown FeatureMap
   FeatureMap unknown_feature_map;
   // set-up the features and sub-features
@@ -156,6 +154,8 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   unknown_feature_subordinates.push_back(IS_component);
   unknown_feature.setSubordinates(unknown_feature_subordinates);
   unknown_feature_map.push_back(unknown_feature);
+  // set-up the unknowns
+  std::vector<FeatureMap> unknowns;
   unknowns.push_back(unknown_feature_map);
 
   // set-up the model and params
@@ -183,6 +183,18 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
 
   absquant.setQuantMethods(quant_methods);
   absquant.quantifyComponents(unknowns);
+
+  for (size_t i = 0; i < unkowns.size(); ++i)
+  {
+    for (size_t j = 0; j < unknowns[i].size(); ++j)
+    {
+      for (size_t k = 0; k < unknowns[i][j].getSubordinates().size(); ++k)
+      {
+        std::cout << "component = " << unknowns[i][j].getSubordinates()[k].getMetaValue("native_id") << std::endl;
+        std::cout << "component = " << unknowns[i][j].getSubordinates()[k].getMetaValue("calculated_concentration") << std::endl;
+      }
+    }
+  }
 
   TEST_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("calculated_concentration"),"");
   TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("concentration_units"),"");
