@@ -162,12 +162,12 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
 
   // set-up the model and params
   AbsoluteQuantitationMethod aqm;
-  aqm.setTransformationModel(transformation_model, param);
   std::string transformation_model;
   Param param;
   transformation_model = "TransformationModelLinear";  
   param.setValue("slope",1.0);
   param.setValue("intercept",0.0);
+  aqm.setTransformationModel(transformation_model, param);
   // set-up the quant_method map
   std::vector<AbsoluteQuantitationMethod> quant_methods;
   // component_1
