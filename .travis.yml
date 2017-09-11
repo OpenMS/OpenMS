@@ -60,7 +60,7 @@ addons:
          - coinor-libosi-dev
          - coinor-libvol-dev
          - libpcre3-dev
-         - libgomp1
+         - libomp-dev
          
 before_script:
   ./tools/travis/cibuild.before.sh
