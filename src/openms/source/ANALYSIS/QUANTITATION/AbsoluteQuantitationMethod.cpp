@@ -118,9 +118,17 @@ namespace OpenMS
     component_name = component_name_;
     IS_name = IS_name_;
     feature_name = feature_name_;
-  }
-
+  } 
   
+  // void AbsoluteQuantitationMethod::setFeatureName(const std::string& feature_name)
+  // {
+  //   feature_name_ = feature_name;
+  // }
+  
+  // void AbsoluteQuantitationMethod::getFeatureName(std::string& feature_name)
+  // {
+  //   feature_name = feature_name_;
+  // } 
   
   // void AbsoluteQuantitationMethod::setISName(const std::string& IS_name)
   // {
@@ -153,16 +161,6 @@ namespace OpenMS
     transformation_model = transformation_model_;
     transformation_model_params = transformation_model_params_;
   }
-  
-  // void AbsoluteQuantitationMethod::setFeatureName(const std::string& feature_name)
-  // {
-  //   IS_name_ = IS_name;
-  // }
-  
-  // void AbsoluteQuantitationMethod::getFeatureName(std::string& feature_name)
-  // {
-  //   feature_name = feature_name_;
-  // }
 
   Param AbsoluteQuantitationMethod::fitTransformationModel(const std::string & transformation_model,
     TransformationModel::DataPoints& data,
