@@ -229,9 +229,7 @@ namespace OpenMS
     //*******************************************************************************************************************
 
     
-    StringManager::StringManager() :
-      xml_strings_(0),
-      c_strings_(0)
+    StringManager::StringManager()
     {
     }
 
@@ -242,17 +240,6 @@ namespace OpenMS
 
     void StringManager::clear()
     {
-      for (Size i = 0; i < xml_strings_.size(); ++i)
-      {
-        XMLString::release(&xml_strings_[i]);
-      }
-      xml_strings_.clear();
-
-      for (Size i = 0; i < c_strings_.size(); ++i)
-      {
-        XMLString::release(&c_strings_[i]);
-      }
-      c_strings_.clear();
     }
 
     void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)

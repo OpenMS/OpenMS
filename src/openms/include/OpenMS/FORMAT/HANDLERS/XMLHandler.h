@@ -78,27 +78,27 @@ namespace OpenMS
       // Converts from a narrow-character string to a wide-character string.
       inline XercesString fromNative(const char* str) const
       {
-          boost::scoped_array<XMLCh> ptr(xercesc::XMLString::transcode(str));
-          return XercesString(ptr.get( ));
+        boost::scoped_array<XMLCh> ptr(xercesc::XMLString::transcode(str));
+        return XercesString(ptr.get( ));
       }
 
       // Converts from a narrow-character string to a wide-charactr string.
       inline XercesString fromNative(const std::string& str) const
       {
-          return fromNative(str.c_str( ));
+        return fromNative(str.c_str( ));
       }
 
       // Converts from a wide-character string to a narrow-character string.
       inline std::string toNative(const XMLCh* str) const
       {
-          boost::scoped_array<char> ptr(xercesc::XMLString::transcode(str));
-          return std::string(ptr.get( ));
+        boost::scoped_array<char> ptr(xercesc::XMLString::transcode(str));
+        return std::string(ptr.get( ));
       }
 
       // Converts from a wide-character string to a narrow-character string.
       inline std::string toNative(const XercesString& str) const
       {
-          return toNative(str.c_str( ));
+        return toNative(str.c_str( ));
       }
 
 
@@ -106,32 +106,32 @@ public:
       /// Constructor
       StringManager();
 
-      /// Destructor. Destroys the strings in the various lists
+      /// Destructor
       ~StringManager();
 
-      /// Frees memory of all owned strings
+      /// NOP
       void clear();
 
-      /// Transcode the supplied C string to XMLCh*
-      XercesString convert(const char * str) const
+      /// Transcode the supplied C string to a xerces string
+      inline XercesString convert(const char * str) const
       {
         return fromNative(str);
       }
 
-      /// Transcode the supplied C++ string to XMLCh*
-      XercesString convert(const std::string & str) const
+      /// Transcode the supplied C++ string to a xerces string
+      inline XercesString convert(const std::string & str) const
       {
         return fromNative(str.c_str( ));
       }
 
-      /// Transcode the supplied OpenMS string to XMLCh*
-      XercesString convert(const String & str) const
+      /// Transcode the supplied OpenMS string to a xerces string
+      inline XercesString convert(const String & str) const
       {
         return fromNative(str.c_str( ));
       }
 
       /// Transcode the supplied XMLCh* to a String
-      String convert(const XMLCh * str) const
+      inline String convert(const XMLCh * str) const
       {
         return toNative(str);
       }
@@ -144,10 +144,6 @@ public:
       */
       static void appendASCII(const XMLCh * str, const XMLSize_t length, String & result);
 
-private:
-
-      mutable std::vector<XMLCh *> xml_strings_;
-      mutable std::vector<char *> c_strings_;
     };
 
     /**
