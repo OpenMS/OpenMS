@@ -144,8 +144,9 @@ protected:
         if (!unique || !unique_fragments.count(*frag_it))
         {
           String id = fa_it->identifier + "_" + String(counter);
-          String desc = fa_it->description + " (fragment " + String(counter) +
-            ")";
+          String desc;
+          if (!fa_it->description.empty()) desc = fa_it->description + " ";
+          desc += "(fragment " + String(counter) + ")";
           FASTAFile::FASTAEntry fragment(id, desc, *frag_it);
           all_fragments.push_back(fragment);
           unique_fragments.insert(*frag_it);
