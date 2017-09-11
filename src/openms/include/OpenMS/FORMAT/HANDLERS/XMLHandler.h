@@ -78,27 +78,31 @@ namespace OpenMS
       // Converts from a narrow-character string to a wide-character string.
       inline XercesString fromNative(const char* str) const
       {
-        boost::scoped_array<XMLCh> ptr(xercesc::XMLString::transcode(str));
-        return XercesString(ptr.get( ));
+        XMLCh* ptr(xercesc::XMLString::transcode(str));
+        XercesString result(ptr);
+        xercesc::XMLString::release(&ptr);
+        return result;
       }
 
       // Converts from a narrow-character string to a wide-charactr string.
       inline XercesString fromNative(const std::string& str) const
       {
-        return fromNative(str.c_str( ));
+        return fromNative(str.c_str());
       }
 
       // Converts from a wide-character string to a narrow-character string.
       inline std::string toNative(const XMLCh* str) const
       {
-        boost::scoped_array<char> ptr(xercesc::XMLString::transcode(str));
-        return std::string(ptr.get( ));
+        char* ptr(xercesc::XMLString::transcode(str));
+        std::string result(ptr);
+        xercesc::XMLString::release(&ptr);
+        return result;
       }
 
       // Converts from a wide-character string to a narrow-character string.
       inline std::string toNative(const XercesString& str) const
       {
-        return toNative(str.c_str( ));
+        return toNative(str.c_str());
       }
 
 
