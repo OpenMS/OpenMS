@@ -606,7 +606,7 @@ namespace OpenMS
       pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
+      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
       if (refs != 0)
       {
         String accession_string = sm_.convert(refs);

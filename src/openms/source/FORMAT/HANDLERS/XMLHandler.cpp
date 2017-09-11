@@ -255,34 +255,6 @@ namespace OpenMS
       c_strings_.clear();
     }
 
-    XMLCh * StringManager::convert(const char * str) const
-    {
-      XMLCh * result = XMLString::transcode(str);
-      xml_strings_.push_back(result);
-      return result;
-    }
-
-    XMLCh * StringManager::convert(const std::string & str) const
-    {
-      XMLCh * result = XMLString::transcode(str.c_str());
-      xml_strings_.push_back(result);
-      return result;
-    }
-
-    XMLCh * StringManager::convert(const String & str) const
-    {
-      XMLCh * result = XMLString::transcode(str.c_str());
-      xml_strings_.push_back(result);
-      return result;
-    }
-
-    char * StringManager::convert(const XMLCh * str) const
-    {
-      char * result = XMLString::transcode(str);
-      c_strings_.push_back(result);
-      return result;
-    }
-
     void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
     {
       // XMLCh are characters in UTF16 (usually stored as 16bit unsigned

@@ -561,7 +561,7 @@ namespace OpenMS
       }
       else if (open_tags_.back() == "precursorMz")
       {
-        char* transcoded_chars = sm_.convert(chars);
+        String transcoded_chars = sm_.convert(chars);
         double mz_pos = asDouble_(transcoded_chars);
         //precursor m/z
         spectrum_data_.back().spectrum.getPrecursors().back().setMZ(mz_pos);
@@ -575,13 +575,13 @@ namespace OpenMS
       }
       else if (open_tags_.back() == "comment")
       {
-        char* transcoded_chars = sm_.convert(chars);
+        String transcoded_chars = sm_.convert(chars);
         String parent_tag = *(open_tags_.end() - 2);
         //std::cout << "- Comment of parent " << parent_tag << "\n";
 
         if (parent_tag == "msInstrument")
         {
-          exp_->getInstrument().setMetaValue("#comment", String(transcoded_chars));
+          exp_->getInstrument().setMetaValue("#comment", transcoded_chars);
         }
         else if (parent_tag == "dataProcessing")
         {
@@ -591,15 +591,15 @@ namespace OpenMS
         {
           spectrum_data_.back().spectrum.setComment(transcoded_chars);
         }
-        else if (String(transcoded_chars).trim() != "")
+        else if (transcoded_chars.trim() != "")
         {
           warning(LOAD, String("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
       }
       else
       {
-        char* transcoded_chars = sm_.convert(chars);
-        if (String(transcoded_chars).trim() != "")
+        String transcoded_chars = sm_.convert(chars);
+        if (transcoded_chars.trim() != "")
         {
           warning(LOAD, String("Unhandled character content '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
