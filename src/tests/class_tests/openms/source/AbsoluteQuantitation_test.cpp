@@ -134,6 +134,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   unknown_feature_subordinates.push_back(component);
   unknown_feature.setSubordinates(unknown_feature_subordinates);
   unknown_feature_map.push_back(unknown_feature);
+  unknown_feature_subordinates.clear();
   // component 2
   unknown_feature.setMetaValue("PeptideRef","component_group2");
   component.setMetaValue("native_id","component2");
@@ -144,6 +145,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   unknown_feature_subordinates.push_back(component);
   unknown_feature.setSubordinates(unknown_feature_subordinates);
   unknown_feature_map.push_back(unknown_feature);
+  unknown_feature_subordinates.clear();
   // component 3
   unknown_feature.setMetaValue("PeptideRef","component_group3");
   component.setMetaValue("native_id","component3");
@@ -154,6 +156,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   unknown_feature_subordinates.push_back(IS_component);
   unknown_feature.setSubordinates(unknown_feature_subordinates);
   unknown_feature_map.push_back(unknown_feature);
+  unknown_feature_subordinates.clear();
   // set-up the unknowns
   std::vector<FeatureMap> unknowns;
   unknowns.push_back(unknown_feature_map);
@@ -191,7 +194,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
       for (size_t k = 0; k < unknowns[i][j].getSubordinates().size(); ++k)
       {
         std::cout << "component = " << unknowns[i][j].getSubordinates()[k].getMetaValue("native_id") << std::endl;
-        std::cout << "component = " << unknowns[i][j].getSubordinates()[k].getMetaValue("calculated_concentration") << std::endl;
+        std::cout << "calculated_concentration = " << unknowns[i][j].getSubordinates()[k].getMetaValue("calculated_concentration") << std::endl;
       }
     }
   }
