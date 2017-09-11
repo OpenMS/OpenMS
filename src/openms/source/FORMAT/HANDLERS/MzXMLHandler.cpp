@@ -537,7 +537,6 @@ namespace OpenMS
           }
       }
       //std::cout << " -- End -- " << "\n";
-      sm_.clear();
     }
 
     void MzXMLHandler::characters(const XMLCh* const chars, const XMLSize_t length)

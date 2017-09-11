@@ -1202,8 +1202,6 @@ namespace OpenMS
         populateSpectraWithData();
         populateChromatogramsWithData();
       }
-
-      sm_.clear();
     }
 
     void MzMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, /* const String & cvref,  */ const String& accession, const String& name, const String& value, const String& unit_accession)

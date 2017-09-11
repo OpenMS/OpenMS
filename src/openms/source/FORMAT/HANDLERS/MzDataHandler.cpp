@@ -486,8 +486,6 @@ namespace OpenMS
         logger_.endProgress();
         scan_count = 0;
       }
-
-      sm_.clear();
     }
 
     void MzDataHandler::fillData_()

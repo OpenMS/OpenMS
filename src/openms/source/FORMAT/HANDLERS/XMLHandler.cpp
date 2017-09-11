@@ -62,9 +62,8 @@ namespace OpenMS
     {
     }
 
-    void XMLHandler::reset() // reset Xerces XML strings (memleak otherwise)
+    void XMLHandler::reset()
     {
-      sm_.clear();
     }
 
     void XMLHandler::fatalError(const SAXParseException & exception)
