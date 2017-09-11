@@ -532,7 +532,7 @@ class SimpleSearchEngine :
         }
 
         vector<StringView> current_digest;
-        digestor.digest(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
+        digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
 
         for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
         {

@@ -127,46 +127,47 @@ START_SECTION((static Specificity getSpecificityByName(const String& name)))
     TEST_EQUAL(EnzymaticDigestion::getSpecificityByName("DoesNotExist"), EnzymaticDigestion::SIZE_OF_SPECIFICITY);
 END_SECTION
 
-START_SECTION((void digest(const StringView sequence, std::vector<StringView>& output, Size min_length, Size max_length)))
+START_SECTION((void digestUnmodified(const StringView sequence, std::vector<StringView>& output, Size min_length, Size max_length)))
+{
     EnzymaticDigestion ed;
     vector<StringView> out;
 
     // end without cutting site
     std::string s = "ACDE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 1)
     TEST_EQUAL(out[0].getString(), s)
 
     // end with cutting site
     s = "ACDEK";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 1)
     TEST_EQUAL(out[0].getString(), "ACDEK")
 
     s = "ACKDE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 2)
     TEST_EQUAL(out[0].getString(), "ACK")
     TEST_EQUAL(out[1].getString(), "DE")
 
     s = "ACRDE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 2)
     TEST_EQUAL(out[0].getString(), "ACR")
     TEST_EQUAL(out[1].getString(), "DE")
 
     s = "ACKPDE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 1)
     TEST_EQUAL(out[0].getString(), "ACKPDE")
 
     s = "ACRPDE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 1)
     TEST_EQUAL(out[0].getString(), "ACRPDE")
 
     s = "ARCRDRE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 4)
     TEST_EQUAL(out[0].getString(), "AR")
     TEST_EQUAL(out[1].getString(), "CR")
@@ -174,7 +175,7 @@ START_SECTION((void digest(const StringView sequence, std::vector<StringView>& o
     TEST_EQUAL(out[3].getString(), "E")
 
     s = "RKR";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 3)
     TEST_EQUAL(out[0].getString(), "R")
     TEST_EQUAL(out[1].getString(), "K")
@@ -183,19 +184,19 @@ START_SECTION((void digest(const StringView sequence, std::vector<StringView>& o
     ed.setMissedCleavages(1);
 
     s = "ACDE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 1)
     TEST_EQUAL(out[0].getString(), "ACDE")
 
     s = "ACRDE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 3)
     TEST_EQUAL(out[0].getString(), "ACR")
     TEST_EQUAL(out[1].getString(), "DE")
     TEST_EQUAL(out[2].getString(), "ACRDE")
 
     s = "ARCDRE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 5)
     TEST_EQUAL(out[0].getString(), "AR")
     TEST_EQUAL(out[1].getString(), "CDR")
@@ -204,7 +205,7 @@ START_SECTION((void digest(const StringView sequence, std::vector<StringView>& o
     TEST_EQUAL(out[4].getString(), "CDRE")
 
     s = "ARCDRER";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 5)
     TEST_EQUAL(out[0].getString(), "AR")
     TEST_EQUAL(out[1].getString(), "CDR")
@@ -213,7 +214,7 @@ START_SECTION((void digest(const StringView sequence, std::vector<StringView>& o
     TEST_EQUAL(out[4].getString(), "CDRER")
 
     s = "RKR";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 5)
     TEST_EQUAL(out[0].getString(), "R")
     TEST_EQUAL(out[1].getString(), "K")
@@ -222,7 +223,7 @@ START_SECTION((void digest(const StringView sequence, std::vector<StringView>& o
     TEST_EQUAL(out[4].getString(), "KR")
 
     s = "(ICPL:2H(4))ARCDRE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 5)
     TEST_EQUAL(out[0].getString(), "(ICPL:2H(4))AR")
     TEST_EQUAL(out[1].getString(), "CDR")
@@ -231,7 +232,7 @@ START_SECTION((void digest(const StringView sequence, std::vector<StringView>& o
     TEST_EQUAL(out[4].getString(), "CDRE")
 
     s = "ARCDRE(Amidated)";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 5)
     TEST_EQUAL(out[0].getString(), "AR")
     TEST_EQUAL(out[1].getString(), "CDR")
@@ -241,7 +242,7 @@ START_SECTION((void digest(const StringView sequence, std::vector<StringView>& o
 
     ed.setMissedCleavages(2);
     s = "RKR";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 6)
     TEST_EQUAL(out[0].getString(), "R")
     TEST_EQUAL(out[1].getString(), "K")
@@ -251,18 +252,18 @@ START_SECTION((void digest(const StringView sequence, std::vector<StringView>& o
     TEST_EQUAL(out[5].getString(), "RKR")
 
     // min size
-    ed.digest(s, out, 2);
+    ed.digestUnmodified(s, out, 2);
     TEST_EQUAL(out.size(), 3)
     TEST_EQUAL(out[0].getString(), "RK")
     TEST_EQUAL(out[1].getString(), "KR")
     TEST_EQUAL(out[2].getString(), "RKR")
 
-    ed.digest(s, out, 3);
+    ed.digestUnmodified(s, out, 3);
     TEST_EQUAL(out.size(), 1)
     TEST_EQUAL(out[0].getString(), "RKR")
 
     // max size
-    ed.digest(s, out, 2,2);
+    ed.digestUnmodified(s, out, 2,2);
     TEST_EQUAL(out.size(), 2)
     TEST_EQUAL(out[0].getString(), "RK")
     TEST_EQUAL(out[1].getString(), "KR")
@@ -273,13 +274,13 @@ START_SECTION((void digest(const StringView sequence, std::vector<StringView>& o
     ed.setMissedCleavages(0);
     ed.setEnzyme(ProteaseDB::getInstance()->getEnzyme("Trypsin/P"));
     s = "ACKPDE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 2)
     TEST_EQUAL(out[0].getString(), "ACK")
     TEST_EQUAL(out[1].getString(), "PDE")
 
     s = "ACRPDE";
-    ed.digest(s, out);
+    ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 2)
     TEST_EQUAL(out[0].getString(), "ACR")
     TEST_EQUAL(out[1].getString(), "PDE")
@@ -289,11 +290,12 @@ START_SECTION((void digest(const StringView sequence, std::vector<StringView>& o
     // ------------------------
     s = "ABCDEFGHIJ";
     ed.setEnzyme(ProteaseDB::getInstance()->getEnzyme("unspecific cleavage"));
-    ed.digest(s, out);
-    TEST_EQUAL(out.size(), 11*10/2)
+    ed.digestUnmodified(s, out);
+    TEST_EQUAL(out.size(), 11 * 10 / 2)
     s = "ABC";
-    ed.digest(s, out);
-    TEST_EQUAL(out.size(), 4*3/2)
+    ed.digestUnmodified(s, out);
+    TEST_EQUAL(out.size(), 4 * 3 / 2);
+}
 END_SECTION
 
 START_SECTION((bool isValidProduct(const String& sequence, Size pos, Size length, bool ignore_missed_cleavages)))
