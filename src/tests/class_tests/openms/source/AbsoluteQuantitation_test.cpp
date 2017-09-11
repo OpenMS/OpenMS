@@ -126,30 +126,62 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   std::vector<Feature> unknown_feature_subordinates;
   Feature unknown_feature, component, IS_component;
   std::string feature_name = "peak_apex_int";
-  unknown_feature.setMetaValue("PeptideRef","component_group");
-  component.setMetaValue("native_id","component");
+  // component 1
+  unknown_feature.setMetaValue("PeptideRef","component_group1");
+  component.setMetaValue("native_id","component1");
   component.setMetaValue(feature_name,2.0);
-  IS_component.setMetaValue("native_id","IS");
+  IS_component.setMetaValue("native_id","IS1");
   IS_component.setMetaValue(feature_name,2.0);
   unknown_feature_subordinates.push_back(IS_component);
   unknown_feature_subordinates.push_back(component);
   unknown_feature.setSubordinates(unknown_feature_subordinates);
   unknown_feature_map.push_back(unknown_feature);
   unknowns.push_back(unknown_feature_map);
+  // component 2
+  unknown_feature.setMetaValue("PeptideRef","component_group2");
+  component.setMetaValue("native_id","component2");
+  component.setMetaValue(feature_name,4.0);
+  IS_component.setMetaValue("native_id","IS2");
+  IS_component.setMetaValue(feature_name,4.0);
+  unknown_feature_subordinates.push_back(IS_component); 
+  unknown_feature_subordinates.push_back(component);
+  unknown_feature.setSubordinates(unknown_feature_subordinates);
+  unknown_feature_map.push_back(unknown_feature);
+  unknowns.push_back(unknown_feature_map);
+  // component 3
+  unknown_feature.setMetaValue("PeptideRef","component_group3");
+  component.setMetaValue("native_id","component3");
+  component.setMetaValue(feature_name,6.0);
+  IS_component.setMetaValue("native_id","IS3");
+  IS_component.setMetaValue(feature_name,6.0);
+  unknown_feature_subordinates.push_back(component);  // test order change
+  unknown_feature_subordinates.push_back(IS_component);
+  unknown_feature.setSubordinates(unknown_feature_subordinates);
+  unknown_feature_map.push_back(unknown_feature);
+  unknowns.push_back(unknown_feature_map);
 
-  // set-up the quant_method map
-  std::vector<AbsoluteQuantitationMethod> quant_methods;
-  AbsoluteQuantitationMethod aqm;
-  aqm.setComponentISFeatureNames("component","IS",feature_name);
-  aqm.setConcentrationUnits("uM");
   // set-up the model and params
+  AbsoluteQuantitationMethod aqm;
+  aqm.setTransformationModel(transformation_model, param);
   std::string transformation_model;
   Param param;
   transformation_model = "TransformationModelLinear";  
   param.setValue("slope",1.0);
   param.setValue("intercept",0.0);
-  aqm.setTransformationModel(transformation_model, param);
-  quant_methods.push_back(aqm);
+  // set-up the quant_method map
+  std::vector<AbsoluteQuantitationMethod> quant_methods;
+  // component_1
+  aqm.setComponentISFeatureNames("component1","IS1",feature_name);
+  aqm.setConcentrationUnits("uM");
+  quant_methods.push_back(aqm);  
+  // component_2
+  aqm.setComponentISFeatureNames("component2","IS1",feature_name); // test IS outside component_group
+  aqm.setConcentrationUnits("uM");
+  quant_methods.push_back(aqm); 
+  // component_3
+  aqm.setComponentISFeatureNames("component3","IS3",feature_name);
+  aqm.setConcentrationUnits("uM");
+  quant_methods.push_back(aqm); 
 
   absquant.setQuantMethods(quant_methods);
   absquant.quantifyComponents(unknowns);
@@ -158,6 +190,10 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("concentration_units"),"");
   TEST_REAL_SIMILAR(unknowns[0][0].getSubordinates()[1].getMetaValue("calculated_concentration"),1.0);
   TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[1].getMetaValue("concentration_units"),"uM");
+  TEST_REAL_SIMILAR(unknowns[0][1].getSubordinates()[1].getMetaValue("calculated_concentration"),2.0);
+  TEST_STRING_EQUAL(unknowns[0][1].getSubordinates()[1].getMetaValue("concentration_units"),"uM");
+  TEST_REAL_SIMILAR(unknowns[0][2].getSubordinates()[0].getMetaValue("calculated_concentration"),1.0);
+  TEST_STRING_EQUAL(unknowns[0][2].getSubordinates()[0].getMetaValue("concentration_units"),"uM");
 END_SECTION
 
 /////////////////////////////////////////////////////////////
