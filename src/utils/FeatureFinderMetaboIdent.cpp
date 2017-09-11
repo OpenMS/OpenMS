@@ -636,16 +636,16 @@ protected:
               ((*it)->getMZ() == best_feature->getMZ()))
           {
             // update annotations:
-            String add_ref = (*it)->getMetaValue("PeptideRef");
+            // @TODO: also adjust "formula" and "expected_rt"?
             String label = best_feature->getMetaValue("label");
-            label += "/" + add_ref;
+            label += "/" + String((*it)->getMetaValue("label"));
             best_feature->setMetaValue("label", label);
             StringList alt_refs;
             if (best_feature->metaValueExists("alt_PeptideRef"))
             {
               alt_refs = best_feature->getMetaValue("alt_PeptideRef");
             }
-            alt_refs.push_back(add_ref);
+            alt_refs.push_back((*it)->getMetaValue("PeptideRef"));
             best_feature->setMetaValue("alt_PeptideRef", alt_refs);
           }
           else
