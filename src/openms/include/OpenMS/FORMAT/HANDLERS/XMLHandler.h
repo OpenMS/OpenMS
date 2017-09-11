@@ -60,14 +60,12 @@ namespace OpenMS
   {
 
     /*
-     * @brief Helper class for XML parsing that handles the memory management for conversions of Xerces strings
+     * @brief Helper class for XML parsing that handles the conversions of Xerces strings
      *
      * It provides the convert() function which internally calls
      * XMLString::transcode and ensures that the memory is released properly
-     * through XMLString::release in a transparent and object oriented manner. 
-     *
-     * Releasing the memory can be done manually through clear() or will be done
-     * automatically in the destructor. 
+     * through XMLString::release internally. It returns a std::string or
+     * std::basic_string<XMLCh> to the caller who takes ownership of the data.
      *
     */
     class OPENMS_DLLAPI StringManager
@@ -112,9 +110,6 @@ public:
 
       /// Destructor
       ~StringManager();
-
-      /// NOP
-      void clear();
 
       /// Transcode the supplied C string to a xerces string
       inline XercesString convert(const char * str) const

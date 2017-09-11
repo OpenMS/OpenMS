@@ -227,18 +227,12 @@ namespace OpenMS
     }
 
     //*******************************************************************************************************************
-
     
     StringManager::StringManager()
     {
     }
 
     StringManager::~StringManager()
-    {
-      clear();
-    }
-
-    void StringManager::clear()
     {
     }
 
