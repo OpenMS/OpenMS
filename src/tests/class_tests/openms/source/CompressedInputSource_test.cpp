@@ -70,7 +70,7 @@ START_SECTION(CompressedInputSource(const XMLCh *const file_path, const char *he
   header[2] = '\0';
   String bz = String(header);
   String filename(OPENMS_GET_TEST_DATA_PATH("Bzip2IfStream_1.bz2"));
-  ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()),bz);
+  ptr = new CompressedInputSource(Internal::StringManager().convert(filename.c_str()).c_str(),bz);
   TEST_NOT_EQUAL(ptr, nullPointer)
   delete ptr;
 END_SECTION
