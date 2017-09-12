@@ -159,6 +159,28 @@ namespace OpenMS
     transformation_model = transformation_model_;
     transformation_model_params = transformation_model_params_;
   }
+  
+  void AbsoluteQuantitationMethod::setActualConcentration(const double& actual_concentration)
+  {
+    actual_concentration_ = actual_concentration;
+  }
+
+  void AbsoluteQuantitationMethod::getActualConcentration(double& actual_concentration)
+  {
+    actual_concentration = actual_concentration_;
+  }
+  
+  void AbsoluteQuantitationMethod::setStatistics(const int& n_points, const double& correlation_coefficient)
+  {
+    n_points_ = n_points;
+    correlation_coefficient_ = correlation_coefficient;
+  }
+  
+  void AbsoluteQuantitationMethod::getStatistics(int& n_points, double& correlation_coefficient)
+  {
+    n_points = n_points_;
+    correlation_coefficient = correlation_coefficient_;
+  }
 
   Param AbsoluteQuantitationMethod::fitTransformationModel(const std::string & transformation_model,
     TransformationModel::DataPoints& data,
