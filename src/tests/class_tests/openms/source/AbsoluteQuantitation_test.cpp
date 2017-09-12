@@ -187,7 +187,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   absquant.setQuantMethods(quant_methods);
   absquant.quantifyComponents(unknowns);
   
-  // DEBUGGIGN:
+  // DEBUGGING:
   // for (size_t i = 0; i < unknowns.size(); ++i)
   // {
   //   for (size_t j = 0; j < unknowns[i].size(); ++j)

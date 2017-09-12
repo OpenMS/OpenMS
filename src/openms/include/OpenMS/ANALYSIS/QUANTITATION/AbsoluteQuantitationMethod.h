@@ -114,6 +114,18 @@ public:
 
   /// transformation_model and transformation_model_params getter
   void getTransformationModel(std::string& transformation_model, Param& transformation_model_params);
+
+  /// actual concentration setter
+  void setActualConcentration(const double& actual_concentration);
+  
+  /// actual concentration getter
+  void getActualConcentration(double& actual_concentration);
+  
+  /// statistics setter
+  void setStatistics(const int& n_points, const double& correlation_coefficient);
+  
+  /// statistics getter
+  void getStatistics(int& n_points, double& correlation_coefficient);
   
   // /// feature_name setter
   // void setFeatureName(const std::string& feature_name);
@@ -170,13 +182,13 @@ public:
   double uloq_;
 
   /// number of points used in a calibration curve
-  double n_points_;
+  int n_points_;
 
   /// the Pearson R value for the correlation coefficient of the calibration curve
   double correlation_coefficient_;
 
   /// the internal standard (IS) name for the transition
-  String IS_name_;
+  std::string IS_name_;
 
   /// the known concentration of the component
   double actual_concentration_;
@@ -189,7 +201,6 @@ public:
 
   /// transformation model parameters
   Param transformation_model_params_;  
-
   };
 
 }

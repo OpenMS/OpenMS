@@ -35,7 +35,7 @@
 #ifndef OPENMS_FORMAT_ABSOLUTEQUANTITATIONMETHODFILE_H
 #define OPENMS_FORMAT_ABSOLUTEQUANTITATIONMETHODFILE_H
 
-#include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
@@ -43,14 +43,14 @@
 namespace OpenMS
 {
   /**
-      @brief File adapter for .csv or .tsv AbsoluteQuantitationMethod files.
+      @brief File adapter for AbsoluteQuantitationMethod files.
 
-      If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
+      loads and stores .csv or .tsv files describing an AbsoluteQuantitationMethod.
 
       @ingroup FileIO
   */
   class OPENMS_DLLAPI AbsoluteQuantitationMethodFile :
-    public Internal::XMLFile,
+    private CsvFile,
     public ProgressLogger
   {
 public:
@@ -60,33 +60,45 @@ public:
     virtual ~AbsoluteQuantitationMethodFile();
 
     /**
-        @brief Loads a map from a MzQuantML file.
+        @brief Loads an AbsoluteQuantitationMethod file.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, AbsoluteQuantitationMethod & msq);
+    void load(const String & filename, AbsoluteQuantitationMethod & aqm);
 
     /**
-        @brief Stores a map in a MzQuantML file.
+        @brief Stores an AbsoluteQuantitationMethod file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const AbsoluteQuantitationMethod & cmsq) const;
-
-    //~ this is not overwritten, XMLFile version works fine
-    //~ bool isValid(const String& filename, std::ostream& os = std::cerr);
-
+    void store(const String & filename, const AbsoluteQuantitationMethod & aqm) const;
+    
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
-        @param filename File name of the file to be checked.
-        @param errors Errors during the validation are returned in this output parameter.
-        @param warnings Warnings during the validation are returned in this output parameter.
-
-        @exception Exception::FileNotFound is thrown if the file could not be opened
+        @param line Header line of the .csv file.
+        @param headers A map of header strings to column positions.
+        @param params_headers A map of transformation model parameter header strings to column positions.
     */
-    bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings);
+    void parseHeader(StringList & line, std::map<std::string,int> & headers,
+        std::map<std::string,std::vector<int>> & params_headers)
+
+    /**
+        @brief parses a line into the members of AbsoluteQuantitationMethod.
+
+        @param line line of the .csv file.
+        @param aqm AbsoluteQuantitationMethod.
+    */
+    void parseLine(StringList & line, AbsoluteQuantitationMethod & aqm);
+    
+    /**
+        @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
+
+        @param line line of the .csv file.
+        @param aqm AbsoluteQuantitationMethod.
+    */
+    void parseTransformationModelParameters(StringList & line, AbsoluteQuantitationMethod & aqm);
 
 private:
 

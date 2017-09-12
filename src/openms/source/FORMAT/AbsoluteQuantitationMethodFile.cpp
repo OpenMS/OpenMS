@@ -32,19 +32,15 @@
 // $Authors: Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>
-#include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-#include <OpenMS/FORMAT/HANDLERS/MzQuantMLHandler.h> //TODO
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/VALIDATORS/MzQuantMLValidator.h> //TODO
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 namespace OpenMS
 {
 
   AbsoluteQuantitationMethodFile::AbsoluteQuantitationMethodFile() :
-    XMLFile("/SCHEMAS/mzQuantML_1_0_0-rc2", "1.0.0")
   {
   }
 
@@ -54,15 +50,155 @@ namespace OpenMS
 
   void AbsoluteQuantitationMethodFile::load(const String & filename, MSQuantifications & msq)
   {
-    Internal::MzQuantMLHandler handler(msq, filename, schema_version_, *this);
-    parse_(filename, &handler);
+    // read in the .csv file
+    char is = ",";
+    bool ie = false; 
+    Int first_n = -1;
+    fload(filename, is, ie, first_n);
+
+    // parse the file
+    std::map<std::string,int> & headers
+    std::map<std::string,std::vector<int>> & params_headers
+    StringList line, header;
+    for (size_t i = 0; i < getRowCount(); ++i)
+    {
+      if (i == 0) // header row
+      {
+        getRow(i,header);
+        parseHeader(header,headers);
+      }
+      else
+      {
+        getRow(i,line);
+        parseLine(line, headers, params_headers, aqm)    
+      }      
+    }
+  }
+
+  void AbsoluteQuantitationMethodFile::parseHeader(
+    StringList & line,
+    std::map<std::string,int> & headers,
+    std::map<std::string,std::vector<int>> & params_headers)
+  {    
+    // default header column positions
+    headers["IS_name"] = -1;
+    headers["component_name"] = -1;
+    headers["feature_name"] = -1;
+    headers["concentration_units"] = -1;
+    headers["llod"] = -1;
+    headers["ulod"] = -1;
+    headers["lloq"] = -1;
+    headers["uloq"] = -1;
+    headers["correlation_coefficient"] = -1;
+    headers["actual_concentration"] = -1;
+    headers["n_points"] = -1;
+    headers["transformation_model"] = -1;
+    std::string param_header = "transformation_model_param_";
+    std::string
+    
+    // parse the header columns
+    for (size_t i = 0; i < line.size(); ++i)
+    {
+      // parse transformation_model_params
+      if (line[i].find(param_header) != std::string::npos) 
+      {
+        line[i].erase(line[i].begin()+param_header.size()); 
+        params_headers[line[i]] = i;
+      }
+      // parse all other header entries
+      headers[line[i]] = i;
+    }
+
+    // default headers
+    std::map<std::string,std::string> string_map;
+    string_map["IS_name"] = "";
+    string_map["component_name"] = "";
+    string_map["feature_name"] = "";
+    string_map["concentration_units"] = "";
+    string_map["transformation_model"] = "";
+    std::map<std::string,double> float_map;
+    float_map["llod"] = 0.0;
+    float_map["ulod"] = 0.0;
+    float_map["lloq"] = 0.0;
+    float_map["uloq"] = 0.0;
+    float_map["correlation_coefficient"] = 0.0;
+    float_map["actual_concentration"] = 0.0;
+    std::map<std::string,int> int_map;
+    int_map["n_points"] = 0;
+
+    // fill in the headers with defaults
+    for (auto const& kv : headers)
+    {
+        std::cout << x.first  // string (key)
+                  << ':' 
+                  << x.second // string's value 
+                  << std::endl ;
+    }
+
+  }
+
+  void AbsoluteQuantitationMethodFile::parseLine(StringList & line, StringList & headers, 
+    std::map<std::string,std::vector<int>> & params_headers, AbsoluteQuantitationMethod & aqm)
+  {
+    // component, IS, and feature names
+    std::string component_name = "";
+    if (headers["component_name"] != -1)
+    {
+      component_name = line[headers["component_name"]];
+    }
+    std::string feature_name = "";
+    if (headers["feature_name"] != -1)
+    {
+      feature_name = line[headers["feature_name"]];
+    }
+    std::string IS_name = "";
+    if (headers["IS_name"] != -1)
+    {
+      IS_name = line[headers["IS_name"]];
+    }
+    aqm.setComponentISFeatureNames(component_name, IS_name, feature_name);
+
+    // LODs
+    double llod = 0.0;
+    double ulod = 0.0;
+    aqm.setLOD(llod,ulod);
+
+    // LOQs
+    double lloq = 0.0;
+    double uloq = 0.0;
+    aqm.setLOQ(lloq,uloq);
+
+    // actual concentration
+    double actual_concentration = 0.0;
+    aqm.setActualConcentration(actual_concentration);
+
+    // concentration units
+    std::string concentration_units = "";
+    aqm.setConcentrationUnits(concentration_units);
+
+    // transformation model
+    std::string transformation_model = "";
+    Param transformation_model_params;
+    for (auto const& kv : params_headers)
+    {
+      transformation_model_params.setValue(kv.first,line[kv.second]);
+    }
+    aqm.setTransformationModel(transformation_model, transformation_model_params);
+
+    for (size_t i = 0; i < line.size(); ++i)
+    {
+      if (string_map.count(line[i])>0)
+      {
+        string_map[""]
+      }
+    }
   }
 
   void AbsoluteQuantitationMethodFile::store(const String & filename, const MSQuantifications & cmsq) const
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::MZQUANTML))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MZIDENTML) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected "" + FileTypes::typeToName(FileTypes::MZIDENTML) + """);
     }
 
     Internal::MzQuantMLHandler handler(cmsq, filename, schema_version_, *this);
