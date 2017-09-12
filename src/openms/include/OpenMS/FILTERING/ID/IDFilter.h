@@ -342,15 +342,16 @@ public:
 
     */
 
-    struct PeptideDigestionFilter
+    class PeptideDigestionFilter
     {
 
       typedef PeptideHit argument_type;
-
+     private:
       EnzymaticDigestion& digestion_;
       Int min_cleavages_;
       Int max_cleavages_;
-      
+
+     public:
       PeptideDigestionFilter(
         EnzymaticDigestion& digestion) :  
       digestion_(digestion)
@@ -371,6 +372,8 @@ public:
           p.getSequence().toString(), 
           [&](const Int missed_cleavages)
           {
+            // return true if peptide should be removed (does not pass filter)
+
             bool max_filter = max_cleavages_ != disabledValue() ? 
                               missed_cleavages > this->max_cleavages_ : false;
             bool min_filter = min_cleavages_ != disabledValue() ?

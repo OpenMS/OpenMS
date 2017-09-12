@@ -197,34 +197,11 @@ protected:
     setMinInt_("digest:missed_cleavages", -1);
     registerFlag_("digest:methionine_cleavage", "Allow methionine cleavage at the protein start", false);
 
-    registerTOPPSubsection_(
-      "missed_cleavages", 
-      "Filter peptide sequences by their missed cleavages value");
-
-    registerStringOption_(
-      "missed_cleavages:enzyme", 
-      "<enzyme>", 
-      "Trypsin", 
-      "Specify the digestion enzyme",
-      false);
-
-    setValidStrings_(
-      "missed_cleavages:enzyme", 
-      all_enzymes);
-
-    registerIntOption_(
-      "missed_cleavages:min", 
-      "<integer>", 
-      -1, 
-      "minimum allowed missed cleavages\n" "By default ignoring the minimum value",
-      false);
- 
-    registerIntOption_(
-      "missed_cleavages:max",
-      "<integer>", 
-      -1, 
-      "maximum allowed missed cleavages\n" "By default ignoring the maximum value",
-      false);
+    registerTOPPSubsection_("missed_cleavages", "Filter peptide sequences by their missed cleavages value");
+    registerStringOption_("missed_cleavages:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme", false);
+    setValidStrings_("missed_cleavages:enzyme", all_enzymes);
+    registerIntOption_("missed_cleavages:min", "<integer>", -1, "minimum allowed missed cleavages\n" "By default ignoring the minimum value", false);
+    registerIntOption_("missed_cleavages:max", "<integer>", -1, "maximum allowed missed cleavages\n" "By default ignoring the maximum value", false);
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
     registerDoubleOption_("rt:p_value", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.", false, true);
