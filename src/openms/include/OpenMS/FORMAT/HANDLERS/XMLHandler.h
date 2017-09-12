@@ -72,7 +72,7 @@ namespace OpenMS
       typedef std::basic_string<XMLCh> XercesString;
 
       // Converts from a narrow-character string to a wide-character string.
-      inline XercesString fromNative(const char* str) const
+      inline XercesString fromNative_(const char* str) const
       {
         XMLCh* ptr(xercesc::XMLString::transcode(str));
         XercesString result(ptr);
@@ -81,13 +81,13 @@ namespace OpenMS
       }
 
       // Converts from a narrow-character string to a wide-charactr string.
-      inline XercesString fromNative(const std::string& str) const
+      inline XercesString fromNative_(const std::string& str) const
       {
         return fromNative(str.c_str());
       }
 
       // Converts from a wide-character string to a narrow-character string.
-      inline std::string toNative(const XMLCh* str) const
+      inline std::string toNative_(const XMLCh* str) const
       {
         char* ptr(xercesc::XMLString::transcode(str));
         std::string result(ptr);
@@ -96,7 +96,7 @@ namespace OpenMS
       }
 
       // Converts from a wide-character string to a narrow-character string.
-      inline std::string toNative(const XercesString& str) const
+      inline std::string toNative_(const XercesString& str) const
       {
         return toNative(str.c_str());
       }
@@ -112,25 +112,25 @@ public:
       /// Transcode the supplied C string to a xerces string
       inline XercesString convert(const char * str) const
       {
-        return fromNative(str);
+        return fromNative_(str);
       }
 
       /// Transcode the supplied C++ string to a xerces string
       inline XercesString convert(const std::string & str) const
       {
-        return fromNative(str.c_str( ));
+        return fromNative_(str.c_str());
       }
 
       /// Transcode the supplied OpenMS string to a xerces string
       inline XercesString convert(const String & str) const
       {
-        return fromNative(str.c_str( ));
+        return fromNative_(str.c_str());
       }
 
       /// Transcode the supplied XMLCh* to a String
       inline String convert(const XMLCh * str) const
       {
-        return toNative(str);
+        return toNative_(str);
       }
 
       /**
