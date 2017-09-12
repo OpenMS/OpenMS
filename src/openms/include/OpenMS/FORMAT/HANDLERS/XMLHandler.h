@@ -83,7 +83,7 @@ namespace OpenMS
       // Converts from a narrow-character string to a wide-charactr string.
       inline XercesString fromNative_(const String& str) const
       {
-        return fromNative(str.c_str());
+        return fromNative_(str.c_str());
       }
 
       // Converts from a wide-character string to a narrow-character string.
@@ -98,7 +98,7 @@ namespace OpenMS
       // Converts from a wide-character string to a narrow-character string.
       inline String toNative_(const XercesString& str) const
       {
-        return toNative(str.c_str());
+        return toNative_(str.c_str());
       }
 
 
