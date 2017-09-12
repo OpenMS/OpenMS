@@ -356,9 +356,9 @@ class SimpleSearchEngine :
       }
     }
 
-    void postProcessHits_(const PeakMap& exp, const vector<vector<PeptideHit> >& peptide_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits)
+    void postProcessHits_(const PeakMap& exp, vector<vector<PeptideHit> >& peptide_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits)
     {
-      for (vector<vector<PeptideHit> >::const_iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
+      for (vector<vector<PeptideHit> >::iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
       {
         if (!pit->empty())
         {
@@ -370,7 +370,7 @@ class SimpleSearchEngine :
           pi.setHigherScoreBetter(true);
           pi.setRT(exp[scan_index].getRT());
           pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
-          pi.setHits(*pit);
+          pi.getHits().swap(*pit); // swap in hits to prevent copies
           pi.assignRanks();
           peptide_ids.push_back(pi);
         }
