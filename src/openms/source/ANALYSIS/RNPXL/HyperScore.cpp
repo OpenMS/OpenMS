@@ -48,20 +48,13 @@ namespace OpenMS
 {
   double HyperScore::logfactorial_(UInt x)
   {
-    UInt y;
+    if (x == 0) return 0;
 
-    if (x < 2)
-      return 1;
-    else
-    {
-      double z = 0;
-      for (y = 2; y <= x; y++)
-      {
-        z = log((double)y) + z;
-      }
+    double z = log1p(1.0);
 
-      return z;
-    }
+    for (double y = 2; y <= (double)x; ++y) { z += log1p((double)y); }
+
+    return z;
   }
 
   double HyperScore::compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const PeakSpectrum& theo_spectrum)
@@ -121,19 +114,12 @@ namespace OpenMS
         }
       }
     }
-
+   
     // discard very low scoring hits (basically no matching peaks)
-    if (dot_product > 1e-1)
-    {
-      double yFact = logfactorial_(y_ion_count);
-      double bFact = logfactorial_(b_ion_count);
-      double hyperScore = log(dot_product) + yFact + bFact;
-      return hyperScore;
-    }
-    else
-    {
-      return 0;
-    }
+    const double yFact = logfactorial_(y_ion_count);
+    const double bFact = logfactorial_(b_ion_count);
+    const double hyperScore = log1p(dot_product) + yFact + bFact;
+    return hyperScore;
   }
 
 }
