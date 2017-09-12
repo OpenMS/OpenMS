@@ -28,37 +28,76 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
-#define OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
+#ifndef OPENMS_ANALYSIS_QUANTITATION_TMTELEVENPLEXQUANTITATIONMETHOD_H
+#define OPENMS_ANALYSIS_QUANTITATION_TMTELEVENPLEXQUANTITATIONMETHOD_H
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/config.h>
 
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 namespace OpenMS
 {
+  /**
+    @brief TMT 11plex quantitation to be used with the IsobaricQuantitation.
 
-  class OPENMS_DLLAPI SiriusMSFile
+    @htmlinclude OpenMS_TMTSixPlexQuantitationMethod.parameters
+  */
+  class OPENMS_DLLAPI TMTElevenPlexQuantitationMethod :
+    public IsobaricQuantitationMethod
   {
 public:
+    /// Default c'tor
+    TMTElevenPlexQuantitationMethod();
 
-  /**
-    @brief Internal structure used in @ref SiriusAdapter that is used
-    for the conversion of a MzMlFile to an internal format.
+    /// d'tor
+    ~TMTElevenPlexQuantitationMethod();
 
-    @ingroup ID
-    */
+    /// Copy c'tor
+    TMTElevenPlexQuantitationMethod(const TMTElevenPlexQuantitationMethod& other);
 
-    /// store MS file
-    /// @return string (full path to file)
-    static void store(const PeakMap & spectra, const OpenMS::String & msfile);
+    /// Assignment operator
+    TMTElevenPlexQuantitationMethod & operator=(const TMTElevenPlexQuantitationMethod& rhs);
+
+    /// @brief Methods to implement from IsobaricQuantitationMethod
+    /// @{
+
+    const String& getName() const;
+
+    const IsobaricChannelList& getChannelInformation() const;
+
+    Size getNumberOfChannels() const;
+
+    virtual Matrix<double> getIsotopeCorrectionMatrix() const;
+
+    Size getReferenceChannel() const;
+
+    /// @}
+
+  private:
+    /// the actual information on the different tmt11plex channels.
+    IsobaricChannelList channels_;
+
+    /// The name of the quantitation method.
+    static const String name_;
+
+    /// The reference channel for this experiment.
+    Size reference_channel_;
+
+    /// List of available channel names as they are presented to the user
+    static const std::vector<String> channel_names_;
+
+  protected:
+    /// implemented for DefaultParamHandler
+    void setDefaultParams_();
+
+    /// implemented for DefaultParamHandler
+    void updateMembers_();
 
   };
+} // namespace
 
-}
-
-#endif //OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
+#endif // OPENMS_ANALYSIS_QUANTITATION_TMTELEVENPLEXQUANTITATIONMETHOD_H

@@ -40,7 +40,7 @@ endmacro (openms_check_tandem_version)
 message(STATUS "Searching for third party tools...")
 
 #------------------------------------------------------------------------------
-# comet
+# Comet
 OPENMS_FINDBINARY(COMET_BINARY "comet.exe" "Comet")
 
 #------------------------------------------------------------------------------
@@ -184,7 +184,7 @@ endif()
 
 #------------------------------------------------------------------------------
 if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
-  add_test("TOPP_SiriusAdapter_1" ${TOPP_BIN_PATH}/SiriusAdapter -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -out_sirius SiriusAdapter_1_output.tmp -auto_charge -profile qtof -database all)
+  add_test("TOPP_SiriusAdapter_1" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -out_sirius SiriusAdapter_1_output.tmp -auto_charge -profile qtof -database all)
   add_test("TOPP_SiriusAdapter_1_out" ${DIFF} -in1 SiriusAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_output.mzTab -whitelist "MTD")
   set_tests_properties("TOPP_SiriusAdapter_1_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_1")
 endif()

@@ -104,7 +104,7 @@ public:
       for (Size p = 0; p < spectrum.size(); ++p)
       {
         mz_in[p] = spectrum[p].getMZ();
-        int_in[p] = spectrum[p].getIntensity();
+        int_in[p] = static_cast<double>(spectrum[p].getIntensity());
       }
 
       // apply filter

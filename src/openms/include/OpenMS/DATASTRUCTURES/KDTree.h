@@ -1032,7 +1032,7 @@ struct _Region
 
 
 //
-//  This number is guarenteed to change with every release.
+//  This number is guaranteed to change with every release.
 //
 //  KDTREE_VERSION % 100 is the patch level
 //  KDTREE_VERSION / 100 % 1000 is the minor version

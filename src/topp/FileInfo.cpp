@@ -105,56 +105,28 @@ using namespace std;
 
 namespace OpenMS
 {
-//helper struct for identification data
-struct IdData
-{
-  String identifier;
-  vector<ProteinIdentification> proteins;
-  vector<PeptideIdentification> peptides;
-};
-
-/// Write SomeStatistics to a stream.
-template <class T>
-static ostream &operator<<(ostream &os, const Math::SummaryStatistics<T> &rhs)
-{
-  return os << "  num. of values: " << rhs.count << "\n"
-            << "  mean:           " << rhs.mean << "\n"
-            << "  minimum:        " << rhs.min << "\n"
-            << "  lower quartile: " << rhs.lowerq << "\n"
-            << "  median:         " << rhs.median << "\n"
-            << "  upper quartile: " << rhs.upperq << "\n"
-            << "  maximum:        " << rhs.max << "\n"
-            << "  variance:       " << rhs.variance << "\n";
-}
-
-struct MemUsage
-{
-
-  size_t mem_before, mem_after;
-  MemUsage()
-      : mem_before(0), mem_after(0)
+  //helper struct for identification data
+  struct IdData
   {
-  }
+    String identifier;
+    vector<ProteinIdentification> proteins;
+    vector<PeptideIdentification> peptides;
+  };
 
-  void before()
+  /// Write SomeStatistics to a stream.
+  template <class T>
+  static ostream &operator<<(ostream &os, const Math::SummaryStatistics<T> &rhs)
   {
-    SysInfo::getProcessMemoryConsumption(mem_before);
+    return os << "  num. of values: " << rhs.count << "\n"
+              << "  mean:           " << rhs.mean << "\n"
+              << "  minimum:        " << rhs.min << "\n"
+              << "  lower quartile: " << rhs.lowerq << "\n"
+              << "  median:         " << rhs.median << "\n"
+              << "  upper quartile: " << rhs.upperq << "\n"
+              << "  maximum:        " << rhs.max << "\n"
+              << "  variance:       " << rhs.variance << "\n";
   }
-  void after()
-  {
-    SysInfo::getProcessMemoryConsumption(mem_after);
-  }
-};
-ostream &operator<<(ostream &os, const MemUsage &m)
-{
-  if (m.mem_after < m.mem_before)
-    os << "-" << (m.mem_before - m.mem_after) / 1024;
-  else
-    os << (m.mem_after - m.mem_before) / 1024;
-  os << " MB";
-  return os;
-}
-}
+} // namespace
 
 class TOPPFileInfo : public TOPPBase
 {
@@ -223,8 +195,6 @@ protected:
     // File type
     FileHandler fh;
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
-
-    MemUsage mu;
 
     if (in_type == FileTypes::UNKNOWN)
     {
@@ -408,7 +378,7 @@ protected:
           OpenMS::Interfaces::ChromatogramPtr p = ifile.getChromatogramById(i);
         }
 
-        std::cout << "Found a valid indexedmzML XML File with " << ifile.getNrSpectra() << " spectra and " << ifile.getNrChromatograms() << " chromatograms." << std::endl
+        std::cout << "Found a valid indexed mzML XML File with " << ifile.getNrSpectra() << " spectra and " << ifile.getNrChromatograms() << " chromatograms." << std::endl
                   << std::endl;
       }
       else
@@ -427,34 +397,27 @@ protected:
     {
       vector<FASTAFile::FASTAEntry> entries;
       FASTAFile file;
-      vector<FASTAFile::FASTAEntry>::iterator loopiter;
-      vector<FASTAFile::FASTAEntry>::iterator iter;
 
       map<char, int> aacids;
-      std::map<char, int>::iterator it;
       int number_of_aacids = 0;
 
-      mu.before();
+      SysInfo::MemUsage mu;
       //loading input
       file.load(in, entries);
-
-      mu.after();
-      std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
+      std::cout << "\n\n" << mu.delta("loading FASTA") << std::endl;
 
       os << "Number of sequences: " << entries.size() << "\n"
          << "\n";
 
-      for (loopiter = entries.begin(); loopiter != entries.end(); loopiter = std::next(loopiter))
+      for (auto loopiter = entries.begin(); loopiter != entries.end(); ++loopiter)
       {
-        iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::headerMatches), &(*loopiter)));
-
+        auto iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.headerMatches(*loopiter); });
         if (iter != loopiter)
         {
           os << "Warning: Duplicate header, Number: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
         }
 
-        iter = find_if(entries.begin(), loopiter, bind1st(mem_fun(&FASTAFile::FASTAEntry::sequenceMatches), &(*loopiter)));
-
+        iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.sequenceMatches(*loopiter); });
         if (iter != loopiter && iter != entries.end())
         {
           os << "Warning: Duplicate sequence, Number: " << std::distance(entries.begin(), loopiter) << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
@@ -471,7 +434,7 @@ protected:
       os << "Amino acid counts: "
          << "\n";
 
-      for (it = aacids.begin(); it != aacids.end(); it = std::next(it))
+      for (auto it = aacids.begin(); it != aacids.end(); ++it)
       {
         os << it->first << '\t' << it->second << "\n";
       }
@@ -483,12 +446,11 @@ protected:
       ff.getOptions().setLoadConvexHull(false);   // CH's currently not needed here
       ff.getOptions().setLoadSubordinates(false); // SO's currently not needed here
 
-      mu.before();
+      SysInfo::MemUsage mu;
       // reading input
       ff.load(in, feat);
-      mu.after();
+      std::cout << "\n\n" << mu.delta("loading featureXML") << std::endl;
 
-      std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
       feat.updateRanges();
 
       os << "Number of features: " << feat.size() << "\n"
@@ -530,11 +492,10 @@ protected:
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
 
-      mu.before();
+      SysInfo::MemUsage mu;
       // reading input
       ConsensusXMLFile().load(in, cons);
-      mu.after();
-      std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
+      std::cout << "\n\n" << mu.delta("loading consensusXML") << std::endl;
 
       cons.updateRanges();
 
@@ -598,7 +559,7 @@ protected:
       vector<uint16_t> peptide_length;
 
       // reading input
-      mu.before();
+      SysInfo::MemUsage mu;
       if (in_type == FileTypes::MZIDENTML)
       {
         MzIdentMLFile().load(in, id_data.proteins, id_data.peptides);
@@ -607,9 +568,7 @@ protected:
       {
         IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
       }
-
-      mu.after();
-      std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
+      std::cout << "\n\n" << mu.delta("loading idXML") << std::endl;
 
       // export metadata to second output stream
       os_tsv << "database"
@@ -707,19 +666,15 @@ protected:
     else //peaks
     {
 
-      mu.before();
-
+      SysInfo::MemUsage mu;
       if (!fh.loadExperiment(in, exp, in_type, log_type_, false, false))
       {
         writeLog_("Unsupported or corrupt input file. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
-
       // report memory consumption
-
-      mu.after();
-      std::cout << "\n\nMemory usage while loading: " << mu << std::endl;
+      std::cout << "\n\n" << mu.delta("loading MS data") << std::endl;
 
       //check if the meta data indicates that this is peak data
       UInt meta_type = SpectrumSettings::UNKNOWN;
@@ -1545,6 +1500,7 @@ protected:
     return ret;
   }
 };
+
 
 int main(int argc, const char **argv)
 {
