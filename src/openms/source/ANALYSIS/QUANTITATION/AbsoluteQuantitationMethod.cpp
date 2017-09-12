@@ -52,7 +52,7 @@
 namespace OpenMS
 {
     
-  AbsoluteQuantitationMethod::AbsoluteQuantitationMethod() :
+  AbsoluteQuantitationMethod::AbsoluteQuantitationMethod()
   {
   }
   

@@ -38,7 +38,6 @@
 #include <OpenMS/config.h>
 
 //Kernal classes
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
@@ -57,8 +56,7 @@ namespace OpenMS
     @brief AbsoluteQuantitationMethod is a class to handle the relationship between
     runs, components, and actual concentrations.
   */
-  class OPENMS_DLLAPI AbsoluteQuantitationMethod :
-  public DefaultParamHandler
+  class OPENMS_DLLAPI AbsoluteQuantitationMethod
   {
 
 public:    

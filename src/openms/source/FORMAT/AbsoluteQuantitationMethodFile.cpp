@@ -160,38 +160,58 @@ namespace OpenMS
 
     // LODs
     double llod = 0.0;
+    if (headers["llod"] != -1)
+    {
+      llod = line[headers["llod"]];
+    }
     double ulod = 0.0;
+    if (headers["ulod"] != -1)
+    {
+      ulod = line[headers["ulod"]];
+    }
     aqm.setLOD(llod,ulod);
 
     // LOQs
     double lloq = 0.0;
+    if (headers["lloq"] != -1)
+    {
+      lloq = line[headers["lloq"]];
+    }
     double uloq = 0.0;
+    if (headers["uloq"] != -1)
+    {
+      lloq = line[headers["uloq"]];
+    }
     aqm.setLOQ(lloq,uloq);
 
     // actual concentration
     double actual_concentration = 0.0;
+    if (headers["actual_concentration"] != -1)
+    {
+      actual_concentration = line[headers["actual_concentration"]];
+    }
     aqm.setActualConcentration(actual_concentration);
 
     // concentration units
     std::string concentration_units = "";
+    if (headers["concentration_units"] != -1)
+    {
+      concentration_units = line[headers["concentration_units"]];
+    }
     aqm.setConcentrationUnits(concentration_units);
 
     // transformation model
     std::string transformation_model = "";
+    if (headers["transformation_model"] != -1)
+    {
+      transformation_model = line[headers["transformation_model"]];
+    }
     Param transformation_model_params;
     for (auto const& kv : params_headers)
     {
       transformation_model_params.setValue(kv.first,line[kv.second]);
     }
     aqm.setTransformationModel(transformation_model, transformation_model_params);
-
-    for (size_t i = 0; i < line.size(); ++i)
-    {
-      if (string_map.count(line[i])>0)
-      {
-        string_map[""]
-      }
-    }
   }
 
   void AbsoluteQuantitationMethodFile::store(const String & filename, const MSQuantifications & cmsq) const
@@ -203,27 +223,6 @@ namespace OpenMS
 
     Internal::MzQuantMLHandler handler(cmsq, filename, schema_version_, *this);
     save_(filename, &handler);
-  }
-
-  bool AbsoluteQuantitationMethodFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
-  {
-    //load mapping
-    CVMappings mapping;
-    CVMappingFile().load(File::find("/MAPPING/mzQuantML-mapping_1.0.0-rc2-general.xml"), mapping);
-
-    //load cvs
-    ControlledVocabulary cv;
-    cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-    cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-    cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
-    cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-    cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-
-    //validate TODO
-    Internal::MzQuantMLValidator v(mapping, cv);
-    bool result = v.validate(filename, errors, warnings);
-
-    return result;
   }
 
 } // namespace OpenMS
