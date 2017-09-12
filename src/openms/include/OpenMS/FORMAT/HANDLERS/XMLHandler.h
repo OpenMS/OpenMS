@@ -102,6 +102,8 @@ public:
 private:
       mutable std::vector<XMLCh *> xml_strings_;
       mutable std::vector<char *> c_strings_;
+      mutable size_t idx_xml_, idx_c_;
+
     };
 
     /**
