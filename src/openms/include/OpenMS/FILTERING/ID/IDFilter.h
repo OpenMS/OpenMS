@@ -344,38 +344,30 @@ public:
 
     class PeptideDigestionFilter
     {
-
-      typedef PeptideHit argument_type;
      private:
       EnzymaticDigestion& digestion_;
       Int min_cleavages_;
       Int max_cleavages_;
 
      public:
-      PeptideDigestionFilter(
-        EnzymaticDigestion& digestion) :  
-      digestion_(digestion)
+      typedef PeptideHit argument_type;
+      PeptideDigestionFilter(EnzymaticDigestion& digestion, Int min, Int max) :
+      digestion_(digestion), min_cleavages_(min), max_cleavages_(max)
       {}
-
-      inline void setMinCleavagesAllowed(const Int min_cleavages){ min_cleavages_ = min_cleavages; }
-      inline void setMaxCleavagesAllowed(const Int max_cleavages){ max_cleavages_ = max_cleavages; }
-
-      inline void disableCleavagesLowerBound(){ min_cleavages_ = disabledValue(); }
-      inline void disableCleavagesUpperBound(){ max_cleavages_ = disabledValue(); }
 
       inline Int disabledValue(){ return -1; }
       
-      /// Filter function on min max cutoff values 
+      /// Filter function on min max cutoff values to be used with remove_if 
+      /// returns true if peptide should be removed (does not pass filter)
       bool operator()(PeptideHit& p)
       {
         return digestion_.filterByMissingCleavages(
-          p.getSequence().toString(), 
+          p.getSequence().toString(),
           [&](const Int missed_cleavages)
           {
-            // return true if peptide should be removed (does not pass filter)
 
             bool max_filter = max_cleavages_ != disabledValue() ? 
-                              missed_cleavages > this->max_cleavages_ : false;
+                              missed_cleavages > max_cleavages_ : false;
             bool min_filter = min_cleavages_ != disabledValue() ?
                               missed_cleavages < min_cleavages_ : false;
             return max_filter || min_filter;
@@ -384,12 +376,7 @@ public:
 
       void filterPeptideSequences(std::vector<PeptideHit>& hits)
       {
-        hits.erase(
-          std::remove_if(
-            hits.begin(), 
-            hits.end(), 
-            (*this)), 
-          hits.end());
+        hits.erase(std::remove_if(hits.begin(), hits.end(), (*this)), hits.end());
       }
 
     };

@@ -197,11 +197,11 @@ protected:
     setMinInt_("digest:missed_cleavages", -1);
     registerFlag_("digest:methionine_cleavage", "Allow methionine cleavage at the protein start", false);
 
-    registerTOPPSubsection_("missed_cleavages", "Filter peptide sequences by their missed cleavages value");
+    registerTOPPSubsection_("missed_cleavages", "Filter peptide sequences by their missed cleavages number");
+    registerStringOption_("missed_cleavages", "[min]:[max]", ":", "[min,max] range of allowed missed cleavages\n" "Empty value ignores bound", false);
     registerStringOption_("missed_cleavages:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme", false);
     setValidStrings_("missed_cleavages:enzyme", all_enzymes);
-    registerIntOption_("missed_cleavages:min", "<integer>", -1, "minimum allowed missed cleavages\n" "By default ignoring the minimum value", false);
-    registerIntOption_("missed_cleavages:max", "<integer>", -1, "maximum allowed missed cleavages\n" "By default ignoring the maximum value", false);
+    
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
     registerDoubleOption_("rt:p_value", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.", false, true);
@@ -483,28 +483,25 @@ protected:
       filter.filterPeptideEvidences(peptides);
     }
 
-    Int min_cleavages = getIntOption_("missed_cleavages:min");
-    Int max_cleavages = getIntOption_("missed_cleavages:max");
-    
-    if (not (min_cleavages == -1 && max_cleavages == -1))
+    // Filter peptide hits by missing cleavages
+
+    Int min_cleavages = -1, max_cleavages = -1;
+    if(parseRange_(getStringOption_("missed_cleavages"), min_cleavages, max_cleavages))
     {
-      LOG_INFO << "Filtering peptide hits by their missed cleavages count..." << endl;
+      
 
       // Configure Enzymatic digestion
       EnzymaticDigestion digestion;
-      String enzyme = getStringOption_("missed_cleavages:enzyme").trim();
+      String enzyme = getStringOption_("missed_cleavages:enzyme");
       if (!enzyme.empty())
       {
         digestion.setEnzyme(enzyme);
       }
 
-      Int min_cleavages = getIntOption_("missed_cleavages:min");
-      Int max_cleavages = getIntOption_("missed_cleavages:max");
+      LOG_INFO << "Filtering peptide hits by their missed cleavages count with enzyme " << digestion.getEnzymeName() << "..." << endl;
       
       // Build the digest filter function
-      IDFilter::PeptideDigestionFilter filter(digestion);
-      filter.setMaxCleavagesAllowed(max_cleavages);
-      filter.setMinCleavagesAllowed(min_cleavages);
+      IDFilter::PeptideDigestionFilter filter(digestion, min_cleavages, max_cleavages);
 
       // Filter peptide hits      
       for (auto& peptide : peptides)
