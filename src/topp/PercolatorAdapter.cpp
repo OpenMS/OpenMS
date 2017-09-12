@@ -108,7 +108,7 @@ class PercolatorAdapter :
 {
 public:
   PercolatorAdapter() :
-    TOPPBase("PercolatorAdapter", "Facilitate input to Percolator and reintegrate.", false)
+    TOPPBase("PercolatorAdapter", "Facilitate input to Percolator and reintegrate.", true)
   {
   }
 

@@ -40,7 +40,7 @@ endmacro (openms_check_tandem_version)
 message(STATUS "Searching for third party tools...")
 
 #------------------------------------------------------------------------------
-# MS-GF+
+# comet
 OPENMS_FINDBINARY(COMET_BINARY "comet.exe" "Comet")
 
 #------------------------------------------------------------------------------
@@ -59,6 +59,10 @@ OPENMS_FINDBINARY(MYRIMATCH_BINARY "myrimatch" "Myrimatch")
 #------------------------------------------------------------------------------
 # MS-GF+
 OPENMS_FINDBINARY(MSGFPLUS_BINARY "MSGFPlus.jar" "MS-GF+")
+
+#------------------------------------------------------------------------------
+# percolator
+OPENMS_FINDBINARY(PERCOLATOR_BINARY "percolator" "Percolator")
 
 #------------------------------------------------------------------------------
 # Fido
@@ -120,6 +124,14 @@ if (NOT (${COMET_BINARY} STREQUAL "COMET_BINARY-NOTFOUND"))
   add_test("TOPP_CometAdapter_1_out1" ${DIFF} -in1 CometAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/CometAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
   set_tests_properties("TOPP_CometAdapter_1_out1" PROPERTIES DEPENDS "TOPP_CometAdapter_1")
   ### Second test for optional pin file needs to be added, not sure how to do FuzzyDiff on the csv style pin file, whitelisting the first id column
+endif()
+
+#------------------------------------------------------------------------------
+if (NOT (${PERCOLATOR_BINARY} STREQUAL "PERCOLATOR_BINARY-NOTFOUND"))
+  ### NOT needs to be added after the binarys have been included
+  add_test("TOPP_PercolatorAdapter_1" ${TOPP_BIN_PATH}/PercolatorAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.ini -in ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1.idXML -out PercolatorAdapter_1_out1.tmp -percolator_executable "${PERCOLATOR_BINARY}")
+  add_test("TOPP_PercolatorAdapter_1_out1" ${DIFF} -in1 PercolatorAdapter_1_out1.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/PercolatorAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=" "UserParam type=\"stringList\" name=\"spectra_data\" value=")
+  set_tests_properties("TOPP_PercolatorAdapter_1_out1" PROPERTIES DEPENDS "TOPP_PercolatorAdapter_1")
 endif()
 
 #------------------------------------------------------------------------------
