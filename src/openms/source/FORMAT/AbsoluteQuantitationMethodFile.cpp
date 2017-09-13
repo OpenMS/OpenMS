@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
@@ -51,26 +52,26 @@ namespace OpenMS
   void AbsoluteQuantitationMethodFile::load(const String & filename, AbsoluteQuantitationMethod & aqm)
   {
     // read in the .csv file
-    char is = ",";
+    char is = ',';
     bool ie = false; 
     Int first_n = -1;
     fload(filename, is, ie, first_n);
 
     // parse the file
-    std::map<std::string,int> & headers
-    std::map<std::string,std::vector<int>> & params_headers
+    std::map<std::string,int> & headers;
+    std::map<std::string,int> & params_headers;
     StringList line, header;
     for (size_t i = 0; i < getRowCount(); ++i)
     {
       if (i == 0) // header row
       {
-        getRow(i,header);
-        parseHeader(header,headers);
+        getRow(i, header);
+        parseHeader(header, headers, params_headers);
       }
       else
       {
-        getRow(i,line);
-        parseLine(line, headers, params_headers, aqm)    
+        getRow(i, line);
+        parseLine(line, headers, params_headers, aqm);    
       }      
     }
   }
@@ -128,8 +129,8 @@ namespace OpenMS
 
   }
 
-  void AbsoluteQuantitationMethodFile::parseLine(StringList & line, StringList & headers, 
-    std::map<std::string,std::vector<int>> & params_headers, AbsoluteQuantitationMethod & aqm)
+  void AbsoluteQuantitationMethodFile::parseLine(StringList & line, std::map<std::string,int> & headers, 
+    std::map<std::string,int> & params_headers, AbsoluteQuantitationMethod & aqm)
   {
     // component, IS, and feature names
     std::string component_name = "";
