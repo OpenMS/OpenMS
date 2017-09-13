@@ -111,8 +111,8 @@ START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & h
   header1.push_back("actual_concentration");
   header1.push_back("n_points");
   header1.push_back("transformation_model");
-  header1.push_back("transformation_model_param_slope)";
-  header1.push_back("transformation_model_param_intercept)";
+  header1.push_back("transformation_model_param_slope");
+  header1.push_back("transformation_model_param_intercept");
 
   aqmf.parseHeader(header2, headers, params_headers);
 
