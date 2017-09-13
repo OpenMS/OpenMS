@@ -214,13 +214,11 @@ START_SECTION((void load(const String & filename, std::vector<AbsoluteQuantitati
   TEST_EQUAL(IS_name, "IS1");
   TEST_EQUAL(feature_name, "feature1");
 
-  component_name, IS_name, feature_name;
   aqm_list[1].getComponentISFeatureNames(component_name, IS_name, feature_name);
   TEST_EQUAL(component_name, "component2");
   TEST_EQUAL(IS_name, "IS2");
   TEST_EQUAL(feature_name, "feature2");
   
-  component_name, IS_name, feature_name;
   aqm_list[2].getComponentISFeatureNames(component_name, IS_name, feature_name);
   TEST_EQUAL(component_name, "component3");
   TEST_EQUAL(IS_name, "IS3");
