@@ -395,6 +395,7 @@ set(chemistry_executables_list
 set(analysis_executables_list
   AbsoluteQuantitation_test
   AbsoluteQuantitationMethod_test
+  AbsoluteQuantitationMethodFile_test
   AbsoluteQuantitationStandards_test
   AccurateMassSearchEngine_test
   AScore_test
