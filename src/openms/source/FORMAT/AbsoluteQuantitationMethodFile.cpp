@@ -93,7 +93,6 @@ namespace OpenMS
     headers["n_points"] = -1;
     headers["transformation_model"] = -1;
     std::string param_header = "transformation_model_param_";
-    std::string;
     
     // parse the header columns
     for (size_t i = 0; i < line.size(); ++i)
