@@ -152,12 +152,12 @@ namespace OpenMS
     double llod = 0.0;
     if (headers["llod"] != -1)
     {
-      llod = (double)line[headers["llod"]];
+      llod = std::stod(line[headers["llod"]]);
     }
     double ulod = 0.0;
     if (headers["ulod"] != -1)
     {
-      ulod = (double)line[headers["ulod"]];
+      ulod = std::stod(line[headers["ulod"]]);
     }
     aqm.setLOD(llod,ulod);
 
@@ -165,12 +165,12 @@ namespace OpenMS
     double lloq = 0.0;
     if (headers["lloq"] != -1)
     {
-      lloq = (double)line[headers["lloq"]];
+      lloq = std::stod(line[headers["lloq"]]);
     }
     double uloq = 0.0;
     if (headers["uloq"] != -1)
     {
-      lloq = (double)line[headers["uloq"]];
+      lloq = std::stod(line[headers["uloq"]]);
     }
     aqm.setLOQ(lloq,uloq);
 
@@ -178,7 +178,7 @@ namespace OpenMS
     double actual_concentration = 0.0;
     if (headers["actual_concentration"] != -1)
     {
-      actual_concentration = (double)line[headers["actual_concentration"]];
+      actual_concentration = std::stod(line[headers["actual_concentration"]]);
     }
     aqm.setActualConcentration(actual_concentration);
 
@@ -194,12 +194,12 @@ namespace OpenMS
     int n_points = 0;
     if (headers["n_points"] != -1)
     {
-      n_points = (int)line[headers["n_points"]];
+      n_points = std::stoi(line[headers["n_points"]]);
     }
     double correlation_coefficient = 0.0;
     if (headers["correlation_coefficient"] != -1)
     {
-      correlation_coefficient = (double)line[headers["correlation_coefficient"]];
+      correlation_coefficient = std::stod(line[headers["correlation_coefficient"]]);
     }
     aqm.setStatistics(n_points, correlation_coefficient);
 
