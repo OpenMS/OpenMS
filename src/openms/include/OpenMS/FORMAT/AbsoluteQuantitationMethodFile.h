@@ -92,14 +92,6 @@ public:
     */
     void parseLine(StringList & line, std::map<std::string, int> & headers, 
         std::map<std::string, int> & params_headers, AbsoluteQuantitationMethod & aqm);
-    
-    /**
-        @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
-
-        @param line line of the .csv file.
-        @param aqm AbsoluteQuantitationMethod.
-    */
-    void parseTransformationModelParameters(StringList & line, AbsoluteQuantitationMethod & aqm);
 
 private:
 
