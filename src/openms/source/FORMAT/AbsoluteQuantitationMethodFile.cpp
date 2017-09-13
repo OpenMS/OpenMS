@@ -214,9 +214,8 @@ namespace OpenMS
     for (auto const& kv : params_headers)
     {
       // cast doubles
-      std::unordered_set<std::string> ValidValues;
-      ValidValues = {"slope", "intercept"};
-      if (ValidValues.count(kv.first) > 0)
+      std::vector<std::string> param_doubles {"slope", "intercept"};
+      if (param_doubles.count(kv.first) > 0)
       {
         transformation_model_params.setValue(kv.first,std::stod(line[kv.second]));
       }
