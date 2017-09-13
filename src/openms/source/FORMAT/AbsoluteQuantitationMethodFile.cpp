@@ -102,6 +102,7 @@ namespace OpenMS
       {
         line[i].erase(line[i].begin()+param_header.size()); 
         params_headers[line[i]] = i;
+        std::cout << line[i] << std::endl;
       }      
       else // parse all other header entries
       {
@@ -214,10 +215,16 @@ namespace OpenMS
     for (auto const& kv : params_headers)
     {
       // cast doubles
-      std::vector<std::string> param_doubles {"slope", "intercept"};      
+      std::vector<std::string> param_doubles {"slope", "intercept", "wavelength", "span", "delta", "x_datum_min", "y_datum_min", "x_datum_max", "y_datum_max"};      
       if (std::find(param_doubles.begin(), param_doubles.end(), kv.first) != param_doubles.end())
       {
         transformation_model_params.setValue(kv.first,std::stod(line[kv.second]));
+      }
+      // cast integers
+      std::vector<std::string> param_ints {"num_nodes", "boundary_condition", "num_iterations"};      
+      else if (std::find(param_ints.begin(), param_ints.end(), kv.first) != param_ints.end())
+      {
+        transformation_model_params.setValue(kv.first,std::stoi(line[kv.second]));
       }
       else
       {
