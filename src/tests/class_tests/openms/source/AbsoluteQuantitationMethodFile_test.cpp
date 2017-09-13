@@ -38,7 +38,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethodFile.h>
+#include <OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 
 using namespace OpenMS;
@@ -97,30 +97,30 @@ START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & h
   headers.clear();
   params_headers.clear();
   
-    // header test 2
-    StringList header2; 
-    header1.push_back("IS_name");
-    header1.push_back("component_name");
-    header1.push_back("feature_name");
-    header1.push_back("concentration_units");
-    // header1.push_back("llod"); //test missing value
-    header1.push_back("ulod");
-    header1.push_back("lloq");
-    header1.push_back("uloq");
-    header1.push_back("correlation_coefficient");
-    header1.push_back("actual_concentration");
-    header1.push_back("n_points");
-    header1.push_back("transformation_model");
-    header1.push_back("transformation_model_param_slope)";
-    header1.push_back("transformation_model_param_intercept)";
-  
-    aqmf.parseHeader(header2, headers, params_headers);
-  
-    TEST_EQUAL(headers["IS_name"],0);
-    TEST_EQUAL(headers["llod"],-1);
-    TEST_EQUAL(headers["transformation_model"],10);
-    TEST_EQUAL(params_headers["slope"],11);
-    TEST_EQUAL(params_headers["intercept"],12);
+  // header test 2
+  StringList header2; 
+  header1.push_back("IS_name");
+  header1.push_back("component_name");
+  header1.push_back("feature_name");
+  header1.push_back("concentration_units");
+  // header1.push_back("llod"); //test missing value
+  header1.push_back("ulod");
+  header1.push_back("lloq");
+  header1.push_back("uloq");
+  header1.push_back("correlation_coefficient");
+  header1.push_back("actual_concentration");
+  header1.push_back("n_points");
+  header1.push_back("transformation_model");
+  header1.push_back("transformation_model_param_slope)";
+  header1.push_back("transformation_model_param_intercept)";
+
+  aqmf.parseHeader(header2, headers, params_headers);
+
+  TEST_EQUAL(headers["IS_name"],0);
+  TEST_EQUAL(headers["llod"],-1);
+  TEST_EQUAL(headers["transformation_model"],10);
+  TEST_EQUAL(params_headers["slope"],11);
+  TEST_EQUAL(params_headers["intercept"],12);
   
 END_SECTION
 
@@ -176,8 +176,22 @@ START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & hea
   aqm.getLOD(llod, ulod);
   TEST_REAL_SIMILAR(llod, 0.0);
   TEST_REAL_SIMILAR(ulod, 10.0);
+  double lloq, uloq;
+  aqm.getLOQ(lloq, uloq);
+  TEST_REAL_SIMILAR(lloq, 2.0);
+  TEST_REAL_SIMILAR(uloq, 8.0);
+  str::string concentration_units;
+  aqm.getConcentrationUnits(concentration_units);
+  TEST_EQUAL(concentration_units, "uM");
+  double actual_concentration;
+  aqm.getActualConcentration(actual_concentration);
+  TEST_REAL_SIMILAR(actual_concentration, 1.0);
 
-  
+
+  // aqm.getStatistics(concentration_units);
+  // aqm.getTransformationModel(concentration_units);
+
+
 
   headers.clear();
   params_headers.clear();
