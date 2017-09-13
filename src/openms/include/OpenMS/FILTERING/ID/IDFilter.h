@@ -362,7 +362,7 @@ public:
       bool operator()(PeptideHit& p)
       {
         return digestion_.filterByMissingCleavages(
-          p.getSequence().toString(),
+          p.getSequence().toUnmodifiedString(),
           [&](const Int missed_cleavages)
           {
 
