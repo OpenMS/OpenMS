@@ -214,8 +214,8 @@ namespace OpenMS
     for (auto const& kv : params_headers)
     {
       // cast doubles
-      std::vector<std::string> param_doubles {"slope", "intercept"};
-      if (param_doubles.find(kv.first) != param_doubles.end())
+      std::vector<std::string> param_doubles {"slope", "intercept"};      
+      if (std::find(param_doubles.begin(), param_doubles.end(), kv.first) != param_doubles.end())
       {
         transformation_model_params.setValue(kv.first,std::stod(line[kv.second]));
       }
