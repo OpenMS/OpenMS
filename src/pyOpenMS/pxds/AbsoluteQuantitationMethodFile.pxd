@@ -9,5 +9,5 @@ cdef extern from "<OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>" namespace "O
 
         AbsoluteQuantitationMethodFile()  nogil except +
 
-        void load(string filename, libcpp_vector[ dataAbsoluteQuantitationMethod ]& aqm_list) nogil except +
+        void load(string filename, libcpp_vector[ AbsoluteQuantitationMethod ]& aqm_list) nogil except +
 
