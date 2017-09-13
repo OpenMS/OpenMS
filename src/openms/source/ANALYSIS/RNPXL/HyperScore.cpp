@@ -50,9 +50,9 @@ namespace OpenMS
   {
     if (x == 0) return 0;
 
-    double z = log1p(1.0);
+    double z(0);
 
-    for (double y = 2; y <= (double)x; ++y) { z += log1p((double)y); }
+    for (double y = 2; y <= static_cast<double>(x); ++y) { z += log(static_cast<double>(y)); }
 
     return z;
   }
@@ -114,7 +114,7 @@ namespace OpenMS
         }
       }
     }
-   
+  
     // discard very low scoring hits (basically no matching peaks)
     const double yFact = logfactorial_(y_ion_count);
     const double bFact = logfactorial_(b_ion_count);

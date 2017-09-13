@@ -616,10 +616,7 @@ class SimpleSearchEngine :
               double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
               // no hit
-              if (score < 1e-16)
-              {
-                continue;
-              }
+              if (score == 0) { continue; }
 
               PeptideHit hit;
               hit.setSequence(candidate);
