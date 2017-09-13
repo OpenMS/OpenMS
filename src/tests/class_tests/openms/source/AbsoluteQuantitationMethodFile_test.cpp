@@ -84,15 +84,15 @@ START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & h
   header1.push_back("actual_concentration");
   header1.push_back("n_points");
   header1.push_back("transformation_model");
-  header1.push_back("transformation_model_param_slope)";
-  header1.push_back("transformation_model_param_intercept)";
+  header1.push_back("transformation_model_param_slope");
+  header1.push_back("transformation_model_param_intercept");
 
   aqmf.parseHeader(header1, headers, params_headers);
 
-  TEST_EQUAL(headers["IS_name"],0);
-  TEST_EQUAL(headers["transformation_model"],11);
-  TEST_EQUAL(params_headers["slope"],12);
-  TEST_EQUAL(params_headers["intercept"],13);
+  TEST_EQUAL(headers["IS_name"], 0);
+  TEST_EQUAL(headers["transformation_model"], 11);
+  TEST_EQUAL(params_headers["slope"], 12);
+  TEST_EQUAL(params_headers["intercept"], 13);
 
   headers.clear();
   params_headers.clear();
@@ -116,11 +116,11 @@ START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & h
 
   aqmf.parseHeader(header2, headers, params_headers);
 
-  TEST_EQUAL(headers["IS_name"],0);
-  TEST_EQUAL(headers["llod"],-1);
-  TEST_EQUAL(headers["transformation_model"],10);
-  TEST_EQUAL(params_headers["slope"],11);
-  TEST_EQUAL(params_headers["intercept"],12);
+  TEST_EQUAL(headers["IS_name"], 0);
+  TEST_EQUAL(headers["llod"], -1);
+  TEST_EQUAL(headers["transformation_model"], 10);
+  TEST_EQUAL(params_headers["slope"], 11);
+  TEST_EQUAL(params_headers["intercept"], 12);
   
 END_SECTION
 
@@ -150,20 +150,20 @@ START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & hea
 
   // line test 1
   StringList line1; 
-  header1.push_back("IS1");
-  header1.push_back("component1");
-  header1.push_back("feature1");
-  header1.push_back("uM");
-  header1.push_back(0.0);
-  header1.push_back(10.0);
-  header1.push_back(2.0);
-  header1.push_back(8.0);
-  header1.push_back(0.99);
-  header1.push_back(1.0);
-  header1.push_back(5);
-  header1.push_back("TransformationModelLinear");
-  header1.push_back(2.0);
-  header1.push_back(1.0);
+  line1.push_back("IS1");
+  line1.push_back("component1");
+  line1.push_back("feature1");
+  line1.push_back("uM");
+  line1.push_back(0.0);
+  line1.push_back(10.0);
+  line1.push_back(2.0);
+  line1.push_back(8.0);
+  line1.push_back(0.99);
+  line1.push_back(1.0);
+  line1.push_back(5);
+  line1.push_back("TransformationModelLinear");
+  line1.push_back(2.0);
+  line1.push_back(1.0);
 
   aqmf.parseLine(line1, headers, params_headers, aqm);
 
@@ -180,7 +180,7 @@ START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & hea
   aqm.getLOQ(lloq, uloq);
   TEST_REAL_SIMILAR(lloq, 2.0);
   TEST_REAL_SIMILAR(uloq, 8.0);
-  str::string concentration_units;
+  std::string concentration_units;
   aqm.getConcentrationUnits(concentration_units);
   TEST_EQUAL(concentration_units, "uM");
   double actual_concentration;
@@ -191,7 +191,7 @@ START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & hea
   aqm.getStatistics(n_points, correlation_coefficient);
   TEST_EQUAL(n_points, 5);
   TEST_REAL_SIMILAR(correlation_coefficient, 0.99);
-  str::string transformation_model;
+  std::string transformation_model;
   Param transformation_model_params;
   aqm.getTransformationModel(transformation_model, transformation_model_params);
   TEST_EQUAL(transformation_model, "TransformationModelLinear");
