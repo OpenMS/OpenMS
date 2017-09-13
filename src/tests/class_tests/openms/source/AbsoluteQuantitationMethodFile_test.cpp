@@ -162,8 +162,8 @@ START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & hea
   header1.push_back(1.0);
   header1.push_back(5);
   header1.push_back("TransformationModelLinear");
-  header1.push_back("slope)";
-  header1.push_back("intercept)";
+  header1.push_back(2.0);
+  header1.push_back(1.0);
 
   aqmf.parseLine(line1, headers, params_headers, aqm);
 
@@ -186,12 +186,17 @@ START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & hea
   double actual_concentration;
   aqm.getActualConcentration(actual_concentration);
   TEST_REAL_SIMILAR(actual_concentration, 1.0);
-
-
-  // aqm.getStatistics(concentration_units);
-  // aqm.getTransformationModel(concentration_units);
-
-
+  int n_points;
+  double correlation_coefficient;
+  aqm.getStatistics(n_points, correlation_coefficient);
+  TEST_EQUAL(n_points, 5);
+  TEST_REAL_SIMILAR(correlation_coefficient, 0.99);
+  str::string transformation_model;
+  Param transformation_model_params;
+  aqm.getTransformationModel(transformation_model, transformation_model_params);
+  TEST_EQUAL(transformation_model, "TransformationModelLinear");
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"),2.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),1.0);
 
   headers.clear();
   params_headers.clear();
