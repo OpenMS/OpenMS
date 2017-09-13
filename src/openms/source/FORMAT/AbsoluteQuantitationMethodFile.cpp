@@ -100,7 +100,7 @@ namespace OpenMS
       // parse transformation_model_params
       if (line[i].find(param_header) != std::string::npos) 
       {
-        line[i].erase(line[i].begin()+param_header.size()); 
+        line[i].erase(0, line[i].size()+param_header.size()); 
         params_headers[line[i]] = i;
         std::cout << line[i] << std::endl;
       }      
@@ -218,7 +218,7 @@ namespace OpenMS
       std::vector<std::string> param_doubles {"slope", "intercept", "wavelength", "span", "delta", "x_datum_min", "y_datum_min", "x_datum_max", "y_datum_max"}; 
       // cast integers
       std::vector<std::string> param_ints {"num_nodes", "boundary_condition", "num_iterations"};
-           
+
       if (std::find(param_doubles.begin(), param_doubles.end(), kv.first) != param_doubles.end())
       {
         transformation_model_params.setValue(kv.first,std::stod(line[kv.second]));
