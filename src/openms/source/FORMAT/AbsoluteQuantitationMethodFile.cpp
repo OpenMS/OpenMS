@@ -58,19 +58,19 @@ namespace OpenMS
     fload(filename, is, ie, first_n);
 
     // parse the file
-    std::map<std::string,int> & headers;
-    std::map<std::string,int> & params_headers;
+    std::map<std::string,int> headers;
+    std::map<std::string,int> params_headers;
     StringList line, header;
-    for (size_t i = 0; i < getRowCount(); ++i)
+    for (size_t i = 0; i < CsvFile::getRowCount(); ++i)
     {
       if (i == 0) // header row
       {
-        getRow(i, header);
+        CsvFile::getRow(i, header);
         parseHeader(header, headers, params_headers);
       }
       else
       {
-        getRow(i, line);
+        CsvFile::getRow(i, line);
         parseLine(line, headers, params_headers, aqm);    
       }      
     }
@@ -78,8 +78,8 @@ namespace OpenMS
 
   void AbsoluteQuantitationMethodFile::parseHeader(
     StringList & line,
-    std::map<std::string,int> & headers,
-    std::map<std::string,int> & params_headers)
+    std::map<std::string,int> headers,
+    std::map<std::string,int> params_headers)
   {    
     // default header column positions
     headers["IS_name"] = -1;
@@ -206,7 +206,7 @@ namespace OpenMS
     aqm.setTransformationModel(transformation_model, transformation_model_params);
   }
 
-  void AbsoluteQuantitationMethodFile::store(const String & filename, const MSQuantifications & cmsq) const
+  void AbsoluteQuantitationMethodFile::store(const String & filename, const AbsoluteQuantitationMethod & aqm)
   {
     // TODO
   }

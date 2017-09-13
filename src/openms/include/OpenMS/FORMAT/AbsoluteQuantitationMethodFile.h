@@ -72,7 +72,7 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const AbsoluteQuantitationMethod & aqm) const;
+    void store(const String & filename, const AbsoluteQuantitationMethod & aqm);
     
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
