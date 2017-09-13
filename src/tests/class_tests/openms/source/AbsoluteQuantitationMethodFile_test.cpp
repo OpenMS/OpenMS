@@ -203,6 +203,17 @@ START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & hea
   
 END_SECTION
 
+START_SECTION((void load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list)))
+  AbsoluteQuantitationMethodFile aqmf;
+  std::vector<AbsoluteQuantitationMethod> aqm_list;
+
+  aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_1.csv"), aqm_list);
+  std::string concentration_units;
+  aqm_list[0].getConcentrationUnits(concentration_units);
+  TEST_EQUAL(concentration_units, "uM");
+
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

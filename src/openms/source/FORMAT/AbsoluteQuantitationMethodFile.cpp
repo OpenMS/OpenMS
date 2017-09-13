@@ -104,7 +104,6 @@ namespace OpenMS
       {
         line[i].erase(0, param_header.size()); 
         params_headers[line[i]] = i;
-        std::cout << line[i] << std::endl;
       }      
       else // parse all other header entries
       {
