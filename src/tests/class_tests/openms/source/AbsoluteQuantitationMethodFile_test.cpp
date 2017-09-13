@@ -99,20 +99,20 @@ START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & h
   
   // header test 2
   StringList header2; 
-  header1.push_back("IS_name");
-  header1.push_back("component_name");
-  header1.push_back("feature_name");
-  header1.push_back("concentration_units");
-  // header1.push_back("llod"); //test missing value
-  header1.push_back("ulod");
-  header1.push_back("lloq");
-  header1.push_back("uloq");
-  header1.push_back("correlation_coefficient");
-  header1.push_back("actual_concentration");
-  header1.push_back("n_points");
-  header1.push_back("transformation_model");
-  header1.push_back("transformation_model_param_slope");
-  header1.push_back("transformation_model_param_intercept");
+  header2.push_back("IS_name");
+  header2.push_back("component_name");
+  header2.push_back("feature_name");
+  header2.push_back("concentration_units");
+  // header2.push_back("llod"); //test missing value
+  header2.push_back("ulod");
+  header2.push_back("lloq");
+  header2.push_back("uloq");
+  header2.push_back("correlation_coefficient");
+  header2.push_back("actual_concentration");
+  header2.push_back("n_points");
+  header2.push_back("transformation_model");
+  header2.push_back("transformation_model_param_slope");
+  header2.push_back("transformation_model_param_intercept");
 
   aqmf.parseHeader(header2, headers, params_headers);
 

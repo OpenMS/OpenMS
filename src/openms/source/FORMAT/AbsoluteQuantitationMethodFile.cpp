@@ -102,9 +102,11 @@ namespace OpenMS
       {
         line[i].erase(line[i].begin()+param_header.size()); 
         params_headers[line[i]] = i;
+      }      
+      else // parse all other header entries
+      {
+        headers[line[i]] = i;
       }
-      // parse all other header entries
-      headers[line[i]] = i;
     }
 
     // // default headers
@@ -169,7 +171,7 @@ namespace OpenMS
     double uloq = 0.0;
     if (headers["uloq"] != -1)
     {
-      lloq = std::stod(line[headers["uloq"]]);
+      uloq = std::stod(line[headers["uloq"]]);
     }
     aqm.setLOQ(lloq,uloq);
 
@@ -211,7 +213,18 @@ namespace OpenMS
     Param transformation_model_params;
     for (auto const& kv : params_headers)
     {
-      transformation_model_params.setValue(kv.first,line[kv.second]);
+      // cast doubles
+      std::unordered_set<std::string> ValidValues;
+      ValidValues = {"slope", "intercept"};
+      if (ValidValues.count(kv.first) > 0)
+      {
+        transformation_model_params.setValue(kv.first,std::stod(line[kv.second]));
+      }
+      else
+      {
+        transformation_model_params.setValue(kv.first,line[kv.second]);
+      }
+      
     }
     aqm.setTransformationModel(transformation_model, transformation_model_params);
   }
