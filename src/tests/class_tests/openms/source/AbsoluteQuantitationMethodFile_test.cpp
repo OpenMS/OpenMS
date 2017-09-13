@@ -213,16 +213,33 @@ START_SECTION((void load(const String & filename, std::vector<AbsoluteQuantitati
   TEST_EQUAL(component_name, "component1");
   TEST_EQUAL(IS_name, "IS1");
   TEST_EQUAL(feature_name, "feature1");
+  std::string transformation_model;
+  Param transformation_model_params;
+  aqm_list[0].getTransformationModel(transformation_model, transformation_model_params);
+  TEST_EQUAL(transformation_model, "TransformationModelLinear");
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"),2.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),1.0);
+  transformation_model_params.clear();
 
   aqm_list[1].getComponentISFeatureNames(component_name, IS_name, feature_name);
   TEST_EQUAL(component_name, "component2");
   TEST_EQUAL(IS_name, "IS2");
   TEST_EQUAL(feature_name, "feature2");
+  aqm_list[1].getTransformationModel(transformation_model, transformation_model_params);
+  TEST_EQUAL(transformation_model, "TransformationModelLinear");
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"),2.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),2.0);
+  transformation_model_params.clear();
   
   aqm_list[2].getComponentISFeatureNames(component_name, IS_name, feature_name);
   TEST_EQUAL(component_name, "component3");
   TEST_EQUAL(IS_name, "IS3");
   TEST_EQUAL(feature_name, "feature3");
+  aqm_list[2].getTransformationModel(transformation_model, transformation_model_params);
+  TEST_EQUAL(transformation_model, "TransformationModelLinear");
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"),1.0);
+  TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),2.0);
+  transformation_model_params.clear();
 
 END_SECTION
 

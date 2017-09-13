@@ -221,7 +221,7 @@ namespace OpenMS
 
   void AbsoluteQuantitationMethodFile::store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list)
   {
-    // TODO
+    // TODO: pending fix to CsvFile::fstore()
   }
 
 } // namespace OpenMS
