@@ -73,8 +73,8 @@ namespace OpenMS
       {
         CsvFile::getRow(i, line);
         parseLine(line, headers, params_headers, aqm);    
-      }  
-      aqm_list.push_back(aqm);    
+        aqm_list.push_back(aqm);  
+      }    
     }
   }
 

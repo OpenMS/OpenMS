@@ -208,9 +208,23 @@ START_SECTION((void load(const String & filename, std::vector<AbsoluteQuantitati
   std::vector<AbsoluteQuantitationMethod> aqm_list;
 
   aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_1.csv"), aqm_list);
-  std::string concentration_units;
-  aqm_list[0].getConcentrationUnits(concentration_units);
-  TEST_EQUAL(concentration_units, "uM");
+  std::string component_name, IS_name, feature_name;
+  aqm_list[0].getComponentISFeatureNames(component_name, IS_name, feature_name);
+  TEST_EQUAL(component_name, "component1");
+  TEST_EQUAL(IS_name, "IS1");
+  TEST_EQUAL(feature_name, "feature1");
+
+  component_name, IS_name, feature_name;
+  aqm_list[1].getComponentISFeatureNames(component_name, IS_name, feature_name);
+  TEST_EQUAL(component_name, "component2");
+  TEST_EQUAL(IS_name, "IS2");
+  TEST_EQUAL(feature_name, "feature2");
+  
+  component_name, IS_name, feature_name;
+  aqm_list[2].getComponentISFeatureNames(component_name, IS_name, feature_name);
+  TEST_EQUAL(component_name, "component3");
+  TEST_EQUAL(IS_name, "IS3");
+  TEST_EQUAL(feature_name, "feature3");
 
 END_SECTION
 
