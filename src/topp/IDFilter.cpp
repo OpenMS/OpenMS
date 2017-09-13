@@ -486,7 +486,7 @@ protected:
     // Filter peptide hits by missing cleavages
 
     Int min_cleavages = -1, max_cleavages = -1;
-    if(parseRange_(getStringOption_("missed_cleavages"), min_cleavages, max_cleavages))
+    if (parseRange_(getStringOption_("missed_cleavages"), min_cleavages, max_cleavages))
     {
       
 
