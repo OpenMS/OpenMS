@@ -134,10 +134,10 @@ private:
     int findNearest_(int spectrum_index, double mz, double scaling) const;
 
     /**
-     * @brief profile experimental data and peak boundaries
+     * @brief spline interpolated profile data and peak boundaries
      */
-    MSExperiment exp_profile_;
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;
+    std::vector<SplineSpectrum> exp_spline_profile_;
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;    
 
   };
 

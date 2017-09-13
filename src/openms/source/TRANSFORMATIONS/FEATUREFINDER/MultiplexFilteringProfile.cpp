@@ -48,6 +48,7 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
+#include <queue>
 #include <algorithm>
 #include <iostream>
 #include <QDir>
@@ -59,30 +60,38 @@ namespace OpenMS
 {
 
   MultiplexFilteringProfile::MultiplexFilteringProfile(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
-    MultiplexFiltering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), exp_profile_(exp_profile), boundaries_(boundaries)
+    MultiplexFiltering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), boundaries_(boundaries)
   {
     
-    if (exp_profile_.size() != exp_picked_.size())
+    if (exp_profile.size() != exp_picked.size())
     {
       stringstream stream;
       stream << "Profile and centroided data do not contain same number of spectra. (";
-      stream << exp_profile_.size();
+      stream << exp_profile.size();
       stream << "!=";
-      stream << exp_picked_.size();
+      stream << exp_picked.size();
       stream << ")";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
     }
 
-    if (exp_picked_.size() != boundaries_.size())
+    if (exp_picked.size() != boundaries.size())
     {
       stringstream stream;
       stream << "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra. (";
-      stream << exp_picked_.size();
+      stream << exp_picked.size();
       stream << "!=";
-      stream << boundaries_.size();
+      stream << boundaries.size();
       stream << ")";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
     }
+    
+    // spline interpolate the profile data
+    MSExperiment exp(exp_profile);
+    for (MSExperiment::Iterator it = exp.begin(); it < exp.end(); ++it)
+    {
+      exp_spline_profile_.push_back(SplineSpectrum(*it));
+    }
+    delete &exp;
 
   }
 
@@ -90,7 +99,7 @@ namespace OpenMS
   {
     // progress logger
     unsigned progress = 0;
-    startProgress(0, patterns_.size() * exp_profile_.size(), "filtering LC-MS data");
+    startProgress(0, patterns_.size() * exp_spline_profile_.size(), "filtering LC-MS data");
 
     // list of filter results for each peak pattern
     std::vector<MultiplexFilteredMSExperiment> filter_results;
@@ -98,9 +107,11 @@ namespace OpenMS
     std::cout << "\nStart filtering.\n\n";
       
     unsigned int start = clock();
-    
+        
     // loop over all patterns
-    for (unsigned pattern_idx = 0; pattern_idx < patterns_.size(); ++pattern_idx)
+    //for (unsigned pattern_idx = 0; pattern_idx < patterns_.size(); ++pattern_idx)
+    // DEBUG: for now only first pattern
+    for (unsigned pattern_idx = 0; pattern_idx < 1; ++pattern_idx)
     {
       std::cout << "\npattern = " << pattern_idx << "\n";
       
@@ -116,15 +127,15 @@ namespace OpenMS
 
       // loop over spectra
       // loop simultaneously over RT in the profile and (white) centroided experiment (including peak boundaries) 
-      MSExperiment::Iterator it_rt_profile;
+      std::vector<SplineSpectrum>::const_iterator it_rt_profile;
       MSExperiment::ConstIterator it_rt_picked;
       std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
-      for (it_rt_profile = exp_profile_.begin(), it_rt_picked = exp_picked_white.begin(), it_rt_boundaries = boundaries_.begin();
-           it_rt_profile < exp_profile_.end() && it_rt_picked < exp_picked_white.end() && it_rt_boundaries < boundaries_.end();
+      for (it_rt_profile = exp_spline_profile_.begin(), it_rt_picked = exp_picked_white.begin(), it_rt_boundaries = boundaries_.begin();
+           it_rt_profile < exp_spline_profile_.end() && it_rt_picked < exp_picked_white.end() && it_rt_boundaries < boundaries_.end();
            ++it_rt_profile, ++it_rt_picked, ++it_rt_boundaries)
       {
         // skip empty spectra
-        if ((*it_rt_profile).size() == 0 || (*it_rt_picked).size() == 0 || (*it_rt_boundaries).size() == 0)
+        if ((*it_rt_picked).size() == 0 || (*it_rt_boundaries).size() == 0)
         {
           continue;
         }
@@ -135,11 +146,7 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_picked_band_begin = exp_picked_white.RTBegin(rt - rt_band_/2);
         MSExperiment::ConstIterator it_rt_picked_band_end = exp_picked_white.RTEnd(rt + rt_band_/2);
         
-        // spline fit profile data
-        SplineSpectrum spline(*it_rt_profile);
-        SplineSpectrum::Navigator nav = spline.getNavigator();
-
-        std::cout << "    RT = " << rt << "\n";
+        //std::cout << "    RT = " << rt << "\n";
         
         // loop over mz
         for (MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt_picked->begin(); it_mz < it_rt_picked->end(); ++it_mz)
@@ -158,14 +165,14 @@ namespace OpenMS
           double peak_min = (*it_rt_boundaries)[mz_idx].mz_min;
           double peak_max = (*it_rt_boundaries)[mz_idx].mz_max;
 
-          std::cout << "        mz = " << mz << " (" << peak_min << ", " << peak_max << ")\n";
+          //std::cout << "        mz = " << mz << " (" << peak_min << ", " << peak_max << ")\n";
           
           // Arrangement of peaks looks promising. Now scan through the spline fitted profile data.
-          for (double mz2 = peak_min; mz2 < peak_max; mz2 = nav.getNextMz(mz2))
+          /*for (double mz2 = peak_min; mz2 < peak_max; mz2 = nav.getNextMz(mz2))
           {
-            std::cout << mz2 << " ";
-          }
-          std::cout << "\n";
+            //std::cout << mz2 << " ";
+          }*/
+          //std::cout << "\n";
           
         }
       }
