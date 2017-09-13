@@ -40,7 +40,7 @@
 namespace OpenMS
 {
 
-  AbsoluteQuantitationMethodFile::AbsoluteQuantitationMethodFile() :
+  AbsoluteQuantitationMethodFile::AbsoluteQuantitationMethodFile()
   {
   }
 
@@ -48,7 +48,7 @@ namespace OpenMS
   {
   }
 
-  void AbsoluteQuantitationMethodFile::load(const String & filename, MSQuantifications & msq)
+  void AbsoluteQuantitationMethodFile::load(const String & filename, AbsoluteQuantitationMethod & aqm)
   {
     // read in the .csv file
     char is = ",";
@@ -78,7 +78,7 @@ namespace OpenMS
   void AbsoluteQuantitationMethodFile::parseHeader(
     StringList & line,
     std::map<std::string,int> & headers,
-    std::map<std::string,std::vector<int>> & params_headers)
+    std::map<std::string,int> & params_headers)
   {    
     // default header column positions
     headers["IS_name"] = -1;
@@ -94,7 +94,7 @@ namespace OpenMS
     headers["n_points"] = -1;
     headers["transformation_model"] = -1;
     std::string param_header = "transformation_model_param_";
-    std::string
+    std::string;
     
     // parse the header columns
     for (size_t i = 0; i < line.size(); ++i)
@@ -109,31 +109,22 @@ namespace OpenMS
       headers[line[i]] = i;
     }
 
-    // default headers
-    std::map<std::string,std::string> string_map;
-    string_map["IS_name"] = "";
-    string_map["component_name"] = "";
-    string_map["feature_name"] = "";
-    string_map["concentration_units"] = "";
-    string_map["transformation_model"] = "";
-    std::map<std::string,double> float_map;
-    float_map["llod"] = 0.0;
-    float_map["ulod"] = 0.0;
-    float_map["lloq"] = 0.0;
-    float_map["uloq"] = 0.0;
-    float_map["correlation_coefficient"] = 0.0;
-    float_map["actual_concentration"] = 0.0;
-    std::map<std::string,int> int_map;
-    int_map["n_points"] = 0;
-
-    // fill in the headers with defaults
-    for (auto const& kv : headers)
-    {
-        std::cout << x.first  // string (key)
-                  << ':' 
-                  << x.second // string's value 
-                  << std::endl ;
-    }
+    // // default headers
+    // std::map<std::string,std::string> string_map;
+    // string_map["IS_name"] = "";
+    // string_map["component_name"] = "";
+    // string_map["feature_name"] = "";
+    // string_map["concentration_units"] = "";
+    // string_map["transformation_model"] = "";
+    // std::map<std::string,double> float_map;
+    // float_map["llod"] = 0.0;
+    // float_map["ulod"] = 0.0;
+    // float_map["lloq"] = 0.0;
+    // float_map["uloq"] = 0.0;
+    // float_map["correlation_coefficient"] = 0.0;
+    // float_map["actual_concentration"] = 0.0;
+    // std::map<std::string,int> int_map;
+    // int_map["n_points"] = 0;
 
   }
 
@@ -216,13 +207,7 @@ namespace OpenMS
 
   void AbsoluteQuantitationMethodFile::store(const String & filename, const MSQuantifications & cmsq) const
   {
-    if (!FileHandler::hasValidExtension(filename, FileTypes::MZQUANTML))
-    {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected "" + FileTypes::typeToName(FileTypes::MZIDENTML) + """);
-    }
-
-    Internal::MzQuantMLHandler handler(cmsq, filename, schema_version_, *this);
-    save_(filename, &handler);
+    // TODO
   }
 
 } // namespace OpenMS

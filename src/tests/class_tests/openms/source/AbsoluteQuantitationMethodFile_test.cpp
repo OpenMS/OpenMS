@@ -61,6 +61,39 @@ START_SECTION((~AbsoluteQuantitationMethodFile()))
 	delete ptr;
 END_SECTION
 
+START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & headers,
+  std::map<std::string,int> & params_headers)))
+  
+  AbsoluteQuantitationMethodFile aqmf;
+  
+  std::map<std::string,int> headers;
+  std::map<std::string,int> params_headers;
+
+  // header test 1
+  StringList header1; 
+  header1.push_back("IS_name");
+  header1.push_back("component_name");
+  header1.push_back("feature_name");
+  header1.push_back("concentration_units");
+  header1.push_back("llod");
+  header1.push_back("ulod");
+  header1.push_back("lloq");
+  header1.push_back("uloq");
+  header1.push_back("correlation_coefficient");
+  header1.push_back("actual_concentration");
+  header1.push_back("n_points");
+  header1.push_back("transformation_model");
+  header1.push_back("transformation_model_param_slope)";
+  header1.push_back("transformation_model_param_intercept)";
+
+  aqmf.parseHeader(header1, headers, params_headers);
+
+  TEST_EQUAL(headers["IS_name"],0);
+  TEST_EQUAL(headers["transformation_model"],11);
+  TEST_EQUAL(params_headers["slope"],12);
+  TEST_EQUAL(params_headers["intercept"],13);
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

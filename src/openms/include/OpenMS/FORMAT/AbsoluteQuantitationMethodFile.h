@@ -82,7 +82,7 @@ public:
         @param params_headers A map of transformation model parameter header strings to column positions.
     */
     void parseHeader(StringList & line, std::map<std::string,int> & headers,
-        std::map<std::string,std::vector<int>> & params_headers)
+        std::map<std::string,int> & params_headers);
 
     /**
         @brief parses a line into the members of AbsoluteQuantitationMethod.
