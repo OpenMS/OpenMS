@@ -49,7 +49,7 @@ namespace OpenMS
   {
   }
 
-  void AbsoluteQuantitationMethodFile::load(const String & filename, AbsoluteQuantitationMethod & aqm)
+  void AbsoluteQuantitationMethodFile::load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list)
   {
     // read in the .csv file
     char is = ',';
@@ -61,6 +61,7 @@ namespace OpenMS
     std::map<std::string,int> headers;
     std::map<std::string,int> params_headers;
     StringList line, header;
+    AbsoluteQuantitationMethod aqm;
     for (size_t i = 0; i < CsvFile::rowCount(); ++i)
     {
       if (i == 0) // header row
@@ -72,7 +73,8 @@ namespace OpenMS
       {
         CsvFile::getRow(i, line);
         parseLine(line, headers, params_headers, aqm);    
-      }      
+      }  
+      aqm_list.push_back(aqm);    
     }
   }
 
@@ -100,7 +102,7 @@ namespace OpenMS
       // parse transformation_model_params
       if (line[i].find(param_header) != std::string::npos) 
       {
-        line[i].erase(0, line[i].size()+param_header.size()); 
+        line[i].erase(0, param_header.size()); 
         params_headers[line[i]] = i;
         std::cout << line[i] << std::endl;
       }      
@@ -109,24 +111,6 @@ namespace OpenMS
         headers[line[i]] = i;
       }
     }
-
-    // // default headers
-    // std::map<std::string,std::string> string_map;
-    // string_map["IS_name"] = "";
-    // string_map["component_name"] = "";
-    // string_map["feature_name"] = "";
-    // string_map["concentration_units"] = "";
-    // string_map["transformation_model"] = "";
-    // std::map<std::string,double> float_map;
-    // float_map["llod"] = 0.0;
-    // float_map["ulod"] = 0.0;
-    // float_map["lloq"] = 0.0;
-    // float_map["uloq"] = 0.0;
-    // float_map["correlation_coefficient"] = 0.0;
-    // float_map["actual_concentration"] = 0.0;
-    // std::map<std::string,int> int_map;
-    // int_map["n_points"] = 0;
-
   }
 
   void AbsoluteQuantitationMethodFile::parseLine(StringList & line, std::map<std::string,int> & headers, 

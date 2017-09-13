@@ -65,14 +65,14 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, AbsoluteQuantitationMethod & aqm);
+    void load(const String & filename, std::vector<AbsoluteQuantitationMethod> & aqm_list);
 
     /**
         @brief Stores an AbsoluteQuantitationMethod file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const AbsoluteQuantitationMethod & aqm);
+    void store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list);
     
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
