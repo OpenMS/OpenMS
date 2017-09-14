@@ -95,12 +95,13 @@ public:
      * @brief constructor
      *
      * @param pattern    m/z pattern to search for
+     * @param navigators
      * @param peak
      * @param mz
      *
      * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <averagine_similarity_>
      */
-    bool filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, double mz) const;
+    bool filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, std::vector<SplineSpectrum::Navigator>& navigators, const MultiplexFilteredPeak& peak, double mz) const;
     
     /**
      * @brief filter for patterns

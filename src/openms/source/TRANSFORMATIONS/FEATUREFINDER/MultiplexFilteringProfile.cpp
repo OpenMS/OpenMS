@@ -93,8 +93,10 @@ namespace OpenMS
 
   }
   
-  bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, double mz) const
+  bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, std::vector<SplineSpectrum::Navigator>& navigators, const MultiplexFilteredPeak& peak, double mz) const
   {
+    double y = navigators[0].eval(mz);
+    
     return true;
   }
 
@@ -110,7 +112,15 @@ namespace OpenMS
     std::cout << "\nStart filtering.\n\n";
       
     unsigned int start = clock();
-        
+    
+    // construct navigators for all spline spectra
+    std::vector<SplineSpectrum::Navigator> navigators;
+    for (std::vector<SplineSpectrum>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
+    {
+      SplineSpectrum::Navigator nav = (*it).getNavigator();
+      navigators.push_back(nav);
+    }
+    
     // loop over all patterns
     //for (unsigned pattern_idx = 0; pattern_idx < patterns_.size(); ++pattern_idx)
     // DEBUG: for now only first pattern
@@ -128,14 +138,6 @@ namespace OpenMS
       White2Original exp_picked_mapping;
       MSExperiment exp_picked_white = getWhiteMSExperiment_(exp_picked_mapping);
 
-      // construct navigators for all spline spectra
-      std::vector<SplineSpectrum::Navigator> navigators;
-      for (std::vector<SplineSpectrum>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
-      {
-        SplineSpectrum::Navigator nav = (*it).getNavigator();
-        navigators.push_back(nav);
-      }
-      
       // loop over spectra
       // loop simultaneously over RT in the spline interpolated profile and (white) centroided experiment (including peak boundaries)
       std::vector<SplineSpectrum>::iterator it_rt_profile;
@@ -183,6 +185,7 @@ namespace OpenMS
           for (double mz2 = peak_min; mz2 < peak_max; mz2 = navigators[it_rt_profile - exp_spline_profile_.begin()].getNextMz(mz2))
           {
             std::cout << mz2 << " (" << navigators[it_rt_picked - exp_picked_white.begin()].eval(mz2) << ")    ";
+            bool x = filterAveragineModel_(pattern, navigators, peak, mz2);
           }
           std::cout << "\n";
           
