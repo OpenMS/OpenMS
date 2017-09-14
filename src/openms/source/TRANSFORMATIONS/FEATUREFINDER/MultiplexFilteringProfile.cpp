@@ -92,6 +92,11 @@ namespace OpenMS
     }
 
   }
+  
+  bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, double mz) const
+  {
+    return true;
+  }
 
   vector<MultiplexFilteredMSExperiment> MultiplexFilteringProfile::filter()
   {
@@ -123,9 +128,17 @@ namespace OpenMS
       White2Original exp_picked_mapping;
       MSExperiment exp_picked_white = getWhiteMSExperiment_(exp_picked_mapping);
 
+      // construct navigators for all spline spectra
+      std::vector<SplineSpectrum::Navigator> navigators;
+      for (std::vector<SplineSpectrum>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
+      {
+        SplineSpectrum::Navigator nav = (*it).getNavigator();
+        navigators.push_back(nav);
+      }
+      
       // loop over spectra
-      // loop simultaneously over RT in the spline interpolated profile and (white) centroided experiment (including peak boundaries) 
-      std::vector<SplineSpectrum>::const_iterator it_rt_profile;
+      // loop simultaneously over RT in the spline interpolated profile and (white) centroided experiment (including peak boundaries)
+      std::vector<SplineSpectrum>::iterator it_rt_profile;
       MSExperiment::ConstIterator it_rt_picked;
       std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
       for (it_rt_profile = exp_spline_profile_.begin(), it_rt_picked = exp_picked_white.begin(), it_rt_boundaries = boundaries_.begin();
@@ -144,7 +157,7 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_picked_band_begin = exp_picked_white.RTBegin(rt - rt_band_/2);
         MSExperiment::ConstIterator it_rt_picked_band_end = exp_picked_white.RTEnd(rt + rt_band_/2);
         
-        //std::cout << "    RT = " << rt << "\n";
+        std::cout << "    RT = " << rt << "\n";
         
         // loop over mz
         for (MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt_picked->begin(); it_mz < it_rt_picked->end(); ++it_mz)
@@ -152,7 +165,7 @@ namespace OpenMS
           double mz = it_mz->getMZ();
           MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()], it_rt_picked - exp_picked_white.begin());
           
-          //std::cout << "        mz = " << mz << "  mz (white) = " << (it_mz - it_rt_picked->begin()) << "  mz (original) = " << exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()] << "\n";
+          //std::cout << "        mz = " << mz << "     mz idx (white) = " << (it_mz - it_rt_picked->begin()) << "     mz idx (original) = " << exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()] << "\n";
           
           if (!(filterPeakPositions_(it_mz, exp_picked_mapping, exp_picked_white.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
           {
@@ -163,18 +176,19 @@ namespace OpenMS
           double peak_min = (*it_rt_boundaries)[mz_idx].mz_min;
           double peak_max = (*it_rt_boundaries)[mz_idx].mz_max;
 
-          //std::cout << "        mz = " << mz << " (" << peak_min << ", " << peak_max << ")\n";
+          std::cout << "        mz = " << mz << " (" << peak_min << ", " << peak_max << ")\n";
           
           // Arrangement of peaks looks promising. Now scan through the spline fitted profile data.
-          /*for (double mz2 = peak_min; mz2 < peak_max; mz2 = nav.getNextMz(mz2))
+          std::cout << "        ";
+          for (double mz2 = peak_min; mz2 < peak_max; mz2 = navigators[it_rt_profile - exp_spline_profile_.begin()].getNextMz(mz2))
           {
-            //std::cout << mz2 << " ";
-          }*/
-          //std::cout << "\n";
+            std::cout << mz2 << " (" << navigators[it_rt_picked - exp_picked_white.begin()].eval(mz2) << ")    ";
+          }
+          std::cout << "\n";
           
         }
       }
-     
+      
       // add results of this pattern to list
       filter_results.push_back(result);
     }

@@ -92,6 +92,17 @@ public:
     MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
     /**
+     * @brief constructor
+     *
+     * @param pattern    m/z pattern to search for
+     * @param peak
+     * @param mz
+     *
+     * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <averagine_similarity_>
+     */
+    bool filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, double mz) const;
+    
+    /**
      * @brief filter for patterns
      * (generates a filter result for each of the patterns)
      *
@@ -137,7 +148,7 @@ private:
      * @brief spline interpolated profile data and peak boundaries
      */
     std::vector<SplineSpectrum> exp_spline_profile_;
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;    
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;
 
   };
 
