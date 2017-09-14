@@ -22,6 +22,8 @@ PepIterator.cpp
 Residue.cpp
 ResidueDB.cpp
 ResidueModification.cpp
+Ribonucleotide.cpp
+RibonucleotideDB.cpp
 TheoreticalSpectrumGenerator.cpp
 SpectrumAnnotator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp

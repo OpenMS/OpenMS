@@ -22,6 +22,8 @@ PepIterator.h
 Residue.h
 ResidueDB.h
 ResidueModification.h
+Ribonucleotide.h
+RibonucleotideDB.h
 TheoreticalSpectrumGenerator.h
 SpectrumAnnotator.h
 TheoreticalSpectrumGeneratorXLMS.h
