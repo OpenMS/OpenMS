@@ -59,7 +59,7 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringProfile::MultiplexFilteringProfile(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+  MultiplexFilteringProfile::MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
     MultiplexFiltering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), boundaries_(boundaries)
   {
     
@@ -86,12 +86,10 @@ namespace OpenMS
     }
     
     // spline interpolate the profile data
-    MSExperiment exp(exp_profile);
-    for (MSExperiment::Iterator it = exp.begin(); it < exp.end(); ++it)
+    for (MSExperiment::Iterator it = exp_profile.begin(); it < exp_profile.end(); ++it)
     {
       exp_spline_profile_.push_back(SplineSpectrum(*it));
     }
-    delete &exp;
 
   }
 
@@ -126,7 +124,7 @@ namespace OpenMS
       MSExperiment exp_picked_white = getWhiteMSExperiment_(exp_picked_mapping);
 
       // loop over spectra
-      // loop simultaneously over RT in the profile and (white) centroided experiment (including peak boundaries) 
+      // loop simultaneously over RT in the spline interpolated profile and (white) centroided experiment (including peak boundaries) 
       std::vector<SplineSpectrum>::const_iterator it_rt_profile;
       MSExperiment::ConstIterator it_rt_picked;
       std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
@@ -135,7 +133,7 @@ namespace OpenMS
            ++it_rt_profile, ++it_rt_picked, ++it_rt_boundaries)
       {
         // skip empty spectra
-        if ((*it_rt_picked).size() == 0 || (*it_rt_boundaries).size() == 0)
+        if ((*it_rt_profile).size() == 0 || (*it_rt_picked).size() == 0 || (*it_rt_boundaries).size() == 0)
         {
           continue;
         }

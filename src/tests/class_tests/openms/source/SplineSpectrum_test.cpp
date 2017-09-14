@@ -122,8 +122,8 @@ START_SECTION(double getMzMax() const)
   TEST_EQUAL(spectrum2.getMzMax(), 419.2);
 END_SECTION
 
-START_SECTION(size_t getSplineCount() const)
-  TEST_EQUAL(spectrum2.getSplineCount(), 2)
+START_SECTION(size_t size() const)
+  TEST_EQUAL(spectrum2.size(), 2)
 END_SECTION
 
 START_SECTION(SplineSpectrum::Navigator getNavigator())
@@ -178,7 +178,7 @@ for (size_t i=0; i<4; ++i)
 SplineSpectrum spectrum3(mz3, intensity3);
 
 START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
-  TEST_EQUAL(spectrum3.getSplineCount(),2);
+  TEST_EQUAL(spectrum3.size(),2);
   TEST_EQUAL(spectrum3.getNavigator().eval(405),0);    // Zero as expected, since 405 is between packages.
   TEST_EQUAL(spectrum3.getNavigator().eval(408),10);    // One might expect zero, but 407.5 is part of the second package.
 END_SECTION
