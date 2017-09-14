@@ -46,14 +46,11 @@ using std::vector;
 
 namespace OpenMS
 {
-  double HyperScore::logfactorial_(UInt x)
+  inline double HyperScore::logfactorial_(UInt x)
   {
-    if (x == 0) return 0;
-
+    if (x < 2) { return 0; }
     double z(0);
-
     for (double y = 2; y <= static_cast<double>(x); ++y) { z += log(static_cast<double>(y)); }
-
     return z;
   }
 

@@ -371,13 +371,15 @@ class SimpleSearchEngine :
           pi.setRT(exp[scan_index].getRT());
           pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
           pi.getHits().swap(*pit); // swap in hits to prevent copies
+
+          // only store top n hits
           pi.assignRanks();
-          peptide_ids.push_back(pi);
+          pi.getHits().resize(top_hits);
+          pi.getHits().shrink_to_fit();
+
+          peptide_ids.emplace_back(pi);
         }
       }
-
-      // only store top n hits
-      IDFilter::keepNBestHits(peptide_ids, top_hits);
 
       // protein identifications (leave as is...)
       protein_ids = vector<ProteinIdentification>(1);
@@ -612,21 +614,16 @@ class SimpleSearchEngine :
             {
               const Size& scan_index = low_it->second;
               const PeakSpectrum& exp_spectrum = spectra[scan_index];
+              const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
+              const double& score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
-              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+              if (score == 0) { continue; } // no hit?
 
-              // no hit
-              if (score == 0) { continue; }
-
-              PeptideHit hit;
-              hit.setSequence(candidate);
-              hit.setCharge(exp_spectrum.getPrecursors()[0].getCharge());
-              hit.setScore(score);
 #ifdef _OPENMP
 #pragma omp critical (peptide_hits_access)
 #endif
               {
-                peptide_hits[scan_index].push_back(hit);
+                peptide_hits[scan_index].emplace_back(score, 0, charge, candidate);
               }
             }
           }
