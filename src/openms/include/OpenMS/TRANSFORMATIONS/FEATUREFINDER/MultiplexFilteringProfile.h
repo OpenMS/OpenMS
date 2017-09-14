@@ -115,36 +115,6 @@ public:
 
 private:
     /**
-     * @brief non-local intensity filter
-     *
-     * Checks if the intensities at the pattern positions are above the intensity cutoff.
-     * We check not only at m/z but at all pattern positions i.e. non-locally.
-     *
-     * @param pattern    pattern of isotopic peaks to be searched for
-     * @param mz_shifts_actual    actual m/z shifts seen in the spectrum (will differ slightly from expected m/z shifts in pattern)
-     * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
-     * @param nav    navigator for moving on the spline-interpolated spectrum
-     * @param intensities_actual    output for the spline-interpolated intensities at the actual m/z shift positions
-     * @param peaks_found_in_all_peptides    number of isotopic peaks seen for each peptide (peaks)
-     * @param mz    reference m/z position of the pattern (mono-isotopic peak of the lightest peptide)
-     *
-     * @return number of isotopic peaks seen for each peptide (profile)
-     */
-    int nonLocalIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& mz_shifts_actual, const std::vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const;
-
-    /**
-     * @brief returns the index of a peak which is nearest m/z
-     * (for initialisation of peak registry)
-     *
-     * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-     * @param mz    m/z position of the peak
-     * @param scaling    rescaling of the peak boundaries
-     *
-     * @return index of the peak in spectrum or -1 if no peak is present within this tolerance
-     */
-    int findNearest_(int spectrum_index, double mz, double scaling) const;
-
-    /**
      * @brief spline interpolated profile data and peak boundaries
      */
     std::vector<SplineSpectrum> exp_spline_profile_;
