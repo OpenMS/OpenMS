@@ -485,11 +485,11 @@ protected:
 
     // Filter peptide hits by missing cleavages
 
-    Int min_cleavages = -1, max_cleavages = -1;
-    if (parseRange_(getStringOption_("missed_cleavages"), min_cleavages, max_cleavages))
-    {
-      
+    Int min_cleavages, max_cleavages;
+    min_cleavages = max_cleavages = IDFilter::PeptideDigestionFilter::disabledValue();
 
+    if (parseRange_(getStringOption_("missed_cleavages"), min_cleavages, max_cleavages))
+    {      
       // Configure Enzymatic digestion
       EnzymaticDigestion digestion;
       String enzyme = getStringOption_("missed_cleavages:enzyme");
@@ -506,9 +506,7 @@ protected:
       // Filter peptide hits      
       for (auto& peptide : peptides)
       {
-        auto hits = peptide.getHits();
-        filter.filterPeptideSequences(hits);
-        peptide.setHits(hits);
+        filter.filterPeptideSequences(peptide.getHits());
       }
     }
 

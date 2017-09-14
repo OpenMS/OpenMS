@@ -355,7 +355,7 @@ public:
       digestion_(digestion), min_cleavages_(min), max_cleavages_(max)
       {}
 
-      inline Int disabledValue(){ return -1; }
+      static inline Int disabledValue(){ return -1; }
       
       /// Filter function on min max cutoff values to be used with remove_if 
       /// returns true if peptide should be removed (does not pass filter)
