@@ -126,19 +126,26 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   param.setValue("add_y_ions", "false");
   param.setValue("add_z_ions", "false");
   param.setValue("add_metainfo", "true");
+  param.setValue("add_losses", "true");
   ptr->setParameters(param);
   ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
 
   // 6 ion types with 3 charges each are expected
-  TEST_EQUAL(spec.size(), 18)
+  TEST_EQUAL(spec.size(), 30)
 
   set<String> ion_names;
   ion_names.insert("[alpha|ci$b1]");
   ion_names.insert("[alpha|ci$b2]");
+  ion_names.insert("[alpha|ci$b2-H2O1]");
   ion_names.insert("[alpha|ci$b3]");
+  ion_names.insert("[alpha|ci$b3-H2O1]");
+  ion_names.insert("[alpha|ci$b3-H3N1]");
   ion_names.insert("[alpha|ci$x1]");
   ion_names.insert("[alpha|ci$x2]");
   ion_names.insert("[alpha|ci$x3]");
+  ion_names.insert("[alpha|ci$x1-H3N1]");
+  ion_names.insert("[alpha|ci$x2-H3N1]");
+  ion_names.insert("[alpha|ci$x3-H3N1]");
 
   PeakSpectrum::StringDataArray string_array = spec.getStringDataArrays().at(0);
 
@@ -147,6 +154,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   {
     String name = string_array[i];
     TEST_EQUAL(ion_names.find(name) != ion_names.end(), true)
+    // TEST_EQUAL(name, "test")
   }
 
   // beta annotations
@@ -155,10 +163,16 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   ion_names.clear();
   ion_names.insert("[beta|ci$b1]");
   ion_names.insert("[beta|ci$b2]");
+  ion_names.insert("[beta|ci$b2-H2O1]");
   ion_names.insert("[beta|ci$b3]");
+  ion_names.insert("[beta|ci$b3-H2O1]");
+  ion_names.insert("[beta|ci$b3-H3N1]");
   ion_names.insert("[beta|ci$x1]");
   ion_names.insert("[beta|ci$x2]");
   ion_names.insert("[beta|ci$x3]");
+  ion_names.insert("[beta|ci$x1-H3N1]");
+  ion_names.insert("[beta|ci$x2-H3N1]");
+  ion_names.insert("[beta|ci$x3-H3N1]");
 
   string_array = spec.getStringDataArrays().at(0);
 
@@ -176,9 +190,14 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   {
     charge_counts[charge_array[i]-1]++;
   }
-  TEST_EQUAL(charge_counts[0], 6)
-  TEST_EQUAL(charge_counts[1], 6)
-  TEST_EQUAL(charge_counts[2], 6)
+  TEST_EQUAL(charge_counts[0], 10)
+  TEST_EQUAL(charge_counts[1], 10)
+  TEST_EQUAL(charge_counts[2], 10)
+
+
+  param = ptr->getParameters();
+  param.setValue("add_losses", "false");
+  ptr->setParameters(param);
 
   // the smallest examples, that make sense for cross-linking
   spec.clear(true);
@@ -204,7 +223,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   spec.clear(true);
   param = ptr->getParameters();
   param.setValue("add_isotopes", "true");
-  param.setValue("max_isotope", 1); // not very useful combination, but it should at least run
+  param.setValue("max_isotope", 1);
   param.setValue("add_a_ions", "false");
   param.setValue("add_b_ions", "true");
   param.setValue("add_c_ions", "false");
@@ -220,12 +239,12 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   spec.clear(true);
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 2); //
-  // param.setValue("add_metainfo", "true");
+  param.setValue("add_losses", "true");
   ptr->setParameters(param);
   ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
   // 6 ion types with 3 charges each are expected, each with a second isotopic peak
-  // + a few losses with their second isotopic peaks
-  TEST_EQUAL(spec.size(), 60)
+  // + a few losses
+  TEST_EQUAL(spec.size(), 48)
 
 
   spec.clear(true);
@@ -235,7 +254,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
   // 6 ion types with 3 charges each are expected, each with a second isotopic peak
   // should be the same result as above for now
-  TEST_EQUAL(spec.size(), 60)
+  TEST_EQUAL(spec.size(), 48)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  // for quick benchmarking of implementation chances
@@ -247,6 +266,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
 //  param.setValue("add_y_ions", "true");
 //  param.setValue("add_z_ions", "true");
 //  param.setValue("add_metainfo", "true");
+//  param.setValue("add_losses", "true");
 //  ptr->setParameters(param);
 //  AASequence tmp_peptide = AASequence::fromString("PEPTIDEPEPTIDEPEPTIDE");
 //  for (Size i = 0; i != 1e4; ++i)
@@ -423,7 +443,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   spec.clear(true);
   param = ptr->getParameters();
   param.setValue("add_isotopes", "true");
-  param.setValue("max_isotope", 1); // not very useful combination, but it should at least run
+  param.setValue("max_isotope", 1);
   param.setValue("add_a_ions", "false");
   param.setValue("add_b_ions", "true");
   param.setValue("add_c_ions", "false");
@@ -453,7 +473,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   TEST_EQUAL(spec.size(), 48)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  // for quick benchmarking of implementation chances
+// // for quick benchmarking of implementation chances
 //  param = ptr->getParameters();
 //  param.setValue("add_a_ions", "true");
 //  param.setValue("add_b_ions", "true");
@@ -462,9 +482,10 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
 //  param.setValue("add_y_ions", "true");
 //  param.setValue("add_z_ions", "true");
 //  param.setValue("add_metainfo", "true");
+//  param.setValue("add_losses", "false");
 //  ptr->setParameters(param);
 //  AASequence tmp_peptide = AASequence::fromString("PEPTIDEPEPTIDEPEPTIDE");
-//  for (Size i = 0; i != 1e4; ++i)
+//  for (Size i = 0; i != 1e3; ++i)
 //  {
 //    PeakSpectrum spec;
 //    ptr->getXLinkIonSpectrum(spec, tmp_peptide, 9, 2000.0, false, 2, 5);
@@ -476,7 +497,7 @@ START_SECTION(virtual void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, O
 
   Param param(ptr->getParameters());
   param.setValue("add_isotopes", "false");
-  param.setValue("max_isotope", 1); // not very useful combination, but it should at least run
+  param.setValue("max_isotope", 1);
   param.setValue("add_a_ions", "false");
   param.setValue("add_b_ions", "true");
   param.setValue("add_c_ions", "false");
@@ -499,16 +520,83 @@ START_SECTION(virtual void getComplexXLinkIonSpectrum(PeakSpectrum & spectrum, O
   // ptr->getXLinkIonSpectrum(spec, crosslink.beta, 5, 2000.0, true, 2, 4);
   ptr->getComplexXLinkIonSpectrum(spec, crosslink, 3, 3);
 
-  TEST_EQUAL(spec.size(), 15)
-  TEST_EQUAL(spec.getStringDataArrayByName("IonNames").size(), 15)
-  TEST_EQUAL(spec.getIntegerDataArrayByName("Charges").size(), 15)
+  TEST_EQUAL(spec.size(), 462)
+  TEST_EQUAL(spec.getStringDataArrayByName("IonNames").size(), 462)
+  TEST_EQUAL(spec.getIntegerDataArrayByName("Charges").size(), 462)
 
-  for (Size i = 0; i < spec.size(); ++i)
-  {
-    TEST_EQUAL(spec[i].getMZ(), 0)
-    TEST_EQUAL(spec.getStringDataArrayByName("IonNames")[i], "test")
-    TEST_EQUAL(spec.getIntegerDataArrayByName("Charges")[i], 0)
-  }
+  // write out all the names and charges
+  // for (Size i = 0; i < spec.size(); ++i)
+  // {
+  //   TEST_EQUAL(spec[i].getMZ(), 0)
+  //   TEST_EQUAL(spec.getStringDataArrayByName("IonNames")[i], "test")
+  //   TEST_EQUAL(spec.getIntegerDataArrayByName("Charges")[i], 0)
+  // }
+
+  AASequence loss_test_peptide = AASequence::fromString("IFSQVGK");
+
+  std::vector< std::set< TheoreticalSpectrumGeneratorXLMS::LossMass > > ion_losses = ptr->getForwardLossesForLinearIons_(loss_test_peptide);
+  // cout << endl << endl;
+  // cout << "TEST COLLECTED FORWARD LOSSES" << endl;
+  // cout << "LOSSES NUMBER: " << ion_losses.size() << endl;
+  // for (Size i = 0; i < ion_losses.size(); ++i)
+  // {
+  //   for (TheoreticalSpectrumGeneratorXLMS::LossMass loss : ion_losses[i])
+  //   {
+  //     cout << "LOSS " << i << " = " << loss.name << "\t" << loss.mass << endl;
+  //     // TEST_EQUAL(i, 0)
+  //     // TEST_EQUAL(loss, "test")
+  //   }
+  // }
+
+  ion_losses = ptr->getBackwardLossesForLinearIons_(loss_test_peptide);
+  // cout << endl << endl;
+  // cout << "TEST COLLECTED BACKWARD LOSSES" << endl;
+  // cout << "LOSSES NUMBER: " << ion_losses.size() << endl;
+  // for (Size i = 0; i < ion_losses.size(); ++i)
+  // {
+  //   for (TheoreticalSpectrumGeneratorXLMS::LossMass loss : ion_losses[i])
+  //   {
+  //     cout << "LOSS " << i << " = " << loss.name << "\t" << loss.mass << endl;
+  //     // TEST_EQUAL(i, 0)
+  //     // TEST_EQUAL(loss, "test")
+  //   }
+  // }
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // // for quick benchmarking of implementation chances
+  // param = ptr->getParameters();
+  // param.setValue("add_isotopes", "true");
+  // param.setValue("max_isotope", 2);
+  // param.setValue("add_a_ions", "true");
+  // param.setValue("add_b_ions", "true");
+  // param.setValue("add_c_ions", "false");
+  // param.setValue("add_x_ions", "false");
+  // param.setValue("add_y_ions", "true");
+  // param.setValue("add_z_ions", "false");
+  // param.setValue("add_metainfo", "true");
+  // param.setValue("add_losses", "true");
+  // ptr->setParameters(param);
+  //
+  // OPXLDataStructs::ProteinProteinCrossLink bench_crosslink;
+  // bench_crosslink.alpha = AASequence::fromString("ASSSPVILVGTHLDVSDEKQR");
+  // bench_crosslink.beta = AASequence::fromString("ITKELLNKIFTEK");
+  // bench_crosslink.cross_link_position = std::make_pair<Size, Size>(8, 9);
+  // bench_crosslink.cross_linker_mass = 200.0;
+  //
+  // for (Size i = 0; i != 1e3; ++i)
+  // {
+  //   spec.clear(true);
+  //   ptr->getComplexXLinkIonSpectrum(spec, bench_crosslink, 1, 5);
+  //   // ptr->getXLinkIonSpectrumWithLosses(spec, bench_crosslink, true, 1, 5);
+  // }
+  //
+  // for (Size i = 0; i != spec.size(); ++i)
+  // {
+  //   // TEST_REAL_SIMILAR(spec[i].getPosition()[0], 0)
+  //   // TEST_EQUAL(spec.getStringDataArrayByName("IonNames")[i], "test")
+  //   cout << "ION: " << i << " / " << spec.size()-1 << "\tmass:" << spec[i].getPosition()[0] << "\t" << spec.getStringDataArrayByName("IonNames")[i] << endl;
+  // }
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 END_SECTION
 
