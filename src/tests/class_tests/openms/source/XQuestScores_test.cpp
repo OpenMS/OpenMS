@@ -56,10 +56,11 @@ param.setValue("add_k_linked_ions", "false");
 specGen.setParameters(param);
 
 PeakSpectrum theo_spec_1, theo_spec_2, theo_spec_3, theo_spec_4;
-specGen.getLinearIonSpectrum(theo_spec_1, AASequence::fromString("PEPTIDE"), 2, true);
-specGen.getLinearIonSpectrum(theo_spec_2, AASequence::fromString("PEPTEDI"), 4, true);
-specGen.getLinearIonSpectrum(theo_spec_3, AASequence::fromString("PEPTIDE"), 3, true);
-specGen.getLinearIonSpectrum(theo_spec_4, AASequence::fromString("PEPTEDI"), 1, true);
+AASequence peptide = AASequence::fromString("PEPTIDE");
+specGen.getLinearIonSpectrum(theo_spec_1, peptide, 2, true);
+specGen.getLinearIonSpectrum(theo_spec_2, peptide, 4, true);
+specGen.getLinearIonSpectrum(theo_spec_3, peptide, 3, true);
+specGen.getLinearIonSpectrum(theo_spec_4, peptide, 1, true);
 std::vector <std::pair <Size, Size> > alignment1;
 std::vector <std::pair <Size, Size> > alignment2;
 

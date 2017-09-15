@@ -217,13 +217,15 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
 
   PeakSpectrum theo_spec, exp_spec;
   // Theoretical Spec with metainfo
-  specGen.getLinearIonSpectrum(theo_spec, AASequence::fromString("PEPTEDI"), 4, true);
+  AASequence peptedi = AASequence::fromString("PEPTEDI");
+  specGen.getLinearIonSpectrum(theo_spec, peptedi, 4, true);
 
   param.setValue("add_metainfo", "false");
   specGen.setParameters(param);
 
   // Theoretical Spec without metainfo (Pseudo experimental spectrum)
-  specGen.getLinearIonSpectrum(exp_spec, AASequence::fromString("PEPTIDE"), 3, true);
+  AASequence peptide = AASequence::fromString("PEPTIDE");
+  specGen.getLinearIonSpectrum(exp_spec, peptide, 3, true);
   std::vector <std::pair <Size, Size> > alignment;
 
   DataArrays::FloatDataArray dummy_array;

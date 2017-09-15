@@ -57,14 +57,16 @@ param.setValue("add_k_linked_ions", "false");
 specGen.setParameters(param);
 
 PeakSpectrum theo_spec_1, theo_spec_2, exp_spec_1, exp_spec_2;
-specGen.getLinearIonSpectrum(exp_spec_1, AASequence::fromString("PEPTIDE"), 2, true, 3);
-specGen.getLinearIonSpectrum(exp_spec_2, AASequence::fromString("PEPTEDI"), 3, true, 3);
+AASequence peptide = AASequence::fromString("PEPTIDE");
+AASequence peptedi = AASequence::fromString("PEPTEDI");
+specGen.getLinearIonSpectrum(exp_spec_1, peptide, 2, true, 3);
+specGen.getLinearIonSpectrum(exp_spec_2, peptedi, 3, true, 3);
 
 param.setValue("add_metainfo", "true");
 specGen.setParameters(param);
 
-specGen.getLinearIonSpectrum(theo_spec_1, AASequence::fromString("PEPTIDE"), 3, true, 3);
-specGen.getLinearIonSpectrum(theo_spec_2, AASequence::fromString("PEPTEDI"), 4, true, 3);
+specGen.getLinearIonSpectrum(theo_spec_1, peptide, 3, true, 3);
+specGen.getLinearIonSpectrum(theo_spec_2, peptedi, 4, true, 3);
 
 START_SECTION(static PeakSpectrum mergeAnnotatedSpectra(PeakSpectrum & first_spectrum, PeakSpectrum & second_spectrum))
 
@@ -130,7 +132,8 @@ START_SECTION(static PeakSpectrum deisotopeAndSingleChargeMSSpectrum(PeakSpectru
   specGen.setParameters(param);
 
   PeakSpectrum theo_spec_3;
-  specGen.getLinearIonSpectrum(theo_spec_3, AASequence::fromString("PEPTIDEVIDER"), 3, true, 5);
+  AASequence peptide2 = AASequence::fromString("PEPTIDEVIDER");
+  specGen.getLinearIonSpectrum(theo_spec_3, peptide2, 3, true, 5);
 
   PeakSpectrum deisotoped_spec = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(theo_spec_3, 1, 5, 50, true, true, 2);
   std::vector<int> charge_counts(5, 0);
