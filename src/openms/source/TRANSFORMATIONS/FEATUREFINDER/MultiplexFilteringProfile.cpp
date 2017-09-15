@@ -43,6 +43,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatellite.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
@@ -90,16 +91,11 @@ namespace OpenMS
     {
       exp_spline_profile_.push_back(SplineSpectrum(*it));
     }
+    
+    // TODO: Constructing the navigators here instead in the beginning of the filter() method results in segmentation faults. Why?
 
   }
   
-  bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, std::vector<SplineSpectrum::Navigator>& navigators, const MultiplexFilteredPeak& peak, double mz) const
-  {
-    double y = navigators[0].eval(mz);
-    
-    return true;
-  }
-
   vector<MultiplexFilteredMSExperiment> MultiplexFilteringProfile::filter()
   {
     // progress logger
@@ -162,7 +158,7 @@ namespace OpenMS
         std::cout << "    RT = " << rt << "\n";
         
         // loop over mz
-        for (MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt_picked->begin(); it_mz < it_rt_picked->end(); ++it_mz)
+        for (MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt_picked->begin(); it_mz != it_rt_picked->end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
           MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()], it_rt_picked - exp_picked_white.begin());
@@ -181,13 +177,13 @@ namespace OpenMS
           std::cout << "        mz = " << mz << " (" << peak_min << ", " << peak_max << ")\n";
           
           // Arrangement of peaks looks promising. Now scan through the spline fitted profile data.
-          std::cout << "        ";
+          //std::cout << "        ";
           for (double mz2 = peak_min; mz2 < peak_max; mz2 = navigators[it_rt_profile - exp_spline_profile_.begin()].getNextMz(mz2))
           {
-            std::cout << mz2 << " (" << navigators[it_rt_picked - exp_picked_white.begin()].eval(mz2) << ")    ";
+            //std::cout << mz2 << " (" << navigators[it_rt_picked - exp_picked_white.begin()].eval(mz2) << ")    ";
             bool x = filterAveragineModel_(pattern, navigators, peak, mz2);
           }
-          std::cout << "\n";
+          //std::cout << "\n";
           
         }
       }
@@ -204,4 +200,37 @@ namespace OpenMS
     return filter_results;
   }
 
+  bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, std::vector<SplineSpectrum::Navigator>& navigators, const MultiplexFilteredPeak& peak, double mz_sampling) const
+  {
+    double rt_peak = peak.getRT();
+    double mz_peak = peak.getMZ();
+    double mz_shift = mz_sampling - mz_peak;
+    
+    // loop over satellites of the peak
+    std::multimap<size_t, MultiplexSatellite > satellites = peak.getSatellites();
+    for (std::multimap<size_t, MultiplexSatellite >::iterator it_satellite = satellites.begin(); it_satellite != satellites.end(); ++it_satellite)
+    {
+      // find indices of the satellite peak
+      size_t rt_idx = (it_satellite->second).getRTidx();
+      size_t mz_idx = (it_satellite->second).getMZidx();
+      
+      // find satellite peak itself
+      MSExperiment::ConstIterator it_rt = exp_picked_.begin();
+      std::advance(it_rt, rt_idx);
+      MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin();
+      std::advance(it_mz, mz_idx);
+      
+      double rt_satellite = it_rt->getRT();
+      double mz_satellite = it_mz->getMZ();
+      
+      // determine m/z and corresponding intensity for averagine test
+      double mz = mz_satellite + mz_shift;
+      double intensity = navigators[rt_idx].eval(mz);
+      
+      std::cout << "        mass trace = " << it_satellite->first << "  m/z = " << mz << "  RT = " << rt_satellite << "  intensity = " << intensity << "\n";
+    }
+    
+    return true;
+  }
+  
 }
