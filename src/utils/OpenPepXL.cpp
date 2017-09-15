@@ -777,28 +777,41 @@ protected:
       vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
       vector< OPXLDataStructs::XLPrecursor >::const_iterator up_it;
 
-      if (precursor_mass_tolerance_unit_ppm) // ppm
+      // TODO turn this into an InteregerList paramerter or something similar
+      // Consider missasignment of the monoisotopic peak
+      std::vector<double> precursor_correction_masses;
+      precursor_correction_masses.push_back(-2 * Constants::C13C12_MASSDIFF_U);
+      precursor_correction_masses.push_back(-1 * Constants::C13C12_MASSDIFF_U);
+      precursor_correction_masses.push_back(0);
+
+      for (double correction_mass : precursor_correction_masses)
       {
-        allowed_error = precursor_mass * precursor_mass_tolerance * 1e-6;
-      }
-      else // Dalton
-      {
-        allowed_error = precursor_mass_tolerance;
-      }
+
+        double corrected_precursor_mass = precursor_mass + correction_mass;
+
+        if (precursor_mass_tolerance_unit_ppm) // ppm
+        {
+          allowed_error = corrected_precursor_mass * precursor_mass_tolerance * 1e-6;
+        }
+        else // Dalton
+        {
+          allowed_error = precursor_mass_tolerance;
+        }
 
 #ifdef _OPENMP
 #pragma omp critical (enumerated_cross_link_masses_access)
 #endif
-      {
-        low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
-        up_it = upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
-      }
-
-      if (low_it != up_it) // no matching precursor in data
-      {
-        for (; low_it != up_it; ++low_it)
         {
-          candidates.push_back(*low_it);
+          low_it = lower_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass - allowed_error, OPXLDataStructs::XLPrecursorComparator());
+          up_it = upper_bound(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), corrected_precursor_mass + allowed_error, OPXLDataStructs::XLPrecursorComparator());
+        }
+
+        if (low_it != up_it) // no matching precursor in data
+        {
+          for (; low_it != up_it; ++low_it)
+          {
+            candidates.push_back(*low_it);
+          }
         }
       }
 
