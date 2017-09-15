@@ -59,6 +59,23 @@ namespace OpenMS
   {
     public:
 
+      struct LossMass
+      {
+        String name;
+        double mass;
+
+        bool operator==(const LossMass & other) const
+        {
+          return name == other.name && mass == other.mass;
+        }
+
+        // even if there are multiple losses with the same mass, having every mass once is enough
+        bool operator<(const LossMass & other) const
+        {
+          return mass < other.mass;
+        }
+      };
+
       /** @name Constructors and Destructors
       */
       //@{
@@ -123,6 +140,11 @@ namespace OpenMS
       /// overwrite
       void updateMembers_();
 
+      std::vector< std::set< LossMass > > getForwardLossesForLinearIons_(AASequence & peptide) const;
+      std::vector< std::set< LossMass > > getBackwardLossesForLinearIons_(AASequence & peptide) const;
+
+      void addLinearIonLossesFAST_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, Residue::ResidueType res_type, Size frag_index, double intensity, int charge, String ion_type, std::set< LossMass > & losses) const;
+
     protected:
 
       /**
@@ -137,7 +159,7 @@ namespace OpenMS
        * @param charge The charge of the added peaks
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void addLinearPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence & peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, int charge = 1, Size link_pos_2 = 0) const;
+      virtual void addLinearPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence & peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, std::vector< std::set< LossMass > > & forward_losses, std::vector< std::set< LossMass > > & backward_losses, int charge = 1, Size link_pos_2 = 0) const;
 
       /**
        * @brief Adds cross-linked ions of a specific ion type and charge to a spectrum and adds ion name and charge annotations to the DataArrays
@@ -219,15 +241,18 @@ namespace OpenMS
       virtual void addKLinkedIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence & peptide, Size link_pos, double precursor_mass, bool frag_alpha, int charge) const;
 
 
-      virtual void addComplexXLinkIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, OPXLDataStructs::ProteinProteinCrossLink & crosslink, int charge) const;
+      virtual void addComplexXLinkIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, OPXLDataStructs::ProteinProteinCrossLink & crosslink, int charge, std::vector< std::set< LossMass > > & forward_losses_alpha, std::vector< std::set< LossMass > > & backward_losses_alpha, std::vector< std::set< LossMass > > & forward_losses_beta, std::vector< std::set< LossMass > > & backward_losses_beta) const;
 
       virtual void addXLinkIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, const AASequence & ion1, const AASequence & ion2, double ion_mass, double intensity, int charge, String ion_name) const;
+      virtual void addXLinkIonLossesFAST_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, String ion_name, std::set< LossMass > & losses) const;
 
-      virtual void addXLinkIonPeaksWithLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, Residue::ResidueType res_type, int charge) const;
+      virtual void addXLinkIonPeaksWithLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, Residue::ResidueType res_type, std::vector< std::set< LossMass > > & forward_losses, std::vector< std::set< LossMass > > & backward_losses, std::set< LossMass > & losses_peptide2, int charge) const;
 
       // TODO copied from normal TSG, but it is protected over there. Move it to Residue class maybe?
       /// helper for mapping residue type to letter
       char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
+
+
 
 //      /// TODO helper to add full neutral loss ladders
       // void addLosses_(PeakSpectrum & spectrum, const AASequence & ion, double intensity, Residue::ResidueType res_type, int charge, bool fragment_alpha_chain) const;
