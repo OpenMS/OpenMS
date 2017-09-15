@@ -509,6 +509,7 @@ namespace OpenMS
     if (e->key() == Qt::Key_Delete)
     {
       e->accept();
+      getCurrentLayer_().removePeakAnnotationsFromPeptideHit(getCurrentLayer_().getCurrentAnnotations().getSelectedItems());
       getCurrentLayer_().getCurrentAnnotations().removeSelectedItems();
       update_(OPENMS_PRETTY_FUNCTION);
     }
@@ -1304,7 +1305,7 @@ namespace OpenMS
           if (pa != nullptr)
           {
             // check if present in current fragment annotation vector and also delete from there
-            MSSpectrum<> & spectrum = getCurrentLayer_().getCurrentSpectrum();
+            MSSpectrum & spectrum = getCurrentLayer_().getCurrentSpectrum();
 
             // store user fragment annotations
             vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();
@@ -1336,6 +1337,7 @@ namespace OpenMS
         else if (result->text() == "Edit")
         {
           annot_item->editText();
+          getCurrentLayer_().synchronizePeakAnnotations();
         }
         update_(OPENMS_PRETTY_FUNCTION);
       }

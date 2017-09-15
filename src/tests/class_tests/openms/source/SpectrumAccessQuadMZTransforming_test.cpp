@@ -48,7 +48,7 @@ using namespace std;
 boost::shared_ptr<PeakMap > getData()
 {
   boost::shared_ptr<PeakMap > exp2(new PeakMap);
-  MSSpectrum<Peak1D> spec;
+  MSSpectrum spec;
   Peak1D p;
   p.setMZ(100);
   p.setIntensity(50);

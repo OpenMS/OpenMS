@@ -291,7 +291,7 @@ c_feature_3.setCharge(4);
 c_feature_3.setQuality((QualityType) 1.);
 
 ///construct some test peaks
-MSSpectrum<Peak1D> spec;
+MSSpectrum spec;
 Peak1D peak;
 peak.setIntensity(201.334f);
 spec.push_back(peak);
@@ -300,7 +300,7 @@ spec.push_back(peak);
 peak.setIntensity(0.001f);
 spec.push_back(peak);
 
-MSSpectrum<Peak1D>::FloatDataArrays& mdas = spec.getFloatDataArrays();
+MSSpectrum::FloatDataArrays& mdas = spec.getFloatDataArrays();
 mdas.resize(3);
 
 mdas[0].setName("test_int");
@@ -318,7 +318,7 @@ mdas[1][2] = 100.01f;
 mdas[2].setName("test_dummy");
 mdas[2].resize(3);
 
-START_SECTION((template < class PeakType > bool passes(const MSSpectrum< PeakType > &spectrum, Size peak_index) const ))
+START_SECTION((template < class PeakType > bool passes(const MSSpectrum &spectrum, Size peak_index) const ))
 
 	filters.add(filter_1); // "Intensity <= 201.334"
 	TEST_EQUAL(filters.passes(spec,0), true) // 201.334
