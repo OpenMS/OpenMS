@@ -202,6 +202,33 @@ namespace OpenMS
 
   bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, std::vector<SplineSpectrum::Navigator>& navigators, const MultiplexFilteredPeak& peak, double mz_sampling) const
   {
+    // construct averagine distribution
+    // Note that the peptide(s) are very close in mass. We therefore calculate the averagine distribution only once (for the lightest peptide).
+    double mass = peak.getMZ() * pattern.getCharge();
+    IsotopeDistribution distribution;
+    distribution.setMaxIsotope(isotopes_per_peptide_max_);
+    if (averagine_type_ == "peptide")
+    {
+        distribution.estimateFromPeptideWeight(mass);
+    }
+    else if (averagine_type_ == "RNA")
+    {
+        distribution.estimateFromRNAWeight(mass);
+    }
+    else if (averagine_type_ == "DNA")
+    {
+        distribution.estimateFromDNAWeight(mass);
+    }
+    else
+    {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid averagine type.");
+    }    
+    
+    
+    
+    
+    
+    
     double rt_peak = peak.getRT();
     double mz_peak = peak.getMZ();
     double mz_shift = mz_sampling - mz_peak;
