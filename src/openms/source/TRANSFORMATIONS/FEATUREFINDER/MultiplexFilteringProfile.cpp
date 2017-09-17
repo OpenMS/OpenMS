@@ -224,7 +224,41 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid averagine type.");
     }    
     
-    
+    // loop over peptides
+    for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+    {
+      // intensities for the Pearson and Spearman rank correlations
+      std::vector<double> intensities_model;
+      std::vector<double> intensities_data;
+      
+      // loop over isotopes i.e. mass traces of the peptide
+      for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
+      {
+        size_t idx = peptide * isotopes_per_peptide_max_ + isotope;
+        std::pair<std::multimap<size_t, MultiplexSatellite >::const_iterator, std::multimap<size_t, MultiplexSatellite >::const_iterator> satellites;
+        satellites = peak.getSatellites().equal_range(idx);
+        
+        int count = 0;
+        double sum_intensities = 0;
+        
+        // loop over satellites in mass trace
+        for (std::multimap<size_t, MultiplexSatellite >::const_iterator satellite_it = satellites.first; satellite_it != satellites.second; ++satellite_it)
+        {
+          // find indices of the peak
+          size_t rt_idx = (satellite_it->second).getRTidx();
+          size_t mz_idx = (satellite_it->second).getMZidx();
+          
+          // find peak itself
+          MSExperiment::ConstIterator it_rt = exp_picked_.begin();
+          std::advance(it_rt, rt_idx);
+          MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin();
+          std::advance(it_mz, mz_idx);
+
+        }
+        
+      }
+      
+    }
     
     
     
