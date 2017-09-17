@@ -199,6 +199,7 @@ START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
   // 1 - missed cleavage exception K before P
   hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("DFKPIARN(Deamidated)GER")));
   
+  
   // 2 missed cleavages
   hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("(MOD:00051)DFPKIARNGER")));
   hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("DFPKIARNGER")));
@@ -218,6 +219,21 @@ START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
   test_hits = hits;
   filter2.filterPeptideSequences(test_hits);
   
+  TEST_EQUAL(test_hits.size(), hits.size());
+  for (UInt i = 0; i < test_hits.size(); i++)
+  {
+    TEST_EQUAL(test_hits[i].getSequence(), hits[i].getSequence());
+  }
+
+  hits.clear();
+  hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("F(MOD:00051)DFPIANGER")));
+
+  test_hits = hits;
+  digestion.setEnzyme("Asp-N_ambic");
+  
+  IDFilter::PeptideDigestionFilter filter3(digestion, 0, 1);
+
+  filter3.filterPeptideSequences(test_hits);
   TEST_EQUAL(test_hits.size(), hits.size());
   for (UInt i = 0; i < test_hits.size(); i++)
   {
