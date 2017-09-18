@@ -32,8 +32,8 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITECENTROIDED_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITECENTROIDED_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITEPROFILE_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITEPROFILE_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -45,44 +45,48 @@
 namespace OpenMS
 {
   /**
-   * @brief data structure storing a single satellite peak
+   * @brief data structure storing a single satellite data point
    *
-   * The satellite peak is part of a centroided MSExperiment.
-   * Hence indices rt_idx_ and mz_idx_ are sufficient to specify RT, m/z and intensity.
+   * The satellite data point is a spline-interpolated point of profile MSExperiment.
+   * The triplet of RT, m/z and intensity is therefore stored explicitly.
    * 
-   * @see MultiplexFilteredPeak, MultiplexSatelliteProfile
+   * @see MultiplexFilteredPeak, MultiplexSatelliteCentroided
    */
-  class OPENMS_DLLAPI MultiplexSatelliteCentroided
+  class OPENMS_DLLAPI MultiplexSatelliteProfile
   {
     public:
 
     /**
      * @brief constructor
      */
-    MultiplexSatelliteCentroided(size_t rt_idx, size_t mz_idx);
+    MultiplexSatelliteProfile(double rt, double mz, double intensity);
     
     /**
-     * @brief returns the m/z index of the satellite peak
+     * @brief returns the RT of the satellite data point
      */
-    size_t getMZidx() const;
-     
+    double getRT() const;
+    
     /**
-     * @brief returns the RT index of the satellite peak
+     * @brief returns the m/z of the satellite data point
      */
-    size_t getRTidx() const;
+    double getMZ() const;
+    
+    /**
+     * @brief returns the intensity of the satellite data point
+     */
+    double getIntensity() const;
     
     private:
      
     /**
-     * @brief indices of the satellite peak position in the centroided experiment
-     * 
-     * Spectral index and peak index within the spectrum of the satellite peak.
+     * @brief position and intensity of the data point within the spline-interpolated experiment
      */
-    size_t rt_idx_;
-    size_t mz_idx_;
+    double rt_;
+    double mz_;
+    double intensity_;
     
   };
   
 }
 
-#endif /* MULTIPLEXSATELLITECENTROIDED_H */
+#endif /* MULTIPLEXSATELLITEPROFILE_H */
