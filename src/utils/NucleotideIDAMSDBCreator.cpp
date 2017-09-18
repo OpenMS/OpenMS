@@ -38,7 +38,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <iostream>
 #include <fstream>
 
@@ -102,9 +102,9 @@ protected:
   {
 
       String input_filepath(getStringOption_("in_fasta"));
-      Residue::NucleicAcidType type = Residue::RNA;
+      Ribonucleotide::NucleicAcidType type = Ribonucleotide::RNA;
       if (getStringOption_("NA_type")=="DNA")
-          type=Residue::DNA;
+          type=Ribonucleotide::DNA;
 
 
       std::vector<FASTAFile::FASTAEntry> input_file;
@@ -119,7 +119,7 @@ protected:
           EmpiricalFormula entryformula;
           string seq= input_file.at(i).sequence;
           NASequence smart_seq(seq,type);
-          entryformula=smart_seq.getFormula(Residue::Full, 0);
+          entryformula=smart_seq.getFormula(Ribonucleotide::Full, 0);
 
           db_mapping_file.addLine(String(entryformula.getMonoWeight()) + "\t" + entryformula.toString() + "\t" + "NTides:" + input_file.at(i).identifier);
           struct_mapping_file.addLine( "NTides:" +String(input_file.at(i).identifier) + "\t" + seq + "\t" + entryformula.toString() + "\t" + entryformula.toString());

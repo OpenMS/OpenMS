@@ -5,7 +5,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+
 
 #include <vector>
 #include <iosfwd>
@@ -19,24 +20,24 @@ class OPENMS_DLLAPI NASequence
 public:
     NASequence(); //default constructor
     NASequence(const String& rhs); // copy constructor
-    NASequence(const String& rhs, const Residue::NucleicAcidType& type);
+    NASequence(const String& rhs, const Ribonucleotide::NucleicAcidType& type);
     NASequence& operator=(const NASequence& rhs); //assignment operator
     bool operator==(const NASequence& rhs) const;
     virtual ~NASequence(); //destructor
     void setSequence(const String& s);
-    void setType(const Residue::NucleicAcidType& type);
+    void setType(const Ribonucleotide::NucleicAcidType& type);
     String getSequence() const;
-    Residue::NucleicAcidType getType() const;
+    Ribonucleotide::NucleicAcidType getType() const;
     size_t size() const;
-    double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
+    double getMonoWeight(Ribonucleotide::RiboNucleotideType type = Ribonucleotide::Full, Int charge = 0) const;
     NASequence getPrefix(Size index) const;
     NASequence getSuffix(Size index) const;
     bool empty() const;
-    EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
+    EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideType type = Ribonucleotide::Full, Int charge = 0) const;
 
 private:
     String s_;
-    Residue::NucleicAcidType type_;
+    Ribonucleotide::NucleicAcidType type_;
 
 
 };

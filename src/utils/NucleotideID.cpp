@@ -498,7 +498,7 @@ protected:
     progresslogger.startProgress(0, 1, "Matching spectra...");
     int pol_multiplier = -1;
     if (getStringOption_("polarity") == "positive") pol_multiplier = 1;
-    Residue::NucleicAcidType what_type = (getStringOption_("seq_type") == "DNA") ? Residue::DNA : Residue::RNA;
+    Ribonucleotide::NucleicAcidType what_type = (getStringOption_("seq_type") == "DNA") ? Ribonucleotide::DNA : Ribonucleotide::RNA;
 
     bool do_all = true;
     bool average_all = true;

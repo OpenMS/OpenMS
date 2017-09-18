@@ -165,12 +165,12 @@ public:
       DIon,           // D-ion for nucleic acid support
       SizeOfResidueType
     };
-    enum NucleicAcidType
+/*    enum NucleicAcidType
     {
         DNA = 0,
         RNA,
         Undefined
-    };
+    };*/
 
     //@}
 

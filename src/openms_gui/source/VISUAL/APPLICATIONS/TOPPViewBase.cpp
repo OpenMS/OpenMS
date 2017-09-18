@@ -3237,9 +3237,9 @@ namespace OpenMS
           //{
           poly_sequence.setSequence(seq_string);
           if (spec_gen_dialog.comboBox->currentText()=="RNA")
-              poly_sequence.setType(Residue::RNA);
+              poly_sequence.setType(Ribonucleotide::RNA);
           else
-              poly_sequence.setType(Residue::DNA);
+              poly_sequence.setType(Ribonucleotide::DNA);
           //}
           //catch (Exception::BaseException& e)
           //{
@@ -3351,7 +3351,7 @@ namespace OpenMS
           // set precursor information
           vector<Precursor> precursors;
           Precursor precursor;
-          precursor.setMZ(poly_sequence.getMonoWeight(Residue::Full,charge));
+          precursor.setMZ(poly_sequence.getMonoWeight(Ribonucleotide::Full,charge));
           precursor.setCharge(charge);
           precursors.push_back(precursor);
           spec.setPrecursors(precursors);

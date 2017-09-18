@@ -16,16 +16,16 @@ namespace OpenMS
 NASequence::NASequence()
 { //Default to RNA since that was the original behaviour
     s_ = "";
-    type_ = Residue::RNA;
+    type_ = Ribonucleotide::RNA;
 }
 
 NASequence::NASequence(const String& rhs)
 { //Default to RNA since that was the original behaviour
     s_ = rhs;
-    type_ = Residue::RNA;
+    type_ = Ribonucleotide::RNA;
 }
 
-NASequence::NASequence(const String& rhs, const Residue::NucleicAcidType& type)
+NASequence::NASequence(const String& rhs, const Ribonucleotide::NucleicAcidType& type)
 {
     s_ = rhs;
     type_ = type;
@@ -56,12 +56,12 @@ void NASequence::setSequence(const String& s)
     s_ = s;
 }
 
-void NASequence::setType(const Residue::NucleicAcidType& type)
+void NASequence::setType(const Ribonucleotide::NucleicAcidType& type)
 {
     type_ = type; // @TODO: what if the sequence doesn't fit the type ("T" vs. "U")?
 }
 
-Residue::NucleicAcidType NASequence::getType() const
+Ribonucleotide::NucleicAcidType NASequence::getType() const
 {
     return type_;
 }
@@ -103,7 +103,7 @@ NASequence NASequence::getSuffix(Size index) const
     return NASequence(s_.substr(s_.size() - index), type_);
 }
 
-EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) const{
+EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideType type, Int charge) const{
 
     static const EmpiricalFormula H_weight = EmpiricalFormula("H");
     static const EmpiricalFormula OH_weight = EmpiricalFormula("OH");
@@ -120,7 +120,7 @@ EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) c
     static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("HPO4");
     static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("");
     EmpiricalFormula abasicform;
-    if (type_ == Residue::DNA)
+    if (type_ == Ribonucleotide::DNA)
     {
         abasicform = EmpiricalFormula("C5H7O5P");
     }
@@ -170,47 +170,47 @@ EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) c
             // add the missing formula part
             switch (type)
             {
-            case Residue::Full:
+            case Ribonucleotide::Full:
                 return mono_formula + internal_to_full - fivePrime_to_full + (H_weight * charge);
 
                 //            case Residue::Internal:
                 //                return EmpiricalFormula("");//mono_formula-(H_weight*charge) /* THIS IS NOT CORRECT AND SHOULDNT BE USED FIXME*/;
 
-            case Residue::NTerminal:
+            case Ribonucleotide::FivePrime:
                 return mono_formula + internal_to_full - fivePrime_to_full + (H_weight * charge);
 
                 //            case Residue::CTerminal:
                 //                return EmpiricalFormula("");//mono_formula + internal_to_full - threePrime_to_full-(H_weight*charge); //NEED TO CHECK WHAT IS CORRECT FIXME
 
-            case Residue::BIon:
+            case Ribonucleotide::BIon:
                 return mono_formula + internal_to_full - b_ion_to_full - H_weight + (H_weight * charge);
 
-            case Residue::AIon:
+            case Ribonucleotide::AIon:
                 return mono_formula + internal_to_full - a_ion_to_full - H_weight * 2 + (H_weight * charge);
 
-            case Residue::CIon:
+            case Ribonucleotide::CIon:
                 return mono_formula + internal_to_full - c_ion_to_full + (H_weight * charge);
 
-            case Residue::DIon:
+            case Ribonucleotide::DIon:
                 return mono_formula + internal_to_full - d_ion_to_full + (H_weight * charge);
 
-            case Residue::XIon:
+            case Ribonucleotide::XIon:
                 return mono_formula + internal_to_full - x_ion_to_full + (H_weight * charge);
 
-            case Residue::WIon:
+            case Ribonucleotide::WIon:
                 return mono_formula + internal_to_full - w_ion_to_full + (H_weight * charge);
 
-            case Residue::YIon:
+            case Ribonucleotide::YIon:
                 return mono_formula + internal_to_full - y_ion_to_full + (H_weight * charge);
 
-            case Residue::ZIon:
+            case Ribonucleotide::ZIon:
                 return mono_formula + internal_to_full - z_ion_to_full + (H_weight * charge);
 
-            case Residue::AminusB:
+            case Ribonucleotide::AminusB:
                 return mono_formula + internal_to_full - a_ion_to_full - H_weight * 2 + (H_weight * charge) - base_to_formula[s_[s_.size()-1]];
 
             default:
-                LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
+                LOG_ERROR << "NASequence::getMonoWeight: unknown RibonucleotideType" << std::endl;
             }
         }
     }
@@ -218,7 +218,7 @@ EmpiricalFormula NASequence::getFormula(Residue::ResidueType type, Int charge) c
     return mono_formula;
 }
 
-double NASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
+double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideType type, Int charge) const
 {
     //    static const double H_weight = EmpiricalFormula("H").getMonoWeight();
     //    static const double OH_weight = EmpiricalFormula("OH").getMonoWeight();

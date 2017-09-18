@@ -41,6 +41,7 @@
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <iostream>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -98,47 +99,47 @@ START_SECTION(NASequence size())
 }
 END_SECTION
 
-START_SECTION(NASequence getFormula(Residue::ResidueType type, Int charge))
+START_SECTION(NASequence getFormula(Ribonucleotide::RibonucleotideType type, Int charge))
 {
   NASequence seq = NASequence("GG");
-  TEST_EQUAL(seq.getFormula(Residue::Full, -1),  EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
-  TEST_EQUAL(seq.getFormula(Residue::Full, -2), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O5"));
-  TEST_EQUAL(seq.getFormula(Residue::WIon, -1), EmpiricalFormula("C20H25N10O15P2"));
-  TEST_EQUAL(seq.getFormula(Residue::XIon, -1), EmpiricalFormula("C20H25N10O14P2"));
-  TEST_EQUAL(seq.getFormula(Residue::YIon, -1), EmpiricalFormula("C10H12N5O6P") + EmpiricalFormula("C10H12N5O6"));
-  TEST_EQUAL(seq.getFormula(Residue::ZIon, -1), EmpiricalFormula("C20H24N10O11P"));
-  TEST_EQUAL(seq.getFormula(Residue::AIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H10N5O4"));
-  TEST_EQUAL(seq.getFormula(Residue::BIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
-  TEST_EQUAL(seq.getFormula(Residue::CIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H13N5O7P"));
-  TEST_EQUAL(seq.getFormula(Residue::DIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O7P"));
-  TEST_EQUAL(seq.getFormula(Residue::AminusB, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C5H5O3"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::Full, -1),  EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::Full, -2), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O5"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::WIon, -1), EmpiricalFormula("C20H25N10O15P2"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::XIon, -1), EmpiricalFormula("C20H25N10O14P2"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::YIon, -1), EmpiricalFormula("C10H12N5O6P") + EmpiricalFormula("C10H12N5O6"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::ZIon, -1), EmpiricalFormula("C20H24N10O11P"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::AIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H10N5O4"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::BIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::CIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H13N5O7P"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::DIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::AminusB, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C5H5O3"));
 
   seq.setSequence("GGG");
-  TEST_EQUAL(seq.getFormula(Residue::NTerminal, -1), EmpiricalFormula("C30H36N15O19P2"));
-  //TEST_EQUAL(seq.getFormula(Residue::CTerminal, 1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O7P"));
-  //TEST_EQUAL(seq.getFormula(Residue::Internal, 1), EmpiricalFormula("C10H10N5O6P") * 3 - EmpiricalFormula("H"));
-  TEST_EQUAL(seq.getFormula(Residue::WIon, -2), EmpiricalFormula("C20H25N10O15P2") + EmpiricalFormula("C10H11N5O7P"));
-  TEST_EQUAL(seq.getFormula(Residue::XIon, -2), EmpiricalFormula("C20H25N10O14P2") + EmpiricalFormula("C10H11N5O7P"));
-  TEST_EQUAL(seq.getFormula(Residue::YIon, -2), EmpiricalFormula("C10H12N5O6P") + EmpiricalFormula("C10H12N5O6")+EmpiricalFormula("C10H11N5O7P"));
-  TEST_EQUAL(seq.getFormula(Residue::ZIon, -2), EmpiricalFormula("C20H24N10O11P") + EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::FivePrime, -1), EmpiricalFormula("C30H36N15O19P2"));
+  //TEST_EQUAL(seq.getFormula(Ribonucleotide::CTerminal, 1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O7P"));
+  //TEST_EQUAL(seq.getFormula(Ribonucleotide::Internal, 1), EmpiricalFormula("C10H10N5O6P") * 3 - EmpiricalFormula("H"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::WIon, -2), EmpiricalFormula("C20H25N10O15P2") + EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::XIon, -2), EmpiricalFormula("C20H25N10O14P2") + EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::YIon, -2), EmpiricalFormula("C10H12N5O6P") + EmpiricalFormula("C10H12N5O6")+EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::ZIon, -2), EmpiricalFormula("C20H24N10O11P") + EmpiricalFormula("C10H11N5O7P"));
 }
 END_SECTION
 
-START_SECTION(NASequence getMonoWeight(Residue::ResidueType type, Int charge))
+START_SECTION(NASequence getMonoWeight(Ribonucleotide::RibonucleotideType type, Int charge))
 {
   NASequence seq = NASequence("GGG");
-  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::AminusB, -1), 803.117);
-  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::WIon, -1), 1052.143);
-  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon, -1), 972.177);
-  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::DIon, -1), 1034.133);
-  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::AminusB, -2), 802.117);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Ribonucleotide::AminusB, -1), 803.117);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Ribonucleotide::WIon, -1), 1052.143);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Ribonucleotide::YIon, -1), 972.177);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Ribonucleotide::DIon, -1), 1034.133);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Ribonucleotide::AminusB, -2), 802.117);
 
   seq.setSequence("pAAUCCAUGp");
-  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::Full, 0), 2652.312);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Ribonucleotide::Full, 0), 2652.312);
   seq.setSequence("ACCAAAGp");
-  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::Full, 0), 2289.348);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Ribonucleotide::Full, 0), 2289.348);
   seq.setSequence("AUUCACCC");
-  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::Full, 0), 2428.362);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Ribonucleotide::Full, 0), 2428.362);
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
