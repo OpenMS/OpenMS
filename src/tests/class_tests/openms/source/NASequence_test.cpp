@@ -62,70 +62,83 @@ START_SECTION(NASequence(const String& rhs))
   NASequence seq = NASequence();
   seq.setSequence("AAA");
   NASequence seq2("AAA");
-  TEST_EQUAL(seq,seq2)
+  TEST_EQUAL(seq, seq2)
 END_SECTION
 
 START_SECTION(NASequence getSequence())
 {
   NASequence seq = NASequence("UUU");
-  TEST_EQUAL(seq.getSequence()=="UUU",TRUE);
-  TEST_NOT_EQUAL(seq.getSequence(),"UU");
-  TEST_NOT_EQUAL(seq.getSequence(),"AAA");
+  TEST_EQUAL(seq.getSequence() == "UUU", true);
+  TEST_NOT_EQUAL(seq.getSequence(), "UU");
+  TEST_NOT_EQUAL(seq.getSequence(), "AAA");
 }
 END_SECTION
 
-START_SECTION(NASequence setSequence(const String & s)){
-    NASequence seq;
-    seq.setSequence("GU");
-    TEST_EQUAL(seq.getSequence(),"GU");
+START_SECTION(NASequence setSequence(const String& s))
+{
+  NASequence seq;
+  seq.setSequence("GU");
+  TEST_EQUAL(seq.getSequence(), "GU");
 }
 END_SECTION
 
-START_SECTION(NASequence size()){
-    NASequence seq;
-    TEST_EQUAL(seq.size(),0);
-    seq.setSequence("UGG");
-    TEST_EQUAL(seq.size(),3);
+START_SECTION(NASequence size())
+{
+  NASequence seq;
+  TEST_EQUAL(seq.size(), 0);
+  seq.setSequence("UGG");
+  TEST_EQUAL(seq.size(), 3);
+  // don't count terminal phosphate in sequence length:
+  seq.setSequence("pUGG");
+  TEST_EQUAL(seq.size(), 3);
+  seq.setSequence("UGGp");
+  TEST_EQUAL(seq.size(), 3);
+  seq.setSequence("pUGGp");
+  TEST_EQUAL(seq.size(), 3);
 }
 END_SECTION
 
+START_SECTION(NASequence getFormula(Residue::ResidueType type, Int charge))
+{
+  NASequence seq = NASequence("GG");
+  TEST_EQUAL(seq.getFormula(Residue::Full, -1),  EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
+  TEST_EQUAL(seq.getFormula(Residue::Full, -2), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O5"));
+  TEST_EQUAL(seq.getFormula(Residue::WIon, -1), EmpiricalFormula("C20H25N10O15P2"));
+  TEST_EQUAL(seq.getFormula(Residue::XIon, -1), EmpiricalFormula("C20H25N10O14P2"));
+  TEST_EQUAL(seq.getFormula(Residue::YIon, -1), EmpiricalFormula("C10H12N5O6P") + EmpiricalFormula("C10H12N5O6"));
+  TEST_EQUAL(seq.getFormula(Residue::ZIon, -1), EmpiricalFormula("C20H24N10O11P"));
+  TEST_EQUAL(seq.getFormula(Residue::AIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H10N5O4"));
+  TEST_EQUAL(seq.getFormula(Residue::BIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
+  TEST_EQUAL(seq.getFormula(Residue::CIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H13N5O7P"));
+  TEST_EQUAL(seq.getFormula(Residue::DIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(Residue::AminusB, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C5H5O3"));
 
-START_SECTION(NASequence getFormula(Residue::ResidueType type,Int charge)){
-    NASequence seq= NASequence("GG");
-    TEST_EQUAL(seq.getFormula(Residue::Full, -1),EmpiricalFormula("C10H12N5O7P")+EmpiricalFormula("C10H12N5O5"));
-    TEST_EQUAL(seq.getFormula(Residue::Full, -2),EmpiricalFormula("C10H12N5O7P")+EmpiricalFormula("C10H11N5O5"));
-    TEST_EQUAL(seq.getFormula(Residue::WIon, -1),EmpiricalFormula("C20H25N10O15P2"));
-    TEST_EQUAL(seq.getFormula(Residue::XIon, -1),EmpiricalFormula("C20H25N10O14P2"));
-    TEST_EQUAL(seq.getFormula(Residue::YIon, -1),EmpiricalFormula("C10H12N5O6P")+EmpiricalFormula("C10H12N5O6"));
-    TEST_EQUAL(seq.getFormula(Residue::ZIon, -1),EmpiricalFormula("C20H24N10O11P"));
-    TEST_EQUAL(seq.getFormula(Residue::AIon, -1),EmpiricalFormula("C10H12N5O7P")+EmpiricalFormula("C10H10N5O4"));
-    TEST_EQUAL(seq.getFormula(Residue::BIon, -1),EmpiricalFormula("C10H12N5O7P")+EmpiricalFormula("C10H12N5O5"));
-    TEST_EQUAL(seq.getFormula(Residue::CIon, -1),EmpiricalFormula("C10H12N5O7P")+EmpiricalFormula("C10H13N5O7P"));
-    TEST_EQUAL(seq.getFormula(Residue::DIon, -1),EmpiricalFormula("C10H12N5O7P")+EmpiricalFormula("C10H11N5O7P"));
-    TEST_EQUAL(seq.getFormula(Residue::AminusB, -1),EmpiricalFormula("C10H12N5O7P")+EmpiricalFormula("C5H5O3"));
-
-
-    seq.setSequence("GGG");
-    TEST_EQUAL(seq.getFormula(Residue::NTerminal, -1),EmpiricalFormula("C30H36N15O19P2"));
-    //TEST_EQUAL(seq.getFormula(Residue::CTerminal, 1),EmpiricalFormula("C10H12N5O7P")+EmpiricalFormula("C10H12N5O7P"));
-    //TEST_EQUAL(seq.getFormula(Residue::Internal, 1),EmpiricalFormula("C10H10N5O6P")*3-EmpiricalFormula("H"));
-    TEST_EQUAL(seq.getFormula(Residue::WIon, -2),EmpiricalFormula("C20H25N10O15P2")+EmpiricalFormula("C10H11N5O7P"));
-    TEST_EQUAL(seq.getFormula(Residue::XIon, -2),EmpiricalFormula("C20H25N10O14P2")+EmpiricalFormula("C10H11N5O7P"));
-    TEST_EQUAL(seq.getFormula(Residue::YIon, -2),EmpiricalFormula("C10H12N5O6P")+EmpiricalFormula("C10H12N5O6")+EmpiricalFormula("C10H11N5O7P"));
-    TEST_EQUAL(seq.getFormula(Residue::ZIon, -2),EmpiricalFormula("C20H24N10O11P")+EmpiricalFormula("C10H11N5O7P"));
-
+  seq.setSequence("GGG");
+  TEST_EQUAL(seq.getFormula(Residue::NTerminal, -1), EmpiricalFormula("C30H36N15O19P2"));
+  //TEST_EQUAL(seq.getFormula(Residue::CTerminal, 1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O7P"));
+  //TEST_EQUAL(seq.getFormula(Residue::Internal, 1), EmpiricalFormula("C10H10N5O6P") * 3 - EmpiricalFormula("H"));
+  TEST_EQUAL(seq.getFormula(Residue::WIon, -2), EmpiricalFormula("C20H25N10O15P2") + EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(Residue::XIon, -2), EmpiricalFormula("C20H25N10O14P2") + EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(Residue::YIon, -2), EmpiricalFormula("C10H12N5O6P") + EmpiricalFormula("C10H12N5O6")+EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(Residue::ZIon, -2), EmpiricalFormula("C20H24N10O11P") + EmpiricalFormula("C10H11N5O7P"));
 }
 END_SECTION
 
-START_SECTION(NASequence getMonoWeight(Residue::ResidueType type,Int charge)){
-    NASequence seq= NASequence("GGG");
-    TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::AminusB, -1),803.117);
-    TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::WIon,-1),1052.143);
-    TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon,-1),972.177);
-    TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::DIon,-1),1034.133);
-    TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::AminusB, -2),802.117);
+START_SECTION(NASequence getMonoWeight(Residue::ResidueType type, Int charge))
+{
+  NASequence seq = NASequence("GGG");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::AminusB, -1), 803.117);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::WIon, -1), 1052.143);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon, -1), 972.177);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::DIon, -1), 1034.133);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::AminusB, -2), 802.117);
 
-
+  seq.setSequence("pAAUCCAUGp");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::Full, 0), 2652.312);
+  seq.setSequence("ACCAAAGp");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::Full, 0), 2289.348);
+  seq.setSequence("AUUCACCC");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::Full, 0), 2428.362);
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
