@@ -222,7 +222,25 @@ namespace OpenMS
     else
     {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid averagine type.");
-    }    
+    }   
+    
+    // debug output variables
+    /*int debug_charge = 2;
+    size_t debug_rt_idx = 39;
+    size_t debug_mz_idx = 130;
+    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));*/
+    
+    // debug output
+    /*if (debug_now)
+    {
+      std::cout << "Inside the Averagine Filter.\n";
+    }*/
+ 
+  
+    // determine m/z shift relative to the centroided peak at which the profile data will be sampled
+    double rt_peak = peak.getRT();
+    double mz_peak = peak.getMZ();
+    double mz_shift = mz_sampling - mz_peak;
     
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
@@ -253,42 +271,51 @@ namespace OpenMS
           std::advance(it_rt, rt_idx);
           MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin();
           std::advance(it_mz, mz_idx);
-
+          
+          double rt_satellite = it_rt->getRT();
+          double mz_satellite = it_mz->getMZ();
+      
+          // determine m/z and corresponding intensity for averagine test
+          double mz = mz_satellite + mz_shift;
+          double intensity = navigators[rt_idx].eval(mz);
+          
+          ++count;
+          sum_intensities += intensity;
         }
+        
+        if (count > 0)
+        {
+          intensities_model.push_back(distribution.getContainer()[isotope].second);
+          intensities_data.push_back(sum_intensities/count);
+        }
+
+        // debug output
+        /*if (debug_now)
+        {
+          std::cout << "    peptide = " << peptide << "    isotope = " << isotope << "    count = " << count << "    average intensity = " << sum_intensities/count << "    averagine intensity = " << distribution.getContainer()[isotope].second << "\n";
+        }*/
         
       }
       
-    }
-    
-    
-    
-    
-    double rt_peak = peak.getRT();
-    double mz_peak = peak.getMZ();
-    double mz_shift = mz_sampling - mz_peak;
-    
-    // loop over satellites of the peak
-    std::multimap<size_t, MultiplexSatellite > satellites = peak.getSatellites();
-    for (std::multimap<size_t, MultiplexSatellite >::iterator it_satellite = satellites.begin(); it_satellite != satellites.end(); ++it_satellite)
-    {
-      // find indices of the satellite peak
-      size_t rt_idx = (it_satellite->second).getRTidx();
-      size_t mz_idx = (it_satellite->second).getMZidx();
+      // Calculate Pearson and Spearman rank correlations
+      if ((intensities_model.size() < isotopes_per_peptide_min_) || (intensities_data.size() < isotopes_per_peptide_min_))
+      {
+        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
+      }
+      double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
+      double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
+
+      // debug output
+      /*if (debug_now)
+      {
+        std::cout << "        Pearson correlation = " << correlation_Pearson << "    rank correlation = " << correlation_Spearman << "\n";
+      }*/
       
-      // find satellite peak itself
-      MSExperiment::ConstIterator it_rt = exp_picked_.begin();
-      std::advance(it_rt, rt_idx);
-      MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin();
-      std::advance(it_mz, mz_idx);
+      if ((correlation_Pearson < averagine_similarity_) || (correlation_Spearman < averagine_similarity_))
+      {
+        return false;
+      }
       
-      double rt_satellite = it_rt->getRT();
-      double mz_satellite = it_mz->getMZ();
-      
-      // determine m/z and corresponding intensity for averagine test
-      double mz = mz_satellite + mz_shift;
-      double intensity = navigators[rt_idx].eval(mz);
-      
-      std::cout << "        mass trace = " << it_satellite->first << "  m/z = " << mz << "  RT = " << rt_satellite << "  intensity = " << intensity << "\n";
     }
     
     return true;
