@@ -43,7 +43,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatellite.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
@@ -253,14 +253,14 @@ namespace OpenMS
       for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
       {
         size_t idx = peptide * isotopes_per_peptide_max_ + isotope;
-        std::pair<std::multimap<size_t, MultiplexSatellite >::const_iterator, std::multimap<size_t, MultiplexSatellite >::const_iterator> satellites;
+        std::pair<std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator, std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator> satellites;
         satellites = peak.getSatellites().equal_range(idx);
         
         int count = 0;
         double sum_intensities = 0;
         
         // loop over satellites in mass trace
-        for (std::multimap<size_t, MultiplexSatellite >::const_iterator satellite_it = satellites.first; satellite_it != satellites.second; ++satellite_it)
+        for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = satellites.first; satellite_it != satellites.second; ++satellite_it)
         {
           // find indices of the peak
           size_t rt_idx = (satellite_it->second).getRTidx();

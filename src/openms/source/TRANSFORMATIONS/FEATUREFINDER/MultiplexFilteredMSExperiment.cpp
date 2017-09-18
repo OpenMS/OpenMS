@@ -38,7 +38,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatellite.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 
@@ -121,11 +121,11 @@ namespace OpenMS
       consensus.setCharge(1);
       consensus.setQuality(1.0);
       
-      std::multimap<size_t, MultiplexSatellite > satellites = it_peak->getSatellites();
+      std::multimap<size_t, MultiplexSatelliteCentroided > satellites = it_peak->getSatellites();
       int count = 0;
       
       // loop over satellites
-      for (std::multimap<size_t, MultiplexSatellite >::const_iterator it_satellite = satellites.begin(); it_satellite != satellites.end(); ++it_satellite)
+      for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator it_satellite = satellites.begin(); it_satellite != satellites.end(); ++it_satellite)
       {
         // find indices of the peak
         size_t rt_idx = (it_satellite->second).getRTidx();

@@ -34,7 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatellite.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 
 #include <vector>
 #include <algorithm>
@@ -44,17 +44,17 @@ using namespace std;
 
 namespace OpenMS
 {
-  MultiplexSatellite::MultiplexSatellite(size_t rt_idx, size_t mz_idx) :
+  MultiplexSatelliteCentroided::MultiplexSatelliteCentroided(size_t rt_idx, size_t mz_idx) :
     rt_idx_(rt_idx), mz_idx_(mz_idx)
   {
   }
 
-  size_t MultiplexSatellite::getMZidx() const
+  size_t MultiplexSatelliteCentroided::getMZidx() const
   {
     return mz_idx_;
   }
 
-  size_t MultiplexSatellite::getRTidx() const
+  size_t MultiplexSatelliteCentroided::getRTidx() const
   {
     return rt_idx_;
   }

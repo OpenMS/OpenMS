@@ -339,11 +339,11 @@ namespace OpenMS
     }    
 
     // Determine the boundaries for each of the mass traces.
-    std::multimap<size_t, MultiplexSatellite > satellites = peak.getSatellites();    
+    std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();    
     // <rt_boundaries> is a map from the mass trace index to the spectrum indices for beginning and end of the mass trace.
     std::map<size_t, std::pair<size_t, size_t> > rt_boundaries;
     // loop over satellites
-    for (std::multimap<size_t, MultiplexSatellite >::const_iterator it = satellites.begin(); it != satellites.end(); ++it)
+    for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator it = satellites.begin(); it != satellites.end(); ++it)
     {
       size_t idx_masstrace = it->first;    // mass trace index i.e. the index within the peptide multiplet pattern
       if (rt_boundaries.find(idx_masstrace) == rt_boundaries.end())
@@ -465,14 +465,14 @@ namespace OpenMS
       for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
       {
         size_t idx = peptide * isotopes_per_peptide_max_ + isotope;
-        std::pair<std::multimap<size_t, MultiplexSatellite >::const_iterator, std::multimap<size_t, MultiplexSatellite >::const_iterator> satellites;
+        std::pair<std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator, std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator> satellites;
         satellites = peak.getSatellites().equal_range(idx);
               
         int count = 0;
         double sum_intensities = 0;
         
         // loop over satellites in mass trace
-        for (std::multimap<size_t, MultiplexSatellite >::const_iterator satellite_it = satellites.first; satellite_it != satellites.second; ++satellite_it)
+        for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = satellites.first; satellite_it != satellites.second; ++satellite_it)
         {
           // find indices of the peak
           size_t rt_idx = (satellite_it->second).getRTidx();
@@ -564,18 +564,18 @@ namespace OpenMS
           size_t idx_1 = peptide_1 * isotopes_per_peptide_max_ + isotope;
           size_t idx_2 = peptide_2 * isotopes_per_peptide_max_ + isotope;
                     
-          std::pair<std::multimap<size_t, MultiplexSatellite >::const_iterator, std::multimap<size_t, MultiplexSatellite >::const_iterator> satellites_1;
-          std::pair<std::multimap<size_t, MultiplexSatellite >::const_iterator, std::multimap<size_t, MultiplexSatellite >::const_iterator> satellites_2;
+          std::pair<std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator, std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator> satellites_1;
+          std::pair<std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator, std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator> satellites_2;
           satellites_1 = peak.getSatellites().equal_range(idx_1);
           satellites_2 = peak.getSatellites().equal_range(idx_2);
           
           // loop over satellites in mass trace 1
-          for (std::multimap<size_t, MultiplexSatellite >::const_iterator satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
+          for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
           {
             size_t rt_idx_1 = (satellite_it_1->second).getRTidx();
   
             // loop over satellites in mass trace 2
-            for (std::multimap<size_t, MultiplexSatellite >::const_iterator satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
+            for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
             {
               size_t rt_idx_2 = (satellite_it_2->second).getRTidx();
 

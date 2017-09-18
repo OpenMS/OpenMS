@@ -36,7 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTEREDPEAK_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatellite.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
 
 #include <map>
 #include <vector>
@@ -96,7 +96,7 @@ namespace OpenMS
     /**
      * @brief add a satellite peak
      */
-    const std::multimap<size_t, MultiplexSatellite >& getSatellites() const;
+    const std::multimap<size_t, MultiplexSatelliteCentroided >& getSatellites() const;
           
     /**
      * @brief return number of satellite peaks
@@ -135,7 +135,7 @@ namespace OpenMS
      * White experiments are temporary (for each pattern), but the original
      * <exp_picked_> experiment is permanent.
      */
-    std::multimap<size_t, MultiplexSatellite > satellites_;
+    std::multimap<size_t, MultiplexSatelliteCentroided > satellites_;
  
   };
   

@@ -32,8 +32,8 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITE_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITE_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITECENTROIDED_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXSATELLITECENTROIDED_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -49,14 +49,14 @@ namespace OpenMS
    * 
    * @see MultiplexFilteredPeak
    */
-  class OPENMS_DLLAPI MultiplexSatellite
+  class OPENMS_DLLAPI MultiplexSatelliteCentroided
   {
     public:
 
     /**
      * @brief constructor
      */
-    MultiplexSatellite(size_t rt_idx, size_t mz_idx);
+    MultiplexSatelliteCentroided(size_t rt_idx, size_t mz_idx);
     
     /**
      * @brief returns the m/z index of the satellite peak
@@ -92,4 +92,4 @@ namespace OpenMS
   
 }
 
-#endif /* MULTIPLEXSATELLITE_H */
+#endif /* MULTIPLEXSATELLITECENTROIDED_H */
