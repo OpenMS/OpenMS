@@ -180,6 +180,10 @@ namespace OpenMS
           //std::cout << "        ";
           for (double mz2 = peak_min; mz2 < peak_max; mz2 = navigators[it_rt_profile - exp_spline_profile_.begin()].getNextMz(mz2))
           {
+            //
+            std::multimap<size_t, MultiplexSatelliteProfile > satellites;
+            
+            
             //std::cout << mz2 << " (" << navigators[it_rt_picked - exp_picked_white.begin()].eval(mz2) << ")    ";
             bool x = filterAveragineModel_(pattern, navigators, peak, mz2);
           }

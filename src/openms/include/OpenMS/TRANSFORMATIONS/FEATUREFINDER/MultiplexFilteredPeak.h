@@ -37,6 +37,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteCentroided.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexSatelliteProfile.h>
 
 #include <map>
 #include <vector>
@@ -136,6 +137,18 @@ namespace OpenMS
      * <exp_picked_> experiment is permanent.
      */
     std::multimap<size_t, MultiplexSatelliteCentroided > satellites_;
+    
+    /**
+     * @brief set of profile satellites (used on profile data only)
+     *
+     * Mapping from a pattern index i.e. a specific mass trace to all spline-interpolated
+     * data points forming the pattern. Basically, when profile data are available as input,
+     * we scan over the profile of each satellite peak (see MultiplexSatelliteCentroided above)
+     * and decide if it passes the filters or not.
+     *
+     * pattern_idx -> (rt, mz, intensity)
+     */
+    std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile_;
  
   };
   
