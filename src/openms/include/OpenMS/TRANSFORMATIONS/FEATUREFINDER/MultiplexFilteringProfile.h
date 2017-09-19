@@ -107,14 +107,12 @@ private:
      * @brief constructor
      *
      * @param pattern    m/z pattern to search for
-     * @param navigators
      * @param peak
      * @param satellites
-     * @param mz_sampling    m/z position at which the profile peak is sampled (The peak profile is sampled at multiple positions; not just at the apex.)
      *
      * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <averagine_similarity_>
      */
-    bool filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, std::vector<SplineSpectrum::Navigator>& navigators, const MultiplexFilteredPeak& peak, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile, double mz_sampling) const;
+    bool filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const;
 
     /**
      * @brief spline interpolated profile data and peak boundaries

@@ -212,7 +212,7 @@ namespace OpenMS
               satellites_profile.insert(std::make_pair(satellite_it->first, s));
             }
             
-            bool x = filterAveragineModel_(pattern, navigators, peak, satellites_profile, mz_profile);
+            bool x = filterAveragineModel_(pattern, peak, satellites_profile);
           }
           
         }
@@ -230,7 +230,7 @@ namespace OpenMS
     return filter_results;
   }
 
-  bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, std::vector<SplineSpectrum::Navigator>& navigators, const MultiplexFilteredPeak& peak, std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile, double mz_sampling) const
+  bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const
   {
     // construct averagine distribution
     // Note that the peptide(s) are very close in mass. We therefore calculate the averagine distribution only once (for the lightest peptide).
@@ -266,11 +266,6 @@ namespace OpenMS
       std::cout << "Inside the Averagine Filter.\n";
     }*/
   
-    // determine m/z shift relative to the centroided peak at which the profile data will be sampled
-    double rt_peak = peak.getRT();
-    double mz_peak = peak.getMZ();
-    double mz_shift = mz_sampling - mz_peak;
-    
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
