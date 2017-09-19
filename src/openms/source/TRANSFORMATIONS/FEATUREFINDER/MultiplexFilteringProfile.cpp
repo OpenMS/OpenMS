@@ -225,16 +225,31 @@ namespace OpenMS
             /**
              * All filters passed.
              */
-            // add the satellite data points to the peak
             
+            // add the satellite data points to the peak
+            for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator it = satellites_profile.begin(); it != satellites_profile.end(); ++it)
+            {
+              peak.addSatelliteProfile(it->second, it->first);
+            }
             
           }
           
+          // If some satellite data points passed all filters, we can add the peak to the filter result.
+          if (peak.sizeProfile() > 0)
+          {
+            result.addPeak(peak);
+            blacklistPeak_(peak, pattern_idx);
+          }
+          
         }
+        
       }
       
       // add results of this pattern to list
       filter_results.push_back(result);
+      
+      ungreyBlacklist_();
+
     }
         
     std::cout << "\nThat took me " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n";

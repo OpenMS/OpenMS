@@ -166,6 +166,10 @@ namespace OpenMS
           {
             std::cout << "Passed peptide similarity filter.\n\n\n";
           }*/
+          
+          /**
+           * All filters passed.
+           */
 
           result.addPeak(peak);
           blacklistPeak_(peak, pattern_idx);
