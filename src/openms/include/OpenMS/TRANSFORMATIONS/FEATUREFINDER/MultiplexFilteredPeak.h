@@ -94,10 +94,14 @@ namespace OpenMS
      */
     void addSatellite(size_t rt_idx, size_t mz_idx, size_t pattern_idx);
     
+    void addSatellite(MultiplexSatelliteCentroided satellite, size_t pattern_idx);
+    
     /**
      * @brief add a satellite data point
      */
     void addSatelliteProfile(double rt, double mz, double intensity, size_t pattern_idx);
+    
+    void addSatelliteProfile(MultiplexSatelliteProfile satellite, size_t pattern_idx);
     
     /**
      * @brief return all satellite peaks

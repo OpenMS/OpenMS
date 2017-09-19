@@ -187,8 +187,9 @@ namespace OpenMS
             // determine m/z shift relative to the centroided peak at which the profile data will be sampled
             double mz_shift = mz_profile - mz_peak;
 
-            // construct the set of spline-interpolated satellites for this specific mz_profile
             std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile;
+
+            // construct the set of spline-interpolated satellites for this specific mz_profile
             for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = satellites.begin(); satellite_it != satellites.end(); ++satellite_it)
             {
               // find indices of the peak
@@ -221,6 +222,10 @@ namespace OpenMS
               continue;
             }
             
+            /**
+             * All filters passed.
+             */
+            // add the satellite data points to the peak
             
             
           }
