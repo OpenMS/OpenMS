@@ -208,11 +208,19 @@ namespace OpenMS
               double mz = mz_satellite + mz_shift;
               double intensity = navigators[rt_idx].eval(mz);
               
-              MultiplexSatelliteProfile s(rt_satellite, mz, intensity);
-              satellites_profile.insert(std::make_pair(satellite_it->first, s));
+              satellites_profile.insert(std::make_pair(satellite_it->first, MultiplexSatelliteProfile(rt_satellite, mz, intensity)));
             }
             
-            bool x = filterAveragineModel_(pattern, peak, satellites_profile);
+            if (!(filterAveragineModel_(pattern, peak, satellites_profile)))
+            {
+              continue;
+            }
+            
+            if (!(filterPeptideCorrelation_(pattern, peak, satellites_profile)))
+            {
+              continue;
+            }
+            
           }
           
         }
@@ -321,6 +329,102 @@ namespace OpenMS
       if ((correlation_Pearson < averagine_similarity_) || (correlation_Spearman < averagine_similarity_))
       {
         return false;
+      }
+      
+    }
+    
+    return true;
+  }
+  
+  bool MultiplexFilteringProfile::filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const
+  {
+    if (pattern.getMassShiftCount() < 2)
+    {
+      // filter irrelevant for singlet feature detection
+      return true;
+    }
+
+    // debug output variables
+    /*int debug_charge = 4;
+    size_t debug_rt_idx = 35;
+    size_t debug_mz_idx = 6;
+    bool debug_now = ((pattern.getCharge() == debug_charge) && (peak.getRTidx() == debug_rt_idx) && (peak.getMZidx() == debug_mz_idx));*/
+    
+    // debug output
+    /*if (debug_now)
+     {
+     std::cout << "Inside the Peptide Correlation Filter.\n";
+     }*/
+
+    // We will calculate the correlations between all possible peptide combinations.
+    // For example (light, medium), (light, heavy) and (medium, heavy) in the case of triplets.
+    // If one of the correlations is below the <peptide_similarity_> limit, the filter fails.
+    
+    // loop over the first peptide
+    for (size_t peptide_1 = 0; peptide_1 < pattern.getMassShiftCount() - 1; ++peptide_1)
+    {
+      // loop over the second peptide
+      for (size_t peptide_2 = peptide_1 + 1; peptide_2 < pattern.getMassShiftCount(); ++peptide_2)
+      {
+        std::vector<double> intensities_1;
+        std::vector<double> intensities_2;
+        
+        // loop over isotopes i.e. mass traces of both peptides
+        for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
+        {
+          size_t idx_1 = peptide_1 * isotopes_per_peptide_max_ + isotope;
+          size_t idx_2 = peptide_2 * isotopes_per_peptide_max_ + isotope;
+          
+          std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_1;
+          std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_2;
+          satellites_1 = satellites_profile.equal_range(idx_1);
+          satellites_2 = satellites_profile.equal_range(idx_2);
+          
+          // loop over satellites in mass trace 1
+          for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_1 = satellites_1.first; satellite_it_1 != satellites_1.second; ++satellite_it_1)
+          {
+            double rt_1 = (satellite_it_1->second).getRT();
+            
+            // loop over satellites in mass trace 2
+            for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_2 = satellites_2.first; satellite_it_2 != satellites_2.second; ++satellite_it_2)
+            {
+              double rt_2 = (satellite_it_2->second).getRT();
+              
+              if (rt_1 == rt_2)
+              {
+                intensities_1.push_back((satellite_it_1->second).getIntensity());
+                intensities_2.push_back((satellite_it_2->second).getIntensity());
+              }
+
+            }
+            
+          }
+
+        }
+
+        // It is well possible that no corresponding satellite peaks exist, in which case the filter fails.
+        if ((intensities_1.size() == 0) || (intensities_2.size() == 0))
+        {
+          return false;
+        }
+        
+        // calculate correlation between peak insities in peptides 1 and 2
+        double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
+        double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_1.begin(), intensities_1.end(), intensities_2.begin(), intensities_2.end());
+        
+        // debug output
+        /*if (debug_now)
+         {
+         std::cout << "        Pearson correlation = " << correlation_Pearson << "    rank correlation = " << correlation_Spearman << "\n";
+         //std::cout << "        Pearson correlation = " << correlation_Pearson << "\n";
+         }*/
+        
+        if ((correlation_Pearson < peptide_similarity_) || (correlation_Spearman < peptide_similarity_))
+        //if (correlation_Pearson < peptide_similarity_)
+        {
+          return false;
+        }
+
       }
       
     }
