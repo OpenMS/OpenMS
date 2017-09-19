@@ -702,6 +702,9 @@ public:
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
+      // DEBUG output
+      std::cout << "pattern = " << pattern << "    number of clusters = " << cluster_results[pattern].size() << "\n";
+      
       // loop over clusters
       for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
       {
@@ -865,145 +868,6 @@ public:
           }
         }
         
-        /*ConsensusFeature consensus;
-
-        // The position (m/z, RT) of the peptide features is the centre-of-mass of the mass trace of the lightest isotope.
-        // The centre-of-mass is the intensity-weighted average of the peak positions.
-        unsigned number_of_peptides = patterns[pattern].getMassShiftCount();
-        std::vector<double> sum_intensity_mz(number_of_peptides, 0);
-        std::vector<double> sum_intensity_rt(number_of_peptides, 0);
-        std::vector<double> sum_intensity(number_of_peptides, 0);
-        // intensities for ratio determination.
-        // For centroided input data, these intensities are peak intensities.
-        // For profile input data, these intensities are the spline-interpolated profile intensities.
-        // First index is the peptide, second is just the profile intensities collected
-        std::vector<std::vector<double> > all_intensities(patterns[pattern].getMassShiftCount(), std::vector<double>());
-        // bounding boxes of mass traces for each peptide multiplet
-        // First index is the peptide, second is the mass trace within the peptide.
-        std::map<std::pair<unsigned, unsigned>, DBoundingBox<2> > mass_traces;
-
-        GridBasedCluster cluster = cluster_it->second;
-        std::vector<int> points = cluster.getPoints();
-
-        // loop over points in cluster
-        for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
-        {
-          int idx = (*point_it);
-
-          MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(idx);
-          double rt = result_peak.getRT();
-
-          for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
-          {
-            sum_intensity_mz[peptide] += (result_peak.getMZ() + result_peak.getMZShifts()[(isotopes_per_peptide_max_ + 1) * peptide + 1]) * result_peak.getIntensities()[(isotopes_per_peptide_max_ + 1) * peptide + 1];
-            sum_intensity_rt[peptide] += result_peak.getRT() * result_peak.getIntensities()[(isotopes_per_peptide_max_ + 1) * peptide + 1];
-            sum_intensity[peptide]  += result_peak.getIntensities()[(isotopes_per_peptide_max_ + 1) * peptide + 1];
-          }
-
-          if (centroided)
-          {
-            // loop over isotopic peaks in peptide
-            for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
-            {
-              // loop over peptides
-              for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
-              {
-                unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1; // +1 due to zeroth peaks
-                all_intensities[peptide].push_back(result_peak.getIntensities()[index]); // Note that the intensity can be NaN. To be checked later.
-
-                double mz_shift = result_peak.getMZShifts()[index];
-                if (!(boost::math::isnan(mz_shift)))
-                {
-                  std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
-                  mass_traces[peptide_peak].enlarge(rt, result_peak.getMZ() + mz_shift);
-                }
-              }
-            }
-          }
-          else
-          {
-            // iterate over profile data
-            // (We use the (spline-interpolated) profile intensities for a very accurate ratio determination.)
-            for (int i = 0; i < result_peak.size(); ++i)
-            {
-              MultiplexFilterResultRaw result_raw = result_peak.getFilterResultRaw(i);
-
-              // loop over isotopic peaks in peptide
-              for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
-              {
-                // loop over peptides
-                for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
-                {
-                  unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1; // +1 due to zeroth peaks
-                  all_intensities[peptide].push_back(result_raw.getIntensities()[index]); // Note that the intensity can be NaN. To be checked later.
-
-                  double mz_shift = result_raw.getMZShifts()[index];
-                  if (!(boost::math::isnan(mz_shift)))
-                  {
-                    std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
-                    mass_traces[peptide_peak].enlarge(rt, result_raw.getMZ() + mz_shift);
-                  }
-                }
-              }
-            }
-          }
-
-        }
-
-        // calculate intensities for each of the peptides from profile data
-        std::vector<double> peptide_intensities = getPeptideIntensities(all_intensities);
-
-        // average peptide intensity (= consensus intensity)
-        double average_peptide_intensity = 0;
-        for (unsigned i = 0; i < peptide_intensities.size(); ++i)
-        {
-          average_peptide_intensity += peptide_intensities[i];
-        }
-        average_peptide_intensity /= peptide_intensities.size();
-
-        // fill map with consensuses and its features
-        consensus.setMZ(sum_intensity_mz[0] / sum_intensity[0]);
-        consensus.setRT(sum_intensity_rt[0] / sum_intensity[0]);
-        consensus.setIntensity(average_peptide_intensity);
-        consensus.setCharge(patterns[pattern].getCharge());
-        consensus.setQuality(1 - 1 / points.size()); // rough quality score in [0,1]
-
-        for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
-        {
-          FeatureHandle feature_handle;
-          feature_handle.setMZ(sum_intensity_mz[peptide] / sum_intensity[peptide]);
-          feature_handle.setRT(sum_intensity_rt[peptide] / sum_intensity[peptide]);
-          feature_handle.setIntensity(peptide_intensities[peptide]);
-          feature_handle.setCharge(patterns[pattern].getCharge());
-          feature_handle.setMapIndex(peptide);
-          //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
-          consensus_map.getFileDescriptions()[peptide].size++;
-          consensus.insert(feature_handle);
-
-          Feature feature;
-          feature.setMZ(sum_intensity_mz[peptide] / sum_intensity[peptide]);
-          feature.setRT(sum_intensity_rt[peptide] / sum_intensity[peptide]);
-          feature.setIntensity(peptide_intensities[peptide]);
-          feature.setCharge(patterns[pattern].getCharge());
-          feature.setOverallQuality(1 - 1 / points.size());
-          for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
-          {
-            std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
-            if (mass_traces.count(peptide_peak) > 0)
-            {
-              ConvexHull2D hull;
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(), mass_traces[peptide_peak].minY()));
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(), mass_traces[peptide_peak].maxY()));
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(), mass_traces[peptide_peak].minY()));
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(), mass_traces[peptide_peak].maxY()));
-              feature.getConvexHulls().push_back(hull);
-            }
-          }
-
-          feature_map.push_back(feature);
-        }
-
-        consensus_map.push_back(consensus);*/
       }
 
     }
@@ -1392,8 +1256,9 @@ private:
       feature_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
     }
 
-    /*generateMaps_(centroided, patterns, filter_results, cluster_results, consensus_map, feature_map);
-    if (out_ != "")
+    generateMaps_(centroided, patterns, filter_results, cluster_results, consensus_map, feature_map);
+    
+    /*if (out_ != "")
     {
       writeConsensusMap_(out_, consensus_map);
     }
