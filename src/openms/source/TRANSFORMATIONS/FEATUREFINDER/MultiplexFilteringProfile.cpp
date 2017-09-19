@@ -118,9 +118,9 @@ namespace OpenMS
     }
     
     // loop over all patterns
-    //for (unsigned pattern_idx = 0; pattern_idx < patterns_.size(); ++pattern_idx)
+    for (unsigned pattern_idx = 0; pattern_idx < patterns_.size(); ++pattern_idx)
     // DEBUG: for now only first pattern
-    for (unsigned pattern_idx = 0; pattern_idx < 1; ++pattern_idx)
+    //for (unsigned pattern_idx = 0; pattern_idx < 1; ++pattern_idx)
     {
       std::cout << "\npattern = " << pattern_idx << "\n";
       
@@ -155,7 +155,7 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_picked_band_begin = exp_picked_white.RTBegin(rt - rt_band_/2);
         MSExperiment::ConstIterator it_rt_picked_band_end = exp_picked_white.RTEnd(rt + rt_band_/2);
         
-        std::cout << "    RT = " << rt << "\n";
+        //std::cout << "    RT = " << rt << "\n";
         
         // loop over mz
         for (MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt_picked->begin(); it_mz != it_rt_picked->end(); ++it_mz)
@@ -177,7 +177,7 @@ namespace OpenMS
           double rt_peak = peak.getRT();
           double mz_peak = peak.getMZ();
 
-          std::cout << "        mz = " << mz << " (" << peak_min << ", " << peak_max << ")\n";
+          //std::cout << "        mz = " << mz << " (" << peak_min << ", " << peak_max << ")\n";
           
           std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();
           
@@ -249,7 +249,6 @@ namespace OpenMS
       filter_results.push_back(result);
       
       ungreyBlacklist_();
-
     }
         
     std::cout << "\nThat took me " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n";
