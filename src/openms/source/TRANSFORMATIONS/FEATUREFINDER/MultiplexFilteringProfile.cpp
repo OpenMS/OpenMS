@@ -212,7 +212,7 @@ namespace OpenMS
               satellites_profile.insert(std::make_pair(satellite_it->first, s));
             }
             
-            bool x = filterAveragineModel_(pattern, navigators, peak, mz_profile);
+            bool x = filterAveragineModel_(pattern, navigators, peak, satellites_profile, mz_profile);
           }
           
         }
@@ -230,7 +230,7 @@ namespace OpenMS
     return filter_results;
   }
 
-  bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, std::vector<SplineSpectrum::Navigator>& navigators, const MultiplexFilteredPeak& peak, double mz_sampling) const
+  bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, std::vector<SplineSpectrum::Navigator>& navigators, const MultiplexFilteredPeak& peak, std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile, double mz_sampling) const
   {
     // construct averagine distribution
     // Note that the peptide(s) are very close in mass. We therefore calculate the averagine distribution only once (for the lightest peptide).
@@ -265,7 +265,6 @@ namespace OpenMS
     {
       std::cout << "Inside the Averagine Filter.\n";
     }*/
- 
   
     // determine m/z shift relative to the centroided peak at which the profile data will be sampled
     double rt_peak = peak.getRT();
@@ -283,34 +282,17 @@ namespace OpenMS
       for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
       {
         size_t idx = peptide * isotopes_per_peptide_max_ + isotope;
-        std::pair<std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator, std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator> satellites;
-        satellites = peak.getSatellites().equal_range(idx);
+        std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites;
+        satellites = satellites_profile.equal_range(idx);
         
         int count = 0;
         double sum_intensities = 0;
         
         // loop over satellites in mass trace
-        for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = satellites.first; satellite_it != satellites.second; ++satellite_it)
+        for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator it = satellites.first; it != satellites.second; ++it)
         {
-          // find indices of the peak
-          size_t rt_idx = (satellite_it->second).getRTidx();
-          size_t mz_idx = (satellite_it->second).getMZidx();
-          
-          // find peak itself
-          MSExperiment::ConstIterator it_rt = exp_picked_.begin();
-          std::advance(it_rt, rt_idx);
-          MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin();
-          std::advance(it_mz, mz_idx);
-          
-          double rt_satellite = it_rt->getRT();
-          double mz_satellite = it_mz->getMZ();
-      
-          // determine m/z and corresponding intensity for averagine test
-          double mz = mz_satellite + mz_shift;
-          double intensity = navigators[rt_idx].eval(mz);
-          
           ++count;
-          sum_intensities += intensity;
+          sum_intensities += (it->second).getIntensity();
         }
         
         if (count > 0)
