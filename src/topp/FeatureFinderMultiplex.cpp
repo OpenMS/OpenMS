@@ -1367,13 +1367,13 @@ private:
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
     }
-    /*else
+    else
     {
       // profile data
       MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, rt_typical_, rt_min_);
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
-    }*/
+    }
 
     /**
      * write to output
@@ -1381,7 +1381,7 @@ private:
     ConsensusMap consensus_map;
     FeatureMap feature_map;
     
-    /*if (centroided)
+    if (centroided)
     {
       consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
@@ -1390,7 +1390,7 @@ private:
     {
       consensus_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
       feature_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
-    }*/
+    }
 
     /*generateMaps_(centroided, patterns, filter_results, cluster_results, consensus_map, feature_map);
     if (out_ != "")

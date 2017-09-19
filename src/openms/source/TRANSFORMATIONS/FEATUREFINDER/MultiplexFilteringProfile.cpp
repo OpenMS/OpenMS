@@ -119,8 +119,6 @@ namespace OpenMS
     
     // loop over all patterns
     for (unsigned pattern_idx = 0; pattern_idx < patterns_.size(); ++pattern_idx)
-    // DEBUG: for now only first pattern
-    //for (unsigned pattern_idx = 0; pattern_idx < 1; ++pattern_idx)
     {
       std::cout << "\npattern = " << pattern_idx << "\n";
       
