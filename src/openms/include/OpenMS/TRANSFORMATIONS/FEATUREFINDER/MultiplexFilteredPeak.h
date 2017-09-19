@@ -93,17 +93,32 @@ namespace OpenMS
      * @brief add a satellite peak
      */
     void addSatellite(size_t rt_idx, size_t mz_idx, size_t pattern_idx);
-          
+    
     /**
-     * @brief add a satellite peak
+     * @brief add a satellite data point
+     */
+    void addSatelliteProfile(double rt, double mz, double intensity, size_t pattern_idx);
+    
+    /**
+     * @brief return all satellite peaks
      */
     const std::multimap<size_t, MultiplexSatelliteCentroided >& getSatellites() const;
-          
+    
+    /**
+     * @brief return all satellite data points
+     */
+    const std::multimap<size_t, MultiplexSatelliteProfile >& getSatellitesProfile() const;
+    
     /**
      * @brief return number of satellite peaks
      */
     size_t size() const;
-          
+    
+    /**
+     * @brief return number of satellite data points
+     */
+    size_t sizeProfile() const;
+    
     private:
     /**
      * @brief position of the primary peak
