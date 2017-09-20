@@ -713,18 +713,8 @@ public:
         // loop over satellites for this isotope i.e. mass trace
         for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = satellites_isotope.first; satellite_it != satellites_isotope.second; ++satellite_it)
         {
-          // find indices of the peak
-          size_t rt_idx = (satellite_it->second).getRTidx();
-          size_t mz_idx = (satellite_it->second).getMZidx();
-          
-          // find peak itself
-          MSExperiment::ConstIterator it_rt = exp_centroid_.begin();
-          std::advance(it_rt, rt_idx);
-          MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin();
-          std::advance(it_mz, mz_idx);
-          
-          rt += it_rt->getRT() * it_mz->getIntensity();
-          intensity_sum += it_mz->getIntensity();
+          rt += (satellite_it->second).getRT() * (satellite_it->second).getIntensity();
+          intensity_sum += (satellite_it->second).getIntensity();
         }
       }
       
@@ -757,18 +747,8 @@ public:
         // loop over satellites for this isotope in the light peptide
         for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_1 = satellites_isotope_1.first; satellite_it_1 != satellites_isotope_1.second; ++satellite_it_1)
         {
-          // find indices of the peak
-          size_t rt_idx_1 = (satellite_it_1->second).getRTidx();
-          size_t mz_idx_1 = (satellite_it_1->second).getMZidx();
-          
-          // find peak itself
-          MSExperiment::ConstIterator it_rt_1 = exp_centroid_.begin();
-          std::advance(it_rt_1, rt_idx_1);
-          MSSpectrum<Peak1D>::ConstIterator it_mz_1 = it_rt_1->begin();
-          std::advance(it_mz_1, mz_idx_1);
-          
           // find corresponding spectra
-          double rt_1 = it_rt_1->getRT();
+          double rt_1 = (satellite_it_1->second).getRT();
           double rt_2_target = rt_1 + rt_peptide[peptide] - rt_peptide[0];
           
           MSExperiment::ConstIterator it_rt_2 = exp_centroid_.RTBegin(rt_2_target);
@@ -790,26 +770,16 @@ public:
           double intensity_later = -1;
           for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_2 = satellites_isotope_2.first; satellite_it_2 != satellites_isotope_2.second; ++satellite_it_2)
           {
-            // find indices of the peak
-            size_t rt_idx_2 = (satellite_it_2->second).getRTidx();
-            size_t mz_idx_2 = (satellite_it_2->second).getMZidx();
-            
-            // find peak itself
-            MSExperiment::ConstIterator it_rt_2 = exp_centroid_.begin();
-            std::advance(it_rt_2, rt_idx_2);
-            MSSpectrum<Peak1D>::ConstIterator it_mz_2 = it_rt_2->begin();
-            std::advance(it_mz_2, mz_idx_2);
-            
-            if (it_rt_2->getRT() <= rt_2 && (std::abs(it_rt_2->getRT() - rt_2) < std::abs(rt_earlier - rt_2)))
+            if ((satellite_it_2->second).getRT() <= rt_2 && (std::abs((satellite_it_2->second).getRT() - rt_2) < std::abs(rt_earlier - rt_2)))
             {
-              rt_earlier = it_rt_2->getRT();
-              intensity_earlier = it_mz_2->getIntensity();
+              rt_earlier = (satellite_it_2->second).getRT();
+              intensity_earlier = (satellite_it_2->second).getIntensity();
             }
             
-            if (it_rt_2->getRT() >= rt_2 && (std::abs(it_rt_2->getRT() - rt_2) < std::abs(rt_later - rt_2)))
+            if ((satellite_it_2->second).getRT() >= rt_2 && (std::abs((satellite_it_2->second).getRT() - rt_2) < std::abs(rt_later - rt_2)))
             {
-              rt_later = it_rt_2->getRT();
-              intensity_later = it_mz_2->getIntensity();
+              rt_later = (satellite_it_2->second).getRT();
+              intensity_later = (satellite_it_2->second).getIntensity();
             }
             
           }
@@ -828,7 +798,7 @@ public:
               intensity_other = intensity_earlier + (intensity_later - intensity_earlier)*(rt_2 - rt_earlier)/(rt_later - rt_earlier);
             }
             
-            intensities_light.push_back(it_mz_1->getIntensity());
+            intensities_light.push_back((satellite_it_1->second).getIntensity());
             intensities_other.push_back(intensity_other);
           }
         }
@@ -1107,24 +1077,9 @@ public:
         {
           MultiplexFilteredPeak peak = filter_results[pattern].getPeak(*point_it);
           // loop over satellites of the peak
-          for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = peak.getSatellites().begin(); satellite_it != peak.getSatellites().end(); ++satellite_it)
+          for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = peak.getSatellitesProfile().begin(); satellite_it != peak.getSatellitesProfile().end(); ++satellite_it)
           {
-            // check if this satellite (i.e. these indices) are already in the set
-            bool satellite_in_set = false;
-            for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it_2 = satellites.begin(); satellite_it_2 != satellites.end(); ++satellite_it_2)
-            {
-              if ((satellite_it_2->second.getRTidx() == satellite_it->second.getRTidx()) && (satellite_it_2->second.getMZidx() == satellite_it->second.getMZidx()))
-              {
-                satellite_in_set = true;
-                continue;
-              }
-            }
-            if (satellite_in_set)
-            {
-              continue;
-            }
-            
-            satellites.insert(std::make_pair(satellite_it->first, MultiplexSatelliteProfile(satellite_it->second.getRTidx(), satellite_it->second.getMZidx())));
+            satellites.insert(std::make_pair(satellite_it->first, MultiplexSatelliteProfile(satellite_it->second.getRT(), satellite_it->second.getMZ(), satellite_it->second.getIntensity())));
           }
         }
         
