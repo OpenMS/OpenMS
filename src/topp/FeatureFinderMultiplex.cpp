@@ -874,9 +874,6 @@ public:
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
-      // DEBUG output
-      std::cout << "pattern = " << pattern << "    number of clusters = " << cluster_results[pattern].size() << "\n";
-      
       // loop over clusters
       for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
       {
@@ -1060,9 +1057,6 @@ public:
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
-      // DEBUG output
-      std::cout << "pattern = " << pattern << "    number of clusters = " << cluster_results[pattern].size() << "\n";
-      
       // loop over clusters
       for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
       {
@@ -1084,7 +1078,7 @@ public:
         }
         
         // determine peptide intensities
-        /*std::vector<double> peptide_intensities = determinePeptideIntensitiesProfile_(patterns[pattern], satellites);
+        std::vector<double> peptide_intensities = determinePeptideIntensitiesProfile_(patterns[pattern], satellites);
         
         // If no reliable peptide intensity can be determined, we do not report the peptide multiplet.
         if (peptide_intensities[0] == -1)
@@ -1121,24 +1115,14 @@ public:
             // loop over satellites for this isotope i.e. mass trace
             for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = satellites_isotope.first; satellite_it != satellites_isotope.second; ++satellite_it)
             {
-              // find indices of the peak
-              size_t rt_idx = (satellite_it->second).getRTidx();
-              size_t mz_idx = (satellite_it->second).getMZidx();
-              
-              // find peak itself
-              MSExperiment::ConstIterator it_rt = exp_centroid_.begin();
-              std::advance(it_rt, rt_idx);
-              MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin();
-              std::advance(it_mz, mz_idx);
-              
               if (isotope == 0)
               {
-                rt += it_rt->getRT() * it_mz->getIntensity();
-                mz += it_mz->getMZ() * it_mz->getIntensity();
-                intensity_sum += it_mz->getIntensity();
+                rt += (satellite_it->second).getRT() * (satellite_it->second).getIntensity();
+                mz += (satellite_it->second).getMZ() * (satellite_it->second).getIntensity();
+                intensity_sum += (satellite_it->second).getIntensity();
               }
               
-              mass_trace.enlarge(it_rt->getRT(), it_mz->getMZ());
+              mass_trace.enlarge((satellite_it->second).getRT(), (satellite_it->second).getMZ());
             }
             
             if ((mass_trace.width() == 0) || (mass_trace.height() == 0))
@@ -1209,7 +1193,7 @@ public:
           {
             feature_map.push_back(*it);
           }
-        }*/
+        }
         
       }
       
@@ -1601,14 +1585,14 @@ private:
       generateMapsProfile_(patterns, filter_results, cluster_results, consensus_map, feature_map);
     }
     
-    /*if (out_ != "")
+    if (out_ != "")
     {
       writeConsensusMap_(out_, consensus_map);
     }
     if (out_features_ != "")
     {
       writeFeatureMap_(out_features_, feature_map);
-    }*/
+    }
 
     /*if (out_mzq_ != "")
     {
