@@ -22,6 +22,6 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
         bool checkValidWeight(libcpp_string& weight, libcpp_vector[libcpp_string]& valid_weights) nogil except +
         double weightDatum(double& datum, libcpp_string& weight) nogil except +
         double unWeightDatum(double& datum, libcpp_string& weight) nogil except +
-        libcpp_string getValidXWeights() nogil except +
-        libcpp_string getValidYWeights() nogil except +
+        # libcpp_string getValidXWeights() nogil except +
+        # libcpp_string getValidYWeights() nogil except +
 
