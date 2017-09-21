@@ -52,166 +52,158 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page UTILS_AccurateMassSearch AccurateMassSearch
+  @page UTILS_AccurateMassSearch AccurateMassSearch
 
-        @brief  An algorithm to search for exact mass matches from a spectrum against a database (e.g. HMDB).
+  @brief An algorithm to search for exact mass matches from a spectrum against a database (e.g. HMDB).
 
-        <CENTER>
-        <table>
-        <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ AccurateMassSearch \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> NA</td>
-        </tr>
-        </table>
-        </CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ AccurateMassSearch \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> NA</td>
+  </tr>
+  </table>
+  </CENTER>
 
+  Accurate mass search against a database (usually HMDB).
+  For details see @ref OpenMS::AccurateMassSearchEngine "AccurateMassSearchEngine".
 
-        Accurate mass search against a database (usually HMDB).
-        For details see @ref OpenMS::AccurateMassSearchEngine "AccurateMassSearchEngine".
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-
-        @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
-
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude UTILS_AccurateMassSearch.cli
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_AccurateMassSearch.cli
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
 class TOPPAccurateMassSearch :
-        public TOPPBase
+  public TOPPBase
 {
 public:
-    TOPPAccurateMassSearch() :
-        TOPPBase("AccurateMassSearch", "Match MS signals to molecules from a database by mass.", false)
-    {
-    }
+  TOPPAccurateMassSearch() :
+    TOPPBase("AccurateMassSearch", "Match MS signals to molecules from a database by mass.", false)
+  {
+  }
 
 protected:
+  void registerOptionsAndFlags_()
+  {
+    registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    registerOutputFile_("out", "<file>", "", "mzTab file");
+    setValidFormats_("out", ListUtils::create<String>("tsv"));
 
-    void registerOptionsAndFlags_()
+    registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
+    setValidFormats_("out_annotation", ListUtils::create<String>("featureXML,consensusXML"));
+
+    // move some params from algorithm section to top level (to support input file functionality)
+    Param p = AccurateMassSearchEngine().getDefaults();
+    registerTOPPSubsection_("db", "Database files which contain the identifications");
+    registerInputFileList_("db:mapping", "<file(s)>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("db:mapping", ListUtils::create<String>("tsv"));
+    registerInputFileList_("db:struct", "<file(s)>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("db:struct", ListUtils::create<String>("tsv"));
+    registerInputFile_("positive_adducts", "<file>", p.getValue("positive_adducts"), p.getDescription("positive_adducts"), true, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("positive_adducts", ListUtils::create<String>("tsv"));
+    registerInputFile_("negative_adducts", "<file>", p.getValue("negative_adducts"), p.getDescription("negative_adducts"), true, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("negative_adducts", ListUtils::create<String>("tsv"));
+    // addEmptyLine_();
+    // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
+    registerSubsection_("algorithm", "Algorithm parameters section");
+  }
+
+  Param getSubsectionDefaults_(const String& /*section*/) const
+  {
+    Param p = AccurateMassSearchEngine().getDefaults();
+    // remove params which are already registered at top level (see registerOptionsAndFlags_())
+    p.remove("db:mapping");
+    p.remove("db:struct");
+    p.remove("positive_adducts");
+    p.remove("negative_adducts");
+    return p;
+  }
+
+  ExitCodes main_(int, const char**)
+  {
+    //-------------------------------------------------------------
+    // parameter handling
+    //-------------------------------------------------------------
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    String file_ann = getStringOption_("out_annotation");
+
+    Param ams_param = getParam_().copy("algorithm:", true);
+    // copy top-level params to algorithm
+    ams_param.setValue("db:mapping", getStringList_("db:mapping"));
+    ams_param.setValue("db:struct", getStringList_("db:struct"));
+    ams_param.setValue("positive_adducts", getStringOption_("positive_adducts"));
+    ams_param.setValue("negative_adducts", getStringOption_("negative_adducts"));
+
+    writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
+
+    // mzTAB output data structure
+    MzTab mztab_output;
+    MzTabFile mztab_outfile;
+
+    AccurateMassSearchEngine ams;
+    ams.setParameters(ams_param);
+    ams.init();
+
+    FileTypes::Type filetype = FileHandler::getType(in);
+
+    if (filetype == FileTypes::FEATUREXML)
     {
-        registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
-        setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
-        registerOutputFile_("out", "<file>", "", "mzTab file");
-        setValidFormats_("out", ListUtils::create<String>("tsv"));
+      FeatureMap ms_feat_map;
+      FeatureXMLFile().load(in, ms_feat_map);
 
-        registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
-        setValidFormats_("out_annotation", ListUtils::create<String>("featureXML,consensusXML"));
+      //-------------------------------------------------------------
+      // do the work
+      //-------------------------------------------------------------
+      ams.run(ms_feat_map, mztab_output);
 
+      //-------------------------------------------------------------
+      // writing output
+      //-------------------------------------------------------------
+      // annotate output with data processing info
+      //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+      if (!file_ann.empty())
+      {
+        FeatureXMLFile().store(file_ann, ms_feat_map);
+      }
+    }
+    else if (filetype == FileTypes::CONSENSUSXML)
+    {
+      ConsensusMap ms_cons_map;
 
-        // move some params from algorithm section to top level (to support input file functionality)
-        Param p = AccurateMassSearchEngine().getDefaults();
-        registerTOPPSubsection_("db", "Database files which contain the identifications");
-        registerInputFileList_("db:mapping", "<file(s)>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, ListUtils::create<String>("skipexists"));
-        setValidFormats_("db:mapping", ListUtils::create<String>("tsv"));
-        registerInputFileList_("db:struct", "<file(s)>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, ListUtils::create<String>("skipexists"));
-        setValidFormats_("db:struct", ListUtils::create<String>("tsv"));
-        registerInputFile_("positive_adducts", "<file>", p.getValue("positive_adducts"), p.getDescription("positive_adducts"), true, false, ListUtils::create<String>("skipexists"));
-        setValidFormats_("positive_adducts", ListUtils::create<String>("tsv"));
-        registerInputFile_("negative_adducts", "<file>", p.getValue("negative_adducts"), p.getDescription("negative_adducts"), true, false, ListUtils::create<String>("skipexists"));
-        setValidFormats_("negative_adducts", ListUtils::create<String>("tsv"));
-        // addEmptyLine_();
-        // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
-        registerSubsection_("algorithm", "Algorithm parameters section");
+      ConsensusXMLFile().load(in, ms_cons_map);
+
+      //-------------------------------------------------------------
+      // do the work
+      //-------------------------------------------------------------
+      ams.run(ms_cons_map, mztab_output);
+
+      //-------------------------------------------------------------
+      // writing output
+      //-------------------------------------------------------------
+
+      // annotate output with data processing info
+      //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+      if (!file_ann.empty())
+      {
+        ConsensusXMLFile().store(file_ann, ms_cons_map);
+      }
     }
 
-    Param getSubsectionDefaults_(const String& /*section*/) const
-    {
-      Param p = AccurateMassSearchEngine().getDefaults();
-      // remove params which are already registered at top level (see registerOptionsAndFlags_())
-      p.remove("db:mapping");
-      p.remove("db:struct");
-      p.remove("positive_adducts");
-      p.remove("negative_adducts");
-      return p;
-    }
+    mztab_outfile.store(out, mztab_output);
 
-    ExitCodes main_(int, const char**)
-    {
-
-        //-------------------------------------------------------------
-        // parameter handling
-        //-------------------------------------------------------------
-        String in = getStringOption_("in");
-        String out = getStringOption_("out");
-        String file_ann = getStringOption_("out_annotation");
-
-        Param ams_param = getParam_().copy("algorithm:", true);
-        // copy top-level params to algorithm
-        ams_param.setValue("db:mapping", getStringList_("db:mapping"));
-        ams_param.setValue("db:struct", getStringList_("db:struct"));
-        ams_param.setValue("positive_adducts", getStringOption_("positive_adducts"));
-        ams_param.setValue("negative_adducts", getStringOption_("negative_adducts"));
-
-        writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
-
-
-        // mzTAB output data structure
-        MzTab mztab_output;
-        MzTabFile mztab_outfile;
-        
-        AccurateMassSearchEngine ams;
-        ams.setParameters(ams_param);
-        ams.init();
-        
-        FileTypes::Type filetype = FileHandler::getType(in);
-
-        if (filetype == FileTypes::FEATUREXML)
-        {
-          FeatureMap ms_feat_map;
-          FeatureXMLFile().load(in, ms_feat_map);
-
-          //-------------------------------------------------------------
-          // do the work
-          //-------------------------------------------------------------
-          ams.run(ms_feat_map, mztab_output);
-
-          //-------------------------------------------------------------
-          // writing output
-          //-------------------------------------------------------------
-          // annotate output with data processing info
-          //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-          if (!file_ann.empty())
-          {
-            FeatureXMLFile().store(file_ann, ms_feat_map);
-          }
-        }
-        else if (filetype == FileTypes::CONSENSUSXML)
-        {
-          ConsensusMap ms_cons_map;
-
-          ConsensusXMLFile().load(in, ms_cons_map);
-
-          //-------------------------------------------------------------
-          // do the work
-          //-------------------------------------------------------------
-          ams.run(ms_cons_map, mztab_output);
-
-          //-------------------------------------------------------------
-          // writing output
-          //-------------------------------------------------------------
-
-          // annotate output with data processing info
-          //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-          if (!file_ann.empty())
-          {
-            ConsensusXMLFile().store(file_ann, ms_cons_map);
-          }
-        }
-
-        mztab_outfile.store(out, mztab_output);
-
-
-        return EXECUTION_OK;
-    }
-
+    return EXECUTION_OK;
+  }
 };
 
 
