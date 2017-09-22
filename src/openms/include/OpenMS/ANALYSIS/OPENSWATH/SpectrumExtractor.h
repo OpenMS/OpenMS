@@ -49,9 +49,9 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI SpectrumExtractor
   {
-
 public:
     SpectrumExtractor();
+    ~SpectrumExtractor();
 
 private:
     double rt_window_;

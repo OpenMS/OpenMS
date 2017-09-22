@@ -40,4 +40,6 @@ namespace OpenMS
   {
     // initialize variables?
   }
+
+  SpectrumExtractor::~SpectrumExtractor(void) {}
 }
