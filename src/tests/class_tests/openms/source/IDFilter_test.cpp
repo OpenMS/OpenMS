@@ -225,13 +225,16 @@ START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
     TEST_EQUAL(test_hits[i].getSequence(), hits[i].getSequence());
   }
 
+
+  // Removing sequences
   hits.clear();
-  hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("F(MOD:00051)DFPIANGER")));
+  hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("K(Dimethyl)FPIAUGR")));
 
   test_hits = hits;
   digestion.setEnzyme("Asp-N_ambic");
   
-  IDFilter::PeptideDigestionFilter filter3(digestion, 0, 1);
+  //Should have exactly zero missed cleavages
+  IDFilter::PeptideDigestionFilter filter3(digestion, 0, 0);
 
   filter3.filterPeptideSequences(test_hits);
   TEST_EQUAL(test_hits.size(), hits.size());
