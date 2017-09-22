@@ -51,14 +51,14 @@ SpectrumExtractor* ptr = 0;
 SpectrumExtractor* null_ptr = 0;
 START_SECTION(SpectrumExtractor())
 {
-	ptr = new SpectrumExtractor();
-	TEST_NOT_EQUAL(ptr, null_ptr)
+  ptr = new SpectrumExtractor();
+  TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(~SpectrumExtractor())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
