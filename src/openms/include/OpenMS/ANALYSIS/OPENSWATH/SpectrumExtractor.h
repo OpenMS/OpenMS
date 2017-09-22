@@ -54,11 +54,11 @@ public:
     SpectrumExtractor();
 
 private:
-    double rt_window;
-    double min_score;
-    double min_match;
-    double mz_tolerance;
-    double mz_tolerance_units;
+    double rt_window_;
+    double min_score_;
+    double min_match_;
+    double mz_tolerance_;
+    double mz_tolerance_units_;
   };
 }
 
