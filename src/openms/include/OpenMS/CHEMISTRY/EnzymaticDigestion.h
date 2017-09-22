@@ -124,8 +124,8 @@ public:
     bool isValidProduct(const String& protein, Size pep_pos, Size pep_length, bool methionine_cleavage = false, bool ignore_missed_cleavages = true) const;
 
     /**
-       @param sequence amino-acid sequence to be digested
-       @param filter a function that takes as a parameter the missed cleavages number
+       @param sequence amino-acid unmodified sequence to be digested. MUST be unmodified!
+       @param filter a bool function that takes as a parameter the missed cleavages number. The true value of the filter function will yield a true value for the result, implying that the sequence must be filtered.
        @return a bool value based on the missed cleavages number with respect to the filter function
      */
     bool filterByMissingCleavages(const String& sequence, std::function<bool(const Int)> filter) const;
