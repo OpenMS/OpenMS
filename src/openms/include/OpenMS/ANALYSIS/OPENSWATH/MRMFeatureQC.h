@@ -83,7 +83,7 @@ public:
       @param attachment acML Attachment
 
     */
-    void ConvertFeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment);
+    void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment);
 
     // Members
 
