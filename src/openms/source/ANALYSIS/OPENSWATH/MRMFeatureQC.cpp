@@ -82,8 +82,24 @@ namespace OpenMS
   }
 
   void MRMFeatureQC::FilterFeatureMap(FeatureMap& features)
-  {
-    //TODO
+  { 
+
+    // initialize all unknown variables
+    std::string component_name; //i.e., transition_id
+    std::string IS_component_name; //i.e., internal standard transition_id
+    std::string component_group_name; //i.e., peptideRef
+    double calculated_concentration;
+    std::string concentration_units;// iterate through each component_group/feature     
+    for (size_t feature_it = 0; feature_it < features.size(); ++feature_it)
+    {
+      component_group_name = (std::string)features[feature_it].getMetaValue("PeptideRef");
+
+      // iterate through each component/sub-feature
+      for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
+      {
+        component_name = (std::string)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id");  
+      }
+    }
   }
   
   void MRMFeatureQC::FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment)
