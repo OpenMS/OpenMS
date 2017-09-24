@@ -6,7 +6,6 @@ cdef extern from "<OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>" namespace "O
 
     cdef cppclass AbsoluteQuantitationMethodFile:
         # wrap-ignore
-        # no-pxd-import
 
         AbsoluteQuantitationMethodFile()  nogil except +
 

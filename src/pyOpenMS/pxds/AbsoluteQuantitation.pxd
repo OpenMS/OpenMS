@@ -9,7 +9,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
 
     cdef cppclass AbsoluteQuantitation:
         # wrap-ignore
-        # no-pxd-import
 
         AbsoluteQuantitation() nogil except +
 
