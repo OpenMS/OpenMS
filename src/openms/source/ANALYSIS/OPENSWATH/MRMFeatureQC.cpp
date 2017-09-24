@@ -29,11 +29,10 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Authors: Douglas McCloskeyt $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -46,60 +45,51 @@
 namespace OpenMS
 {
 
-  /**
-
-    @brief The MRMFeatureQC either flags transitions that do not pass the QC criteria or filters out
-      transitions that do not pass the QC criteria. 
-
-    @htmlinclude OpenMS_MRMFeatureQC.parameters
-
-  */
-  class OPENMS_DLLAPI MRMFeatureQC :
-    public DefaultParamHandler
+  MRMFeatureQC::MRMFeatureQC() :
+    DefaultParamHandler("MRMFeatureQC")
   {
+    //TODO
+    defaults_.setValue("stop_after_feature", -1, "Stop finding after feature (ordered by intensity; -1 means do not stop).");
+    defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
+    defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", ListUtils::create<String>("advanced"));
 
-public:
+    defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,smoothed,original"));
 
-    //@{
-    /// Constructor
-    MRMFeatureQC();
+    // write defaults into Param object param_
+    defaultsToParam_();
+    updateMembers_();
+  }
 
-    /// Destructor
-    ~MRMFeatureQC();
-    //@}
+  MRMFeatureQC::~MRMFeatureQC()
+  {
+  }
 
-    /**
-      @brief Flags or filters features and subordinates in a FeatureMap
+  MRMFeatureQC& MRMFeatureQC::operator=(const MRMFeatureQC& rhs)
+  {
+    if (&rhs == this)
+      return *this;
 
-      @param features FeatureMap to flag or filter
+    // don't copy parameters
 
-    */
-    void FilterFeatureMap(FeatureMap& features);
-    
-    /**
-      @brief Converts a FeatureMap to a qcMLFile::Attachment
+    return *this;
+  }
 
-      @param features FeatureMap to flag or filter
-      @param attachment acML Attachment
+  void MRMFeatureQC::updateMembers_()
+  {
+    //TODO
+    stop_after_feature_ = (int)param_.getValue("stop_after_feature");
+  }
 
-    */
-    void ConvertFeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment);
+  void MRMFeatureQC::FilterFeatureMap(FeatureMap& features)
+  {
+    //TODO
+  }
+  
+  void MRMFeatureQC::FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment)
+  {
+    //TODO
+  }
 
-    // Members
-
-    /// flag or filter (i.e., remove) features that do not pass the QC
-    String flag_or_filter_;
-    /// include the data points for the exctracted ion chromatogram (XIC) in the attachment
-    bool report_xic_;
-    /// include the data points for the total ion chromatogram (TIC) in the attachment
-    bool report_tic_;
-    /// qcMLFile Attachment
-    QcMLFile::Attachment attachment_;
-    /// FeatureMap
-    FeatureMap features_;
-
-  };
 }
-
-#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREQC_H
 
