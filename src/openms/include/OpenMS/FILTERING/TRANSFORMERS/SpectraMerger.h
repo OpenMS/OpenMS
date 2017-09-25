@@ -577,35 +577,35 @@ protected:
           Size spec_a = consensus_spec.size(), spec_b = exp[*sit].size(), align_size = alignment.size();
           for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
           {
-              if (alignment.size() == 0 || alignment[align_index].second != spec_b_index)
-                  // ... add unaligned peak
-              {
-                  consensus_spec.push_back(*pit);
-              }
-              // or add aligned peak height to ALL corresponding existing peaks
-              else
-              {
-                  Size counter = 0, copy_of_align_index = align_index;
+            if (alignment.size() == 0 || alignment[align_index].second != spec_b_index)
+              // ... add unaligned peak
+            {
+              consensus_spec.push_back(*pit);
+            }
+            // or add aligned peak height to ALL corresponding existing peaks
+            else
+            {
+              Size counter = 0, copy_of_align_index = align_index;
 
-                  while (alignment.size() > 0 && alignment[copy_of_align_index].second == spec_b_index)
-                  {
-                      ++copy_of_align_index;
-                      ++counter;
-                  } // Count the number of peaks that in a that correspond to a single b peak.
+              while (alignment.size() > 0 && alignment[copy_of_align_index].second == spec_b_index)
+              {
+                ++copy_of_align_index;
+                ++counter;
+              } // Count the number of peaks in a which correspond to a single b peak.
 
-                  while (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
-                  {
-                      consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
-                              (pit->getIntensity()/(double)counter)); // add the intensity divided by the number of peaks
-                      ++align_index; // this aligned peak was explained, wait for next aligned peak ...
-                      if (align_index == alignment.size())
-                      {
-                          alignment.clear();  // end reached -> avoid going into this block again
-                      }
-                  }
-                  align_size=align_size+1-counter; //Decrease align_size by number of
+              while (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
+              {
+                consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
+                    (pit->getIntensity()/(double)counter)); // add the intensity divided by the number of peaks
+                ++align_index; // this aligned peak was explained, wait for next aligned peak ...
+                if (align_index == alignment.size())
+                {
+                  alignment.clear();  // end reached -> avoid going into this block again
+                }
               }
-              ++spec_b_index;
+              align_size=align_size+1-counter; //Decrease align_size by number of
+            }
+            ++spec_b_index;
           }
           consensus_spec.sortByPosition(); // sort, otherwise next alignment will fail
           if (spec_a + spec_b - align_size != consensus_spec.size())
