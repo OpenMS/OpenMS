@@ -32,14 +32,30 @@
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
+
+
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
 #include <limits>
+#include <functional>
+#include <numeric>
+#include <fstream>
 
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+
+#include <boost/utility.hpp>
+#include <boost/math/special_functions/gamma.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/range/adaptor/reversed.hpp>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/DATASTRUCTURES/Polynomial.h>
 
 using namespace std;
 
@@ -54,7 +70,7 @@ namespace OpenMS
   IsotopeDistribution::IsotopeDistribution(Size max_isotope) :
     max_isotope_(max_isotope)
   {
-    distribution_.push_back(make_pair<Size, double>(0, 1));
+    distribution_.push_back(IsotopeDistribution::MassAbundance(0, 1));
   }
 
   IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & isotope_distribution) :
@@ -112,7 +128,6 @@ namespace OpenMS
     distribution_ = result;
     return *this;
   }
-
   IsotopeDistribution IsotopeDistribution::operator*(Size factor) const
   {
     ContainerType result;
@@ -265,14 +280,15 @@ namespace OpenMS
   IsotopeDistribution::ContainerType IsotopeDistribution::fillGaps_(const IsotopeDistribution::ContainerType& id) const
   {
     ContainerType id_gapless;
-    Size mass = id.begin()->first;
+    Size mass = round(id.begin()->first);
     for (ContainerType::const_iterator it = id.begin(); it < id.end(); ++mass) // go through all masses
     {
-      if (it->first != mass) 
+      //round atomic mass to the mass_number
+      if (round(it->first) != mass)
       { // missing an entry
         id_gapless.push_back(make_pair(mass, 0.0));
       }
-      else 
+      else
       { // mass is registered already
         id_gapless.push_back(*it); // copy
         ++it;  // ... and advance
@@ -289,8 +305,8 @@ namespace OpenMS
       return;
     }
 
-    
-    // ensure the isotope cluster has no gaps 
+
+    // ensure the isotope cluster has no gaps
     // (e.g. from Bromine there is only Bromine-79 & Bromine-81, so we need to insert Bromine-80 with zero probability)
     ContainerType left_l = fillGaps_(left);
     ContainerType right_l = fillGaps_(right);
@@ -322,7 +338,7 @@ namespace OpenMS
 
   void IsotopeDistribution::convolvePow_(ContainerType & result, const ContainerType & input, Size n) const
   {
-    // TODO: Maybe use FFT convolve
+    // TODO: use FFT convolve?
     if (n == 1)
     {
       result = input;
@@ -353,7 +369,7 @@ namespace OpenMS
     else
     {
       result.clear();
-      result.push_back(make_pair<Size, double>(0, 1.0));
+      result.push_back(IsotopeDistribution::MassAbundance(0, 1.0));
     }
 
     ContainerType intermediate;
@@ -527,5 +543,489 @@ namespace OpenMS
       }
     }
   }
+
+  inline bool desc_prob(const struct MIDAsPolynomialID::PMember& p0, const struct MIDAsPolynomialID::PMember& p)
+  {
+    return p0.probability > p.probability;
+  }
+
+  inline bool by_power(const struct MIDAsPolynomialID::PMember& p0, const struct MIDAsPolynomialID::PMember& p)
+  {
+    return p0.power < p.power;
+  }
+
+  inline bool zero_prob(const MIDAsPolynomialID::PMember& m)
+  {
+    return m.probability == 0;
+  }
+
+  inline bool zero_power(const MIDAsPolynomialID::PMember& m)
+  {
+    return m.power == 0;
+  }
+
+  inline bool lightest(const IsotopeDistribution::MassAbundance& a, const IsotopeDistribution::MassAbundance& b)
+  {
+    return a.first < b.first;
+  }
+
+  double lightest_element(const Element& el)
+  {
+    return min_element(el.getIsotopeDistribution().begin(), el.getIsotopeDistribution().end(), lightest)->first;
+  }
+
+
+  /* Start of the midas interface */
+  MIDAs::MIDAs(EmpiricalFormula& formula, double resolution, UInt N_):
+    IsotopeDistribution(),
+    formula_(formula),
+    resolution_(resolution),
+    min_prob(1e-16),
+    N(N_)
+  {
+    
+  }
+
+  void MIDAs::merge(Polynomial& raw, double resolution)
+  {
+    //raw must be ordered to work correctly ascending order on power field
+
+    UInt output_size = ceil((raw.back().power - raw.front().power)/resolution);
+    LOG_INFO << "output size " << output_size << endl;
+    LOG_INFO << "raw size " << raw.size() <<endl;
+
+    distribution_.clear();
+    distribution_.resize(output_size, make_pair<double, double>(0, 0));
+
+    for(auto& p : raw)
+    {
+      // Is this the case?
+      
+      UInt index = round((p.power - raw.front().power)/resolution);
+      if(index >= distribution_.size()){
+
+        LOG_INFO << index <<endl;
+        
+      }
+      distribution_[index].first = distribution_[index].first == 0 ?
+                                    raw.front().power * index :
+                                    distribution_[index].first;
+      distribution_[index].second += p.probability;
+    }
+
+  }
+
+  void MIDAs::dumpIDToFile(String file)
+  {
+    ofstream out(file.c_str());
+    for(auto& sample : distribution_)
+    {
+      out << sample.first << sample.second << endl;
+    }
+    
+    out.close();
+  }
+
+
+  /* Start of the midas polynomial method */
+
+
+  MIDAsPolynomialID::MIDAsPolynomialID(EmpiricalFormula& formula, double resolution):
+    MIDAs(formula, resolution, 10),
+    lighter_isotope(0)
+  {
+    for(EmpiricalFormula::const_iterator el = formula_.begin(); el != formula_.end(); ++el)
+    {
+      lighter_isotope += lightest_element(*(el->first)) * (el->second);
+    }
+
+    LOG_INFO << "Fine resolution: " << resolution_ << endl;
+
+    mw_resolution = 1e-12;
+    
+
+
+  }
+
+  inline double MIDAsPolynomialID::fact_ln(UInt x)
+  {
+    return boost::math::lgamma(x+1);
+  }
+
+  void MIDAsPolynomialID::run()
+  {
+    vector<Polynomial> el_dist;
+    for(EmpiricalFormula::ConstIterator element = formula_.begin(); element != formula_.end(); ++element)
+    {
+      el_dist.push_back(generatePolynomial(*(element->first), element->second));
+      LOG_INFO << element->first->getName() <<" has " << el_dist.back().size() << " data points " << endl;
+    }
+    Polynomial& T = *(el_dist.begin());
+
+    for(vector<Polynomial>::iterator pol = boost::next(el_dist.begin()); pol != el_dist.end(); ++pol)
+    {
+      multiplyPolynomials(T, *pol);
+    }
+
+    LOG_INFO << "T after multiplication has " << T.size() <<" elements" << endl;
+
+    //BZ2_bzWrite ( NULL, NULL, (void*)NULL, NULL );
+
+    LOG_INFO << "RESULTS---------------" << endl;
+    double probability = 0;
+    for(Polynomial::const_iterator it = T.begin(); it != T.end(); ++it)
+    {
+      //LOG_INFO << it->power*mw_resolution << " " << it->probability << endl;
+      probability += it->probability;
+    }
+    LOG_INFO << "probability sum " << probability <<endl;
+
+    sort(T.begin(), T.end(), by_power);
+    for(auto& pmember : T)
+    {
+      pmember.power *= mw_resolution;
+    }
+
+    merge(T, 0.0001);
+
+    LOG_INFO << "Lightest theoretical element " << lighter_isotope << endl;
+
+    trimRight(0.0001);
+    trimLeft(0.0001);
+    LOG_INFO << "Final distribution has " << distribution_.size() <<endl;
+    for(ContainerType::const_iterator it = distribution_.begin(); it != distribution_.end(); ++it)
+    {
+
+    }
+
+
+    LOG_INFO << "Isotope Distribution of " << formula_.toString() << " successfully computed " << endl;
+    LOG_INFO << "Isotope Distribution has " << T.size() << " data points " << endl;
+
+  }
+
+  
+
+  void addCounter(CounterSet& c, const double& abundance, const UInt& size, const UInt& N)
+  {
+    double expectation = size * abundance;
+    double var = size * abundance *(1 - abundance);
+    UInt U = expectation + (N * sqrt(1 + var));
+    UInt B = expectation > (N * sqrt(1 + var)) ? ceil(expectation - (N * sqrt(1 + var))) : 0;
+    //LOG_INFO << "Added counter with values " << B << " " << U <<endl;
+    c.addCounter(B, U);
+  }
+
+
+  MIDAsPolynomialID::Polynomial MIDAsPolynomialID::generatePolynomial(const Element& p, const SignedSize size)
+  {
+    std::vector<unsigned long> base_power;
+    std::vector<double> log_prob;
+    const IsotopeDistribution::ContainerType& isotope = p.getIsotopeDistribution().getContainer();
+    CounterSet c(size);
+    Polynomial pol;
+
+    for(IsotopeDistribution::ConstIterator iso_it = isotope.begin(); iso_it != isotope.end(); ++iso_it)
+    {
+      if(iso_it->second == 0)
+      {
+        continue;
+      }
+      addCounter(c, iso_it->second, size, N);
+      base_power.push_back(round(iso_it->first / mw_resolution));
+      log_prob.push_back(log(iso_it->second));
+    }
+
+    for(const CounterSet::ContainerType& counters = c.getCounters(); c.hasNext(); ++c)
+    {
+      MIDAsPolynomialID::PMember member;
+      // UInt s = 0;
+      member.power = 0;
+      member.probability = fact_ln(size);
+      UInt index = 0;
+      for(CounterSet::ContainerType::const_iterator iso_count = counters.begin(); iso_count != counters.end(); ++iso_count, ++index)
+      {
+        member.probability += ((*iso_count) * log_prob[index]) - fact_ln((*iso_count));
+      }
+
+      member.probability = exp(member.probability);
+
+      if(member.probability < min_prob)
+      {
+        continue;
+      }
+      // check if it is faster having another iteration
+      index = 0;
+      for(CounterSet::ContainerType::const_iterator iso_count = counters.begin(); iso_count != counters.end(); ++iso_count, ++index)
+      {
+        //LOG_INFO << *iso_count <<" "<<base_power[index]<<endl;
+        member.power += (*iso_count)*base_power[index];
+      }
+//      LOG_INFO << member.power <<" "<<member.probability<<endl;
+
+      pol.push_back(member);
+
+    }
+
+    return pol;
+  }
+
+
+  void MIDAsPolynomialID::multiplyPolynomials(Polynomial& f, Polynomial& g)
+  {
+
+    LOG_INFO << "Sorting polynomial" << f.size() << " and " << g.size() <<endl;
+    sort(f.begin(), f.end(), desc_prob);
+    sort(g.begin(), g.end(), desc_prob);
+
+    LOG_INFO << "Multiplying polynomial" << f.size() << " and " << g.size() <<endl;
+    double min_mass = min_element(g.begin(), g.end(), by_power)->power
+                      + min_element(f.begin(), f.end(), by_power)->power;
+    double max_mass = max_element(g.begin(), g.end(), by_power)->power
+                      + max_element(f.begin(), f.end(), by_power)->power;
+    double delta_mass = resolution_/mw_resolution;
+    UInt size = round((max_mass-min_mass)/delta_mass);
+    Polynomial fgid(size, PMember());
+
+    for(Polynomial::iterator g_it = g.begin(); g_it != g.end(); ++g_it)
+    {
+      for(Polynomial::iterator f_it = f.begin(); f_it != f.end(); ++f_it)
+      {
+        double prob = f_it->probability*g_it->probability;
+        if(prob > min_prob)
+        {
+          double mass = f_it->power + g_it->power;
+          UInt bin = round((mass - min_mass) / delta_mass);
+          fgid[bin].probability += prob;
+          fgid[bin].power += mass * prob;
+        }
+        else
+        {
+          // Polynomials are sorted based on probability so we can safely break
+          break;
+        }
+      }
+    }
+
+    fgid.erase(remove_if(fgid.begin(), fgid.end(), zero_prob), fgid.end());
+    for(Polynomial::iterator f_it = fgid.begin(); f_it != fgid.end(); ++f_it)
+    {
+      f_it->power /= f_it->probability;
+    }
+    f = fgid ;
+  }
+
+  MIDAsFFTID::MIDAsFFTID(EmpiricalFormula& formula, double resolution):
+    MIDAs(formula, resolution, 15),
+    cutoff_amplitude_factor_(2)
+  {
+    UInt sample_size,k=0;
+    double sigma,used_resolution = resolution;
+    
+    sigma = formulaMeanAndVariance().variance;
+    mass_range_ = pow(2, ceil(log2(ceil(N * sqrt(1 + sigma)))));
+    do
+    {
+      resolution_ = resolution/pow(2,k);  
+      LOG_INFO << "Mass range " << mass_range_ << endl;
+      sample_size = pow(2, ceil(log2(mass_range_ / resolution_)));
+      delta_ = 1.0 / sample_size;
+      resolution_ = mass_range_/sample_size;
+      LOG_INFO << "-Resolution " << resolution << endl;
+      k++;
+    }while(resolution_ > resolution);
+    
+    average_mass_ = round(formulaMeanAndVariance(resolution_).mean)/resolution_;
+    LOG_INFO <<"Mass Range " << mass_range_ <<endl;
+
+    fft_complex s = {0,0};
+    input_.resize(sample_size, s);
+    output_.resize(sample_size, s);
+    
+    
+    LOG_INFO << "Sample size: " << input_.size() << "   " << output_.size() << endl;
+    init();
+
+  }
+
+  void MIDAsFFTID::init()
+  {
+
+    LOG_INFO <<"Average mass "<< average_mass_ <<endl;
+    LOG_INFO << "Resolution " << resolution_ << endl;
+    UInt k = 0;
+    for(auto& sample : input_)
+    {
+      Int j = k > input_.size() / 2?  k++ - input_.size() : k++;
+      
+      double phi = 0, angle = 0, radius = 1, freq = j * delta_;
+      double phase = (2 * Constants::PI * average_mass_ * freq);
+
+      //LOG_INFO << "Delta:" << freq << endl;
+      for(const auto& element : formula_)
+      {
+        //Perform temporary calculations on sample data structure
+        auto& atoms = element.second;
+        
+        sample.r = sample.i = 0;
+        for(const auto& iso : element.first->getIsotopeDistribution())
+        {
+          auto mass = round(iso.first / resolution_);
+          auto& prob = iso.second;
+          if(!(prob > 0))
+          {
+            continue;
+          }
+          phi = 2 * Constants::PI * mass * freq;
+          sample.r += prob * cos(phi);
+          sample.i += prob * sin(phi);
+          
+        }
+        //LOG_INFO<<"x,y " << sample.r << " " <<sample.i << endl;
+        radius *= pow(hypot(sample.r, sample.i), atoms);
+        angle += atoms * atan2(sample.i, sample.r);
+        //LOG_INFO<<"radius,angle " << radius << " " << angle << endl;
+        
+      }
+      
+      //After looping assign the value
+      
+      //LOG_INFO << " radius " << radius << " angle "<< angle << endl;
+      sample.r = radius * cos(angle - phase);
+      sample.i = radius * sin(angle - phase);
+      //LOG_INFO << sample.r << " " << sample.i << endl;
+    }
+
+    //input_[0].r = input_[0].i = 0;
+    LOG_INFO << "End of initialization" << endl;
+    
+  }
+
+
+
+  void MIDAsFFTID::run()
+  {
+    
+    kiss_fft_cfg cfg = kiss_fft_alloc(input_.size(), INVERSE, NULL, NULL);
+    kiss_fft(cfg, &(*input_.begin()), &(*output_.begin()));
+    kiss_fft_cleanup();
+
+    output_.resize(output_.size()/2);
+
+    LOG_INFO << "IFFT done " <<" Sample size: "<< output_.size() <<endl;
+    
+    double min_prob = -cutoff_amplitude_factor_ * 
+                       min_element(output_.begin(), output_.end(), 
+                                   [](const fft_complex& item1, const fft_complex& item2 )
+                                   {
+                                     return item1.r < item2.r;
+                                   })->r;
+    
+    for(auto& sample : output_)
+    {
+      LOG_INFO << sample.r << " "<< sample.i << endl; 
+    }
+
+    // double avg_prob= 0;
+    // int k = 0;
+    // for(auto& sample : output_)
+    // {
+    //   double smp = sample.i / output_.size();
+    //   if(smp > min_prob)
+    //   {
+    //     avg_prob+= smp;
+    //     k++;
+    //   }
+    // }
+    // if(k!=0){
+    //   avg_prob/=k;
+    // }
+    LOG_INFO << "Resolution: " << resolution_ << endl;
+
+    Stats coarse(formulaMeanAndVariance()), fine(formulaMeanAndVariance(resolution_));
+    double ratio = coarse.variance/fine.variance;
+    LOG_INFO << "Delta " << delta_ <<endl;
+    LOG_INFO << "Coarse mean: " << coarse.mean << ", Coarse variance: " << coarse.variance << endl;
+    LOG_INFO << "Fine mean: " << fine.mean << ", fine variance: " << coarse.variance << endl;
+    LOG_INFO << "Probability cutoff: " << min_prob << " Ratio: " << ratio <<endl;
+    
+    Int k = 0;
+    //unsigned int average_mass = ceil(fine.mean);
+    Polynomial pol;
+    double p_sum = 0;
+    //for(auto& sample : boost::adaptors::reverse(output_))
+    for(auto& sample : output_)
+    {
+      PMember member;
+      member.probability = sample.r;
+      Int j = k > output_.size()/2 ?  k++ - output_.size() : k++;
+      
+      if(member.probability > min_prob)
+      {
+      
+        p_sum += member.probability;
+        member.power = ratio*
+                       ( (j*delta_  + average_mass_) * resolution_ - coarse.mean) + fine.mean;
+        
+        pol.push_back(member);
+        LOG_INFO << member.power << " " << member.probability << endl;
+      }
+      
+      
+       
+    }
+
+    
+    LOG_INFO << "Probability sum " << p_sum << endl;
+
+    // // //normalize
+    for(auto& point : pol)
+    {
+       point.probability /= p_sum;
+       LOG_INFO << point.power <<" "<<point.probability << endl;
+    }
+
+    // // sort(pol.begin(), pol.end(), by_power);
+    //merge(pol, resolution_);
+
+  }
+
+
+
+  MIDAsFFTID::Stats MIDAsFFTID::formulaMeanAndVariance(double resolution)
+  {
+    Stats stat = {0,0};
+
+    //throw exception for zero resolution_
+
+    // calculate average
+    for(const auto& element : formula_)
+    {
+      double ave_mw = 0, var_mw = 0;
+      for(const auto& iso : element.first->getIsotopeDistribution())
+      {
+        //round in resolution grid and weight on probability
+        ave_mw += round(iso.first / resolution) * resolution * iso.second;
+      }
+
+      //calculate variance
+
+      for(const auto& iso : element.first->getIsotopeDistribution())
+      {
+        //round in resolution grid
+        var_mw += iso.second * pow(ave_mw - (round(iso.first / resolution) * resolution), 2);
+      }
+      
+      // find the real variance and mean by scaling with the molecule number in the empirical formula
+      stat.variance += element.second * var_mw;
+      stat.mean += element.second * ave_mw;
+    }
+
+    return stat;
+
+  }
+
+  
+
 
 }

@@ -41,7 +41,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/SVM/SimpleSVM.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/Container.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -378,11 +379,11 @@ protected:
       transition.setPrecursorMZ(mz);
       transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
                               float(counter) / charge);
-      transition.setLibraryIntensity(iso_it->second);
+      transition.setLibraryIntensity(iso_it->getIntensity());
       transition.setMetaValue("annotation", annotation);
       transition.setPeptideRef(peptide_id);
       library_.addTransition(transition);
-      isotope_probs_[transition_name] = iso_it->second;
+      isotope_probs_[transition_name] = iso_it->getIntensity();
     }
   }
 
@@ -756,7 +757,7 @@ protected:
       // get isotope distribution for peptide:
       Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
       IsotopeDistribution iso_dist = 
-        seq.getFormula(Residue::Full, 0).getIsotopeDistribution(n_isotopes);
+        seq.getFormula(Residue::Full, 0).getIsotopeDistribution(new CoarseIsotopeDistribution(n_isotopes));
       if (isotope_pmin_ > 0.0)
       {
         iso_dist.trimLeft(isotope_pmin_);

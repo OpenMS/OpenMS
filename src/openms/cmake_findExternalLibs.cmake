@@ -105,6 +105,11 @@ find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
+# kissfft
+find_package(KISSFFT REQUIRED)
+
+
+#------------------------------------------------------------------------------
 # Find eigen3
 find_package(Eigen3 3.1.0 REQUIRED)
 

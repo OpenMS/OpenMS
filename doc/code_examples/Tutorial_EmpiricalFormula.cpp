@@ -30,6 +30,7 @@
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopeDistribution.h>
 #include <iostream>
 
 using namespace OpenMS;
@@ -47,11 +48,11 @@ Int main()
        << sum.getNumberOf(carbon) << " "
        << sum.getAverageWeight() << endl;
 
-  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(3);
+  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(new CoarseIsotopeDistribution(3));
 
   for (IsotopeDistribution::ConstIterator it = iso_dist.begin(); it != iso_dist.end(); ++it)
   {
-    cout << it->first << " " << it->second << endl;
+    cout << it->getMZ() << " " << it->getIntensity() << endl;
   }
 
   return 0;
