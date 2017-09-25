@@ -5,9 +5,9 @@ from AbsoluteQuantitationMethod cimport *
 cdef extern from "<OpenMS/FORMAT/AbsoluteQuantitationMethodFile.h>" namespace "OpenMS":
 
     cdef cppclass AbsoluteQuantitationMethodFile:
-        # wrap-ignore
 
         AbsoluteQuantitationMethodFile()  nogil except +
+        AbsoluteQuantitationMethodFile(AbsoluteQuantitationMethodFile)  nogil except + #wrap-ignore
 
-        void load(libcpp_string filename, libcpp_vector[ AbsoluteQuantitationMethod ]& aqm_list) nogil except +
+        void load(String filename, libcpp_vector[ AbsoluteQuantitationMethod ]& aqm_list) nogil except +
 
