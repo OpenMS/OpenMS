@@ -596,14 +596,14 @@ protected:
               while (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
               {
                 consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
-                    (pit->getIntensity()/(double)counter)); // add the intensity divided by the number of peaks
+                    (pit->getIntensity() / (double)counter)); // add the intensity divided by the number of peaks
                 ++align_index; // this aligned peak was explained, wait for next aligned peak ...
                 if (align_index == alignment.size())
                 {
                   alignment.clear();  // end reached -> avoid going into this block again
                 }
               }
-              align_size=align_size+1-counter; //Decrease align_size by number of
+              align_size = align_size + 1 - counter; //Decrease align_size by number of
             }
             ++spec_b_index;
           }
