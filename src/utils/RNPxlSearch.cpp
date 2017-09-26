@@ -527,22 +527,20 @@ protected:
     registerStringList_("RNPxl:fragment_adducts", "", fragment_adducts, "format: [formula] or [precursor adduct]->[fragment adduct formula];[name]: e.g 'C9H10N2O5;U-H3PO4' or 'U-H2O->C9H11N2O8P1;U-H2O',", false, false);
 
 /*
- * a,b,y series:
- * T?C10H14N5O7P;T-H2O & C10H14N5O7P;T-HPO3 & C10H14N5O7P;T-H3PO4, A?C10H14N5O7P;A-H2O & C10H14N5O7P;A-HPO3, *?C10H14N5O7P;R-HPO3
+ *  Idea: 
+ *   - define all marker ions in additional field of target nucleotides e.g., "U=C9H13N2O9P" becomes "U=C9H13N2O9P|C9H12N2O6;U-HPO3,"
+ *   - copy restriction field to define if they can cross-link (produce y,b,a,immonium-ion shifts) in addition to marker ions
+ *   - If we score a precursor adduct adduct e.g. "ACU" all marker ions for nucleotides present in precursor adduct are annotated
+ *  
+ *   RNA:
+ *     - "can cross-link" field is "U"
+ *     - target nucleotides "...|A-H3PO4, A', A'-H2O, C3O, A, A-H2O, A-HPO3, ... U-HPO3"
  *
- * marker ions (not exlusive but only based on nucleotide contained):
- * T?C10H14N5O7P;T-H2O & C10H14N5O7P;T-HPO3 & C10H14N5O7P;T-H3PO4, A?C10H14N5O7P;A-H2O & C10H14N5O7P;A-HPO3 BUT NOT *?C10H14N5O7P;R-HPO3
- *
- * e.g. TA on PC:
- * T, T-H2O, T-HPO3, T-H3PO4, A, A-H2O, A-HPO3, A-H3PO4
- *
- * e.g. T on PC:
- * T, T-H2O, T-HPO3, T-H3PO4
- *
- * e.g. T-H2O on PC (not feasible removed):
- * T-H2O, T-H3PO4
- *
- * no marker ion for ribose (*)
+ *   DNA:
+ *     e.g:. PEPTIDE + TCA (and T+C+A can all cross-link)
+ *     - "can cross-link" field is "A=1 T=1 G=1 C=1"
+ *     - target nucleotides are the DNA specific ones
+ *     - search T,C,A individually and report best localization score (ideall all with their individual localization score so we know which nucleotide of TCA was cross-linked)
  */
 
     registerStringList_("RNPxl:modifications", "", modifications, "format: empirical formula e.g -H2O, ..., H2O+PO3", false, false);
