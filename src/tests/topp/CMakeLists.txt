@@ -80,13 +80,6 @@ set(INDEX_WHITELIST "offset" "indexListOffset")
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
 
 #------------------------------------------------------------------------------
-# test if -write_wdsl works
-#------------------------------------------------------------------------------
-add_test("TOPP_WSDL_1" ${TOPP_BIN_PATH}/AdditiveSeries -test -write_wsdl WSDL_out.tmp)
-add_test("TOPP_WSDL_1_out1" ${DIFF} -in1 WSDL_out.tmp -in2 ${DATA_DIR_TOPP}/WSDL_out.wsdl)
-set_tests_properties("TOPP_WSDL_1_out1" PROPERTIES DEPENDS "TOPP_WSDL_1")
-
-#------------------------------------------------------------------------------
 # WRITE_INI test for each TOPP/UTILS tool, checking -write_ini functionality
 #------------------------------------------------------------------------------
 
