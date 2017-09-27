@@ -216,9 +216,14 @@ namespace OpenMS
         }
         return (countMissedCleavages_(cleavage_positions, pep_pos, pep_end) <= missed_cleavages_);
       }
-        return false;
-      }
+      return false;
     }
+  }
+  
+  bool EnzymaticDigestion::filterByMissingCleavages(const String& sequence, std::function<bool(Int)> filter) const
+  {
+    return filter(tokenize_(sequence).size() - 1);
+  }
 
   Size EnzymaticDigestion::countMissedCleavages_(const std::vector<Size>& cleavage_positions, Size pep_start, Size pep_end) const
   {
@@ -226,7 +231,7 @@ namespace OpenMS
     for (std::vector<Size>::const_iterator it = cleavage_positions.begin(); it != cleavage_positions.end(); ++it)
     { // count MCs within peptide borders
       if ((pep_start < *it) && (*it < pep_end)) ++count;
-  }
+    }
     return count;
   }
 
