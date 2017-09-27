@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/QcMLFile.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
@@ -48,8 +49,8 @@ namespace OpenMS
 
   /**
 
-    @brief The MRMFeatureQC either flags transitions that do not pass the QC criteria or filters out
-      transitions that do not pass the QC criteria. 
+    @brief The MRMFeatureQC either flags components and/or transitions that do not pass the QC criteria or filters out
+      components and/or transitions that do not pass the QC criteria. 
 
     @htmlinclude OpenMS_MRMFeatureQC.parameters
 
@@ -84,6 +85,50 @@ public:
 
     */
     void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment);
+    
+    /**
+      @brief Calculates the ion ratio between two transitions
+
+      @param component_1 component of the numerator
+      @param component_2 component of the denomenator
+      @param feature_name name of the feature to calculate the ratio on
+       e.g., peak_apex, peak_area
+
+      @return The ratio.
+    */ 
+    double calculateIonRatio(Feature & component_1, Feature & component_2, String & feature_name);
+    
+    /**
+      @brief Calculates the retention time difference between two features
+
+      @param component_1 First eluting component
+      @param component_2 Second eluting component
+
+      @return The difference.
+    */ 
+    double calculateRTDifference(Feature & component_1, Feature & component_2);
+    
+    /**
+      @brief Calculates the resolution between two features
+
+      @param component_1 component 1
+      @param component_2 component 2
+
+      @return The difference.
+    */ 
+    double calculateResolution(Feature & component_1, Feature & component_2);
+    
+    /**
+      @brief Checks if the metaValue is within the user specified range
+
+      @param component component of the numerator
+      @param meta_value_key Name of the metaValue
+      @param meta_value_l Lower bound (inclusive) for the metaValue range
+      @param meta_value_u Upper bound (inclusive) for the metaValue range
+
+      @return True if the metavlue is within the bounds, and False otherwise.
+    */ 
+    bool checkMetaValue(Feature & component, String & meta_value_key, String & meta_value_l, String & meta_value_u);
 
     // Members
 
@@ -97,7 +142,14 @@ public:
     QcMLFile::Attachment attachment_;
     /// FeatureMap
     FeatureMap features_;
-
+    /// component/peptide/compound QCs
+    std::map<String,std::vector<QcML::QualityParameter>> component_qc_report_;
+    /// multi components QCs
+    std::map<std::vector<String>,std::vector<QcML::QualityParameter>> multi_component_qc_report_;
+    /// transition QCs
+    std::map<String,std::vector<QcML::QualityParameter>> transition_qc_report_;
+    /// multi transition QCs
+    std::map<std::vector<String>,std::vector<QcML::QualityParameter>> multi_transition_qc_report_;
   };
 }
 
