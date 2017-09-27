@@ -258,7 +258,9 @@ namespace OpenMS
         {
           if (abs(med_it->second - pos->second) <= max_rt_shift)
           { // found, and satisfies "max_rt_shift" condition!
-            data.push_back(make_pair(med_it->second, pos->second));
+            TransformationDescription::DataPoint point(med_it->second,
+                                                       pos->second, pos->first);
+            data.push_back(point);
           }
           else
           {
