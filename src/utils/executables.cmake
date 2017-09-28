@@ -42,7 +42,6 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
-RNPxl
 RNPxlXICFilter
 RNPxlSearch
 RTEvaluation
