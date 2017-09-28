@@ -175,6 +175,7 @@ set(format_executables_list
   InspectOutfile_test
   KroenikFile_test
   LibSVMEncoder_test
+  MRMFeatureQCFile_test
   MS2File_test
   MSPFile_test
   MascotGenericFile_test
@@ -602,6 +603,8 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathDataAccessHelper_test
     MRMFeatureScoring_test
     MRMFeatureFinderScoring_test
+    MRMFeatureFilter_test
+    MRMFeatureQC_test
     SpectrumHelpers_test
     StatsHelpers_test
     CachedMzML_test

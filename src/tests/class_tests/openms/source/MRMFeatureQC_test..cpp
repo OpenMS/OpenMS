@@ -65,23 +65,6 @@ START_SECTION(~MRMFeatureQC())
 }
 END_SECTION
 
-START_SECTION(void FilterFeatureMap(FeatureMap& features))
-{
-  MRMFeatureQC mrmfqc;
-  //TODO
-
-}
-END_SECTION
-
-START_SECTION(void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment))
-{
-  MRMFeatureQC mrmfqc;
-  //TODO
-
-}
-END_SECTION
-
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
