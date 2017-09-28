@@ -40,7 +40,6 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
@@ -49,14 +48,11 @@ namespace OpenMS
 
   /**
 
-    @brief The MRMFeatureQC either flags components and/or transitions that do not pass the QC criteria or filters out
-      components and/or transitions that do not pass the QC criteria. 
-
-    @htmlinclude OpenMS_MRMFeatureQC.parameters
+    @brief The MRMFeatureQC is a class to handle the parameters and options for 
+      MRMFeatureFilter. The format is based on the TraML format.
 
   */
   class OPENMS_DLLAPI MRMFeatureQC :
-    public DefaultParamHandler
   {
 
 public:
@@ -69,87 +65,79 @@ public:
     ~MRMFeatureQC();
     //@}
 
-    /**
-      @brief Flags or filters features and subordinates in a FeatureMap
-
-      @param features FeatureMap to flag or filter
-
-    */
-    void FilterFeatureMap(FeatureMap& features);
-    
-    /**
-      @brief Converts a FeatureMap to a qcMLFile::Attachment
-
-      @param features FeatureMap to flag or filter
-      @param attachment acML Attachment
-
-    */
-    void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment);
-    
-    /**
-      @brief Calculates the ion ratio between two transitions
-
-      @param component_1 component of the numerator
-      @param component_2 component of the denomenator
-      @param feature_name name of the feature to calculate the ratio on
-       e.g., peak_apex, peak_area
-
-      @return The ratio.
-    */ 
-    double calculateIonRatio(Feature & component_1, Feature & component_2, String & feature_name);
-    
-    /**
-      @brief Calculates the retention time difference between two features
-
-      @param component_1 First eluting component
-      @param component_2 Second eluting component
-
-      @return The difference.
-    */ 
-    double calculateRTDifference(Feature & component_1, Feature & component_2);
-    
-    /**
-      @brief Calculates the resolution between two features
-
-      @param component_1 component 1
-      @param component_2 component 2
-
-      @return The difference.
-    */ 
-    double calculateResolution(Feature & component_1, Feature & component_2);
-    
-    /**
-      @brief Checks if the metaValue is within the user specified range
-
-      @param component component of the numerator
-      @param meta_value_key Name of the metaValue
-      @param meta_value_l Lower bound (inclusive) for the metaValue range
-      @param meta_value_u Upper bound (inclusive) for the metaValue range
-
-      @return True if the metavlue is within the bounds, and False otherwise.
-    */ 
-    bool checkMetaValue(Feature & component, String & meta_value_key, String & meta_value_l, String & meta_value_u);
-
     // Members
 
-    /// flag or filter (i.e., remove) features that do not pass the QC
-    String flag_or_filter_;
-    /// include the data points for the exctracted ion chromatogram (XIC) in the attachment
-    bool report_xic_;
-    /// include the data points for the total ion chromatogram (TIC) in the attachment
-    bool report_tic_;
-    /// qcMLFile Attachment
-    QcMLFile::Attachment attachment_;
-    /// FeatureMap
-    FeatureMap features_;
-    /// component/peptide/compound QCs
-    std::map<String,std::vector<QcML::QualityParameter>> component_qc_report_;
-    /// multi components QCs
-    std::map<std::vector<String>,std::vector<QcML::QualityParameter>> multi_component_qc_report_;
-    /// transition QCs
-    std::map<String,std::vector<QcML::QualityParameter>> transition_qc_report_;
-    /// multi transition QCs
-    std::map<std::vector<String>,std::vector<QcML::QualityParameter>> multi_transition_qc_report_;
+    // QCs within a component group
+    struct ComponentGroupQCs
+    {
+      // name of the component group
+      String component_group_name_; 
+
+      // Feature members
+      // retention time
+      double rt_l_;
+      double rt_u_;
+      // intensity
+      double intensity_l_;
+      double intensity_u_;
+      // overall quality
+      double overall_quality_l_;
+      double overall_quality_u_;
+
+      // Feature MetaValues
+      // [featureName,(l,u)]
+      std::vector<String,std::pair<double,double>> meta_value_qc_
+
+      // Custom QCs
+      int n_heavy_l_;
+      int n_heavy_u_;
+      int n_light_l_;
+      int n_light_u_;
+      int n_detecting_l_;
+      int n_detecting_u_;
+      int n_quantifying_l_;
+      int n_quantifying_u_;
+      int n_identifying_l_;
+      int n_identifying_u_;
+      int n_transitions_l_;
+      int n_transitions_u_;
+
+      // name of the component
+      String component_name_; 
+      // name of the component to calculate the ion ratio
+      String ion_ratio_pair_name_1_;
+      String ion_ratio_pair_name_2_;
+      double ion_ratio_l_;
+      double ion_ratio_u_;
+      // name of the component to calculate the resolution or retention time 
+      String resolution_pair_name_; 
+      double resolution_l_;
+      double resolution_u_;
+      double rt_diff_l_;
+      double rt_diff_u_;
+        
+    }
+
+    // QCs for individual components
+    struct ComponentQCs
+    {
+      // name of the component
+      String component_name_; 
+
+      // Feature members
+      // retention time
+      double rt_l_;
+      double rt_u_;
+      // intensity
+      double intensity_l_;
+      double intensity_u_;
+      // overall quality
+      double overall_quality_l_;
+      double overall_quality_u_;
+
+      // Feature MetaValues
+      std::vector<String,std::pair<double,double>> meta_value_qc_
+    }
   };
 }
 
