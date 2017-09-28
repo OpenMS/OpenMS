@@ -113,6 +113,7 @@ namespace OpenMS
         qc_pass = false;
 
         // iterate through multi-feature/multi-sub-feature QCs/filters
+        // iterate through component_groups
         if (sub_it == 0)
         {
           //TODO

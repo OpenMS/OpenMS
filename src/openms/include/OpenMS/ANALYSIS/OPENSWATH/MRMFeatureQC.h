@@ -73,24 +73,7 @@ public:
       /// name of the component group
       String component_group_name_; 
 
-      // Feature members
-      /// retention time lower bound
-      double rt_l_;
-      /// retention time upper bound
-      double rt_u_;
-      /// intensity lower bound
-      double intensity_l_;
-      /// intensity upper bound
-      double intensity_u_;
-      /// overall quality lower bound
-      double overall_quality_l_;
-      /// overall quality upper bound
-      double overall_quality_u_;
-
-      /// Feature MetaValues: [featureName,(l,u)] of type [String,(double,double)]
-      std::vector<String,std::pair<double,double>> meta_value_qc_
-
-      // Custom QCs
+      // number of transitions and labels
       /// number of heavy ion lower bound
       int n_heavy_l_;
       /// number of heavy ion upper bound
@@ -122,9 +105,9 @@ public:
 
       // Feature members
       /// retention time lower bound
-      double rt_l_;
+      double retention_time_l_;
       /// retention time upper bound
-      double rt_u_;
+      double retention_time_u_;
       /// intensity lower bound
       double intensity_l_;
       /// intensity upper bound
@@ -135,7 +118,8 @@ public:
       double overall_quality_u_;
 
       /// Feature MetaValues
-      std::vector<String,std::pair<double,double>> meta_value_qc_
+      // std::map<String,std::pair<double,double>> meta_value_qc_;
+
     };
 
     // QCs for multiple components (between or within component_groups)
@@ -155,6 +139,14 @@ public:
       /// retention time upper bound 
       double rt_diff_u_;
     };
+
+    //members
+    /// list of all component QCs
+    std::vector<ComponentQCs> component_qcs_;
+    /// list of all component group QCs
+    std::vector<ComponentGroupQCs> component_group_qcs_;
+    /// list of all component group pair QCs
+    std::vector<ComponentGroupQCs> component_group_pair_qcs_;
   };
 }
 

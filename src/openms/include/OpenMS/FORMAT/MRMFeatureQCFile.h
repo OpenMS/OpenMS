@@ -65,14 +65,14 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, std::vector<MRMFeatureQC> & aqm_list);
+    void load(const String & filename, const MRMFeatureQC & mrmfqc);
 
     /**
         @brief Stores an MRMFeatureQC file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const std::vector<MRMFeatureQC> & aqm_list);
+    void store(const String & filename, const MRMFeatureQC & mrmfqc);
     
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.

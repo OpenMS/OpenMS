@@ -67,7 +67,7 @@ END_SECTION
 
 START_SECTION(void FilterFeatureMap(FeatureMap& features))
 {
-  MRMFeatureFilter mrmfqc;
+  MRMFeatureFilter mrmff;
   //TODO
 
 }
@@ -75,7 +75,7 @@ END_SECTION
 
 START_SECTION(void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment))
 {
-  MRMFeatureFilter mrmfqc;
+  MRMFeatureFilter mrmff;
   //TODO
 
 }
