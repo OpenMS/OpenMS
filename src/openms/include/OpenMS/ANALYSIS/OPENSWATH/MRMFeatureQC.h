@@ -67,29 +67,33 @@ public:
 
     // Members
 
-    // QCs within a component group
+    /// QCs within a component group
     struct ComponentGroupQCs
     {
-      // name of the component group
+      /// name of the component group
       String component_group_name_; 
 
       // Feature members
-      // retention time
+      /// retention time lower bound
       double rt_l_;
+      /// retention time upper bound
       double rt_u_;
-      // intensity
+      /// intensity lower bound
       double intensity_l_;
+      /// intensity upper bound
       double intensity_u_;
-      // overall quality
+      /// overall quality lower bound
       double overall_quality_l_;
+      /// overall quality upper bound
       double overall_quality_u_;
 
-      // Feature MetaValues
-      // [featureName,(l,u)]
+      /// Feature MetaValues: [featureName,(l,u)] of type [String,(double,double)]
       std::vector<String,std::pair<double,double>> meta_value_qc_
 
       // Custom QCs
+      /// number of heavy ion lower bound
       int n_heavy_l_;
+      /// number of heavy ion upper bound
       int n_heavy_u_;
       int n_light_l_;
       int n_light_u_;
@@ -102,42 +106,55 @@ public:
       int n_transitions_l_;
       int n_transitions_u_;
 
-      // name of the component
-      String component_name_; 
-      // name of the component to calculate the ion ratio
+      // Ion Ratio QCs
       String ion_ratio_pair_name_1_;
       String ion_ratio_pair_name_2_;
       double ion_ratio_l_;
       double ion_ratio_u_;
-      // name of the component to calculate the resolution or retention time 
-      String resolution_pair_name_; 
-      double resolution_l_;
-      double resolution_u_;
-      double rt_diff_l_;
-      double rt_diff_u_;
         
-    }
+    };
 
     // QCs for individual components
     struct ComponentQCs
     {
-      // name of the component
+      /// name of the component
       String component_name_; 
 
       // Feature members
-      // retention time
+      /// retention time lower bound
       double rt_l_;
+      /// retention time upper bound
       double rt_u_;
-      // intensity
+      /// intensity lower bound
       double intensity_l_;
+      /// intensity upper bound
       double intensity_u_;
-      // overall quality
+      /// overall quality lower bound
       double overall_quality_l_;
+      /// overall quality upper bound
       double overall_quality_u_;
 
-      // Feature MetaValues
+      /// Feature MetaValues
       std::vector<String,std::pair<double,double>> meta_value_qc_
-    }
+    };
+
+    // QCs for multiple components (between or within component_groups)
+    struct ComponentGroupPairQCs
+    {
+
+      /// name of the component
+      String component_group_name_; 
+      /// name of the component to calculate the resolution or retention time 
+      String resolution_pair_name_; 
+      /// resolution lower bound 
+      double resolution_l_;
+      /// resolution upper bound 
+      double resolution_u_;
+      /// retention time lower bound 
+      double rt_diff_l_;
+      /// retention time upper bound 
+      double rt_diff_u_;
+    };
   };
 }
 

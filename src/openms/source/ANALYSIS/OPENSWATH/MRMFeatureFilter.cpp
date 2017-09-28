@@ -110,9 +110,13 @@ namespace OpenMS
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
       {
         component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
-        
         qc_pass = false;
+
         // iterate through multi-feature/multi-sub-feature QCs/filters
+        if (sub_it == 0)
+        {
+          //TODO
+        }
 
 
         // iterate through feature/sub-feature QCs/filters

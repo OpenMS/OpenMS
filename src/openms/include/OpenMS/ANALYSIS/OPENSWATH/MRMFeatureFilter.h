@@ -129,6 +129,15 @@ public:
       @return True if the metavlue is within the bounds, and False otherwise.
     */ 
     bool checkMetaValue(Feature & component, String & meta_value_key, String & meta_value_l, String & meta_value_u);
+    
+    /**
+      @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
+
+      @param component component_group with subordinates
+
+      @return Map of labels/transition types and their corresponding number.
+    */ 
+    std::map<String,int> countLabelsAndTransitionTypes(Feature & component_group);
 
     // Members
 
