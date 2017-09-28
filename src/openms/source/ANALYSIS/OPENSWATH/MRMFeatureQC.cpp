@@ -48,13 +48,14 @@ namespace OpenMS
   MRMFeatureQC::MRMFeatureQC() :
     DefaultParamHandler("MRMFeatureQC")
   {
-    //TODO
-    defaults_.setValue("stop_after_feature", -1, "Stop finding after feature (ordered by intensity; -1 means do not stop).");
-    defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
-    defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("flag_or_filter", "flag", "Flag or Filter (i.e., remove) Components or transitions that do not pass the QC.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("flag_or_filter", ListUtils::create<String>("flag,filter"));
+    
+    defaults_.setValue("report_xic", "false", "Embed an image of the XIC in the QC report.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("report_xic", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,smoothed,original"));
+    defaults_.setValue("report_tic", "false", "Embed an image of the TIC in the QC report.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("report_tic", ListUtils::create<String>("true,false"));
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -77,27 +78,46 @@ namespace OpenMS
 
   void MRMFeatureQC::updateMembers_()
   {
-    //TODO
-    stop_after_feature_ = (int)param_.getValue("stop_after_feature");
+    flag_or_filter_ = (String)param_.getValue("flag_or_filter");
+    report_xic_ = (bool)param_.getValue("report_xic");
+    report_tic_ = (bool)param_.getValue("report_tic");
   }
 
   void MRMFeatureQC::FilterFeatureMap(FeatureMap& features)
   { 
+    // initialize the new feature map
+    if (flag_or_filter_ == "filter")
+    {
+      FeatureMap features_filtered;
+    }
+    
+    // initialize QC variables
+    std::map<String,FeatureQC>::iterator feature_qc_it;
+    std::map<String,MultiFeatureQC>::iterator multi_feature_qc_it;
 
-    // initialize all unknown variables
-    std::string component_name; //i.e., transition_id
-    std::string IS_component_name; //i.e., internal standard transition_id
-    std::string component_group_name; //i.e., peptideRef
+    // initialize variables
+    String component_name; //i.e., transition_id
+    String IS_component_name; //i.e., internal standard transition_id
+    String component_group_name; //i.e., peptideRef
     double calculated_concentration;
-    std::string concentration_units;// iterate through each component_group/feature     
+    bool qc_pass;
+    String concentration_units;// iterate through each component_group/feature     
+
     for (size_t feature_it = 0; feature_it < features.size(); ++feature_it)
     {
-      component_group_name = (std::string)features[feature_it].getMetaValue("PeptideRef");
+      component_group_name = (String)features[feature_it].getMetaValue("PeptideRef");
 
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
       {
-        component_name = (std::string)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id");  
+        component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
+        
+        qc_pass = false;
+        // iterate through multi-feature/multi-sub-feature QCs/filters
+
+
+        // iterate through feature/sub-feature QCs/filters
+
       }
     }
   }
