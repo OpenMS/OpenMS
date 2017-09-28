@@ -166,14 +166,28 @@ namespace OpenMS
       cqcs.overall_quality_u_ = line[headers["overall_quality_u"]];
     }
     // parse metaValues
-    String meta_value = "";
-    double lb = 0;
-    double ub = 0;
+    String meta_value_key = "";
+    String lub = "";
+    std::pair lbub {0,0};
     for (auto const& kv : params_headers)
     {
-      meta_value = kv.first;
+      // split into meta_value_key and lub
+      meta_value_key = kv.first[:-2];
+      lub = kv.first[-1:];
+      if (cqcs.meta_value_qc_.count(meta_value_key) == 0)
+      {     
+        meta_value_qc_it[meta_value_key] = lbub;
+      }
+        
       // cast doubles
-      lb = std::stod(line[kv.second]);
+      if (lub == "l")
+      {
+        meta_value_qc_it[meta_value_key].first = std::stod(line[kv.second]);
+      }
+      else if (lub == "u")
+      {
+        meta_value_qc_it[meta_value_key].second = std::stod(line[kv.second]);
+      }
       // cqcs.meta_value_qc_
       
     }
