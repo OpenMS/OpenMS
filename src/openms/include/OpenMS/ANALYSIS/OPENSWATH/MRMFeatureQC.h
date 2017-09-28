@@ -118,7 +118,7 @@ public:
       double overall_quality_u_;
 
       /// Feature MetaValues
-      // std::map<String,std::pair<double,double>> meta_value_qc_;
+      std::map<String,std::pair<double,double>> meta_value_qc_;
 
     };
 

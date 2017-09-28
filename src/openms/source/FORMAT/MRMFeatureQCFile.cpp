@@ -165,8 +165,20 @@ namespace OpenMS
     {
       cqcs.overall_quality_u_ = line[headers["overall_quality_u"]];
     }
+    // parse metaValues
+    String meta_value = "";
+    double lb = 0;
+    double ub = 0;
+    for (auto const& kv : params_headers)
+    {
+      meta_value = kv.first;
+      // cast doubles
+      lb = std::stod(line[kv.second]);
+      // cqcs.meta_value_qc_
+      
+    }
+    mrmfqc.component_qcs_.push_back(cqcs);
 
-    
     //component_group QCs
     MRMFeatureQC::ComponentGroupQCs cgqcs;
     cgqcs_component_group_name_ = "";
