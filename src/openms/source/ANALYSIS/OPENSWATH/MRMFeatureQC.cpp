@@ -92,8 +92,7 @@ namespace OpenMS
     }
     
     // initialize QC variables
-    std::map<String,FeatureQC>::iterator feature_qc_it;
-    std::map<String,MultiFeatureQC>::iterator multi_feature_qc_it;
+    std::map<String,MRMFeatureQCFile>::iterator feature_qc_it;
 
     // initialize variables
     String component_name; //i.e., transition_id
