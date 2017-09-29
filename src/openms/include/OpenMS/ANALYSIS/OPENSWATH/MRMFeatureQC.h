@@ -52,7 +52,7 @@ namespace OpenMS
       MRMFeatureFilter. The format is based on the TraML format.
 
   */
-  class OPENMS_DLLAPI MRMFeatureQC :
+  class OPENMS_DLLAPI MRMFeatureQC
   {
 
 public:
