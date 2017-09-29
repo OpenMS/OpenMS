@@ -184,18 +184,18 @@ protected:
     registerStringList_("blacklist:modifications", "<selection>", vector<String>(), "Remove all peptides with sequences that contain (any of) the selected modification(s)", false);
     setValidStrings_("blacklist:modifications", all_mods);
 
-    registerTOPPSubsection_("digest", "Perform protein digestion and filter peptides based on digestion products");
-    registerInputFile_("digest:fasta", "<file>", "", "Input sequence database in FASTA format", false);
-    setValidFormats_("digest:fasta", ListUtils::create<String>("fasta"));
-    registerStringOption_("digest:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme",false);
-    setValidStrings_("digest:enzyme", all_enzymes);
-    registerStringOption_("digest:specificity", "<specificity>", specificity[EnzymaticDigestion::SPEC_FULL], "Specificity of the filter", false);
-    setValidStrings_("digest:specificity", specificity);
-    registerIntOption_("digest:missed_cleavages", "<integer>", -1, 
+    registerTOPPSubsection_("protein_digestion", "Perform protein digestion and filter peptides based on digestion products");
+    registerInputFile_("protein_digestion:fasta", "<file>", "", "Input sequence database in FASTA format", false);
+    setValidFormats_("protein_digestion:fasta", ListUtils::create<String>("fasta"));
+    registerStringOption_("protein_digestion:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme",false);
+    setValidStrings_("protein_digestion:enzyme", all_enzymes);
+    registerStringOption_("protein_digestion:specificity", "<specificity>", specificity[EnzymaticDigestion::SPEC_FULL], "Specificity of the filter", false);
+    setValidStrings_("protein_digestion:specificity", specificity);
+    registerIntOption_("protein_digestion:missed_cleavages", "<integer>", -1, 
                        "filter peptide evidences that have more than the specified missed_cleavages\n"
                        "By default missed cleavages are ignored", false);
-    setMinInt_("digest:missed_cleavages", -1);
-    registerFlag_("digest:methionine_cleavage", "Allow methionine cleavage at the protein start", false);
+    setMinInt_("protein_digestion:missed_cleavages", -1);
+    registerFlag_("protein_digestion:methionine_cleavage", "Allow methionine cleavage at the protein start", false);
 
     registerTOPPSubsection_("peptide_sequence_digestion", "Filter peptide sequences by their missed cleavages number");
     registerStringOption_("peptide_sequence_digestion:missed_cleavages", "[min]:[max]", ":", "[min,max] range of allowed missed cleavages\n" "Empty value ignores bound", false);
@@ -434,7 +434,7 @@ protected:
     
     // Filter by digestion enzyme product
 
-    String protein_fasta = getStringOption_("digest:fasta").trim();
+    String protein_fasta = getStringOption_("protein_digestion:fasta").trim();
     if (!protein_fasta.empty())
     {
       LOG_INFO << "Filtering peptides by digested protein (FASTA input)..." << endl;
@@ -444,19 +444,19 @@ protected:
 
       // Configure Enzymatic digestion
       EnzymaticDigestion digestion;
-      String enzyme = getStringOption_("digest:enzyme").trim();
+      String enzyme = getStringOption_("protein_digestion:enzyme").trim();
       if (!enzyme.empty())
       {
         digestion.setEnzyme(enzyme);
       }
 
-      String specificity = getStringOption_("digest:specificity").trim();
+      String specificity = getStringOption_("protein_digestion:specificity").trim();
       if (!specificity.empty())
       {
         digestion.setSpecificity(digestion.getSpecificityByName(specificity));
       }
 
-      Int missed_cleavages = getIntOption_("digest:missed_cleavages");
+      Int missed_cleavages = getIntOption_("protein_digestion:missed_cleavages");
       bool ignore_missed_cleavages = true;
       if (missed_cleavages > -1)
       {
@@ -469,7 +469,7 @@ protected:
       }
       
       bool methionine_cleavage = false;
-      if (getFlag_("digest:methionine_cleavage"))
+      if (getFlag_("protein_digestion:methionine_cleavage"))
       {
         methionine_cleavage = true;
       }
