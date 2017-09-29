@@ -67,16 +67,6 @@ namespace OpenMS
   {
   }
 
-  MRMFeatureFilter& MRMFeatureFilter::operator=(const MRMFeatureFilter& rhs)
-  {
-    if (&rhs == this)
-      return *this;
-
-    // don't copy parameters
-
-    return *this;
-  }
-
   void MRMFeatureFilter::updateMembers_()
   {
     flag_or_filter_ = (String)param_.getValue("flag_or_filter");
