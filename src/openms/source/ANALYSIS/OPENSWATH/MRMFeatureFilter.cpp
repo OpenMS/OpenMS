@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -92,7 +93,7 @@ namespace OpenMS
     }
     
     // initialize QC variables
-    std::map<String,MRMFeatureQCFile>::iterator feature_qc_it;
+    std::map<String,MRMFeatureQC>::iterator feature_qc_it;
 
     // initialize variables
     String component_name; //i.e., transition_id
