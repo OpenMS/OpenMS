@@ -138,32 +138,32 @@ namespace OpenMS
     cqcs.retention_time_l_ = 0;
     if (headers["retention_time_l"] != -1)
     {
-      cqcs.retention_time_l_ = line[headers["retention_time_l"]];
+      cqcs.retention_time_l_ = std::stod(line[headers["retention_time_l"]]);
     }
     cqcs.retention_time_u_ = 0;
     if (headers["retention_time_u"] != -1)
     {
-      cqcs.retention_time_u_ = line[headers["retention_time_u"]];
+      cqcs.retention_time_u_ = std::stod(line[headers["retention_time_u"]]);
     }    
     cqcs.intensity_l_ = 0;
     if (headers["intensity_l"] != -1)
     {
-      cqcs.intensity_l_ = line[headers["intensity_l"]];
+      cqcs.intensity_l_ = std::stod(line[headers["intensity_l"]]);
     }
     cqcs.intensity_u_ = 0;
     if (headers["intensity_u"] != -1)
     {
-      cqcs.intensity_u_ = line[headers["intensity_u"]];
+      cqcs.intensity_u_ = std::stod(line[headers["intensity_u"]]);
     }
     cqcs.overall_quality_l_ = 0;
     if (headers["overall_quality_l"] != -1)
     {
-      cqcs.overall_quality_l_ = line[headers["overall_quality_l"]];
+      cqcs.overall_quality_l_ = std::stod(line[headers["overall_quality_l"]]);
     }
     cqcs.overall_quality_u_ = 0;
     if (headers["overall_quality_u"] != -1)
     {
-      cqcs.overall_quality_u_ = line[headers["overall_quality_u"]];
+      cqcs.overall_quality_u_ = std::stod(line[headers["overall_quality_u"]]);
     }
     // parse metaValues
     String meta_value_key = "";
@@ -198,77 +198,77 @@ namespace OpenMS
     cgqcs_component_group_name_ = "";
     if (headers["component_group_name"] != -1)
     {
-      cgqcs.component_group_name_ = line[headers["component_group_name"]];
+      cgqcs.component_group_name_ = line[headers["component_group_name"]]);
     }
     cgqcs.n_heavy_l_ = 0;
     if (headers["n_heavy_l"] != -1)
     {
-      cgqcs.n_heavy_l_ = line[headers["n_heavy_l"]];
+      cgqcs.n_heavy_l_ = std::stoi(line[headers["n_heavy_l"]]);
     }
     cgqcs.n_light_l_ = 0;
     if (headers["n_light_l"] != -1)
     {
-      cgqcs.n_light_l_ = line[headers["n_light_l"]];
+      cgqcs.n_light_l_ = std::stoi(line[headers["n_light_l"]]);
     }
     cgqcs.n_light_u_ = 0;
     if (headers["n_light_u"] != -1)
     {
-      cgqcs.n_light_u_ = line[headers["n_light_u"]];
+      cgqcs.n_light_u_ = std::stoi(line[headers["n_light_u"]]);
     } 
     cgqcs.n_detecting_l_ = 0;
     if (headers["n_detecting_l"] != -1)
     {
-      cgqcs.n_detecting_l_ = line[headers["n_detecting_l"]];
+      cgqcs.n_detecting_l_ = std::stoi(line[headers["n_detecting_l"]]);
     }
     cgqcs.n_detecting_u_ = 0;
     if (headers["n_detecting_u"] != -1)
     {
-      cgqcs.n_detecting_u_ = line[headers["n_detecting_u"]];
+      cgqcs.n_detecting_u_ = std::stoi(line[headers["n_detecting_u"]]);
     }
     cgqcs.n_quantifying_l_ = 0;
     if (headers["n_quantifying_l"] != -1)
     {
-      cgqcs.n_quantifying_l_ = line[headers["n_quantifying_l"]];
+      cgqcs.n_quantifying_l_ = std::stoi(line[headers["n_quantifying_l"]]);
     }
     cgqcs.n_quantifying_u_ = 0;
     if (headers["n_quantifying_u"] != -1)
     {
-      cgqcs.n_quantifying_u_ = line[headers["n_quantifying_u"]];
+      cgqcs.n_quantifying_u_ = std::stoi(line[headers["n_quantifying_u"]]);
     }
     cgqcs.n_identifying_l_ = 0;
     if (headers["n_identifying_l"] != -1)
     {
-      cgqcs.n_identifying_l_ = line[headers["n_identifying_l"]];
+      cgqcs.n_identifying_l_ = std::stoi(line[headers["n_identifying_l"]]);
     }
     cgqcs.n_transitions_l_ = 0;
     if (headers["n_transitions_l"] != -1)
     {
-      cgqcs.n_transitions_l_ = line[headers["n_transitions_l"]];
+      cgqcs.n_transitions_l_ = std::stoi(line[headers["n_transitions_l"]]);
     }
     cgqcs.n_transitions_u_ = 0;
     if (headers["n_transitions_u"] != -1)
     {
-      cgqcs.n_transitions_u_ = line[headers["n_transitions_u"]];
+      cgqcs.n_transitions_u_ = std::stoi(line[headers["n_transitions_u"]]);
     }
     cgqcs.ion_ratio_pair_name_1_ = "";
     if (headers["ion_ratio_pair_name_1"] != -1)
     {
-      cgqcs.cgqcs.ion_ratio_pair_name_1_ = line[headers["ion_ratio_pair_name_1"]];
+      cgqcs.cgqcs.ion_ratio_pair_name_1_ = line[headers["ion_ratio_pair_name_1"]]);
     }
     cgqcs.ion_ratio_pair_name_2_ = "";
     if (headers["ion_ratio_pair_name_2"] != -1)
     {
-      cgqcs.ion_ratio_pair_name_2_ = line[headers["ion_ratio_pair_name_2"]];
+      cgqcs.ion_ratio_pair_name_2_ = line[headers["ion_ratio_pair_name_2"]]);
     }
     cgqcs.ion_ratio_l_ = 0;
     if (headers["ion_ratio_l"] != -1)
     {
-      cgqcs.ion_ratio_l_ = line[headers["ion_ratio_l"]];
+      cgqcs.ion_ratio_l_ = std::stod(line[headers["ion_ratio_l"]]);
     }
     cgqcs.ion_ratio_u_ = 0;
     if (headers["ion_ratio_u"] != -1)
     {
-      cgqcs.ion_ratio_u_ = line[headers["ion_ratio_u"]];
+      cgqcs.ion_ratio_u_ = std::stod(line[headers["ion_ratio_u"]]);
     }
     mrmfqc.component_qcs_.push_back(cgqcs);
   }
