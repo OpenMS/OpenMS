@@ -241,6 +241,11 @@ namespace OpenMS
     {
       cgqcs.n_identifying_l_ = std::stoi(line[headers["n_identifying_l"]]);
     }
+    cgqcs.n_identifying_u_ = 0;
+    if (headers["n_identifying_u"] != -1)
+    {
+      cgqcs.n_identifying_u_ = std::stoi(line[headers["n_identifying_u"]]);
+    }
     cgqcs.n_transitions_l_ = 0;
     if (headers["n_transitions_l"] != -1)
     {
