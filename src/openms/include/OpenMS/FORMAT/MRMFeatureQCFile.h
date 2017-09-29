@@ -81,8 +81,8 @@ public:
     @param headers A map of header strings to column positions.
     @param params_headers A map of transformation model parameter header strings to column positions.
   */
-  void parseHeader(StringList & line, std::map<std::string, int> & headers,
-    std::map<std::string, int> & params_headers);
+  void parseHeader(StringList & line, std::map<String, int> & headers,
+    std::map<String, int> & params_headers);
 
   /**
     @brief parses a line into the members of MRMFeatureQC.
@@ -90,8 +90,8 @@ public:
     @param line line of the .csv file.
     @param aqm MRMFeatureQC.
   */
-  void parseLine(StringList & line, std::map<std::string, int> & headers, 
-    std::map<std::string, int> & params_headers, MRMFeatureQC & mrmfqc);
+  void parseLine(StringList & line, std::map<String, int> & headers, 
+    std::map<String, int> & params_headers, MRMFeatureQC & mrmfqc);
 
   };
 
