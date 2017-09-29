@@ -173,21 +173,21 @@ namespace OpenMS
     {
       // split into meta_value_key and lub
       // example "meta_value_value_l" -> "meta_value_value" and "l"
-      meta_value_key = kv.first[0:-2];
-      lub = kv.first[-1:kv.first.length()];
+      meta_value_key = kv.first.substr(0,kv.first.length()-2);
+      lub = kv.first.substr(kv.first.length()-1:kv.first.length());
       if (cqcs.meta_value_qc_.count(meta_value_key) == 0)
       {     
-        cqcs.meta_value_qc_.[meta_value_key] = lbub;
+        cqcs.meta_value_qc_[meta_value_key] = lbub;
       }
         
       // cast doubles
       if (lub == "l")
       {
-        cqcs.meta_value_qc_.[meta_value_key].first = std::stod(line[kv.second]);
+        cqcs.meta_value_qc_[meta_value_key].first = std::stod(line[kv.second]);
       }
       else if (lub == "u")
       {
-        cqcs.meta_value_qc_.[meta_value_key].second = std::stod(line[kv.second]);
+        cqcs.meta_value_qc_[meta_value_key].second = std::stod(line[kv.second]);
       }
       // cqcs.meta_value_qc_
       
