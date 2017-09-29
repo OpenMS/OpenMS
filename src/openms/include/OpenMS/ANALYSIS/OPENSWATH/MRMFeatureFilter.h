@@ -69,6 +69,9 @@ public:
     ~MRMFeatureFilter();
     //@}
 
+    /// Synchronize members with param class
+    void updateMembers_();
+
     /**
       @brief Flags or filters features and subordinates in a FeatureMap
 
@@ -152,11 +155,11 @@ public:
     /// FeatureMap
     FeatureMap features_;
     /// component group/peptide/compound QCs
-    std::map<String,std::vector<QcML::QualityParameter>> component_group_qc_report_;
+    std::map<String,std::vector<QcMLFile::QualityParameter>> component_group_qc_report_;
     /// component/transition QCs
-    std::map<String,std::vector<QcML::QualityParameter>> component_qc_report_;
+    std::map<String,std::vector<QcMLFile::QualityParameter>> component_qc_report_;
     /// multi transition QCs
-    std::map<std::vector<String>,std::vector<QcML::QualityParameter>> multi_component_group_qc_report_;
+    std::map<std::vector<String>,std::vector<QcMLFile::QualityParameter>> multi_component_group_qc_report_;
   };
 }
 

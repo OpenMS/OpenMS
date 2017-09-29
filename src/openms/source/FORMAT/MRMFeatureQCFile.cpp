@@ -168,25 +168,26 @@ namespace OpenMS
     // parse metaValues
     String meta_value_key = "";
     String lub = "";
-    std::pair lbub {0,0};
+    std::pair<double,double> lbub {0,0};
     for (auto const& kv : params_headers)
     {
       // split into meta_value_key and lub
-      meta_value_key = kv.first[:-2];
-      lub = kv.first[-1:];
+      // example "meta_value_value_l" -> "meta_value_value" and "l"
+      meta_value_key = kv.first[0:-2];
+      lub = kv.first[-1:kv.first.length()];
       if (cqcs.meta_value_qc_.count(meta_value_key) == 0)
       {     
-        meta_value_qc_it[meta_value_key] = lbub;
+        cqcs.meta_value_qc_.[meta_value_key] = lbub;
       }
         
       // cast doubles
       if (lub == "l")
       {
-        meta_value_qc_it[meta_value_key].first = std::stod(line[kv.second]);
+        cqcs.meta_value_qc_.[meta_value_key].first = std::stod(line[kv.second]);
       }
       else if (lub == "u")
       {
-        meta_value_qc_it[meta_value_key].second = std::stod(line[kv.second]);
+        cqcs.meta_value_qc_.[meta_value_key].second = std::stod(line[kv.second]);
       }
       // cqcs.meta_value_qc_
       
@@ -195,10 +196,10 @@ namespace OpenMS
 
     //component_group QCs
     MRMFeatureQC::ComponentGroupQCs cgqcs;
-    cgqcs_component_group_name_ = "";
+    cgqcs.component_group_name_ = "";
     if (headers["component_group_name"] != -1)
     {
-      cgqcs.component_group_name_ = line[headers["component_group_name"]]);
+      cgqcs.component_group_name_ = line[headers["component_group_name"]];
     }
     cgqcs.n_heavy_l_ = 0;
     if (headers["n_heavy_l"] != -1)
@@ -253,12 +254,12 @@ namespace OpenMS
     cgqcs.ion_ratio_pair_name_1_ = "";
     if (headers["ion_ratio_pair_name_1"] != -1)
     {
-      cgqcs.cgqcs.ion_ratio_pair_name_1_ = line[headers["ion_ratio_pair_name_1"]]);
+      cgqcs.ion_ratio_pair_name_1_ = line[headers["ion_ratio_pair_name_1"]];
     }
     cgqcs.ion_ratio_pair_name_2_ = "";
     if (headers["ion_ratio_pair_name_2"] != -1)
     {
-      cgqcs.ion_ratio_pair_name_2_ = line[headers["ion_ratio_pair_name_2"]]);
+      cgqcs.ion_ratio_pair_name_2_ = line[headers["ion_ratio_pair_name_2"]];
     }
     cgqcs.ion_ratio_l_ = 0;
     if (headers["ion_ratio_l"] != -1)
@@ -270,7 +271,7 @@ namespace OpenMS
     {
       cgqcs.ion_ratio_u_ = std::stod(line[headers["ion_ratio_u"]]);
     }
-    mrmfqc.component_qcs_.push_back(cgqcs);
+    mrmfqc.component_group_qcs_.push_back(cgqcs);
   }
 
   void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc)
