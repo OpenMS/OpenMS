@@ -54,46 +54,44 @@ namespace OpenMS
     public ProgressLogger
   {
 public:
-    ///Default constructor
-    MRMFeatureQCFile();
-    ///Destructor
-    virtual ~MRMFeatureQCFile();
+  ///Default constructor
+  MRMFeatureQCFile();
+  ///Destructor
+  virtual ~MRMFeatureQCFile();
 
-    /**
-        @brief Loads an MRMFeatureQC file.
+  /**
+    @brief Loads an MRMFeatureQC file.
 
-        @exception Exception::FileNotFound is thrown if the file could not be opened
-        @exception Exception::ParseError is thrown if an error occurs during parsing
-    */
-    void load(const String & filename, const MRMFeatureQC & mrmfqc);
+    @exception Exception::FileNotFound is thrown if the file could not be opened
+    @exception Exception::ParseError is thrown if an error occurs during parsing
+  */
+  void load(const String & filename, MRMFeatureQC & mrmfqc);
 
-    /**
-        @brief Stores an MRMFeatureQC file.
+  /**
+    @brief Stores an MRMFeatureQC file.
 
-        @exception Exception::UnableToCreateFile is thrown if the file could not be created
-    */
-    void store(const String & filename, const MRMFeatureQC & mrmfqc);
-    
-    /**
-        @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
+    @exception Exception::UnableToCreateFile is thrown if the file could not be created
+  */
+  void store(const String & filename, const MRMFeatureQC & mrmfqc);
+  
+  /**
+    @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
-        @param line Header line of the .csv file.
-        @param headers A map of header strings to column positions.
-        @param params_headers A map of transformation model parameter header strings to column positions.
-    */
-    void parseHeader(StringList & line, std::map<std::string, int> & headers,
-        std::map<std::string, int> & params_headers);
+    @param line Header line of the .csv file.
+    @param headers A map of header strings to column positions.
+    @param params_headers A map of transformation model parameter header strings to column positions.
+  */
+  void parseHeader(StringList & line, std::map<std::string, int> & headers,
+    std::map<std::string, int> & params_headers);
 
-    /**
-        @brief parses a line into the members of MRMFeatureQC.
+  /**
+    @brief parses a line into the members of MRMFeatureQC.
 
-        @param line line of the .csv file.
-        @param aqm MRMFeatureQC.
-    */
-    void parseLine(StringList & line, std::map<std::string, int> & headers, 
-        std::map<std::string, int> & params_headers, MRMFeatureQC & aqm);
-
-private:
+    @param line line of the .csv file.
+    @param aqm MRMFeatureQC.
+  */
+  void parseLine(StringList & line, std::map<std::string, int> & headers, 
+    std::map<std::string, int> & params_headers, MRMFeatureQC & mrmfqc);
 
   };
 

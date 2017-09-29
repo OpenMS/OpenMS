@@ -273,7 +273,7 @@ namespace OpenMS
     mrmfqc.component_qcs_.push_back(cgqcs);
   }
 
-  void MRMFeatureQCFile::store(const String & filename, const std::vector<MRMFeatureQC> & mrmfqc_list)
+  void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc)
   {
     // TODO: pending fix to CsvFile::fstore()
   }
