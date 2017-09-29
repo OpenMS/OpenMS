@@ -80,8 +80,8 @@ namespace OpenMS
   void MRMFeatureFilter::updateMembers_()
   {
     flag_or_filter_ = (String)param_.getValue("flag_or_filter");
-    report_xic_ = (bool)param_.getValue("report_xic");
-    report_tic_ = (bool)param_.getValue("report_tic");
+    report_xic_ = param_.getValue("report_xic").toBool();
+    report_tic_ = param_.getValue("report_tic").toBool();
   }
 
   void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features)
