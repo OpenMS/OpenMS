@@ -197,10 +197,10 @@ protected:
     setMinInt_("digest:missed_cleavages", -1);
     registerFlag_("digest:methionine_cleavage", "Allow methionine cleavage at the protein start", false);
 
-    registerTOPPSubsection_("missed_cleavages", "Filter peptide sequences by their missed cleavages number");
-    registerStringOption_("missed_cleavages", "[min]:[max]", ":", "[min,max] range of allowed missed cleavages\n" "Empty value ignores bound", false);
-    registerStringOption_("missed_cleavages:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme", false);
-    setValidStrings_("missed_cleavages:enzyme", all_enzymes);
+    registerTOPPSubsection_("peptide_sequence_digestion", "Filter peptide sequences by their missed cleavages number");
+    registerStringOption_("peptide_sequence_digestion:missed_cleavages", "[min]:[max]", ":", "[min,max] range of allowed missed cleavages\n" "Empty value ignores bound", false);
+    registerStringOption_("peptide_sequence_digestion:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme", false);
+    setValidStrings_("peptide_sequence_digestion:enzyme", all_enzymes);
     
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
@@ -488,22 +488,22 @@ protected:
     Int min_cleavages, max_cleavages;
     min_cleavages = max_cleavages = IDFilter::PeptideDigestionFilter::disabledValue();
 
-    if (parseRange_(getStringOption_("missed_cleavages"), min_cleavages, max_cleavages))
+    if (parseRange_(getStringOption_("peptide_sequence_digestion:missed_cleavages"), min_cleavages, max_cleavages))
     {      
       // Configure Enzymatic digestion
       EnzymaticDigestion digestion;
-      String enzyme = getStringOption_("missed_cleavages:enzyme");
+      String enzyme = getStringOption_("peptide_sequence_digestion:enzyme");
       if (!enzyme.empty())
       {
         digestion.setEnzyme(enzyme);
       }
 
       LOG_INFO << "Filtering peptide hits by their missed cleavages count with enzyme " << digestion.getEnzymeName() << "..." << endl;
-      
+
       // Build the digest filter function
       IDFilter::PeptideDigestionFilter filter(digestion, min_cleavages, max_cleavages);
 
-      // Filter peptide hits      
+      // Filter peptide hits
       for (auto& peptide : peptides)
       {
         filter.filterPeptideSequences(peptide.getHits());

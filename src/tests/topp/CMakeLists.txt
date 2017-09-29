@@ -892,20 +892,20 @@ add_test("TOPP_IDFilter_16_out1" ${DIFF} -in1 IDFilter_16_output.tmp -in2 ${DATA
 set_tests_properties("TOPP_IDFilter_16_out1" PROPERTIES DEPENDS "TOPP_IDFilter_16")
 
 #filters by peptide missed cleavages
-add_test("TOPP_IDFilter_17" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_missed_cleavages_input.idXML -out IDFilter_17_output.tmp -missed_cleavages:enzyme Lys-N -missed_cleavages :2)
+add_test("TOPP_IDFilter_17" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_missed_cleavages_input.idXML -out IDFilter_17_output.tmp -peptide_sequence_digestion:enzyme Lys-N -peptide_sequence_digestion:missed_cleavages :2)
 add_test("TOPP_IDFilter_17_out1" ${DIFF} -in1 IDFilter_17_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_17_output.idXML )
 set_tests_properties("TOPP_IDFilter_17_out1" PROPERTIES DEPENDS "TOPP_IDFilter_17")
 
-add_test("TOPP_IDFilter_18" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_missed_cleavages_input.idXML -out IDFilter_18_output.tmp -missed_cleavages:enzyme Lys-N -missed_cleavages 2:)
+add_test("TOPP_IDFilter_18" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_missed_cleavages_input.idXML -out IDFilter_18_output.tmp -peptide_sequence_digestion:enzyme Lys-N -peptide_sequence_digestion:missed_cleavages 2:)
 add_test("TOPP_IDFilter_18_out1" ${DIFF} -in1 IDFilter_18_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_18_output.idXML )
 set_tests_properties("TOPP_IDFilter_18_out1" PROPERTIES DEPENDS "TOPP_IDFilter_18")
 
-add_test("TOPP_IDFilter_19" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_missed_cleavages_input.idXML -out IDFilter_19_output.tmp -missed_cleavages:enzyme Lys-N -missed_cleavages 1:3)
+add_test("TOPP_IDFilter_19" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_missed_cleavages_input.idXML -out IDFilter_19_output.tmp -peptide_sequence_digestion:enzyme Lys-N -peptide_sequence_digestion:missed_cleavages 1:3)
 add_test("TOPP_IDFilter_19_out1" ${DIFF} -in1 IDFilter_19_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_19_output.idXML )
 set_tests_properties("TOPP_IDFilter_19_out1" PROPERTIES DEPENDS "TOPP_IDFilter_19")
 
 #this should filter all peptide hits invalid range
-add_test("TOPP_IDFilter_20" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_missed_cleavages_input.idXML -out IDFilter_20_output.tmp -missed_cleavages 1:0)
+add_test("TOPP_IDFilter_20" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_missed_cleavages_input.idXML -out IDFilter_20_output.tmp -peptide_sequence_digestion:missed_cleavages 1:0)
 add_test("TOPP_IDFilter_20_out1" ${DIFF} -in1 IDFilter_20_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_20_output.idXML )
 set_tests_properties("TOPP_IDFilter_20_out1" PROPERTIES DEPENDS "TOPP_IDFilter_20")
 
