@@ -184,7 +184,10 @@ protected:
     registerStringList_("blacklist:modifications", "<selection>", vector<String>(), "Remove all peptides with sequences that contain (any of) the selected modification(s)", false);
     setValidStrings_("blacklist:modifications", all_mods);
 
-    registerTOPPSubsection_("protein_digestion", "Perform protein digestion and filter peptides based on digestion products");
+    registerTOPPSubsection_("protein_digestion", 
+                            "Digest provided proteins and filter peptides evidences."
+                            "If valid protein digestion products does not exist for a peptide evidence, then it is filtered.\n"
+                            "NOTE: If protein accession for peptide evidence is not present in the FASTA file then this peptide is not filtered.");
     registerInputFile_("protein_digestion:fasta", "<file>", "", "Input sequence database in FASTA format", false);
     setValidFormats_("protein_digestion:fasta", ListUtils::create<String>("fasta"));
     registerStringOption_("protein_digestion:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme",false);
