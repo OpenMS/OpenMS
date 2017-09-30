@@ -107,7 +107,7 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    double calculateRatio(Feature & component_1, Feature & component_2, std::string & feature_name);
+    double calculateRatio(Feature & component_1, Feature & component_2, String & feature_name);
                    
     /**
       @brief This function calculates the bias of the calibration.
@@ -138,8 +138,8 @@ public:
       @exception Exception::UnableToFit
     */ 
     void fitCalibration(std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-      std::string & feature_name,
-      std::string & transformation_model,
+      String & feature_name,
+      String & transformation_model,
       Param & transformation_model_params);
       
     /**
@@ -178,8 +178,8 @@ public:
     */ 
     double applyCalibration(Feature & component,
       Feature & IS_component,
-      std::string & feature_name,
-      std::string & transformation_model,
+      String & feature_name,
+      String & transformation_model,
       Param & transformation_model_params);     
       
     /**
@@ -199,10 +199,10 @@ public:
     
     // members
     /// map between components and quantitation methods
-    std::map<std::string,AbsoluteQuantitationMethod> quant_methods_;
+    std::map<String,AbsoluteQuantitationMethod> quant_methods_;
 
     /// map between components and known concentrations (the calibrators)
-    std::map<std::string,AbsoluteQuantitationStandards> standards_concentrations_;
+    std::map<String,AbsoluteQuantitationStandards> standards_concentrations_;
 
   };
 

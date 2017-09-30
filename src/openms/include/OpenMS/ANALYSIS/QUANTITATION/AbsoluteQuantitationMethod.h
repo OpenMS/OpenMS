@@ -96,22 +96,22 @@ public:
   bool checkLOQ(const double & value);
 
   /// component_name, IS_name, and feature_name setter
-  void setComponentISFeatureNames(const std::string& component_name, const std::string& IS_name, const std::string& feature_name);
+  void setComponentISFeatureNames(const String& component_name, const String& IS_name, const String& feature_name);
 
   /// component_name, IS_name, and feature_name getter
-  void getComponentISFeatureNames(std::string& component_name, std::string& IS_name, std::string& feature_name);
+  void getComponentISFeatureNames(String& component_name, String& IS_name, String& feature_name);
   
   /// concentration_units setter
-  void setConcentrationUnits(const std::string& concentration_units);
+  void setConcentrationUnits(const String& concentration_units);
 
   /// concentration_units getter
-  void getConcentrationUnits(std::string& concentration_units);
+  void getConcentrationUnits(String& concentration_units);
   
   /// transformation_model and transformation_model_params setter
-  void setTransformationModel(const std::string& transformation_model, const Param& transformation_model_params);
+  void setTransformationModel(const String& transformation_model, const Param& transformation_model_params);
 
   /// transformation_model and transformation_model_params getter
-  void getTransformationModel(std::string& transformation_model, Param& transformation_model_params);
+  void getTransformationModel(String& transformation_model, Param& transformation_model_params);
 
   /// actual concentration setter
   void setActualConcentration(const double& actual_concentration);
@@ -126,10 +126,10 @@ public:
   void getStatistics(int& n_points, double& correlation_coefficient);
   
   // /// feature_name setter
-  // void setFeatureName(const std::string& feature_name);
+  // void setFeatureName(const String& feature_name);
 
   // /// feature_name getter
-  // void getFeatureName(std::string& feature_name);
+  // void getFeatureName(String& feature_name);
 
   /**
   @brief This function fits the transformation model with the data
@@ -141,7 +141,7 @@ public:
 
   @return updated parameters.
   */ 
-  Param fitTransformationModel(const std::string & transformation_model,
+  Param fitTransformationModel(const String & transformation_model,
     TransformationModel::DataPoints& data,
     Param& transformation_model_params);
 
@@ -155,17 +155,17 @@ public:
 
   @return evaluated datum.
   */ 
-  double evaluateTransformationModel(const std::string & transformation_model,
+  double evaluateTransformationModel(const String & transformation_model,
     const double& datum,
     Param& transformation_model_params);
                                   
   // members
 
   /// id of the component
-  std::string component_name_;
+  String component_name_;
   
   /// name of the feature (i.e., peak_apex_int or peak_area)
-  std::string feature_name_;
+  String feature_name_;
 
   /// lower limit of detection (LLOD) of the transition
   double llod_;
@@ -186,16 +186,16 @@ public:
   double correlation_coefficient_;
 
   /// the internal standard (IS) name for the transition
-  std::string IS_name_;
+  String IS_name_;
 
   /// the known concentration of the component
   double actual_concentration_;
 
   /// concentration units of the component's concentration
-  std::string concentration_units_;
+  String concentration_units_;
   
   /// transformation model
-  std::string transformation_model_;
+  String transformation_model_;
 
   /// transformation model parameters
   Param transformation_model_params_;  

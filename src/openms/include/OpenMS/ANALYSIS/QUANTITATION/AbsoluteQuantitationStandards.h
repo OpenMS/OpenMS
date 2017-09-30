@@ -74,10 +74,10 @@ public:
     */ 
     struct runConcentrations
     {
-      std::string run_id;
-      std::string component_id;
+      String run_id;
+      String component_id;
       double actual_concentration;
-      std::string concentration_units;
+      String concentration_units;
     };
 
     /**
@@ -88,7 +88,7 @@ public:
     {
       Feature feature;
       double actual_concentration;
-      std::string concentration_units;
+      String concentration_units;
     };
     
      /**
@@ -101,7 +101,7 @@ public:
      void mapConcentrationsToComponents();
                                       
     // members
-    std::map<std::string,std::vector<featureConcentration>> components_to_concentrations;
+    std::map<String,std::vector<featureConcentration>> components_to_concentrations;
 
   };
 
