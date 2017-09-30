@@ -61,14 +61,14 @@ START_SECTION(~MRMFeatureQCFile())
 }
 END_SECTION
 
-START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & headers,
-    std::map<std::string,int> & params_headers)))
+START_SECTION((void parseHeader(StringList & line, std::map<String,int> & headers,
+    std::map<String,int> & params_headers)))
     //TODO
 
     MRMFeatureQCFile mrmfqcfile;
     
-    std::map<std::string,int> headers;
-    std::map<std::string,int> params_headers;
+    std::map<String,int> headers;
+    std::map<String,int> params_headers;
   
     // header test 1
     StringList header1; 
@@ -124,15 +124,15 @@ START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & h
     
   END_SECTION
   
-  START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & headers, 
-    std::map<std::string,int> & params_headers, MRMFeatureQC & mrmfqc)))
+  START_SECTION((void parseLine(StringList & line, std::map<String,int> & headers, 
+    std::map<String,int> & params_headers, MRMFeatureQC & mrmfqc)))
     
     MRMFeatureQCFile mrmfqcfile;
     MRMFeatureQC mrmfqc;
     
     // headers
-    std::map<std::string,int> headers;
-    std::map<std::string,int> params_headers;  
+    std::map<String,int> headers;
+    std::map<String,int> params_headers;  
     headers["IS_name"] = 0;
     headers["component_name"] = 1;
     headers["feature_name"] = 2;
@@ -167,7 +167,7 @@ START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & h
   
     mrmfqcfile.parseLine(line1, headers, params_headers, mrmfqc);
   
-    // std::string component_name, IS_name, feature_name;
+    // String component_name, IS_name, feature_name;
     // mrmfqc.getComponentISFeatureNames(component_name, IS_name, feature_name);
     // TEST_EQUAL(component_name, "component1");
     // TEST_EQUAL(IS_name, "IS1");
