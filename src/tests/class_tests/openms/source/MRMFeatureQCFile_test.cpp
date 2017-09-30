@@ -40,22 +40,22 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(MRMFeatureFilter, "$Id$")
+START_TEST(MRMFeatureQCFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureFilter* ptr = 0;
-MRMFeatureFilter* nullPointer = 0;
+MRMFeatureQCFile* ptr = 0;
+MRMFeatureQCFile* nullPointer = 0;
 
-START_SECTION(MRMFeatureFilter())
+START_SECTION(MRMFeatureQCFile())
 {
-  ptr = new MRMFeatureFilter();
+  ptr = new MRMFeatureQCFile();
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
-START_SECTION(~MRMFeatureFilter())
+START_SECTION(~MRMFeatureQCFile())
 {
   delete ptr;
 }
