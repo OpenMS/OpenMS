@@ -35,7 +35,7 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQCFile.h>
+#include <OpenMS/FORMAT/MRMFeatureQCFile.h>
 
 using namespace OpenMS;
 using namespace std;
