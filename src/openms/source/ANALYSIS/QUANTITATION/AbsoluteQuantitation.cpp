@@ -73,7 +73,7 @@ namespace OpenMS
   void AbsoluteQuantitation::setQuantMethods(std::vector<AbsoluteQuantitationMethod>& quant_methods)
   {
     quant_methods_.clear();
-    std::string component_name,IS_component_name,feature_name;
+    String component_name,IS_component_name,feature_name;
     for (size_t i = 0; i < quant_methods.size(); i++)
     {
       quant_methods[i].getComponentISFeatureNames(component_name,IS_component_name,feature_name);
@@ -81,7 +81,7 @@ namespace OpenMS
     }
   }
 
-  double AbsoluteQuantitation::calculateRatio(Feature & component_1, Feature & component_2, std::string & feature_name)
+  double AbsoluteQuantitation::calculateRatio(Feature & component_1, Feature & component_2, String & feature_name)
   {
     double ratio = 0.0;
     if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
@@ -108,8 +108,8 @@ namespace OpenMS
   
   void AbsoluteQuantitation::fitCalibration(
     std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-    std::string & feature_name,
-    std::string & transformation_model,
+    String & feature_name,
+    String & transformation_model,
     Param & transformation_model_params)
   {
     // extract out the calibration points
@@ -128,8 +128,8 @@ namespace OpenMS
   
   double AbsoluteQuantitation::applyCalibration(Feature & component,
     Feature & IS_component,
-    std::string & feature_name,
-    std::string & transformation_model,
+    String & feature_name,
+    String & transformation_model,
     Param & transformation_model_params)
   {
     // calculate the ratio
@@ -150,19 +150,19 @@ namespace OpenMS
     // to reduce multiple loops
 
     // initialize all quant_method variables
-    std::map<std::string,AbsoluteQuantitationMethod>::iterator quant_methods_it;
-    std::string quant_component_name; //i.e., quant_method transition_id
-    std::string quant_IS_component_name; //i.e., quant_method internal standard transition_id
-    std::string quant_feature_name; //i.e., quant_method peak_apex_int or peak_area
-    std::string transformation_model;
+    std::map<String,AbsoluteQuantitationMethod>::iterator quant_methods_it;
+    String quant_component_name; //i.e., quant_method transition_id
+    String quant_IS_component_name; //i.e., quant_method internal standard transition_id
+    String quant_feature_name; //i.e., quant_method peak_apex_int or peak_area
+    String transformation_model;
     Param transformation_model_params;
 
     // initialize all unknown variables
-    std::string component_name; //i.e., transition_id
-    std::string IS_component_name; //i.e., internal standard transition_id
-    std::string component_group_name; //i.e., peptideRef
+    String component_name; //i.e., transition_id
+    String IS_component_name; //i.e., internal standard transition_id
+    String component_group_name; //i.e., peptideRef
     double calculated_concentration;
-    std::string concentration_units;
+    String concentration_units;
 
     // initalize all other variables
     bool IS_found;
@@ -176,13 +176,13 @@ namespace OpenMS
       // iterate through each component_group/feature     
       for (size_t feature_it = 0; feature_it < unknowns[i].size(); ++feature_it)
       {
-        component_group_name = (std::string)unknowns[i][feature_it].getMetaValue("PeptideRef");
+        component_group_name = (String)unknowns[i][feature_it].getMetaValue("PeptideRef");
         Feature unknowns_quant_feature;
 
         // iterate through each component/sub-feature
         for (size_t sub_it = 0; sub_it < unknowns[i][feature_it].getSubordinates().size(); ++sub_it)
         {
-          component_name = (std::string)unknowns[i][feature_it].getSubordinates()[sub_it].getMetaValue("native_id");  
+          component_name = (String)unknowns[i][feature_it].getSubordinates()[sub_it].getMetaValue("native_id");  
 
           // apply the calibration curve to components that are in the quant_method
           if (quant_methods_.count(component_name)>0)
@@ -196,7 +196,7 @@ namespace OpenMS
               // Optimization: 90% of the IS will be in the same component_group/feature
               for (size_t is_sub_it = 0; is_sub_it < unknowns[i][feature_it].getSubordinates().size(); ++is_sub_it)
               {
-                IS_component_name = (std::string)unknowns[i][feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");              
+                IS_component_name = (String)unknowns[i][feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");              
                 if (quant_IS_component_name == IS_component_name)
                 {
                   IS_found = true;
@@ -213,7 +213,7 @@ namespace OpenMS
                   //iterate through each component/sub-feature
                   for (size_t is_sub_it = 0; is_sub_it < unknowns[i][is_feature_it].getSubordinates().size(); ++is_sub_it)
                   {
-                    IS_component_name = (std::string)unknowns[i][is_feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");                   
+                    IS_component_name = (String)unknowns[i][is_feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");                   
                     if (quant_IS_component_name == IS_component_name)
                     {
                       IS_found = true;

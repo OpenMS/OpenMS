@@ -58,8 +58,8 @@ namespace OpenMS
     fload(filename, is, ie, first_n);
 
     // parse the file
-    std::map<std::string,int> headers;
-    std::map<std::string,int> params_headers;
+    std::map<String,int> headers;
+    std::map<String,int> params_headers;
     StringList line, header;
     AbsoluteQuantitationMethod aqm;
     for (size_t i = 0; i < CsvFile::rowCount(); ++i)
@@ -78,8 +78,8 @@ namespace OpenMS
     }
   }
 
-  void AbsoluteQuantitationMethodFile::parseHeader(StringList & line, std::map<std::string, int> & headers,
-    std::map<std::string, int> & params_headers)
+  void AbsoluteQuantitationMethodFile::parseHeader(StringList & line, std::map<String, int> & headers,
+    std::map<String, int> & params_headers)
   {    
     // default header column positions
     headers["IS_name"] = -1;
@@ -94,13 +94,13 @@ namespace OpenMS
     headers["actual_concentration"] = -1;
     headers["n_points"] = -1;
     headers["transformation_model"] = -1;
-    std::string param_header = "transformation_model_param_";
+    String param_header = "transformation_model_param_";
     
     // parse the header columns
     for (size_t i = 0; i < line.size(); ++i)
     {
       // parse transformation_model_params
-      if (line[i].find(param_header) != std::string::npos) 
+      if (line[i].find(param_header) != String::npos) 
       {
         line[i].erase(0, param_header.size()); 
         params_headers[line[i]] = i;
@@ -112,21 +112,21 @@ namespace OpenMS
     }
   }
 
-  void AbsoluteQuantitationMethodFile::parseLine(StringList & line, std::map<std::string,int> & headers, 
-    std::map<std::string,int> & params_headers, AbsoluteQuantitationMethod & aqm)
+  void AbsoluteQuantitationMethodFile::parseLine(StringList & line, std::map<String,int> & headers, 
+    std::map<String,int> & params_headers, AbsoluteQuantitationMethod & aqm)
   {
     // component, IS, and feature names
-    std::string component_name = "";
+    String component_name = "";
     if (headers["component_name"] != -1)
     {
       component_name = line[headers["component_name"]];
     }
-    std::string feature_name = "";
+    String feature_name = "";
     if (headers["feature_name"] != -1)
     {
       feature_name = line[headers["feature_name"]];
     }
-    std::string IS_name = "";
+    String IS_name = "";
     if (headers["IS_name"] != -1)
     {
       IS_name = line[headers["IS_name"]];
@@ -137,12 +137,12 @@ namespace OpenMS
     double llod = 0.0;
     if (headers["llod"] != -1)
     {
-      llod = std::stod(line[headers["llod"]]);
+      llod = (line[headers["llod"].empty()) ? 0.0 : std::stod(line[headers["llod"]]);
     }
     double ulod = 0.0;
     if (headers["ulod"] != -1)
     {
-      ulod = std::stod(line[headers["ulod"]]);
+      ulod = (line[headers["ulod"].empty()) ? 0.0 : std::stod(line[headers["ulod"]]);
     }
     aqm.setLOD(llod,ulod);
 
@@ -150,12 +150,12 @@ namespace OpenMS
     double lloq = 0.0;
     if (headers["lloq"] != -1)
     {
-      lloq = std::stod(line[headers["lloq"]]);
+      lloq = (line[headers["lloq"].empty()) ? 0.0 : std::stod(line[headers["lloq"]]);
     }
     double uloq = 0.0;
     if (headers["uloq"] != -1)
     {
-      uloq = std::stod(line[headers["uloq"]]);
+      uloq = (line[headers["uloq"].empty()) ? 0.0 : std::stod(line[headers["uloq"]]);
     }
     aqm.setLOQ(lloq,uloq);
 
@@ -168,7 +168,7 @@ namespace OpenMS
     aqm.setActualConcentration(actual_concentration);
 
     // concentration units
-    std::string concentration_units = "";
+    String concentration_units = "";
     if (headers["concentration_units"] != -1)
     {
       concentration_units = line[headers["concentration_units"]];
@@ -189,7 +189,7 @@ namespace OpenMS
     aqm.setStatistics(n_points, correlation_coefficient);
 
     // transformation model
-    std::string transformation_model = "";
+    String transformation_model = "";
     if (headers["transformation_model"] != -1)
     {
       transformation_model = line[headers["transformation_model"]];
@@ -198,9 +198,9 @@ namespace OpenMS
     for (auto const& kv : params_headers)
     {
       // cast doubles
-      std::vector<std::string> param_doubles {"slope", "intercept", "wavelength", "span", "delta", "x_datum_min", "y_datum_min", "x_datum_max", "y_datum_max"}; 
+      std::vector<String> param_doubles {"slope", "intercept", "wavelength", "span", "delta", "x_datum_min", "y_datum_min", "x_datum_max", "y_datum_max"}; 
       // cast integers
-      std::vector<std::string> param_ints {"num_nodes", "boundary_condition", "num_iterations"};
+      std::vector<String> param_ints {"num_nodes", "boundary_condition", "num_iterations"};
 
       if (std::find(param_doubles.begin(), param_doubles.end(), kv.first) != param_doubles.end())
       {

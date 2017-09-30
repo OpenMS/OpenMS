@@ -61,9 +61,9 @@ START_SECTION((~AbsoluteQuantitation()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((double calculateRatio(Feature & component_1, Feature & component_2, std::string feature_name)))
+START_SECTION((double calculateRatio(Feature & component_1, Feature & component_2, String feature_name)))
   AbsoluteQuantitation absquant;
-  std::string feature_name = "peak_apex_int";
+  String feature_name = "peak_apex_int";
   double inf = 1.0/0.0;
   // dummy features
   OpenMS::Feature component_1, component_2;
@@ -86,8 +86,8 @@ END_SECTION
 
 START_SECTION((double applyCalibration(Feature & component,
   Feature & IS_component,
-  std::string & feature_name,
-  std::string & transformation_model,
+  String & feature_name,
+  String & transformation_model,
   Param & transformation_model_params)))
 
   AbsoluteQuantitation absquant;
@@ -98,10 +98,10 @@ START_SECTION((double applyCalibration(Feature & component,
   component.setMetaValue("peak_apex_int",2.0);
   IS_component.setMetaValue("native_id","IS");
   IS_component.setMetaValue("peak_apex_int",2.0);
-  std::string feature_name = "peak_apex_int";
+  String feature_name = "peak_apex_int";
 
   // set-up the model and params
-  std::string transformation_model;
+  String transformation_model;
   Param param;
   transformation_model = "TransformationModelLinear";  
   param.setValue("slope",1.0);
@@ -123,7 +123,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   // set-up the features and sub-features
   std::vector<Feature> unknown_feature_subordinates;
   Feature unknown_feature, component, IS_component;
-  std::string feature_name = "peak_apex_int";
+  String feature_name = "peak_apex_int";
   // component 1
   unknown_feature.setMetaValue("PeptideRef","component_group1");
   component.setMetaValue("native_id","component1");
@@ -163,7 +163,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
 
   // set-up the model and params
   AbsoluteQuantitationMethod aqm;
-  std::string transformation_model;
+  String transformation_model;
   Param param;
   transformation_model = "TransformationModelLinear";  
   param.setValue("slope",1.0);

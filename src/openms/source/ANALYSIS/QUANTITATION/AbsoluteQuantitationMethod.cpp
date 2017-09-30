@@ -104,57 +104,57 @@ namespace OpenMS
     return bracketted;
   }
   
-  void AbsoluteQuantitationMethod::setComponentISFeatureNames(const std::string& component_name, const std::string& IS_name, const std::string& feature_name)
+  void AbsoluteQuantitationMethod::setComponentISFeatureNames(const String& component_name, const String& IS_name, const String& feature_name)
   {
     component_name_ = component_name;
     IS_name_ = IS_name;
     feature_name_ = feature_name;
   }
   
-  void AbsoluteQuantitationMethod::getComponentISFeatureNames(std::string& component_name, std::string& IS_name, std::string& feature_name)
+  void AbsoluteQuantitationMethod::getComponentISFeatureNames(String& component_name, String& IS_name, String& feature_name)
   {
     component_name = component_name_;
     IS_name = IS_name_;
     feature_name = feature_name_;
   } 
   
-  // void AbsoluteQuantitationMethod::setFeatureName(const std::string& feature_name)
+  // void AbsoluteQuantitationMethod::setFeatureName(const String& feature_name)
   // {
   //   feature_name_ = feature_name;
   // }
   
-  // void AbsoluteQuantitationMethod::getFeatureName(std::string& feature_name)
+  // void AbsoluteQuantitationMethod::getFeatureName(String& feature_name)
   // {
   //   feature_name = feature_name_;
   // } 
   
-  // void AbsoluteQuantitationMethod::setISName(const std::string& IS_name)
+  // void AbsoluteQuantitationMethod::setISName(const String& IS_name)
   // {
   //   IS_name_ = IS_name;
   // }
   
-  // void AbsoluteQuantitationMethod::getISName(std::string& IS_name)
+  // void AbsoluteQuantitationMethod::getISName(String& IS_name)
   // {
   //   IS_name = IS_name_;
   // }
   
-  void AbsoluteQuantitationMethod::setConcentrationUnits(const std::string& concentration_units)
+  void AbsoluteQuantitationMethod::setConcentrationUnits(const String& concentration_units)
   {
     concentration_units_ = concentration_units;
   }
 
-  void AbsoluteQuantitationMethod::getConcentrationUnits(std::string& concentration_units)
+  void AbsoluteQuantitationMethod::getConcentrationUnits(String& concentration_units)
   {
     concentration_units = concentration_units_;
   }
   
-  void AbsoluteQuantitationMethod::setTransformationModel(const std::string& transformation_model, const Param& transformation_model_params)
+  void AbsoluteQuantitationMethod::setTransformationModel(const String& transformation_model, const Param& transformation_model_params)
   {
     transformation_model_ = transformation_model;
     transformation_model_params_ = transformation_model_params;
   }
 
-  void AbsoluteQuantitationMethod::getTransformationModel(std::string& transformation_model, Param& transformation_model_params)
+  void AbsoluteQuantitationMethod::getTransformationModel(String& transformation_model, Param& transformation_model_params)
   {
     transformation_model = transformation_model_;
     transformation_model_params = transformation_model_params_;
@@ -182,7 +182,7 @@ namespace OpenMS
     correlation_coefficient = correlation_coefficient_;
   }
 
-  Param AbsoluteQuantitationMethod::fitTransformationModel(const std::string & transformation_model,
+  Param AbsoluteQuantitationMethod::fitTransformationModel(const String & transformation_model,
     TransformationModel::DataPoints& data,
     Param& transformation_model_params)
   {
@@ -217,7 +217,7 @@ namespace OpenMS
     return params;
   }
   
-  double AbsoluteQuantitationMethod::evaluateTransformationModel(const std::string & transformation_model,
+  double AbsoluteQuantitationMethod::evaluateTransformationModel(const String & transformation_model,
     const double& datum,
     Param& transformation_model_params)
   {

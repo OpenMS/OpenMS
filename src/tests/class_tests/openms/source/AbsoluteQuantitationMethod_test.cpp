@@ -96,7 +96,7 @@ START_SECTION((bool checkLOQ(const double & value)))
   TEST_EQUAL(aqm.checkLOQ(value),false);
 END_SECTION
 
-START_SECTION((Param fitTransformationModel(const std::string & transformation_model,
+START_SECTION((Param fitTransformationModel(const String & transformation_model,
   TransformationModel::DataPoints& data,
   Param& transformation_model_params)))
   
@@ -108,7 +108,7 @@ START_SECTION((Param fitTransformationModel(const std::string & transformation_m
   data.push_back(make_pair(4.0, 4.0));
 
   AbsoluteQuantitationMethod aqm;
-  std::string transformation_model;
+  String transformation_model;
   Param param, test;
 
   transformation_model = "TransformationModelLinear";  
@@ -157,14 +157,14 @@ START_SECTION((Param fitTransformationModel(const std::string & transformation_m
   TEST_EQUAL(test.empty(), true);
 END_SECTION
 
-START_SECTION((double evaluateTransformationModel(const std::string & transformation_model,
+START_SECTION((double evaluateTransformationModel(const String & transformation_model,
   const double& datum,
   Param& transformation_model_params)))
   
   TransformationModel::DataPoints data;
   double datum = 2.0;
   AbsoluteQuantitationMethod aqm;
-  std::string transformation_model;
+  String transformation_model;
   Param param;
 
   transformation_model = "TransformationModelLinear";  

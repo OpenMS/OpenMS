@@ -62,13 +62,13 @@ START_SECTION((~AbsoluteQuantitationMethodFile()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & headers,
-  std::map<std::string,int> & params_headers)))
+START_SECTION((void parseHeader(StringList & line, std::map<String,int> & headers,
+  std::map<String,int> & params_headers)))
   
   AbsoluteQuantitationMethodFile aqmf;
   
-  std::map<std::string,int> headers;
-  std::map<std::string,int> params_headers;
+  std::map<String,int> headers;
+  std::map<String,int> params_headers;
 
   // header test 1
   StringList header1; 
@@ -124,15 +124,15 @@ START_SECTION((void parseHeader(StringList & line, std::map<std::string,int> & h
   
 END_SECTION
 
-START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & headers, 
-  std::map<std::string,int> & params_headers, AbsoluteQuantitationMethod & aqm)))
+START_SECTION((void parseLine(StringList & line, std::map<String,int> & headers, 
+  std::map<String,int> & params_headers, AbsoluteQuantitationMethod & aqm)))
   
   AbsoluteQuantitationMethodFile aqmf;
   AbsoluteQuantitationMethod aqm;
   
   // headers
-  std::map<std::string,int> headers;
-  std::map<std::string,int> params_headers;  
+  std::map<String,int> headers;
+  std::map<String,int> params_headers;  
   headers["IS_name"] = 0;
   headers["component_name"] = 1;
   headers["feature_name"] = 2;
@@ -154,20 +154,20 @@ START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & hea
   line1.push_back("component1");
   line1.push_back("feature1");
   line1.push_back("uM");
-  line1.push_back(0.0);
-  line1.push_back(10.0);
-  line1.push_back(2.0);
-  line1.push_back(8.0);
-  line1.push_back(0.99);
-  line1.push_back(1.0);
-  line1.push_back(5);
+  line1.push_back("0.0");
+  line1.push_back(""); //test for empty string
+  line1.push_back("2.0");
+  line1.push_back("8.0");
+  line1.push_back("0.99");
+  line1.push_back("1.0");
+  line1.push_back("5");
   line1.push_back("TransformationModelLinear");
-  line1.push_back(2.0);
-  line1.push_back(1.0);
+  line1.push_back("2.0");
+  line1.push_back("1.0");
 
   aqmf.parseLine(line1, headers, params_headers, aqm);
 
-  std::string component_name, IS_name, feature_name;
+  String component_name, IS_name, feature_name;
   aqm.getComponentISFeatureNames(component_name, IS_name, feature_name);
   TEST_EQUAL(component_name, "component1");
   TEST_EQUAL(IS_name, "IS1");
@@ -175,12 +175,12 @@ START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & hea
   double llod, ulod;
   aqm.getLOD(llod, ulod);
   TEST_REAL_SIMILAR(llod, 0.0);
-  TEST_REAL_SIMILAR(ulod, 10.0);
+  TEST_REAL_SIMILAR(ulod, 0.0);
   double lloq, uloq;
   aqm.getLOQ(lloq, uloq);
   TEST_REAL_SIMILAR(lloq, 2.0);
   TEST_REAL_SIMILAR(uloq, 8.0);
-  std::string concentration_units;
+  String concentration_units;
   aqm.getConcentrationUnits(concentration_units);
   TEST_EQUAL(concentration_units, "uM");
   double actual_concentration;
@@ -191,7 +191,7 @@ START_SECTION((void parseLine(StringList & line, std::map<std::string,int> & hea
   aqm.getStatistics(n_points, correlation_coefficient);
   TEST_EQUAL(n_points, 5);
   TEST_REAL_SIMILAR(correlation_coefficient, 0.99);
-  std::string transformation_model;
+  String transformation_model;
   Param transformation_model_params;
   aqm.getTransformationModel(transformation_model, transformation_model_params);
   TEST_EQUAL(transformation_model, "TransformationModelLinear");
@@ -208,12 +208,12 @@ START_SECTION((void load(const String & filename, std::vector<AbsoluteQuantitati
   std::vector<AbsoluteQuantitationMethod> aqm_list;
 
   aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_1.csv"), aqm_list);
-  std::string component_name, IS_name, feature_name;
+  String component_name, IS_name, feature_name;
   aqm_list[0].getComponentISFeatureNames(component_name, IS_name, feature_name);
   TEST_EQUAL(component_name, "component1");
   TEST_EQUAL(IS_name, "IS1");
   TEST_EQUAL(feature_name, "feature1");
-  std::string transformation_model;
+  String transformation_model;
   Param transformation_model_params;
   aqm_list[0].getTransformationModel(transformation_model, transformation_model_params);
   TEST_EQUAL(transformation_model, "TransformationModelLinear");
