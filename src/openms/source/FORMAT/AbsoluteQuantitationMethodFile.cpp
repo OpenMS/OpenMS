@@ -137,12 +137,12 @@ namespace OpenMS
     double llod = 0.0;
     if (headers["llod"] != -1)
     {
-      llod = (line[headers["llod"].empty()) ? 0.0 : std::stod(line[headers["llod"]]);
+      llod = (line[headers["llod"]].empty()) ? 0.0 : std::stod(line[headers["llod"]);
     }
     double ulod = 0.0;
     if (headers["ulod"] != -1)
     {
-      ulod = (line[headers["ulod"].empty()) ? 0.0 : std::stod(line[headers["ulod"]]);
+      ulod = (line[headers["ulod"]].empty()) ? 0.0 : std::stod(line[headers["ulod"]);
     }
     aqm.setLOD(llod,ulod);
 
@@ -150,12 +150,12 @@ namespace OpenMS
     double lloq = 0.0;
     if (headers["lloq"] != -1)
     {
-      lloq = (line[headers["lloq"].empty()) ? 0.0 : std::stod(line[headers["lloq"]]);
+      lloq = (line[headers["lloq"]].empty()) ? 0.0 : std::stod(line[headers["lloq"]);
     }
     double uloq = 0.0;
     if (headers["uloq"] != -1)
     {
-      uloq = (line[headers["uloq"].empty()) ? 0.0 : std::stod(line[headers["uloq"]]);
+      uloq = (line[headers["uloq"]].empty()) ? 0.0 : std::stod(line[headers["uloq"]);
     }
     aqm.setLOQ(lloq,uloq);
 
@@ -163,7 +163,7 @@ namespace OpenMS
     double actual_concentration = 0.0;
     if (headers["actual_concentration"] != -1)
     {
-      actual_concentration = std::stod(line[headers["actual_concentration"]]);
+      actual_concentration = (line[headers["actual_concentration"]].empty()) ? 0.0 : std::stod(line[headers["actual_concentration"]);
     }
     aqm.setActualConcentration(actual_concentration);
 
