@@ -241,21 +241,21 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     MRMFeatureQCFile mrmfqcfile;
     MRMFeatureQC mrmfqc;
   
-    // mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_1.csv"), mrmfqc);
+    mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_1.csv"), mrmfqc);
     // first line
-    // TEST_EQUAL(component_name, "component1");
-    // TEST_EQUAL(IS_name, "IS1");
-    // TEST_EQUAL(feature_name, "feature1");
+    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_group_name_, "componentGroup1");
+    TEST_EQUAL(mrmfqc.component_qcs_[0].component_name_, "component1");
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc_["sn_score"].second, 10.0);
     
     // second line
-    // TEST_EQUAL(component_name, "component2");
-    // TEST_EQUAL(IS_name, "IS2");
-    // TEST_EQUAL(feature_name, "feature2");
+    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_group_name_, "componentGroup2");
+    TEST_EQUAL(mrmfqc.component_qcs_[0].component_name_, "component2");
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc_["sn_score"].second, 20.0);
 
     // third line
-    // TEST_EQUAL(component_name, "component3");
-    // TEST_EQUAL(IS_name, "IS3");
-    // TEST_EQUAL(feature_name, "feature3");
+    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_group_name_, "componentGroup3");
+    TEST_EQUAL(mrmfqc.component_qcs_[0].component_name_, "component3");
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc_["sn_score"].second, 50.0);
   
   END_SECTION
 
