@@ -52,11 +52,8 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI Ribonucleotide
   {
+    friend class RibonucleotideDB;
   public:
-    Ribonucleotide():
-      origin_('X'), mono_mass_(0.0), avg_mass_(0.0)
-    {
-    }
 
     enum RiboNucleotideFragmentType
     {                 // NB: Not all fragments types are valid for all residue types, this class should probably get split
@@ -92,6 +89,42 @@ namespace OpenMS
         Undefined
     };
 
+    /** @name Constructors
+    */
+    //@{
+    /// Default constructor
+    Ribonucleotide();
+
+    /// Copy constructor
+    Ribonucleotide(const Ribonucleotide& ribo);
+
+    /// Detailed constructor
+    Ribonucleotide(const String& name,
+                   const String& code,
+                   const String& new_code,
+                   const String& html_code,
+                   const EmpiricalFormula& formula,
+                   const char& origin,
+                   const double& mono_mass,
+                   const double& avg_mass,
+                   const bool isModifiable);
+
+    /// Destructor
+    virtual ~Ribonucleotide();
+    //@}
+
+    /** @name Assignment
+     */
+    //@{
+    /// assignment operator
+    Ribonucleotide& operator=(const Ribonucleotide& ribo);
+    //@}
+
+
+    /** Accessors
+     */
+    //@{
+    //
     // The nucleic acid type. Influences mass calculations.
     NucleicAcidType getType() const;
 
@@ -147,6 +180,12 @@ namespace OpenMS
 
     void setHtml_code(const String &html_code);
 
+    bool getIsModifiable() const;
+
+    void setIsModifiable(bool isModifiable);
+
+    //@}
+
     ///Return true if this is a modified Ribonucleotide and false otherwise
     bool isModified();
 
@@ -160,7 +199,7 @@ namespace OpenMS
     char origin_;  // character of unmodified version of Ribonucleotide
     double mono_mass_;
     double avg_mass_;
-    bool isModifiable_= true;
+    bool isModifiable_;
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Ribonucleotide& ribo);

@@ -51,7 +51,7 @@ namespace OpenMS
     NASequence& seq)
   {
     // chain ends
-    std::for_each (fixed_mods_begin, fixed_mods_end, [] (Ribonucleotide const & f)
+    std::for_each (fixed_mods_begin, fixed_mods_end, [&seq] (Ribonucleotide const & f)
       {
         if (f.getType() == Ribonucleotide::FIVE_PRIME)
         {
@@ -72,7 +72,7 @@ namespace OpenMS
       if (r.isModified()) { ++residue_index; continue; }
 
       //set fixed modifications
-      std::for_each(fixed_mods_begin, fixed_mods_end, [](Ribonucleotide const & f)
+      std::for_each(fixed_mods_begin, fixed_mods_end, [&seq] (Ribonucleotide const & f)
         {
           // check if amino acid match between modification and current residue
           if (r.getCode() != f.getOrigin()) { continue; }  // no match? check next modification
