@@ -14,33 +14,24 @@ namespace OpenMS
 {
 
 NASequence::NASequence()
-{ //Default to RNA since that was the original behaviour
+{
     s_ = "";
-    type_ = Ribonucleotide::RNA;
 }
 
 NASequence::NASequence(const String& rhs)
-{ //Default to RNA since that was the original behaviour
-    s_ = rhs;
-    type_ = Ribonucleotide::RNA;
-}
-
-NASequence::NASequence(const String& rhs, const Ribonucleotide::NucleicAcidType& type)
 {
     s_ = rhs;
-    type_ = type;
 }
 
 NASequence& NASequence::operator=(const NASequence& rhs)
 {
     s_ = rhs.s_;
-    type_ = rhs.type_;
     return *this;
 }
 
 bool NASequence::operator==(const NASequence& rhs) const
 {
-    if (s_ == rhs.getSequence() && type_ == rhs.getType())
+    if (s_ == rhs.getSequence())
         return true;
     else
         return false;
@@ -56,16 +47,6 @@ void NASequence::setSequence(const String& s)
     s_ = s;
 }
 
-void NASequence::setType(const Ribonucleotide::NucleicAcidType& type)
-{
-    type_ = type; // @TODO: what if the sequence doesn't fit the type ("T" vs. "U")?
-}
-
-Ribonucleotide::NucleicAcidType NASequence::getType() const
-{
-    return type_;
-}
-
 String NASequence::getSequence() const
 {
     return s_;
@@ -73,10 +54,7 @@ String NASequence::getSequence() const
 
 bool NASequence::empty() const
 {
-    if (s_.empty())
-        return true;
-    else
-        return false;
+    return s_.empty();
 }
 
 size_t NASequence::size() const

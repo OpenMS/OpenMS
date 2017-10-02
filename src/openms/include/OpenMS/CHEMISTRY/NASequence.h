@@ -18,37 +18,40 @@ class OPENMS_DLLAPI NASequence
 {
 
 public:
-    NASequence(); //default constructor
-    NASequence(const String& rhs); // copy constructor
-    NASequence(const String& rhs, const Ribonucleotide::NucleicAcidType& type);
-    NASequence& operator=(const NASequence& rhs); //assignment operator
-    bool operator==(const NASequence& rhs) const;
-    virtual ~NASequence(); //destructor
-    void setSequence(const String& s);
-    void setType(const Ribonucleotide::NucleicAcidType& type);
-    String getSequence() const;
-    Ribonucleotide::NucleicAcidType getType() const;
-    size_t size() const;
-    double getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
-    NASequence getPrefix(Size index) const;
-    NASequence getSuffix(Size index) const;
-    bool empty() const;
-    EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
+  NASequence(); //default constructor
+  NASequence(const String& rhs); // copy constructor
+  NASequence& operator=(const NASequence& rhs); //assignment operator
+  bool operator==(const NASequence& rhs) const;
+  virtual ~NASequence(); //destructor
+  void setSequence(const String& s);
+  String getSequence() const;
+  size_t size() const;
+  double getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
+  bool empty() const;
+  EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
 
-    //TODO:implement
-    void set(size_t index, const Ribonucleotide* r);
+  //TODO:implement
+  void set(size_t index, const Ribonucleotide* r);
 
-    bool hasFivePrimeModification() const;
-    void setFivePrimeModification(const Ribonucleotide* r);
+  bool hasFivePrimeModification() const;
+  void setFivePrimeModification(const Ribonucleotide* r);
 
-    bool hasThreePrimeModification() const;
-    void setThreePrimeModification(const Ribonucleotide* r);
+  bool hasThreePrimeModification() const;
+  void setThreePrimeModification(const Ribonucleotide* r);
+
+  typedef std::vector<Ribonucleotide*>::iterator iterator;
+  iterator begin() { return s_.begin(); }
+  iterator end() { return s_.end(); }
+
+  typedef std::vector<Ribonucleotide*>::const_iterator const_iterator;
+  const_iterator cbegin() const { return s_.cbegin(); }
+  const_iterator cend() const { return s_.cend(); }
+
+  NASequence getPrefix(Size index) const;
+  NASequence getSuffix(Size index) const;
 
 private:
-    String s_;
-    Ribonucleotide::NucleicAcidType type_;
-
-
+  std::vector<Ribonucleotide*> s_;
 };
 OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& nucleotide);
 
