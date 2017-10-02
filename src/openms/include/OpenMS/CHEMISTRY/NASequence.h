@@ -21,6 +21,8 @@ public:
   NASequence(); //default constructor
   NASequence(const NASequence& seq); // copy constructor
   NASequence& operator=(const NASequence& rhs); //assignment operator
+
+  NASequence(std::vector<Ribonucleotide*> s, RibonucleotideChainEnd fivePrime, RibonucleotideChainEnd threePrime); //full constructor
   bool operator==(const NASequence& rhs) const;
   virtual ~NASequence(); //destructor
   void setSequence(std::vector<Ribonucleotide*>& s);

@@ -37,6 +37,13 @@ NASequence& NASequence::operator=(const NASequence& rhs)
     return *this;
 }
 
+NASequence::NASequence(std::vector<Ribonucleotide *> s, RibonucleotideChainEnd fivePrime, RibonucleotideChainEnd threePrime)
+{
+  s_ = s;
+  fivePrime_ = fivePrime;
+  threePrime_ = threePrime;
+}
+
 bool NASequence::operator==(const NASequence& rhs) const
 {
     if (s_ == rhs.getSequence() && fivePrime_ == rhs.getFivePrimeModification() && threePrime_ == rhs.getThreePrimeModification() )
@@ -78,7 +85,10 @@ NASequence NASequence::getPrefix(Size index) const
 {
     if (index>=s_.size())
         throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, s_.size());
-    return NASequence(s_.substr(0,index),type_);
+    return NASequence(
+          std::vector<Ribonucleotide*>(s_.begin(), s_.begin() + index),
+          fivePrime_,
+          Ribonucleotide*()) //RAGE! FIXME!!!
 }
 
 NASequence NASequence::getSuffix(Size index) const
