@@ -72,55 +72,83 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
   
     // header test 1
     StringList header1; 
-    header1.push_back("IS_name");
     header1.push_back("component_name");
-    header1.push_back("feature_name");
-    header1.push_back("concentration_units");
-    header1.push_back("llod");
-    header1.push_back("ulod");
-    header1.push_back("lloq");
-    header1.push_back("uloq");
-    header1.push_back("correlation_coefficient");
-    header1.push_back("actual_concentration");
-    header1.push_back("n_points");
-    header1.push_back("transformation_model");
-    header1.push_back("transformation_model_param_slope");
-    header1.push_back("transformation_model_param_intercept");
+    header1.push_back("component_group_name");
+    header1.push_back("n_heavy_l"); 
+    header1.push_back("n_heavy_u");
+    header1.push_back("n_light_l");
+    header1.push_back("n_light_u");
+    header1.push_back("n_detecting_l");
+    header1.push_back("n_detecting_u");
+    header1.push_back("n_quantifying_l");
+    header1.push_back("n_quantifying_u");
+    header1.push_back("n_identifying_l");
+    header1.push_back("n_identifying_u");
+    header1.push_back("n_transitions_l");
+    header1.push_back("n_transitions_u");
+    header1.push_back("ion_ratio_pair_name_1");
+    header1.push_back("ion_ratio_pair_name_2");
+    header1.push_back("ion_ratio_l");
+    header1.push_back("ion_ratio_u");
+    header1.push_back("retention_time_l");
+    header1.push_back("retention_time_u");
+    header1.push_back("intensity_l");
+    header1.push_back("intensity_u");
+    header1.push_back("overall_quality_l");
+    header1.push_back("overall_quality_u");
+    header1.push_back("metaValue_peak_apex_int_l");
+    header1.push_back("metaValue_peak_apex_int_u");
+    header1.push_back("metaValue_sn_score_l");
+    header1.push_back("metaValue_sn_score_u");
   
-    // mrmfqcfile.parseHeader(header1, headers, params_headers);
+    mrmfqcfile.parseHeader(header1, headers, params_headers);
   
-    // TEST_EQUAL(headers["IS_name"], 0);
-    // TEST_EQUAL(headers["transformation_model"], 11);
-    // TEST_EQUAL(params_headers["slope"], 12);
-    // TEST_EQUAL(params_headers["intercept"], 13);
+    TEST_EQUAL(headers["component_name"], 0);
+    TEST_EQUAL(headers["n_detecting_u"], 7);
+    TEST_EQUAL(headers["overall_quality_u"], 23);
+    TEST_EQUAL(params_headers["metaValue_peak_apex_int_l"], 24);
+    TEST_EQUAL(params_headers["metaValue_sn_score_u"], 27);
   
-    // headers.clear();
-    // params_headers.clear();
+    headers.clear();
+    params_headers.clear();
     
-    // // header test 2
-    // StringList header2; 
-    // header2.push_back("IS_name");
-    // header2.push_back("component_name");
-    // header2.push_back("feature_name");
-    // header2.push_back("concentration_units");
-    // // header2.push_back("llod"); //test missing value
-    // header2.push_back("ulod");
-    // header2.push_back("lloq");
-    // header2.push_back("uloq");
-    // header2.push_back("correlation_coefficient");
-    // header2.push_back("actual_concentration");
-    // header2.push_back("n_points");
-    // header2.push_back("transformation_model");
-    // header2.push_back("transformation_model_param_slope");
-    // header2.push_back("transformation_model_param_intercept");
+    // header test 2
+    header1.push_back("component_name");
+    header1.push_back("component_group_name");
+    header1.push_back("n_heavy_l"); 
+    header1.push_back("n_heavy_u");
+    header1.push_back("n_light_l");
+    header1.push_back("n_light_u");
+    header1.push_back("n_detecting_l");
+    // header1.push_back("n_detecting_u");
+    header1.push_back("n_quantifying_l");
+    header1.push_back("n_quantifying_u");
+    header1.push_back("n_identifying_l");
+    header1.push_back("n_identifying_u");
+    header1.push_back("n_transitions_l");
+    header1.push_back("n_transitions_u");
+    header1.push_back("ion_ratio_pair_name_1");
+    header1.push_back("ion_ratio_pair_name_2");
+    header1.push_back("ion_ratio_l");
+    header1.push_back("ion_ratio_u");
+    header1.push_back("retention_time_l");
+    header1.push_back("retention_time_u");
+    header1.push_back("intensity_l");
+    header1.push_back("intensity_u");
+    header1.push_back("overall_quality_l");
+    header1.push_back("overall_quality_u");
+    header1.push_back("metaValue_peak_apex_int_l");
+    header1.push_back("metaValue_peak_apex_int_u");
+    header1.push_back("metaValue_sn_score_l");
+    header1.push_back("metaValue_sn_score_u");
   
-    // mrmfqcfile.parseHeader(header2, headers, params_headers);
-  
-    // TEST_EQUAL(headers["IS_name"], 0);
-    // TEST_EQUAL(headers["llod"], -1);
-    // TEST_EQUAL(headers["transformation_model"], 10);
-    // TEST_EQUAL(params_headers["slope"], 11);
-    // TEST_EQUAL(params_headers["intercept"], 12);
+    mrmfqcfile.parseHeader(header2, headers, params_headers);
+    
+    TEST_EQUAL(headers["component_name"], 0);
+    TEST_EQUAL(headers["n_detecting_u"], -1);
+    TEST_EQUAL(headers["overall_quality_u"], 22);
+    TEST_EQUAL(params_headers["metaValue_peak_apex_int_l"], 23);
+    TEST_EQUAL(params_headers["metaValue_sn_score_u"], 26);
     
   END_SECTION
   
@@ -132,46 +160,76 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     
     // headers
     std::map<String,int> headers;
-    std::map<String,int> params_headers;  
-    headers["IS_name"] = 0;
-    headers["component_name"] = 1;
-    headers["feature_name"] = 2;
-    headers["concentration_units"] = 3;
-    headers["llod"] = 4;
-    headers["ulod"] = 5;
-    headers["lloq"] = 6;
-    headers["uloq"] = 7;
-    headers["correlation_coefficient"] = 8;
-    headers["actual_concentration"] = 9;
-    headers["n_points"] = 10;
-    headers["transformation_model"] = 11;
-    params_headers["slope"] = 12;
-    params_headers["intercept"] = 13;
+    std::map<String,int> params_headers;
+    headers["component_name"] = 0;
+    headers["component_group_name"] = 1;
+    headers["n_heavy_l"] = 2;
+    headers["n_heavy_u"] = 3;
+    headers["n_light_l"] = 4;
+    headers["n_light_u"] = 5;
+    headers["n_detecting_l"] = 6;
+    headers["n_detecting_u"] = 7;
+    headers["n_quantifying_l"] = 8;
+    headers["n_quantifying_u"] = 9;
+    headers["n_identifying_l"] = 10;
+    headers["n_identifying_u"] = 11;
+    headers["n_transitions_l"] = 12;
+    headers["n_transitions_u"] = 13;
+    headers["ion_ratio_pair_name_1"] = 14;
+    headers["ion_ratio_pair_name_2"] = 15;
+    headers["ion_ratio_l"] = 16;
+    headers["ion_ratio_u"] = 17;
+    headers["retention_time_l"] = 18;
+    headers["retention_time_u"] = 19;
+    headers["intensity_l"] = 20;
+    headers["intensity_u"] = 21;
+    headers["overall_quality_l"] = 22;
+    headers["overall_quality_u"] = 23;
+    params_headers["metaValue_peak_apex_int_l"] = 24;
+    params_headers["metaValue_peak_apex_int_u"] = 25;
+    params_headers["metaValue_sn_score_l"] = 26;
+    params_headers["metaValue_sn_score_u"] = 27;
   
     // line test 1
     StringList line1; 
-    line1.push_back("IS1");
     line1.push_back("component1");
-    line1.push_back("feature1");
-    line1.push_back("uM");
-    line1.push_back(0.0);
+    line1.push_back("component_group1");
+    line1.push_back(1);
+    line1.push_back(1);
+    line1.push_back(2);
+    line1.push_back(2);
+    line1.push_back(0);
+    line1.push_back(0);
+    line1.push_back(1);
+    line1.push_back(1);
+    line1.push_back(2);
+    line1.push_back(2);
+    line1.push_back(3);
+    line1.push_back(3);
+    line1.push_back("component1");
+    line1.push_back("component2");
+    line1.push_back(0.5);
+    line1.push_back(0.75);
+    line1.push_back(1.0);
+    line1.push_back(2.0);
+    line1.push_back(1.0e3);
+    line1.push_back(1.0e5);
+    line1.push_back(2.0);
+    line1.push_back(5.0);  
+    line1.push_back(1.1e3);
+    line1.push_back(1.1e5);
+    line1.push_back(2.0);
     line1.push_back(10.0);
-    line1.push_back(2.0);
-    line1.push_back(8.0);
-    line1.push_back(0.99);
-    line1.push_back(1.0);
-    line1.push_back(5);
-    line1.push_back("TransformationModelLinear");
-    line1.push_back(2.0);
-    line1.push_back(1.0);
-  
+
     mrmfqcfile.parseLine(line1, headers, params_headers, mrmfqc);
   
-    // String component_name, IS_name, feature_name;
-    // mrmfqc.getComponentISFeatureNames(component_name, IS_name, feature_name);
-    // TEST_EQUAL(component_name, "component1");
-    // TEST_EQUAL(IS_name, "IS1");
-    // TEST_EQUAL(feature_name, "feature1");
+    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_name_, "component1");
+    TEST_EQUAL(mrmfqc.component_group_qcs_[0].n_quantifying_u_, 1);
+
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].retention_time_l_, 1.0);
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].overall_quality_u_, 5.0);
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc["peak_apex_int"].first, 1.1e3);
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc["sn_score"].second, 10.0);
   
     headers.clear();
     

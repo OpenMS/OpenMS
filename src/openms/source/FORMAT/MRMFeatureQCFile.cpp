@@ -83,7 +83,6 @@ namespace OpenMS
     // default header column positions
     headers["component_name"] = -1;
     headers["component_group_name"] = -1;
-    headers["n_heavy_l"] = -1; 
     headers["n_heavy_l"] = -1;
     headers["n_heavy_u"] = -1;
     headers["n_light_l"] = -1;
@@ -205,6 +204,11 @@ namespace OpenMS
     if (headers["n_heavy_l"] != -1)
     {
       cgqcs.n_heavy_l_ = std::stoi(line[headers["n_heavy_l"]]);
+    }
+    cgqcs.n_heavy_u_ = 0;
+    if (headers["n_heavy_u"] != -1)
+    {
+      cgqcs.n_heavy_u_ = std::stoi(line[headers["n_heavy_u"]]);
     }
     cgqcs.n_light_l_ = 0;
     if (headers["n_light_l"] != -1)
