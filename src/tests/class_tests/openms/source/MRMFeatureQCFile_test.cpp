@@ -106,8 +106,8 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     TEST_EQUAL(headers["component_name"], 0);
     TEST_EQUAL(headers["n_detecting_u"], 7);
     TEST_EQUAL(headers["overall_quality_u"], 23);
-    TEST_EQUAL(params_headers["metaValue_peak_apex_int_l"], 24);
-    TEST_EQUAL(params_headers["metaValue_sn_score_u"], 27);
+    TEST_EQUAL(params_headers["peak_apex_int_l"], 24);
+    TEST_EQUAL(params_headers["sn_score_u"], 27);
   
     headers.clear();
     params_headers.clear();
@@ -148,8 +148,8 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     TEST_EQUAL(headers["component_name"], 0);
     TEST_EQUAL(headers["n_detecting_u"], -1);
     TEST_EQUAL(headers["overall_quality_u"], 22);
-    TEST_EQUAL(params_headers["metaValue_peak_apex_int_l"], 23);
-    TEST_EQUAL(params_headers["metaValue_sn_score_u"], 26);
+    TEST_EQUAL(params_headers["peak_apex_int_l"], 23);
+    TEST_EQUAL(params_headers["sn_score_u"], 26);
     
   END_SECTION
   
@@ -186,10 +186,10 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     headers["intensity_u"] = 21;
     headers["overall_quality_l"] = 22;
     headers["overall_quality_u"] = 23;
-    params_headers["metaValue_peak_apex_int_l"] = 24;
-    params_headers["metaValue_peak_apex_int_u"] = 25;
-    params_headers["metaValue_sn_score_l"] = 26;
-    params_headers["metaValue_sn_score_u"] = 27;
+    params_headers["peak_apex_int_l"] = 24;
+    params_headers["peak_apex_int_u"] = 25;
+    params_headers["sn_score_l"] = 26;
+    params_headers["sn_score_u"] = 27;
   
     // line test 1
     StringList line1; 
