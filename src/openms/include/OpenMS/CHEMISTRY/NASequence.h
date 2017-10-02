@@ -7,6 +7,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 
+// to create iterators more easily
+#include <boost/iterator/iterator_adaptor.hpp
 
 #include <vector>
 #include <iosfwd>
@@ -14,8 +16,45 @@
 namespace OpenMS
 {
 
+
+
 class OPENMS_DLLAPI NASequence
 {
+
+public:
+  class ribonucleotide_iterator
+    : public boost::iterator_adaptor<
+      ribonucleotide_iterator
+      , std::vector<Ribonucleotide *>::iterator  // Base
+      , boost::use_default                      // Value
+      , boost::use_default                      // CategoryOrTraversal
+      , boost::use_default                      // Reference
+      , boost::use_default                      // Difference
+    >
+  {
+  private:
+    struct enabler {};  // a private type avoids misuse
+
+    template <class OtherValue>
+    ribonucleotide_iterator(
+      ribonucleotide_iterator<OtherValue> const& other
+      , typename boost::enable_if<
+      boost::is_convertible<OtherValue*, std::vector<Ribonucleotide *>::iterator*>
+      , enabler
+    >::type = enabler()
+    )
+      : ribonucleotide_iterator::iterator_adaptor_(other.base()) {}
+
+  public:
+    ribonucleotide_iterator()
+      : ribonucleotide_iterator::iterator_adaptor_() {}
+
+    explicit ribonucleotide_iterator(const ribonucleotide_iterator::iterator_adapter_::base_type& p)
+      : ribonucleotide_iterator::iterator_adaptor_(p) {}
+
+  private:
+    friend class boost::iterator_core_access;
+  };
 
 public:
   NASequence(); //default constructor
@@ -38,14 +77,6 @@ public:
 
   bool hasThreePrimeModification() const;
   void setThreePrimeModification(const Ribonucleotide* r);
-
-  typedef std::vector<Ribonucleotide*>::iterator iterator;
-  iterator begin() { return s_.begin(); }
-  iterator end() { return s_.end(); }
-
-  typedef std::vector<Ribonucleotide*>::const_iterator const_iterator;
-  const_iterator cbegin() const { return s_.cbegin(); }
-  const_iterator cend() const { return s_.cend(); }
 
   NASequence getPrefix(Size index) const;
   NASequence getSuffix(Size index) const;

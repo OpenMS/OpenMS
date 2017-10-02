@@ -72,20 +72,19 @@ namespace OpenMS
       if (r->isModified()) { ++residue_index; continue; }
 
       //set fixed modifications
-      std::for_each(fixed_mods_begin, fixed_mods_end, [&seq] (Ribonucleotide const & f)
+      std::for_each(fixed_mods_begin, fixed_mods_end, [&seq, &residue_index, r] (Ribonucleotide const & f)
         {
-          // check if amino acid match between modification and current residue
-          if (r->getCode() != f.getOrigin()) { continue; }  // no match? check next modification
-
-          // skip five/three prime modifications
-          if (f.getType() == Ribonucleotide::FIVE_PRIME_MODIFICATION
-           || f.getType() == Ribonucleotide::THREE_PRIME_MODIFICATION)
+          // check if modification and current ribo match
+          const String& code = r->getCode();
+          if (code.size() == 1 && code[0] == f.getOrigin())
           {
-            continue;
+            // replace the nucleoside with the modified version (skip five/three prime modifications)
+            if (f.getType() != Ribonucleotide::FIVE_PRIME_MODIFICATION
+                && f.getType() != Ribonucleotide::THREE_PRIME_MODIFICATION)
+            {
+              seq.set(residue_index, &f);
+            }
           }
-
-          // replace the nucleoside with the modified version
-          seq.set(residue_index, &f);
         }
       );
       ++residue_index;
@@ -137,7 +136,7 @@ namespace OpenMS
     map<int, vector<Ribonucleotide> > map_compatibility;
 
     // set terminal modifications for modifications without amino acid preference
-    std::for_each(var_mods_begin, var_mods_end, [] (Ribonucleotide const & v)
+    std::for_each(var_mods_begin, var_mods_end, [&seq, &map_compatibility] (Ribonucleotide const & v)
       {
         if (v.getType() == Ribonucleotide::FIVE_PRIME_MODIFICATION)
         {
@@ -162,20 +161,19 @@ namespace OpenMS
       if (r.isModified()) { ++residue_index; continue; }
 
       //determine compatibility of variable modifications
-      std::for_each(var_mods_begin, var_mods_end, [](Ribonucleotide const & v)
+      std::for_each(var_mods_begin, var_mods_end, [&residue_index, &r, &map_compatibility](Ribonucleotide const & v)
       {
-        // check if nucleotides match
-        if (r.getCode() != v.getOrigin()) { continue; }
-
-        // Term specificity is ANYWHERE on the seq, C_TERM or N_TERM
-
-        if (v.getType() != Ribonucleotide::FIVE_PRIME_MODIFICATION
-          || v.getType() != Ribonucleotide::THREE_PRIME_MODIFICATION)
+        // check if modification and current ribo match
+        const String& code = (*r)->getCode();
+        if (code.size() == 1 && code[0] == v.getOrigin())
         {
-          map_compatibility[static_cast<int>(residue_index)].push_back(v);
+          if (v.getType() != Ribonucleotide::FIVE_PRIME_MODIFICATION
+              || v.getType() != Ribonucleotide::THREE_PRIME_MODIFICATION)
+          {
+            map_compatibility[static_cast<int>(residue_index)].push_back(v);
+          }
         }
       });
-
       ++residue_index;
     }
 
@@ -296,18 +294,18 @@ namespace OpenMS
 
       size_t residue_index = residue_it - seq.cbegin();
 
-      // determine compatibility of variable modifications
-      std::for_each(var_mods_begin, var_mods_end, [](Ribonucleotide const & v)
+      // matches every variable modification to every site and return the new sequence with single modification
+      std::for_each(var_mods_begin, var_mods_end,
+                    [residue_it, residue_index, &all_modified_seqs, &seq](Ribonucleotide const & v)
       {
         // check if modification and current ribo match
-        if ((*residue_it)->getCode() != v.getOrigin()) { continue; }
-
-        bool is_compatible(false);
-
-        NASequence new_seq = seq;
-        new_seq.set(residue_index, &v);
-        all_modified_seqs.push_back(new_seq);
-
+        const String& code = (*residue_it)->getCode();
+        if (code.size() == 1 && code[0] == v.getOrigin())
+        {
+          NASequence new_seq = seq;
+          new_seq.set(residue_index, &v);
+          all_modified_seqs.push_back(new_seq);
+        }
       });
     }
   }
