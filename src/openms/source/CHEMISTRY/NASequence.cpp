@@ -15,23 +15,31 @@ namespace OpenMS
 
 NASequence::NASequence()
 {
-    s_ = "";
+  s_ = std::vector<Ribonucleotide*>();
+  fivePrime_ = RibonucleotideChainEnd();
+  threePrime_ = RibonucleotideChainEnd();
 }
 
-NASequence::NASequence(const String& rhs)
+NASequence::NASequence(const NASequence &seq)
 {
-    s_ = rhs;
+  s_ = seq.getSequence();
+  fivePrime_ = seq.getFivePrimeModification();
+  threePrime_ = seq.getThreePrimeModification();
 }
+
+
 
 NASequence& NASequence::operator=(const NASequence& rhs)
 {
     s_ = rhs.s_;
+    fivePrime_ = rhs.fivePrime_;
+    threePrime_ = rhs.threePrime_;
     return *this;
 }
 
 bool NASequence::operator==(const NASequence& rhs) const
 {
-    if (s_ == rhs.getSequence())
+    if (s_ == rhs.getSequence() && fivePrime_ == rhs.getFivePrimeModification() && threePrime_ == rhs.getThreePrimeModification() )
         return true;
     else
         return false;
@@ -42,29 +50,28 @@ NASequence::~NASequence()
 } //destructor
 
 
-void NASequence::setSequence(const String& s)
+void NASequence::setSequence(const std::vector<Ribonucleotide*>& s)
 {
-    s_ = s;
+  s_ = s;
 }
 
-String NASequence::getSequence() const
+std::vector<Ribonucleotide*> NASequence::getSequence() const
 {
-    return s_;
+  return s_;
 }
 
 bool NASequence::empty() const
 {
-    return s_.empty();
+  if (s_.size()== 0)
+  {
+    return true;
+  }
+  return false;
 }
 
 size_t NASequence::size() const
 {
-    size_t size = s_.size();
-    // don't count terminal phosphates in the sequence length:
-    size_t terminal_p = 0;
-    if ((size > 0) && (s_[0] == 'p')) terminal_p++;
-    if ((size > 1) && (s_[size - 1] == 'p')) terminal_p++;
-    return size - terminal_p;
+  return s_.size();
 }
 
 NASequence NASequence::getPrefix(Size index) const
@@ -198,93 +205,9 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
 
 double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type, Int charge) const
 {
-    //    static const double H_weight = EmpiricalFormula("H").getMonoWeight();
-    //    static const double OH_weight = EmpiricalFormula("OH").getMonoWeight();
-    //    static const double NH_weight = EmpiricalFormula("NH").getMonoWeight();
-    //    static const double internal_to_full = EmpiricalFormula("H2O").getMonoWeight();
-    //    static const double fivePrime_to_full = EmpiricalFormula("PO3").getMonoWeight();
-    //    static const double threePrime_to_full = EmpiricalFormula("H").getMonoWeight();
-    //    static const double b_ion_to_full = EmpiricalFormula("PO3").getMonoWeight();
-    //    static const double a_ion_to_full = EmpiricalFormula("PO4").getMonoWeight();
-    //    static const double c_ion_to_full = EmpiricalFormula("O").getMonoWeight(); // OH or just O?
-    //    static const double d_ion_to_full = EmpiricalFormula("H2O").getMonoWeight(); //H2O falls off here
-    //    static const double x_ion_to_full = EmpiricalFormula("O").getMonoWeight();
-    //    static const double y_ion_to_full = EmpiricalFormula("PO3").getMonoWeight();
-    //    static const double z_ion_to_full = EmpiricalFormula("PO4").getMonoWeight();
-    //    static const double w_ion_to_full = EmpiricalFormula("").getMonoWeight();
-    //    //generate monophosphate mass list TODO make this static
-    //    std::map<char, EmpiricalFormula> monophosphate_to_formula;
-    //    //remove H2O since it gets added in internal_to_full
-    //    monophosphate_to_formula['A']=EmpiricalFormula("C10H12N5O6P");
-    //    monophosphate_to_formula['C']=EmpiricalFormula("C9H12N3O7P");
-    //    monophosphate_to_formula['G']=EmpiricalFormula("C10H12N5O7P");
-    //    monophosphate_to_formula['U']=EmpiricalFormula("C9H11N2O8P");
 
     double mono_weight(getFormula(type, charge).getMonoWeight()); //the original assumed positive mode
     return mono_weight;//(double)charge;//+getFormula(type,charge).getMonoWeight();
-
-    //    if (s_.size() > 0)
-    //    {
-    //        if (s_.size() == 1)
-    //        {
-    //            return mono_weight + monophosphate_to_formula[s_[0]].getMonoWeight();
-    //        }
-    //        else
-    //        {
-    //            for (size_t i=0;i<s_.size();i++){
-    //                mono_weight+=monophosphate_to_formula[s_[i]].getMonoWeight();
-    //            }
-    ////            for (ConstIterator it = s_->begin(); it != s_->end(); ++it)
-    ////            {
-    ////                // standard residue including named modifications
-    ////                mono_weight += it->getMonoWeight(Residue::Internal);
-    ////            }
-
-    //            // add the missing formula part
-    //            switch (type)
-    //            {
-    //            case Residue::Full:
-    //                return mono_weight + internal_to_full;
-
-    //            case Residue::Internal:
-    //                return mono_weight /* + add_protons*/;
-
-    //            case Residue::NTerminal:
-    //                return mono_weight + internal_to_full - fivePrime_to_full;
-
-    //            case Residue::CTerminal:
-    //                return mono_weight + internal_to_full - threePrime_to_full;
-
-    //            case Residue::BIon:
-    //                return mono_weight + internal_to_full - b_ion_to_full - H_weight;
-
-    //            case Residue::AIon:
-    //                return mono_weight + internal_to_full - a_ion_to_full - H_weight * 2;
-
-    //            case Residue::CIon:
-    //                return mono_weight + internal_to_full - c_ion_to_full;
-
-    //            case Residue::DIon:
-    //                return mono_weight + internal_to_full - d_ion_to_full;
-
-    //            case Residue::XIon:
-    //                return mono_weight + internal_to_full - x_ion_to_full;
-
-    //            case Residue::WIon:
-    //                return mono_weight + internal_to_full - w_ion_to_full;
-
-    //            case Residue::YIon:
-    //                return mono_weight + internal_to_full - y_ion_to_full;
-
-    //            case Residue::ZIon:
-    //                return mono_weight + internal_to_full - z_ion_to_full;
-
-    //            default:
-    //                LOG_ERROR << "AASequence::getMonoWeight: unknown ResidueType" << std::endl;
-    //            }
-    //        }
-    //    }
-
 
     //    return mono_weight;
 }
