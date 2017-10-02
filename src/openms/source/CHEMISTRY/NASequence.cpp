@@ -210,20 +210,20 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
         }
     }
 
-    return mono_formula;
+  return mono_formula;
 }
 
 double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type, Int charge) const
 {
-
-    double mono_weight(getFormula(type, charge).getMonoWeight()); //the original assumed positive mode
-    return mono_weight;//(double)charge;//+getFormula(type,charge).getMonoWeight();
-
-    //    return mono_weight;
+  double mono_weight(getFormula(type, charge).getMonoWeight()); //the original assumed positive mode
+  return mono_weight;//(double)charge;//+getFormula(type,charge).getMonoWeight();
 }
 
-OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& nucleotide){
-    os << nucleotide.getSequence();
-    return os;
+OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& nucleotide)
+{
+  // TODO: implement
+  //os << nucleotide.getSequence();
+  return os;
 }
+
 }

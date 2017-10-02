@@ -202,6 +202,8 @@ namespace OpenMS
     bool isModifiable_;
   };
 
+
+
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Ribonucleotide& ribo);
 
   // Dummy nucleotide used to represent 5' and 3' chain ends. Usually, just the phosphates.
