@@ -35,6 +35,15 @@ public:
     bool empty() const;
     EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
 
+    //TODO:implement
+    void set(size_t index, const Ribonucleotide* r);
+
+    bool hasFivePrimeModification() const;
+    void setFivePrimeModification(const Ribonucleotide* r);
+
+    bool hasThreePrimeModification() const;
+    void setThreePrimeModification(const Ribonucleotide* r);
+
 private:
     String s_;
     Ribonucleotide::NucleicAcidType type_;
