@@ -8,7 +8,7 @@
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 
 // to create iterators more easily
-#include <boost/iterator/iterator_adaptor.hpp
+#include <boost/iterator/iterator_adaptor.hpp>
 
 #include <vector>
 #include <iosfwd>
@@ -25,7 +25,7 @@ public:
   class ribonucleotide_iterator
     : public boost::iterator_adaptor<
       ribonucleotide_iterator
-      , std::vector<Ribonucleotide *>::iterator  // Base
+      , std::vector<Ribonucleotide *>::iterator // Base
       , boost::use_default                      // Value
       , boost::use_default                      // CategoryOrTraversal
       , boost::use_default                      // Reference
@@ -33,6 +33,7 @@ public:
     >
   {
   private:
+    /*
     struct enabler {};  // a private type avoids misuse
 
     template <class OtherValue>
@@ -41,17 +42,21 @@ public:
       , typename boost::enable_if<
       boost::is_convertible<OtherValue*, std::vector<Ribonucleotide *>::iterator*>
       , enabler
-    >::type = enabler()
+      >::type = enabler()
     )
       : ribonucleotide_iterator::iterator_adaptor_(other.base()) {}
-
+*/
   public:
     ribonucleotide_iterator()
       : ribonucleotide_iterator::iterator_adaptor_() {}
 
-    explicit ribonucleotide_iterator(const ribonucleotide_iterator::iterator_adapter_::base_type& p)
+    explicit ribonucleotide_iterator(const std::vector<Ribonucleotide *>::iterator& p)
       : ribonucleotide_iterator::iterator_adaptor_(p) {}
 
+/*
+    explicit ribonucleotide_iterator(const ribonucleotide_iterator::iterator_adapter_::base_type& p)
+      : ribonucleotide_iterator::iterator_adaptor_(p) {}
+*/
   private:
     friend class boost::iterator_core_access;
   };
@@ -84,6 +89,10 @@ public:
   NASequence getPrefix(Size index) const;
   NASequence getSuffix(Size index) const;
 
+  ribonucleotide_iterator begin() { return ribonucleotide_iterator(s_.begin()); }
+  ribonucleotide_iterator end() { return ribonucleotide_iterator(s_.end()); }
+  ribonucleotide_iterator cbegin() const { return ribonucleotide_iterator(s_.cbegin()); }
+  ribonucleotide_iterator cend() const { return ribonucleotide_iterator(s_.cend()); }
 private:
   std::vector<Ribonucleotide*> s_;
   RibonucleotideChainEnd fivePrime_;

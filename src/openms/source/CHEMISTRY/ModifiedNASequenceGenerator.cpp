@@ -164,7 +164,7 @@ namespace OpenMS
       std::for_each(var_mods_begin, var_mods_end, [&residue_index, &r, &map_compatibility](Ribonucleotide const & v)
       {
         // check if modification and current ribo match
-        const String& code = (*r)->getCode();
+        const String& code = r->getCode();
         if (code.size() == 1 && code[0] == v.getOrigin())
         {
           if (v.getType() != Ribonucleotide::FIVE_PRIME_MODIFICATION

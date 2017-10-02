@@ -40,7 +40,9 @@ namespace OpenMS
 {
   ostream& operator<<(ostream& os, const Ribonucleotide& ribo)
   {
-    os << "Ribonucleotide '" << ribo.code_ << "' (" << ribo.name_ << ", "
+    os << "Ribonucleotide '"
+       << ribo.code_ << "' ("
+       << ribo.name_ << ", "
        << ribo.formula_ << ")";
     return os;
   }
@@ -107,13 +109,13 @@ namespace OpenMS
   }
 
   // The nucleic acid type. Influences mass calculations.
-  NucleicAcidType Ribonucleotide::getType() const
+  Ribonucleotide::NucleicAcidType Ribonucleotide::getType() const
   {
     return type_;
   }
 
   // The nucleic acid type. Influences mass calculations.
-  void Ribonucleotide::setType(NucleicAcidType type)
+  void Ribonucleotide::setType(Ribonucleotide::NucleicAcidType type)
   {
     type_ = type;
   }
