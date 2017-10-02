@@ -44,7 +44,19 @@ namespace OpenMS
        << ribo.formula_ << ")";
     return os;
   }
-  
+
+  // The nucleic acid type. Influences mass calculations.
+  NucleicAcidType Ribonucleotide::getType() const
+  {
+    return type_;
+  }
+
+  // The nucleic acid type. Influences mass calculations.
+  void Ribonucleotide::setType(NucleicAcidType type)
+  {
+    type_ = type;
+  }
+
   const String Ribonucleotide::getCode() const
   {
       return code_;

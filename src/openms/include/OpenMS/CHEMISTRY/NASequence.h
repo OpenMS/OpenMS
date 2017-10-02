@@ -29,11 +29,11 @@ public:
     String getSequence() const;
     Ribonucleotide::NucleicAcidType getType() const;
     size_t size() const;
-    double getMonoWeight(Ribonucleotide::RiboNucleotideType type = Ribonucleotide::Full, Int charge = 0) const;
+    double getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
     NASequence getPrefix(Size index) const;
     NASequence getSuffix(Size index) const;
     bool empty() const;
-    EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideType type = Ribonucleotide::Full, Int charge = 0) const;
+    EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
 
 private:
     String s_;

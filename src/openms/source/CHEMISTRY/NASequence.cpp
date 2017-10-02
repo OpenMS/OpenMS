@@ -103,7 +103,7 @@ NASequence NASequence::getSuffix(Size index) const
     return NASequence(s_.substr(s_.size() - index), type_);
 }
 
-EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideType type, Int charge) const{
+EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentType type, Int charge) const{
 
     static const EmpiricalFormula H_weight = EmpiricalFormula("H");
     static const EmpiricalFormula OH_weight = EmpiricalFormula("OH");
@@ -218,7 +218,7 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideType type,
     return mono_formula;
 }
 
-double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideType type, Int charge) const
+double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type, Int charge) const
 {
     //    static const double H_weight = EmpiricalFormula("H").getMonoWeight();
     //    static const double OH_weight = EmpiricalFormula("OH").getMonoWeight();

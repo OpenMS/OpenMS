@@ -45,31 +45,26 @@ using std::map;
 namespace OpenMS
 {
   // static
-  void ModifiedPeptideGenerator::applyFixedModifications(
+  void ModifiedNASequenceGenerator::applyFixedModifications(
     const vector<Ribonucleotide>::const_iterator& fixed_mods_begin,
     const vector<Ribonucleotide>::const_iterator& fixed_mods_end,
     NASequence& seq)
   {
-    // set terminal modifications for modifications without amino acid preference
-    for (vector<Ribonucleotide>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
-    {
-      if (fixed_it->getTermSpecificity() == Ribonucleotide::N_TERM)
+    // chain ends
+    std::for_each (fixed_mods_begin, fixed_mods_end, [] (Ribonucleotide const & f)
       {
-        if (!seq.hasNTerminalModification())
+        if (f.getType() == Ribonucleotide::FIVE_PRIME)
         {
-          seq.setNTerminalModification(fixed_it);
+          if (!seq.hasFivePrimeModification()) { seq.setFivePrimeModification(f); }
+        }
+        else if (f.getType() == Ribonucleotide::THREE_PRIME)
+        {
+          if (!seq.hasThreePrimeModification()) { seq.setThreePrimeModification(f); }
         }
       }
-      else if (fixed_it->getTermSpecificity() == Ribonucleotide::C_TERM)
-      {
-        if (!seq.hasCTerminalModification())
-        {
-          seq.setCTerminalModification(fixed_it);
-        }
-      }
-    }
+    );
 
-    //iterate over each ribo
+    // iterate over each nucleotide
     size_t residue_index(0);
     for (auto const & r : seq)
     {
@@ -77,36 +72,33 @@ namespace OpenMS
       if (r.isModified()) { ++residue_index; continue; }
 
       //set fixed modifications
-      for (vector<Ribonucleotide>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
-      {
-        // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode()[0] != fixed_it->getOrigin())
+      std::for_each(fixed_mods_begin, fixed_mods_end, [](Ribonucleotide const & f)
         {
-          ++residue_index;
-          continue;
-        }
+          // check if amino acid match between modification and current residue
+          if (r.getCode() != f.getOrigin()) { continue; }  // no match? check next modification
 
-        // Term specificity is ANYWHERE on the seq, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
-        const RibonucleotideModification::TermSpecificity& term_spec = fixed_it->getTermSpecificity();
-        if (term_spec == RibonucleotideModification::ANYWHERE)
-        {
-          seq.setModification(residue_index, fixed_it->getFullName());
+          // Term specificity is ANYWHERE on the seq, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
+          const Ribonucleotide::TermSpecificity& term_spec = f.getTermSpecificity();
+          if (term_spec == Ribonucleotide::ANYWHERE)
+          {
+            seq.set(residue_index, f);
+          }
+          else if (term_spec == Ribonucleotide::THREE_PRIME && residue_index == (seq.size() - 1))
+          {
+            seq.setCTerminalModification(f);
+          }
+          else if (term_spec == Ribonucleotide::FIVE_PRIME && residue_index == 0)
+          {
+            seq.hasFivePrimeModification(f);
+          }
         }
-        else if (term_spec == RibonucleotideModification::C_TERM && residue_index == (seq.size() - 1))
-        {
-          seq.setCTerminalModification(fixed_it->getFullName());
-        }
-        else if (term_spec == RibonucleotideModification::N_TERM && residue_index == 0)
-        {
-          seq.setNTerminalModification(fixed_it->getFullName());
-        }
-      }
+      );
       ++residue_index;
     }
   }
 
   // static
-  void ModifiedPeptideGenerator::applyVariableModifications(
+  void ModifiedNASequenceGenerator::applyVariableModifications(
     const vector<Ribonucleotide>::const_iterator& var_mods_begin,
     const vector<Ribonucleotide>::const_iterator& var_mods_end,
     const NASequence& seq,
@@ -150,23 +142,23 @@ namespace OpenMS
     map<int, vector<Ribonucleotide> > map_compatibility;
 
     // set terminal modifications for modifications without amino acid preference
-    for (vector<Ribonucleotide>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
-    {
-      if (variable_it->getTermSpecificity() == Ribonucleotide::N_TERM)
+    std::for_each(variable_mods_begin, variable_mods_end, [](Ribonucleotide const & v)
       {
-        if (!seq.hasNTerminalModification())
+        if (v.getTermSpecificity() == Ribonucleotide::N_TERM)
         {
-          map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+          if (!seq.hasNTerminalModification())
+          {
+            map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(v);
+          }
         }
-      }
-      else if (variable_it->getTermSpecificity() == Ribonucleotide::C_TERM)
-      {
-        if (!seq.hasCTerminalModification())
+        else if (v.getTermSpecificity() == Ribonucleotide::C_TERM)
         {
-          map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+          if (!seq.hasCTerminalModification())
+          {
+            map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(v);
+          }
         }
-      }
-    }
+      });
 
     size_t residue_index(0);
     for (auto const & r : seq)
@@ -175,28 +167,28 @@ namespace OpenMS
       if (r.isModified()) { ++residue_index; continue; }
 
       //determine compatibility of variable modifications
-      for (vector<Ribonucleotide>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
+      std::for_each(variable_mods_begin, variable_mods_end, [](Ribonucleotide const & v)
       {
-        // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode()[0] != variable_it->getOrigin()) { ++residue_index; continue; }
+        // check if nucleotides match
+        if (r.getCode() != v.getOrigin()) { continue; }
 
         // Term specificity is ANYWHERE on the seq, C_TERM or N_TERM
-        // (currently no explicit support in OpenMS for protein C-term and
-        // protein N-term)
-        const Ribonucleotide::TermSpecificity& term_spec = variable_it->getTermSpecificity();
+
+        const Ribonucleotide::TermSpecificity& term_spec = v.getTermSpecificity();
         if (term_spec == Ribonucleotide::ANYWHERE)
         {
-          map_compatibility[static_cast<int>(residue_index)].push_back(*variable_it);
+          map_compatibility[static_cast<int>(residue_index)].push_back(v);
         }
         else if (term_spec == Ribonucleotide::C_TERM && residue_index == (seq.size() - 1))
         {
-          map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+          map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(v);
         }
         else if (term_spec == Ribonucleotide::N_TERM && residue_index == 0)
         {
-          map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+          map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(v);
         }
-      }
+      });
+
       ++residue_index;
     }
 
@@ -238,10 +230,7 @@ namespace OpenMS
         map<int, vector<Ribonucleotide> >::const_iterator mit = map_compatibility.begin();
         for (size_t i = 0; i != compatible_mod_sites; ++i, ++mit)
         {
-          if (subset_mask[i])
-          {
-            subset_indices.push_back(mit->first);
-          }
+          if (subset_mask[i]) { subset_indices.push_back(mit->first); }
         }
 
         // now enumerate all modifications
@@ -255,7 +244,7 @@ namespace OpenMS
 
 
   // static
-  void ModifiedPeptideGenerator::recurseAndGenerateVariableModifiedPeptides_(
+  void ModifiedNASequenceGenerator::recurseAndGenerateVariableModifiedPeptides_(
     const vector<int>& subset_indices,
     const map<int, vector<Ribonucleotide> >& map_compatibility,
     int depth,
@@ -277,7 +266,7 @@ namespace OpenMS
     // get modifications compatible to residue at current seq position
     const int current_index = subset_indices[depth];
 
-    map<int, vector<Ribonucleotide> >::const_iterator pos_mod_it = map_compatibility.find(current_index);
+    auto const pos_mod_it = map_compatibility.find(current_index);
     const vector<Ribonucleotide>& mods = pos_mod_it->second; // we don't need to check for .end as entry is guaranteed to exist
 
     for (auto const & m : mods)
@@ -286,15 +275,15 @@ namespace OpenMS
       NASequence new_seq = current_seq;
       if (current_index == C_TERM_MODIFICATION_INDEX)
       {
-        new_seq.setCTerminalModification(m.getFullName());
+        new_seq.setCTerminalModification(m.getCode());
       }
       else if (current_index == N_TERM_MODIFICATION_INDEX)
       {
-        new_seq.setNTerminalModification(m.getFullName());
+        new_seq.setNTerminalModification(m.getCode());
       }
       else
       {
-        new_seq.setModification(current_index, m.getFullName());
+        new_seq.setModification(current_index, m.getCode());
       }
 
       // recurse with modified seq
@@ -303,60 +292,44 @@ namespace OpenMS
   }
 
   // static
-  void ModifiedPeptideGenerator::applyAtMostOneVariableModification_(
+  void ModifiedNASequenceGenerator::applyAtMostOneVariableModification_(
     const vector<Ribonucleotide>::const_iterator& var_mods_begin,
     const vector<Ribonucleotide>::const_iterator& var_mods_end,
     const NASequence& seq,
     vector<NASequence>& all_modified_seqs,
     bool keep_unmodified)
   {
-    if (keep_unmodified)
-    {
-      all_modified_seqs.push_back(seq);
-    }
+    if (keep_unmodified) { all_modified_seqs.push_back(seq); }
 
     // we want the same behavior as for the slower function... we would need a reverse iterator here that NASequence doesn't provide
     for (NASequence::ConstIterator residue_it = seq.end() - 1; residue_it != seq.begin() - 1; --residue_it)
     {
       // skip already modified residues
-      if (residue_it->isModified())
-      {
-        continue;
-      }
+      if (residue_it->isModified()) { continue; }
 
       size_t residue_index = residue_it - seq.begin();
 
-      //determine compatibility of variable modifications
-      for (vector<Ribonucleotide>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
+      // determine compatibility of variable modifications
+      std::for_each(variable_mods_begin, variable_mods_end, [](Ribonucleotide const & v)
       {
-        // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode()[0] != variable_it->getOrigin()) { continue; }
+        // check if modification and current ribo match
+        if (residue_it->getCode() != v.getOrigin()) { continue; }
 
-        bool is_compatible = false;
+        bool is_compatible(false);
 
-        // Term specificity is ANYWHERE on the seq, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
-        const Ribonucleotide::TermSpecificity& term_spec = variable_it->getTermSpecificity();
-        if (term_spec == Ribonucleotide::ANYWHERE)
-        {
-          is_compatible = true;
-        }
-        else if (term_spec == Ribonucleotide::C_TERM && residue_index == (seq.size() - 1))
-        {
-          is_compatible = true;
-        }
-        else if (term_spec == Ribonucleotide::N_TERM && residue_index == 0)
-        {
-          is_compatible = true;
-        }
+        const Ribonucleotide::TermSpecificity& term_spec = v.getTermSpecificity();
+        if (term_spec == Ribonucleotide::ANYWHERE) { is_compatible = true; }
+        else if (term_spec == Ribonucleotide::C_TERM && residue_index == (seq.size() - 1)) { is_compatible = true; }
+        else if (term_spec == Ribonucleotide::N_TERM && residue_index == 0) { is_compatible = true; }
 
         // residue modification an be placed at current position? Then generate modified seq.
         if (is_compatible)
         {
           NASequence new_seq = seq;
-          new_seq.setModification(residue_index, variable_it->getFullName());
+          new_seq.setModification(residue_index, v.getCode());
           all_modified_seqs.push_back(new_seq);
         }
-      }
+      });
     }
   }
 }
