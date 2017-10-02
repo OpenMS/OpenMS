@@ -40,8 +40,98 @@ namespace OpenMS
 {
   ostream& operator<<(ostream& os, const Ribonucleotide& ribo)
   {
-    os << "Ribonucleotide '" << ribo.code << "' (" << ribo.name << ", "
-       << ribo.formula << ")";
+    os << "Ribonucleotide '" << ribo.code_ << "' (" << ribo.name_ << ", "
+       << ribo.formula_ << ")";
     return os;
   }
+  
+  const String Ribonucleotide::getCode() const
+  {
+      return code_;
+  }
+  
+  void Ribonucleotide::setCode(const String &code)
+  {
+      code_ = code;
+  }
+  
+  const String Ribonucleotide::getName() const
+  {
+      return name_;
+  }
+  
+  void Ribonucleotide::setName(const String &name)
+  {
+      name_ = name;
+  }
+  
+  double Ribonucleotide::getMono_mass() const
+  {
+      return mono_mass_;
+  }
+  
+  void Ribonucleotide::setMono_mass(double mono_mass)
+  {
+      mono_mass_ = mono_mass;
+  }
+  
+  double Ribonucleotide::getAvg_mass() const
+  {
+      return avg_mass_;
+  }
+  
+  void Ribonucleotide::setAvg_mass(double avg_mass)
+  {
+      avg_mass_ = avg_mass;
+  }
+
+  const String Ribonucleotide::getNew_code() const
+  {
+    return new_code_;
+  }
+
+  void Ribonucleotide::setNew_code(const String &new_code)
+  {
+    new_code_ = new_code;
+  }
+
+  char Ribonucleotide::getOrigin() const
+  {
+    return origin_;
+  }
+
+  void Ribonucleotide::setOrigin(char origin)
+  {
+    origin_ = origin;
+  }
+
+  String Ribonucleotide::getHtml_code() const
+  {
+    return html_code_;
+  }
+
+  void Ribonucleotide::setHtml_code(const String &html_code)
+  {
+    html_code_ = html_code;
+  }
+  
+  const EmpiricalFormula Ribonucleotide::getFormula() const
+  {
+    return formula_;
+  }
+  
+  void Ribonucleotide::setFormula(const EmpiricalFormula &formula)
+  {
+    formula_ = formula;
+  }
+
+  bool Ribonucleotide::isModified()
+  {
+    if (code_.length()==1 &&  code_[0]==origin_)
+    {
+      return false;
+    }
+    return true;
+  }
+  
 }
