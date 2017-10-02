@@ -127,7 +127,7 @@ namespace OpenMS
       ribo.setOrigin( parts[3][0] );
     }
     // "parts[4]" is the Unicode equivalent to "parts[5]", so we can skip it
-    ribo.setHtml_code( parts[5] );
+    ribo.setHtmlCode( parts[5] );
     ribo.setFormula(  EmpiricalFormula(parts[6]) );// Convert the string to an Empirical formula
     if (!parts[7].empty() && (parts[7] != "None"))
     {
@@ -173,3 +173,4 @@ namespace OpenMS
                                      seq);
   }
 }
+

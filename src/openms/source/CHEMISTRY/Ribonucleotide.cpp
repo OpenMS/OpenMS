@@ -40,24 +40,13 @@ namespace OpenMS
 {
   ostream& operator<<(ostream& os, const Ribonucleotide& ribo)
   {
-    os << "Ribonucleotide '" << ribo.code_ << "' (" << ribo.name_ << ", "
+    os << "Ribonucleotide '"
+       << ribo.code_ << "' ("
+       << ribo.name_ << ", "
        << ribo.formula_ << ")";
     return os;
   }
-<<<<<<< HEAD
 
-  // The nucleic acid type. Influences mass calculations.
-  NucleicAcidType Ribonucleotide::getType() const
-  {
-    return type_;
-  }
-
-  // The nucleic acid type. Influences mass calculations.
-  void Ribonucleotide::setType(NucleicAcidType type)
-  {
-    type_ = type;
-=======
-  
   Ribonucleotide::Ribonucleotide()
   {
     name_ = "unknown nucleotide residue";
@@ -75,12 +64,12 @@ namespace OpenMS
   {
     name_ = ribo.getName();
     code_ = ribo.getCode();
-    new_code_ = ribo.getNew_code();
-    html_code_ = ribo.getHtml_code();
+    new_code_ = ribo.getNewCode();
+    html_code_ = ribo.getHtmlCode();
     formula_ = ribo.getFormula();
     origin_ = ribo.getOrigin();
-    mono_mass_ = ribo.getMono_mass();
-    avg_mass_ = ribo.getAvg_mass();
+    mono_mass_ = ribo.getMonoMass();
+    avg_mass_ = ribo.getAvgMass();
     isModifiable_ = ribo.getIsModifiable();
 
   }
@@ -108,16 +97,27 @@ namespace OpenMS
     {
       name_ = ribo.getName();
       code_ = ribo.getCode();
-      new_code_ = ribo.getNew_code();
-      html_code_ = ribo.getHtml_code();
+      new_code_ = ribo.getNewCode();
+      html_code_ = ribo.getHtmlCode();
       formula_ = ribo.getFormula();
       origin_ = ribo.getOrigin();
-      mono_mass_ = ribo.getMono_mass();
-      avg_mass_ = ribo.getAvg_mass();
+      mono_mass_ = ribo.getMonoMass();
+      avg_mass_ = ribo.getAvgMass();
       isModifiable_ = ribo.getIsModifiable();
     }
     return *this;
->>>>>>> poshul/feature/calculate_RNA_masses
+  }
+
+  // The nucleic acid type. Influences mass calculations.
+  Ribonucleotide::NucleicAcidType Ribonucleotide::getType() const
+  {
+    return type_;
+  }
+
+  // The nucleic acid type. Influences mass calculations.
+  void Ribonucleotide::setType(Ribonucleotide::NucleicAcidType type)
+  {
+    type_ = type;
   }
 
   const String Ribonucleotide::getCode() const
@@ -140,32 +140,32 @@ namespace OpenMS
       name_ = name;
   }
   
-  double Ribonucleotide::getMono_mass() const
+  double Ribonucleotide::getMonoMass() const
   {
       return mono_mass_;
   }
   
-  void Ribonucleotide::setMono_mass(double mono_mass)
+  void Ribonucleotide::setMonoMass(double mono_mass)
   {
       mono_mass_ = mono_mass;
   }
   
-  double Ribonucleotide::getAvg_mass() const
+  double Ribonucleotide::getAvgMass() const
   {
       return avg_mass_;
   }
   
-  void Ribonucleotide::setAvg_mass(double avg_mass)
+  void Ribonucleotide::setAvgMass(double avg_mass)
   {
       avg_mass_ = avg_mass;
   }
 
-  const String Ribonucleotide::getNew_code() const
+  const String Ribonucleotide::getNewCode() const
   {
     return new_code_;
   }
 
-  void Ribonucleotide::setNew_code(const String &new_code)
+  void Ribonucleotide::setNewCode(const String &new_code)
   {
     new_code_ = new_code;
   }
@@ -180,12 +180,12 @@ namespace OpenMS
     origin_ = origin;
   }
 
-  String Ribonucleotide::getHtml_code() const
+  String Ribonucleotide::getHtmlCode() const
   {
     return html_code_;
   }
 
-  void Ribonucleotide::setHtml_code(const String &html_code)
+  void Ribonucleotide::setHtmlCode(const String &html_code)
   {
     html_code_ = html_code;
   }
@@ -202,10 +202,7 @@ namespace OpenMS
 
   bool Ribonucleotide::isModified()
   {
-    if (code_.length()==1 &&  code_[0]==origin_)
-    {
-      return false;
-    }
+    if (code_.length() == 1 && code_[0] == origin_) { return false; }
     return true;
   }
 

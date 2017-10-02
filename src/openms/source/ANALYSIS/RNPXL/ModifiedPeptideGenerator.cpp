@@ -79,10 +79,7 @@ namespace OpenMS
       for (vector<ResidueModification>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
       {
         // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode()[0] != fixed_it->getOrigin())
-        {
-          continue;
-        }
+        if (residue_it->getOneLetterCode()[0] != fixed_it->getOrigin()) { continue; }
 
         // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
         const ResidueModification::TermSpecificity& term_spec = fixed_it->getTermSpecificity();
