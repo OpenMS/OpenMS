@@ -84,8 +84,8 @@ namespace OpenMS
     {
         DNA = 0,
         RNA,
-        FIVE_PRIME,
-        THREE_PRIME,
+        FIVE_PRIME_MODIFICATION,
+        THREE_PRIME_MODIFICATION,
         Undefined
     };
 
@@ -150,22 +150,22 @@ namespace OpenMS
     void setFormula(const EmpiricalFormula &formula);
 
     /// Get the monoisotopic mass of the Ribonucleotide
-    double getMono_mass() const;
+    double getMonoMass() const;
 
     /// Set the monoisotopic mass of the Ribonucleotide
-    void setMono_mass(double mono_mass);
+    void setMonoMass(double mono_mass);
 
     /// Set the average mass of the Ribonucleotide
-    double getAvg_mass() const;
+    double getAvgMass() const;
 
     /// Get the average mass of the Ribonucleotide
-    void setAvg_mass(double avg_mass);
+    void setAvgMass(double avg_mass);
 
     /// Get new code
-    const String getNew_code() const;
+    const String getNewCode() const;
 
     /// Set new code
-    void setNew_code(const String &new_code);
+    void setNewCode(const String &new_code);
 
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Ribonucleotide& ribo);
@@ -176,9 +176,9 @@ namespace OpenMS
     /// Set the code of the unmodified base (e.g., "A", "C", ...)
     void setOrigin(char origin);
 
-    String getHtml_code() const;
+    String getHtmlCode() const;
 
-    void setHtml_code(const String &html_code);
+    void setHtmlCode(const String &html_code);
 
     bool getIsModifiable() const;
 

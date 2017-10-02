@@ -53,11 +53,11 @@ namespace OpenMS
     // chain ends
     std::for_each (fixed_mods_begin, fixed_mods_end, [&seq] (Ribonucleotide const & f)
       {
-        if (f.getType() == Ribonucleotide::FIVE_PRIME)
+        if (f.getType() == Ribonucleotide::FIVE_PRIME_MODIFICATION)
         {
           if (!seq.hasFivePrimeModification()) { seq.setFivePrimeModification(f); }
         }
-        else if (f.getType() == Ribonucleotide::THREE_PRIME)
+        else if (f.getType() == Ribonucleotide::THREE_PRIME_MODIFICATION)
         {
           if (!seq.hasThreePrimeModification()) { seq.setThreePrimeModification(f); }
         }
@@ -77,20 +77,15 @@ namespace OpenMS
           // check if amino acid match between modification and current residue
           if (r.getCode() != f.getOrigin()) { continue; }  // no match? check next modification
 
-          // Term specificity is ANYWHERE on the seq, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
-          const Ribonucleotide::TermSpecificity& term_spec = f.getTermSpecificity();
-          if (term_spec == Ribonucleotide::ANYWHERE)
+          // skip five/three prime modifications
+          if (f.getType() == Ribonucleotide::FIVE_PRIME_MODIFICATION
+           || f.getType() == Ribonucleotide::THREE_PRIME_MODIFICATION)
           {
-            seq.set(residue_index, f);
+            continue;
           }
-          else if (term_spec == Ribonucleotide::THREE_PRIME && residue_index == (seq.size() - 1))
-          {
-            seq.setCTerminalModification(f);
-          }
-          else if (term_spec == Ribonucleotide::FIVE_PRIME && residue_index == 0)
-          {
-            seq.hasFivePrimeModification(f);
-          }
+
+          // replace the nucleoside with the modified version
+          seq.set(residue_index, f);
         }
       );
       ++residue_index;
@@ -142,16 +137,16 @@ namespace OpenMS
     map<int, vector<Ribonucleotide> > map_compatibility;
 
     // set terminal modifications for modifications without amino acid preference
-    std::for_each(variable_mods_begin, variable_mods_end, [](Ribonucleotide const & v)
+    std::for_each(var_mods_begin, var_mods_end, [] (Ribonucleotide const & v)
       {
-        if (v.getTermSpecificity() == Ribonucleotide::N_TERM)
+        if (v.getType() == Ribonucleotide::FIVE_PRIME_MODIFICATION)
         {
           if (!seq.hasNTerminalModification())
           {
             map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(v);
           }
         }
-        else if (v.getTermSpecificity() == Ribonucleotide::C_TERM)
+        else if (v.getType() == Ribonucleotide::THREE_PRIME_MODIFICATION)
         {
           if (!seq.hasCTerminalModification())
           {
@@ -167,25 +162,17 @@ namespace OpenMS
       if (r.isModified()) { ++residue_index; continue; }
 
       //determine compatibility of variable modifications
-      std::for_each(variable_mods_begin, variable_mods_end, [](Ribonucleotide const & v)
+      std::for_each(var_mods_begin, var_mods_end, [](Ribonucleotide const & v)
       {
         // check if nucleotides match
         if (r.getCode() != v.getOrigin()) { continue; }
 
         // Term specificity is ANYWHERE on the seq, C_TERM or N_TERM
 
-        const Ribonucleotide::TermSpecificity& term_spec = v.getTermSpecificity();
-        if (term_spec == Ribonucleotide::ANYWHERE)
+        if (v.getType() != Ribonucleotide::FIVE_PRIME_MODIFICATION
+          || v.getType() != Ribonucleotide::THREE_PRIME_MODIFICATION)
         {
           map_compatibility[static_cast<int>(residue_index)].push_back(v);
-        }
-        else if (term_spec == Ribonucleotide::C_TERM && residue_index == (seq.size() - 1))
-        {
-          map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(v);
-        }
-        else if (term_spec == Ribonucleotide::N_TERM && residue_index == 0)
-        {
-          map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(v);
         }
       });
 
@@ -275,15 +262,15 @@ namespace OpenMS
       NASequence new_seq = current_seq;
       if (current_index == C_TERM_MODIFICATION_INDEX)
       {
-        new_seq.setCTerminalModification(m.getCode());
+        new_seq.setThreePrimeModification(m.getCode());
       }
       else if (current_index == N_TERM_MODIFICATION_INDEX)
       {
-        new_seq.setNTerminalModification(m.getCode());
+        new_seq.setFivePrimeModification(m.getCode());
       }
       else
       {
-        new_seq.setModification(current_index, m.getCode());
+        new_seq.set(current_index, m.getCode());
       }
 
       // recurse with modified seq
