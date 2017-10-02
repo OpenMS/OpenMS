@@ -248,14 +248,14 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc_["sn_score"].second, 10.0);
     
     // second line
-    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_group_name_, "componentGroup2");
-    TEST_EQUAL(mrmfqc.component_qcs_[0].component_name_, "component2");
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc_["sn_score"].second, 20.0);
+    TEST_EQUAL(mrmfqc.component_group_qcs_[1].component_group_name_, "componentGroup2");
+    TEST_EQUAL(mrmfqc.component_qcs_[1].component_name_, "component2");
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[1].meta_value_qc_["sn_score"].second, 20.0);
 
     // third line
-    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_group_name_, "componentGroup3");
-    TEST_EQUAL(mrmfqc.component_qcs_[0].component_name_, "component3");
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc_["sn_score"].second, 50.0);
+    TEST_EQUAL(mrmfqc.component_group_qcs_[2].component_group_name_, "componentGroup3");
+    TEST_EQUAL(mrmfqc.component_qcs_[2].component_name_, "component3");
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[2].meta_value_qc_["sn_score"].second, 50.0);
   
   END_SECTION
 
