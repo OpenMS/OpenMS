@@ -159,16 +159,31 @@ namespace OpenMS
         double ppm_error_sum_linear_beta;
         double ppm_error_sum_xlinks_alpha;
         double ppm_error_sum_xlinks_beta;
+        double ppm_error_sum_linear;
+        double ppm_error_sum_xlinks;
+        double ppm_error_sum_alpha;
+        double ppm_error_sum_beta;
+        double ppm_error_sum;
 
         double ppm_error_variance_linear_alpha;
         double ppm_error_variance_linear_beta;
         double ppm_error_variance_xlinks_alpha;
         double ppm_error_variance_xlinks_beta;
+        double ppm_error_variance_linear;
+        double ppm_error_variance_xlinks;
+        double ppm_error_variance_alpha;
+        double ppm_error_variance_beta;
+        double ppm_error_variance;
 
         double ppm_error_abs_sum_linear_alpha;
         double ppm_error_abs_sum_linear_beta;
         double ppm_error_abs_sum_xlinks_alpha;
         double ppm_error_abs_sum_xlinks_beta;
+        double ppm_error_abs_sum_linear;
+        double ppm_error_abs_sum_xlinks;
+        double ppm_error_abs_sum_alpha;
+        double ppm_error_abs_sum_beta;
+        double ppm_error_abs_sum;
 
         std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 

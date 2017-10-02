@@ -242,9 +242,43 @@ namespace OpenMS
             }
           }
         }
+
+        // cross-link position in Protein
+        String prot1_pos = "";
+        if (pep_hits[0].metaValueExists("xl_pos") && pep_hits[0].getPeptideEvidences().size() > 0)
+        {
+          const std::vector<PeptideEvidence> pevs = pep_hits[0].getPeptideEvidences();
+          // String positions = "";
+          // positions for all protein accessions, separated by "," just like the accessions themselves
+          for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
+          {
+            // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
+            Int prot_link_pos = pev->getStart() + int(pep_hits[0].getMetaValue("xl_pos")) + 1;
+            prot1_pos = prot1_pos + "," + prot_link_pos;
+          }
+          // remove leading "," of first position
+          prot1_pos = prot1_pos.suffix(prot1_pos.size()-1);
+        }
+
+        String prot2_pos = "";
+        if (pep_hits.size() > 1 && pep_hits[1].metaValueExists("xl_pos") && pep_hits[1].getPeptideEvidences().size() > 0)
+        {
+          const std::vector<PeptideEvidence> pevs = pep_hits[1].getPeptideEvidences();
+          // String positions = "";
+          // positions for all protein accessions, separated by "," just like the accessions themselves
+          for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
+          {
+            // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
+            Int prot_link_pos = pev->getStart() + int(pep_hits[1].getMetaValue("xl_pos")) + 1;
+            prot2_pos = prot2_pos + "," + prot_link_pos;
+          }
+          // remove leading "," of first position
+          prot2_pos = prot2_pos.suffix(prot2_pos.size()-1);
+        }
+
         // Hit Data, for each cross-link to Spectrum Hit (e.g. top 5 per spectrum)
         xml_file << "<search_hit search_hit_rank=\"" <<top_csm->rank << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << top_csm->cross_link.alpha.toUnmodifiedString() << "\" seq2=\"" << top_csm->cross_link.beta.toUnmodifiedString()
-              << "\" prot1=\"" << prot_alpha << "\" prot2=\"" << prot_beta << "\" topology=\"" << topology << "\" xlinkposition=\"" << (top_csm->cross_link.cross_link_position.first+1) << "," << (top_csm->cross_link.cross_link_position.second+1)
+              << "\" prot1=\"" << prot_alpha << "\" prot2=\"" << prot_beta << "\" prot1_pos=\"" << prot1_pos << "\" prot2_pos=\"" << prot2_pos << "\" topology=\"" << topology << "\" xlinkposition=\"" << (top_csm->cross_link.cross_link_position.first+1) << "," << (top_csm->cross_link.cross_link_position.second+1)
               << "\" Mr=\"" << weight << "\" mz=\"" << cl_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << top_csm->cross_link.cross_linker_mass << "\" measured_mass=\"" << precursor_mass << "\" error=\"" << error
               << "\" error_rel=\"" << rel_error << "\" xlinkions_matched=\"" << (top_csm->matched_xlink_alpha + top_csm->matched_xlink_beta) << "\" backboneions_matched=\"" << (top_csm->matched_linear_alpha + top_csm->matched_linear_beta)
               << "\" weighted_matchodds_mean=\"" << "TODO" << "\" weighted_matchodds_sum=\"" << "TODO" << "\" match_error_mean=\"" << "TODO" << "\" match_error_stdev=\"" << "TODO" << "\" xcorrx=\"" << top_csm->xcorrx_max << "\" xcorrb=\"" << top_csm->xcorrc_max << "\" match_odds=\"" <<top_csm->match_odds << "\" prescore=\"" << top_csm->pre_score
@@ -257,8 +291,11 @@ namespace OpenMS
               << "\" num_iso_peaks_mean=\"" << top_csm->num_iso_peaks_mean << "\" num_iso_peaks_mean_linear_alpha=\"" << top_csm->num_iso_peaks_mean_linear_alpha << "\" num_iso_peaks_mean_linear_beta=\"" << top_csm->num_iso_peaks_mean_linear_beta
               << "\" num_iso_peaks_mean_xlinks_alpha=\"" << top_csm->num_iso_peaks_mean_xlinks_alpha << "\" num_iso_peaks_mean_xlinks_beta=\"" << top_csm->num_iso_peaks_mean_xlinks_beta
               << "\" ppm_error_sum_linear_alpha=\"" << top_csm->ppm_error_sum_linear_alpha << "\" ppm_error_sum_linear_beta=\"" << top_csm->ppm_error_sum_linear_beta << "\" ppm_error_sum_xlinks_alpha=\"" << top_csm->ppm_error_sum_xlinks_alpha << "\" ppm_error_sum_xlinks_beta=\"" << top_csm->ppm_error_sum_xlinks_beta
+              << "\" ppm_error_sum_linear=\"" << top_csm->ppm_error_sum_linear << "\" ppm_error_sum_xlinks=\"" << top_csm->ppm_error_sum_xlinks << "\" ppm_error_sum_alpha=\"" << top_csm->ppm_error_sum_alpha << "\" ppm_error_sum_beta=\"" << top_csm->ppm_error_sum_beta << "\" ppm_error_sum=\"" << top_csm->ppm_error_sum
               << "\" ppm_error_variance_linear_alpha=\"" << top_csm->ppm_error_variance_linear_alpha << "\" ppm_error_variance_linear_beta=\"" << top_csm->ppm_error_variance_linear_beta << "\" ppm_error_variance_xlinks_alpha=\"" << top_csm->ppm_error_variance_xlinks_alpha << "\" ppm_error_variance_xlinks_beta=\"" << top_csm->ppm_error_variance_xlinks_beta
+              << "\" ppm_error_variance_linear=\"" << top_csm->ppm_error_variance_linear << "\" ppm_error_variance_xlinks=\"" << top_csm->ppm_error_variance_xlinks << "\" ppm_error_variance_alpha=\"" << top_csm->ppm_error_variance_alpha << "\" ppm_error_variance_beta=\"" << top_csm->ppm_error_variance_beta << "\" ppm_error_variance=\"" << top_csm->ppm_error_variance
               << "\" ppm_error_abs_sum_linear_alpha=\"" << top_csm->ppm_error_abs_sum_linear_alpha << "\" ppm_error_abs_sum_linear_beta=\"" << top_csm->ppm_error_abs_sum_linear_beta << "\" ppm_error_abs_sum_xlinks_alpha=\"" << top_csm->ppm_error_abs_sum_xlinks_alpha << "\" ppm_error_abs_sum_xlinks_beta=\"" << top_csm->ppm_error_abs_sum_xlinks_beta
+              << "\" ppm_error_abs_sum_linear=\"" << top_csm->ppm_error_abs_sum_linear << "\" ppm_error_abs_sum_xlinks=\"" << top_csm->ppm_error_abs_sum_xlinks << "\" ppm_error_abs_sum_alpha=\"" << top_csm->ppm_error_abs_sum_alpha << "\" ppm_error_abs_sum_beta=\"" << top_csm->ppm_error_abs_sum_beta << "\" ppm_error_abs_sum=\"" << top_csm->ppm_error_abs_sum
               << "\" series_score_mean=\"" << "TODO" << "\" annotated_spec=\"" << "" << "\" score=\"" << top_csm->score << "\" >" << std::endl;
         xml_file << "</search_hit>" << std::endl;
       }
