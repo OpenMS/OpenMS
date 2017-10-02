@@ -37,7 +37,7 @@
 #define OPENMS_CHEMISTRY_RIBONUCLEOTIDE_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <iostream>
 
 namespace OpenMS
@@ -54,7 +54,7 @@ namespace OpenMS
   {
   public:
     Ribonucleotide():
-      origin('X'), mono_mass(0.0), avg_mass(0.0)
+      origin_('X'), mono_mass_(0.0), avg_mass_(0.0)
     {
     }
 
@@ -89,14 +89,67 @@ namespace OpenMS
         Undefined
     };
 
-    String name;
-    String code; // short name
-    String new_code;
-    String html_code; // RNAMods code
-    String formula;
-    char origin;
-    double mono_mass;
-    double avg_mass;
+    /// Return the short name
+    const String getCode() const;
+
+    /// Set the short name
+    void setCode(const String &code);
+
+    /// Get the name of the Ribonucleotide
+    const String getName() const;
+
+    /// Set the name of the Ribonucleotide
+    void setName(const String &name);
+
+    /// Get formula for the RiboNucleotide
+    const EmpiricalFormula getFormula() const;
+
+    /// Set the empirical formula for the Ribonucleotide
+    void setFormula(const EmpiricalFormula &formula);
+
+    /// Get the monoisotopic mass of the Ribonucleotide
+    double getMono_mass() const;
+
+    /// Set the monoisotopic mass of the Ribonucleotide
+    void setMono_mass(double mono_mass);
+
+    /// Set the average mass of the Ribonucleotide
+    double getAvg_mass() const;
+
+    /// Get the average mass of the Ribonucleotide
+    void setAvg_mass(double avg_mass);
+
+    /// Get new code
+    const String getNew_code() const;
+
+    /// Set new code
+    void setNew_code(const String &new_code);
+
+    /// ostream iterator to write the residue to a stream
+    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Ribonucleotide& ribo);
+
+
+    char getOrigin() const;
+
+    void setOrigin(char origin);
+
+    String getHtml_code() const;
+
+    void setHtml_code(const String &html_code);
+
+    ///Return true if this is a modified Ribonucleotide and false otherwise
+    bool isModified();
+
+  protected:
+    String name_;
+    String code_; // short name
+    String new_code_;
+    String html_code_; // RNAMods code
+    EmpiricalFormula formula_;
+    char origin_;  // character of unmodified version of Ribonucleotide
+    double mono_mass_;
+    double avg_mass_;
+    bool isModifiable_= true;
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Ribonucleotide& ribo);

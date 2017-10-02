@@ -89,9 +89,9 @@ namespace OpenMS
       try
       {
         Ribonucleotide ribo = parseRow_(row, line_count);
-        code_map_[ribo.code] = ribonucleotides_.size();
+        code_map_[ribo.getCode()] = ribonucleotides_.size();
         ribonucleotides_.push_back(ribo);
-        max_code_length_ = max(max_code_length_, ribo.code.size());
+        max_code_length_ = max(max_code_length_, ribo.getCode().size());
       }
       catch (...)
       {
@@ -115,27 +115,27 @@ namespace OpenMS
                                   row, msg);
     }
     Ribonucleotide ribo;
-    ribo.name = parts[0];
-    ribo.code = parts[1];
-    ribo.new_code = parts[2];
+    ribo.setName( parts[0] );
+    ribo.setCode( parts[1] );
+    ribo.setNew_code( parts[2] );
     if (parts[3] == "preQ0base")
     {
-      ribo.origin = '0';
+      ribo.setOrigin( '0' );
     }
     else if (parts[3].size() == 1) // A, C, G, U
     {
-      ribo.origin = parts[3][0];
+      ribo.setOrigin( parts[3][0] );
     }
     // "parts[4]" is the Unicode equivalent to "parts[5]", so we can skip it
-    ribo.html_code = parts[5];
-    ribo.formula = parts[6];
+    ribo.setHtml_code( parts[5] );
+    ribo.setFormula(  EmpiricalFormula(parts[6]) );// needs convert to empirical dform
     if (!parts[7].empty() && (parts[7] != "None"))
     {
-      ribo.mono_mass = parts[7].toDouble();
+      ribo.setMono_mass(parts[7].toDouble());
     }
     if (!parts[8].empty() && (parts[8] != "None"))
     {
-      ribo.avg_mass = parts[8].toDouble();
+      ribo.setAvg_mass(parts[8].toDouble());
     }
     return ribo;
   }
