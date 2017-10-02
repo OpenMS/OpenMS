@@ -17,6 +17,7 @@ ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
 ModificationsDB.cpp
 ModifierRep.cpp
+ModifiedNASequenceGenerator.cpp
 NASequence.cpp
 PepIterator.cpp
 Residue.cpp
@@ -24,12 +25,12 @@ ResidueDB.cpp
 ResidueModification.cpp
 Ribonucleotide.cpp
 RibonucleotideDB.cpp
-TheoreticalSpectrumGenerator.cpp
 SpectrumAnnotator.cpp
-TheoreticalSpectrumGeneratorXLMS.cpp
 SvmTheoreticalSpectrumGenerator.cpp
 SvmTheoreticalSpectrumGeneratorTrainer.cpp
 SvmTheoreticalSpectrumGeneratorSet.cpp
+TheoreticalSpectrumGenerator.cpp
+TheoreticalSpectrumGeneratorXLMS.cpp
 TrypticIterator.cpp
 WeightWrapper.cpp
 )

@@ -15,6 +15,7 @@ EnzymesDB.h
 IsotopeDistribution.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
+ModifiedNASequenceGenerator.h
 ModificationsDB.h
 ModifierRep.h
 NASequence.h

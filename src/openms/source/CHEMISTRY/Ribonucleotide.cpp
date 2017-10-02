@@ -44,6 +44,19 @@ namespace OpenMS
        << ribo.formula_ << ")";
     return os;
   }
+<<<<<<< HEAD
+
+  // The nucleic acid type. Influences mass calculations.
+  NucleicAcidType Ribonucleotide::getType() const
+  {
+    return type_;
+  }
+
+  // The nucleic acid type. Influences mass calculations.
+  void Ribonucleotide::setType(NucleicAcidType type)
+  {
+    type_ = type;
+=======
   
   Ribonucleotide::Ribonucleotide()
   {
@@ -104,6 +117,7 @@ namespace OpenMS
       isModifiable_ = ribo.getIsModifiable();
     }
     return *this;
+>>>>>>> poshul/feature/calculate_RNA_masses
   }
 
   const String Ribonucleotide::getCode() const

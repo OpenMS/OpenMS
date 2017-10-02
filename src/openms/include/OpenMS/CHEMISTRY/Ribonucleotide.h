@@ -60,7 +60,7 @@ namespace OpenMS
       Full = 0,       // with N-terminus and C-terminus
       Internal,       // internal, without any termini
       FivePrime,      // only N-terminus
-      ThreePrime,      // only C-terminus
+      ThreePrime,     // only C-terminus
       AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
       BIon,           // MS:1001224 N-terminus up to the peptide bond
       CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
@@ -74,15 +74,18 @@ namespace OpenMS
       YIonMinusNH3,   // MS:1001233 y ion without ammonia
       NonIdentified,  // MS:1001240 Non-identified ion
       Unannotated,    // no stored annotation
-      WIon,             //W ion, added for nucleic acid support
+      WIon,           //W ion, added for nucleic acid support
       AminusB,        //A ion with base loss, added for nucleic acid support
       DIon,           // D-ion for nucleic acid support
       SizeOfResidueType
     };
+
     enum NucleicAcidType
     {
         DNA = 0,
         RNA,
+        FIVE_PRIME_MODIFICATION,
+        THREE_PRIME_MODIFICATION,
         Undefined
     };
 
@@ -121,6 +124,13 @@ namespace OpenMS
     /** Accessors
      */
     //@{
+    //
+    // The nucleic acid type. Influences mass calculations.
+    NucleicAcidType getType() const;
+
+    // The nucleic acid type. Influences mass calculations.
+    void setType(NucleicAcidType type);
+
     /// Return the short name
     const String getCode() const;
 
@@ -140,34 +150,35 @@ namespace OpenMS
     void setFormula(const EmpiricalFormula &formula);
 
     /// Get the monoisotopic mass of the Ribonucleotide
-    double getMono_mass() const;
+    double getMonoMass() const;
 
     /// Set the monoisotopic mass of the Ribonucleotide
-    void setMono_mass(double mono_mass);
+    void setMonoMass(double mono_mass);
 
     /// Set the average mass of the Ribonucleotide
-    double getAvg_mass() const;
+    double getAvgMass() const;
 
     /// Get the average mass of the Ribonucleotide
-    void setAvg_mass(double avg_mass);
+    void setAvgMass(double avg_mass);
 
     /// Get new code
-    const String getNew_code() const;
+    const String getNewCode() const;
 
     /// Set new code
-    void setNew_code(const String &new_code);
+    void setNewCode(const String &new_code);
 
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Ribonucleotide& ribo);
 
-
+    /// Get the code of the unmodified base (e.g., "A", "C", ...)
     char getOrigin() const;
 
+    /// Set the code of the unmodified base (e.g., "A", "C", ...)
     void setOrigin(char origin);
 
-    String getHtml_code() const;
+    String getHtmlCode() const;
 
-    void setHtml_code(const String &html_code);
+    void setHtmlCode(const String &html_code);
 
     bool getIsModifiable() const;
 
@@ -179,6 +190,7 @@ namespace OpenMS
     bool isModified();
 
   protected:
+    NucleicAcidType type_;
     String name_;
     String code_; // short name
     String new_code_;
@@ -191,6 +203,10 @@ namespace OpenMS
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Ribonucleotide& ribo);
+
+  // Dummy nucleotide used to represent 5' and 3' chain ends. Usually, just the phosphates.
+  using RibonucleotideChainEnd = Ribonucleotide;
+
 }
 
 #endif

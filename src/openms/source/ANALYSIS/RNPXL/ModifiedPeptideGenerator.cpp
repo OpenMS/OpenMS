@@ -109,17 +109,19 @@ namespace OpenMS
     if (var_mods_begin == var_mods_end || max_variable_mods_per_peptide == 0)
     {
       // if unmodified peptides should be kept return the original list of digested peptides
-      if (keep_unmodified)
-      {
-        all_modified_peptides.push_back(peptide);
-      }
+      if (keep_unmodified) { all_modified_peptides.push_back(peptide); }
       return;
     }
 
     // if there is at most one variable modification allowed for a peptide we don't need combinatoric placement and can reside to a faster implementation
     if (max_variable_mods_per_peptide == 1)
     {
-      applyAtMostOneVariableModification_(var_mods_begin, var_mods_end, peptide, all_modified_peptides, keep_unmodified);
+      applyAtMostOneVariableModification_(
+        var_mods_begin,
+        var_mods_end,
+        peptide,
+        all_modified_peptides,
+        keep_unmodified);
       return;
     }
 
