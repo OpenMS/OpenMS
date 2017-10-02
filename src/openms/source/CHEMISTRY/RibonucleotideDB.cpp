@@ -127,8 +127,8 @@ namespace OpenMS
       ribo.setOrigin( parts[3][0] );
     }
     // "parts[4]" is the Unicode equivalent to "parts[5]", so we can skip it
-    ribo.setHtmlCode(parts[5]);
-    ribo.setFormula(  EmpiricalFormula(parts[6]) );// needs convert to empirical dform
+    ribo.setHtml_code( parts[5] );
+    ribo.setFormula(  EmpiricalFormula(parts[6]) );// Convert the string to an Empirical formula
     if (!parts[7].empty() && (parts[7] != "None"))
     {
       ribo.setMonoMass(parts[7].toDouble());
@@ -137,6 +137,7 @@ namespace OpenMS
     {
       ribo.setAvgMass(parts[8].toDouble());
     }
+    ribo.setIsModifiable(true); // This is superfluous for the database
     return ribo;
   }
 
