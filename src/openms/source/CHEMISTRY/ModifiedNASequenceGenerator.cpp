@@ -55,11 +55,11 @@ namespace OpenMS
       {
         if (f.getType() == Ribonucleotide::FIVE_PRIME_MODIFICATION)
         {
-          if (!seq.hasFivePrimeModification()) { seq.setFivePrimeModification(f); }
+          if (!seq.hasFivePrimeModification()) { seq.setFivePrimeModification(&f); }
         }
         else if (f.getType() == Ribonucleotide::THREE_PRIME_MODIFICATION)
         {
-          if (!seq.hasThreePrimeModification()) { seq.setThreePrimeModification(f); }
+          if (!seq.hasThreePrimeModification()) { seq.setThreePrimeModification(&f); }
         }
       }
     );
@@ -85,7 +85,7 @@ namespace OpenMS
           }
 
           // replace the nucleoside with the modified version
-          seq.set(residue_index, f);
+          seq.set(residue_index, &f);
         }
       );
       ++residue_index;
@@ -141,14 +141,14 @@ namespace OpenMS
       {
         if (v.getType() == Ribonucleotide::FIVE_PRIME_MODIFICATION)
         {
-          if (!seq.hasNTerminalModification())
+          if (!seq.hasFivePrimeModification())
           {
             map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(v);
           }
         }
         else if (v.getType() == Ribonucleotide::THREE_PRIME_MODIFICATION)
         {
-          if (!seq.hasCTerminalModification())
+          if (!seq.hasThreePrimeModification())
           {
             map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(v);
           }
@@ -262,15 +262,15 @@ namespace OpenMS
       NASequence new_seq = current_seq;
       if (current_index == C_TERM_MODIFICATION_INDEX)
       {
-        new_seq.setThreePrimeModification(m.getCode());
+        new_seq.setThreePrimeModification(&m);
       }
       else if (current_index == N_TERM_MODIFICATION_INDEX)
       {
-        new_seq.setFivePrimeModification(m.getCode());
+        new_seq.setFivePrimeModification(&m);
       }
       else
       {
-        new_seq.set(current_index, m.getCode());
+        new_seq.set(current_index, &m);
       }
 
       // recurse with modified seq
@@ -297,25 +297,17 @@ namespace OpenMS
       size_t residue_index = residue_it - seq.begin();
 
       // determine compatibility of variable modifications
-      std::for_each(variable_mods_begin, variable_mods_end, [](Ribonucleotide const & v)
+      std::for_each(var_mods_begin, var_mods_end, [](Ribonucleotide const & v)
       {
         // check if modification and current ribo match
         if (residue_it->getCode() != v.getOrigin()) { continue; }
 
         bool is_compatible(false);
 
-        const Ribonucleotide::TermSpecificity& term_spec = v.getTermSpecificity();
-        if (term_spec == Ribonucleotide::ANYWHERE) { is_compatible = true; }
-        else if (term_spec == Ribonucleotide::C_TERM && residue_index == (seq.size() - 1)) { is_compatible = true; }
-        else if (term_spec == Ribonucleotide::N_TERM && residue_index == 0) { is_compatible = true; }
+        NASequence new_seq = seq;
+        new_seq.setModification(residue_index, v.getCode());
+        all_modified_seqs.push_back(new_seq);
 
-        // residue modification an be placed at current position? Then generate modified seq.
-        if (is_compatible)
-        {
-          NASequence new_seq = seq;
-          new_seq.setModification(residue_index, v.getCode());
-          all_modified_seqs.push_back(new_seq);
-        }
       });
     }
   }
