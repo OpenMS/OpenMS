@@ -117,7 +117,7 @@ namespace OpenMS
     Ribonucleotide ribo;
     ribo.setName( parts[0] );
     ribo.setCode( parts[1] );
-    ribo.setNew_code( parts[2] );
+    ribo.setNewCode(parts[2]);
     if (parts[3] == "preQ0base")
     {
       ribo.setOrigin( '0' );
@@ -131,11 +131,11 @@ namespace OpenMS
     ribo.setFormula(  EmpiricalFormula(parts[6]) );// Convert the string to an Empirical formula
     if (!parts[7].empty() && (parts[7] != "None"))
     {
-      ribo.setMono_mass(parts[7].toDouble());
+      ribo.setMonoMass(parts[7].toDouble());
     }
     if (!parts[8].empty() && (parts[8] != "None"))
     {
-      ribo.setAvg_mass(parts[8].toDouble());
+      ribo.setAvgMass(parts[8].toDouble());
     }
     ribo.setIsModifiable(true); // This is superfluous for the database
     return ribo;
