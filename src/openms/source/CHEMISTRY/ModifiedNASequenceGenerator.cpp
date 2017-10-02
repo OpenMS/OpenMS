@@ -69,13 +69,13 @@ namespace OpenMS
     for (auto const & r : seq)
     {
       // skip already modified residue
-      if (r.isModified()) { ++residue_index; continue; }
+      if (r->isModified()) { ++residue_index; continue; }
 
       //set fixed modifications
       std::for_each(fixed_mods_begin, fixed_mods_end, [&seq] (Ribonucleotide const & f)
         {
           // check if amino acid match between modification and current residue
-          if (r.getCode() != f.getOrigin()) { continue; }  // no match? check next modification
+          if (r->getCode() != f.getOrigin()) { continue; }  // no match? check next modification
 
           // skip five/three prime modifications
           if (f.getType() == Ribonucleotide::FIVE_PRIME_MODIFICATION
@@ -231,7 +231,7 @@ namespace OpenMS
 
 
   // static
-  void ModifiedNASequenceGenerator::recurseAndGenerateVariableModifiedPeptides_(
+  void ModifiedNASequenceGenerator::recurseAndGenerateVariableModifiedNASequences_(
     const vector<int>& subset_indices,
     const map<int, vector<Ribonucleotide> >& map_compatibility,
     int depth,
@@ -289,23 +289,23 @@ namespace OpenMS
     if (keep_unmodified) { all_modified_seqs.push_back(seq); }
 
     // we want the same behavior as for the slower function... we would need a reverse iterator here that NASequence doesn't provide
-    for (NASequence::ConstIterator residue_it = seq.end() - 1; residue_it != seq.begin() - 1; --residue_it)
+    for (NASequence::const_iterator residue_it = seq.cend() - 1; residue_it != seq.cbegin() - 1; --residue_it)
     {
       // skip already modified residues
-      if (residue_it->isModified()) { continue; }
+      if ((*residue_it)->isModified()) { continue; }
 
-      size_t residue_index = residue_it - seq.begin();
+      size_t residue_index = residue_it - seq.cbegin();
 
       // determine compatibility of variable modifications
       std::for_each(var_mods_begin, var_mods_end, [](Ribonucleotide const & v)
       {
         // check if modification and current ribo match
-        if (residue_it->getCode() != v.getOrigin()) { continue; }
+        if ((*residue_it)->getCode() != v.getOrigin()) { continue; }
 
         bool is_compatible(false);
 
         NASequence new_seq = seq;
-        new_seq.setModification(residue_index, v.getCode());
+        new_seq.set(residue_index, &v);
         all_modified_seqs.push_back(new_seq);
 
       });
