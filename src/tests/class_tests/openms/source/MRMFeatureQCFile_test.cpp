@@ -223,13 +223,14 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
 
     mrmfqcfile.parseLine(line1, headers, params_headers, mrmfqc);
   
-    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_name_, "component1");
+    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_group_name_, "component_group1");
     TEST_EQUAL(mrmfqc.component_group_qcs_[0].n_quantifying_u_, 1);
 
+    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_name_, "component1");
     TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].retention_time_l_, 1.0);
     TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].overall_quality_u_, 5.0);
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc["peak_apex_int"].first, 1.1e3);
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc["sn_score"].second, 10.0);
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc_["peak_apex_int"].first, 1.1e3);
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc_["sn_score"].second, 10.0);
   
     headers.clear();
     
