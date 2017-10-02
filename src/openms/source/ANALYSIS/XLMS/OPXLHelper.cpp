@@ -235,7 +235,7 @@ namespace OpenMS
     return modifications;
   }
 
-  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides)
+  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide)
   {
     multimap<StringView, AASequence> processed_peptides;
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;
@@ -270,11 +270,6 @@ namespace OpenMS
     // digest and filter database
     for (SignedSize fasta_index = 0; fasta_index < static_cast<SignedSize>(fasta_db.size()); ++fasta_index)
     {
-//#ifdef _OPENMP
-//#pragma omp atomic
-//#endif
-      ++count_proteins;
-
       // store vector of substrings pointing in fasta database (bounded by pairs of begin, end iterators)
       vector<StringView> current_digest;
       digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
@@ -305,16 +300,16 @@ namespace OpenMS
         }
         else
         {
-          for (Size k = 0; k < cross_link_residue1.size(); k++)
+          for (String res : cross_link_residue1)
           {
-            if (cross_link_residue1[k].size() == 1 && cit->getString().find(cross_link_residue1[k]) < cit->getString().size()-1)
+            if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
             {
               skip = false;
             }
           }
-          for (Size k = 0; k < cross_link_residue2.size(); k++)
+          for (String res : cross_link_residue2)
           {
-            if (cross_link_residue2[k].size() == 1 && cit->getString().find(cross_link_residue2[k]) < cit->getString().size()-1)
+            if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
             {
               skip = false;
             }
@@ -334,21 +329,7 @@ namespace OpenMS
           }
         }
 
-        if (already_processed)
-        {
-          continue;
-        }
-//        if (cit->getString().find('K') >= cit->getString().size()-1)
-//        {
-//          continue;
-//        }
-
-
-
-//#ifdef _OPENMP
-//#pragma omp atomic
-//#endif
-        ++count_peptides;
+        if (already_processed) continue;
 
         vector<AASequence> all_modified_peptides;
 
@@ -777,6 +758,13 @@ namespace OpenMS
       }
       double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
       double error = precursor_mz - theo_mz;
+      // TODO introduce precursor correction parameter and pass it to this function as well
+      bool corrected_precursor = false;
+      while (error > (Constants::C13C12_MASSDIFF_U / static_cast<double>(precursor_charge)))
+      {
+        error -= Constants::C13C12_MASSDIFF_U / static_cast<double>(precursor_charge);
+        bool corrected_precursor = true;
+      }
       double rel_error = (error / theo_mz) / 1e-6;
 
       String alpha_term = "ANYWHERE";
@@ -820,6 +808,7 @@ namespace OpenMS
         ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
       }
       ph_alpha.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
+      ph_alpha.setMetaValue("precursor_corrected", corrected_precursor);
 
       ph_alpha.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
       ph_alpha.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
@@ -863,6 +852,7 @@ namespace OpenMS
           ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
         }
         ph_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
+        ph_beta.setMetaValue("precursor_corrected", corrected_precursor);
 
         ph_beta.setMetaValue("OpenXQuest:xcorr xlink", top_csms_spectrum[i].xcorrx_max);
         ph_beta.setMetaValue("OpenXQuest:xcorr common", top_csms_spectrum[i].xcorrc_max);
