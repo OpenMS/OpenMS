@@ -462,7 +462,7 @@ void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, const NA
     return ' ';
   }
 
-  char TheoreticalSpectrumGenerator::ribonucleotideTypeToIonLetter_(Ribonucleotide::RiboNucleotideType res_type) const //TODO fix duplicated code
+  char TheoreticalSpectrumGenerator::ribonucleotideTypeToIonLetter_(Ribonucleotide::RiboNucleotideFragmentType res_type) const //TODO fix duplicated code
   {
     switch (res_type)
     {
@@ -507,7 +507,7 @@ void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, const NA
     }
   }
 
-  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum & spectrum, const NASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RiboNucleotideType res_type, Int charge, double intensity) const
+  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum & spectrum, const NASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RiboNucleotideFragmentType res_type, Int charge, double intensity) const
   {
 
       char charge_sign='+';
@@ -618,7 +618,7 @@ void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, const NA
   }
 
 
-  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum & spectrum, const NASequence & nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RiboNucleotideType res_type, Int charge) const
+  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum & spectrum, const NASequence & nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RiboNucleotideFragmentType res_type, Int charge) const
   {
     spectrum.reserve(nucleotide.size());
 

@@ -105,7 +105,7 @@ namespace OpenMS
       virtual void addPeaks_(PeakSpectrum & spectrum, const AASequence & peptide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge = 1) const;
 
       /// adds peaks to a spectrum of the given ion-type, nucleotide, charge, and intensity, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
-      virtual void addPeaks_(PeakSpectrum & spectrum, const NASequence & nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RiboNucleotideType res_type, Int charge = 1) const;
+      virtual void addPeaks_(PeakSpectrum & spectrum, const NASequence & nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RiboNucleotideFragmentType res_type, Int charge = 1) const;
       
 
       /// adds the precursor peaks to the spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
@@ -125,13 +125,13 @@ namespace OpenMS
       void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
 
       /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true //TODO test this
-      void addIsotopeCluster_(PeakSpectrum & spectrum, const NASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RiboNucleotideType res_type, Int charge, double intensity) const;
+      void addIsotopeCluster_(PeakSpectrum & spectrum, const NASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RiboNucleotideFragmentType res_type, Int charge, double intensity) const;
 
       /// helper for mapping residue type to letter
       char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
 
       /// helper for mapping residue type to letter
-      char ribonucleotideTypeToIonLetter_(Ribonucleotide::RiboNucleotideType res_type) const;
+      char ribonucleotideTypeToIonLetter_(Ribonucleotide::RiboNucleotideFragmentType res_type) const;
 
 
       /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true

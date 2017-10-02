@@ -45,6 +45,67 @@ namespace OpenMS
     return os;
   }
   
+  Ribonucleotide::Ribonucleotide()
+  {
+    name_ = "unknown nucleotide residue";
+    code_ = ".";
+    new_code_ = "";
+    html_code_ = ".";
+    formula_ = EmpiricalFormula();
+    origin_ = '.';
+    mono_mass_ = 0.0;
+    avg_mass_ = 0.0;
+    isModifiable_ = false;
+  }
+
+  Ribonucleotide::Ribonucleotide(const Ribonucleotide &ribo)
+  {
+    name_ = ribo.getName();
+    code_ = ribo.getCode();
+    new_code_ = ribo.getNew_code();
+    html_code_ = ribo.getHtml_code();
+    formula_ = ribo.getFormula();
+    origin_ = ribo.getOrigin();
+    mono_mass_ = ribo.getMono_mass();
+    avg_mass_ = ribo.getAvg_mass();
+    isModifiable_ = ribo.getIsModifiable();
+
+  }
+
+  Ribonucleotide::Ribonucleotide(const String &name, const String &code, const String &new_code, const String &html_code, const EmpiricalFormula &formula, const char &origin, const double &mono_mass, const double &avg_mass, const bool isModifiable)
+  {
+    name_ = name;
+    code_ = code;
+    new_code_ = new_code;
+    html_code_ = html_code;
+    formula_ = formula;
+    origin_ = origin;
+    mono_mass_ = mono_mass;
+    avg_mass_ = avg_mass;
+    isModifiable_ = isModifiable;
+  }
+
+  Ribonucleotide::~Ribonucleotide()
+  {
+  }
+
+  Ribonucleotide& Ribonucleotide::operator=(const Ribonucleotide &ribo)
+  {
+    if (this != &ribo)
+    {
+      name_ = ribo.getName();
+      code_ = ribo.getCode();
+      new_code_ = ribo.getNew_code();
+      html_code_ = ribo.getHtml_code();
+      formula_ = ribo.getFormula();
+      origin_ = ribo.getOrigin();
+      mono_mass_ = ribo.getMono_mass();
+      avg_mass_ = ribo.getAvg_mass();
+      isModifiable_ = ribo.getIsModifiable();
+    }
+    return *this;
+  }
+
   const String Ribonucleotide::getCode() const
   {
       return code_;
@@ -132,6 +193,16 @@ namespace OpenMS
       return false;
     }
     return true;
+  }
+
+  bool Ribonucleotide::getIsModifiable() const
+  {
+    return isModifiable_;
+  }
+
+  void Ribonucleotide::setIsModifiable(bool isModifiable)
+  {
+    isModifiable_ = isModifiable;
   }
   
 }
