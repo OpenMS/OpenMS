@@ -18,5 +18,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
         # double calculateBias(double actual_concentration, double calculated_concentration) nogil except +
         double applyCalibration(Feature & component,Feature & IS_component, String & feature_name, 
                                 String & transformation_model, Param & transformation_model_params) nogil except +
-        void quantifyComponents(libcpp_vector[ FeatureMap ]& unknowns) nogil except +
+        void quantifyComponents(FeatureMap& unknowns) nogil except +
 
