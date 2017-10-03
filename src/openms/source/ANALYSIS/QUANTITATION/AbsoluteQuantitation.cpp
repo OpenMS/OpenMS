@@ -144,7 +144,7 @@ namespace OpenMS
     return calculated_concentration;
   }
 
-  void AbsoluteQuantitation::quantifyComponents(std::vector<FeatureMap>& unknowns)
+  void AbsoluteQuantitation::quantifyComponents(FeatureMap& unknowns)
   {
     //Potential Optimizations: create a map for each unknown FeatureMap
     // to reduce multiple loops
@@ -169,104 +169,104 @@ namespace OpenMS
     Feature empty_feature;
     size_t IS_component_it, IS_component_group_it;
 
-    // iterate through the unknowns
-    for (size_t i = 0; i < unknowns.size(); i++)
-    {      
+    // // iterate through the unknowns
+    // for (size_t i = 0; i < unknowns.size(); i++)
+    // {      
 
-      // iterate through each component_group/feature     
-      for (size_t feature_it = 0; feature_it < unknowns[i].size(); ++feature_it)
+    // iterate through each component_group/feature     
+    for (size_t feature_it = 0; feature_it < unknowns.size(); ++feature_it)
+    {
+      component_group_name = (String)unknowns[feature_it].getMetaValue("PeptideRef");
+      Feature unknowns_quant_feature;
+
+      // iterate through each component/sub-feature
+      for (size_t sub_it = 0; sub_it < unknowns[feature_it].getSubordinates().size(); ++sub_it)
       {
-        component_group_name = (String)unknowns[i][feature_it].getMetaValue("PeptideRef");
-        Feature unknowns_quant_feature;
+        component_name = (String)unknowns[feature_it].getSubordinates()[sub_it].getMetaValue("native_id");  
 
-        // iterate through each component/sub-feature
-        for (size_t sub_it = 0; sub_it < unknowns[i][feature_it].getSubordinates().size(); ++sub_it)
-        {
-          component_name = (String)unknowns[i][feature_it].getSubordinates()[sub_it].getMetaValue("native_id");  
-
-          // apply the calibration curve to components that are in the quant_method
-          if (quant_methods_.count(component_name)>0)
-          {     
-            quant_methods_it = quant_methods_.find(component_name);
-            quant_methods_it->second.getComponentISFeatureNames(quant_component_name,quant_IS_component_name,quant_feature_name);
-            if (quant_IS_component_name != "")
+        // apply the calibration curve to components that are in the quant_method
+        if (quant_methods_.count(component_name)>0)
+        {     
+          quant_methods_it = quant_methods_.find(component_name);
+          quant_methods_it->second.getComponentISFeatureNames(quant_component_name,quant_IS_component_name,quant_feature_name);
+          if (quant_IS_component_name != "")
+          {
+            // look up the internal standard for the component
+            IS_found = false;
+            // Optimization: 90% of the IS will be in the same component_group/feature
+            for (size_t is_sub_it = 0; is_sub_it < unknowns[feature_it].getSubordinates().size(); ++is_sub_it)
             {
-              // look up the internal standard for the component
-              IS_found = false;
-              // Optimization: 90% of the IS will be in the same component_group/feature
-              for (size_t is_sub_it = 0; is_sub_it < unknowns[i][feature_it].getSubordinates().size(); ++is_sub_it)
+              IS_component_name = (String)unknowns[feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");              
+              if (quant_IS_component_name == IS_component_name)
               {
-                IS_component_name = (String)unknowns[i][feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");              
-                if (quant_IS_component_name == IS_component_name)
-                {
-                  IS_found = true;
-                  IS_component_group_it = feature_it;
-                  IS_component_it = is_sub_it;
-                  break;
-                }
+                IS_found = true;
+                IS_component_group_it = feature_it;
+                IS_component_it = is_sub_it;
+                break;
               }
-              if (!IS_found)
-              {// expand IS search to all components                
-                // iterate through each component_group/feature     
-                for (size_t is_feature_it = 0; is_feature_it < unknowns[i].size(); ++is_feature_it)
+            }
+            if (!IS_found)
+            {// expand IS search to all components                
+              // iterate through each component_group/feature     
+              for (size_t is_feature_it = 0; is_feature_it < unknowns.size(); ++is_feature_it)
+              {
+                //iterate through each component/sub-feature
+                for (size_t is_sub_it = 0; is_sub_it < unknowns[is_feature_it].getSubordinates().size(); ++is_sub_it)
                 {
-                  //iterate through each component/sub-feature
-                  for (size_t is_sub_it = 0; is_sub_it < unknowns[i][is_feature_it].getSubordinates().size(); ++is_sub_it)
+                  IS_component_name = (String)unknowns[is_feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");                   
+                  if (quant_IS_component_name == IS_component_name)
                   {
-                    IS_component_name = (String)unknowns[i][is_feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");                   
-                    if (quant_IS_component_name == IS_component_name)
-                    {
-                      IS_found = true;
-                      IS_component_group_it = is_feature_it;
-                      IS_component_it = is_sub_it;
-                      break;
-                    }
-                  }
-                  if (IS_found)
-                  {
+                    IS_found = true;
+                    IS_component_group_it = is_feature_it;
+                    IS_component_it = is_sub_it;
                     break;
                   }
                 }
-              }
-              if (IS_found)
-              {                
-                quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
-                calculated_concentration = applyCalibration(
-                  unknowns[i][feature_it].getSubordinates()[sub_it],
-                  unknowns[i][IS_component_group_it].getSubordinates()[IS_component_it],
-                  quant_feature_name,transformation_model,transformation_model_params);
-              }
-              else 
-              {                
-                LOG_INFO << "Component " << component_name << " IS " << quant_IS_component_name << " was not found.";
-                LOG_INFO << "No concentration will be calculated.";
+                if (IS_found)
+                {
+                  break;
+                }
               }
             }
-            else
-            {
+            if (IS_found)
+            {                
               quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
               calculated_concentration = applyCalibration(
-                unknowns[i][feature_it].getSubordinates()[sub_it],
-                empty_feature,
+                unknowns[feature_it].getSubordinates()[sub_it],
+                unknowns[IS_component_group_it].getSubordinates()[IS_component_it],
                 quant_feature_name,transformation_model,transformation_model_params);
             }
-
-            // add new metadata (calculated_concentration, concentration_units) to the component
-            unknowns[i][feature_it].getSubordinates()[sub_it].setMetaValue("calculated_concentration",calculated_concentration);
-            quant_methods_it->second.getConcentrationUnits(concentration_units);
-            unknowns[i][feature_it].getSubordinates()[sub_it].setMetaValue("concentration_units",concentration_units);
-            // calculate the bias?
+            else 
+            {                
+              LOG_INFO << "Component " << component_name << " IS " << quant_IS_component_name << " was not found.";
+              LOG_INFO << "No concentration will be calculated.";
+            }
           }
-          else 
+          else
           {
-            LOG_INFO << "Component " << component_name << " does not have a quantitation method.";
-            LOG_INFO << "No concentration will be calculated.";
-            unknowns[i][feature_it].getSubordinates()[sub_it].setMetaValue("calculated_concentration","");
-            unknowns[i][feature_it].getSubordinates()[sub_it].setMetaValue("concentration_units","");
+            quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
+            calculated_concentration = applyCalibration(
+              unknowns[feature_it].getSubordinates()[sub_it],
+              empty_feature,
+              quant_feature_name,transformation_model,transformation_model_params);
           }
+
+          // add new metadata (calculated_concentration, concentration_units) to the component
+          unknowns[feature_it].getSubordinates()[sub_it].setMetaValue("calculated_concentration",calculated_concentration);
+          quant_methods_it->second.getConcentrationUnits(concentration_units);
+          unknowns[feature_it].getSubordinates()[sub_it].setMetaValue("concentration_units",concentration_units);
+          // calculate the bias?
+        }
+        else 
+        {
+          LOG_INFO << "Component " << component_name << " does not have a quantitation method.";
+          LOG_INFO << "No concentration will be calculated.";
+          unknowns[feature_it].getSubordinates()[sub_it].setMetaValue("calculated_concentration","");
+          unknowns[feature_it].getSubordinates()[sub_it].setMetaValue("concentration_units","");
         }
       }
     }
+    // }
   }
 
 } // namespace

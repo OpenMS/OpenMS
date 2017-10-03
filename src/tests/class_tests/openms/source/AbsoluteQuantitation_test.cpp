@@ -157,9 +157,9 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   unknown_feature.setSubordinates(unknown_feature_subordinates);
   unknown_feature_map.push_back(unknown_feature);
   unknown_feature_subordinates.clear();
-  // set-up the unknowns
-  std::vector<FeatureMap> unknowns;
-  unknowns.push_back(unknown_feature_map);
+  // // set-up the unknowns
+  // std::vector<FeatureMap> unknowns;
+  // unknowns.push_back(unknown_feature_map);
 
   // set-up the model and params
   AbsoluteQuantitationMethod aqm;
@@ -185,7 +185,7 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   quant_methods.push_back(aqm); 
 
   absquant.setQuantMethods(quant_methods);
-  absquant.quantifyComponents(unknowns);
+  absquant.quantifyComponents(unknown_feature_map);
   
   // DEBUGGING:
   // for (size_t i = 0; i < unknowns.size(); ++i)
@@ -200,14 +200,14 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   //   }
   // }
 
-  TEST_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("calculated_concentration"),"");
-  TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[0].getMetaValue("concentration_units"),"");
-  TEST_REAL_SIMILAR(unknowns[0][0].getSubordinates()[1].getMetaValue("calculated_concentration"),1.0);
-  TEST_STRING_EQUAL(unknowns[0][0].getSubordinates()[1].getMetaValue("concentration_units"),"uM");
-  TEST_REAL_SIMILAR(unknowns[0][1].getSubordinates()[1].getMetaValue("calculated_concentration"),2.0);
-  TEST_STRING_EQUAL(unknowns[0][1].getSubordinates()[1].getMetaValue("concentration_units"),"uM");
-  TEST_REAL_SIMILAR(unknowns[0][2].getSubordinates()[0].getMetaValue("calculated_concentration"),1.0);
-  TEST_STRING_EQUAL(unknowns[0][2].getSubordinates()[0].getMetaValue("concentration_units"),"uM");
+  TEST_EQUAL(unknown_feature_map[0].getSubordinates()[0].getMetaValue("calculated_concentration"),"");
+  TEST_STRING_EQUAL(unknown_feature_map[0].getSubordinates()[0].getMetaValue("concentration_units"),"");
+  TEST_REAL_SIMILAR(unknown_feature_map[0].getSubordinates()[1].getMetaValue("calculated_concentration"),1.0);
+  TEST_STRING_EQUAL(unknown_feature_map[0].getSubordinates()[1].getMetaValue("concentration_units"),"uM");
+  TEST_REAL_SIMILAR(unknown_feature_map[1].getSubordinates()[1].getMetaValue("calculated_concentration"),2.0);
+  TEST_STRING_EQUAL(unknown_feature_map[1].getSubordinates()[1].getMetaValue("concentration_units"),"uM");
+  TEST_REAL_SIMILAR(unknown_feature_map[2].getSubordinates()[0].getMetaValue("calculated_concentration"),1.0);
+  TEST_STRING_EQUAL(unknown_feature_map[2].getSubordinates()[0].getMetaValue("concentration_units"),"uM");
 END_SECTION
 
 /////////////////////////////////////////////////////////////
