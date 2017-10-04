@@ -80,12 +80,12 @@ public:
   void set(size_t index, const Ribonucleotide* r);
 
   bool hasFivePrimeModification() const;
-  void setFivePrimeModification(const Ribonucleotide* r);
-  Ribonucleotide* getFivePrimeModification();
+  void setFivePrimeModification(const RibonucleotideChainEnd *r);
+  Ribonucleotide *getFivePrimeModification();
 
   bool hasThreePrimeModification() const;
-  void setThreePrimeModification(const Ribonucleotide* r);
-  Ribonucleotide* getThreePrimeModification();
+  void setThreePrimeModification(const RibonucleotideChainEnd *r);
+  Ribonucleotide *getThreePrimeModification();
 
 
   NASequence getPrefix(Size index) const;

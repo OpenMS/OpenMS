@@ -16,8 +16,8 @@ namespace OpenMS
 NASequence::NASequence()
 {
   s_ = std::vector<Ribonucleotide*>();
-  fivePrime_ = RibonucleotideChainEnd();
-  threePrime_ = RibonucleotideChainEnd();
+  fivePrime_ = nullptr;
+  threePrime_ = nullptr;
 }
 
 NASequence::NASequence(const NASequence &seq)
@@ -84,18 +84,28 @@ size_t NASequence::size() const
 NASequence NASequence::getPrefix(Size index) const
 {
     if (index>=s_.size())
-        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, s_.size());
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, s_.size());
+    }
+
+    std::vector<Ribonucleotide*> newvector(s_.begin(), s_.begin() + index);
     return NASequence(
-          std::vector<Ribonucleotide*>(s_.begin(), s_.begin() + index),
+          newvector,
           fivePrime_,
-          Ribonucleotide*()) //RAGE! FIXME!!!
+          nullptr);
 }
 
 NASequence NASequence::getSuffix(Size index) const
 {
     if (index >= s_.size())
-        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, s_.size());
-    return NASequence(s_.substr(s_.size() - index), type_);
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, s_.size());
+    }
+    std::vector<Ribonucleotide*> newvector(s_.end() - index, s_.end());
+    return NASequence(
+          newvector,
+          nullptr,
+          threePrime_);
 }
 
 EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentType type, Int charge) const{
@@ -210,7 +220,41 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
         }
     }
 
-  return mono_formula;
+    return mono_formula;
+}
+
+bool NASequence::hasFivePrimeModification() const
+{
+  if (fivePrime_ == nullptr)
+  {
+    return false;
+  }
+  return true;
+}
+
+void NASequence::setFivePrimeModification(const RibonucleotideChainEnd *r)
+{
+  fivePrime_= r;
+}
+
+Ribonucleotide *NASequence::getFivePrimeModification()
+{
+
+}
+
+bool NASequence::hasThreePrimeModification() const
+{
+
+}
+
+void NASequence::setThreePrimeModification(const RibonucleotideChainEnd *r)
+{
+
+}
+
+Ribonucleotide *NASequence::getThreePrimeModification()
+{
+
 }
 
 double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type, Int charge) const
