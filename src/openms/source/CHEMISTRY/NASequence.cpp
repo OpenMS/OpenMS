@@ -246,6 +246,71 @@ double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type
 
 size_t NASequence::size() const { return s_.size(); }
 
+NASequence NASequence::fromString(const char *s)
+{
+  NASequence aas;
+  parseString_(String(s), aas);
+  return aas;
+}
+
+NASequence NASequence::fromString(const String & s)
+{
+  NASequence aas;
+  parseString_(s, aas);
+  return aas;
+}
+
+void NASequence::clear()
+{
+  s_.clear();
+  threePrime_ = nullptr;
+  fivePrime_ = nullptr;
+}
+
+void NASequence::parseString_(const String & s, NASequence & nss)
+{
+  nss.clear();
+
+  if (s.empty()) return;
+
+  static RibonucleotideDB * rdb = RibonucleotideDB::getInstance();
+
+  for (String::ConstIterator str_it = s.begin(); str_it != s.end(); ++str_it)
+  {
+    // skip spaces
+    if (*str_it == ' ') { continue; }
+
+    // 1. default case: add unmodified, standard ribose
+    if (*str_it != '[')
+    {
+      ConstRibonucleotidePtr r = rdb->getRibonucleotide(*str_it);
+      nss.s_.push_back(r);
+    }
+    else // if (*str_it == '['). Non-standard ribo
+    {
+      str_it = parseModSquareBrackets_(str_it, s, nss); // parse modified ribonucleotide and add it to nss
+    }
+  }
+}
+
+String::ConstIterator NASequence::parseModSquareBrackets_(
+  const String::ConstIterator str_it, const String& str, NASequence& nss)
+{
+  static RibonucleotideDB * rdb = RibonucleotideDB::getInstance();
+  OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
+  String::ConstIterator mod_start(str_it);
+  String::ConstIterator mod_end(++mod_start);
+  while ((mod_end != str.end()) && (*mod_end != ']')) { ++mod_end; } // advance to closing bracket
+  std::string mod(mod_start, mod_end);
+  if (mod_end == str.end())
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+                                "Cannot convert string to peptide modification: missing ']'");
+  }
+  ConstRibonucleotidePtr r = rdb->getRibonucleotide(mod);
+  nss.s_.push_back(r);
+}
+
 OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& seq)
 {
   String asString;

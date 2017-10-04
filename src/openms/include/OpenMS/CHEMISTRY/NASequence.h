@@ -21,8 +21,7 @@ public:
 
   class Iterator;
 
-  /** @brief ConstIterator
-*/
+  /** @brief ConstIterator */
   class OPENMS_DLLAPI ConstIterator
   {
   public:
@@ -265,6 +264,7 @@ public:
 
   bool empty() const;
   size_t size() const;
+  void clear();
 
   // 5' and 3' modifications
   bool hasFivePrimeModification() const;
@@ -291,7 +291,41 @@ public:
   NASequence getPrefix(Size index) const;
   NASequence getSuffix(Size index) const;
 
+  /**
+  @brief create NASequence object by parsing an OpenMS string
+
+  @param s Input string
+
+  @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
+*/
+  static NASequence fromString(const String& s);
+
+  /**
+    @brief create NASequence object by parsing a C string (character array)
+
+    @param s Input string
+
+    @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
+  */
+  static NASequence fromString(const char* s);
+
 private:
+  static void parseString_(const String & s, NASequence & nss);
+
+  /**
+  @brief Parses modifications in square brackets
+
+  @param str_it Current position in the string to be parsed
+  @param str Full input string
+  @param aas Current AASequence object (will be modified with the correct ribo added)
+
+  @return Position at which to continue parsing
+*/
+  static String::ConstIterator parseModSquareBrackets_(
+    const String::ConstIterator str_it,
+    const String& str,
+    NASequence& nss);
+
   std::vector<const Ribonucleotide*> s_;
   const RibonucleotideChainEnd * fivePrime_;
   const RibonucleotideChainEnd * threePrime_;
