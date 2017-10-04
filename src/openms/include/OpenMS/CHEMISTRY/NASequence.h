@@ -237,31 +237,45 @@ public:
 
 public:
   NASequence(); //default constructor
+
   NASequence(const NASequence& seq); // copy constructor
+
   NASequence& operator=(const NASequence& rhs); //assignment operator
 
   NASequence(std::vector<Ribonucleotide*> s, RibonucleotideChainEnd fivePrime, RibonucleotideChainEnd threePrime); //full constructor
+
   bool operator==(const NASequence& rhs) const;
+
   virtual ~NASequence(); //destructor
+
   void setSequence(std::vector<Ribonucleotide*>& s);
+
   std::vector<Ribonucleotide*> getSequence() const;
+
   size_t size() const;
+
   double getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
+
   bool empty() const;
+
   EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
 
-  //TODO:implement
   void set(size_t index, const Ribonucleotide* r);
 
   bool hasFivePrimeModification() const;
+
   void setFivePrimeModification(const RibonucleotideChainEnd *r);
-  Ribonucleotide *getFivePrimeModification();
+
+  const Ribonucleotide *getFivePrimeModification();
 
   bool hasThreePrimeModification() const;
+
   void setThreePrimeModification(const RibonucleotideChainEnd *r);
-  Ribonucleotide *getThreePrimeModification();
+
+  const Ribonucleotide *getThreePrimeModification();
 
   NASequence getPrefix(Size index) const;
+
   NASequence getSuffix(Size index) const;
 
   inline Iterator begin() { return Iterator(&s_, 0); }
