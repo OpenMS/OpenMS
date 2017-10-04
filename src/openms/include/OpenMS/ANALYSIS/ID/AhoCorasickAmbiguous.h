@@ -33,8 +33,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef SEQAN_HEADER_FIND_AHOCORASICKAMBIGUOUSIGUOUS_H
-#define SEQAN_HEADER_FIND_AHOCORASICKAMBIGUOUSIGUOUS_H
+#ifndef OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H
+#define OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H
 
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -1004,4 +1004,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif //#ifndef SEQAN_HEADER_FIND_AHOCORASICKAMBIGUOUSIGUOUS_H
+#endif //#ifndef OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H
