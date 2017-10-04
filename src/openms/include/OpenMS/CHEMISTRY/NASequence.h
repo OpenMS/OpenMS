@@ -100,14 +100,11 @@ public:
     /// equality comparator
     bool operator==(const ConstIterator& rhs) const
     {
-      return vector_ == rhs.vector_ && position_ == rhs.position_;
+      return std::tie(vector_, position_) == std::tie(rhs.vector_, rhs.position_);
     }
 
     /// inequality operator
-    bool operator!=(const ConstIterator& rhs) const
-    {
-      return vector_ != rhs.vector_ || position_ != rhs.position_;
-    }
+    bool operator!=(const ConstIterator& rhs) const { return !operator==(rhs); }
 
     /// increment operator
     ConstIterator& operator++()
@@ -242,59 +239,67 @@ public:
 
   NASequence& operator=(const NASequence& rhs); //assignment operator
 
-  NASequence(std::vector<Ribonucleotide*> s, RibonucleotideChainEnd fivePrime, RibonucleotideChainEnd threePrime); //full constructor
+  //full constructor
+  NASequence(std::vector<const Ribonucleotide*> s,
+             const RibonucleotideChainEnd * fivePrime,
+             const RibonucleotideChainEnd * threePrime);
 
   bool operator==(const NASequence& rhs) const;
 
   virtual ~NASequence(); //destructor
 
-  void setSequence(std::vector<Ribonucleotide*>& s);
-
-  std::vector<Ribonucleotide*> getSequence() const;
-
+  // getter / setter for sequence
+  void setSequence(const std::vector<const Ribonucleotide*>& s);
+  const std::vector<const Ribonucleotide*>& getSequence() const { return s_;};
+  std::vector<const Ribonucleotide*>& getSequence() { return s_;}
+  bool empty() const;
   size_t size() const;
 
   double getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
 
-  bool empty() const;
-
   EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
 
+  // getter / setter for seuence elements (easy wrapped using pyOpenMS)
   void set(size_t index, const Ribonucleotide* r);
+  const Ribonucleotide* get(size_t index) { return s_[index]; }
+
+  /// getter / setter for seuence elements
+  const Ribonucleotide& operator[](size_t index) { return *s_[index]; }
+  const Ribonucleotide& operator[](size_t index) const { return *s_[index]; }
 
   bool hasFivePrimeModification() const;
 
   void setFivePrimeModification(const RibonucleotideChainEnd *r);
 
-  const Ribonucleotide *getFivePrimeModification();
+  const RibonucleotideChainEnd * getFivePrimeModification() const;
 
   bool hasThreePrimeModification() const;
 
   void setThreePrimeModification(const RibonucleotideChainEnd *r);
 
-  const Ribonucleotide *getThreePrimeModification();
+  const RibonucleotideChainEnd * getThreePrimeModification() const;
 
-  NASequence getPrefix(Size index) const;
-
-  NASequence getSuffix(Size index) const;
-
+  // iterators
   inline Iterator begin() { return Iterator(&s_, 0); }
   inline ConstIterator begin() const { return ConstIterator(&s_, 0); }
   inline Iterator end() { return Iterator(&s_, (Int) s_.size()); }
   inline ConstIterator end()  const { return ConstIterator(&s_, (Int) s_.size()); }
+
   inline ConstIterator cbegin() const { return ConstIterator(&s_, 0); }
   inline ConstIterator cend() const { return ConstIterator(&s_, (Int) s_.size()); }
 
-  /// return reference to the residue at given position
-  const Ribonucleotide& operator[](size_t index) const { return s_[index]; }
+  // utility functions
+  NASequence getPrefix(Size index) const;
+  NASequence getSuffix(Size index) const;
 
 private:
   std::vector<const Ribonucleotide*> s_;
-  RibonucleotideChainEnd fivePrime_;
-  RibonucleotideChainEnd threePrime_;
+  const RibonucleotideChainEnd * fivePrime_;
+  const RibonucleotideChainEnd * threePrime_;
 };
 OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& nucleotide);
 
 OPENMS_DLLAPI std::istream& operator>>(std::istream& os, const NASequence& nucleotide);
 }
+
 #endif // OPENMS_CHEMISTRY_NASEQUENCE_H

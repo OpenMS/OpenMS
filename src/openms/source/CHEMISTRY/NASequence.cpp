@@ -15,20 +15,18 @@ namespace OpenMS
 
 NASequence::NASequence()
 {
-  s_ = std::vector<Ribonucleotide*>();
+  s_ = std::vector<const Ribonucleotide*>();
   fivePrime_ = nullptr;
   threePrime_ = nullptr;
 }
 
-NASequence::NASequence(const NASequence &seq)
+NASequence::NASequence(const NASequence & seq)
 {
   s_ = seq.getSequence();
   fivePrime_ = seq.getFivePrimeModification();
   threePrime_ = seq.getThreePrimeModification();
 }
-
-
-
+  
 NASequence& NASequence::operator=(const NASequence& rhs)
 {
     s_ = rhs.s_;
@@ -37,7 +35,9 @@ NASequence& NASequence::operator=(const NASequence& rhs)
     return *this;
 }
 
-NASequence::NASequence(std::vector<Ribonucleotide *> s, RibonucleotideChainEnd fivePrime, RibonucleotideChainEnd threePrime)
+NASequence::NASequence(std::vector<const Ribonucleotide *> s,
+                       const RibonucleotideChainEnd * fivePrime,
+                       const RibonucleotideChainEnd * threePrime)
 {
   s_ = s;
   fivePrime_ = fivePrime;
@@ -46,70 +46,32 @@ NASequence::NASequence(std::vector<Ribonucleotide *> s, RibonucleotideChainEnd f
 
 bool NASequence::operator==(const NASequence& rhs) const
 {
-    if (s_ == rhs.getSequence() && fivePrime_ == rhs.getFivePrimeModification() && threePrime_ == rhs.getThreePrimeModification() )
-        return true;
-    else
-        return false;
+    return std::tie(s_, fivePrime_, threePrime_)
+           == std::tie(rhs.s_, rhs.fivePrime_, rhs.threePrime_);
 }
 
-NASequence::~NASequence()
-{
-} //destructor
+NASequence::~NASequence() {}
 
+void NASequence::setSequence(const std::vector<const Ribonucleotide*>& s) { s_ = s; }
 
-void NASequence::setSequence(const std::vector<Ribonucleotide*>& s)
-{
-  s_ = s;
-}
+std::vector<const Ribonucleotide*> NASequence::getSequence() const { return s_; }
 
-std::vector<Ribonucleotide*> NASequence::getSequence() const
-{
-  return s_;
-}
-
-bool NASequence::empty() const
-{
-  if (s_.size()== 0)
-  {
-    return true;
-  }
-  return false;
-}
-
-size_t NASequence::size() const
-{
-  return s_.size();
-}
+bool NASequence::empty() const { return s_.empty(); }
 
 NASequence NASequence::getPrefix(Size index) const
 {
-    if (index>=s_.size())
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, s_.size());
-    }
-
-    std::vector<Ribonucleotide*> newvector(s_.begin(), s_.begin() + index);
-    return NASequence(
-          newvector,
-          fivePrime_,
-          nullptr);
+  OPENMS_PRECONDITION(index < s_.size(), "IndexOverflow!");
+  return NASequence({s_.begin(), s_.begin() + index}, fivePrime_, nullptr);
 }
 
 NASequence NASequence::getSuffix(Size index) const
 {
-    if (index >= s_.size())
-    {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, s_.size());
-    }
-    std::vector<Ribonucleotide*> newvector(s_.end() - index, s_.end());
-    return NASequence(
-          newvector,
-          nullptr,
-          threePrime_);
+  OPENMS_PRECONDITION(index < s_.size(), "IndexOverflow!");
+  return NASequence({s_.end() - index, s_.end()}, nullptr, threePrime_);
 }
 
-EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentType type, Int charge) const{
-
+EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentType type, Int charge) const
+{
     static const EmpiricalFormula H_weight = EmpiricalFormula("H");
     static const EmpiricalFormula OH_weight = EmpiricalFormula("OH");
     static const EmpiricalFormula NH_weight = EmpiricalFormula("NH");
@@ -223,48 +185,19 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
     return mono_formula;
 }
 
-void NASequence::set(size_t index, const Ribonucleotide *r)
-{
-  s_[index]=r;
-}
+void NASequence::set(size_t index, const Ribonucleotide *r) { s_[index]=r; }
 
-bool NASequence::hasFivePrimeModification() const
-{
-  if (fivePrime_ == nullptr)
-  {
-    return false;
-  }
-  return true;
-}
+bool NASequence::hasFivePrimeModification() const { return (fivePrime_ == nullptr); }
 
-void NASequence::setFivePrimeModification(const RibonucleotideChainEnd *r)
-{
-  fivePrime_= r;
-}
+void NASequence::setFivePrimeModification(const RibonucleotideChainEnd *r) { fivePrime_= r; }
 
-const Ribonucleotide *NASequence::getFivePrimeModification()
-{
-  return fivePrime_;
-}
+const RibonucleotideChainEnd * NASequence::getFivePrimeModification() const { return fivePrime_; }
 
-bool NASequence::hasThreePrimeModification() const
-{
-  if (threePrime_ == nullptr)
-  {
-    return false;
-  }
-  return true;
-}
+bool NASequence::hasThreePrimeModification() const { return (threePrime_ == nullptr); }
 
-void NASequence::setThreePrimeModification(const RibonucleotideChainEnd *r)
-{
-  threePrime_= r;
-}
+void NASequence::setThreePrimeModification(const RibonucleotideChainEnd *r) { threePrime_= r; }
 
-const Ribonucleotide *NASequence::getThreePrimeModification()
-{
-  return threePrime_;
-}
+const RibonucleotideChainEnd * NASequence::getThreePrimeModification() const { return threePrime_; }
 
 double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type, Int charge) const
 {
@@ -272,14 +205,12 @@ double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type
   return mono_weight;//(double)charge;//+getFormula(type,charge).getMonoWeight();
 }
 
-OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& nucleotide)
-{
+size_t NASequence::size() const { return s_.size(); }
 
-  String asString="";
-  for (auto i : nucleotide.getSequence())
-  {
-    asString+=i.getCode();
-  }
+OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& seq)
+{
+  String asString;
+  for (auto const & i : seq) { asString += i.getCode(); }
   os << asString;
   return os;
 }
