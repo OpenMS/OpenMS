@@ -3,10 +3,12 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <map>
+
 #include <string>
 
 
@@ -283,7 +285,7 @@ void NASequence::parseString_(const String & s, NASequence & nss)
     // 1. default case: add unmodified, standard ribose
     if (*str_it != '[')
     {
-      ConstRibonucleotidePtr r = rdb->getRibonucleotide(*str_it);
+      ConstRibonucleotidePtr r = rdb->getRibonucleotide(std::string(1, *str_it));
       nss.s_.push_back(r);
     }
     else // if (*str_it == '['). Non-standard ribo
@@ -309,13 +311,16 @@ String::ConstIterator NASequence::parseModSquareBrackets_(
   }
   ConstRibonucleotidePtr r = rdb->getRibonucleotide(mod);
   nss.s_.push_back(r);
+  return mod_end;
 }
 
 OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& seq)
 {
   String asString;
+  os << "5':" << seq.getFivePrimeModification() << "\t";
   for (auto const & i : seq) { asString += i.getCode(); }
   os << asString;
+  os << "3':" << seq.getThreePrimeModification() << "\n";
   return os;
 }
 
