@@ -54,8 +54,6 @@ NASequence::~NASequence() {}
 
 void NASequence::setSequence(const std::vector<const Ribonucleotide*>& s) { s_ = s; }
 
-std::vector<const Ribonucleotide*> NASequence::getSequence() const { return s_; }
-
 bool NASequence::empty() const { return s_.empty(); }
 
 NASequence NASequence::getPrefix(Size index) const
@@ -86,9 +84,53 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
     static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("HPO3");
     static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("HPO4");
     static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("");
-
+    static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO4");
     EmpiricalFormula ourForm("");
+    // Add all the ribonucleotide masses
+    for (auto i : s_)
+    {
+      ourForm+=i->getFormula();
+    }
+    ourForm+=phosphate_form*(s_.size()-1); // add the phosphates in between each ribo
 
+    switch (type)
+    {
+    case Ribonucleotide::Full:
+        return ourForm + internal_to_full + (H_weight * charge) + fivePrime_->getFormula() + threePrime_->getFormula();
+
+    case Ribonucleotide::FivePrime:
+        return ourForm + (H_weight * charge) + fivePrime_->getFormula();
+
+    case Ribonucleotide::BIon:
+        return ourForm + b_ion_to_full - H_weight + (H_weight * charge) + fivePrime_->getFormula(); //WHY h_weight sub?
+
+    case Ribonucleotide::AIon:
+        return ourForm + internal_to_full - a_ion_to_full - H_weight * 2 + (H_weight * charge);
+
+    case Ribonucleotide::CIon:
+        return ourForm + internal_to_full - c_ion_to_full + (H_weight * charge);
+
+    case Ribonucleotide::DIon:
+        return ourForm + internal_to_full - d_ion_to_full + (H_weight * charge);
+
+    case Ribonucleotide::XIon:
+        return ourForm + internal_to_full - x_ion_to_full + (H_weight * charge);
+
+    case Ribonucleotide::WIon:
+        return ourForm + internal_to_full - w_ion_to_full + (H_weight * charge);
+
+    case Ribonucleotide::YIon:
+        return ourForm + internal_to_full - y_ion_to_full + (H_weight * charge);
+
+    case Ribonucleotide::ZIon:
+        return ourForm + internal_to_full - z_ion_to_full + (H_weight * charge);
+
+    case Ribonucleotide::AminusB:
+        return ourForm + internal_to_full - a_ion_to_full - H_weight * 2 + (H_weight * charge);// - base_to_formula[s_[s_.size()-1]]; //FIXME
+
+    default:
+        LOG_ERROR << "NASequence::getMonoWeight: unknown RibonucleotideType" << std::endl;
+    }
 
     /*EmpiricalFormula abasicform;
     if (type_ == Ribonucleotide::DNA)
@@ -176,7 +218,7 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
         }
     } */
 
-    return mono_formula;
+    return ourForm;
 }
 
 void NASequence::set(size_t index, const Ribonucleotide *r) { s_[index]=r; }

@@ -250,9 +250,13 @@ public:
 
   // getter / setter for sequence
   void setSequence(const std::vector<const Ribonucleotide*>& s);
+
   const std::vector<const Ribonucleotide*>& getSequence() const { return s_;};
+
   std::vector<const Ribonucleotide*>& getSequence() { return s_;}
+
   bool empty() const;
+
   size_t size() const;
 
   double getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
