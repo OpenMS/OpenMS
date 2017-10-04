@@ -223,6 +223,11 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
     return mono_formula;
 }
 
+void NASequence::set(size_t index, const Ribonucleotide *r)
+{
+  s_[index]=r;
+}
+
 bool NASequence::hasFivePrimeModification() const
 {
   if (fivePrime_ == nullptr)
@@ -237,24 +242,28 @@ void NASequence::setFivePrimeModification(const RibonucleotideChainEnd *r)
   fivePrime_= r;
 }
 
-Ribonucleotide *NASequence::getFivePrimeModification()
+const Ribonucleotide *NASequence::getFivePrimeModification()
 {
-
+  return fivePrime_;
 }
 
 bool NASequence::hasThreePrimeModification() const
 {
-
+  if (threePrime_ == nullptr)
+  {
+    return false;
+  }
+  return true;
 }
 
 void NASequence::setThreePrimeModification(const RibonucleotideChainEnd *r)
 {
-
+  threePrime_= r;
 }
 
-Ribonucleotide *NASequence::getThreePrimeModification()
+const Ribonucleotide *NASequence::getThreePrimeModification()
 {
-
+  return threePrime_;
 }
 
 double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type, Int charge) const
@@ -265,8 +274,13 @@ double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type
 
 OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& nucleotide)
 {
-  // TODO: implement
-  //os << nucleotide.getSequence();
+
+  String asString="";
+  for (auto i : nucleotide.getSequence())
+  {
+    asString+=i.getCode();
+  }
+  os << asString;
   return os;
 }
 
