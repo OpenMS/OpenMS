@@ -366,6 +366,7 @@ set(chemistry_executables_list
   ModificationDefinition_test
   ModificationDefinitionsSet_test
   ModificationsDB_test
+  ModifiedNASequenceGenerator_test
   CrossLinksDB_test
   ModifierRep_test
   NASequence_test

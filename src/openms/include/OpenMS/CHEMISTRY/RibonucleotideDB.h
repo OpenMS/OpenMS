@@ -36,7 +36,8 @@
 #define OPENMS_CHEMISTRY_RIBONUCLEOTIDEDB_H
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
-#include <boost/unordered_map.hpp>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -44,19 +45,22 @@ namespace OpenMS
 
       @brief Database of ribonucleotides (modified and unmodified)
 
-      The information in this class comes from the Modomics database (http://modomics.genesilico.pl/modifications/) and is read from a tab-separated text file in @p data/CHEMISTRY/Modomics.tsv.
+      The information in this class comes from the Modomics database (http://modomics.genesilico.pl/modifications/)
+      and is read from a tab-separated text file in @p data/CHEMISTRY/Modomics.tsv.
   */
   class OPENMS_DLLAPI RibonucleotideDB
   {
   public:
+    using ConstRibonucleotidePtr = const Ribonucleotide *;
+
     /// const iterator type definition
-    typedef std::vector<Ribonucleotide>::const_iterator ConstIterator;
+    typedef std::vector<ConstRibonucleotidePtr>::const_iterator ConstIterator;
 
     /// replacement for constructor (singleton pattern)
     inline static RibonucleotideDB* getInstance()
     {
-      static RibonucleotideDB* db_ = 0;
-      if (db_ == 0)
+      static RibonucleotideDB* db_ = nullptr;
+      if (db_ == nullptr)
       {
         db_ = new RibonucleotideDB;
       }
@@ -89,30 +93,30 @@ namespace OpenMS
 
        @throw Exception::ElementNotFound if nothing was found
     */
-    const Ribonucleotide& getRibonucleotide(const String& code);
+    ConstRibonucleotidePtr getRibonucleotide(const std::string& code);
 
     /**
        @brief Get the ribonucleotide with the longest code that matches a prefix of @p seq
 
        @throw Exception::ElementNotFound if nothing was found
     */
-    const Ribonucleotide& getRibonucleotidePrefix(const String& seq);
+    ConstRibonucleotidePtr getRibonucleotidePrefix(const std::string& seq);
 
   protected:
     /// default constructor
     RibonucleotideDB();
 
     /// read (modified) nucleotides from input file
-    void readFromFile_(const String& path);
+    void readFromFile_(const std::string& path);
 
     /// create a (modified) nucleotide from an input row
-    Ribonucleotide parseRow_(const String& row, Size line_count);
+    ConstRibonucleotidePtr parseRow_(const std::string& row, Size line_count);
 
     /// list of known (modified) nucleotides
-    std::vector<Ribonucleotide> ribonucleotides_;
+    std::vector<ConstRibonucleotidePtr> ribonucleotides_;
 
     /// mapping of codes (short names) to indexes into @p ribonucleotides_
-    boost::unordered_map<String, Size> code_map_;
+    std::unordered_map<std::string, Size> code_map_;
 
     Size max_code_length_;
   };

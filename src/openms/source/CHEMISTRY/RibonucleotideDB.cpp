@@ -49,13 +49,13 @@ namespace OpenMS
     readFromFile_("CHEMISTRY/Modomics.tsv");
   }
 
-
   RibonucleotideDB::~RibonucleotideDB()
   {
+    for (auto & r : ribonucleotides_) { delete(r); }
   }
 
 
-  void RibonucleotideDB::readFromFile_(const String& path)
+  void RibonucleotideDB::readFromFile_(const std::string& path)
   {
     String full_path = File::find(path);
 
@@ -84,14 +84,15 @@ namespace OpenMS
     {
       line_count++;
       QString row = source.readLine();
+
       // replace all "prime" characters with apostrophes (e.g. in "5'", "3'"):
       row.replace(prime, '\'');
       try
       {
-        Ribonucleotide ribo = parseRow_(row, line_count);
-        code_map_[ribo.getCode()] = ribonucleotides_.size();
+        ConstRibonucleotidePtr ribo = parseRow_(row.toStdString(), line_count);
+        code_map_[ribo->getCode()] = ribonucleotides_.size();
         ribonucleotides_.push_back(ribo);
-        max_code_length_ = max(max_code_length_, ribo.getCode().size());
+        max_code_length_ = max(max_code_length_, ribo->getCode().size());
       }
       catch (...)
       {
@@ -102,11 +103,11 @@ namespace OpenMS
   }
 
 
-  Ribonucleotide RibonucleotideDB::parseRow_(const String& row,
+  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::parseRow_(const std::string& row,
                                              Size line_count)
   {
     vector<String> parts;
-    row.split('\t', parts);
+    String(row).split('\t', parts);
     if (parts.size() != 9)
     {
       String msg = "9 tab-separated fields expected, found " +
@@ -114,37 +115,37 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   row, msg);
     }
-    Ribonucleotide ribo;
-    ribo.setName( parts[0] );
-    ribo.setCode( parts[1] );
-    ribo.setNewCode(parts[2]);
+    Ribonucleotide * ribo = new Ribonucleotide();
+    ribo->setName( parts[0] );
+    ribo->setCode( parts[1] );
+    ribo->setNewCode(parts[2]);
     if (parts[3] == "preQ0base")
     {
-      ribo.setOrigin( '0' );
+      ribo->setOrigin( '0' );
     }
     else if (parts[3].size() == 1) // A, C, G, U
     {
-      ribo.setOrigin( parts[3][0] );
+      ribo->setOrigin( parts[3][0] );
     }
     // "parts[4]" is the Unicode equivalent to "parts[5]", so we can skip it
-    ribo.setHtmlCode( parts[5] );
-    ribo.setFormula(  EmpiricalFormula(parts[6]) );// Convert the string to an Empirical formula
+    ribo->setHtmlCode( parts[5] );
+    ribo->setFormula(  EmpiricalFormula(parts[6]) );// Convert the string to an Empirical formula
     if (!parts[7].empty() && (parts[7] != "None"))
     {
-      ribo.setMonoMass(parts[7].toDouble());
+      ribo->setMonoMass(parts[7].toDouble());
     }
     if (!parts[8].empty() && (parts[8] != "None"))
     {
-      ribo.setAvgMass(parts[8].toDouble());
+      ribo->setAvgMass(parts[8].toDouble());
     }
-    ribo.setIsModifiable(true); // This is superfluous for the database
+    ribo->setIsModifiable(true); // This is superfluous for the database
     return ribo;
   }
 
 
-  const Ribonucleotide& RibonucleotideDB::getRibonucleotide(const String& code)
+  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotide(const std::string& code)
   {
-    boost::unordered_map<String, Size>::const_iterator pos =
+    std::unordered_map<std::string, Size>::const_iterator pos =
       code_map_.find(code);
     if (pos == code_map_.end())
     {
@@ -155,22 +156,19 @@ namespace OpenMS
   }
 
 
-  const Ribonucleotide& RibonucleotideDB::getRibonucleotidePrefix(const String&
-                                                                  seq)
+  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotidePrefix(const std::string& seq)
   {
-    String prefix = seq.substr(0, max_code_length_);
+    std::string prefix = seq.substr(0, max_code_length_);
     while (!prefix.empty())
     {
-      boost::unordered_map<String, Size>::const_iterator pos =
-        code_map_.find(prefix);
+      auto pos = code_map_.find(prefix);
       if (pos != code_map_.end())
       {
         return ribonucleotides_[pos->second];
       }
       prefix = prefix.substr(0, prefix.size() - 1);
     }
-    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     seq);
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, seq);
   }
 }
 

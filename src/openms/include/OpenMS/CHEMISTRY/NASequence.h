@@ -13,15 +13,15 @@
 namespace OpenMS
 {
 
-
-
 class OPENMS_DLLAPI NASequence
 {
+  
 public:
+  using ConstRibonucleotidePtr = const Ribonucleotide *;
+
   class Iterator;
 
-  /** @brief ConstIterator
-*/
+  /** @brief ConstIterator */
   class OPENMS_DLLAPI ConstIterator
   {
   public:
@@ -233,20 +233,19 @@ public:
   };
 
 public:
-  NASequence(); //default constructor
-
+  NASequence();   /// default constructor
   NASequence(const NASequence& seq); // copy constructor
 
-  NASequence& operator=(const NASequence& rhs); //assignment operator
-
-  //full constructor
+  /// full constructor
   NASequence(std::vector<const Ribonucleotide*> s,
              const RibonucleotideChainEnd * fivePrime,
              const RibonucleotideChainEnd * threePrime);
 
-  bool operator==(const NASequence& rhs) const;
+  NASequence& operator=(const NASequence& rhs); // assignment operatoR
 
   virtual ~NASequence(); //destructor
+
+  bool operator==(const NASequence& rhs) const;
 
   // getter / setter for sequence
   void setSequence(const std::vector<const Ribonucleotide*>& s);
@@ -255,32 +254,24 @@ public:
 
   std::vector<const Ribonucleotide*>& getSequence() { return s_;}
 
-  bool empty() const;
-
-  size_t size() const;
-
-  double getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
-
-  EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full, Int charge = 0) const;
-
-  // getter / setter for seuence elements (easy wrapped using pyOpenMS)
+  /// getter / setter for ribonucleotide elements (easy wrapped using pyOpenMS)
   void set(size_t index, const Ribonucleotide* r);
   const Ribonucleotide* get(size_t index) { return s_[index]; }
 
-  /// getter / setter for seuence elements
+  /// getter / setter for seuence elements (C++ container style)
   const Ribonucleotide& operator[](size_t index) { return *s_[index]; }
   const Ribonucleotide& operator[](size_t index) const { return *s_[index]; }
 
+  bool empty() const;
+  size_t size() const;
+  void clear();
+
+  // 5' and 3' modifications
   bool hasFivePrimeModification() const;
-
   void setFivePrimeModification(const RibonucleotideChainEnd *r);
-
   const RibonucleotideChainEnd * getFivePrimeModification() const;
-
   bool hasThreePrimeModification() const;
-
   void setThreePrimeModification(const RibonucleotideChainEnd *r);
-
   const RibonucleotideChainEnd * getThreePrimeModification() const;
 
   // iterators
@@ -293,10 +284,48 @@ public:
   inline ConstIterator cend() const { return ConstIterator(&s_, (Int) s_.size()); }
 
   // utility functions
+  double getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full,
+                       Int charge = 0) const;
+  EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full,
+                              Int charge = 0) const;
   NASequence getPrefix(Size index) const;
   NASequence getSuffix(Size index) const;
 
+  /**
+  @brief create NASequence object by parsing an OpenMS string
+
+  @param s Input string
+
+  @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
+*/
+  static NASequence fromString(const String& s);
+
+  /**
+    @brief create NASequence object by parsing a C string (character array)
+
+    @param s Input string
+
+    @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
+  */
+  static NASequence fromString(const char* s);
+
 private:
+  static void parseString_(const String & s, NASequence & nss);
+
+  /**
+  @brief Parses modifications in square brackets
+
+  @param str_it Current position in the string to be parsed
+  @param str Full input string
+  @param aas Current AASequence object (will be modified with the correct ribo added)
+
+  @return Position at which to continue parsing
+*/
+  static String::ConstIterator parseModSquareBrackets_(
+    const String::ConstIterator str_it,
+    const String& str,
+    NASequence& nss);
+
   std::vector<const Ribonucleotide*> s_;
   const RibonucleotideChainEnd * fivePrime_;
   const RibonucleotideChainEnd * threePrime_;
