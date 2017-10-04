@@ -26,13 +26,16 @@ NASequence::NASequence(const NASequence & seq)
   fivePrime_ = seq.getFivePrimeModification();
   threePrime_ = seq.getThreePrimeModification();
 }
-  
+
 NASequence& NASequence::operator=(const NASequence& rhs)
 {
+  if (this != &rhs)
+  {
     s_ = rhs.s_;
     fivePrime_ = rhs.fivePrime_;
     threePrime_ = rhs.threePrime_;
-    return *this;
+  }
+  return *this;
 }
 
 NASequence::NASequence(std::vector<const Ribonucleotide *> s,

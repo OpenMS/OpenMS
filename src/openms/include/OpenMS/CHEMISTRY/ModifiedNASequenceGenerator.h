@@ -51,16 +51,18 @@ namespace OpenMS
     */
 
   public:
+    using ConstRibonucleotidePtr = const Ribonucleotide *;
+
     // Applies fixed modifications to a single NASequence
     static void applyFixedModifications(
-      const std::vector<Ribonucleotide>::const_iterator& fixed_mods_begin,
-      const std::vector<Ribonucleotide>::const_iterator& fixed_mods_end,
+      const std::vector<ConstRibonucleotidePtr>::const_iterator& fixed_mods_begin,
+      const std::vector<ConstRibonucleotidePtr>::const_iterator& fixed_mods_end,
       NASequence& sequence);
 
     // Applies variable modifications to a single NASequence. If keep_original is set the original (e.g. unmodified version) is also returned
     static void applyVariableModifications(
-      const std::vector<Ribonucleotide>::const_iterator& var_mods_begin,
-      const std::vector<Ribonucleotide>::const_iterator& var_mods_end,
+      const std::vector<ConstRibonucleotidePtr>::const_iterator& var_mods_begin,
+      const std::vector<ConstRibonucleotidePtr>::const_iterator& var_mods_end,
       const NASequence& seq, Size max_variable_mods_per_NASequence,
       std::vector<NASequence>& all_modified_NASequences,
       bool keep_original = true);
@@ -69,7 +71,7 @@ namespace OpenMS
     // Recursively generate all combinatoric placements at compatible sites
     static void recurseAndGenerateVariableModifiedSequences_(
       const std::vector<int>& subset_indices,
-      const std::map<int, std::vector<Ribonucleotide> >& map_compatibility,
+      const std::map<int, std::vector<ConstRibonucleotidePtr> >& map_compatibility,
       int depth, 
       const NASequence& current_NASequence,
       std::vector<NASequence>& modified_NASequences);
@@ -78,8 +80,8 @@ namespace OpenMS
     // - just every site is modified once by each compatible modification.
     // Already modified residues are skipped
     static void applyAtMostOneVariableModification_(
-      const std::vector<Ribonucleotide>::const_iterator& var_mods_begin,
-      const std::vector<Ribonucleotide>::const_iterator& var_mods_end,
+      const std::vector<ConstRibonucleotidePtr>::const_iterator& var_mods_begin,
+      const std::vector<ConstRibonucleotidePtr>::const_iterator& var_mods_end,
       const NASequence& seq,
       std::vector<NASequence>& all_modified_NASequences,
       bool keep_original = true);
