@@ -286,7 +286,7 @@ public:
   // utility functions
   double getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full,
                        Int charge = 0) const;
-  EmpiricalFormula getFormula(OpenMS::Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full,
+  EmpiricalFormula getFormula(Ribonucleotide::RiboNucleotideFragmentType type = Ribonucleotide::Full,
                               Int charge = 0) const;
   NASequence getPrefix(Size index) const;
   NASequence getSuffix(Size index) const;
@@ -298,7 +298,8 @@ public:
 
   @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
 */
-  static NASequence fromString(const String& s);
+  static NASequence fromString(const String& s,
+                               Ribonucleotide::NucleicAcidType type);
 
   /**
     @brief create NASequence object by parsing a C string (character array)
@@ -307,10 +308,14 @@ public:
 
     @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
   */
-  static NASequence fromString(const char* s);
+  static NASequence fromString(const char* s,
+                               Ribonucleotide::NucleicAcidType type);
 
 private:
-  static void parseString_(const String & s, NASequence & nss);
+  //TODO: query RNA / DNA depending on type
+  static void parseString_(const String & s,
+                           NASequence & nss,
+                           Ribonucleotide::NucleicAcidType type);
 
   /**
   @brief Parses modifications in square brackets
@@ -321,10 +326,12 @@ private:
 
   @return Position at which to continue parsing
 */
+  //TODO: query RNA / DNA depending on type
   static String::ConstIterator parseModSquareBrackets_(
     const String::ConstIterator str_it,
     const String& str,
-    NASequence& nss);
+    NASequence& nss,
+    Ribonucleotide::NucleicAcidType type);
 
   std::vector<const Ribonucleotide*> s_;
   const RibonucleotideChainEnd * fivePrime_;

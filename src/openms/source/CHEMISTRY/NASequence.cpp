@@ -249,17 +249,17 @@ double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type
 
 size_t NASequence::size() const { return s_.size(); }
 
-NASequence NASequence::fromString(const char *s)
+NASequence NASequence::fromString(const char *s, Ribonucleotide::NucleicAcidType type)
 {
   NASequence aas;
-  parseString_(String(s), aas);
+  parseString_(String(s), aas, type);
   return aas;
 }
 
-NASequence NASequence::fromString(const String & s)
+NASequence NASequence::fromString(const String & s, Ribonucleotide::NucleicAcidType type)
 {
   NASequence aas;
-  parseString_(s, aas);
+  parseString_(s, aas, type);
   return aas;
 }
 
@@ -270,7 +270,7 @@ void NASequence::clear()
   fivePrime_ = nullptr;
 }
 
-void NASequence::parseString_(const String & s, NASequence & nss)
+void NASequence::parseString_(const String & s, NASequence & nss, Ribonucleotide::NucleicAcidType type)
 {
   nss.clear();
 
@@ -291,13 +291,16 @@ void NASequence::parseString_(const String & s, NASequence & nss)
     }
     else // if (*str_it == '['). Non-standard ribo
     {
-      str_it = parseModSquareBrackets_(str_it, s, nss); // parse modified ribonucleotide and add it to nss
+      str_it = parseModSquareBrackets_(str_it, s, nss, type); // parse modified ribonucleotide and add it to nss
     }
   }
 }
 
 String::ConstIterator NASequence::parseModSquareBrackets_(
-  const String::ConstIterator str_it, const String& str, NASequence& nss)
+  const String::ConstIterator str_it,
+  const String& str,
+  NASequence& nss,
+  Ribonucleotide::NucleicAcidType type)
 {
   static RibonucleotideDB * rdb = RibonucleotideDB::getInstance();
   OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
