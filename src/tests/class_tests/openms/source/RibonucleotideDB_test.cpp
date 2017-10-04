@@ -65,7 +65,7 @@ END_SECTION
 START_SECTION(ConstIterator begin())
 {
 	RibonucleotideDB::ConstIterator it = ptr->begin();
-  TEST_STRING_EQUAL(it->getCode(), "m1Am");
+  TEST_STRING_EQUAL((*it)->getCode(), "m1Am");
 }
 END_SECTION
 
@@ -78,9 +78,9 @@ END_SECTION
 
 START_SECTION((const Ribonucleotide& getRibonucleotide(const String& code)))
 {
-  const Ribonucleotide& ribo = ptr->getRibonucleotide("Am");
-  TEST_STRING_EQUAL(ribo.getCode(), "Am");
-  TEST_STRING_EQUAL(ribo.getName(), "2'-O-methyladenosine");
+  const Ribonucleotide * ribo = ptr->getRibonucleotide("Am");
+  TEST_STRING_EQUAL(ribo->getCode(), "Am");
+  TEST_STRING_EQUAL(ribo->getName(), "2'-O-methyladenosine");
   TEST_EXCEPTION(Exception::ElementNotFound,
                  ptr->getRibonucleotide("bla"));
 }
@@ -88,8 +88,8 @@ END_SECTION
 
 START_SECTION((const Ribonucleotide& getRibonucleotidePrefix(const String& seq)))
 {
-  const Ribonucleotide& ribo = ptr->getRibonucleotidePrefix("m1AmCGU");
-  TEST_STRING_EQUAL(ribo.getCode(), "m1Am");
+  const Ribonucleotide* ribo = ptr->getRibonucleotidePrefix("m1AmCGU");
+  TEST_STRING_EQUAL(ribo->getCode(), "m1Am");
   TEST_EXCEPTION(Exception::ElementNotFound,
                  ptr->getRibonucleotidePrefix("blam1A"));
 }
