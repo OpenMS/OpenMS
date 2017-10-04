@@ -267,12 +267,12 @@ public:
   inline Iterator begin() { return Iterator(&s_, 0); }
   inline ConstIterator begin() const { return ConstIterator(&s_, 0); }
   inline Iterator end() { return Iterator(&s_, (Int) s_.size()); }
-  inline ConstIterator end() const { return ConstIterator(&s_, (Int) s_.size()); }
+  inline ConstIterator end()  const { return ConstIterator(&s_, (Int) s_.size()); }
   inline ConstIterator cbegin() const { return ConstIterator(&s_, 0); }
   inline ConstIterator cend() const { return ConstIterator(&s_, (Int) s_.size()); }
 
   /// return reference to the residue at given position
-  const Ribonucleotide& operator[](Size index) const;
+  const Ribonucleotide& operator[](size_t index) const { return s_[index]; }
 
 private:
   std::vector<const Ribonucleotide*> s_;
