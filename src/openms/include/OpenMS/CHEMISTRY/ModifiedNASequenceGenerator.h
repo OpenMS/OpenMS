@@ -67,14 +67,16 @@ namespace OpenMS
 
   protected:
     // Recursively generate all combinatoric placements at compatible sites
-    static void recurseAndGenerateVariableModifiedNASequences_(
+    static void recurseAndGenerateVariableModifiedSequences_(
       const std::vector<int>& subset_indices,
       const std::map<int, std::vector<Ribonucleotide> >& map_compatibility,
       int depth, 
       const NASequence& current_NASequence,
       std::vector<NASequence>& modified_NASequences);
 
-    // Fast implementation of modification placement. No combinatoric placement is needed in this case - just every site is modified once by each compatible modification. Already modified residues are skipped
+    // Fast implementation of modification placement. No combinatoric placement is needed in this case
+    // - just every site is modified once by each compatible modification.
+    // Already modified residues are skipped
     static void applyAtMostOneVariableModification_(
       const std::vector<Ribonucleotide>::const_iterator& var_mods_begin,
       const std::vector<Ribonucleotide>::const_iterator& var_mods_end,

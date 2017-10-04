@@ -69,13 +69,13 @@ namespace OpenMS
     for (auto const & r : seq)
     {
       // skip already modified residue
-      if (r->isModified()) { ++residue_index; continue; }
+      if (r.isModified()) { ++residue_index; continue; }
 
       //set fixed modifications
       std::for_each(fixed_mods_begin, fixed_mods_end, [&seq, &residue_index, r] (Ribonucleotide const & f)
         {
           // check if modification and current ribo match
-          const String& code = r->getCode();
+          const String& code = r.getCode();
           if (code.size() == 1 && code[0] == f.getOrigin())
           {
             // replace the nucleoside with the modified version (skip five/three prime modifications)
@@ -164,7 +164,7 @@ namespace OpenMS
       std::for_each(var_mods_begin, var_mods_end, [&residue_index, &r, &map_compatibility](Ribonucleotide const & v)
       {
         // check if modification and current ribo match
-        const String& code = r->getCode();
+        const String& code = r.getCode();
         if (code.size() == 1 && code[0] == v.getOrigin())
         {
           if (v.getType() != Ribonucleotide::FIVE_PRIME_MODIFICATION
@@ -229,7 +229,7 @@ namespace OpenMS
 
 
   // static
-  void ModifiedNASequenceGenerator::recurseAndGenerateVariableModifiedNASequences_(
+  void ModifiedNASequenceGenerator::recurseAndGenerateVariableModifiedSequences_(
     const vector<int>& subset_indices,
     const map<int, vector<Ribonucleotide> >& map_compatibility,
     int depth,
@@ -287,19 +287,19 @@ namespace OpenMS
     if (keep_unmodified) { all_modified_seqs.push_back(seq); }
 
     // we want the same behavior as for the slower function... we would need a reverse iterator here that NASequence doesn't provide
-    for (NASequence::const_iterator residue_it = seq.cend() - 1; residue_it != seq.cbegin() - 1; --residue_it)
+    for (NASequence::ConstIterator ribo_it = seq.cend() - 1; ribo_it != seq.cbegin() - 1; --ribo_it)
     {
       // skip already modified residues
-      if ((*residue_it)->isModified()) { continue; }
+      if (ribo_it->isModified()) { continue; }
 
-      size_t residue_index = residue_it - seq.cbegin();
+      size_t residue_index = ribo_it - seq.cbegin();
 
       // matches every variable modification to every site and return the new sequence with single modification
       std::for_each(var_mods_begin, var_mods_end,
-                    [residue_it, residue_index, &all_modified_seqs, &seq](Ribonucleotide const & v)
+                    [ribo_it, residue_index, &all_modified_seqs, &seq](Ribonucleotide const & v)
       {
         // check if modification and current ribo match
-        const String& code = (*residue_it)->getCode();
+        const String& code = ribo_it->getCode();
         if (code.size() == 1 && code[0] == v.getOrigin())
         {
           NASequence new_seq = seq;

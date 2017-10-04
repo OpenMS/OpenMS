@@ -187,7 +187,7 @@ namespace OpenMS
     //@}
 
     ///Return true if this is a modified Ribonucleotide and false otherwise
-    bool isModified();
+    bool isModified() const;
 
   protected:
     NucleicAcidType type_;
