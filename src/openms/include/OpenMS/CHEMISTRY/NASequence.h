@@ -239,6 +239,8 @@ public:
   NASequence(); //default constructor
   NASequence(const NASequence& seq); // copy constructor
   NASequence& operator=(const NASequence& rhs); //assignment operator
+
+  NASequence(std::vector<Ribonucleotide*> s, RibonucleotideChainEnd fivePrime, RibonucleotideChainEnd threePrime); //full constructor
   bool operator==(const NASequence& rhs) const;
   virtual ~NASequence(); //destructor
   void setSequence(std::vector<Ribonucleotide*>& s);
@@ -252,12 +254,12 @@ public:
   void set(size_t index, const Ribonucleotide* r);
 
   bool hasFivePrimeModification() const;
-  void setFivePrimeModification(const Ribonucleotide* r);
-  Ribonucleotide* getFivePrimeModification();
+  void setFivePrimeModification(const RibonucleotideChainEnd *r);
+  Ribonucleotide *getFivePrimeModification();
 
   bool hasThreePrimeModification() const;
-  void setThreePrimeModification(const Ribonucleotide* r);
-  Ribonucleotide* getThreePrimeModification();
+  void setThreePrimeModification(const RibonucleotideChainEnd *r);
+  Ribonucleotide *getThreePrimeModification();
 
   NASequence getPrefix(Size index) const;
   NASequence getSuffix(Size index) const;
