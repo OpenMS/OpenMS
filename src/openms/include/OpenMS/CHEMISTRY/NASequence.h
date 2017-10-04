@@ -250,7 +250,9 @@ public:
 
   // getter / setter for sequence
   void setSequence(const std::vector<const Ribonucleotide*>& s);
+
   const std::vector<const Ribonucleotide*>& getSequence() const { return s_;};
+
   std::vector<const Ribonucleotide*>& getSequence() { return s_;}
 
   /// getter / setter for ribonucleotide elements (easy wrapped using pyOpenMS)
