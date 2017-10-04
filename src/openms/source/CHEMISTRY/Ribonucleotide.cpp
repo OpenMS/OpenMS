@@ -200,7 +200,7 @@ namespace OpenMS
     formula_ = formula;
   }
 
-  bool Ribonucleotide::isModified()
+  bool Ribonucleotide::isModified() const
   {
     if (code_.length() == 1 && code_[0] == origin_) { return false; }
     return true;
