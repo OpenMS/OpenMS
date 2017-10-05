@@ -138,7 +138,7 @@ namespace OpenMS
 
       if (deisotope_spectra)
       {
-        PeakSpectrum deisotoped = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 7, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, false, 3, 10, false);
+        PeakSpectrum deisotoped = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 7, 100, fragment_mass_tolerance_unit_ppm, false, 3, 10, false);
 
         // only consider spectra, that have at least as many peaks as two times the minimal peptide size after deisotoping
         if (deisotoped.size() > peptide_min_size * 2 || labeled)
