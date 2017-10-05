@@ -292,7 +292,7 @@ public:
       const Entry& getValue(const PeptideEvidence& evidence) const
       {
         if(!exists(evidence)){
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Accesion: '"+ getHitKey(evidence) + "'. peptide evidence accession not in data");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Accession: '"+ getHitKey(evidence) + "'. peptide evidence accession not in data");
         }
         return *(items.find(getHitKey(evidence))->second);
       }

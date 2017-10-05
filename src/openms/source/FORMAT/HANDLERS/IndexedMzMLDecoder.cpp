@@ -79,7 +79,7 @@ namespace OpenMS
       }
 
       // Check if the value can fit into std::streampos
-      if ( fabs( boost::lexical_cast< long double >(s) - res) > 0.1)
+      if ( std::abs( boost::lexical_cast< long double >(s) - res) > 0.1)
       {
         std::cerr << "Your system may not support addressing a file of this size,"
           << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<

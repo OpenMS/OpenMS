@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/SysInfo.h>
+#include <cstdlib>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include "windows.h"
@@ -45,6 +46,7 @@
 #include <cstdio>
 #include <unistd.h>
 #include <cstdlib>
+
 #define OMS_USELINUXMEMORYPLATFORM
 #endif
 

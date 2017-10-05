@@ -531,7 +531,7 @@ namespace OpenMS
         // remember potential precursor and continue
         pState.precursorScan = it;
         // reset last MS2 -- we expect to see a new one soon and the old one should not be used for the following MS3 (if any)
-        it_last_MS2 == ms_exp_data.end();
+        it_last_MS2 = ms_exp_data.end();
         continue;
       }
       else if (it->getMSLevel() == 2)

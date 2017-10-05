@@ -237,7 +237,7 @@ private:
         for (Size i = 0; i < in.size(); ++i)
         {
           Reinterpreter64_ tmp;
-          tmp.f = in[i];
+          tmp.f = static_cast<double>(in[i]);
           tmp.i = endianize64(tmp.i);
           in[i] = tmp.f;
         }
