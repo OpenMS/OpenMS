@@ -283,7 +283,14 @@ std::string NASequence::toString() const
 {
   std::string s;
   if (fivePrime_) { s += fivePrime_->getCode(); }
-  for (auto const & r : s_) { s += r->getCode(); }
+
+  for (auto const & r : s_)
+  {
+    const String & code = r->getCode();
+    const String & origin = r->getOrigin();
+    s += (code ==  origin ? code : String('[') + code + ']'); // add brackets around non-standard ribos
+  }
+
   if (threePrime_) {s += threePrime_->getCode(); }
   return s;
 }
