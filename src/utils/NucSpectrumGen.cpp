@@ -107,11 +107,10 @@ protected:
     {
         ProgressLogger progresslogger;
         progresslogger.setLogType(log_type_);
-        NASequence NucSequence(getStringOption_("in"));
-        if (getStringOption_("nucType")=="DNA")
-            NucSequence.setType(Ribonucleotide::DNA);
-        else
-            NucSequence.setType(Ribonucleotide::RNA);
+        Ribonucleotide::NucleicAcidType  type = getStringOption_("NA_type") == "DNA"
+                                                ? Ribonucleotide::DNA
+                                                : Ribonucleotide::RNA;
+        NASequence NucSequence = NASequence::fromString(getStringOption_("in"), type);
 
         String out_path(getStringOption_("out_file"));
         int8_t maxCharge(getIntOption_("charge"));

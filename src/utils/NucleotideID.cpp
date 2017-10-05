@@ -105,8 +105,8 @@ protected:
     registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment mass tolerance", false, false);
     setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("ppm,Da"));
 
-    registerStringOption_("seq_type", "<choice>", "RNA", "Type of nucleotide sequence for which to generate spectra.", false, false);
-    setValidStrings_("seq_type", ListUtils::create<String>("RNA,DNA"));
+    registerStringOption_("NA_type", "<choice>", "RNA", "Type of nucleotide sequence for which to generate spectra.", false, false);
+    setValidStrings_("NA_type", ListUtils::create<String>("RNA,DNA"));
   }
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
@@ -577,8 +577,8 @@ protected:
           // generate theoretical spectrum for current candidate (and optionally for the reversed decoy sequence for FDR calculation later)
           StringList sequence_list = h_it->getMetaValue("description").toStringList(); // get the sequence
           // add a reversed seq for use as decoy
-          NASequence sequence = NASequence(sequence_list[0], what_type);
-          NASequence reversed = NASequence(sequence_list[0].reverse(), what_type);
+          NASequence sequence = NASequence::fromString(sequence_list[0], what_type);
+          NASequence reversed = NASequence::fromString(sequence_list[0].reverse(), what_type);
           // StringList identifier_list= h_it->getMetaValue("identifier").toStringList(); // get the identifier
           // String identifier = identifier_list[0];
           MSSpectrum spec;

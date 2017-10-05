@@ -3235,17 +3235,12 @@ namespace OpenMS
           NASequence poly_sequence;
           //try
           //{
-          poly_sequence.setSequence(seq_string);
-          if (spec_gen_dialog.comboBox->currentText()=="RNA")
-              poly_sequence.setType(Ribonucleotide::RNA);
-          else
-              poly_sequence.setType(Ribonucleotide::DNA);
-          //}
-          //catch (Exception::BaseException& e)
-          //{
-           //   QMessageBox::warning(this, "Error", QString("Spectrum generation failed! (") + e.what() + ")");
-           //   return;
-          //}
+
+        Ribonucleotide::NucleicAcidType type = spec_gen_dialog.comboBox->currentText() == "RNA" ?
+                                               Ribonucleotide::RNA :
+                                               Ribonucleotide::DNA;
+
+        poly_sequence = NASequence::fromString(seq_string, type);
           Int charge = spec_gen_dialog.spin_box->value();
 
           PeakSpectrum spec;

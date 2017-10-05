@@ -102,9 +102,9 @@ protected:
   {
 
       String input_filepath(getStringOption_("in_fasta"));
-      Ribonucleotide::NucleicAcidType type = Ribonucleotide::RNA;
-      if (getStringOption_("NA_type")=="DNA")
-          type=Ribonucleotide::DNA;
+    Ribonucleotide::NucleicAcidType type = getStringOption_("NA_type") == "DNA"
+                                            ? Ribonucleotide::DNA
+                                            : Ribonucleotide::RNA;
 
 
       std::vector<FASTAFile::FASTAEntry> input_file;
@@ -118,11 +118,16 @@ protected:
       {
           EmpiricalFormula entryformula;
           string seq= input_file.at(i).sequence;
-          NASequence smart_seq(seq,type);
+          NASequence smart_seq = NASequence::fromString(seq, type);
           entryformula=smart_seq.getFormula(Ribonucleotide::Full, 0);
 
-          db_mapping_file.addLine(String(entryformula.getMonoWeight()) + "\t" + entryformula.toString() + "\t" + "NTides:" + input_file.at(i).identifier);
-          struct_mapping_file.addLine( "NTides:" +String(input_file.at(i).identifier) + "\t" + seq + "\t" + entryformula.toString() + "\t" + entryformula.toString());
+          db_mapping_file.addLine(String(entryformula.getMonoWeight()) + "\t"
+                                  + entryformula.toString() + "\t"
+                                  + "NTides:" + input_file.at(i).identifier);
+          struct_mapping_file.addLine( "NTides:" +String(input_file.at(i).identifier) + "\t"
+                                       + seq + "\t"
+                                       + entryformula.toString() + "\t"
+                                       + entryformula.toString());
       }
 
       db_mapping_file.store(getStringOption_("out_db_mapping"));

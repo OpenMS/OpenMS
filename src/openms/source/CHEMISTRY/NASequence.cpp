@@ -3,10 +3,12 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <map>
+
 #include <string>
 
 
@@ -26,13 +28,16 @@ NASequence::NASequence(const NASequence & seq)
   fivePrime_ = seq.getFivePrimeModification();
   threePrime_ = seq.getThreePrimeModification();
 }
-  
+
 NASequence& NASequence::operator=(const NASequence& rhs)
 {
+  if (this != &rhs)
+  {
     s_ = rhs.s_;
     fivePrime_ = rhs.fivePrime_;
     threePrime_ = rhs.threePrime_;
-    return *this;
+  }
+  return *this;
 }
 
 NASequence::NASequence(std::vector<const Ribonucleotide *> s,
@@ -246,11 +251,82 @@ double NASequence::getMonoWeight(Ribonucleotide::RiboNucleotideFragmentType type
 
 size_t NASequence::size() const { return s_.size(); }
 
+NASequence NASequence::fromString(const char *s, Ribonucleotide::NucleicAcidType type)
+{
+  NASequence aas;
+  parseString_(String(s), aas, type);
+  return aas;
+}
+
+NASequence NASequence::fromString(const String & s, Ribonucleotide::NucleicAcidType type)
+{
+  NASequence aas;
+  parseString_(s, aas, type);
+  return aas;
+}
+
+void NASequence::clear()
+{
+  s_.clear();
+  threePrime_ = nullptr;
+  fivePrime_ = nullptr;
+}
+
+void NASequence::parseString_(const String & s, NASequence & nss, Ribonucleotide::NucleicAcidType type)
+{
+  nss.clear();
+
+  if (s.empty()) return;
+
+  static RibonucleotideDB * rdb = RibonucleotideDB::getInstance();
+
+  for (String::ConstIterator str_it = s.begin(); str_it != s.end(); ++str_it)
+  {
+    // skip spaces
+    if (*str_it == ' ') { continue; }
+
+    // 1. default case: add unmodified, standard ribose
+    if (*str_it != '[')
+    {
+      ConstRibonucleotidePtr r = rdb->getRibonucleotide(std::string(1, *str_it));
+      nss.s_.push_back(r);
+    }
+    else // if (*str_it == '['). Non-standard ribo
+    {
+      str_it = parseModSquareBrackets_(str_it, s, nss, type); // parse modified ribonucleotide and add it to nss
+    }
+  }
+}
+
+String::ConstIterator NASequence::parseModSquareBrackets_(
+  const String::ConstIterator str_it,
+  const String& str,
+  NASequence& nss,
+  Ribonucleotide::NucleicAcidType type)
+{
+  static RibonucleotideDB * rdb = RibonucleotideDB::getInstance();
+  OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
+  String::ConstIterator mod_start(str_it);
+  String::ConstIterator mod_end(++mod_start);
+  while ((mod_end != str.end()) && (*mod_end != ']')) { ++mod_end; } // advance to closing bracket
+  std::string mod(mod_start, mod_end);
+  if (mod_end == str.end())
+  {
+    throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
+                                "Cannot convert string to peptide modification: missing ']'");
+  }
+  ConstRibonucleotidePtr r = rdb->getRibonucleotide(mod);
+  nss.s_.push_back(r);
+  return mod_end;
+}
+
 OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& seq)
 {
   String asString;
+  os << "5':" << seq.getFivePrimeModification() << "\t";
   for (auto const & i : seq) { asString += i.getCode(); }
   os << asString;
+  os << "3':" << seq.getThreePrimeModification() << "\n";
   return os;
 }
 
