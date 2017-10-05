@@ -21,11 +21,14 @@ public:
 
   class Iterator;
 
-  /** @brief ConstIterator */
+
+  /** @brief ConstIterator of NASequence class.
+   *  Note: References to the pointers are returned dereferenced.
+   *        So we don't need to write (*iterator)->getCode(), but can simply use iterator->getCode().
+   */
   class OPENMS_DLLAPI ConstIterator
   {
   public:
-    // TODO Iterator constructor for ConstIterator
     typedef Ribonucleotide value_type;
     typedef const value_type& const_reference;
     typedef value_type& reference;
@@ -104,7 +107,7 @@ public:
     }
 
     /// inequality operator
-    bool operator!=(const ConstIterator& rhs) const { return !operator==(rhs); }
+    bool operator!=(const ConstIterator& rhs) const { return !(operator==(rhs)); }
 
     /// increment operator
     ConstIterator& operator++()
@@ -132,8 +135,10 @@ public:
   };
 
 
-  /** @brief Iterator class
-  */
+  /** @brief Iterator of NASequence class.
+   *  Note: References to the pointers are returned dereferenced.
+   *        So we don't need to write (*iterator)->getCode(), but can simply use iterator->getCode().
+   */
   class OPENMS_DLLAPI Iterator
   {
   public:
@@ -233,35 +238,38 @@ public:
   };
 
 public:
-  NASequence();   /// default constructor
-  NASequence(const NASequence& seq); // copy constructor
+  /*
+   * Default constructors and assignment operators.
+   */
+  NASequence() = default; /// default constructor
+  NASequence(const NASequence&) = default; // Copy constructor
+  NASequence(NASequence&&) = default; // Move constructor
+  NASequence& operator=(const NASequence&) & = default;  // Copy assignment operator
+  NASequence& operator=(NASequence&&) & = default; // Move assignment operator
 
   /// full constructor
   NASequence(std::vector<const Ribonucleotide*> s,
              const RibonucleotideChainEnd * fivePrime,
              const RibonucleotideChainEnd * threePrime);
 
-  NASequence& operator=(const NASequence& rhs); // assignment operatoR
+  virtual ~NASequence() = default; // destructor
 
-  virtual ~NASequence(); //destructor
-
-  bool operator==(const NASequence& rhs) const;
+  bool operator==(const NASequence& rhs) const; // element-wise equality
+  bool operator!=(const NASequence& rhs) const; // not quality
+  bool operator<(const NASequence& rhs) const; // less operator
 
   // getter / setter for sequence
   void setSequence(const std::vector<const Ribonucleotide*>& s);
-
   const std::vector<const Ribonucleotide*>& getSequence() const { return s_;};
-
   std::vector<const Ribonucleotide*>& getSequence() { return s_;}
 
   /// getter / setter for ribonucleotide elements (easy wrapped using pyOpenMS)
   void set(size_t index, const Ribonucleotide* r);
   const Ribonucleotide* get(size_t index) { return s_[index]; }
 
-  /// getter / setter for seuence elements (C++ container style)
-  const Ribonucleotide& operator[](size_t index) { return *s_[index]; }
-  const Ribonucleotide& operator[](size_t index) const { return *s_[index]; }
-
+  /// getter / setter for sequence elements (C++ container style)
+  inline const Ribonucleotide*& operator[](size_t index) { return s_[index]; }
+  inline const Ribonucleotide* const & operator[](size_t index) const { return s_[index]; }
   bool empty() const;
   size_t size() const;
   void clear();
@@ -298,8 +306,12 @@ public:
 
   @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
 */
-  static NASequence fromString(const String& s,
-                               Ribonucleotide::NucleicAcidType type);
+  static NASequence fromString(const String& s, Ribonucleotide::NucleicAcidType type);
+
+  /** @name Stream operators
+      writes a NSSequence to an output stream
+  */
+  friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& peptide);
 
   /**
     @brief create NASequence object by parsing a C string (character array)
@@ -308,8 +320,9 @@ public:
 
     @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
   */
-  static NASequence fromString(const char* s,
-                               Ribonucleotide::NucleicAcidType type);
+  static NASequence fromString(const char* s, Ribonucleotide::NucleicAcidType type);
+
+  std::string toString() const ;
 
 private:
   //TODO: query RNA / DNA depending on type
@@ -333,13 +346,11 @@ private:
     NASequence& nss,
     Ribonucleotide::NucleicAcidType type);
 
-  std::vector<const Ribonucleotide*> s_;
-  const RibonucleotideChainEnd * fivePrime_;
-  const RibonucleotideChainEnd * threePrime_;
+  std::vector<const Ribonucleotide*> s_ = std::vector<const Ribonucleotide*>();
+  const RibonucleotideChainEnd * fivePrime_ = nullptr;
+  const RibonucleotideChainEnd * threePrime_ = nullptr;
 };
-OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& nucleotide);
 
-OPENMS_DLLAPI std::istream& operator>>(std::istream& os, const NASequence& nucleotide);
 }
 
 #endif // OPENMS_CHEMISTRY_NASEQUENCE_H

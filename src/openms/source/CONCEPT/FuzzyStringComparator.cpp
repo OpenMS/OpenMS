@@ -228,7 +228,7 @@ namespace OpenMS
         << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
         << "\n"
         #ifdef WIN32
-        << "TortoiseMerge"
+        << "TortoiseGitMerge"
         << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
         << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\""
         #else

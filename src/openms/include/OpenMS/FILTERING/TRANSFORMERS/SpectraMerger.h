@@ -109,7 +109,7 @@ public:
 
         if (d_rt > rt_max_ || d_mz > mz_max_)
         {
-            return 0;
+          return 0;
         }
 
         // calculate similarity (0-1):
@@ -222,7 +222,7 @@ public:
         {
           if (exp[i].getMSLevel() != 2)
           {
-              continue;
+            continue;
           }
 
           // remember which index in distance data ==> experiment index
@@ -234,11 +234,11 @@ public:
           std::vector<Precursor> pcs = exp[i].getPrecursors();
           if (pcs.empty())
           {
-              throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Scan #") + String(i) + " does not contain any precursor information! Unable to cluster!");
           }
           if (pcs.size() > 1)
           {
-              LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
+            LOG_WARN << "More than one precursor found. Using first one!" << std::endl;
           }
           bf.setMZ(pcs[0].getMZ());
           data.push_back(bf);
@@ -265,11 +265,11 @@ public:
       {
         if (tree[ii].distance >= 1)
         {
-            tree[ii].distance = -1;  // manually set to disconnect, as SingleLinkage does not support it
+          tree[ii].distance = -1;  // manually set to disconnect, as SingleLinkage does not support it
         }
         if (tree[ii].distance != -1)
         {
-            ++node_count;
+          ++node_count;
         }
       }
       ca.cut(data_size - node_count, tree, clusters);
@@ -284,7 +284,7 @@ public:
       {
         if (clusters[i_outer].size() <= 1)
         {
-            continue;
+          continue;
         }
         // init block with first cluster element
         Size cl_index0 = clusters[i_outer][0];
@@ -517,7 +517,7 @@ protected:
       p.setValue("tolerance", mz_binning_width);
       if (!(mz_binning_unit == "Da" || mz_binning_unit == "ppm"))
       {
-          throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);  // sanity check
+        throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);  // sanity check
       }
       // TODO : SpectrumAlignment does not implement is_relative_tolerance
       p.setValue("is_relative_tolerance", mz_binning_unit == "Da" ? "false" : "true");
@@ -577,34 +577,40 @@ protected:
           Size spec_a = consensus_spec.size(), spec_b = exp[*sit].size(), align_size = alignment.size();
           for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
           {
-              if (alignment.size() == 0 || alignment[align_index].second != spec_b_index)
-                  // ... add unaligned peak
+            if (alignment.size() == 0 || alignment[align_index].second != spec_b_index)
+              // ... add unaligned peak
+            {
+              consensus_spec.push_back(*pit);
+            }
+            // or add aligned peak height to ALL corresponding existing peaks
+            else
+            {
+              Size counter = 0, copy_of_align_index = align_index;
+
+              while (alignment.size() > 0 && alignment[copy_of_align_index].second == spec_b_index)
               {
-                  consensus_spec.push_back(*pit);
-              }
-              // or add aligned peak height to ALL corresponding existing peaks
-              else
+                ++copy_of_align_index;
+                ++counter;
+              } // Count the number of peaks in a which correspond to a single b peak.
+
+              while (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
               {
-                  Size counter = 0;
-                  while (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
-                  {
-                      consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
-                              pit->getIntensity());
-                      ++align_index; // this aligned peak was explained, wait for next aligned peak ...
-                      if (align_index == alignment.size())
-                      {
-                          alignment.clear();  // end reached -> avoid going into this block again
-                      }
-                      ++counter;
-                  }
-                  align_size=align_size+1-counter; //Decrease align_size by number of
+                consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
+                    (pit->getIntensity() / (double)counter)); // add the intensity divided by the number of peaks
+                ++align_index; // this aligned peak was explained, wait for next aligned peak ...
+                if (align_index == alignment.size())
+                {
+                  alignment.clear();  // end reached -> avoid going into this block again
+                }
               }
-              ++spec_b_index;
+              align_size = align_size + 1 - counter; //Decrease align_size by number of
+            }
+            ++spec_b_index;
           }
           consensus_spec.sortByPosition(); // sort, otherwise next alignment will fail
           if (spec_a + spec_b - align_size != consensus_spec.size())
           {
-              LOG_WARN << "wrong number of features after merge. Expected: " << spec_a + spec_b - align_size << " got: " << consensus_spec.size() << "\n";
+            LOG_WARN << "wrong number of features after merge. Expected: " << spec_a + spec_b - align_size << " got: " << consensus_spec.size() << "\n";
           }
         }
         rt_average /= it->second.size() + 1;
@@ -612,24 +618,24 @@ protected:
 
         if (ms_level >= 2)
         {
-            if (precursor_count)
-            {
-                precursor_mz_average /= precursor_count;
-            }
-            std::vector<Precursor> pcs = consensus_spec.getPrecursors();
-            //if (pcs.size()>1) LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
-            pcs.resize(1);
-            pcs[0].setMZ(precursor_mz_average);
-            consensus_spec.setPrecursors(pcs);
+          if (precursor_count)
+          {
+            precursor_mz_average /= precursor_count;
+          }
+          std::vector<Precursor> pcs = consensus_spec.getPrecursors();
+          //if (pcs.size()>1) LOG_WARN << "Removing excessive precursors - leaving only one per MS2 spectrum.\n";
+          pcs.resize(1);
+          pcs[0].setMZ(precursor_mz_average);
+          consensus_spec.setPrecursors(pcs);
         }
 
         if (consensus_spec.empty())
         {
-            continue;
+          continue;
         }
         else
         {
-            merged_spectra.addSpectrum(consensus_spec);
+          merged_spectra.addSpectrum(consensus_spec);
         }
       }
 
