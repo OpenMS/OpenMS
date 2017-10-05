@@ -15,31 +15,6 @@
 namespace OpenMS
 {
 
-NASequence::NASequence()
-{
-  s_ = std::vector<const Ribonucleotide*>();
-  fivePrime_ = nullptr;
-  threePrime_ = nullptr;
-}
-
-NASequence::NASequence(const NASequence & seq)
-{
-  s_ = seq.getSequence();
-  fivePrime_ = seq.getFivePrimeModification();
-  threePrime_ = seq.getThreePrimeModification();
-}
-
-NASequence& NASequence::operator=(const NASequence& rhs)
-{
-  if (this != &rhs)
-  {
-    s_ = rhs.s_;
-    fivePrime_ = rhs.fivePrime_;
-    threePrime_ = rhs.threePrime_;
-  }
-  return *this;
-}
-
 NASequence::NASequence(std::vector<const Ribonucleotide *> s,
                        const RibonucleotideChainEnd * fivePrime,
                        const RibonucleotideChainEnd * threePrime)
@@ -55,7 +30,33 @@ bool NASequence::operator==(const NASequence& rhs) const
            == std::tie(rhs.s_, rhs.fivePrime_, rhs.threePrime_);
 }
 
-NASequence::~NASequence() {}
+bool NASequence::operator!=(const NASequence& rhs) const { return !(operator==(rhs)); }
+
+bool NASequence::operator<(const NASequence& rhs) const
+{
+  // can't use std::tie here as we might prefer sorting by string instead of pointer address
+
+  // compare 5' mod
+  if (fivePrime_ != rhs.fivePrime_) { return fivePrime_ < rhs.fivePrime_; }
+
+  // compare sequence length
+  if (s_.size() != rhs.size()) { return s_.size() < rhs.s_.size(); }
+
+  // compare pointers. If different, we compare the more expensive code (string)
+  for (size_t i = 0; i != s_.size(); ++i)
+  {
+    if (s_[i] != rhs.s_[i])
+    {
+      return s_[i]->getCode() < rhs.s_[i]->getCode();
+    }
+  }
+
+  // compare 3' mod
+  if (threePrime_ != rhs.threePrime_) { return threePrime_ < rhs.threePrime_; }
+
+  // exactly equal
+  return false;
+}
 
 void NASequence::setSequence(const std::vector<const Ribonucleotide*>& s) { s_ = s; }
 
@@ -228,13 +229,13 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
 
 void NASequence::set(size_t index, const Ribonucleotide *r) { s_[index]=r; }
 
-bool NASequence::hasFivePrimeModification() const { return (fivePrime_ == nullptr); }
+bool NASequence::hasFivePrimeModification() const { return (fivePrime_ != nullptr); }
 
 void NASequence::setFivePrimeModification(const RibonucleotideChainEnd *r) { fivePrime_= r; }
 
 const RibonucleotideChainEnd * NASequence::getFivePrimeModification() const { return fivePrime_; }
 
-bool NASequence::hasThreePrimeModification() const { return (threePrime_ == nullptr); }
+bool NASequence::hasThreePrimeModification() const { return (threePrime_ != nullptr); }
 
 void NASequence::setThreePrimeModification(const RibonucleotideChainEnd *r) { threePrime_= r; }
 
@@ -262,6 +263,15 @@ NASequence NASequence::fromString(const String & s, Ribonucleotide::NucleicAcidT
   return aas;
 }
 
+std::string NASequence::toString() const
+{
+  std::string s;
+  if (fivePrime_) { s += fivePrime_->getCode(); }
+  for (auto const & r : s_) { s += r->getCode(); }
+  if (threePrime_) {s += threePrime_->getCode(); }
+  return s;
+}
+
 void NASequence::clear()
 {
   s_.clear();
@@ -282,7 +292,7 @@ void NASequence::parseString_(const String & s, NASequence & nss, Ribonucleotide
     // skip spaces
     if (*str_it == ' ') { continue; }
 
-    // 1. default case: add unmodified, standard ribose
+    // default case: add unmodified, standard ribose
     if (*str_it != '[')
     {
       ConstRibonucleotidePtr r = rdb->getRibonucleotide(std::string(1, *str_it));
@@ -319,12 +329,7 @@ String::ConstIterator NASequence::parseModSquareBrackets_(
 
 OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& seq)
 {
-  String asString;
-  os << "5':" << seq.getFivePrimeModification() << "\t";
-  for (auto const & i : seq) { asString += i.getCode(); }
-  os << asString;
-  os << "3':" << seq.getThreePrimeModification() << "\n";
-  return os;
+  return (os << seq.toString());
 }
 
 }
