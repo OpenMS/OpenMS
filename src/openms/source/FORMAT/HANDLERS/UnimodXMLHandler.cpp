@@ -149,16 +149,16 @@ namespace OpenMS
       if (tag_ == "umod:delta" || tag_ == "delta")
       {
         // avge_mass="-0.9848" mono_mass="-0.984016" composition="H N O(-1)" >
-        avge_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass"))))).toDouble();
-        mono_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mono_mass"))))).toDouble();
+        avge_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass").c_str())))).toDouble();
+        mono_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mono_mass").c_str())))).toDouble();
         return;
       }
 
       // <umod:element symbol="H" number="1"/>
       if (tag_ == "umod:element")
       {
-        String symbol = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("symbol"))));
-        String num = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("number"))));
+        String symbol = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("symbol").c_str())));
+        String num = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("number").c_str())));
         String isotope, tmp_symbol;
         for (Size i = 0; i != symbol.size(); ++i)
         {

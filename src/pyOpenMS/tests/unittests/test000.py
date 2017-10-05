@@ -3957,7 +3957,9 @@ def testTransformationModels():
                 pyopenms.TransformationModelBSpline,
                 pyopenms.TransformationModelInterpolated]:
         p = pyopenms.Param()
-        data = [ [9.0, 8.9], [5.0, 6.0], [8.0, 8.0] ]
+        data = [ pyopenms.TM_DataPoint(9.0, 8.9),
+                 pyopenms.TM_DataPoint(5.0, 6.0),
+                 pyopenms.TM_DataPoint(8.0, 8.0) ]
         mod = clz(data, p)
         mod.evaluate(7.0)
         mod.getDefaultParameters(p)

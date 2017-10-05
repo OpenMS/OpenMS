@@ -62,9 +62,8 @@ namespace OpenMS
     {
     }
 
-    void XMLHandler::reset() // reset Xerces XML strings (memleak otherwise)
+    void XMLHandler::reset()
     {
-      sm_.clear();
     }
 
     void XMLHandler::fatalError(const SAXParseException & exception)
@@ -227,60 +226,13 @@ namespace OpenMS
     }
 
     //*******************************************************************************************************************
-
     
-    StringManager::StringManager() :
-      xml_strings_(0),
-      c_strings_(0)
+    StringManager::StringManager()
     {
     }
 
     StringManager::~StringManager()
     {
-      clear();
-    }
-
-    void StringManager::clear()
-    {
-      for (Size i = 0; i < xml_strings_.size(); ++i)
-      {
-        XMLString::release(&xml_strings_[i]);
-      }
-      xml_strings_.clear();
-
-      for (Size i = 0; i < c_strings_.size(); ++i)
-      {
-        XMLString::release(&c_strings_[i]);
-      }
-      c_strings_.clear();
-    }
-
-    XMLCh * StringManager::convert(const char * str) const
-    {
-      XMLCh * result = XMLString::transcode(str);
-      xml_strings_.push_back(result);
-      return result;
-    }
-
-    XMLCh * StringManager::convert(const std::string & str) const
-    {
-      XMLCh * result = XMLString::transcode(str.c_str());
-      xml_strings_.push_back(result);
-      return result;
-    }
-
-    XMLCh * StringManager::convert(const String & str) const
-    {
-      XMLCh * result = XMLString::transcode(str.c_str());
-      xml_strings_.push_back(result);
-      return result;
-    }
-
-    char * StringManager::convert(const XMLCh * str) const
-    {
-      char * result = XMLString::transcode(str);
-      c_strings_.push_back(result);
-      return result;
     }
 
     void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
