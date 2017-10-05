@@ -320,6 +320,7 @@ START_SECTION((EmpiricalFormula getFormula(Ribonucleotide::RiboNucleotideFragmen
   TEST_EQUAL(seq.getFormula(Ribonucleotide::AminusB, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C5H5O3"));
 
   seq = NASequence::fromString("GGG", Ribonucleotide::RNA);
+  TEST_EQUAL(seq.getFormula(Ribonucleotide::Full, -1), EmpiricalFormula("C30H36N15O19P2"));
   TEST_EQUAL(seq.getFormula(Ribonucleotide::FivePrime, -1), EmpiricalFormula("C30H36N15O19P2"));
   //TEST_EQUAL(seq.getFormula(Ribonucleotide::CTerminal, 1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O7P"));
   //TEST_EQUAL(seq.getFormula(Ribonucleotide::Internal, 1), EmpiricalFormula("C10H10N5O6P") * 3 - EmpiricalFormula("H"));
