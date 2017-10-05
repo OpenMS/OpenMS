@@ -491,7 +491,7 @@ protected:
     if (parseRange_(getStringOption_("missed_cleavages"), min_cleavages, max_cleavages))
     {      
       // Configure Enzymatic digestion
-      EnzymaticDigestion digestion;
+      ProteaseDigestion digestion;
       String enzyme = getStringOption_("missed_cleavages:enzyme");
       if (!enzyme.empty())
       {
