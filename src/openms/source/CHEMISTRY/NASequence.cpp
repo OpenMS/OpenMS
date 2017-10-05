@@ -86,6 +86,8 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
     static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("");
     static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO4");
     static const EmpiricalFormula abasicformRNA = EmpiricalFormula("C5H7O6P");
+    static const EmpiricalFormula abasicformDNA = EmpiricalFormula("C5H7O5P");
+
     EmpiricalFormula ourForm("");
     // Add all the ribonucleotide masses
     for (auto i : s_)
