@@ -208,6 +208,30 @@ namespace OpenMS
                        IdentifiedMetaData> identified_meta_data;
 
 
+    // Evidence linking identified molecules to parent molecules (e.g. peptides
+    // to proteins):
+    // @TODO: rename "PeptideEvidence" to "MoleculeEvidence" (incl. members)
+    typedef std::unordered_map<IdentifiedMoleculeKey,
+                               std::vector<PeptideEvidence>> EvidenceMap;
+    EvidenceMap parent_evidence;
+
+
+    /*!
+      Meta data specific to an identified compound (small molecule).
+    */
+    struct CompoundMetaData: public MetaInfoInterface
+    {
+      EmpiricalFormula formula;
+
+      String smile;
+
+      String inchi;
+    };
+
+    std::unordered_map<IdentifiedMoleculeKey,
+                       CompoundMetaData> compound_meta_data;
+
+
     /*!
       Meta data for a search hit (e.g. peptide-spectrum match).
     */
@@ -230,11 +254,7 @@ namespace OpenMS
                                   IdentifiedMoleculeKey>> PairHash;
     typedef std::unordered_map<std::pair<DataQueryKey, IdentifiedMoleculeKey>,
                                MatchMetaData, PairHash> MatchMap;
-    // @TODO: rename "PeptideEvidence" to "MoleculeEvidence" (incl. members)
-    typedef std::unordered_map<IdentifiedMoleculeKey,
-                               std::vector<PeptideEvidence>> EvidenceMap;
     MatchMap matches;
-    EvidenceMap parent_evidence;
 
 
     /*!
