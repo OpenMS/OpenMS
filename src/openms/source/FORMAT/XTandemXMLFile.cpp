@@ -284,7 +284,7 @@ namespace OpenMS
 
     if (tag_ == "group")
     {
-      Int index = attributes.getIndex(sm_.convert("z"));
+      Int index = attributes.getIndex(sm_.convert("z").c_str());
       if (index >= 0)
       {
         current_charge_ = String(sm_.convert(attributes.getValue(index))).toInt();

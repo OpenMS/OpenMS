@@ -197,7 +197,11 @@ protected:
     setMinInt_("digest:missed_cleavages", -1);
     registerFlag_("digest:methionine_cleavage", "Allow methionine cleavage at the protein start", false);
 
-
+    registerTOPPSubsection_("missed_cleavages", "Filter peptide sequences by their missed cleavages number");
+    registerStringOption_("missed_cleavages", "[min]:[max]", ":", "[min,max] range of allowed missed cleavages\n" "Empty value ignores bound", false);
+    registerStringOption_("missed_cleavages:enzyme", "<enzyme>", "Trypsin", "Specify the digestion enzyme", false);
+    setValidStrings_("missed_cleavages:enzyme", all_enzymes);
+    
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
     registerDoubleOption_("rt:p_value", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.", false, true);
@@ -427,7 +431,7 @@ protected:
       IDFilter::filterPeptidesByLength(peptides, Size(min_length),
                                        Size(max_length));
     }
-
+    
     // Filter by digestion enzyme product
 
     String protein_fasta = getStringOption_("digest:fasta").trim();
@@ -478,6 +482,34 @@ protected:
       // Filter peptides
       filter.filterPeptideEvidences(peptides);
     }
+
+    // Filter peptide hits by missing cleavages
+
+    Int min_cleavages, max_cleavages;
+    min_cleavages = max_cleavages = IDFilter::PeptideDigestionFilter::disabledValue();
+
+    if (parseRange_(getStringOption_("missed_cleavages"), min_cleavages, max_cleavages))
+    {      
+      // Configure Enzymatic digestion
+      EnzymaticDigestion digestion;
+      String enzyme = getStringOption_("missed_cleavages:enzyme");
+      if (!enzyme.empty())
+      {
+        digestion.setEnzyme(enzyme);
+      }
+
+      LOG_INFO << "Filtering peptide hits by their missed cleavages count with enzyme " << digestion.getEnzymeName() << "..." << endl;
+      
+      // Build the digest filter function
+      IDFilter::PeptideDigestionFilter filter(digestion, min_cleavages, max_cleavages);
+
+      // Filter peptide hits      
+      for (auto& peptide : peptides)
+      {
+        filter.filterPeptideSequences(peptide.getHits());
+      }
+    }
+
 
 
     if (getFlag_("var_mods"))

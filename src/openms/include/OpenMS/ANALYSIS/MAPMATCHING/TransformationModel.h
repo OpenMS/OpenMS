@@ -51,8 +51,34 @@ namespace OpenMS
   class OPENMS_DLLAPI TransformationModel
   {
   public:
-    /// Coordinate pair
-    typedef std::pair<double, double> DataPoint;
+    /// Coordinate pair (with optional annotation)
+    struct DataPoint
+    {
+      double first, second;
+      String note;
+
+      DataPoint(double first = 0.0, double second = 0.0,
+                const String& note = ""):
+        first(first), second(second), note(note)
+      {}
+
+      DataPoint(const std::pair<double, double>& pair):
+        first(pair.first), second(pair.second), note("")
+      {}
+
+      bool operator<(const DataPoint& other) const
+      {
+        return (std::tie(first, second, note) <
+                std::tie(other.first, other.second, other.note));
+      }
+
+      bool operator==(const DataPoint& other) const
+      {
+        return (std::tie(first, second, note) ==
+                std::tie(other.first, other.second, other.note));
+      }
+    };
+
     /// Vector of coordinate pairs
     typedef std::vector<DataPoint> DataPoints;
 
@@ -81,9 +107,9 @@ namespace OpenMS
 
   private:
     /// do not allow copy
-    TransformationModel( const TransformationModel& );
+    TransformationModel(const TransformationModel&);
     /// do not allow assignment
-    const TransformationModel& operator=( const TransformationModel& );
+    const TransformationModel& operator=(const TransformationModel&);
 
   };
 

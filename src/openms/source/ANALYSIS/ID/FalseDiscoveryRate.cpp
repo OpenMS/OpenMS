@@ -306,7 +306,7 @@ namespace OpenMS
             hit.setScore(score_to_fdr[pit->getScore()]);
             hits.push_back(hit);
           }
-          it->setHits(hits);
+          it->getHits().swap(hits);
         }
       }
       if (!split_charge_variants)
@@ -661,15 +661,30 @@ namespace OpenMS
     // assign q-value of decoy_score to closest target_score
     for (Size i = 0; i != decoy_scores.size(); ++i)
     {
-      Size closest_idx = 0;
-      for (Size k = 0; k != target_scores.size(); ++k)
+      const double& ds = decoy_scores[i];
+
+      // advance target index until score is better than decoy score
+      size_t k{0};
+      while (k != target_scores.size() && 
+             ((target_scores[k] <= ds && higher_score_better) ||
+              (target_scores[k] >= ds && !higher_score_better)))
       {
-        if (fabs(decoy_scores[i] - target_scores[k]) < fabs(decoy_scores[i] - target_scores[closest_idx]))
-        {
-          closest_idx = k;
-        }
+        ++k;
       }
-      score_to_fdr[decoy_scores[i]] = score_to_fdr[target_scores[closest_idx]];
+
+      // corner cases
+      if (k == 0) { score_to_fdr[ds] = score_to_fdr[target_scores[0]]; continue; }
+
+      if (k == target_scores.size()) { score_to_fdr[ds] = score_to_fdr[target_scores.back()]; continue; }
+      
+      if (fabs(target_scores[k] - ds) < fabs(target_scores[k - 1] - ds))
+      {
+        score_to_fdr[ds] = score_to_fdr[target_scores[k]];
+      }
+      else
+      {
+        score_to_fdr[ds] = score_to_fdr[target_scores[k - 1]];
+      }
     }
 
   }
