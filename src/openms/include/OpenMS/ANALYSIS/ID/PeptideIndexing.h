@@ -742,7 +742,7 @@ protected:
         const OpenMS::String& seq_prot,
         OpenMS::Int position)
       {
-        if (enzyme_.isValidProduct(seq_prot, position, len_pep, true))
+        if (enzyme_.isValidProduct(seq_prot, position, len_pep, true, true))
         {
           PeptideProteinMatchInformation match;
           match.protein_index = idx_prot;
