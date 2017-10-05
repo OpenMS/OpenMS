@@ -89,7 +89,7 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
     static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("HPO3");
     static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("HPO4");
     static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("");
-    static const EmpiricalFormula phosphate_form = EmpiricalFormula("PO3");
+    static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO3");
     static const EmpiricalFormula abasicformRNA = EmpiricalFormula("C5H7O6P");
     static const EmpiricalFormula abasicformDNA = EmpiricalFormula("C5H7O5P");
 
@@ -117,37 +117,37 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
     switch (type)
     {
     case Ribonucleotide::Full:
-        return ourForm - phosphate_form + OH_weight + (H_weight * charge) + local_five_prime + local_three_prime;
+        return ourForm - phosphate_form + EmpiricalFormula("O") + (H_weight * charge) + local_five_prime + local_three_prime;
 
     case Ribonucleotide::FivePrime:
-        return ourForm - fivePrime_to_full + (H_weight * charge) + local_three_prime;
+        return ourForm - fivePrime_to_full + OH_weight + (H_weight * charge) + local_three_prime;
 
     case Ribonucleotide::BIon:
-        return ourForm - b_ion_to_full - H_weight + (H_weight * charge) + local_five_prime; //WHY h_weight sub?
+        return ourForm - b_ion_to_full - H_weight + OH_weight + (H_weight * charge) + local_five_prime; //WHY h_weight sub?
 
     case Ribonucleotide::AIon:
-        return ourForm - a_ion_to_full - H_weight * 2 + (H_weight * charge) + local_five_prime;
+        return ourForm - a_ion_to_full - H_weight * 2 + OH_weight + (H_weight * charge) + local_five_prime;
 
     case Ribonucleotide::CIon:
-        return ourForm - c_ion_to_full + (H_weight * charge) + local_five_prime;
+        return ourForm - c_ion_to_full + OH_weight + (H_weight * charge) + local_five_prime;
 
     case Ribonucleotide::DIon:
-        return ourForm - d_ion_to_full + (H_weight * charge) + local_five_prime;
+        return ourForm - d_ion_to_full + OH_weight + (H_weight * charge) + local_five_prime;
 
     case Ribonucleotide::XIon:
-        return ourForm - x_ion_to_full + (H_weight * charge) + local_three_prime;
+        return ourForm - x_ion_to_full + OH_weight + (H_weight * charge) + local_three_prime;
 
     case Ribonucleotide::WIon:
-        return ourForm - w_ion_to_full + (H_weight * charge) + local_three_prime;
+        return ourForm - w_ion_to_full + OH_weight + (H_weight * charge) + local_three_prime;
 
     case Ribonucleotide::YIon:
-        return ourForm - y_ion_to_full + (H_weight * charge) + local_three_prime;
+        return ourForm - y_ion_to_full + OH_weight + (H_weight * charge) + local_three_prime;
 
     case Ribonucleotide::ZIon:
-        return ourForm - z_ion_to_full + (H_weight * charge) + local_three_prime;
+        return ourForm - z_ion_to_full + OH_weight + (H_weight * charge) + local_three_prime;
 
     case Ribonucleotide::AminusB:
-      return ourForm - a_ion_to_full - H_weight * 2 + (H_weight * charge) + local_five_prime - s_[0]->getFormula() + abasicformRNA;// - base_to_formula[s_[s_.size()-1]]; //FIXME
+      return ourForm - a_ion_to_full - EmpiricalFormula("O") + (H_weight * charge) + local_five_prime - s_[0]->getFormula() + abasicformRNA - EmpiricalFormula("P");// - base_to_formula[s_[s_.size()-1]]; //FIXME
       // THIS WILL HAVE PROBLEMS WITH modded sugar
     default:
         LOG_ERROR << "NASequence::getMonoWeight: unknown RibonucleotideType" << std::endl;
