@@ -103,11 +103,13 @@ namespace OpenMS
       }
     }
 
+    Size unknown_query_counter = 1;
     for (vector<PeptideIdentification>::const_iterator pep_it =
            peptides.begin(); pep_it != peptides.end(); ++pep_it)
     {
       const String& id = pep_it->getIdentifier();
-      const DataProcessingStep& step = processing_steps.at(id_to_step[id]);
+      ProcessingStepKey step_key = id_to_step[id];
+      const DataProcessingStep& step = processing_steps.at(step_key);
       DataQuery query;
       if (!step.input_files.empty())
       {
@@ -129,8 +131,16 @@ namespace OpenMS
       }
       else
       {
-        query.data_id = String("RT=") + String(float(query.rt)) + "_MZ=" +
-          String(float(query.mz));
+        if (pep_it->hasRT() && pep_it->hasMZ())
+        {
+          query.data_id = String("RT=") + String(float(query.rt)) + "_MZ=" +
+            String(float(query.mz));
+        }
+        else
+        {
+          query.data_id = "UNKNOWN_QUERY_" + String(unknown_query_counter);
+          ++unknown_query_counter;
+        }
       }
       DataQueryKey query_key = insertIntoBimap_(query, data_queries).first;
 
@@ -148,22 +158,32 @@ namespace OpenMS
         const AASequence& seq = hit_it->getSequence();
         pair<IdentifiedMoleculeKey, bool> result =
           insertIntoBimap_(seq, identified_peptides);
-        if (result.second && !hit_it->getPeptideEvidences().empty())
+        if (result.second)
         {
-          identified_meta_data[result.first] = hit_it->getPeptideEvidences();
+          if (!hit_it->getPeptideEvidences().empty())
+          {
+            parent_evidence[result.first] = hit_it->getPeptideEvidences();
+          }
+          IdentifiedMetaData meta;
+          meta.molecule_type = MT_PROTEIN;
+          identified_meta_data.insert(make_pair(result.first, meta));
         }
         // @TODO: check/merge evidences if peptide already exists?
+        identified_meta_data[result.first].processing_steps.push_back(step_key);
 
-        MatchMetaData match;
-        match.molecule_type = MT_PROTEIN;
-        match.molecule_key = result.first;
-        match.scores.insert(make_pair(score_key, hit_it->getScore()));
-        match.rank = hit_it->getRank();
-        match.charge = hit_it->getCharge();
-        match.processing_steps.push_back(id_to_step[id]);
-        static_cast<MetaInfoInterface&>(match) = *hit_it;
-
-        matches.insert(make_pair(query_key, match));
+        pair<DataQueryKey, IdentifiedMoleculeKey> psm_key =
+          make_pair(query_key, result.first);
+        MatchMap::iterator pos = matches.find(psm_key);
+        if (pos == matches.end()) // new PSM
+        {
+          MatchMetaData match;
+          match.rank = hit_it->getRank();
+          match.charge = hit_it->getCharge();
+          static_cast<MetaInfoInterface&>(match) = *hit_it;
+          pos = matches.insert(make_pair(psm_key, match)).first;
+        }
+        pos->second.scores.insert(make_pair(score_key, hit_it->getScore()));
+        pos->second.processing_steps.push_back(step_key);
       }
     }
   }
@@ -176,28 +196,35 @@ namespace OpenMS
     proteins.clear();
     peptides.clear();
 
+    // "DataQuery" roughly corresponds to "PeptideIdentification",
+    // "DataProcessingStep" roughly corresponds to "ProteinIdentification":
     map<pair<DataQueryKey, ProcessingStepKey>,
         pair<vector<PeptideHit>, ScoreTypeKey>> psm_data;
     // we only export peptides and proteins, so start by getting the PSMs:
-    for (MatchMultimap::const_iterator match_it = matches.begin();
+    for (MatchMap::const_iterator match_it = matches.begin();
          match_it != matches.end(); ++match_it)
     {
+      DataQueryKey query_key = match_it->first.first;
+      IdentifiedMoleculeKey molecule_key = match_it->first.second;
       const MatchMetaData& match = match_it->second;
-      if (match.molecule_type != MT_PROTEIN) continue;
-      // "DataQuery" roughly corresponds to "PeptideIdentification":
-      DataQueryKey query_key = match_it->first;
-      IdentifiedMoleculeKey molecule_key = match.molecule_key;
+      const IdentifiedMetaData& meta =
+        identified_meta_data.at(molecule_key);
+      if (meta.molecule_type != MT_PROTEIN) continue;
       PeptideHit hit;
       hit.setSequence(identified_peptides.left.at(molecule_key));
       hit.setCharge(match.charge);
       hit.setRank(match.rank);
-      // "DataProcessingStep" roughly corresponds to "ProteinIdentification";
-      // find the last step that assigned a score:
-      ProcessingStepKey step_key = match.processing_steps.back(); // most recent
-      bool done = false;
-      for (vector<ProcessingStepKey>::const_reverse_iterator step_it =
-             match.processing_steps.rbegin();
-           !done && (step_it != match.processing_steps.rend()); ++step_it)
+      EvidenceMap::const_iterator pos =
+        parent_evidence.find(molecule_key);
+      if (pos != parent_evidence.end())
+      {
+        hit.setPeptideEvidences(pos->second);
+      }
+      static_cast<MetaInfoInterface&>(hit) = match;
+      // find all steps that assigned a score:
+      for (vector<ProcessingStepKey>::const_iterator step_it =
+             match.processing_steps.begin(); step_it !=
+             match.processing_steps.end(); ++step_it)
       {
         const DataProcessingStep& step = processing_steps.at(*step_it);
         for (unordered_map<ScoreTypeKey, double>::const_iterator score_it =
@@ -208,22 +235,14 @@ namespace OpenMS
           if (score.params_key == step.params_key)
           {
             hit.setScore(score_it->second);
-            step_key = *step_it;
-            psm_data[make_pair(query_key, step_key)].second = score_it->first;
-            done = true;
+            pair<DataQueryKey, ProcessingStepKey> key =
+              make_pair(query_key, *step_it);
+            psm_data[key].first.push_back(hit);
+            psm_data[key].second = score_it->first;
             break;
           }
         }
       }
-      EvidenceMap::const_iterator pos =
-        identified_meta_data.find(molecule_key);
-      if (pos != identified_meta_data.end())
-      {
-        hit.setPeptideEvidences(pos->second);
-      }
-      static_cast<MetaInfoInterface&>(hit) = match;
-
-      psm_data[make_pair(query_key, step_key)].first.push_back(hit);
     }
 
     set<ProcessingStepKey> steps;

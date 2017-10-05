@@ -42,6 +42,7 @@
 #include <OpenMS/METADATA/Software.h>
 
 #include <boost/bimap.hpp>
+#include <boost/functional/hash.hpp> // for "unordered_map<pair<...>, ...>"
 #include <unordered_map>
 #include <unordered_set>
 
@@ -177,6 +178,12 @@ namespace OpenMS
 
 
     // Identified molecules - at the moment, peptides or small molecules:
+    typedef UInt64 IdentifiedMoleculeKey;
+    typedef boost::bimap<IdentifiedMoleculeKey, AASequence> PeptideBimap;
+    typedef boost::bimap<IdentifiedMoleculeKey, String> CompoundBimap;
+    PeptideBimap identified_peptides;
+    CompoundBimap identified_compounds;
+
     enum MoleculeType
     {
       MT_PROTEIN,
@@ -185,11 +192,20 @@ namespace OpenMS
       SIZE_OF_MOLECULETYPES
     };
 
-    typedef UInt64 IdentifiedMoleculeKey;
-    typedef boost::bimap<IdentifiedMoleculeKey, AASequence> PeptideBimap;
-    typedef boost::bimap<IdentifiedMoleculeKey, String> CompoundBimap;
-    PeptideBimap identified_peptides;
-    CompoundBimap identified_compounds;
+    /*!
+      Meta data for an identified molecule.
+    */
+    struct IdentifiedMetaData: public MetaInfoInterface
+    {
+      enum MoleculeType molecule_type;
+
+      std::unordered_map<ScoreTypeKey, double> scores;
+
+      std::vector<ProcessingStepKey> processing_steps;
+    };
+
+    std::unordered_map<IdentifiedMoleculeKey,
+                       IdentifiedMetaData> identified_meta_data;
 
 
     /*!
@@ -197,26 +213,28 @@ namespace OpenMS
     */
     struct MatchMetaData: public MetaInfoInterface
     {
-      enum MoleculeType molecule_type;
-
-      IdentifiedMoleculeKey molecule_key; // reference into "identified_..."
-
       Int charge;
 
       std::unordered_map<ScoreTypeKey, double> scores;
 
+      // is it useful to store this, as different processing steps/score types
+      // may give different rankings?
       Size rank; // rank among matches for the same spectrum/feature
 
       // ordered list of references to data processing steps:
       std::vector<ProcessingStepKey> processing_steps;
     };
 
-    typedef std::unordered_multimap<DataQueryKey, MatchMetaData> MatchMultimap;
+    // standard lib. doesn't include a hash function for pairs, but Boost does:
+    typedef boost::hash<std::pair<DataQueryKey,
+                                  IdentifiedMoleculeKey>> PairHash;
+    typedef std::unordered_map<std::pair<DataQueryKey, IdentifiedMoleculeKey>,
+                               MatchMetaData, PairHash> MatchMap;
     // @TODO: rename "PeptideEvidence" to "MoleculeEvidence" (incl. members)
     typedef std::unordered_map<IdentifiedMoleculeKey,
                                std::vector<PeptideEvidence>> EvidenceMap;
-    MatchMultimap matches;
-    EvidenceMap identified_meta_data;
+    MatchMap matches;
+    EvidenceMap parent_evidence;
 
 
     /*!
