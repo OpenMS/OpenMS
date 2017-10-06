@@ -83,9 +83,6 @@ namespace OpenMS
     DigestionEnzymeProtein& operator=(const DigestionEnzymeProtein& enzyme);
     //@}
 
-    /// returns the substrate (here: protein)
-    enum DigestionEnzyme::Substrate getSubstrate() const;
-
     /** Accessors
     */
     //@{

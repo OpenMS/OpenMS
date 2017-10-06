@@ -40,11 +40,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  enum DigestionEnzyme::Substrate DigestionEnzymeRNA::getSubstrate() const
-  {
-    return DigestionEnzyme::RNA;
-  }
-
   bool DigestionEnzymeRNA::setValueFromFile(const String& key, const String& value)
   {
     if (DigestionEnzyme::setValueFromFile(key, value))

@@ -49,9 +49,6 @@ namespace OpenMS
   class OPENMS_DLLAPI DigestionEnzymeRNA: public DigestionEnzyme
   {
   public:
-    /// returns the substrate (here: RNA)
-    enum DigestionEnzyme::Substrate getSubstrate() const;
-
     /// sets the 3' gain (as a nucleotide modification code)
     void setThreePrimeGain(const String& value);
 

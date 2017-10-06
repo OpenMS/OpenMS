@@ -90,25 +90,6 @@ START_SECTION(bool hasEnzyme(const DigestionEnzymeProtein* enzyme) const)
   TEST_EQUAL(ptr->hasEnzyme(&myNewEnzyme), false);
 END_SECTION
 
-START_SECTION(void setEnzymes(const String& filename))
-    ptr->setEnzymes("CHEMISTRY/Enzymes.xml"); // requires internal "File::find()"
-    TEST_EQUAL(std::distance(ptr->beginEnzyme(), ptr->endEnzyme()), 25); // should be 25 enzymes in "CHEMISTRY/Enzymes.xml"
-    ptr->setEnzymes(File::find("CHEMISTRY/Enzymes.xml")); // full filename should also work
-    TEST_EQUAL(std::distance(ptr->beginEnzyme(), ptr->endEnzyme()), 25); // should be 25 enzymes in "CHEMISTRY/Enzymes.xml"
-END_SECTION
-
-START_SECTION(void clear())
-  TEST_EQUAL(ptr->beginEnzyme() != ptr->endEnzyme(), true)
-  TEST_EQUAL(ptr->hasEnzyme("Trypsin"), true)
-  ptr->clear();
-  TEST_EQUAL(ptr->beginEnzyme() == ptr->endEnzyme(), true)
-  TEST_EQUAL(ptr->hasEnzyme("Trypsin"), false)
-
-  // restore old status
-  String file = File::find("CHEMISTRY/Enzymes.xml");
-  ptr->setEnzymes(file);
-END_SECTION
-
 START_SECTION(ConstEnzymeIterator beginEnzyme() const)
     ProteaseDB::EnzymeIterator it = ptr->beginEnzyme();
     Size count(0);

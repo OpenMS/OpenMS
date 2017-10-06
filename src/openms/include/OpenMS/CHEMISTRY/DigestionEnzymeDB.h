@@ -84,7 +84,10 @@ namespace OpenMS
     /// destructor
     virtual ~DigestionEnzymeDB()
     {
-      clear();
+      for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
+      {
+        delete *it;
+      }
     }
     //@}
 
@@ -114,25 +117,6 @@ namespace OpenMS
                                          String("Enzyme with regex " + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
       }
       return enzyme_regex_[cleavage_regex];
-    }
-
-    /// load enzymes from given file
-    void setEnzymes(const String& filename)
-    {
-      clear();
-      readEnzymesFromFile_(filename);
-    }
-
-    /// deletes all enzymes, resulting in an empty database
-    void clear()
-    {
-      for (ConstEnzymeIterator it = const_enzymes_.begin(); it != const_enzymes_.end(); ++it)
-      {
-        delete *it;
-      }
-      enzyme_names_.clear();
-      enzyme_regex_.clear();
-      const_enzymes_.clear();
     }
 
     /// returns all the enzyme names (does NOT include synonym names)

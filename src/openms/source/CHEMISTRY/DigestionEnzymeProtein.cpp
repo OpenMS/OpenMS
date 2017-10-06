@@ -106,11 +106,6 @@ namespace OpenMS
     return *this;
   }
 
-  enum DigestionEnzyme::Substrate DigestionEnzymeProtein::getSubstrate() const
-  {
-    return DigestionEnzyme::PROTEIN;
-  }
-
   void DigestionEnzymeProtein::setNTermGain(EmpiricalFormula value)
   {
     n_term_gain_ = value;

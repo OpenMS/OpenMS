@@ -40,8 +40,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  const String DigestionEnzyme::NamesOfSubstrates[] = {"protein", "RNA", "DNA"};
-
   DigestionEnzyme::DigestionEnzyme() :
     name_("unknown_enzyme"),
     cleavage_regex_(""),
@@ -130,11 +128,6 @@ namespace OpenMS
     return regex_description_;
   }
 
-  String DigestionEnzyme::getSubstrateName() const
-  {
-    return NamesOfSubstrates[getSubstrate()];
-  }
-
   bool DigestionEnzyme::operator==(const DigestionEnzyme& enzyme) const
   {
     return name_ == enzyme.name_ &&
@@ -190,9 +183,8 @@ namespace OpenMS
 
   ostream& operator<<(ostream& os, const DigestionEnzyme& enzyme)
   {
-    os << "digestion enzyme (substrate: " << enzyme.getSubstrateName() << "):"
-       << enzyme.name_ << " " << enzyme.cleavage_regex_ << " "
-       << enzyme.regex_description_;
+    os << "digestion enzyme:" << enzyme.name_ << " (cleavage: "
+       << enzyme.cleavage_regex_ << " - " << enzyme.regex_description_ << ")";
     return os;
   }
 

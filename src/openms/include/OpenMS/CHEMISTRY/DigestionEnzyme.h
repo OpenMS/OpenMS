@@ -54,17 +54,6 @@ namespace OpenMS
   {
   public:
 
-    /// possible substrates for digestion enzymes
-    enum Substrate
-    {
-      PROTEIN,
-      RNA,
-      DNA,
-      SIZE_OF_SUBSTRATE
-    };
-    /// names of the substrates
-    static const String NamesOfSubstrates[SIZE_OF_SUBSTRATE];
-
     /** @name Constructors
     */
     //@{
@@ -117,13 +106,6 @@ namespace OpenMS
 
     /// returns the regex description
     String getRegExDescription() const;
-
-    /// returns the substrate type
-    virtual enum Substrate getSubstrate() const = 0;
-
-    /// returns the name of the substrate
-    String getSubstrateName() const;
-
     //@}
 
     /** @name Predicates
