@@ -97,13 +97,8 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("executable", "<executable>",
-#if  defined(__APPLE__)
-                       "sirius",
-#else
-                       "sirius-console-64.exe",
-#endif
-                       "sirius executable e.g. sirius", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("executable", "<executable>", "",
+                       "sirius executable e.g. sirius", false, false, ListUtils::create<String>("skipexists"));
 
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
@@ -168,14 +163,23 @@ protected:
     {
       const QProcessEnvironment env;
       const QString & qsiriuspathenv = env.systemEnvironment().value("SIRIUS_PATH");
-      executable = qsiriuspathenv.isEmpty() ? "sirius" : qsiriuspathenv;
+      if (qsiriuspathenv.isEmpty())
+      {
+        writeLog_( "FATAL: Executable of Sirius could not be found. Please either use SIRIUS_PATH env variable or provide with -executable");
+        return MISSING_PARAMETERS;
+      }
+      executable = qsiriuspathenv;
     }
+    // Normalize file path
+    QFileInfo file_info(executable);
+    executable = file_info.canonicalFilePath();
+
+    writeLog_("Executable is: " + executable);
     const QString & path_to_executable = File::path(executable).toQString();
 
     //-------------------------------------------------------------
     // Calculations
     //-------------------------------------------------------------
-
     PeakMap spectra;
     MzMLFile f;
     f.setLogType(log_type_);
@@ -227,6 +231,8 @@ protected:
     QProcess qp;
     qp.setWorkingDirectory(path_to_executable); //since library paths are relative to sirius executable path
     qp.start(executable, process_params); // does automatic escaping etc... start
+    writeLog_("Executing: " + String(executable));
+    writeLog_("Working Dir is: " + path_to_executable);
     const bool success = qp.waitForFinished(-1); // wait till job is finished
     qp.close();
 
@@ -237,6 +243,7 @@ protected:
       const QString sirius_stderr(qp.readAllStandardOutput());
       writeLog_(sirius_stdout);
       writeLog_(sirius_stderr);
+      writeLog_(String(qp.exitCode()));
 
       return EXTERNAL_PROGRAM_ERROR;
     }

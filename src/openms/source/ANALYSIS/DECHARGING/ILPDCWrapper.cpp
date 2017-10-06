@@ -364,7 +364,7 @@ namespace OpenMS
         score_max = score;
 
       // DEBUG:
-      //std::cerr << "MIP: egde#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
+      //std::cerr << "MIP: edge#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
     }
     if (verbose_level > 2)
       LOG_INFO << "score_min: " << score_min << " score_max: " << score_max << "\n";
