@@ -37,8 +37,8 @@
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/Software.h>
 
 #include <boost/bimap.hpp>
@@ -248,6 +248,9 @@ namespace OpenMS
 
       // ordered list of references to data processing steps:
       std::vector<ProcessingStepKey> processing_steps;
+
+      // @TODO: move "PeakAnnotation" out of "PeptideHit"
+      std::vector<PeptideHit::PeakAnnotation> peak_annotations;
     };
 
     // standard lib. doesn't include a hash function for pairs, but Boost does:

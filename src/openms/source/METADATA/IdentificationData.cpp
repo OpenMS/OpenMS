@@ -179,6 +179,7 @@ namespace OpenMS
           MatchMetaData match;
           match.rank = hit_it->getRank();
           match.charge = hit_it->getCharge();
+          match.peak_annotations = hit_it->getPeakAnnotations();
           static_cast<MetaInfoInterface&>(match) = *hit_it;
           pos = matches.insert(make_pair(psm_key, match)).first;
         }
@@ -214,6 +215,7 @@ namespace OpenMS
       hit.setSequence(identified_peptides.left.at(molecule_key));
       hit.setCharge(match.charge);
       hit.setRank(match.rank);
+      hit.setPeakAnnotations(match.peak_annotations);
       EvidenceMap::const_iterator pos =
         parent_evidence.find(molecule_key);
       if (pos != parent_evidence.end())
