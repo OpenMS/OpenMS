@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Xiao Liang $
-// $Authors: Xiao Liang $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 //
 
@@ -40,7 +40,6 @@
 
 namespace OpenMS
 {
-
   /**
       @ingroup Chemistry
 
