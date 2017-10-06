@@ -179,12 +179,12 @@ namespace OpenMS
     int n_points = 0;
     if (headers["n_points"] != -1)
     {
-      n_points = std::stoi(line[headers["n_points"]]);
+      n_points = (line[headers["n_points"]].empty()) ? 0.0 : std::stoi(line[headers["n_points"]]);
     }
     double correlation_coefficient = 0.0;
     if (headers["correlation_coefficient"] != -1)
     {
-      correlation_coefficient = std::stod(line[headers["correlation_coefficient"]]);
+      correlation_coefficient = (line[headers["correlation_coefficient"]].empty()) ? 0.0 : std::stod(line[headers["correlation_coefficient"]]);
     }
     aqm.setStatistics(n_points, correlation_coefficient);
 
