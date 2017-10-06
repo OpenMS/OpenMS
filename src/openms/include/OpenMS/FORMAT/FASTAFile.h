@@ -49,7 +49,7 @@ namespace OpenMS
   /**
     @brief This class serves for reading in and writing FASTA files
 
-    You can use aggegate methods load() and store() to read/write a
+    You can use aggregate methods load() and store() to read/write a
     set of protein sequences at the cost of memory.
     
     Or use single read/write of protein sequences using readStart(), readNext()
@@ -71,7 +71,7 @@ public:
       from the next line until the next > (exclusive) is stored
       in sequence.
     */
-  struct FASTAEntry
+    struct FASTAEntry
   {
       String identifier;
       String description;
@@ -160,6 +160,14 @@ public:
     */
     bool readNext(FASTAEntry& protein);
 
+    /// current stream position
+    std::streampos position() const;
+
+    /// is stream at EOF?
+    bool atEnd() const;
+
+    /// seek stream to @p pos
+    bool setPosition(const std::streampos& pos);
 
     /**
     @brief Prepares a FASTA file given by 'filename' for streamed writing using writeNext().

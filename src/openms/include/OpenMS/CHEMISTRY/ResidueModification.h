@@ -64,7 +64,7 @@ namespace OpenMS
       getFullName()         | "Oxidation or Hydroxylation"
       getUniModAccession()  | "UniMod:312"
 
-      Note that some modifications are not explicitely defined from an input
+      Note that some modifications are not explicitly defined from an input
       file but get added on the fly when reading amino acid sequences with
       bracket notation, e.g. "PEPTX[999]IDE". If there is no known modification
       corresponding to the indicated mass, then a new ResidueModification will

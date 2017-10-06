@@ -631,11 +631,13 @@ namespace OpenMS
       }
       else
       {
-        char* transcoded_chars = sm_.convert(chars);
-        String transcoded_chars2 = transcoded_chars;
+        String transcoded_chars2 = sm_.convert(chars);
         transcoded_chars2.trim();
         if (transcoded_chars2 != "")
-          warning(LOAD, String("Unhandled character content in tag '") + current_tag + "': " + transcoded_chars2);
+        {
+          warning(LOAD, String("Unhandled character content in tag '") + current_tag + "': " +
+              transcoded_chars2);
+        }
       }
     }
 
@@ -1200,8 +1202,6 @@ namespace OpenMS
         populateSpectraWithData();
         populateChromatogramsWithData();
       }
-
-      sm_.clear();
     }
 
     void MzMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, /* const String & cvref,  */ const String& accession, const String& name, const String& value, const String& unit_accession)
@@ -1385,7 +1385,7 @@ namespace OpenMS
         }
         else if (accession == "MS:1000806") //absorption spectrum
         {
-          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ABSORBTION);
+          spec_.getInstrumentSettings().setScanMode(InstrumentSettings::ABSORPTION);
         }
         else if (accession == "MS:1000325") //constant neutral gain spectrum
         {
@@ -3740,7 +3740,7 @@ namespace OpenMS
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      if (file_content.has(InstrumentSettings::ABSORBTION))
+      if (file_content.has(InstrumentSettings::ABSORPTION))
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }
@@ -4707,7 +4707,7 @@ namespace OpenMS
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000805\" name=\"emission spectrum\" />\n";
       }
-      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ABSORBTION)
+      else if (spec.getInstrumentSettings().getScanMode() == InstrumentSettings::ABSORPTION)
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000806\" name=\"absorption spectrum\" />\n";
       }

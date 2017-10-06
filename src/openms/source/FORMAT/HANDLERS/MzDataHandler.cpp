@@ -115,7 +115,7 @@ namespace OpenMS
       if (skip_spectrum_)
         return;
 
-      char * transcoded_chars = sm_.convert(chars);
+      String transcoded_chars = sm_.convert(chars);
 
       //current tag
       const String & current_tag = open_tags_.back();
@@ -264,9 +264,9 @@ namespace OpenMS
       else if (tag == "software")
       {
         data_processing_ = DataProcessingPtr(new DataProcessing);
-        if (attributes.getIndex(sm_.convert("completionTime")) != -1)
+        if (attributes.getIndex(sm_.convert("completionTime").c_str()) != -1)
         {
-          data_processing_->setCompletionTime(asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))));
+          data_processing_->setCompletionTime(asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime").c_str())).c_str()));
         }
       }
       else if (tag == "precursor")
@@ -486,8 +486,6 @@ namespace OpenMS
         logger_.endProgress();
         scan_count = 0;
       }
-
-      sm_.clear();
     }
 
     void MzDataHandler::fillData_()
@@ -926,7 +924,7 @@ namespace OpenMS
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PrecursorIonScan\"/>\n";
             break;
 
-          case InstrumentSettings::ABSORBTION:
+          case InstrumentSettings::ABSORPTION:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PhotodiodeArrayDetector\"/>\n";
             break;
 
