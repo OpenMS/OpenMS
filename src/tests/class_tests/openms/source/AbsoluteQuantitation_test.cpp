@@ -97,21 +97,21 @@ START_SECTION((double applyCalibration(Feature & component,
   component.setMetaValue("native_id","component");
   component.setMetaValue("peak_apex_int",2.0);
   IS_component.setMetaValue("native_id","IS");
-  IS_component.setMetaValue("peak_apex_int",2.0);
+  IS_component.setMetaValue("peak_apex_int",1.0);
   String feature_name = "peak_apex_int";
 
   // set-up the model and params
   String transformation_model;
   Param param;
   transformation_model = "TransformationModelLinear";  
-  param.setValue("slope",1.0);
-  param.setValue("intercept",0.0);
+  param.setValue("slope",2.0);
+  param.setValue("intercept",1.0);
 
   TEST_REAL_SIMILAR(absquant.applyCalibration(component,
     IS_component,
     feature_name,
     transformation_model,
-    param),1.0);
+    param),0.5);
 END_SECTION
 
 START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
