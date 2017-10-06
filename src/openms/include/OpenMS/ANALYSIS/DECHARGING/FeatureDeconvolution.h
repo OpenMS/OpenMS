@@ -156,6 +156,8 @@ protected:
     CHARGEMODE q_try_;
     /// amount of debug information displayed
     Int verbose_level_;
+    /// Are our features in negative mode
+    bool negative_mode_;
 
   };
 } // namespace OpenMS
