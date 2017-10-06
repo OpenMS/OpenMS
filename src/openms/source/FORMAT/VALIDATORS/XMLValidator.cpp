@@ -86,12 +86,12 @@ namespace OpenMS
     parser->setEntityResolver(NULL);
 
     //load schema
-    LocalFileInputSource schema_file(Internal::StringManager().convert(schema));
+    LocalFileInputSource schema_file(Internal::StringManager().convert(schema).c_str());
     parser->loadGrammar(schema_file, Grammar::SchemaGrammarType, true);
     parser->setFeature(XMLUni::fgXercesUseCachedGrammarInParse, true);
 
     // try to parse file
-    LocalFileInputSource source(Internal::StringManager().convert(filename.c_str()));
+    LocalFileInputSource source(Internal::StringManager().convert(filename.c_str()).c_str());
 
     try
     {

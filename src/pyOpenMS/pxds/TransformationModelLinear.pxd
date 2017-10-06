@@ -5,8 +5,6 @@ from libcpp.vector cimport vector as libcpp_vector
 
 from TransformationModel cimport *
 
-# ctypedef libcpp_vector[ libcpp_pair[double, double] ] DataPoints;
-
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" namespace "OpenMS":
 
 
@@ -15,11 +13,11 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" nam
         #   TransformationModel
 
         TransformationModelLinear(TransformationModelLinear) nogil except + #wrap-ignore
-        TransformationModelLinear(libcpp_vector[ libcpp_pair[double, double] ]& data, Param & params) nogil except +
+        TransformationModelLinear(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
 
-        void getDefaultParameters(Param &)
-        
+        void getDefaultParameters(Param&)
+
         double evaluate(double value) nogil except +
-        void getParameters(double & slope, double & intercept) nogil except +
+        void getParameters(double& slope, double& intercept) nogil except +
         void invert() nogil except +
 

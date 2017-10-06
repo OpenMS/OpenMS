@@ -32,15 +32,11 @@
 
     <b>Pre-Requisites (Software)</b>
     <ul>
-      <li>have a Visual Studio 2005/2008/2010[SP1]/2012/2013/2015 installed (The C++ Express editions should work as well, we tested VSE2008, VSE2012 and VSE2013).
-        <br>Visual C++ Express 2012 and above support Win64 and OpenMP by default. For older editions (2010 and below) you can find tutorials on how to enable them on the internet.
-        <br>If you work with VS2008, installation of the Service Pack 1 (SP1) is required,
-            otherwise VS might crash during the compilation of the contrib package.
-        <br><b>Not supported are MinGW (g++ based compiler) and VS2003 (and earlier). Do not use a MinGW-enabled shell since CMake will get confused!</b>
+      <li>have a Visual Studio 2015 or 2017 installed (The C++ Express editions should work as well, we tested VSE2015 Update 3).
+        <br><b>Not supported are MinGW (g++ based compiler) and VS2013 (and earlier). Do not use a MinGW-enabled shell since CMake will get confused!</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
       <li>Have CMake 3.0.2 or greater installed (see http://www.cmake.org).<br>
 	      CMake's Generator (-G flag) must support your version of Visual Studio.<br>
-          [VS2012 requires CMake 2.8.10 or later, VS2013 needs CMake 2.8.11.2, etc...]
       <li>To extract archives within submodules of the contrib you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
         <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
         the installation directory to your PATH.

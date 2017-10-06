@@ -149,11 +149,11 @@ private:
       //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
       if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2))
       {
-        source.reset(new CompressedInputSource(StringManager().convert(filename.c_str()), bz));
+        source.reset(new CompressedInputSource(Internal::StringManager().convert(filename.c_str()).c_str(), bz));
       }
       else
       {
-        source.reset(new xercesc::LocalFileInputSource(StringManager().convert(filename.c_str())));
+        source.reset(new xercesc::LocalFileInputSource(Internal::StringManager().convert(filename.c_str()).c_str()));
       }
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
       if (!enforced_encoding_.empty())
