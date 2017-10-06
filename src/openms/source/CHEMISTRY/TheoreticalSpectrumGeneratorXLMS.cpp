@@ -969,13 +969,14 @@ namespace OpenMS
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
-        if (add_losses_)
-        {
-          std::set< TheoreticalSpectrumGeneratorXLMS::LossMass > losses = forward_losses_alpha[i-1];
-          losses.insert(backward_losses_beta[j+1].begin(), backward_losses_beta[j+1].end());
-          addXLinkIonLossesFAST_(spectrum, charges, ion_names, mono_weight, intensity, charge, ion_name, losses);
-          // addXLinkIonLosses_(spectrum, charges, ion_names, alpha.getPrefix(i-1), beta.getSuffix(beta.size()-j-1), mono_weight, intensity, charge, ion_name);
-        }
+        // TODO losses removed for these complex peaks for now
+        // if (add_losses_)
+        // {
+        //   std::set< TheoreticalSpectrumGeneratorXLMS::LossMass > losses = forward_losses_alpha[i-1];
+        //   losses.insert(backward_losses_beta[j+1].begin(), backward_losses_beta[j+1].end());
+        //   addXLinkIonLossesFAST_(spectrum, charges, ion_names, mono_weight, intensity, charge, ion_name, losses);
+        //   // addXLinkIonLosses_(spectrum, charges, ion_names, alpha.getPrefix(i-1), beta.getSuffix(beta.size()-j-1), mono_weight, intensity, charge, ion_name);
+        // }
 
         if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
         {
@@ -1034,13 +1035,14 @@ namespace OpenMS
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
-        if (add_losses_)
-        {
-          std::set< TheoreticalSpectrumGeneratorXLMS::LossMass > losses = backward_losses_alpha[i+1];
-          losses.insert(forward_losses_beta[j-1].begin(), forward_losses_beta[j-1].end());
-          addXLinkIonLossesFAST_(spectrum, charges, ion_names, mono_weight, intensity, charge, ion_name, losses);
-          // addXLinkIonLosses_(spectrum, charges, ion_names, alpha.getSuffix(alpha.size()-i-1), beta.getPrefix(j-1), mono_weight, intensity, charge, ion_name);
-        }
+        // TODO losses removed for these complex peaks for now
+        // if (add_losses_)
+        // {
+        //   std::set< TheoreticalSpectrumGeneratorXLMS::LossMass > losses = backward_losses_alpha[i+1];
+        //   losses.insert(forward_losses_beta[j-1].begin(), forward_losses_beta[j-1].end());
+        //   addXLinkIonLossesFAST_(spectrum, charges, ion_names, mono_weight, intensity, charge, ion_name, losses);
+        //   // addXLinkIonLosses_(spectrum, charges, ion_names, alpha.getSuffix(alpha.size()-i-1), beta.getPrefix(j-1), mono_weight, intensity, charge, ion_name);
+        // }
 
         if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
         {
