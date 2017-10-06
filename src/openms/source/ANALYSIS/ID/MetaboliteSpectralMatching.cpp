@@ -393,6 +393,8 @@ void MetaboliteSpectralMatching::run(PeakMap & msexp, PeakMap & spec_db, MzTab& 
   // container storing results
   std::vector<SpectralMatch> matching_results;
 
+  bool fragment_error_unit_ppm(true);
+  if (mz_error_unit_ == "Da") { fragment_error_unit_ppm = false; }
 
   for (Size spec_idx = 0; spec_idx < msexp.size(); ++spec_idx)
   {
@@ -408,12 +410,12 @@ void MetaboliteSpectralMatching::run(PeakMap & msexp, PeakMap & spec_db, MzTab& 
 
       double prec_mz_lowerbound, prec_mz_upperbound;
 
-      if (mz_error_unit_ == "Da")
+      if (!fragment_error_unit_ppm) // Da
       {
         prec_mz_lowerbound = precursor_mz - precursor_mz_error_;
         prec_mz_upperbound = precursor_mz + precursor_mz_error_;
       }
-      else
+      else // ppm
       {
         double ppm_offset(precursor_mz * 1e-6 * precursor_mz_error_);
         prec_mz_lowerbound = precursor_mz - ppm_offset;
@@ -445,7 +447,7 @@ void MetaboliteSpectralMatching::run(PeakMap & msexp, PeakMap & spec_db, MzTab& 
           continue;
         }
 
-        double hyperscore(computeHyperScore(msexp[spec_idx], spec_db[search_idx], fragment_mz_error_, 0.0));
+        double hyperscore(computeHyperScore(fragment_mz_error_, fragment_error_unit_ppm, msexp[spec_idx], spec_db[search_idx], 0.0));
 
         // std::cout << " scored with " << hyperScore << std::endl;
         if (hyperscore > 0)

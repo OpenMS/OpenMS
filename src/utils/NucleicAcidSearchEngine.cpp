@@ -48,8 +48,12 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 
 // digestion enzymes
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+
+/*
 #include <OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
+*/
 
 // ribonucleotides
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
@@ -217,58 +221,6 @@ protected:
     bool operator()(const NASequence& s) { return s.size() < min_size_; }
   };
 
-
-  // return a vector with estimated charges assigned for each peak. 0 if charge is unknown
-  vector<Size> estimatePeptideFragmentCharges(
-    const MSSpectrum& in,
-    double fragment_tolerance,
-    bool fragment_unit_ppm,
-    int min_charge = 1,
-    int max_charge = 3,
-    Size min_isopeaks = 2,
-    Size max_isopeaks = 10)
-  {
-    vector<Size> charges(in.size(), 0);
-    for (Size i = 0; i != in.size(); ++i)
-    {
-      const double mz = in[i].getPosition()[0];
-
-      if (charges[i]) { continue; } // only process peaks with no charge assigned
-
-      for (int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low (e.g. charge 1 would otherwise annotate half of the double charged fragments)
-      {
-        vector<Size> extensions;
-        extensions.reserve(10);
-
-        for (Size k = 0; k < max_isopeaks; ++k)
-        {
-          const double expected_mz = mz + k * Constants::C13C12_MASSDIFF_U / q;
-          Size p = in.findNearest(expected_mz);
-
-          const double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * expected_mz * 1e-6 : fragment_tolerance;
-
-          if (fabs(in[p] - expected_mz) > tolerance_dalton) // peak is missing, stop extending
-          {
-            break;
-          }
-          else  // peak is present, save index
-          {
-            extensions.push_back(p);
-          }
-        }
-
-        if (extensions.size() < min_isopeaks) continue;
-
-        // annotate charge of all peaks in extension
-        for (Size k = 0; k != extensions.size(); ++k)
-        {
-          charges[extensions[k]] = q;
-        }
-      }
-    }
-    return charges;
-  }
-
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
   void deisotopeAndSingleChargeMSSpectrum(
     MSSpectrum& in,
@@ -319,6 +271,7 @@ protected:
             }
             else
             {
+/*
               // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
               Size n_extensions = extensions.size();
               if (n_extensions != 0)
@@ -333,6 +286,7 @@ protected:
                 }
               }
 
+*/
               // averagine check passed
               extensions.push_back(p);
             }
@@ -421,11 +375,14 @@ protected:
     WindowMower window_mower_filter;
     Param filter_param = window_mower_filter.getParameters();
     filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+
+    // Note: we expect a higher number for NA than e.g., for peptides
+    filter_param.setValue("peakcount", 50, "The number of peaks that should be kept.");
     filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
     window_mower_filter.setParameters(filter_param);
 
-    NLargest nlargest_filter = NLargest(400);
+    // Note: we expect a higher number for NA than e.g., for peptides
+    NLargest nlargest_filter = NLargest(1000);
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -436,7 +393,7 @@ protected:
       exp[exp_index].sortByPosition();
 
       // deisotope
-      deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 10, single_charge_spectra);
+      deisotopeAndSingleChargeMSSpectrum_(exp[exp_index], 1, 20, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, true);
 
       // remove noise
       window_mower_filter.filterPeakSpectrum(exp[exp_index]);
@@ -738,7 +695,8 @@ protected:
                                                                   variable_modifications.end(),
                                                                   ns,
                                                                   max_variable_mods_per_oligo,
-                                                                  all_modified_oligos);
+                                                                  all_modified_oligos,
+                                                                  true);
         }
 
         for (SignedSize mod_idx = 0; mod_idx < (SignedSize)all_modified_oligos.size(); ++mod_idx)
@@ -806,7 +764,6 @@ protected:
 #pragma omp critical (annotated_hits_access)
 #endif
             {
-
               annotated_hits[scan_index].push_back(ah);
             }
           }

@@ -452,10 +452,6 @@ void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum & spectrum, const NA
       case Residue::XIon: return 'x';
       case Residue::YIon: return 'y';
       case Residue::ZIon: return 'z';
-      case Residue::DIon: return 'd';
-      case Residue::WIon: return 'w';
-      case Residue::AminusB: return 'l'; // l for loss
-
       default:
        cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
     }
