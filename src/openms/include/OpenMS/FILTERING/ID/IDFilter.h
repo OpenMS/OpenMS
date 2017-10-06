@@ -361,7 +361,7 @@ public:
       /// returns true if peptide should be removed (does not pass filter)
       bool operator()(PeptideHit& p)
       {
-        return digestion_.filterByMissingCleavages(
+        return digestion_.filterByMissedCleavages(
           p.getSequence().toUnmodifiedString(),
           [&](const Int missed_cleavages)
           {

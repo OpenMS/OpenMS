@@ -115,11 +115,13 @@ public:
     bool isValidProduct(const String& sequence, Size pos, Size length, bool ignore_missed_cleavages = true) const;
 
     /**
-       @param sequence amino-acid unmodified sequence to be digested. MUST be unmodified!
-       @param filter a bool function that takes as a parameter the missed cleavages number. The true value of the filter function will yield a true value for the result, implying that the sequence must be filtered.
-       @return a bool value based on the missed cleavages number with respect to the filter function
+       @brief Filter based on the number of missed cleavages.
+
+       @param sequence Unmodified (!) amino acid sequence to check.
+       @param filter A predicate that takes as parameter the number of missed cleavages in the sequence and returns true if the sequence should be filtered out.
+       @return Whether the sequence should be filtered out.
      */
-    bool filterByMissingCleavages(const String& sequence, std::function<bool(const Int)> filter) const;
+    bool filterByMissedCleavages(const String& sequence, std::function<bool(const Int)> filter) const;
 
 protected:
     /// Returns the naive cleavage site positions without specificity (including '0' as first position, but not size() as last)

@@ -184,8 +184,8 @@ namespace OpenMS
       return false;
     }
   }
-  
-  bool EnzymaticDigestion::filterByMissingCleavages(const String& sequence, std::function<bool(Int)> filter) const
+
+  bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, std::function<bool(Int)> filter) const
   {
     return filter(tokenize_(sequence).size() - 1);
   }
