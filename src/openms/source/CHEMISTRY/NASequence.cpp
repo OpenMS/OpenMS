@@ -129,7 +129,7 @@ EmpiricalFormula NASequence::getFormula(Ribonucleotide::RiboNucleotideFragmentTy
         return ourForm - a_ion_to_full - H_weight * 2 + OH_weight + (H_weight * charge) + local_five_prime;
 
     case Ribonucleotide::CIon:
-        return ourForm - c_ion_to_full + OH_weight + (H_weight * charge) + local_five_prime;
+        return ourForm - c_ion_to_full + OH_weight + t(H_weight * charge) + local_five_prime;
 
     case Ribonucleotide::DIon:
         return ourForm - d_ion_to_full + OH_weight + (H_weight * charge) + local_five_prime;
