@@ -232,19 +232,19 @@ namespace OpenMS
     else if (transformation_model == "TransformationModelBSpline")
     {
       TransformationModelBSpline tm(data, transformation_model_params);
-      tm.invert();
+      // tm.invert(); // not supported
       result = tm.evaluate(datum);
     }
     else if (transformation_model == "TransformationModelInterpolated")
     {
       TransformationModelInterpolated tm(data, transformation_model_params);
-      tm.invert();
+      // tm.invert(); // not supported
       result = tm.evaluate(datum);
     }
     else if (transformation_model == "TransformationModelLowess")
     {
       TransformationModelLowess tm(data, transformation_model_params);
-      tm.invert();
+      // tm.invert(); // not supported
       result = tm.evaluate(datum);
     }
     else
