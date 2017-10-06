@@ -1798,31 +1798,31 @@ def testTransitionTSVReader():
     assert pyopenms.TransitionTSVReader().validateTargetedExperiment is not None
 
 @report
-def testEnzymaticDigestion():
+def testProteaseDigestion():
     """
     @tests:
-     EnzymaticDigestion.__init__
-     EnzymaticDigestion.getMissedCleavages()
-     EnzymaticDigestion.setMissedCleavages()
-     EnzymaticDigestion.digest()
-     EnzymaticDigestion.peptideCount()
+     ProteaseDigestion.__init__
+     ProteaseDigestion.getMissedCleavages()
+     ProteaseDigestion.setMissedCleavages()
+     ProteaseDigestion.digest()
+     ProteaseDigestion.peptideCount()
     """
     # removed due to name clashes
-    # EnzymaticDigestion.getEnzyme()
-    # EnzymaticDigestion.setEnzyme()
-    # EnzymaticDigestion.getEnzymeByName()
+    # ProteaseDigestion.getEnzyme()
+    # ProteaseDigestion.setEnzyme()
+    # ProteaseDigestion.getEnzymeByName()
 
-    ff = pyopenms.EnzymaticDigestion()
-    #enz = pyopenms.EnzymaticDigestion().Enzyme()
+    ff = pyopenms.ProteaseDigestion()
+    #enz = pyopenms.ProteaseDigestion().Enzyme()
 
-    assert pyopenms.EnzymaticDigestion().getMissedCleavages is not None
-    assert pyopenms.EnzymaticDigestion().setMissedCleavages is not None
-    #assert pyopenms.EnzymaticDigestion().getEnzyme is not None
-    #assert pyopenms.EnzymaticDigestion().setEnzyme is not None
-    #assert pyopenms.EnzymaticDigestion().getEnzymeByName is not None
+    assert pyopenms.ProteaseDigestion().getMissedCleavages is not None
+    assert pyopenms.ProteaseDigestion().setMissedCleavages is not None
+    #assert pyopenms.ProteaseDigestion().getEnzyme is not None
+    #assert pyopenms.ProteaseDigestion().setEnzyme is not None
+    #assert pyopenms.ProteaseDigestion().getEnzymeByName is not None
 
-    assert pyopenms.EnzymaticDigestion().digest is not None
-    assert pyopenms.EnzymaticDigestion().peptideCount is not None
+    assert pyopenms.ProteaseDigestion().digest is not None
+    assert pyopenms.ProteaseDigestion().peptideCount is not None
 
     ff.setMissedCleavages(5)
     assert ff.getMissedCleavages() == 5
@@ -1831,7 +1831,7 @@ def testEnzymaticDigestion():
     #assert ff.getEnzyme() == enz.TRYPSIN
 
 @report
-def testEnzymaticDigestion():
+def testEnzymaticDigestionLogModel():
     ff = pyopenms.EnzymaticDigestionLogModel()
     assert pyopenms.EnzymaticDigestionLogModel().getLogThreshold is not None
     assert pyopenms.EnzymaticDigestionLogModel().setLogThreshold is not None
@@ -4365,7 +4365,7 @@ def testConsensusIDAlgorithmWorst():
     assert algo.apply
 
 @report
-def testDigestionEnzymes():
+def testDigestionEnzymeProtein():
     f = pyopenms.EmpiricalFormula()
 
     regex_description = b""
@@ -4373,7 +4373,7 @@ def testDigestionEnzymes():
     xtandem_id = b""
     comet_id = 0
     omssa_id = 0
-    e = pyopenms.DigestionEnzyme(b"testEnzyme", "K", set([]), regex_description,
+    e = pyopenms.DigestionEnzymeProtein(b"testEnzyme", "K", set([]), regex_description,
                                  f, f, psi_id, xtandem_id, comet_id, omssa_id)
 
 @report
@@ -4445,44 +4445,19 @@ def testHMMState():
 
 
 @report
-def testEnzymesDB():
-    edb = pyopenms.EnzymesDB()
-    assert edb.setEnzymes
-    del edb
-
-    # create a second instance of EnzymesDB without anything bad happening
-    edb = pyopenms.EnzymesDB()
+def testProteaseDB():
+    edb = pyopenms.ProteaseDB()
 
     f = pyopenms.EmpiricalFormula()
     synonyms = set([b"dummy", b"other"])
 
-    regex_description = b""
-    psi_id = b""
-    xtandem_id = b""
-    comet_id = 0
-    omssa_id = 0
-    e = pyopenms.DigestionEnzyme(b"testEnzyme", b"someregex", synonyms,
-                                 regex_description, f, f, psi_id, xtandem_id,
-                                 comet_id, omssa_id)
-    edb.addEnzyme(e)
-    assert edb.hasEnzyme(pyopenms.String("testEnzyme"))
-
-    edb = pyopenms.EnzymesDB();
     assert edb.hasEnzyme(pyopenms.String("Trypsin"))
 
     trypsin = edb.getEnzyme(pyopenms.String("Trypsin"))
-    edb.addEnzyme(trypsin)
 
     names = []
     edb.getAllNames(names)
-    assert b"testEnzyme" in names
-    assert edb.hasEnzyme(s(b"testEnzyme"))
-    assert edb.hasRegEx(s(b"someregex"))
-
-    # cannot clear a global variable and expect things to stay the same!!
-    # edb.clear()
-    # assert not edb.hasEnzyme(pyopenms.String("testEnzyme"))
-    # assert not edb.hasEnzyme(pyopenms.String("Trypsin"))
+    assert b"Trypsin" in names
 
 
 @report

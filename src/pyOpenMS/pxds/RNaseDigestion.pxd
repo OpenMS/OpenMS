@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
       Specificity getSpecificityByName(String name) nogil except +
 
       bool isValidProduct(String protein, Size pep_pos, Size pep_length,
-                          bool ignore_missed_cleavages, bool methionine_cleavage) nogil except +
+                          bool ignore_missed_cleavages) nogil except +
 
       # void digestUnmodified(StringView sequence, libcpp_vector[ StringView ] & output, Size min_length, Size max_length) nogil except +
 
@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS::RNaseD
 
     cdef enum Specificity:
         # wrap-attach:
-        #    EnzymaticDigestion
+        #    RNaseDigestion
         SPEC_FULL,    # fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
         SPEC_SEMI,    # semi specific, i.e., one of the two cleavage sites must fulfill requirements
         SPEC_NONE,    # no requirements on start / end

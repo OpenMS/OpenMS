@@ -5,7 +5,7 @@ from String cimport *
 from Types cimport *
 from MetaInfoInterface cimport *
 from ProteinHit cimport *
-from DigestionEnzyme cimport *
+from DigestionEnzymeProtein cimport *
 from PeptideIdentification cimport *
 from DateTime cimport *
 
@@ -136,4 +136,4 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
       bool fragment_mass_tolerance_ppm
       double precursor_mass_tolerance            #< Mass tolerance of precursor ions (Dalton)
       bool precursor_mass_tolerance_ppm
-      DigestionEnzyme digestion_enzyme            #< The enzyme for cleavage
+      DigestionEnzymeProtein digestion_enzyme            #< The enzyme for cleavage

@@ -52,10 +52,10 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeRNA.h>" namespace "OpenMS":
         String getFivePrimeGain() nogil except +
 
         # equality operator
-        bool operator==(DigestionEnzyme& Enzyme) nogil except +
+        bool operator==(DigestionEnzymeRNA& Enzyme) nogil except +
 
         # inequality operator
-        bool operator!=(DigestionEnzyme& Enzyme) nogil except +
+        bool operator!=(DigestionEnzymeRNA& Enzyme) nogil except +
 
         # equality operator for cleavage regex
         bool operator==(EmpiricalFormula cleavage_regex) nogil except +

@@ -85,10 +85,10 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
         int getOMSSAID() nogil except +
 
         # equality operator
-        bool operator==(DigestionEnzyme& Enzyme) nogil except +
+        bool operator==(DigestionEnzymeProtein& Enzyme) nogil except +
 
         # inequality operator
-        bool operator!=(DigestionEnzyme& Enzyme) nogil except +
+        bool operator!=(DigestionEnzymeProtein& Enzyme) nogil except +
 
         # equality operator for cleavage regex
         bool operator==(EmpiricalFormula cleavage_regex) nogil except +
