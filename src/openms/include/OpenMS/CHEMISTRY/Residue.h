@@ -160,17 +160,8 @@ public:
       YIonMinusNH3,   // MS:1001233 y ion without ammonia
       NonIdentified,  // MS:1001240 Non-identified ion
       Unannotated,    // no stored annotation
-      WIon,             //W ion, added for nucleic acid support
-      AminusB,        //A ion with base loss, added for nucleic acid support
-      DIon,           // D-ion for nucleic acid support
       SizeOfResidueType
     };
-/*    enum NucleicAcidType
-    {
-        DNA = 0,
-        RNA,
-        Undefined
-    };*/
 
     //@}
 
