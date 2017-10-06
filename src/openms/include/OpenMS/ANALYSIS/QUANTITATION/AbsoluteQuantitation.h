@@ -68,6 +68,14 @@ namespace OpenMS
     @brief AbsoluteQuantitation is a class to support absolute or relative quantitation for targeted or untargeted
     quantitation workflows (e.g., Isotope Dilution Mass Spectrometry).
 
+    Method:
+    A transformation model where y = ratio (analyte/IS) corresponding to peak height or peak area and
+      x = ratio (analyte/IS) corresponding to concentration is used to fit a series of runs
+      with standards of known concentrations that span the detection range of the instrument.  
+      The fitted transformation model can then be used to quantify the concentration of an analyte
+      in an unknown sample given the analyte peak height or area, IS peak height or area, and 
+      IS concentration.
+
     Terms:
     component: A protein, peptide, or compund fragment, transition, or whole species that is measured by e.g.,
       LC-MS, LC-MS/MS, GC-MS, GC-MS/MS, LC-MS-TOF, HPLC-UV, HPLC-IR, etc.

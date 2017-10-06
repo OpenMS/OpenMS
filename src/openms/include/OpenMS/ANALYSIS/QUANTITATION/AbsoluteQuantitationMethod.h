@@ -146,8 +146,8 @@ public:
     Param& transformation_model_params);
 
   /**
-  @brief This function evaluates the transformation model with the empty data
-    and fitted parameters
+  @brief This function inverts and evaluates the transformation model
+    with the empty data and fitted parameters
 
   @param transformation_model name of the transformation model
   @param datum datum to evaluate the model at
