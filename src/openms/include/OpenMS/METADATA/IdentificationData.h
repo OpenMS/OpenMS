@@ -52,9 +52,10 @@ namespace OpenMS
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
   {
   protected:
+    typedef UInt64 UniqueKey; // in case 64 bit isn't enough
 
     // Input files that were processed:
-    typedef UInt64 InputFileKey;
+    typedef UniqueKey InputFileKey;
     typedef boost::bimap<InputFileKey, String> InputFileBimap;
     InputFileBimap input_files;
 
@@ -87,7 +88,7 @@ namespace OpenMS
       }
     };
 
-    typedef UInt64 ProcessingParamsKey;
+    typedef UniqueKey ProcessingParamsKey;
     typedef boost::bimap<ProcessingParamsKey,
                          DataProcessingParameters> ParamsBimap;
     ParamsBimap processing_params;
@@ -107,7 +108,7 @@ namespace OpenMS
       DateTime date_time;
     };
 
-    typedef UInt64 ProcessingStepKey;
+    typedef UniqueKey ProcessingStepKey;
     std::unordered_map<ProcessingStepKey, DataProcessingStep> processing_steps;
 
 
@@ -140,7 +141,7 @@ namespace OpenMS
       }
     };
 
-    typedef UInt64 ScoreTypeKey;
+    typedef UniqueKey ScoreTypeKey;
     typedef boost::bimap<ScoreTypeKey, ScoreType> ScoreTypeBimap;
     ScoreTypeBimap score_types;
 
@@ -172,13 +173,13 @@ namespace OpenMS
         }
     };
 
-    typedef UInt64 DataQueryKey;
+    typedef UniqueKey DataQueryKey;
     typedef boost::bimap<DataQueryKey, DataQuery> QueryBimap;
     QueryBimap data_queries;
 
 
     // Identified molecules - at the moment, peptides or small molecules:
-    typedef UInt64 IdentifiedMoleculeKey;
+    typedef UniqueKey IdentifiedMoleculeKey;
     typedef boost::bimap<IdentifiedMoleculeKey, AASequence> PeptideBimap;
     typedef boost::bimap<IdentifiedMoleculeKey, String> CompoundBimap;
     PeptideBimap identified_peptides;
@@ -276,7 +277,7 @@ namespace OpenMS
       std::vector<ProcessingStepKey> processing_steps;
     };
 
-    typedef UInt64 ParentMoleculeKey;
+    typedef UniqueKey ParentMoleculeKey;
     typedef boost::bimap<ParentMoleculeKey, String> ParentBimap;
     ParentBimap parent_molecules;
     std::unordered_map<ParentMoleculeKey, ParentMetaData> parent_meta_data;
