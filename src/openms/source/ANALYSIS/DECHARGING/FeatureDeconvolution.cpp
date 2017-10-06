@@ -119,8 +119,10 @@ namespace OpenMS
   {
     defaults_.setValue("charge_min", 1, "Minimal possible charge");
     defaults_.setValue("charge_max", 10, "Maximal possible charge");
+
     defaults_.setValue("charge_span_max", 4, "Maximal range of charges for a single analyte, i.e. observing q1=[5,6,7] implies span=3. Setting this to 1 will only find adduct variants of the same charge");
     defaults_.setMinInt("charge_span_max", 1); // will only find adduct variants of the same charge
+
     defaults_.setValue("q_try", "feature", "Try different values of charge for each feature according to the above settings ('heuristic' [does not test all charges, just the likely ones] or 'all' ), or leave feature charge untouched ('feature').");
     defaults_.setValidStrings("q_try", ListUtils::create<String>("feature,heuristic,all"));
 
@@ -142,20 +144,20 @@ namespace OpenMS
     defaults_.setValue("intensity_filter", "false", "Enable the intensity filter, which will only allow edges between two equally charged features if the intensity of the feature with less likely adducts is smaller than that of the other feature. It is not used for features of different charge.");
     defaults_.setValidStrings("intensity_filter", ListUtils::create<String>("true,false"));
 
+    defaults_.setValue("negative_mode", "false", "Were spectra acquired in negative mode?");
+
     defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("verbose_level", 0);
     defaults_.setMaxInt("verbose_level", 3);
-    defaults_.setValue("is_neg", "false", "Were spectra acquired in negative mode?");
-    defaults_.setValidStrings("is_neg", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
   }
 
   void FeatureDeconvolution::updateMembers_()
   {
-    bool is_neg = param_.getValue("is_neg") == "true";
+    bool negative_mode = param_.getValue("negative_mode") == "true";
     map_label_.clear();
     map_label_inverse_.clear();
     map_label_inverse_[param_.getValue("default_map_label")] = 0; // default virtual map (for unlabeled experiments)
@@ -217,7 +219,7 @@ namespace OpenMS
       }
       EmpiricalFormula ef(adduct[0].remove('+').remove('-'));
       //std::cout << ef.toString() << endl;
-      if (!is_neg)
+      if (!negative_mode)
         ef -= EmpiricalFormula("H" + String(l_charge));
       else
         ef += EmpiricalFormula("H" + String(l_charge));
@@ -310,7 +312,7 @@ namespace OpenMS
   void FeatureDeconvolution::compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p)
   {
 
-    bool is_neg = param_.getValue("is_neg") == "true";
+    bool negative_mode = param_.getValue("negative_mode") == "true";
     ConsensusMap cons_map_p_neg; // tmp
     cons_map = ConsensusMap();
     cons_map_p = ConsensusMap();
@@ -377,7 +379,7 @@ namespace OpenMS
 
     // Backbone adduct: implicit adducts don't cost anything
     Adduct proton(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);
-    if (is_neg)
+    if (negative_mode)
         proton.setAmount(-1);
 
     for (Size i_RT = 0; i_RT < fm_out.size(); ++i_RT) // ** RT-sweep line
@@ -781,7 +783,7 @@ namespace OpenMS
         fm_out[f0_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(proton, Compomer::LEFT) ? 1 : 0));
         if (new_q0 != old_q0)
           fm_out[f0_idx].setMetaValue("old_charge", old_q0);
-        if (is_neg)
+        if (negative_mode)
             new_q0=new_q0*-1;//we correct to negative charges here
         fm_out[f0_idx].setCharge(new_q0);
         labels = c.getLabels(Compomer::LEFT);
@@ -807,7 +809,7 @@ namespace OpenMS
         fm_out[f1_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(proton, Compomer::RIGHT) ? 1 : 0));
         if (new_q1 != old_q1)
           fm_out[f1_idx].setMetaValue("old_charge", old_q1);
-        if (is_neg)
+        if (negative_mode)
             new_q1=new_q1*-1;//we correct to negative charges here
         fm_out[f1_idx].setCharge(new_q1);
         labels = c.getLabels(Compomer::RIGHT);
@@ -998,7 +1000,7 @@ namespace OpenMS
       FeatureMapType::FeatureType f_single = fm_out_untouched[i];
       f_single.setMetaValue("is_single_feature", 1);
       f_single.setMetaValue("charge", f_single.getCharge());
-      if (is_neg)
+      if (negative_mode)
           f_single.setCharge(f_single.getCharge()*-1);
       fm_out[i] = f_single; // overwrite whatever DC has done to this feature!
 
@@ -1089,9 +1091,9 @@ namespace OpenMS
   ///      (Na+) -> (H+Na+)
   void FeatureDeconvolution::inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
-    bool is_neg = param_.getValue("is_neg") == "true";
+    bool negative_mode = param_.getValue("negative_mode") == "true";
     Adduct default_adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);
-    if (is_neg)
+    if (negative_mode)
         default_adduct.setAmount(-1);
 
     Size edges_size = edges.size();
