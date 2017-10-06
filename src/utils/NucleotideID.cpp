@@ -592,8 +592,8 @@ protected:
           {
             for (std::vector<MSSpectrum>::iterator n_it = selected_map.getSpectra().begin(); n_it != selected_map.getSpectra().end(); ++n_it)
             {
-              tmprevscore = metmatch.computeHyperScore(*n_it, rev_spec, fragment_mass_tolerance, 100.0);
-              tmpscore = metmatch.computeHyperScore(*n_it, spec, fragment_mass_tolerance, 100.0);
+              tmprevscore = metmatch.computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, *n_it, rev_spec, 100.0);
+              tmpscore = metmatch.computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, *n_it, spec, 100.0);
               if (tmpscore > score)
               {
                 score = tmpscore;
@@ -603,8 +603,8 @@ protected:
           }
           else
           {
-            revscore = metmatch.computeHyperScore(selected_map.getSpectra()[0], rev_spec, fragment_mass_tolerance, 100.0);
-            score = metmatch.computeHyperScore(selected_map.getSpectra()[0], spec, fragment_mass_tolerance, 100.0);
+            revscore = metmatch.computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, selected_map.getSpectra()[0], rev_spec, 100.0);
+            score = metmatch.computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, selected_map.getSpectra()[0], spec, 100.0);
           }
           if (debug_level_ > 0)
           {

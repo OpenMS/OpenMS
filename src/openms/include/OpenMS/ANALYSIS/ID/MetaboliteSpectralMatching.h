@@ -160,7 +160,12 @@ namespace OpenMS
     virtual ~MetaboliteSpectralMatching();
 
     /// hyperscore computation
-    double computeHyperScore(MSSpectrum, MSSpectrum, const double&, const double&);
+    static double computeHyperScore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      double mz_lower_bound = 0.0);
 
     /// main method of MetaboliteSpectralMatching
     void run(PeakMap &, PeakMap &, MzTab &);

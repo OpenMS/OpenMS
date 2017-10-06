@@ -31,6 +31,7 @@ MSSimulator
 NucleotideID
 NucleotideIDAMSDBCreator
 NucSpectrumGen
+NucleicAcidSearchEngine
 MultiplexResolver
 MzMLSplitter
 OpenMSInfo
