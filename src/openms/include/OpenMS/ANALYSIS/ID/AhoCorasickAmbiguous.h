@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,8 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef SEQAN_HEADER_FIND_AHOCORASICKAMBIGUOUSIGUOUS_H
-#define SEQAN_HEADER_FIND_AHOCORASICKAMBIGUOUSIGUOUS_H
+#ifndef OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H
+#define OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H
 
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -1004,4 +1004,4 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif //#ifndef SEQAN_HEADER_FIND_AHOCORASICKAMBIGUOUSIGUOUS_H
+#endif //#ifndef OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H

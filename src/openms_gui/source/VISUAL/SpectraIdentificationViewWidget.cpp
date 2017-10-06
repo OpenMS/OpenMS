@@ -910,7 +910,7 @@ namespace OpenMS
     }
   }
 
-  // Upon changes in the table data (only possible by checking or unchecking a checkbox rigth now),
+  // Upon changes in the table data (only possible by checking or unchecking a checkbox right now),
   // update the corresponding PeptideIdentification / PeptideHits
   void SpectraIdentificationViewWidget::updateData_(QTableWidgetItem* item)
   {

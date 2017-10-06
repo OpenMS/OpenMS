@@ -29,7 +29,7 @@
 // 
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse$
-// $Authors: Hendrik Brauer, Oiver Kohlbacher, Johannes Junker$
+// $Authors: Hendrik Brauer, Oliver Kohlbacher, Johannes Junker$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
