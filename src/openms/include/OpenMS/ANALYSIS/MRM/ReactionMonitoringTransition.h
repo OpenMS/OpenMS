@@ -119,7 +119,7 @@ public:
 
     void addPrecursorCVTerm(const CVTerm & cv_term);
 
-    /* @brief Obtain the list of CV Terms for the precusor
+    /* @brief Obtain the list of CV Terms for the precursor
      *
      * @note You first need to check whether they exist using hasPrecursorCVTerms() 
     */

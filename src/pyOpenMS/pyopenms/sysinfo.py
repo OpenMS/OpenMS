@@ -41,7 +41,7 @@ elif sys.platform == "win32":
             return win32api.GlobalMemoryStatus()['AvailPhys']
 
 else:
-    sys.stderr.write("determination of memory status not supported on this \n"
-                     " platform, mesauring for memoryleaks will never fail\n")
+    sys.stderr.write("Determination of memory status is not supported on this \n"
+                     " platform, measuring for memoryleaks will never fail\n")
 
     free_mem = lambda: 0 # memory will never change !

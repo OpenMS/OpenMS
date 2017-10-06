@@ -125,9 +125,9 @@ namespace OpenMS
 
       /**
        * @brief Builds PeptideIdentifications and PeptideHits
-       * @param peptide_ids The vector of PeptideIdentfifications for the whole experiment. The created PepIds will be pushed on this one.
+       * @param peptide_ids The vector of PeptideIdentifications for the whole experiment. The created PepIds will be pushed on this one.
        * @param top_csms_spectrum All CrossLinkSpectrumMatches from the current spectrum to be written out
-       * @param all_top_csms A vector of all CrossLinkSpectrumMatches of the experiment, that is also extended in this funtion
+       * @param all_top_csms A vector of all CrossLinkSpectrumMatches of the experiment, that is also extended in this function
        * @param all_top_csms_current_index The index of the current spectrum in all_top_csms (some spectra have no matches, so this is not equal to the spectrum index)
        * @param spectra The searched spectra as a PeakMap
        * @param scan_index The index of the current spectrum
