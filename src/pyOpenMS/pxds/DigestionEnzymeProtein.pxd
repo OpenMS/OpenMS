@@ -5,22 +5,24 @@ from Types cimport *
 from String cimport *
 from EmpiricalFormula cimport *
 
-cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzyme.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS":
 
-    cdef cppclass DigestionEnzyme:
-        DigestionEnzyme(DigestionEnzyme) nogil except + # wrap-ignore
+    cdef cppclass DigestionEnzymeProtein:
+        DigestionEnzymeProtein() nogil except + # wrap-ignore
+
+        DigestionEnzymeProtein(DigestionEnzymeProtein) nogil except + # wrap-ignore
 
         # detailed constructor
-        DigestionEnzyme(String name,
-                        String cleavage_regex,
-                        libcpp_set[String]  synonyms,
-                        String regex_description,
-                        EmpiricalFormula n_term_gain,
-                        EmpiricalFormula c_term_gain,
-                        String psi_id,
-                        String xtandem_id,
-                        UInt comet_id,
-                        UInt omssa_id) nogil except +
+        DigestionEnzymeProtein(String name,
+                               String cleavage_regex,
+                               libcpp_set[String] synonyms,
+                               String regex_description,
+                               EmpiricalFormula n_term_gain,
+                               EmpiricalFormula c_term_gain,
+                               String psi_id,
+                               String xtandem_id,
+                               UInt comet_id,
+                               UInt omssa_id) nogil except +
 
         # sets the name of the Enzyme
         void setName(String name) nogil except +
