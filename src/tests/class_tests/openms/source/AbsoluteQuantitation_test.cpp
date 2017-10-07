@@ -73,6 +73,12 @@ START_SECTION((double calculateRatio(Feature & component_1, Feature & component_
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_2,feature_name),1.0);
   component_2.setMetaValue(feature_name, 0.0);
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_2,feature_name),inf);
+  // dummy features
+  OpenMS::Feature component_3, component_4;
+  component_3.setMetaValue("peak_area", 5.0);
+  component_4.setMetaValue("peak_area", 5.0);
+  TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_4,feature_name),5.0);
+  TEST_REAL_SIMILAR(absquant.calculateRatio(component_3,component_4,feature_name),0.0);
 END_SECTION
 
 START_SECTION((double calculateBias(double & actual_concentration, double & calculated_concentration)))
@@ -101,6 +107,8 @@ START_SECTION((double applyCalibration(Feature & component,
   String feature_name = "peak_apex_int";
 
   // set-up the model and params
+  // y = m*x + b
+  // x = (y - b)/m
   String transformation_model;
   Param param;
   transformation_model = "TransformationModelLinear";  

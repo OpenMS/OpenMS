@@ -92,9 +92,14 @@ namespace OpenMS
     } 
     else if (component_1.metaValueExists(feature_name))
     {
+      LOG_INFO << "Warning: no IS found for component " << feature_1.getMetaValue("native_id") << ".";
       double feature_1 = component_1.getMetaValue(feature_name);
       ratio = feature_1;
     } 
+    else
+    {
+      LOG_INFO << "Feature metaValue " << feature_name << " not found for components " << feature_1.getMetaValue("native_id") << " and " << feature_2.getMetaValue("native_id") << ".";
+    }
 
     return ratio;
   }

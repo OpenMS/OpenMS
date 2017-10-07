@@ -72,7 +72,6 @@ namespace OpenMS
       else
       {
         CsvFile::getRow(i, line); 
-        //TODO: remove leading and trailing white spaces
         parseLine(line, headers, params_headers, aqm);    
         aqm_list.push_back(aqm);  
       }    
