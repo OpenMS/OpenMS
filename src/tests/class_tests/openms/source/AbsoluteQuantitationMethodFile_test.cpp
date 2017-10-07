@@ -156,7 +156,7 @@ START_SECTION((void parseLine(StringList & line, std::map<String,int> & headers,
   line1.push_back("uM");
   line1.push_back("0.0");
   line1.push_back(""); //test for empty string
-  line1.push_back("2.0");
+  line1.push_back("2.0"); //TODO: add test for leading/trailing whitespaces
   line1.push_back("8.0");
   line1.push_back("0.99");
   line1.push_back("1.0");
