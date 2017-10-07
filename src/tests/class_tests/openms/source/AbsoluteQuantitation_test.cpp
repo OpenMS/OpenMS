@@ -68,7 +68,9 @@ START_SECTION((double calculateRatio(Feature & component_1, Feature & component_
   // dummy features
   OpenMS::Feature component_1, component_2;
   component_1.setMetaValue(feature_name, 5.0);
+  component_1.setMetaValue("native_id","component1")
   component_2.setMetaValue(feature_name, 5.0);
+  component_2.setMetaValue("native_id","component2")
   // tests
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_2,feature_name),1.0);
   component_2.setMetaValue(feature_name, 0.0);
@@ -76,7 +78,9 @@ START_SECTION((double calculateRatio(Feature & component_1, Feature & component_
   // dummy features
   OpenMS::Feature component_3, component_4;
   component_3.setMetaValue("peak_area", 5.0);
+  component_3.setMetaValue("native_id","component3")
   component_4.setMetaValue("peak_area", 5.0);
+  component_4.setMetaValue("native_id","component4")
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_1,component_4,feature_name),5.0);
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_3,component_4,feature_name),0.0);
 END_SECTION
