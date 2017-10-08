@@ -567,7 +567,7 @@ namespace OpenMS
 
   void FuzzyStringComparator::readNextLine_(std::istream& input_stream, std::string& line_string, int& line_number) const
   {
-    for (line_string.clear(); ++line_number, std::getline(input_stream, line_string); )
+    for (line_string.clear(); static_cast<void>(++line_number), std::getline(input_stream, line_string); )
     {
       if (line_string.empty())
         continue; // shortcut
