@@ -36,10 +36,97 @@
 
 namespace OpenMS
 {
-  SpectrumExtractor::SpectrumExtractor(void)
+  SpectrumExtractor::SpectrumExtractor() :
+    DefaultParamHandler("SpectrumExtractor")
   {
-    // initialize variables?
+    getDefaultParameters(defaults_);
+
+    // write defaults into Param object param_
+    defaultsToParam_();
   }
 
-  SpectrumExtractor::~SpectrumExtractor(void) {}
+  SpectrumExtractor::~SpectrumExtractor() {}
+
+  void SpectrumExtractor::setRTWindow(double rt_window)
+  {
+    rt_window_ = rt_window;
+  }
+
+  double SpectrumExtractor::getRTWindow() const
+  {
+    return rt_window_;
+  }
+
+  void SpectrumExtractor::setMinScore(double min_score)
+  {
+    min_score_ = min_score;
+  }
+
+  double SpectrumExtractor::getMinScore() const
+  {
+    return min_score_;
+  }
+
+  void SpectrumExtractor::setMinForwardMatch(double min_forward_match)
+  {
+    min_forward_match_ = min_forward_match;
+  }
+
+  double SpectrumExtractor::getMinForwardMatch() const
+  {
+    return min_forward_match_;
+  }
+
+  void SpectrumExtractor::setMinReverseMatch(double min_reverse_match)
+  {
+    min_reverse_match_ = min_reverse_match;
+  }
+
+  double SpectrumExtractor::getMinReverseMatch() const
+  {
+    return min_reverse_match_;
+  }
+
+  void SpectrumExtractor::setMZTolerance(double mz_tolerance)
+  {
+    mz_tolerance_ = mz_tolerance;
+  }
+
+  double SpectrumExtractor::getMZTolerance() const
+  {
+    return mz_tolerance_;
+  }
+
+  void SpectrumExtractor::setMZToleranceUnits(String mz_tolerance_units)
+  {
+    mz_tolerance_units_ = mz_tolerance_units;
+  }
+
+  String SpectrumExtractor::getMZToleranceUnits() const
+  {
+    return mz_tolerance_units_;
+  }
+
+  void SpectrumExtractor::updateMembers_()
+  {
+    rt_window_ = (double)param_.getValue("rt_window");
+    min_score_ = (double)param_.getValue("min_score");
+    min_forward_match_ = (double)param_.getValue("min_forward_match");
+    min_reverse_match_ = (double)param_.getValue("min_reverse_match");
+    mz_tolerance_ = (double)param_.getValue("mz_tolerance");
+    mz_tolerance_units_ = (String)param_.getValue("mz_tolerance_units");
+  }
+
+  void SpectrumExtractor::getDefaultParameters(Param& params)
+  {
+    params.clear();
+    // TODO also set min and max values for these defaults (eg. params.setMinFloat(...))
+    params.setValue("rt_window", 100, "Retention time window.");
+    params.setValue("min_score", 0.7, "Minimum score.");
+    params.setValue("min_forward_match", 0.7, "Minimum forward match.");
+    params.setValue("min_reverse_match", 0.7, "Minimum reverse match.");
+    params.setValue("mz_tolerance", 0.7, "Mass to Charge tolerance.");
+    params.setValue("mz_tolerance_units", "ppm", "Mass to Charge tolerance units.");
+    params.setValidStrings("mz_tolerance_units", ListUtils::create<String>("ppm,Da"));
+  }
 }

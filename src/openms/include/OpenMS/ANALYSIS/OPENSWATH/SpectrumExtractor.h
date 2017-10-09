@@ -36,6 +36,8 @@
 #define OPENMS_ANALYSIS_OPENSWATH_SPECTRUMEXTRACTOR_H
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
+#include <OpenMS/DATASTRUCTURES/String.h> // String
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h> // DefaultParamHandler
 
 namespace OpenMS
 {
@@ -47,18 +49,44 @@ namespace OpenMS
   HERE
 
   */
-  class OPENMS_DLLAPI SpectrumExtractor
+  class OPENMS_DLLAPI SpectrumExtractor :
+    public DefaultParamHandler
   {
 public:
     SpectrumExtractor();
-    ~SpectrumExtractor();
+    virtual ~SpectrumExtractor();
+
+    void setRTWindow(double rt_window);
+    double getRTWindow() const;
+
+    void setMinScore(double min_score);
+    double getMinScore() const;
+
+    void setMinForwardMatch(double min_forward_match);
+    double getMinForwardMatch() const;
+
+    void setMinReverseMatch(double min_reverse_match);
+    double getMinReverseMatch() const;
+
+    void setMZTolerance(double mz_tolerance);
+    double getMZTolerance() const;
+
+    void setMZToleranceUnits(String mz_tolerance_units);
+    String getMZToleranceUnits() const;
+
+    void getDefaultParameters(Param& params);
+
+protected:
+    /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
+    void updateMembers_();
 
 private:
     double rt_window_;
     double min_score_;
-    double min_match_;
+    double min_forward_match_;
+    double min_reverse_match_;
     double mz_tolerance_;
-    double mz_tolerance_units_;
+    String mz_tolerance_units_;
   };
 }
 
