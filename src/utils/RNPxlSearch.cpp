@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -73,8 +72,6 @@
 
 #include <boost/regex.hpp>
 
-#include <OpenMS/FILTERING/ID/IDFilter.h>
-
 #include <map>
 #include <algorithm>
 
@@ -109,8 +106,7 @@ class Deisotoper
    * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
    * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
    */
-  template <typename SpectrumType>
-  static void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, 
+  static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in, 
                                           double fragment_tolerance, bool fragment_unit_ppm, 
                                           Int min_charge = 1, Int max_charge = 3,
                                           bool keep_only_deisotoped = false, 
