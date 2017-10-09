@@ -667,7 +667,7 @@ protected:
     // Set parameters for cross-link fragmentation
     Param specGenParams = specGen.getParameters();
     specGenParams.setValue("add_metainfo", "true");
-    specGenParams.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
+    specGenParams.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
     specGenParams.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
     specGenParams.setValue("add_losses", "true", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
     specGenParams.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
@@ -874,7 +874,7 @@ protected:
           specGen.getXLinkIonSpectrumWithLosses(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
           specGen.getXLinkIonSpectrumWithLosses(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
           // TODO complex peaks count as xlinks beta for now,  add them to both alpha and beta? or start a third ion category?
-          specGen.getComplexXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, 1, 3);
+          // specGen.getComplexXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, 1, 4);
         } else
         {
           // Function for mono-links or loop-links
