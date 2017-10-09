@@ -143,6 +143,7 @@ namespace OpenMS
 
     typedef UniqueKey ScoreTypeKey;
     typedef boost::bimap<ScoreTypeKey, ScoreType> ScoreTypeBimap;
+    typedef std::vector<std::pair<ScoreTypeKey, double>> ScoreList;
     ScoreTypeBimap score_types;
 
 
@@ -200,7 +201,7 @@ namespace OpenMS
     {
       enum MoleculeType molecule_type;
 
-      std::unordered_map<ScoreTypeKey, double> scores;
+      ScoreList scores;
 
       std::vector<ProcessingStepKey> processing_steps;
     };
@@ -240,7 +241,7 @@ namespace OpenMS
     {
       Int charge;
 
-      std::unordered_map<ScoreTypeKey, double> scores;
+      ScoreList scores;
 
       // is it useful to store this, as different processing steps/score types
       // may give different rankings?
@@ -274,7 +275,7 @@ namespace OpenMS
 
       double coverage;
 
-      std::unordered_map<ScoreTypeKey, double> scores;
+      ScoreList scores;
 
       // ordered list of references to data processing steps:
       std::vector<ProcessingStepKey> processing_steps;
@@ -309,6 +310,9 @@ namespace OpenMS
       return std::make_pair(pos->second, false);
     }
 
+
+    /// Helper function to find a score value by its key
+    double findScore_(ScoreTypeKey key, const ScoreList& scores);
 
   public:
 

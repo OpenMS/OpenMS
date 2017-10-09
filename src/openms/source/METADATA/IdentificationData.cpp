@@ -88,7 +88,7 @@ namespace OpenMS
           meta.sequence = hit_it->getSequence();
           meta.description = hit_it->getDescription();
           meta.coverage = hit_it->getCoverage();
-          meta.scores.insert(make_pair(score_key, hit_it->getScore()));
+          meta.scores.push_back(make_pair(score_key, hit_it->getScore()));
           meta.processing_steps.push_back(step_key);
           static_cast<MetaInfoInterface&>(meta) = *hit_it;
           parent_meta_data.insert(make_pair(result.first, meta));
@@ -97,7 +97,7 @@ namespace OpenMS
         {
           ParentMetaData& meta = parent_meta_data.at(result.first);
           // this won't overwrite:
-          meta.scores.insert(make_pair(score_key, hit_it->getScore()));
+          meta.scores.push_back(make_pair(score_key, hit_it->getScore()));
           meta.processing_steps.push_back(step_key);
         }
       }
@@ -183,7 +183,7 @@ namespace OpenMS
           static_cast<MetaInfoInterface&>(match) = *hit_it;
           pos = matches.insert(make_pair(psm_key, match)).first;
         }
-        pos->second.scores.insert(make_pair(score_key, hit_it->getScore()));
+        pos->second.scores.push_back(make_pair(score_key, hit_it->getScore()));
         pos->second.processing_steps.push_back(step_key);
       }
     }
@@ -229,9 +229,9 @@ namespace OpenMS
              match.processing_steps.end(); ++step_it)
       {
         const DataProcessingStep& step = processing_steps.at(*step_it);
-        for (unordered_map<ScoreTypeKey, double>::const_iterator score_it =
-               match.scores.begin(); score_it != match.scores.end();
-             ++score_it)
+        // give priority to "later" scores:
+        for (ScoreList::const_reverse_iterator score_it = match.scores.rbegin();
+             score_it != match.scores.rend(); ++score_it)
         {
           const ScoreType& score = score_types.left.at(score_it->first);
           if (score.params_key == step.params_key)
@@ -284,9 +284,9 @@ namespace OpenMS
              meta.processing_steps.end(); ++step_it)
       {
         const DataProcessingStep& step = processing_steps.at(*step_it);
-        for (unordered_map<ScoreTypeKey, double>::const_iterator score_it =
-               meta.scores.begin(); score_it != meta.scores.end();
-             ++score_it)
+        // give priority to "later" scores:
+        for (ScoreList::const_reverse_iterator score_it = meta.scores.rbegin();
+             score_it != meta.scores.rend(); ++score_it)
         {
           const ScoreType& score = score_types.left.at(score_it->first);
           if (score.params_key == step.params_key)
@@ -324,4 +324,18 @@ namespace OpenMS
       proteins.push_back(protein);
     }
   }
+
+
+  double IdentificationData::findScore_(ScoreTypeKey key,
+                                        const ScoreList& scores)
+  {
+    // give priority to "later" scores in the list:
+    for (ScoreList::const_reverse_iterator it = scores.rbegin();
+         it != scores.rend(); ++it)
+    {
+      if (it->first == key) return it->second;
+    }
+    return numeric_limits<double>::quiet_NaN(); // or throw an exception?
+  }
+
 }
