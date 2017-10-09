@@ -66,7 +66,8 @@ public:
     /// @name typedefs
     //@{
     /// container type, first holds the weight of the isotope, second the probability
-    typedef std::vector<std::pair<Size, double> > ContainerType;
+    typedef std::pair<double, double> MassAbundance;
+    typedef std::vector<MassAbundance> ContainerType;
     typedef ContainerType::iterator iterator;
     typedef ContainerType::iterator Iterator;
     typedef ContainerType::const_iterator const_iterator;

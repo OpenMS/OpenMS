@@ -121,8 +121,7 @@ protected:
 
             @throw throws exception ParseError
      */
-    IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double> & distribution);
-
+    IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass);
     /*_ calculates the average weight based on isotope abundance and mass
      */
     double calculateAvgWeight_(const Map<UInt, double> & Z_to_abundance, const Map<UInt, double> & Z_to_mass);

@@ -191,7 +191,7 @@ namespace OpenMS
     {
       max_isotopes += 1000;
       IsotopeDistribution isotopes;
-      std::vector<std::pair<Size, double> > container;
+      IsotopeDistribution::ContainerType container;
       container.push_back(std::make_pair(12, abundance_12C / 100.0));
       container.push_back(std::make_pair(13, 1.0 - (abundance_12C / 100.0)));
       isotopes.set(container);
@@ -205,7 +205,7 @@ namespace OpenMS
     {
       max_isotopes += 1000;
       IsotopeDistribution isotopes;
-      std::vector<std::pair<Size, double> > container;
+      IsotopeDistribution::ContainerType container;
       container.push_back(std::make_pair(14, abundance_14N / 100.0));
       container.push_back(std::make_pair(15, 1.0 - (abundance_14N / 100.0)));
       isotopes.set(container);

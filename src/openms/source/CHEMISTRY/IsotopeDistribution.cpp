@@ -54,7 +54,7 @@ namespace OpenMS
   IsotopeDistribution::IsotopeDistribution(Size max_isotope) :
     max_isotope_(max_isotope)
   {
-    distribution_.push_back(make_pair<Size, double>(0, 1));
+    distribution_.push_back(IsotopeDistribution::MassAbundance(0, 1));
   }
 
   IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & isotope_distribution) :
@@ -112,7 +112,6 @@ namespace OpenMS
     distribution_ = result;
     return *this;
   }
-
   IsotopeDistribution IsotopeDistribution::operator*(Size factor) const
   {
     ContainerType result;
@@ -265,10 +264,11 @@ namespace OpenMS
   IsotopeDistribution::ContainerType IsotopeDistribution::fillGaps_(const IsotopeDistribution::ContainerType& id) const
   {
     ContainerType id_gapless;
-    Size mass = id.begin()->first;
+    Size mass = round(id.begin()->first);
     for (ContainerType::const_iterator it = id.begin(); it < id.end(); ++mass) // go through all masses
     {
-      if (it->first != mass) 
+      //round atomic mass to the mass_number
+      if (round(it->first) != mass) 
       { // missing an entry
         id_gapless.push_back(make_pair(mass, 0.0));
       }
@@ -353,7 +353,7 @@ namespace OpenMS
     else
     {
       result.clear();
-      result.push_back(make_pair<Size, double>(0, 1.0));
+      result.push_back(IsotopeDistribution::MassAbundance(0, 1.0));
     }
 
     ContainerType intermediate;
