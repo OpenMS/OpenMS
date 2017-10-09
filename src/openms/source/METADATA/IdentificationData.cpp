@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/IdentificationData.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 using namespace std;
 
@@ -74,6 +75,10 @@ namespace OpenMS
         ProcessingStepKey(UniqueIdGenerator::getUniqueId());
       processing_steps.insert(make_pair(step_key, step));
       id_to_step[prot_it->getIdentifier()] = step_key;
+
+      SearchParamsKey search_key =
+        importDBSearchParameters_(prot_it->getSearchParameters());
+      db_search_steps.insert(make_pair(step_key, search_key));
 
       for (vector<ProteinHit>::const_iterator hit_it =
              prot_it->getHits().begin(); hit_it != prot_it->getHits().end();
@@ -314,13 +319,21 @@ namespace OpenMS
       protein.setSearchEngine(params.tool.getName());
       protein.setSearchEngineVersion(params.tool.getVersion());
       map<ProcessingStepKey, pair<vector<ProteinHit>, ScoreTypeKey>>::
-        const_iterator pos = prot_data.find(*step_it);
-      if (pos != prot_data.end())
+        const_iterator pd_pos = prot_data.find(*step_it);
+      if (pd_pos != prot_data.end())
       {
-        protein.setHits(pos->second.first);
-        const ScoreType& score_type = score_types.left.at(pos->second.second);
+        protein.setHits(pd_pos->second.first);
+        const ScoreType& score_type = score_types.left.at(pd_pos->
+                                                          second.second);
         protein.setScoreType(score_type.name);
       }
+      unordered_map<ProcessingStepKey, SearchParamsKey>::const_iterator ss_pos =
+        db_search_steps.find(*step_it);
+      if (ss_pos != db_search_steps.end())
+      {
+        protein.setSearchParameters(exportDBSearchParameters_(ss_pos->second));
+      }
+
       proteins.push_back(protein);
     }
   }
@@ -338,4 +351,77 @@ namespace OpenMS
     return numeric_limits<double>::quiet_NaN(); // or throw an exception?
   }
 
-}
+
+  IdentificationData::SearchParamsKey IdentificationData::importDBSearchParameters_(
+      const ProteinIdentification::SearchParameters& pisp)
+  {
+    DBSearchParameters dbsp;
+    dbsp.molecule_type = MT_PROTEIN;
+    dbsp.peak_mass_type = pisp.mass_type;
+    dbsp.database = pisp.db;
+    dbsp.database_version = pisp.db_version;
+    dbsp.taxonomy = pisp.taxonomy;
+    vector<Int> charges = ListUtils::create<Int>(pisp.charges);
+    dbsp.charges.insert(charges.begin(), charges.end());
+    dbsp.fixed_mods.insert(pisp.fixed_modifications.begin(),
+                           pisp.fixed_modifications.end());
+    dbsp.variable_mods.insert(pisp.variable_modifications.begin(),
+                              pisp.variable_modifications.end());
+    dbsp.precursor_mass_tolerance = pisp.precursor_mass_tolerance;
+    dbsp.fragment_mass_tolerance = pisp.fragment_mass_tolerance;
+    dbsp.precursor_tolerance_ppm = pisp.precursor_mass_tolerance_ppm;
+    dbsp.fragment_tolerance_ppm = pisp.fragment_mass_tolerance_ppm;
+    const String& enzyme_name = pisp.digestion_enzyme.getName();
+    if (ProteaseDB::getInstance()->hasEnzyme(enzyme_name))
+    {
+      dbsp.digestion_enzyme = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
+    }
+    dbsp.missed_cleavages = pisp.missed_cleavages;
+    static_cast<MetaInfoInterface&>(dbsp) = pisp;
+
+    return insertIntoBimap_(dbsp, db_search_params).first;
+  }
+
+
+  ProteinIdentification::SearchParameters
+  IdentificationData::exportDBSearchParameters_(SearchParamsKey key) const
+  {
+    const DBSearchParameters& dbsp = db_search_params.left.at(key);
+    if (dbsp.molecule_type != MT_PROTEIN)
+    {
+      String msg = "only proteomics search parameters can be exported";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    ProteinIdentification::SearchParameters pisp;
+    pisp.mass_type = dbsp.peak_mass_type;
+    pisp.db = dbsp.database;
+    pisp.db_version = dbsp.database_version;
+    pisp.taxonomy = dbsp.taxonomy;
+    pisp.charges = ListUtils::concatenate(dbsp.charges, ", ");
+    pisp.fixed_modifications.insert(pisp.fixed_modifications.end(),
+                                    dbsp.fixed_mods.begin(),
+                                    dbsp.fixed_mods.end());
+    pisp.variable_modifications.insert(pisp.variable_modifications.end(),
+                                       dbsp.variable_mods.begin(),
+                                       dbsp.variable_mods.end());
+    pisp.precursor_mass_tolerance = dbsp.precursor_mass_tolerance;
+    pisp.fragment_mass_tolerance = dbsp.fragment_mass_tolerance;
+    pisp.precursor_mass_tolerance_ppm = dbsp.precursor_tolerance_ppm;
+    pisp.fragment_mass_tolerance_ppm = dbsp.fragment_tolerance_ppm;
+    if (dbsp.digestion_enzyme)
+    {
+      pisp.digestion_enzyme = *(static_cast<const DigestionEnzymeProtein*>(
+                                  dbsp.digestion_enzyme));
+    }
+    else
+    {
+      pisp.digestion_enzyme = DigestionEnzymeProtein("unknown_enzyme", "");
+    }
+    pisp.missed_cleavages = dbsp.missed_cleavages;
+    static_cast<MetaInfoInterface&>(pisp) = dbsp;
+
+    return pisp;
+  }
+
+} // end namespace OpenMS

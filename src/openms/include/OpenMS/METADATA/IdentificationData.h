@@ -288,6 +288,80 @@ namespace OpenMS
 
 
     /*!
+      Parameters specific to a database search step.
+    */
+    struct DBSearchParameters: public MetaInfoInterface
+    {
+      enum MoleculeType molecule_type;
+      enum ProteinIdentification::PeakMassType peak_mass_type;
+
+      String database;
+      String database_version;
+      String taxonomy;
+
+      std::set<Int> charges;
+
+      std::set<String> fixed_mods;
+      std::set<String> variable_mods;
+
+      double precursor_mass_tolerance;
+      double fragment_mass_tolerance;
+      bool precursor_tolerance_ppm;
+      bool fragment_tolerance_ppm;
+
+      // allow for either "DigestionEnzymeProtein" or "DigestionEnzymeRNA":
+      const DigestionEnzyme* digestion_enzyme;
+      Size missed_cleavages;
+
+      DBSearchParameters():
+        molecule_type(MT_PROTEIN), precursor_mass_tolerance(0.0),
+        fragment_mass_tolerance(0.0), precursor_tolerance_ppm(false),
+        fragment_tolerance_ppm(false), digestion_enzyme(0), missed_cleavages(0)
+      {
+      }
+
+      bool operator<(const DBSearchParameters& other) const
+      {
+        return (std::tie(molecule_type, database, database_version, taxonomy,
+                         charges, fixed_mods, variable_mods,
+                         fragment_mass_tolerance, precursor_mass_tolerance,
+                         fragment_tolerance_ppm, precursor_tolerance_ppm,
+                         digestion_enzyme, missed_cleavages) <
+                std::tie(other.molecule_type, other.database,
+                         other.database_version, other.taxonomy, other.charges,
+                         other.fixed_mods, other.variable_mods,
+                         other.fragment_mass_tolerance,
+                         other.precursor_mass_tolerance,
+                         other.fragment_tolerance_ppm,
+                         other.precursor_tolerance_ppm,
+                         other.digestion_enzyme, other.missed_cleavages));
+      }
+
+      bool operator==(const DBSearchParameters& other) const
+      {
+        return (std::tie(molecule_type, database, database_version, taxonomy,
+                         charges, fixed_mods, variable_mods,
+                         fragment_mass_tolerance, precursor_mass_tolerance,
+                         fragment_tolerance_ppm, precursor_tolerance_ppm,
+                         digestion_enzyme, missed_cleavages) ==
+                std::tie(other.molecule_type, other.database,
+                         other.database_version, other.taxonomy, other.charges,
+                         other.fixed_mods, other.variable_mods,
+                         other.fragment_mass_tolerance,
+                         other.precursor_mass_tolerance,
+                         other.fragment_tolerance_ppm,
+                         other.precursor_tolerance_ppm,
+                         other.digestion_enzyme, other.missed_cleavages));
+      }
+    };
+
+    typedef UniqueKey SearchParamsKey;
+    typedef boost::bimap<SearchParamsKey, DBSearchParameters> SearchParamsBimap;
+    SearchParamsBimap db_search_params;
+    std::unordered_map<ProcessingStepKey, SearchParamsKey> db_search_steps;
+
+
+    /*!
       Helper function for inserting an item into a bidirectional map.
 
       If the item is not contained yet, a unique key for it will be generated.
@@ -313,6 +387,17 @@ namespace OpenMS
 
     /// Helper function to find a score value by its key
     double findScore_(ScoreTypeKey key, const ScoreList& scores);
+
+
+    /// Helper function to import DB search parameters from legacy format
+    SearchParamsKey importDBSearchParameters_(
+      const ProteinIdentification::SearchParameters& pisp);
+
+
+    /// Helper function to export DB search parameters to legacy format
+    ProteinIdentification::SearchParameters exportDBSearchParameters_(
+      SearchParamsKey key) const;
+
 
   public:
 
