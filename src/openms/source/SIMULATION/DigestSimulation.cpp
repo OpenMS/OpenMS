@@ -35,10 +35,10 @@
 #include <OpenMS/SIMULATION/DigestSimulation.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 namespace OpenMS
 {
@@ -71,7 +71,7 @@ namespace OpenMS
   {
     // supported enzymes
     StringList enzymes;
-    EnzymesDB::getInstance()->getAllNames(enzymes);
+    ProteaseDB::getInstance()->getAllNames(enzymes);
     defaults_.setValue("enzyme", "Trypsin", "Enzyme to use for digestion (select 'no cleavage' to skip digestion)");
     defaults_.setValidStrings("enzyme", enzymes);
 
@@ -149,7 +149,7 @@ namespace OpenMS
     }
     else
     {
-      EnzymaticDigestion digestion;
+      ProteaseDigestion digestion;
       digestion.setEnzyme((String)param_.getValue("enzyme"));
     }
 
@@ -177,7 +177,7 @@ namespace OpenMS
       }
       else
       {
-        EnzymaticDigestion digestion;
+        ProteaseDigestion digestion;
         digestion.setEnzyme((String)param_.getValue("enzyme"));
         digestion.setMissedCleavages(0);
         complete_digest_count = digestion.peptideCount(AASequence::fromString(protein_hit->getSequence()));
@@ -217,7 +217,7 @@ namespace OpenMS
       }
       else
       {
-        EnzymaticDigestion digestion;
+        ProteaseDigestion digestion;
         digestion.setEnzyme((String)param_.getValue("enzyme"));
         digestion.setMissedCleavages(missed_cleavages);
         digestion.digest(AASequence::fromString(protein_hit->getSequence()), digestion_products);
