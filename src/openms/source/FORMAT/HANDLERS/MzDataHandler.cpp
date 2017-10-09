@@ -924,7 +924,7 @@ namespace OpenMS
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PrecursorIonScan\"/>\n";
             break;
 
-          case InstrumentSettings::ABSORBTION:
+          case InstrumentSettings::ABSORPTION:
             os << "\t\t\t\t\t\t<cvParam cvLabel=\"psi\" accession=\"PSI:1000036\" name=\"ScanMode\" value=\"PhotodiodeArrayDetector\"/>\n";
             break;
 
