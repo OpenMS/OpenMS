@@ -667,7 +667,7 @@ protected:
     // Set parameters for cross-link fragmentation
     Param specGenParams = specGen.getParameters();
     specGenParams.setValue("add_metainfo", "true");
-    specGenParams.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
+    specGenParams.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
     specGenParams.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
     specGenParams.setValue("add_losses", "true", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
     specGenParams.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
