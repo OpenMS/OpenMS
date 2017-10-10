@@ -226,57 +226,55 @@ namespace OpenMS
         }
 
 
-        // 0. AnalysisSoftware {1,unbounded}
+        // 0. AnalysisSoftwareList {0,1}
         DOMNodeList* analysisSoftwareElements = xmlDoc->getElementsByTagName(XMLString::transcode("AnalysisSoftware"));
-        if (!analysisSoftwareElements) throw(runtime_error("No AnalysisSoftware nodes"));
         parseAnalysisSoftwareList_(analysisSoftwareElements);
 
         // 1. DataCollection {1,1}
         DOMNodeList* spectraDataElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectraData"));
-        if (!spectraDataElements) throw(runtime_error("No SpectraData nodes"));
+        // if (spectraDataElements->getLength() == 0) throw(runtime_error("No SpectraData nodes")); // temporarily disabled
         parseInputElements_(spectraDataElements);
 
+        // 1.2. SearchDatabase {0,unbounded}
         DOMNodeList* searchDatabaseElements = xmlDoc->getElementsByTagName(XMLString::transcode("SearchDatabase"));
-        if (!searchDatabaseElements) throw(runtime_error("No SearchDatabase nodes"));
         parseInputElements_(searchDatabaseElements);
 
+        // 1.1 SourceFile {0,unbounded}
         DOMNodeList* sourceFileElements = xmlDoc->getElementsByTagName(XMLString::transcode("SourceFile"));
-        if (!sourceFileElements) throw(runtime_error("No SourceFile nodes"));
         parseInputElements_(sourceFileElements);
 
         // 2. SpectrumIdentification  {1,unbounded} ! creates identification runs (or ProteinIdentifications)
         DOMNodeList* spectrumIdentificationElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentification"));
-        if (!spectrumIdentificationElements) throw(runtime_error("No SpectrumIdentification nodes"));
+        if (spectrumIdentificationElements->getLength() == 0) throw(runtime_error("No SpectrumIdentification nodes"));
         parseSpectrumIdentificationElements_(spectrumIdentificationElements);
 
         // 3. AnalysisProtocolCollection {1,1} SpectrumIdentificationProtocol  {1,unbounded} ! identification run parameters
         DOMNodeList* spectrumIdentificationProtocolElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentificationProtocol"));
-        if (!spectrumIdentificationProtocolElements) throw(runtime_error("No SpectrumIdentificationProtocol nodes"));
+        if (spectrumIdentificationProtocolElements->getLength() == 0) throw(runtime_error("No SpectrumIdentificationProtocol nodes"));
         parseSpectrumIdentificationProtocolElements_(spectrumIdentificationProtocolElements);
 
         // 4. SequenceCollection nodes {0,1} DBSequenceElement {1,unbounded} Peptide {0,unbounded} PeptideEvidence {0,unbounded}
         DOMNodeList* dbSequenceElements = xmlDoc->getElementsByTagName(XMLString::transcode("DBSequence"));
-        if (!dbSequenceElements) throw(runtime_error("No SequenceCollection/DBSequence nodes"));
         parseDBSequenceElements_(dbSequenceElements);
 
         DOMNodeList* peptideElements = xmlDoc->getElementsByTagName(XMLString::transcode("Peptide"));
-        if (!peptideElements) throw(runtime_error("No SequenceCollection/Peptide nodes"));
         parsePeptideElements_(peptideElements);
 
         DOMNodeList* peptideEvidenceElements = xmlDoc->getElementsByTagName(XMLString::transcode("PeptideEvidence"));
-        if (!peptideEvidenceElements) throw(runtime_error("No SequenceCollection/PeptideEvidence nodes"));
         parsePeptideEvidenceElements_(peptideEvidenceElements);
 //          mzid_parser_.resetDocumentPool(); //segfault prone: do not use!
 
         // 5. AnalysisSampleCollection ??? contact stuff
 
         // 6. AnalysisCollection {1,1} - build final structures PeptideIdentification (and hits)
+
+        // 6.1 SpectrumIdentificationList {0,1}
         DOMNodeList* spectrumIdentificationListElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentificationList"));
-        if (!spectrumIdentificationListElements) throw(runtime_error("No SpectrumIdentificationList nodes"));
+        if (spectrumIdentificationListElements->getLength() == 0) throw(runtime_error("No SpectrumIdentificationList nodes"));
         parseSpectrumIdentificationListElements_(spectrumIdentificationListElements);
 
+        // 6.2 ProteinDetection {0,1}
         DOMNodeList* parseProteinDetectionListElements = xmlDoc->getElementsByTagName(XMLString::transcode("ProteinDetectionList"));
-        if (!parseProteinDetectionListElements) throw(runtime_error("No ProteinDetectionList nodes"));
         parseProteinDetectionListElements_(parseProteinDetectionListElements);
 
         for (vector<ProteinIdentification>::iterator it = pro_id_->begin(); it != pro_id_->end(); ++it)
