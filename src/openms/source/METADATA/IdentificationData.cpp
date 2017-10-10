@@ -44,6 +44,8 @@ namespace OpenMS
     const vector<PeptideIdentification>& peptides)
   {
     map<String, ProcessingStepKey> id_to_step;
+
+    // ProteinIdentification:
     for (vector<ProteinIdentification>::const_iterator prot_it =
            proteins.begin(); prot_it != proteins.end(); ++prot_it)
     {
@@ -70,16 +72,15 @@ namespace OpenMS
       }
       step.date_time = prot_it->getDateTime();
       step.params_key = params_key;
-      // no uniqueness check necessary here, as we don't expect duplicates:
       ProcessingStepKey step_key =
-        ProcessingStepKey(UniqueIdGenerator::getUniqueId());
-      processing_steps.insert(make_pair(step_key, step));
+        insertIntoBimap_(step, processing_steps).first;
       id_to_step[prot_it->getIdentifier()] = step_key;
 
       SearchParamsKey search_key =
         importDBSearchParameters_(prot_it->getSearchParameters());
       db_search_steps.insert(make_pair(step_key, search_key));
 
+      // ProteinHit:
       for (vector<ProteinHit>::const_iterator hit_it =
              prot_it->getHits().begin(); hit_it != prot_it->getHits().end();
            ++hit_it)
@@ -108,16 +109,18 @@ namespace OpenMS
       }
     }
 
+    // PeptideIdentification:
     Size unknown_query_counter = 1;
     for (vector<PeptideIdentification>::const_iterator pep_it =
            peptides.begin(); pep_it != peptides.end(); ++pep_it)
     {
       const String& id = pep_it->getIdentifier();
       ProcessingStepKey step_key = id_to_step[id];
-      const DataProcessingStep& step = processing_steps.at(step_key);
+      const DataProcessingStep& step = processing_steps.left.at(step_key);
       DataQuery query;
       if (!step.input_files.empty())
       {
+        // @TODO: what if there's more than one input file?
         query.input_file_key = step.input_files[0];
       }
       else
@@ -156,6 +159,7 @@ namespace OpenMS
       ScoreTypeKey score_key =
         insertIntoBimap_(score_type, score_types).first;
 
+      // PeptideHit:
       for (vector<PeptideHit>::const_iterator hit_it =
              pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
            ++hit_it)
@@ -188,8 +192,45 @@ namespace OpenMS
           static_cast<MetaInfoInterface&>(match) = *hit_it;
           pos = matches.insert(make_pair(psm_key, match)).first;
         }
-        pos->second.scores.push_back(make_pair(score_key, hit_it->getScore()));
-        pos->second.processing_steps.push_back(step_key);
+        MatchMetaData& match = pos->second;
+        match.processing_steps.push_back(step_key);
+
+        // analysis results from pepXML:
+        for (const PeptideHit::PepXMLAnalysisResult& ana_res :
+               hit_it->getAnalysisResults())
+        {
+          DataProcessingParameters params;
+          params.tool.setName(ana_res.score_type); // e.g. "peptideprophet"
+          ProcessingParamsKey params_key =
+            insertIntoBimap_(params, processing_params).first;
+          DataProcessingStep sub_step;
+          sub_step.params_key = params_key;
+          if (query.input_file_key != 0)
+          {
+            sub_step.input_files.push_back(query.input_file_key);
+          }
+          ProcessingStepKey sub_step_key =
+            insertIntoBimap_(sub_step, processing_steps).first;
+          match.processing_steps.push_back(sub_step_key);
+          for (const pair<String, double>& sub_pair : ana_res.sub_scores)
+          {
+            ScoreType sub_score;
+            sub_score.name = sub_pair.first;
+            sub_score.params_key = params_key;
+            ScoreTypeKey sub_score_key =
+              insertIntoBimap_(sub_score, score_types).first;
+            match.scores.push_back(make_pair(sub_score_key, sub_pair.second));
+          }
+          ScoreType main_score;
+          main_score.name = ana_res.score_type + "_probability";
+          main_score.higher_better = ana_res.higher_is_better;
+          main_score.params_key = params_key;
+          ScoreTypeKey main_score_key =
+            insertIntoBimap_(main_score, score_types).first;
+          match.scores.push_back(make_pair(main_score_key, ana_res.main_score));
+        }
+        // primary score goes last:
+        match.scores.push_back(make_pair(score_key, hit_it->getScore()));
       }
     }
   }
@@ -233,7 +274,7 @@ namespace OpenMS
              match.processing_steps.begin(); step_it !=
              match.processing_steps.end(); ++step_it)
       {
-        const DataProcessingStep& step = processing_steps.at(*step_it);
+        const DataProcessingStep& step = processing_steps.left.at(*step_it);
         // give priority to "later" scores:
         for (ScoreList::const_reverse_iterator score_it = match.scores.rbegin();
              score_it != match.scores.rend(); ++score_it)
@@ -288,7 +329,7 @@ namespace OpenMS
              meta.processing_steps.begin(); step_it !=
              meta.processing_steps.end(); ++step_it)
       {
-        const DataProcessingStep& step = processing_steps.at(*step_it);
+        const DataProcessingStep& step = processing_steps.left.at(*step_it);
         // give priority to "later" scores:
         for (ScoreList::const_reverse_iterator score_it = meta.scores.rbegin();
              score_it != meta.scores.rend(); ++score_it)
@@ -311,7 +352,7 @@ namespace OpenMS
     {
       ProteinIdentification protein;
       protein.setIdentifier(String(*step_it));
-      const DataProcessingStep& step = processing_steps.at(*step_it);
+      const DataProcessingStep& step = processing_steps.left.at(*step_it);
       protein.setDateTime(step.date_time);
       protein.setPrimaryMSRunPath(step.ms_data_path);
       const DataProcessingParameters& params =

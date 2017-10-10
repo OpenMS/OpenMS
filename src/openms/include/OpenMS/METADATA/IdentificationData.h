@@ -106,10 +106,25 @@ namespace OpenMS
       std::vector<InputFileKey> input_files; // reference into "input_files"
 
       DateTime date_time;
+
+      bool operator<(const DataProcessingStep& other) const
+      {
+        return (std::tie(params_key, ms_data_path, input_files, date_time) <
+                std::tie(other.params_key, other.ms_data_path,
+                         other.input_files, other.date_time));
+      }
+
+      bool operator==(const DataProcessingStep& other) const
+      {
+        return (std::tie(params_key, ms_data_path, input_files, date_time) ==
+                std::tie(other.params_key, other.ms_data_path,
+                         other.input_files, other.date_time));
+      }
     };
 
     typedef UniqueKey ProcessingStepKey;
-    std::unordered_map<ProcessingStepKey, DataProcessingStep> processing_steps;
+    typedef boost::bimap<ProcessingStepKey, DataProcessingStep> StepsBimap;
+    StepsBimap processing_steps;
 
 
     /*!
@@ -125,6 +140,11 @@ namespace OpenMS
       ProcessingParamsKey params_key;
 
       bool higher_better;
+
+      ScoreType():
+        params_key(0), higher_better(true)
+      {
+      }
 
       bool operator<(const ScoreType& other) const
       {
@@ -159,19 +179,28 @@ namespace OpenMS
 
       double rt, mz; // position
 
+      DataQuery():
+        input_file_key(0), rt(std::numeric_limits<double>::quiet_NaN()),
+        mz(std::numeric_limits<double>::quiet_NaN())
+      {
+      }
+
       // ignore RT and m/z for comparisons to avoid rounding issues:
       bool operator<(const DataQuery& other) const
-        {
-          return std::tie(input_file_key, data_id) <
-            std::tie(other.input_file_key, other.data_id);
-        }
+      {
+        return std::tie(input_file_key, data_id) <
+          std::tie(other.input_file_key, other.data_id);
+      }
 
       // ignore RT and m/z for comparisons to avoid rounding issues:
       bool operator==(const DataQuery& other) const
-        {
-          return std::tie(input_file_key, data_id) ==
-            std::tie(other.input_file_key, other.data_id);
-        }
+      {
+        return std::tie(input_file_key, data_id) ==
+          std::tie(other.input_file_key, other.data_id);
+      }
+
+      // @TODO: do we need an "experiment label" (used e.g. in pepXML)?
+      // if yes, should it be stored here or together with the input file?
     };
 
     typedef UniqueKey DataQueryKey;
@@ -407,6 +436,7 @@ namespace OpenMS
     // "export" is a reserved keyword!
     void exportIDs(std::vector<ProteinIdentification>& proteins,
                    std::vector<PeptideIdentification>& peptides) const;
+
   };
 }
 

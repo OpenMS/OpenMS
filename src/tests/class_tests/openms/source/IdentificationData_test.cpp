@@ -39,6 +39,7 @@
 
 #include <OpenMS/METADATA/IdentificationData.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/PepXMLFile.h>
 
 ///////////////////////////
 
@@ -74,6 +75,29 @@ START_SECTION(([EXTRA]))
   TEST_EQUAL(proteins_in.size(), proteins_out.size());
 
   String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationData_out.idXML");
+  // NEW_TMP_FILE(filename);
+  // cout << "Test file:" << filename << endl;
+  IdXMLFile().store(filename, proteins_out, peptides_out);
+}
+END_SECTION
+
+START_SECTION(([EXTRA]))
+{
+  vector<ProteinIdentification> proteins_in;
+  vector<PeptideIdentification> peptides_in;
+  PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml"), proteins_in, peptides_in, "PepXMLFile_test");
+
+  IdentificationData ids;
+  ids.importIDs(proteins_in, peptides_in);
+
+  vector<ProteinIdentification> proteins_out;
+  vector<PeptideIdentification> peptides_out;
+  ids.exportIDs(proteins_out, peptides_out);
+
+  TEST_EQUAL(peptides_in.size(), peptides_out.size());
+  TEST_EQUAL(proteins_in.size(), proteins_out.size());
+
+  String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationData_pepXML_out.idXML");
   // NEW_TMP_FILE(filename);
   // cout << "Test file:" << filename << endl;
   IdXMLFile().store(filename, proteins_out, peptides_out);
