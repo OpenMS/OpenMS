@@ -2442,6 +2442,8 @@ namespace OpenMS
                   double mass_delta = 0;
                   bool has_mass_delta = false;
                   String mod;
+
+                  // try to parse information, give up if we cannot
                   try
                   {
                     mod = String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("monoisotopicMassDelta"))));
@@ -2451,22 +2453,26 @@ namespace OpenMS
                   catch (...)
                   {
                     LOG_WARN << "Found unreadable modification location." << endl;
+                    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
+                  }
+                  if (!has_mass_delta)
+                  {
+                    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
                   }
 
                   // Parse this and add a new modification of mass "monoisotopicMassDelta" to the AASequence
                   // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
 
                   // compare with String::ConstIterator AASequence::parseModSquareBrackets_
-                  int location = index;
                   ModificationsDB* mod_db = ModificationsDB::getInstance();
-                  if (location == 0) 
+                  if (index == 0)
                   {
                     // n-terminal
                     String residue_name = ".[" + mod + "]";
 
                     // Check if it already exists, if not create new modification, transfer
                     // ownership to ModDB
-                    if (!mod_db->has(residue_name)) 
+                    if (!mod_db->has(residue_name))
                     {
                       ResidueModification * new_mod = new ResidueModification();
                       new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
@@ -2476,14 +2482,14 @@ namespace OpenMS
                     }
                     aas.setNTerminalModification(residue_name);
                   }
-                  else if (location == aas.size() +1) 
+                  else if (index == (int)aas.size() +1)
                   {
                     // c-terminal
                     String residue_name = ".[" + mod + "]";
 
                     // Check if it already exists, if not create new modification, transfer
                     // ownership to ModDB
-                    if (!mod_db->has(residue_name)) 
+                    if (!mod_db->has(residue_name))
                     {
                       ResidueModification * new_mod = new ResidueModification();
                       new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
@@ -2493,18 +2499,18 @@ namespace OpenMS
                     }
                     aas.setCTerminalModification(residue_name);
                   }
-                  else if (location > 0 && location <= aas.size() )
+                  else if (index > 0 && index <= (int)aas.size() )
                   {
                     // internal modification
-                    const Residue& residue = aas[location-1];
+                    const Residue& residue = aas[index-1];
                     String residue_name = "[" + mod + "]";
 
-                    if (!mod_db->has(residue_name)) 
+                    if (!mod_db->has(residue_name))
                     {
                       // create new modification
                       ResidueModification * new_mod = new ResidueModification();
                       new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
-                      new_mod->setOrigin(aas[location-1].getOneLetterCode()[0]);
+                      new_mod->setOrigin(aas[index-1].getOneLetterCode()[0]);
 
                       new_mod->setMonoMass(mass_delta + residue.getMonoWeight());
                       new_mod->setAverageMass(mass_delta + residue.getAverageWeight());
@@ -2521,8 +2527,8 @@ namespace OpenMS
                     // Note: this calls setModification_ on a new Residue which changes its
                     // weight to the weight of the modification (set above)
                     //
-                    aas.setModification(location-1, res_mod->getFullId());
-                  } 
+                    aas.setModification(index-1, res_mod->getFullId());
+                  }
 
                 }
                 if (cv.getCVIdentifierRef() != "UNIMOD")
