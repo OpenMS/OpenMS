@@ -56,22 +56,22 @@ public:
     SpectrumExtractor();
     virtual ~SpectrumExtractor();
 
-    void setRTWindow(double rt_window);
+    void setRTWindow(const double& rt_window);
     double getRTWindow() const;
 
-    void setMinScore(double min_score);
+    void setMinScore(const double& min_score);
     double getMinScore() const;
 
-    void setMinForwardMatch(double min_forward_match);
+    void setMinForwardMatch(const double& min_forward_match);
     double getMinForwardMatch() const;
 
-    void setMinReverseMatch(double min_reverse_match);
+    void setMinReverseMatch(const double& min_reverse_match);
     double getMinReverseMatch() const;
 
-    void setMZTolerance(double mz_tolerance);
+    void setMZTolerance(const double& mz_tolerance);
     double getMZTolerance() const;
 
-    void setMZToleranceUnits(String mz_tolerance_units);
+    void setMZToleranceUnits(const String& mz_tolerance_units);
     String getMZToleranceUnits() const;
 
     void getDefaultParameters(Param& params);

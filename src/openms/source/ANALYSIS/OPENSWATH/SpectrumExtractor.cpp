@@ -47,7 +47,7 @@ namespace OpenMS
 
   SpectrumExtractor::~SpectrumExtractor() {}
 
-  void SpectrumExtractor::setRTWindow(double rt_window)
+  void SpectrumExtractor::setRTWindow(const double& rt_window)
   {
     rt_window_ = rt_window;
   }
@@ -57,7 +57,7 @@ namespace OpenMS
     return rt_window_;
   }
 
-  void SpectrumExtractor::setMinScore(double min_score)
+  void SpectrumExtractor::setMinScore(const double& min_score)
   {
     min_score_ = min_score;
   }
@@ -67,7 +67,7 @@ namespace OpenMS
     return min_score_;
   }
 
-  void SpectrumExtractor::setMinForwardMatch(double min_forward_match)
+  void SpectrumExtractor::setMinForwardMatch(const double& min_forward_match)
   {
     min_forward_match_ = min_forward_match;
   }
@@ -77,7 +77,7 @@ namespace OpenMS
     return min_forward_match_;
   }
 
-  void SpectrumExtractor::setMinReverseMatch(double min_reverse_match)
+  void SpectrumExtractor::setMinReverseMatch(const double& min_reverse_match)
   {
     min_reverse_match_ = min_reverse_match;
   }
@@ -87,7 +87,7 @@ namespace OpenMS
     return min_reverse_match_;
   }
 
-  void SpectrumExtractor::setMZTolerance(double mz_tolerance)
+  void SpectrumExtractor::setMZTolerance(const double& mz_tolerance)
   {
     mz_tolerance_ = mz_tolerance;
   }
@@ -97,7 +97,7 @@ namespace OpenMS
     return mz_tolerance_;
   }
 
-  void SpectrumExtractor::setMZToleranceUnits(String mz_tolerance_units)
+  void SpectrumExtractor::setMZToleranceUnits(const String& mz_tolerance_units)
   {
     mz_tolerance_units_ = mz_tolerance_units;
   }

@@ -46,7 +46,10 @@ using namespace std;
 START_TEST(SpectrumExtractor, "$Id$")
 
 /////////////////////////////////////////////////////////////
-// Dummy peak data
+// Raw spectrum data acquired in DDA mode (i.e., product ion full spectrum scan)
+// measured on a QTRAP 5500 corresponding to C-Aconitate
+// taken from E. coli grown on glucose M9 during steady-state
+// for flux analysis.
 
 MSSpectrum spectrum;
 spectrum.resize(73);
