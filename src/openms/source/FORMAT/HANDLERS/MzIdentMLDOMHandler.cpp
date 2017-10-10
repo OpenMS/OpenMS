@@ -2503,14 +2503,20 @@ namespace OpenMS
                   {
                     // internal modification
                     const Residue& residue = aas[index-1];
+                    // String residue_name = residue.getOneLetterCode() + "[" + mod + "]";
                     String residue_name = "[" + mod + "]";
+                    std::cout << " internal mod " << aas << " with residue name  " << residue_name << std::endl;
 
                     if (!mod_db->has(residue_name))
                     {
                       // create new modification
                       ResidueModification * new_mod = new ResidueModification();
                       new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
-                      new_mod->setOrigin(aas[index-1].getOneLetterCode()[0]);
+
+                      // We cannot set origin if we want to use the same modification name
+                      // also at other AA (and since we have no information here, it is safer
+                      // to assume that this may happen).
+                      // new_mod->setOrigin(residue.getOneLetterCode()[0]);
 
                       new_mod->setMonoMass(mass_delta + residue.getMonoWeight());
                       new_mod->setAverageMass(mass_delta + residue.getAverageWeight());

@@ -1123,7 +1123,11 @@ namespace OpenMS
         // create new modification
         ResidueModification * new_mod = new ResidueModification();
         new_mod->setFullId(modification_name); // setting FullId but not Id makes it a user-defined mod
-        new_mod->setOrigin(aas.peptide_.back()->getOneLetterCode()[0]);
+
+        // We cannot set origin if we want to use the same modification name
+        // also at other AA (and since we have no information here, it is safer
+        // to assume that this may happen).
+        // new_mod->setOrigin(aas.peptide_.back()->getOneLetterCode()[0]);
 
         // set masses
         if (delta_mass)
