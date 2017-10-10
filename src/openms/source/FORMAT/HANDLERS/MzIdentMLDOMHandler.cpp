@@ -771,8 +771,14 @@ namespace OpenMS
           char post = '-';
           try
           {
-            pre = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("pre")));
-            post = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("post")));
+            if (element_pev->hasAttribute(XMLString::transcode("pre")))
+            {
+              pre = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("pre")));
+            }
+            if (element_pev->hasAttribute(XMLString::transcode("post")))
+            {
+              post = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("post")));
+            }
           }
           catch (...)
           {
@@ -1880,8 +1886,8 @@ namespace OpenMS
           if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
           {
             MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
-            pev.setAABefore(pv.pre);
-            pev.setAAAfter(pv.post);
+            if (pv.pre != '-') pev.setAABefore(pv.pre);
+            if (pv.post != '-') pev.setAAAfter(pv.post);
 
             if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
             {
@@ -2071,8 +2077,8 @@ namespace OpenMS
           if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
           {
             MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
-            pev.setAABefore(pv.pre);
-            pev.setAAAfter(pv.post);
+            if (pv.pre != '-') pev.setAABefore(pv.pre);
+            if (pv.post != '-') pev.setAAAfter(pv.post);
 
             if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
             {
