@@ -106,8 +106,9 @@ namespace OpenMS
       double best_left, double best_right, double peak_height, double & background, double & avg_noise_level)
   {
     // determine (in the chromatogram) the intensity at the left / right border
-    MSChromatogram::const_iterator it = chromatogram.begin();
-    int nr_points = 0;
+    double intensity_left = 0.0;
+    double rt_apex = 0.0;
+    double intensity_right = 0.0;
     for (MSChromatogram::const_iterator it = chromatogram.begin() + 1; it != chromatogram.end(); it++)
     {
       MSChromatogram::const_iterator it_prev = it;
@@ -115,15 +116,15 @@ namespace OpenMS
 
       if (it->getMZ() == best_left)
       {
-        double intensity_left = it->getIntensity();
+        intensity_left = it->getIntensity();
       }
       else if (it->getIntensity() >= peak_height && it_prev->getIntensity() <= peak_height)
       {
-        double rt_apex = (it->getMZ() + it_prev->getMZ())/2;
+        rt_apex = (it->getMZ() + it_prev->getMZ())/2;
       }
       else if (it->getMZ() == best_right)
       {
-        double intensity_right = it->getIntensity();
+        intensity_right = it->getIntensity();
       }
     }
 
