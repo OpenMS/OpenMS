@@ -333,7 +333,7 @@ public:
           }
           else if (background_subtraction_ == "original")
           {
-            calculateBgEstimation_(used_chromatogram, best_left, best_right, background, avg_noise_level);
+            calculateBgEstimation_(used_chromatogram, best_left, best_right, peak_apex_int, background, avg_noise_level);
           }
           intensity_sum -= background;
           peak_apex_int -= avg_noise_level;
@@ -862,7 +862,7 @@ protected:
       peak and then subtracting that from the total intensity.
     */
     void calculateBgEstimation_(const MSChromatogram& chromatogram,
-                                  double best_left, double best_right, double & background, double & avg_noise_level);
+                                  double best_left, double best_right, double peak_height, double & background, double & avg_noise_level);
 
     // Members
     String background_subtraction_;

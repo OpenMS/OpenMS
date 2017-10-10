@@ -103,41 +103,52 @@ namespace OpenMS
   }
 
   void MRMTransitionGroupPicker::calculateBgEstimation_(const MSChromatogram& chromatogram,
-      double best_left, double best_right, double & background, double & avg_noise_level)
+      double best_left, double best_right, double peak_height, double & background, double & avg_noise_level)
   {
     // determine (in the chromatogram) the intensity at the left / right border
     MSChromatogram::const_iterator it = chromatogram.begin();
     int nr_points = 0;
-    for (; it != chromatogram.end(); ++it)
+    for (MSChromatogram::const_iterator it = chromatogram.begin() + 1; it != chromatogram.end(); it++)
     {
-      if (it->getMZ() > best_left)
+      MSChromatogram::const_iterator it_prev = it;
+      it_prev--; //previous point
+
+      if (it->getMZ() == best_left)
       {
-        nr_points++;
-        break;
+        double intensity_left = it->getIntensity();
+      }
+      else if (it->getIntensity() >= peak_height && it_prev->getIntensity() <= peak_height)
+      {
+        double rt_apex = (it->getMZ() + it_prev->getMZ())/2;
+      }
+      else if (it->getMZ() == best_right)
+      {
+        double intensity_right = it->getIntensity();
       }
     }
-    double intensity_left = it->getIntensity();
-    for (; it != chromatogram.end(); ++it)
-    {
-      if (it->getMZ() > best_right)
-      {
-        break;
-      }
-      nr_points++;
-    }
-    if (it == chromatogram.begin() || nr_points < 1)
-    {
-      // something is fishy, the endpoint of the peak is the beginning of the chromatogram
-      std::cerr << "Tried to calculate background but no points were found " << std::endl;
-      return;
-    }
 
-    // decrease the iterator and the nr_points by one (because we went one too far)
-    double intensity_right = (it--)->getIntensity();
-    nr_points--;
+    double intensity_max, intensity_min, rt_max, rt_min;
+    if (intensity_left >= intensity_right)
+    {
+      intensity_max = intensity_left;
+      rt_max = best_left;
+      intensity_min = intensity_right;
+      rt_min = best_right;
+    }
+    else 
+    {
+      intensity_max = intensity_right;
+      rt_max = best_right;
+      intensity_min = intensity_left;
+      rt_min = best_left;
+    }
+    double delta_int = intensity_max - intensity_min;
+    double delta_rt = best_right - best_left;
+    double delta_rt_apex = abs(rt_max-rt_apex);
+    double delta_int_apex = delta_int*delta_rt_apex/delta_rt;
 
-    avg_noise_level = (intensity_right + intensity_left) / 2;
-    background = avg_noise_level * nr_points;
+    avg_noise_level = intensity_max - delta_int_apex;
+    background = intensity_min*delta_rt + 0.5*delta_int*delta_rt;
   }
 
   void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx)
