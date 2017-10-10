@@ -294,7 +294,7 @@
 				<UserParam type="int" name="end" value="6"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
-			<PeptideHit score="0.0901774019" sequence="ASETM[15.99]R" charge="1" >
+			<PeptideHit score="0.0901774019" sequence="AS[15.99]E[1005.99]TM[15.99]R" charge="1" >
 				<UserParam type="float" name="MS:1001155" value="0.0901774019"/>
 				<UserParam type="float" name="MS:1001156" value="0.0190145001"/>
 				<UserParam type="float" name="calcMZ" value="713.808837890625"/>

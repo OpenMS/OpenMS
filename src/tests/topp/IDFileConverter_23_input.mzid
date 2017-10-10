@@ -917,6 +917,12 @@
       <Modification location="5" residues="M" monoisotopicMassDelta="15.99">
         <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value=""/>
       </Modification>
+      <Modification location="2" residues="M" monoisotopicMassDelta="15.99">
+        <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value=""/>
+      </Modification>
+      <Modification location="3" residues="M" monoisotopicMassDelta="1005.99">
+        <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value=""/>
+      </Modification>
     </Peptide>
     <Peptide id="PEP_12">
       <PeptideSequence>ASETMR</PeptideSequence>
