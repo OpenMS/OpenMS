@@ -494,6 +494,15 @@ public:
 
     /// Find largest peak in a vector of chromatograms
     void findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
+    
+    /**
+      @brief Will use the chromatogram to estimate the background noise and then subtract it
+
+      The background is estimated by averaging the noise on either side of the
+      peak and then subtracting that from the total intensity.
+    */
+    void calculateBgEstimation_(const MSChromatogram& chromatogram,
+                                  double best_left, double best_right, double peak_height, double & background, double & avg_noise_level);
 
 protected:
 
@@ -854,15 +863,6 @@ protected:
     }
 
     //@}
-
-    /**
-      @brief Will use the chromatogram to estimate the background noise and then subtract it
-
-      The background is estimated by averaging the noise on either side of the
-      peak and then subtracting that from the total intensity.
-    */
-    void calculateBgEstimation_(const MSChromatogram& chromatogram,
-                                  double best_left, double best_right, double peak_height, double & background, double & avg_noise_level);
 
     // Members
     String background_subtraction_;
