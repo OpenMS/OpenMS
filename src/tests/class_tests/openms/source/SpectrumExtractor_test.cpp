@@ -296,7 +296,7 @@ ptr = new SpectrumExtractor();
 
 START_SECTION(setRTWindow())
 {
-  TEST_EQUAL(ptr->getRTWindow(), 100)
+  TEST_EQUAL(ptr->getRTWindow(), 30)
   ptr->setRTWindow(50);
   TEST_EQUAL(ptr->getRTWindow(), 50)
 }
@@ -312,7 +312,7 @@ END_SECTION
 
 START_SECTION(setMinForwardMatch())
 {
-  TEST_EQUAL(ptr->getMinForwardMatch(), 0.7)
+  TEST_EQUAL(ptr->getMinForwardMatch(), 0.9)
   ptr->setMinForwardMatch(0.5);
   TEST_EQUAL(ptr->getMinForwardMatch(), 0.5)
 }
@@ -320,7 +320,7 @@ END_SECTION
 
 START_SECTION(setMinReverseMatch())
 {
-  TEST_EQUAL(ptr->getMinReverseMatch(), 0.7)
+  TEST_EQUAL(ptr->getMinReverseMatch(), 0.9)
   ptr->setMinReverseMatch(0.5);
   TEST_EQUAL(ptr->getMinReverseMatch(), 0.5)
 }
@@ -328,7 +328,7 @@ END_SECTION
 
 START_SECTION(setMZTolerance())
 {
-  TEST_EQUAL(ptr->getMZTolerance(), 0.7)
+  TEST_EQUAL(ptr->getMZTolerance(), 0.1)
   ptr->setMZTolerance(0.5);
   TEST_EQUAL(ptr->getMZTolerance(), 0.5)
 }
@@ -336,10 +336,10 @@ END_SECTION
 
 START_SECTION(setMZToleranceUnits())
 {
-  TEST_EQUAL(ptr->getMZToleranceUnits(), "ppm")
-  TEST_NOT_EQUAL(ptr->getMZToleranceUnits(), "Da")
-  ptr->setMZToleranceUnits("Da");
   TEST_EQUAL(ptr->getMZToleranceUnits(), "Da")
+  TEST_NOT_EQUAL(ptr->getMZToleranceUnits(), "ppm")
+  ptr->setMZToleranceUnits("ppm");
+  TEST_EQUAL(ptr->getMZToleranceUnits(), "ppm")
 }
 END_SECTION
 
@@ -351,7 +351,7 @@ END_SECTION
 
 START_SECTION(getParameters().getDescription("rt_window"))
 {
-  TEST_EQUAL(ptr->getParameters().getDescription("rt_window"), "Retention time window.")
+  TEST_EQUAL(ptr->getParameters().getDescription("rt_window"), "Retention time window in seconds.")
 }
 END_SECTION
 

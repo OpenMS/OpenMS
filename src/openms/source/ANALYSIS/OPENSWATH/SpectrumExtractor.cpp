@@ -120,13 +120,24 @@ namespace OpenMS
   void SpectrumExtractor::getDefaultParameters(Param& params)
   {
     params.clear();
-    // TODO also set min and max values for these defaults (eg. params.setMinFloat(...))
-    params.setValue("rt_window", 100, "Retention time window.");
+
+    params.setValue("rt_window", 30, "Retention time window in seconds.");
+
     params.setValue("min_score", 0.7, "Minimum score.");
-    params.setValue("min_forward_match", 0.7, "Minimum forward match.");
-    params.setValue("min_reverse_match", 0.7, "Minimum reverse match.");
-    params.setValue("mz_tolerance", 0.7, "Mass to Charge tolerance.");
-    params.setValue("mz_tolerance_units", "ppm", "Mass to Charge tolerance units.");
+    params.setMinFloat("min_score", 0.0);
+    params.setMaxFloat("min_score", 1.0);
+
+    params.setValue("min_forward_match", 0.9, "Minimum forward match.");
+    params.setMinFloat("min_forward_match", 0.0);
+    params.setMaxFloat("min_forward_match", 1.0);
+
+    params.setValue("min_reverse_match", 0.9, "Minimum reverse match.");
+    params.setMinFloat("min_reverse_match", 0.0);
+    params.setMaxFloat("min_reverse_match", 1.0);
+
+    params.setValue("mz_tolerance", 0.1, "Mass to Charge tolerance.");
+
+    params.setValue("mz_tolerance_units", "Da", "Mass to Charge tolerance units.");
     params.setValidStrings("mz_tolerance_units", ListUtils::create<String>("ppm,Da"));
   }
 }
