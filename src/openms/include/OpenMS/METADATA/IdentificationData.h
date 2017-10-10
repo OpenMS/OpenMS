@@ -159,18 +159,18 @@ namespace OpenMS
 
       double rt, mz; // position
 
-      // @TODO: ignore RT and m/z for comparisons?
+      // ignore RT and m/z for comparisons to avoid rounding issues:
       bool operator<(const DataQuery& other) const
         {
-          return std::tie(input_file_key, data_id, rt, mz) <
-            std::tie(other.input_file_key, other.data_id, other.rt, other.mz);
+          return std::tie(input_file_key, data_id) <
+            std::tie(other.input_file_key, other.data_id);
         }
 
-      // @TODO: ignore RT and m/z for comparisons?
+      // ignore RT and m/z for comparisons to avoid rounding issues:
       bool operator==(const DataQuery& other) const
         {
-          return std::tie(input_file_key, data_id, rt, mz) ==
-            std::tie(other.input_file_key, other.data_id, other.rt, other.mz);
+          return std::tie(input_file_key, data_id) ==
+            std::tie(other.input_file_key, other.data_id);
         }
     };
 
