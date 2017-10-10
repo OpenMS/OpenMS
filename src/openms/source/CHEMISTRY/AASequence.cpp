@@ -1076,6 +1076,7 @@ namespace OpenMS
         ResidueModification * new_mod = new ResidueModification();
         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
         new_mod->setDiffMonoMass(mass);
+        new_mod->setTermSpecificity(ResidueModification::N_TERM);
         // new_mod->setMonoMass(mass);
         // new_mod->setAverageMass(mass);
         mod_db->addModification(new_mod);
@@ -1099,6 +1100,7 @@ namespace OpenMS
         ResidueModification * new_mod = new ResidueModification();
         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
         new_mod->setDiffMonoMass(mass);
+        new_mod->setTermSpecificity(ResidueModification::C_TERM);
         // new_mod->setMonoMass(mass);
         // new_mod->setAverageMass(mass);
         mod_db->addModification(new_mod);
