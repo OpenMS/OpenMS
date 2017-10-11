@@ -493,7 +493,7 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
 END_SECTION
 
 START_SECTION(( void calculateBgEstimationAverage_(const MSChromatogram& chromatogram,
-  double best_left, double best_right, double peak_height, double & background, double & avg_noise_level) ))
+  double best_left, double best_right, double & background, double & avg_noise_level) ))
 {
 
   RichPeakChromatogram chromatogram;
@@ -508,7 +508,7 @@ START_SECTION(( void calculateBgEstimationAverage_(const MSChromatogram& chromat
   // Correct the background
   MRMTransitionGroupPicker picker;
 
-  picker.calculateBgEstimation_(chromatogram, 
+  picker.calculateBgEstimationAverage_(chromatogram, 
     best_left, best_right, background,
     noise_level);
 
@@ -534,7 +534,7 @@ START_SECTION(( void calculateBgEstimationExact_(const MSChromatogram& chromatog
   // Correct the background
   MRMTransitionGroupPicker picker;
 
-  picker.calculateBgEstimation_(chromatogram, 
+  picker.calculateBgEstimationExact_(chromatogram, 
     best_left, best_right, 
     peak_height, background,
     noise_level);
