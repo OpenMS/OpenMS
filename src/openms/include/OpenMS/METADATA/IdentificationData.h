@@ -36,6 +36,7 @@
 #define OPENMS_METADATA_IDENTIFICATIONDATA_H
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -66,12 +67,32 @@ namespace OpenMS
       If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
  parameters only once.
     */
-    struct DataProcessingParameters: public MetaInfoInterface
+    struct DataProcessingParameters
     {
-      Software tool;
+      Software tool; // also captures CV terms and meta data (MetaInfoInterface)
 
       // @TODO: add processing actions that are relevant for ID data
       std::set<DataProcessing::ProcessingAction> actions;
+
+      explicit DataProcessingParameters(
+        const Software& tool = Software(),
+        std::set<DataProcessing::ProcessingAction> actions =
+        std::set<DataProcessing::ProcessingAction>()):
+        tool(tool), actions(actions)
+      {
+      }
+
+      explicit DataProcessingParameters(
+        const String& tool_name, const String& tool_version = "",
+        std::set<DataProcessing::ProcessingAction> actions =
+        std::set<DataProcessing::ProcessingAction>()):
+        tool(), actions(actions)
+      {
+        tool.setName(tool_name);
+        tool.setVersion(tool_version);
+      }
+
+      DataProcessingParameters(const DataProcessingParameters& other) = default;
 
       bool operator<(const DataProcessingParameters& other) const
       {
@@ -101,24 +122,47 @@ namespace OpenMS
     {
       ProcessingParamsKey params_key;
 
-      std::vector<String> ms_data_path; // path(s) to primary data
-
       std::vector<InputFileKey> input_files; // reference into "input_files"
+
+      std::vector<String> primary_files; // path(s) to primary MS data
 
       DateTime date_time;
 
+      DataProcessingStep():
+        params_key(0)
+      {
+      }
+
+      explicit DataProcessingStep(ProcessingParamsKey params_key,
+                                  const std::vector<InputFileKey>& input_files,
+                                  const std::vector<String>& primary_files,
+                                  const DateTime& date_time = DateTime::now()):
+        params_key(params_key), input_files(input_files),
+        primary_files(primary_files), date_time(date_time)
+      {
+        if (!UniqueIdInterface::isValid(params_key))
+        {
+          String msg = "invalid reference to data processing parameters";
+          throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                           OPENMS_PRETTY_FUNCTION, msg);
+        }
+        // @TODO: disallow empty "input_files" (and "primary_files")?
+      }
+
+      DataProcessingStep(const DataProcessingStep& other) = default;
+
       bool operator<(const DataProcessingStep& other) const
       {
-        return (std::tie(params_key, ms_data_path, input_files, date_time) <
-                std::tie(other.params_key, other.ms_data_path,
-                         other.input_files, other.date_time));
+        return (std::tie(params_key, input_files, primary_files, date_time) <
+                std::tie(other.params_key, other.input_files,
+                         other.primary_files, other.date_time));
       }
 
       bool operator==(const DataProcessingStep& other) const
       {
-        return (std::tie(params_key, ms_data_path, input_files, date_time) ==
-                std::tie(other.params_key, other.ms_data_path,
-                         other.input_files, other.date_time));
+        return (std::tie(params_key, input_files, primary_files, date_time) ==
+                std::tie(other.params_key, other.input_files,
+                         other.primary_files, other.date_time));
       }
     };
 
@@ -136,16 +180,31 @@ namespace OpenMS
 
       String name;
 
-      // Reference to the software that assigned the score:
-      ProcessingParamsKey params_key;
-
       bool higher_better;
 
+      // reference to the software that assigned the score:
+      ProcessingParamsKey params_key;
+
       ScoreType():
-        params_key(0), higher_better(true)
+        higher_better(true), params_key(0)
       {
       }
 
+      explicit ScoreType(const CVTerm& cv_term, bool higher_better, ProcessingParamsKey params_key = 0):
+        cv_term(cv_term), name(cv_term.getName()), higher_better(higher_better),
+        params_key(params_key)
+      {
+      }
+
+      explicit ScoreType(const String& name, bool higher_better, ProcessingParamsKey params_key = 0):
+        cv_term(), name(name), higher_better(higher_better),
+        params_key(params_key)
+      {
+      }
+
+      ScoreType(const ScoreType& other) = default;
+
+      // don't include "higher_better" in the comparison:
       bool operator<(const ScoreType& other) const
       {
         return (std::tie(cv_term.getAccession(), name, params_key) <
@@ -153,6 +212,7 @@ namespace OpenMS
                          other.params_key));
       }
 
+      // don't include "higher_better" in the comparison:
       bool operator==(const ScoreType& other) const
       {
         return (std::tie(cv_term.getAccession(), name, params_key) ==
@@ -172,27 +232,32 @@ namespace OpenMS
     */
     struct DataQuery: public MetaInfoInterface
     {
-      InputFileKey input_file_key; // reference into "input_files"
-
       // spectrum or feature ID (from the file reference by "input_file_key"):
       String data_id;
 
+      InputFileKey input_file_key; // reference into "input_files"
+
       double rt, mz; // position
 
-      DataQuery():
-        input_file_key(0), rt(std::numeric_limits<double>::quiet_NaN()),
-        mz(std::numeric_limits<double>::quiet_NaN())
+      explicit DataQuery(const String& data_id = "",
+                         InputFileKey input_file_key = 0,
+                         double rt = std::numeric_limits<double>::quiet_NaN(),
+                         double mz = std::numeric_limits<double>::quiet_NaN()):
+        data_id(data_id), input_file_key(input_file_key), rt(rt), mz(mz)
       {
+        // @TODO: require "input_file_key"? (see also "DataProcessingStep")
       }
 
-      // ignore RT and m/z for comparisons to avoid rounding issues:
+      DataQuery(const DataQuery& other) = default;
+
+      // ignore RT and m/z for comparisons to avoid issues with rounding:
       bool operator<(const DataQuery& other) const
       {
         return std::tie(input_file_key, data_id) <
           std::tie(other.input_file_key, other.data_id);
       }
 
-      // ignore RT and m/z for comparisons to avoid rounding issues:
+      // ignore RT and m/z for comparisons to avoid issues with rounding:
       bool operator==(const DataQuery& other) const
       {
         return std::tie(input_file_key, data_id) ==
@@ -254,6 +319,8 @@ namespace OpenMS
     {
       EmpiricalFormula formula;
 
+      String name;
+
       String smile;
 
       String inchi;
@@ -308,6 +375,20 @@ namespace OpenMS
 
       // ordered list of references to data processing steps:
       std::vector<ProcessingStepKey> processing_steps;
+
+      explicit ParentMetaData(
+        enum MoleculeType molecule_type = MT_PROTEIN,
+        const String& sequence = "", const String& description = "",
+        double coverage = 0.0, const ScoreList& scores = ScoreList(),
+        const std::vector<ProcessingStepKey>& processing_steps =
+        std::vector<ProcessingStepKey>()):
+        molecule_type(molecule_type), sequence(sequence),
+        description(description), coverage(coverage), scores(scores),
+        processing_steps(processing_steps)
+      {
+      }
+
+      ParentMetaData(const ParentMetaData& other) = default;
     };
 
     typedef UniqueKey ParentMoleculeKey;
@@ -427,6 +508,9 @@ namespace OpenMS
     ProteinIdentification::SearchParameters exportDBSearchParameters_(
       SearchParamsKey key) const;
 
+    void checkScoreTypes_(const ScoreList& scores);
+
+    void checkProcessingSteps_(const std::vector<ProcessingStepKey>& steps);
 
   public:
 
@@ -436,6 +520,26 @@ namespace OpenMS
     // "export" is a reserved keyword!
     void exportIDs(std::vector<ProteinIdentification>& proteins,
                    std::vector<PeptideIdentification>& peptides) const;
+
+
+    std::pair<InputFileKey, bool> registerInputFile(const String& file);
+
+    std::pair<ProcessingParamsKey, bool> registerDataProcessingParameters(
+      const DataProcessingParameters& params);
+
+    std::pair<ProcessingStepKey, bool> registerDataProcessingStep(
+      const DataProcessingStep& step);
+
+    std::pair<ScoreTypeKey, bool> registerScoreType(const ScoreType& score);
+
+    std::pair<DataQueryKey, bool> registerDataQuery(const DataQuery& query);
+
+    std::pair<IdentifiedMoleculeKey, bool> registerPeptide(const AASequence&
+                                                           seq);
+
+    std::pair<IdentifiedMoleculeKey, bool> registerCompound(const String& id);
+
+    std::pair<ParentMoleculeKey, bool> registerParentMolecule(const String& accession, const ParentMetaData& meta_data = ParentMetaData());
 
   };
 }
