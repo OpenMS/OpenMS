@@ -502,7 +502,6 @@ START_SECTION(( void calculateBgEstimationAverage_(const MSChromatogram& chromat
   // Features
   double best_left = 2.477966667;
   double best_right = 3.01895;
-  double peak_apex = 2.7045;
   double background, noise_level;
 
   // Correct the background
@@ -527,7 +526,6 @@ START_SECTION(( void calculateBgEstimationExact_(const MSChromatogram& chromatog
   // Features
   double best_left = 2.477966667;
   double best_right = 3.01895;
-  double peak_apex = 2.7045;
   double peak_height = 966489;
   double background, noise_level;
 
@@ -540,7 +538,7 @@ START_SECTION(( void calculateBgEstimationExact_(const MSChromatogram& chromatog
     noise_level);
 
   TEST_REAL_SIMILAR(background, 1072.22896606);
-  TEST_REAL_SIMILAR(noise_level, 3085);
+  TEST_REAL_SIMILAR(noise_level, 3083);
 }
 END_SECTION
 
