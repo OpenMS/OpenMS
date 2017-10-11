@@ -144,27 +144,40 @@ namespace OpenMS
         if (hit.getSequence().empty()) continue;
         pair<IdentifiedMoleculeKey, bool> result =
           registerPeptide(hit.getSequence());
-        if (result.second && !hit.getPeptideEvidences().empty())
+        for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
         {
-          parent_evidence[result.first] = hit.getPeptideEvidences();
+          const String& accession = evidence.getProteinAccession();
+          if (accession.empty()) continue;
+          // this won't overwrite if the protein already exists:
+          ParentMoleculeKey parent_key =
+            registerParentMolecule(accession).first;
+          vector<ProcessingStepKey>& steps =
+            parent_meta_data.at(parent_key).processing_steps;
+          if (find(steps.begin(), steps.end(), step_key) == steps.end())
+          {
+            steps.push_back(step_key);
+          }
+          MoleculeParentMatch match(evidence.getStart(), evidence.getEnd(),
+                                    evidence.getAABefore(),
+                                    evidence.getAAAfter());
+          parent_matches[result.first][parent_key].insert(match);
         }
-        // @TODO: check/merge evidences if peptide already exists?
         IdentifiedMetaData& meta = identified_meta_data.at(result.first);
         meta.processing_steps.push_back(step_key);
 
-        pair<DataQueryKey, IdentifiedMoleculeKey> psm_key =
-          make_pair(query_key, result.first);
-        MatchMap::iterator pos = matches.find(psm_key);
-        if (pos == matches.end()) // new PSM
+        pair<IdentifiedMoleculeKey, DataQueryKey> psm_key =
+          make_pair(result.first, query_key);
+        QueryMatchMap::iterator pos = query_matches.find(psm_key);
+        if (pos == query_matches.end()) // new PSM
         {
-          MatchMetaData match;
+          MoleculeQueryMatch match;
           match.rank = hit.getRank();
           match.charge = hit.getCharge();
           match.peak_annotations = hit.getPeakAnnotations();
           static_cast<MetaInfoInterface&>(match) = hit;
-          pos = matches.insert(make_pair(psm_key, match)).first;
+          pos = query_matches.insert(make_pair(psm_key, match)).first;
         }
-        MatchMetaData& match = pos->second;
+        MoleculeQueryMatch& match = pos->second;
         match.processing_steps.push_back(step_key);
 
         // analysis results from pepXML:
@@ -220,12 +233,12 @@ namespace OpenMS
     map<pair<DataQueryKey, ProcessingStepKey>,
         pair<vector<PeptideHit>, ScoreTypeKey>> psm_data;
     // we only export peptides and proteins, so start by getting the PSMs:
-    for (MatchMap::const_iterator match_it = matches.begin();
-         match_it != matches.end(); ++match_it)
+    for (QueryMatchMap::const_iterator match_it = query_matches.begin();
+         match_it != query_matches.end(); ++match_it)
     {
-      DataQueryKey query_key = match_it->first.first;
-      IdentifiedMoleculeKey molecule_key = match_it->first.second;
-      const MatchMetaData& match = match_it->second;
+      IdentifiedMoleculeKey molecule_key = match_it->first.first;
+      DataQueryKey query_key = match_it->first.second;
+      const MoleculeQueryMatch& match = match_it->second;
       const IdentifiedMetaData& meta =
         identified_meta_data.at(molecule_key);
       if (meta.molecule_type != MT_PROTEIN) continue;
@@ -234,11 +247,23 @@ namespace OpenMS
       hit.setCharge(match.charge);
       hit.setRank(match.rank);
       hit.setPeakAnnotations(match.peak_annotations);
-      EvidenceMap::const_iterator pos =
-        parent_evidence.find(molecule_key);
-      if (pos != parent_evidence.end())
+      ParentMatchMap::const_iterator pos = parent_matches.find(molecule_key);
+      if (pos != parent_matches.end())
       {
-        hit.setPeptideEvidences(pos->second);
+        for (const ParentSubMap::value_type& sub : pos->second)
+        {
+          for (const MoleculeParentMatch& match : sub.second)
+          {
+            PeptideEvidence evidence;
+            evidence.setProteinAccession(parent_molecules.left.at(sub.
+                                                                  first));
+            evidence.setStart(match.start_pos);
+            evidence.setEnd(match.end_pos);
+            evidence.setAABefore(match.left_neighbor);
+            evidence.setAAAfter(match.right_neighbor);
+            hit.addPeptideEvidence(evidence);
+          }
+        }
       }
       static_cast<MetaInfoInterface&>(hit) = match;
       // find all steps that assigned a score:

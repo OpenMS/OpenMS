@@ -316,14 +316,6 @@ namespace OpenMS
                        IdentifiedMetaData> identified_meta_data;
 
 
-    // Evidence linking identified molecules to parent molecules (e.g. peptides
-    // to proteins):
-    // @TODO: rename "PeptideEvidence" to "MoleculeEvidence" (incl. members)
-    typedef std::unordered_map<IdentifiedMoleculeKey,
-                               std::vector<PeptideEvidence>> EvidenceMap;
-    EvidenceMap parent_evidence;
-
-
     /*!
       Meta data specific to an identified compound (small molecule).
     */
@@ -345,7 +337,7 @@ namespace OpenMS
     /*!
       Meta data for a search hit (e.g. peptide-spectrum match).
     */
-    struct MatchMetaData: public MetaInfoInterface
+    struct MoleculeQueryMatch: public MetaInfoInterface
     {
       Int charge;
 
@@ -362,12 +354,12 @@ namespace OpenMS
       std::vector<PeptideHit::PeakAnnotation> peak_annotations;
     };
 
+    typedef std::pair<IdentifiedMoleculeKey, DataQueryKey> QueryMatchKey;
     // standard lib. doesn't include a hash function for pairs, but Boost does:
-    typedef boost::hash<std::pair<DataQueryKey,
-                                  IdentifiedMoleculeKey>> PairHash;
-    typedef std::unordered_map<std::pair<DataQueryKey, IdentifiedMoleculeKey>,
-                               MatchMetaData, PairHash> MatchMap;
-    MatchMap matches;
+    typedef boost::hash<QueryMatchKey> QueryMatchHash;
+    typedef std::unordered_map<QueryMatchKey, MoleculeQueryMatch,
+                               QueryMatchHash> QueryMatchMap;
+    QueryMatchMap query_matches;
 
 
     /*!
@@ -407,6 +399,62 @@ namespace OpenMS
     typedef boost::bimap<ParentMoleculeKey, String> ParentBimap;
     ParentBimap parent_molecules;
     std::unordered_map<ParentMoleculeKey, ParentMetaData> parent_meta_data;
+
+
+    /*!
+      Meta data for the association between an identified molecule (e.g. peptide) and a parent molecule (e.g. protein).
+    */
+    struct MoleculeParentMatch: public MetaInfoInterface
+    {
+      // in extraordinary cases (e.g. database searches that allow insertions/
+      // deletions), the length of the identified molecule may differ from the
+      // length of the subsequence in the parent; therefore, store "end_pos":
+      Size start_pos, end_pos;
+
+      char left_neighbor, right_neighbor; // neighboring sequence elements
+
+      explicit MoleculeParentMatch(Size start_pos = Size(-1),
+                                   Size end_pos = Size(-1),
+                                   char left_neighbor = 'X',
+                                   char right_neighbor = 'X'):
+        start_pos(start_pos), end_pos(end_pos), left_neighbor(left_neighbor),
+        right_neighbor(right_neighbor)
+      {
+      }
+
+      bool operator<(const MoleculeParentMatch& other) const
+      {
+        // positions determine neighbors - no need to compare those:
+        return (std::tie(start_pos, end_pos) <
+                std::tie(other.start_pos, other.end_pos));
+      }
+
+      bool operator==(const MoleculeParentMatch& other) const
+      {
+        // positions determine neighbors - no need to compare those:
+        return (std::tie(start_pos, end_pos) ==
+                std::tie(other.start_pos, other.end_pos));
+      }
+
+      bool hasValidPositions(Size molecule_length = 0, Size parent_length = 0)
+      {
+        if ((start_pos == Size(-1)) || (end_pos == Size(-1))) return false;
+        if (end_pos < start_pos) return false;
+        if (molecule_length && (end_pos - start_pos + 1 != molecule_length))
+        {
+          return false;
+        }
+        if (parent_length && (end_pos >= parent_length)) return false;
+        return true;
+      }
+    };
+
+    // mapping: identified molecule -> parent molecule -> match information
+    typedef std::unordered_map<ParentMoleculeKey,
+                               std::set<MoleculeParentMatch>> ParentSubMap;
+    typedef std::unordered_map<IdentifiedMoleculeKey,
+                               ParentSubMap> ParentMatchMap;
+    ParentMatchMap parent_matches;
 
 
     /*!
