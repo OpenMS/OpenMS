@@ -512,8 +512,8 @@ START_SECTION(( void calculateBgEstimationAverage_(const MSChromatogram& chromat
     best_left, best_right, background,
     noise_level);
 
-  TEST_REAL_SIMILAR(background, 42686.5);
-  TEST_REAL_SIMILAR(noise_level, 723.5);
+  TEST_REAL_SIMILAR(background, 125076);
+  TEST_REAL_SIMILAR(noise_level, 2233.5);
 }
 END_SECTION
 
