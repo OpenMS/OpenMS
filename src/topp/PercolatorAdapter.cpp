@@ -537,11 +537,6 @@ protected:
         LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
         MzIdentMLFile().load(in, protein_ids, peptide_ids);
       }
-      else if (in_type == FileTypes::OSW)
-      {
-        LOG_WARN << "Converting from OSW." << endl;
-        // OSWFile().load(in, protein_ids, peptide_ids);
-      }
       //else catched by TOPPBase:registerInput being mandatory mzid or idxml
 
       //being paranoid about the presence of target decoy denominations, which are crucial to the percolator process
