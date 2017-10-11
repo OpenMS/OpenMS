@@ -71,7 +71,7 @@ public:
     @exception Exception::FileNotFound is thrown if the file could not be opened
     @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, TransformationDescription & transformation, bool fit_model=true);
+    void load(const String& filename, TransformationDescription& transformation, bool fit_model=true);
 
     /**
     @brief Stores the data in an TransformationXML file
@@ -81,11 +81,11 @@ public:
     @exception Exception::UnableToCreateFile is thrown if the file could not be created
     @exception Exception::IllegalArgument is thrown if unsupported parameter types have been set
     */
-    void store(String filename, const TransformationDescription & transformation);
+    void store(String filename, const TransformationDescription& transformation);
 
 protected:
     // Docu in base class
-    virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     /// @name Members for use during loading data
     //@{

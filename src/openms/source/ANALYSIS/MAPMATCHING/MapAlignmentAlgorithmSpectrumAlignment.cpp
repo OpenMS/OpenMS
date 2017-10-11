@@ -190,7 +190,7 @@ namespace OpenMS
     for (Size i = 0; i < xcoordinate.size(); ++i)
     {
       double rt = tempalign[xcoordinate[i]]->getRT();
-      data.push_back(std::make_pair(rt, ycoordinate[i]));
+      data.push_back(std::make_pair(rt, double(ycoordinate[i])));
     }
     transformation.push_back(TransformationDescription(data));
   }

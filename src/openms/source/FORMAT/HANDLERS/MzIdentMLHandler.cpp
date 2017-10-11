@@ -41,7 +41,6 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
@@ -1584,7 +1583,7 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const
+    void MzIdentMLHandler::writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">\n";

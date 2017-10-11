@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,6 @@
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 

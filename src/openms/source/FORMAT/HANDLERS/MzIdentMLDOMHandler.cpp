@@ -39,7 +39,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <set>
 #include <string>
 #include <iostream>
@@ -1054,9 +1054,9 @@ namespace OpenMS
                   }
                   sub = sub->getNextElementSibling();
                 }
-                if (EnzymesDB::getInstance()->hasEnzyme(enzymename))
+                if (ProteaseDB::getInstance()->hasEnzyme(enzymename))
                 {
-                  sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzymename);
+                  sp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzymename));
                 }
                 enzyme = enzyme->getNextElementSibling();
               }
@@ -1658,7 +1658,7 @@ namespace OpenMS
           String donor_pep = xl_id_donor_map_.at(peptides[i]);      // map::at throws an out-of-range
           alpha.push_back(i);
         }
-        catch (const std::out_of_range& oor)
+        catch (const std::out_of_range& /*oor*/)
         {
           beta.push_back(i);
         }
@@ -1684,7 +1684,7 @@ namespace OpenMS
             xl_type = "loop-link";
           }
         }
-        catch (const std::out_of_range& oor)
+        catch (const std::out_of_range& /*oor*/)
         {
             // do nothing. Must be a mono-link, which is already set
         }

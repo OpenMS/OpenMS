@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -148,7 +148,7 @@ protected:
 
     //Search Enzyme
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllCometNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", all_enzymes);
     registerStringOption_("num_enzyme_termini", "<choice>", "fully", "1 semi-digested, 2 fully digested, (default), 8 C-term unspecific, 9 N-term unspecific", false, false);
@@ -277,7 +277,7 @@ protected:
     // search enzyme
 
     String enzyme_name = getStringOption_("enzyme");
-    String enzyme_number = String(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
+    String enzyme_number = String(ProteaseDB::getInstance()->getEnzyme(enzyme_name)->getCometID());
 
     map<string,int> num_enzyme_termini;
     num_enzyme_termini["semi"] = 1;
