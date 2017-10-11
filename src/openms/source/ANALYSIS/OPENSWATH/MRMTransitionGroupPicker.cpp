@@ -50,7 +50,7 @@ namespace OpenMS
     defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,smoothed,original"));
+    defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,smoothed,original_average,original_exact"));
 
     defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if theof variation within the picked peaks is too large.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("recalculate_peaks", ListUtils::create<String>("true,false"));
@@ -101,8 +101,46 @@ namespace OpenMS
     min_peak_width_ = (double)param_.getValue("min_peak_width");
     resample_boundary_ = (double)param_.getValue("resample_boundary");
   }
+  
+  void MRMTransitionGroupPicker::calculateBgEstimationAverage_(const MSChromatogram& chromatogram,
+      double best_left, double best_right, double & background, double & avg_noise_level)
+  {
+    // determine (in the chromatogram) the intensity at the left / right border
+    MSChromatogram::const_iterator it = chromatogram.begin();
+    int nr_points = 0;
+    for (; it != chromatogram.end(); ++it)
+    {
+      if (it->getMZ() > best_left)
+      {
+        nr_points++;
+        break;
+      }
+    }
+    double intensity_left = it->getIntensity();
+    for (; it != chromatogram.end(); ++it)
+    {
+      if (it->getMZ() > best_right)
+      {
+        break;
+      }
+      nr_points++;
+    }
+    if (it == chromatogram.begin() || nr_points < 1)
+    {
+      // something is fishy, the endpoint of the peak is the beginning of the chromatogram
+      std::cerr << "Tried to calculate background but no points were found " << std::endl;
+      return;
+    }
 
-  void MRMTransitionGroupPicker::calculateBgEstimation_(const MSChromatogram& chromatogram,
+    // decrease the iterator and the nr_points by one (because we went one too far)
+    double intensity_right = (it--)->getIntensity();
+    nr_points--;
+
+    avg_noise_level = (intensity_right + intensity_left) / 2;
+    background = avg_noise_level * nr_points;
+  }
+
+  void MRMTransitionGroupPicker::calculateBgEstimationExact_(const MSChromatogram& chromatogram,
       double best_left, double best_right, double peak_height, double & background, double & avg_noise_level)
   {
     // determine (in the chromatogram) the intensity at the left / right border
@@ -114,7 +152,7 @@ namespace OpenMS
       MSChromatogram::const_iterator it_prev = it;
       it_prev--; //previous point
 
-      if (it->getMZ() == best_left)
+      if (it->getMZ() >= best_left && it_prev->getIntensity() <= best_left)
       {
         intensity_left = it->getIntensity();
       }
@@ -122,7 +160,7 @@ namespace OpenMS
       {
         rt_apex = (it->getMZ() + it_prev->getMZ())/2;
       }
-      else if (it->getMZ() == best_right)
+      else if (it->getMZ() >= best_right && it_prev->getIntensity() <= best_right)
       {
         intensity_right = it->getIntensity();
       }

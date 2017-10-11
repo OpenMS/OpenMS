@@ -331,9 +331,13 @@ public:
             }
             */
           }
-          else if (background_subtraction_ == "original")
+          else if (background_subtraction_ == "original_average")
           {
-            calculateBgEstimation_(used_chromatogram, best_left, best_right, peak_apex_int, background, avg_noise_level);
+            calculateBgEstimationAverage_(used_chromatogram, best_left, best_right, background, avg_noise_level);
+          }
+          else if (background_subtraction_ == "original_exact")
+          {
+            calculateBgEstimationExact_(used_chromatogram, best_left, best_right, peak_apex_int, background, avg_noise_level);
           }
           intensity_sum -= background;
           peak_apex_int -= avg_noise_level;
@@ -496,12 +500,25 @@ public:
     void findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
     
     /**
-      @brief Will use the chromatogram to estimate the background noise and then subtract it
+      @brief Will use the chromatogram to estimate the background noise 
+        using the average intensity to the left and right of the peak borders,
+        and then subtract it
 
       The background is estimated by averaging the noise on either side of the
       peak and then subtracting that from the total intensity.
     */
-    void calculateBgEstimation_(const MSChromatogram& chromatogram,
+    void calculateBgEstimationAverage_(const MSChromatogram& chromatogram,
+                                  double best_left, double best_right, double & background, double & avg_noise_level);
+    
+    /**
+      @brief Will use the chromatogram to estimate the background noise 
+        using the exact intensity of the left and right peak borders,
+        and then subtract it
+
+      The background is estimated by averaging the noise on either side of the
+      peak and then subtracting that from the total intensity.
+    */
+    void calculateBgEstimationExact_(const MSChromatogram& chromatogram,
                                   double best_left, double best_right, double peak_height, double & background, double & avg_noise_level);
 
 protected:
