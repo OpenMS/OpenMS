@@ -298,6 +298,18 @@ namespace OpenMS
       ScoreList scores;
 
       std::vector<ProcessingStepKey> processing_steps;
+
+      explicit IdentifiedMetaData(
+        enum MoleculeType molecule_type = MT_PROTEIN,
+        const ScoreList& scores = ScoreList(),
+        const std::vector<ProcessingStepKey>& processing_steps =
+        std::vector<ProcessingStepKey>()):
+        molecule_type(molecule_type), scores(scores),
+        processing_steps(processing_steps)
+      {
+      }
+
+      IdentifiedMetaData(const IdentifiedMetaData& other) = default;
     };
 
     std::unordered_map<IdentifiedMoleculeKey,
@@ -424,9 +436,11 @@ namespace OpenMS
       Size missed_cleavages;
 
       DBSearchParameters():
-        molecule_type(MT_PROTEIN), precursor_mass_tolerance(0.0),
-        fragment_mass_tolerance(0.0), precursor_tolerance_ppm(false),
-        fragment_tolerance_ppm(false), digestion_enzyme(0), missed_cleavages(0)
+        molecule_type(MT_PROTEIN),
+        peak_mass_type(ProteinIdentification::MONOISOTOPIC),
+        precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0),
+        precursor_tolerance_ppm(false), fragment_tolerance_ppm(false),
+        digestion_enzyme(0), missed_cleavages(0)
       {
       }
 
@@ -508,8 +522,10 @@ namespace OpenMS
     ProteinIdentification::SearchParameters exportDBSearchParameters_(
       SearchParamsKey key) const;
 
+    /// Helper function to check if all score types are valid and registered
     void checkScoreTypes_(const ScoreList& scores);
 
+    /// Helper function to check if all processing steps are valid and registered
     void checkProcessingSteps_(const std::vector<ProcessingStepKey>& steps);
 
   public:
@@ -534,12 +550,17 @@ namespace OpenMS
 
     std::pair<DataQueryKey, bool> registerDataQuery(const DataQuery& query);
 
-    std::pair<IdentifiedMoleculeKey, bool> registerPeptide(const AASequence&
-                                                           seq);
+    std::pair<IdentifiedMoleculeKey, bool> registerPeptide(
+      const AASequence& seq,
+      const IdentifiedMetaData& meta_data = IdentifiedMetaData());
 
-    std::pair<IdentifiedMoleculeKey, bool> registerCompound(const String& id);
+    std::pair<IdentifiedMoleculeKey, bool> registerCompound(
+      const String& id,
+      const IdentifiedMetaData& meta_data = IdentifiedMetaData(MT_COMPOUND));
 
-    std::pair<ParentMoleculeKey, bool> registerParentMolecule(const String& accession, const ParentMetaData& meta_data = ParentMetaData());
+    std::pair<ParentMoleculeKey, bool> registerParentMolecule(
+      const String& accession,
+      const ParentMetaData& meta_data = ParentMetaData());
 
   };
 }

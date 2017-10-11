@@ -77,7 +77,7 @@ namespace OpenMS
       for (const ProteinHit& hit : prot.getHits())
       {
         pair<ParentMoleculeKey, bool> result =
-          registerParentMolecule(hit);
+          registerParentMolecule(hit.getAccession());
         ParentMetaData& meta = parent_meta_data.at(result.first);
         if (result.second) // new protein
         {
@@ -94,10 +94,9 @@ namespace OpenMS
 
     // PeptideIdentification:
     Size unknown_query_counter = 1;
-    for (vector<PeptideIdentification>::const_iterator pep_it =
-           peptides.begin(); pep_it != peptides.end(); ++pep_it)
+    for (const PeptideIdentification& pep : peptides)
     {
-      const String& id = pep_it->getIdentifier();
+      const String& id = pep.getIdentifier();
       ProcessingStepKey step_key = id_to_step[id];
       const DataProcessingStep& step = processing_steps.left.at(step_key);
       DataQuery query;
@@ -112,17 +111,17 @@ namespace OpenMS
         InputFileKey file_key = insertIntoBimap_(file, input_files).first;
         query.input_file_key = file_key;
       }
-      query.rt = pep_it->getRT();
-      query.mz = pep_it->getMZ();
-      static_cast<MetaInfoInterface&>(query) = *pep_it;
-      if (pep_it->metaValueExists("spectrum_reference"))
+      query.rt = pep.getRT();
+      query.mz = pep.getMZ();
+      static_cast<MetaInfoInterface&>(query) = pep;
+      if (pep.metaValueExists("spectrum_reference"))
       {
-        query.data_id = pep_it->getMetaValue("spectrum_reference");
+        query.data_id = pep.getMetaValue("spectrum_reference");
         query.removeMetaValue("spectrum_reference");
       }
       else
       {
-        if (pep_it->hasRT() && pep_it->hasMZ())
+        if (pep.hasRT() && pep.hasMZ())
         {
           query.data_id = String("RT=") + String(float(query.rt)) + "_MZ=" +
             String(float(query.mz));
@@ -135,30 +134,23 @@ namespace OpenMS
       }
       DataQueryKey query_key = registerDataQuery(query).first;
 
-      ScoreType score_type(pep_it->getScoreType(),
-                           pep_it->isHigherScoreBetter(), step.params_key);
+      ScoreType score_type(pep.getScoreType(), pep.isHigherScoreBetter(),
+                           step.params_key);
       ScoreTypeKey score_key = registerScoreType(score_type).first;
 
       // PeptideHit:
-      for (vector<PeptideHit>::const_iterator hit_it =
-             pep_it->getHits().begin(); hit_it != pep_it->getHits().end();
-           ++hit_it)
+      for (const PeptideHit& hit : pep.getHits())
       {
-        const AASequence& seq = hit_it->getSequence();
+        if (hit.getSequence().empty()) continue;
         pair<IdentifiedMoleculeKey, bool> result =
-          insertIntoBimap_(seq, identified_peptides);
-        if (result.second)
+          registerPeptide(hit.getSequence());
+        if (result.second && !hit.getPeptideEvidences().empty())
         {
-          if (!hit_it->getPeptideEvidences().empty())
-          {
-            parent_evidence[result.first] = hit_it->getPeptideEvidences();
-          }
-          IdentifiedMetaData meta;
-          meta.molecule_type = MT_PROTEIN;
-          identified_meta_data.insert(make_pair(result.first, meta));
+          parent_evidence[result.first] = hit.getPeptideEvidences();
         }
         // @TODO: check/merge evidences if peptide already exists?
-        identified_meta_data[result.first].processing_steps.push_back(step_key);
+        IdentifiedMetaData& meta = identified_meta_data.at(result.first);
+        meta.processing_steps.push_back(step_key);
 
         pair<DataQueryKey, IdentifiedMoleculeKey> psm_key =
           make_pair(query_key, result.first);
@@ -166,10 +158,10 @@ namespace OpenMS
         if (pos == matches.end()) // new PSM
         {
           MatchMetaData match;
-          match.rank = hit_it->getRank();
-          match.charge = hit_it->getCharge();
-          match.peak_annotations = hit_it->getPeakAnnotations();
-          static_cast<MetaInfoInterface&>(match) = *hit_it;
+          match.rank = hit.getRank();
+          match.charge = hit.getCharge();
+          match.peak_annotations = hit.getPeakAnnotations();
+          static_cast<MetaInfoInterface&>(match) = hit;
           pos = matches.insert(make_pair(psm_key, match)).first;
         }
         MatchMetaData& match = pos->second;
@@ -177,7 +169,7 @@ namespace OpenMS
 
         // analysis results from pepXML:
         for (const PeptideHit::PepXMLAnalysisResult& ana_res :
-               hit_it->getAnalysisResults())
+               hit.getAnalysisResults())
         {
           DataProcessingParameters params;
           params.tool.setName(ana_res.score_type); // e.g. "peptideprophet"
@@ -210,7 +202,7 @@ namespace OpenMS
           match.scores.push_back(make_pair(main_score_key, ana_res.main_score));
         }
         // primary score goes last:
-        match.scores.push_back(make_pair(score_key, hit_it->getScore()));
+        match.scores.push_back(make_pair(score_key, hit.getScore()));
       }
     }
   }
@@ -554,6 +546,52 @@ namespace OpenMS
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
     return insertIntoBimap_(query, data_queries);
+  }
+
+
+  pair<IdentificationData::IdentifiedMoleculeKey, bool>
+  IdentificationData::registerPeptide(const AASequence& seq,
+                                      const IdentifiedMetaData& meta_data)
+  {
+    if (seq.empty())
+    {
+      String msg = "missing sequence for peptide";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    checkScoreTypes_(meta_data.scores);
+    checkProcessingSteps_(meta_data.processing_steps);
+
+    pair<IdentifiedMoleculeKey, bool> result =
+      insertIntoBimap_(seq, identified_peptides);
+    if (result.second)
+    {
+      identified_meta_data.insert(make_pair(result.first, meta_data));
+    }
+    return result;
+  }
+
+
+  pair<IdentificationData::IdentifiedMoleculeKey, bool>
+  IdentificationData::registerCompound(const String& id,
+                                       const IdentifiedMetaData& meta_data)
+  {
+    if (id.empty())
+    {
+      String msg = "missing identifier for compound";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    checkScoreTypes_(meta_data.scores);
+    checkProcessingSteps_(meta_data.processing_steps);
+
+    pair<IdentifiedMoleculeKey, bool> result =
+      insertIntoBimap_(id, identified_compounds);
+    if (result.second)
+    {
+      identified_meta_data.insert(make_pair(result.first, meta_data));
+    }
+    return result;
   }
 
 
