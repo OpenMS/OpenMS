@@ -898,9 +898,16 @@ protected:
     const String out(getStringOption_("out"));
     const String osw_out(getStringOption_("osw_out"));
 
-    if (mzid_out.empty() && out.empty() && in_osw.empty())
+    if (in_list.empty() && in_osw.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out')");
+      writeLog_("Fatal error: no input file given (parameter 'in' or 'in_osw')");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
+    if (mzid_out.empty() && out.empty() && osw_out.empty())
+    {
+      writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out' or 'osw_out')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -945,11 +952,6 @@ protected:
 
         dst << src.rdbuf();
       }
-    }
-    else if (!in_osw.empty() && osw_out.empty())
-    {
-      // We write back to the input OSW, so we set the output filename to the input filename
-      String osw_out = in_osw;
     }
 
     // idXML or mzid input
