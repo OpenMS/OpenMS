@@ -230,6 +230,7 @@ protected:
     );
     registerFlag_("peptide-level-fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
     registerFlag_("protein-level-fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy-pattern to set the Fasta file and decoy pattern.");
+    registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: Either \"ms1\", \"ms2\" or \"transition\"; the data level selected for scoring.", !is_required);
 
     //Advanced parameters
     registerFlag_("generic-feature-set", "Use only generic (i.e. not search engine specific) features. Generating search engine specific features for common search engines by PSMFeatureExtractor will typically boost the identification rate significantly.", is_advanced_option);
@@ -254,6 +255,13 @@ protected:
     setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
     registerStringOption_("decoy-pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein-level-fdrs is active).", !is_required, is_advanced_option);
     registerFlag_("post-processing-tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
+
+    //OSW/IPF parameters
+    registerIntOption_("ipf_max_peakgroup_rank", "<value>", 1, "OSW/IPF: Assess transitions only for candidate peak groups until maximum peak group rank.", !is_required, is_advanced_option);
+    registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.3, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
+    registerDoubleOption_("ipf_max_transition_isotope_overlap", "<value>", 0.5, "OSW/IPF: Maximum isotope overlap to consider transitions in IPF.", !is_required, is_advanced_option);
+    registerDoubleOption_("ipf_min_transition_sn", "<value>", 0, "OSW/IPF: Minimum log signal-to-noise level to consider transitions in IPF. Set -1 to disable this filter.", !is_required, is_advanced_option);
+
   }
   
   // TODO replace with TopPerc::getScanMergeKey
@@ -648,7 +656,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes readOSWFile_(std::string in_osw, std::string osw_level, std::stringstream& pin_output) {
+  ExitCodes readOSWFile_(std::string in_osw, std::string osw_level, std::stringstream& pin_output, int ipf_max_peakgroup_rank, double ipf_max_peakgroup_pep, double ipf_max_transition_isotope_overlap, double ipf_min_transition_sn) {
 
     sqlite3 *db;
     sqlite3_stmt * stmt;
@@ -662,13 +670,13 @@ protected:
       fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
     }
 
-    if (osw_level == "MS1") {
-      select_sql = "SELECT *, PRECURSOR.ID AS GROUP_ID FROM FEATURE_MS1 INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
-    } else if (osw_level == "T") {
-      select_sql = "SELECT *, FEATURE_ID TRANSITION_ID AS GROUP_ID FROM FEATURE_TRANSITION INNER JOIN (SELECT ID, PRECURSOR_ID FROM FEATURE) AS FEATURE ON FEATURE_TRANSITION.FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM TRANSITION) AS TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID ORDER BY FEATURE_ID, PRECURSOR_ID, TRANSITION_ID;";
+    if (osw_level == "ms1") {
+      select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID FROM FEATURE_MS1 INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
+    } else if (osw_level == "transition") {
+      select_sql = "SELECT TRANSITION.DECOY AS DECOY, FEATURE_TRANSITION.*, RUN_ID || '_' || FEATURE_TRANSITION.FEATURE_ID || '_' || PRECURSOR_ID || '_' || TRANSITION_ID AS GROUP_ID, FEATURE_TRANSITION.FEATURE_ID || '_' || FEATURE_TRANSITION.TRANSITION_ID AS FEATURE_ID, 'PEPTIDE' AS MODIFIED_SEQUENCE FROM FEATURE_TRANSITION INNER JOIN (SELECT RUN_ID, ID, PRECURSOR_ID FROM FEATURE) AS FEATURE ON FEATURE_TRANSITION.FEATURE_ID = FEATURE.ID INNER JOIN PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID INNER JOIN (SELECT ID, DECOY FROM TRANSITION) AS TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID WHERE PEP <= " + String(ipf_max_peakgroup_pep) + " AND VAR_ISOTOPE_OVERLAP_SCORE <= " + String(ipf_max_transition_isotope_overlap) + " AND VAR_LOG_SN_SCORE > " + String(ipf_min_transition_sn) + " AND PRECURSOR.DECOY == 0 ORDER BY FEATURE_ID, PRECURSOR_ID, TRANSITION_ID;";
     } else {
       // Peak group-level query including peptide sequence
-      select_sql = "SELECT *, PRECURSOR.ID AS GROUP_ID FROM FEATURE_MS2 INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
+      select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID FROM FEATURE_MS2 INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
     }
 
     // Execute SQL select statement
@@ -679,12 +687,13 @@ protected:
 
     // Generate features
     int k = 0;
+    std::vector<std::string> group_id_index;
     std::vector<std::string> features_names;
 
     while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
     {
       std::string psm_id;
-      std::string scan_id;
+      size_t scan_id;
       int label = 0;
       std::string peptide;
       std::map<std::string, double> features;
@@ -697,7 +706,15 @@ protected:
         }
         if (string(sqlite3_column_name( stmt, i )) == "GROUP_ID")
         {
-          scan_id = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )));
+          if (std::find(group_id_index.begin(), group_id_index.end(), std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) != group_id_index.end())
+          {
+            scan_id = std::find(group_id_index.begin(), group_id_index.end(), std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
+          }
+          else
+          {
+            group_id_index.push_back(std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i ))));
+            scan_id = std::find(group_id_index.begin(), group_id_index.end(), std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
+          }
         }
         if (string(sqlite3_column_name( stmt, i )) == "DECOY")
         {
@@ -735,7 +752,7 @@ protected:
       {
         pin_output << "\t" << feat.second;
       }
-      pin_output << "\tK." << peptide << "A.\tProt1" << "\n";
+      pin_output << "\t." << peptide << ".\tProt1" << "\n";
 
       sqlite3_step( stmt );
       k++;
@@ -761,21 +778,21 @@ protected:
     std::string table;
     std::string create_sql;
 
-    if (osw_level == "MS1") {
+    if (osw_level == "ms1") {
       table = "SCORE_MS1";
       create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
                     "CREATE TABLE " + table + "(" \
-                    "FEATURE_ID TEXT NOT NULL," \
+                    "FEATURE_ID INT NOT NULL," \
                     "SCORE DOUBLE NOT NULL," \
                     "QVALUE DOUBLE NOT NULL," \
                     "PEP DOUBLE NOT NULL);";
 
-    } else if (osw_level == "T") {
+    } else if (osw_level == "transition") {
       table = "SCORE_TRANSITION";
       create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
                     "CREATE TABLE " + table + "(" \
-                    "FEATURE_ID TEXT NOT NULL," \
-                    "TRANSITION_ID TEXT NOT NULL," \
+                    "FEATURE_ID INT NOT NULL," \
+                    "TRANSITION_ID INT NOT NULL," \
                     "SCORE DOUBLE NOT NULL," \
                     "QVALUE DOUBLE NOT NULL," \
                     "PEP DOUBLE NOT NULL);";
@@ -784,7 +801,7 @@ protected:
       table = "SCORE_MS2";
       create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
                     "CREATE TABLE " + table + "(" \
-                    "FEATURE_ID TEXT NOT NULL," \
+                    "FEATURE_ID INT NOT NULL," \
                     "SCORE DOUBLE NOT NULL," \
                     "QVALUE DOUBLE NOT NULL," \
                     "PEP DOUBLE NOT NULL);";
@@ -794,19 +811,21 @@ protected:
     for(auto const &feat : pep_map)
     {
       std::stringstream insert_sql;
-      if (osw_level == "T") {
+      if (osw_level == "transition") {
+        std::vector<String> ids;
+        String(feat.second.PSMId).split("_", ids);
         insert_sql << "INSERT INTO " << table;
-        insert_sql << " (FEATURE_ID, TRANSITION_ID, SCORE, QVALUE, PEP) VALUES ('";
-        insert_sql <<  feat.first << "',";
-        insert_sql <<  0 << "',";
+        insert_sql << " (FEATURE_ID, TRANSITION_ID, SCORE, QVALUE, PEP) VALUES (";
+        insert_sql <<  ids[0] << ",";
+        insert_sql <<  ids[1] << ",";
         insert_sql <<  feat.second.score << ",";
         insert_sql <<  feat.second.qvalue << ",";
         insert_sql <<  feat.second.posterior_error_prob << "); ";
       }
       else {
         insert_sql << "INSERT INTO " << table;
-        insert_sql << " (FEATURE_ID, SCORE, QVALUE, PEP) VALUES ('";
-        insert_sql <<  feat.first << "',";
+        insert_sql << " (FEATURE_ID, SCORE, QVALUE, PEP) VALUES (";
+        insert_sql <<  feat.second.PSMId << ",";
         insert_sql <<  feat.second.score << ",";
         insert_sql <<  feat.second.qvalue << ",";
         insert_sql <<  feat.second.posterior_error_prob << "); ";
@@ -865,6 +884,7 @@ protected:
     const StringList in_decoy = getStringList_("in_decoy");
     LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << " & " << ListUtils::concatenate(in_decoy, ",") << " (decoy)" << endl;
     const String in_osw = getStringOption_("in_osw");
+    const String osw_level = getStringOption_("osw_level");
 
     const String percolator_executable(getStringOption_("percolator_executable"));
     writeDebug_(String("Path to the percolator: ") + percolator_executable, 2);
@@ -889,6 +909,11 @@ protected:
     bool peptide_level_fdrs = getFlag_("peptide-level-fdrs");
     bool protein_level_fdrs = getFlag_("protein-level-fdrs");  
 
+    int ipf_max_peakgroup_rank = getIntOption_("ipf_max_peakgroup_rank");
+    double ipf_max_peakgroup_pep = getDoubleOption_("ipf_max_peakgroup_pep");
+    double ipf_max_transition_isotope_overlap = getDoubleOption_("ipf_max_transition_isotope_overlap");
+    double ipf_min_transition_sn = getDoubleOption_("ipf_min_transition_sn");
+
     //-------------------------------------------------------------
     // read input
     //-------------------------------------------------------------
@@ -911,7 +936,7 @@ protected:
     String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
 
     // prepare OSW I/O
-    if (!in_osw.empty() && !osw_out.empty())
+    if (!in_osw.empty() && !osw_out.empty() && in_osw != osw_out)
     {
       // Copy input OSW to output OSW, because we want to retain all information
       remove(osw_out.c_str());
@@ -1029,7 +1054,7 @@ protected:
       LOG_DEBUG << "Writing percolator input file." << endl;
       TextFile txt;  
       std::stringstream pin_output;
-      readOSWFile_(in_osw, "MS2", pin_output);
+      readOSWFile_(in_osw, osw_level, pin_output, ipf_max_peakgroup_rank, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
       txt << pin_output.str();
       txt.store(pin_file);
     }
@@ -1268,7 +1293,7 @@ protected:
     }
     else
     {
-      writeOSWFile_(osw_out, "MS2", pep_map);
+      writeOSWFile_(osw_out, osw_level, pep_map);
     }
 
     writeLog_("PercolatorAdapter finished successfully!");
