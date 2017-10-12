@@ -183,8 +183,8 @@ namespace OpenMS
   }
 
   Param AbsoluteQuantitationMethod::fitTransformationModel(const String & transformation_model,
-    TransformationModel::DataPoints& data,
-    Param& transformation_model_params)
+    const TransformationModel::DataPoints& data,
+    const Param& transformation_model_params)
   {
     Param params;
     if (transformation_model == "TransformationModelLinear")
@@ -219,7 +219,7 @@ namespace OpenMS
   
   double AbsoluteQuantitationMethod::evaluateTransformationModel(const String & transformation_model,
     const double& datum,
-    Param& transformation_model_params)
+    const Param& transformation_model_params)
   {
     double result = datum;
     TransformationModel::DataPoints data;

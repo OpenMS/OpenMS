@@ -142,8 +142,8 @@ public:
   @return updated parameters.
   */ 
   Param fitTransformationModel(const String & transformation_model,
-    TransformationModel::DataPoints& data,
-    Param& transformation_model_params);
+    const TransformationModel::DataPoints& data,
+    const Param& transformation_model_params);
 
   /**
   @brief This function inverts and evaluates the transformation model
@@ -157,7 +157,7 @@ public:
   */ 
   double evaluateTransformationModel(const String & transformation_model,
     const double& datum,
-    Param& transformation_model_params);
+    const Param& transformation_model_params);
                                   
   // members
 

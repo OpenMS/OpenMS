@@ -97,8 +97,8 @@ START_SECTION((bool checkLOQ(const double & value)))
 END_SECTION
 
 START_SECTION((Param fitTransformationModel(const String & transformation_model,
-  TransformationModel::DataPoints& data,
-  Param& transformation_model_params)))
+  const TransformationModel::DataPoints& data,
+  const Param& transformation_model_params)))
   
   TransformationModel::DataPoints data;
   data.push_back(make_pair(0.0, 0.0));
@@ -159,7 +159,7 @@ END_SECTION
 
 START_SECTION((double evaluateTransformationModel(const String & transformation_model,
   const double& datum,
-  Param& transformation_model_params)))
+  const Param& transformation_model_params)))
   
   TransformationModel::DataPoints data;
   double datum = 2.0;
