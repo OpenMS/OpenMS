@@ -79,6 +79,7 @@ namespace OpenMS
       ProcessingStepKey step_key =
         registerDataProcessingStep(step, search_key).first;
       id_to_step[prot.getIdentifier()] = step_key;
+      setCurrentProcessingStep(step_key);
 
       // ProteinHit:
       for (const ProteinHit& hit : prot.getHits())
@@ -95,8 +96,8 @@ namespace OpenMS
         }
         // add this information also for previously seen proteins:
         meta.scores.push_back(make_pair(score_key, hit.getScore()));
-        meta.processing_steps.push_back(step_key);
       }
+      clearCurrentProcessingStep();
     }
 
     // PeptideIdentification:
@@ -498,6 +499,20 @@ namespace OpenMS
   }
 
 
+  bool IdentificationData::addCurrentProcessingStep_(
+    vector<ProcessingStepKey>& processing_steps)
+  {
+    if (UniqueIdInterface::isValid(current_step_key_) &&
+        (processing_steps.empty() ||
+         (processing_steps.back() != current_step_key_)))
+    {
+      processing_steps.push_back(current_step_key_);
+      return true;
+    }
+    return false;
+  }
+
+
   pair<IdentificationData::InputFileKey, bool>
   IdentificationData::registerInputFile(const String& file)
   {
@@ -567,12 +582,23 @@ namespace OpenMS
   IdentificationData::registerScoreType(const ScoreType& score)
   {
     // reference to software may be missing, but otherwise must be valid:
-    if (UniqueIdInterface::isValid(score.software_key) &&
-        (processing_software.left.count(score.software_key) == 0))
+    if (UniqueIdInterface::isValid(score.software_key))
     {
-      String msg = "invalid reference to data processing software - register that first";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
+      if (processing_software.left.count(score.software_key) == 0)
+      {
+        String msg = "invalid reference to data processing software - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+    }
+    else if (UniqueIdInterface::isValid(current_step_key_))
+    {
+      // transfer the software key from the current data processing step:
+      const DataProcessingStep& step =
+        processing_steps.left.at(current_step_key_);
+      ScoreType copy(score); // need a copy so we can modify it
+      copy.software_key = step.software_key;
+      return insertIntoBimap_(copy, score_types);
     }
     return insertIntoBimap_(score, score_types);
   }
@@ -602,7 +628,7 @@ namespace OpenMS
 
   pair<IdentificationData::IdentifiedMoleculeKey, bool>
   IdentificationData::registerPeptide(const AASequence& seq,
-                                      const IdentifiedMetaData& meta_data)
+                                      IdentifiedMetaData meta_data)
   {
     if (seq.empty())
     {
@@ -616,13 +642,16 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    checkScoreTypes_(meta_data.scores);
-    checkProcessingSteps_(meta_data.processing_steps);
 
     pair<IdentifiedMoleculeKey, bool> result =
       insertIntoBimap_(seq, identified_peptides);
     if (result.second)
     {
+      checkScoreTypes_(meta_data.scores);
+      checkProcessingSteps_(meta_data.processing_steps);
+      // @TODO: this prevents passing "meta_data" by const ref. - any
+      // workaround?
+      addCurrentProcessingStep_(meta_data.processing_steps);
       identified_meta_data.insert(make_pair(result.first, meta_data));
     }
     return result;
@@ -632,7 +661,7 @@ namespace OpenMS
   pair<IdentificationData::IdentifiedMoleculeKey, bool>
   IdentificationData::registerCompound(const String& id,
                                        const CompoundMetaData& compound_meta,
-                                       const IdentifiedMetaData& id_meta)
+                                       IdentifiedMetaData id_meta)
   {
     if (id.empty())
     {
@@ -646,16 +675,18 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    checkScoreTypes_(id_meta.scores);
-    checkProcessingSteps_(id_meta.processing_steps);
 
     pair<IdentifiedMoleculeKey, bool> result =
       insertIntoBimap_(id, identified_compounds);
     if (result.second)
     {
+      checkScoreTypes_(id_meta.scores);
+      checkProcessingSteps_(id_meta.processing_steps);
+      // @TODO: this prevents passing "id_meta" by const ref. - any workaround?
+      addCurrentProcessingStep_(id_meta.processing_steps);
+      identified_meta_data.insert(make_pair(result.first, id_meta));
       // @TODO: insert "compound_meta" even if it's empty?
       compound_meta_data.insert(make_pair(result.first, compound_meta));
-      identified_meta_data.insert(make_pair(result.first, id_meta));
     }
     return result;
   }
@@ -663,7 +694,7 @@ namespace OpenMS
 
   pair<IdentificationData::ParentMoleculeKey, bool>
   IdentificationData::registerParentMolecule(const String& accession,
-                                             const ParentMetaData& meta_data)
+                                             ParentMetaData meta_data)
   {
     if (accession.empty())
     {
@@ -671,13 +702,14 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    checkScoreTypes_(meta_data.scores);
-    checkProcessingSteps_(meta_data.processing_steps);
 
     pair<ParentMoleculeKey, bool> result =
       insertIntoBimap_(accession, parent_molecules);
     if (result.second)
     {
+      checkScoreTypes_(meta_data.scores);
+      checkProcessingSteps_(meta_data.processing_steps);
+      addCurrentProcessingStep_(meta_data.processing_steps);
       parent_meta_data.insert(make_pair(result.first, meta_data));
     }
     return result;
@@ -709,7 +741,7 @@ namespace OpenMS
 
   bool IdentificationData::addMoleculeQueryMatch(
     IdentifiedMoleculeKey molecule_key, DataQueryKey query_key,
-    const MoleculeQueryMatch& meta_data)
+    MoleculeQueryMatch meta_data)
   {
     if (!UniqueIdInterface::isValid(molecule_key) ||
         // don't know which "identified_[type]" to check, so check meta data:
@@ -728,10 +760,31 @@ namespace OpenMS
     }
     checkScoreTypes_(meta_data.scores);
     checkProcessingSteps_(meta_data.processing_steps);
+    // @TODO: this prevents passing "meta_data" by const ref. - any workaround?
+    addCurrentProcessingStep_(meta_data.processing_steps);
     // @TODO: disallow charge zero in "meta_data"?
 
     QueryMatchKey match_key = make_pair(molecule_key, query_key);
     return query_matches.insert(make_pair(match_key, meta_data)).second;
+  }
+
+
+  void IdentificationData::setCurrentProcessingStep(ProcessingStepKey step_key)
+  {
+    if (!UniqueIdInterface::isValid(step_key) ||
+        (processing_steps.left.count(step_key) == 0))
+    {
+      String msg = "invalid reference to a processing step - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    current_step_key_ = step_key;
+  }
+
+
+  void IdentificationData::clearCurrentProcessingStep()
+  {
+    current_step_key_ = 0;
   }
 
 } // end namespace OpenMS

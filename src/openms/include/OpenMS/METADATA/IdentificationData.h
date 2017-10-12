@@ -369,7 +369,12 @@ namespace OpenMS
     typedef boost::hash<QueryMatchKey> QueryMatchHash;
     typedef std::unordered_map<QueryMatchKey, MoleculeQueryMatch,
                                QueryMatchHash> QueryMatchMap;
-    QueryMatchMap query_matches;
+    // @TODO: change QueryMatchMap to the following for better access by data
+    // query (e.g. to get top hit per query)?
+    // std::unordered_map<DataQueryKey,
+    //                    std::unordered_map<IdentifiedMoleculeKey,
+    //                                       MoleculeQueryMatch> QueryMatchMap;
+     QueryMatchMap query_matches;
 
 
     /*!
@@ -555,7 +560,14 @@ namespace OpenMS
     std::unordered_map<ProcessingStepKey, SearchParamsKey> db_search_steps;
 
 
-    // functions:
+    /// Default constructor
+    IdentificationData():
+      current_step_key_(0)
+    {
+    }
+
+    /// Copy constructor
+    IdentificationData(const IdentificationData& other) = default;
 
     void importIDs(const std::vector<ProteinIdentification>& proteins,
                    const std::vector<PeptideIdentification>& peptides);
@@ -582,29 +594,47 @@ namespace OpenMS
 
     std::pair<IdentifiedMoleculeKey, bool> registerPeptide(
       const AASequence& seq,
-      const IdentifiedMetaData& meta_data = IdentifiedMetaData());
+      IdentifiedMetaData meta_data = IdentifiedMetaData());
 
     std::pair<IdentifiedMoleculeKey, bool> registerCompound(
       const String& id,
       const CompoundMetaData& compound_meta = CompoundMetaData(),
-      const IdentifiedMetaData& id_meta = IdentifiedMetaData(MT_COMPOUND));
+      IdentifiedMetaData id_meta = IdentifiedMetaData(MT_COMPOUND));
 
     std::pair<ParentMoleculeKey, bool> registerParentMolecule(
-      const String& accession,
-      const ParentMetaData& meta_data = ParentMetaData());
+      const String& accession, ParentMetaData meta_data = ParentMetaData());
 
     // these ones are called "add..." instead of "register..." because they
     // don't return a key:
+
     bool addMoleculeParentMatch(
       IdentifiedMoleculeKey molecule_key, ParentMoleculeKey parent_key,
       const MoleculeParentMatch& meta_data = MoleculeParentMatch());
 
     bool addMoleculeQueryMatch(
       IdentifiedMoleculeKey molecule_key, DataQueryKey query_key,
-      const MoleculeQueryMatch& meta_data = MoleculeQueryMatch());
+      MoleculeQueryMatch meta_data = MoleculeQueryMatch());
+
+    /*!
+      @brief Set a data processing step that will apply to all subsequent "register..." calls.
+
+      This step will be appended to the list of processing steps for all relevant elements that are registered subsequently (unless it is already the last entry in the list).
+      If a score type without a software reference is registered, the software reference of this processing step will be applied.
+
+      Effective until @ref clearCurrentProcessingStep() is called.
+     */
+    void setCurrentProcessingStep(ProcessingStepKey step_key);
+
+    /*!
+      Cancel the effect of @ref setCurrentProcessingStep().
+    */
+    void clearCurrentProcessingStep();
 
 
   protected:
+
+    ProcessingStepKey current_step_key_;
+
     /*!
       Helper function for inserting an item into a bidirectional map.
 
@@ -647,6 +677,16 @@ namespace OpenMS
 
     /// Helper function to check if all processing steps are valid and registered
     void checkProcessingSteps_(const std::vector<ProcessingStepKey>& steps);
+
+    /*!
+      @brief Helper function to add the current processing step to a list of steps, if applicable.
+
+      @see @ref setCurrentProcessingStep()
+    */
+    bool addCurrentProcessingStep_(
+      std::vector<ProcessingStepKey>& processing_steps);
+
+
 
   };
 }
