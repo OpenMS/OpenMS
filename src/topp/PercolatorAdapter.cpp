@@ -39,6 +39,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -54,7 +55,6 @@
 
 #include <boost/algorithm/clamp.hpp>
 #include <typeinfo>
-#include <sqlite3.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -650,219 +650,6 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes readOSWFile_(std::string in_osw, std::string osw_level, std::stringstream& pin_output, double ipf_max_peakgroup_pep, double ipf_max_transition_isotope_overlap, double ipf_min_transition_sn) {
-
-    sqlite3 *db;
-    sqlite3_stmt * stmt;
-    int  rc;
-    std::string select_sql;
-
-    // Open database
-    rc = sqlite3_open(in_osw.c_str(), &db);
-    if ( rc )
-    {
-      fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-    }
-
-    if (osw_level == "ms1") {
-      select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID FROM FEATURE_MS1 INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
-    } else if (osw_level == "transition") {
-      select_sql = "SELECT TRANSITION.DECOY AS DECOY, FEATURE_TRANSITION.*, RUN_ID || '_' || FEATURE_TRANSITION.FEATURE_ID || '_' || PRECURSOR_ID || '_' || TRANSITION_ID AS GROUP_ID, FEATURE_TRANSITION.FEATURE_ID || '_' || FEATURE_TRANSITION.TRANSITION_ID AS FEATURE_ID, 'PEPTIDE' AS MODIFIED_SEQUENCE FROM FEATURE_TRANSITION INNER JOIN (SELECT RUN_ID, ID, PRECURSOR_ID FROM FEATURE) AS FEATURE ON FEATURE_TRANSITION.FEATURE_ID = FEATURE.ID INNER JOIN PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN SCORE_MS2 ON FEATURE.ID = SCORE_MS2.FEATURE_ID INNER JOIN (SELECT ID, DECOY FROM TRANSITION) AS TRANSITION ON FEATURE_TRANSITION.TRANSITION_ID = TRANSITION.ID WHERE PEP <= " + String(ipf_max_peakgroup_pep) + " AND VAR_ISOTOPE_OVERLAP_SCORE <= " + String(ipf_max_transition_isotope_overlap) + " AND VAR_LOG_SN_SCORE > " + String(ipf_min_transition_sn) + " AND PRECURSOR.DECOY == 0 ORDER BY FEATURE_ID, PRECURSOR_ID, TRANSITION_ID;";
-    } else {
-      // Peak group-level query including peptide sequence
-      select_sql = "SELECT *, RUN_ID || '_' || PRECURSOR.ID AS GROUP_ID FROM FEATURE_MS2 INNER JOIN (SELECT ID, PRECURSOR_ID, RUN_ID FROM FEATURE) AS FEATURE ON FEATURE_ID = FEATURE.ID INNER JOIN (SELECT ID, DECOY FROM PRECURSOR) AS PRECURSOR ON FEATURE.PRECURSOR_ID = PRECURSOR.ID INNER JOIN PRECURSOR_PEPTIDE_MAPPING ON PRECURSOR.ID = PRECURSOR_PEPTIDE_MAPPING.PRECURSOR_ID INNER JOIN (SELECT ID, MODIFIED_SEQUENCE FROM PEPTIDE) AS PEPTIDE ON PRECURSOR_PEPTIDE_MAPPING.PEPTIDE_ID = PEPTIDE.ID;";
-    }
-
-    // Execute SQL select statement
-    sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
-    sqlite3_step( stmt );
-
-    int cols = sqlite3_column_count(stmt);
-
-    // Generate features
-    int k = 0;
-    std::vector<std::string> group_id_index;
-    std::vector<std::string> features_names;
-
-    while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
-    {
-      std::string psm_id;
-      size_t scan_id;
-      int label = 0;
-      std::string peptide;
-      std::map<std::string, double> features;
-
-      for (int i = 0; i < cols; i++)
-      {
-        if (string(sqlite3_column_name( stmt, i )) == "FEATURE_ID")
-        {
-          psm_id = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )));
-        }
-        if (string(sqlite3_column_name( stmt, i )) == "GROUP_ID")
-        {
-          if (std::find(group_id_index.begin(), group_id_index.end(), std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) != group_id_index.end())
-          {
-            scan_id = std::find(group_id_index.begin(), group_id_index.end(), std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
-          }
-          else
-          {
-            group_id_index.push_back(std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i ))));
-            scan_id = std::find(group_id_index.begin(), group_id_index.end(), std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )))) - group_id_index.begin();
-          }
-        }
-        if (string(sqlite3_column_name( stmt, i )) == "DECOY")
-        {
-          if(sqlite3_column_int( stmt, i ) == 1)
-          {
-            label = -1;
-          }
-          else
-          {
-            label = 1;
-          }
-        }
-        if (string(sqlite3_column_name( stmt, i )) == "MODIFIED_SEQUENCE")
-        {
-          peptide = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, i )));
-        }
-        if (string(sqlite3_column_name( stmt, i )).substr(0,4) == "VAR_")
-        {
-          features[string(sqlite3_column_name( stmt, i ))] = sqlite3_column_double( stmt, i );
-        }
-      }
-
-      // Write output
-      if (k == 0)
-      {
-        pin_output << "PSMId\tLabel\tScanNr";
-        for(auto const &feat : features)
-        {
-          pin_output << "\t" << feat.first;
-        }
-        pin_output << "\tPeptide\tProteins\n";
-      }
-      pin_output << psm_id << "\t" << label << "\t" << scan_id;
-      for(auto const &feat : features)
-      {
-        pin_output << "\t" << feat.second;
-      }
-      pin_output << "\t." << peptide << ".\tProt1" << "\n";
-
-      sqlite3_step( stmt );
-      k++;
-    }
-
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
-
-    return EXECUTION_OK;
-  }
-
-  static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName){
-    int i;
-    for(i=0; i<argc; i++)
-    {
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-    printf("\n");
-    return(0);
-  }
-
-  void writeOSWFile_(std::string in_osw, std::string osw_level, std::map<String, PercolatorResult> pep_map) {
-    std::string table;
-    std::string create_sql;
-
-    if (osw_level == "ms1") {
-      table = "SCORE_MS1";
-      create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
-                    "CREATE TABLE " + table + "(" \
-                    "FEATURE_ID INT NOT NULL," \
-                    "SCORE DOUBLE NOT NULL," \
-                    "QVALUE DOUBLE NOT NULL," \
-                    "PEP DOUBLE NOT NULL);";
-
-    } else if (osw_level == "transition") {
-      table = "SCORE_TRANSITION";
-      create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
-                    "CREATE TABLE " + table + "(" \
-                    "FEATURE_ID INT NOT NULL," \
-                    "TRANSITION_ID INT NOT NULL," \
-                    "SCORE DOUBLE NOT NULL," \
-                    "QVALUE DOUBLE NOT NULL," \
-                    "PEP DOUBLE NOT NULL);";
-
-    } else {
-      table = "SCORE_MS2";
-      create_sql =  "DROP TABLE IF EXISTS " + table + "; " \
-                    "CREATE TABLE " + table + "(" \
-                    "FEATURE_ID INT NOT NULL," \
-                    "SCORE DOUBLE NOT NULL," \
-                    "QVALUE DOUBLE NOT NULL," \
-                    "PEP DOUBLE NOT NULL);";
-    }
-
-    std::vector<std::string> insert_sqls;
-    for(auto const &feat : pep_map)
-    {
-      std::stringstream insert_sql;
-      if (osw_level == "transition") {
-        std::vector<String> ids;
-        String(feat.second.PSMId).split("_", ids);
-        insert_sql << "INSERT INTO " << table;
-        insert_sql << " (FEATURE_ID, TRANSITION_ID, SCORE, QVALUE, PEP) VALUES (";
-        insert_sql <<  ids[0] << ",";
-        insert_sql <<  ids[1] << ",";
-        insert_sql <<  feat.second.score << ",";
-        insert_sql <<  feat.second.qvalue << ",";
-        insert_sql <<  feat.second.posterior_error_prob << "); ";
-      }
-      else {
-        insert_sql << "INSERT INTO " << table;
-        insert_sql << " (FEATURE_ID, SCORE, QVALUE, PEP) VALUES (";
-        insert_sql <<  feat.second.PSMId << ",";
-        insert_sql <<  feat.second.score << ",";
-        insert_sql <<  feat.second.qvalue << ",";
-        insert_sql <<  feat.second.posterior_error_prob << "); ";
-      }
-
-      insert_sqls.push_back(insert_sql.str());
-    }
-
-    // Conduct SQLite operations
-    sqlite3 *db;
-    char *zErrMsg = 0;
-    int  rc;
-
-    // Open database
-    rc = sqlite3_open(in_osw.c_str(), &db);
-    if( rc )
-    {
-      fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-    }
-
-    // Execute SQL create statement
-    rc = sqlite3_exec(db, create_sql.c_str(), callback, 0, &zErrMsg);
-    if( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-    }
-
-    sqlite3_exec(db, "BEGIN TRANSACTION", NULL, NULL, &zErrMsg);
-
-    for (int i = 0; i < insert_sqls.size(); i++)
-    {
-      rc = sqlite3_exec(db, insert_sqls[i].c_str(), callback, 0, &zErrMsg);
-      if( rc != SQLITE_OK )
-      {
-        sqlite3_free(zErrMsg);
-      }
-    }
-
-    sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
-    sqlite3_close(db);
-  }
-
-  
   ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
@@ -903,6 +690,20 @@ protected:
     if (mzid_out.empty() && out.empty() && osw_out.empty())
     {
       writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out' or 'osw_out')");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
+    if (!in_osw.empty() && osw_out.empty())
+    {
+      writeLog_("Fatal error: OSW input requires OSW output.");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
+    if (!in_list.empty() && (out.empty() || mzid_out.empty()))
+    {
+      writeLog_("Fatal error: idXML/mzid input requires idXML/mzid output.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -1049,7 +850,7 @@ protected:
       LOG_DEBUG << "Writing percolator input file." << endl;
       TextFile txt;  
       std::stringstream pin_output;
-      readOSWFile_(in_osw, osw_level, pin_output, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
+      OSWFile().read(in_osw, osw_level, pin_output, ipf_max_peakgroup_pep, ipf_max_transition_isotope_overlap, ipf_min_transition_sn);
       txt << pin_output.str();
       txt.store(pin_file);
     }
@@ -1288,7 +1089,14 @@ protected:
     }
     else
     {
-      writeOSWFile_(osw_out, osw_level, pep_map);
+      std::map< std::string, std::vector<double> > features;
+      for(auto const &feat : pep_map)
+      {
+        features[feat.second.PSMId].push_back(feat.second.score);
+        features[feat.second.PSMId].push_back(feat.second.qvalue);
+        features[feat.second.PSMId].push_back(feat.second.posterior_error_prob);
+      }
+      OSWFile().write(osw_out, osw_level, features);
     }
 
     writeLog_("PercolatorAdapter finished successfully!");
