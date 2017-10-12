@@ -167,18 +167,16 @@ namespace OpenMS
           MoleculeParentMatch match(evidence.getStart(), evidence.getEnd(),
                                     evidence.getAABefore(),
                                     evidence.getAAAfter());
-          parent_matches[result.first][parent_key].insert(match);
+          addMoleculeParentMatch(result.first, parent_key, match);
         }
         IdentifiedMetaData& meta = identified_meta_data.at(result.first);
         meta.processing_steps.push_back(step_key);
 
-        pair<IdentifiedMoleculeKey, DataQueryKey> psm_key =
-          make_pair(result.first, query_key);
+        QueryMatchKey psm_key = make_pair(result.first, query_key);
         QueryMatchMap::iterator pos = query_matches.find(psm_key);
         if (pos == query_matches.end()) // new PSM
         {
           MoleculeQueryMatch match;
-          match.rank = hit.getRank();
           match.charge = hit.getCharge();
           match.peak_annotations = hit.getPeakAnnotations();
           static_cast<MetaInfoInterface&>(match) = hit;
@@ -252,7 +250,6 @@ namespace OpenMS
       PeptideHit hit;
       hit.setSequence(identified_peptides.left.at(molecule_key));
       hit.setCharge(match.charge);
-      hit.setRank(match.rank);
       hit.setPeakAnnotations(match.peak_annotations);
       ParentMatchMap::const_iterator pos = parent_matches.find(molecule_key);
       if (pos != parent_matches.end())
@@ -309,7 +306,6 @@ namespace OpenMS
       peptide.setHits(psm_it->second.first);
       const ScoreType& score_type = score_types.left.at(psm_it->second.second);
       peptide.setScoreType(score_type.name);
-      peptide.sortByRank();
       peptide.setIdentifier(String(psm_it->first.second));
       peptides.push_back(peptide);
       steps.insert(psm_it->first.second);
@@ -494,7 +490,7 @@ namespace OpenMS
       if (!UniqueIdInterface::isValid(step) ||
           (processing_steps.left.count(step) == 0))
       {
-        String msg = "invalid reference to a processing step - register that first";
+        String msg = "invalid reference to a data processing step - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
@@ -591,6 +587,12 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
+    if (meta_data.molecule_type != MT_PROTEIN)
+    {
+      String msg = "invalid molecule type setting for peptide";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
     checkScoreTypes_(meta_data.scores);
     checkProcessingSteps_(meta_data.processing_steps);
 
@@ -611,6 +613,12 @@ namespace OpenMS
     if (id.empty())
     {
       String msg = "missing identifier for compound";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    if (meta_data.molecule_type != MT_COMPOUND)
+    {
+      String msg = "invalid molecule type setting for compound";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
@@ -647,6 +655,56 @@ namespace OpenMS
       parent_meta_data.insert(make_pair(result.first, meta_data));
     }
     return result;
+  }
+
+
+  bool IdentificationData::addMoleculeParentMatch(
+    IdentifiedMoleculeKey molecule_key, ParentMoleculeKey parent_key,
+    const MoleculeParentMatch& meta_data)
+  {
+    if (!UniqueIdInterface::isValid(molecule_key) ||
+        // don't know which "identified_[type]" to check, so check meta data:
+        (identified_meta_data.count(molecule_key) == 0))
+    {
+      String msg = "invalid reference to an identified molecule - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    if (!UniqueIdInterface::isValid(parent_key) ||
+        (parent_molecules.left.count(parent_key) == 0))
+    {
+      String msg = "invalid reference to a parent molecule - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    return parent_matches[molecule_key][parent_key].insert(meta_data).second;
+  }
+
+
+  bool IdentificationData::addMoleculeQueryMatch(
+    IdentifiedMoleculeKey molecule_key, DataQueryKey query_key,
+    const MoleculeQueryMatch& meta_data)
+  {
+    if (!UniqueIdInterface::isValid(molecule_key) ||
+        // don't know which "identified_[type]" to check, so check meta data:
+        (identified_meta_data.count(molecule_key) == 0))
+    {
+      String msg = "invalid reference to an identified molecule - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    if (!UniqueIdInterface::isValid(query_key) ||
+        (data_queries.left.count(query_key) == 0))
+    {
+      String msg = "invalid reference to a data query - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    checkScoreTypes_(meta_data.scores);
+    checkProcessingSteps_(meta_data.processing_steps);
+
+    QueryMatchKey match_key = make_pair(molecule_key, query_key);
+    return query_matches.insert(make_pair(match_key, meta_data)).second;
   }
 
 } // end namespace OpenMS

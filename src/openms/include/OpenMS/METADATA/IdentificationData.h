@@ -293,7 +293,7 @@ namespace OpenMS
     */
     struct IdentifiedMetaData: public MetaInfoInterface
     {
-      enum MoleculeType molecule_type;
+      enum MoleculeType molecule_type; // @TODO: do we need this?
 
       ScoreList scores;
 
@@ -343,15 +343,24 @@ namespace OpenMS
 
       ScoreList scores;
 
-      // is it useful to store this, as different processing steps/score types
-      // may give different rankings?
-      Size rank; // rank among matches for the same spectrum/feature
-
       // ordered list of references to data processing steps:
       std::vector<ProcessingStepKey> processing_steps;
 
       // @TODO: move "PeakAnnotation" out of "PeptideHit"
       std::vector<PeptideHit::PeakAnnotation> peak_annotations;
+
+      explicit MoleculeQueryMatch(
+        Int charge = 0, ScoreList scores = ScoreList(),
+        std::vector<ProcessingStepKey> processing_steps =
+        std::vector<ProcessingStepKey>(),
+        std::vector<PeptideHit::PeakAnnotation> peak_annotations =
+        std::vector<PeptideHit::PeakAnnotation>()):
+        charge(charge), scores(scores), processing_steps(processing_steps),
+        peak_annotations(peak_annotations)
+      {
+      }
+
+      MoleculeQueryMatch(const MoleculeQueryMatch& other) = default;
     };
 
     typedef std::pair<IdentifiedMoleculeKey, DataQueryKey> QueryMatchKey;
@@ -618,6 +627,13 @@ namespace OpenMS
       const String& accession,
       const ParentMetaData& meta_data = ParentMetaData());
 
+    bool addMoleculeParentMatch(
+      IdentifiedMoleculeKey molecule_key, ParentMoleculeKey parent_key,
+      const MoleculeParentMatch& meta_data = MoleculeParentMatch());
+
+    bool addMoleculeQueryMatch(
+      IdentifiedMoleculeKey molecule_key, DataQueryKey query_key,
+      const MoleculeQueryMatch& meta_data = MoleculeQueryMatch());
   };
 }
 
