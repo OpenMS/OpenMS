@@ -39,6 +39,13 @@ using namespace std;
 
 namespace OpenMS
 {
+  const Size IdentificationData::MoleculeParentMatch::UNKNOWN_POSITION =
+    Size(-1);
+  const char IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR = 'X';
+  const char IdentificationData::MoleculeParentMatch::LEFT_TERMINUS = '[';
+  const char IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS = ']';
+
+
   void IdentificationData::importIDs(
     const vector<ProteinIdentification>& proteins,
     const vector<PeptideIdentification>& peptides)
@@ -252,11 +259,11 @@ namespace OpenMS
       {
         for (const ParentSubMap::value_type& sub : pos->second)
         {
+          ParentMoleculeKey parent_key = sub.first;
           for (const MoleculeParentMatch& match : sub.second)
           {
             PeptideEvidence evidence;
-            evidence.setProteinAccession(parent_molecules.left.at(sub.
-                                                                  first));
+            evidence.setProteinAccession(parent_molecules.left.at(parent_key));
             evidence.setStart(match.start_pos);
             evidence.setEnd(match.end_pos);
             evidence.setAABefore(match.left_neighbor);

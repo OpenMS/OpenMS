@@ -413,10 +413,15 @@ namespace OpenMS
 
       char left_neighbor, right_neighbor; // neighboring sequence elements
 
-      explicit MoleculeParentMatch(Size start_pos = Size(-1),
-                                   Size end_pos = Size(-1),
-                                   char left_neighbor = 'X',
-                                   char right_neighbor = 'X'):
+      static const Size UNKNOWN_POSITION; // = Size(-1)
+      static const char UNKNOWN_NEIGHBOR; // = 'X'
+      static const char LEFT_TERMINUS; // = '['
+      static const char RIGHT_TERMINUS; // = ']'
+
+      explicit MoleculeParentMatch(Size start_pos = UNKNOWN_POSITION,
+                                   Size end_pos = UNKNOWN_POSITION,
+                                   char left_neighbor = UNKNOWN_NEIGHBOR,
+                                   char right_neighbor = UNKNOWN_NEIGHBOR):
         start_pos(start_pos), end_pos(end_pos), left_neighbor(left_neighbor),
         right_neighbor(right_neighbor)
       {
@@ -438,7 +443,10 @@ namespace OpenMS
 
       bool hasValidPositions(Size molecule_length = 0, Size parent_length = 0)
       {
-        if ((start_pos == Size(-1)) || (end_pos == Size(-1))) return false;
+        if ((start_pos == UNKNOWN_POSITION) || (end_pos == UNKNOWN_POSITION))
+        {
+          return false;
+        }
         if (end_pos < start_pos) return false;
         if (molecule_length && (end_pos - start_pos + 1 != molecule_length))
         {
