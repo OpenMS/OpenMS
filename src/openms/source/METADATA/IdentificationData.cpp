@@ -55,20 +55,20 @@ namespace OpenMS
     // ProteinIdentification:
     for (const ProteinIdentification& prot : proteins)
     {
-      DataProcessingParameters params(prot.getSearchEngine(),
+      DataProcessingSoftware software(prot.getSearchEngine(),
                                       prot.getSearchEngineVersion());
-      ProcessingParamsKey params_key =
-        registerDataProcessingParameters(params).first;
+      ProcessingSoftwareKey software_key =
+        registerDataProcessingSoftware(software).first;
 
       ScoreType score_type(prot.getScoreType(),
-                           prot.isHigherScoreBetter(), params_key);
+                           prot.isHigherScoreBetter(), software_key);
       ScoreTypeKey score_key = registerScoreType(score_type).first;
 
       SearchParamsKey search_key =
         importDBSearchParameters_(prot.getSearchParameters());
 
       DataProcessingStep step;
-      step.params_key = params_key;
+      step.software_key = software_key;
       prot.getPrimaryMSRunPath(step.primary_files);
       for (const String& path : step.primary_files)
       {
@@ -142,7 +142,7 @@ namespace OpenMS
       DataQueryKey query_key = registerDataQuery(query).first;
 
       ScoreType score_type(pep.getScoreType(), pep.isHigherScoreBetter(),
-                           step.params_key);
+                           step.software_key);
       ScoreTypeKey score_key = registerScoreType(score_type).first;
 
       // PeptideHit:
@@ -189,12 +189,12 @@ namespace OpenMS
         for (const PeptideHit::PepXMLAnalysisResult& ana_res :
                hit.getAnalysisResults())
         {
-          DataProcessingParameters params;
-          params.tool.setName(ana_res.score_type); // e.g. "peptideprophet"
-          ProcessingParamsKey params_key =
-            insertIntoBimap_(params, processing_params).first;
+          DataProcessingSoftware software;
+          software.tool.setName(ana_res.score_type); // e.g. "peptideprophet"
+          ProcessingSoftwareKey software_key =
+            registerDataProcessingSoftware(software).first;
           DataProcessingStep sub_step;
-          sub_step.params_key = params_key;
+          sub_step.software_key = software_key;
           if (query.input_file_key != 0)
           {
             sub_step.input_files.push_back(query.input_file_key);
@@ -206,7 +206,7 @@ namespace OpenMS
           {
             ScoreType sub_score;
             sub_score.name = sub_pair.first;
-            sub_score.params_key = params_key;
+            sub_score.software_key = software_key;
             ScoreTypeKey sub_score_key =
               insertIntoBimap_(sub_score, score_types).first;
             match.scores.push_back(make_pair(sub_score_key, sub_pair.second));
@@ -214,7 +214,7 @@ namespace OpenMS
           ScoreType main_score;
           main_score.name = ana_res.score_type + "_probability";
           main_score.higher_better = ana_res.higher_is_better;
-          main_score.params_key = params_key;
+          main_score.software_key = software_key;
           ScoreTypeKey main_score_key =
             insertIntoBimap_(main_score, score_types).first;
           match.scores.push_back(make_pair(main_score_key, ana_res.main_score));
@@ -281,7 +281,7 @@ namespace OpenMS
              score_it != match.scores.rend(); ++score_it)
         {
           const ScoreType& score = score_types.left.at(score_it->first);
-          if (score.params_key == step.params_key)
+          if (score.software_key == step.software_key)
           {
             hit.setScore(score_it->second);
             pair<DataQueryKey, ProcessingStepKey> key =
@@ -335,7 +335,7 @@ namespace OpenMS
              score_it != meta.scores.rend(); ++score_it)
         {
           const ScoreType& score = score_types.left.at(score_it->first);
-          if (score.params_key == step.params_key)
+          if (score.software_key == step.software_key)
           {
             hit.setScore(score_it->second);
             prot_data[*step_it].first.push_back(hit);
@@ -355,10 +355,10 @@ namespace OpenMS
       const DataProcessingStep& step = processing_steps.left.at(*step_it);
       protein.setDateTime(step.date_time);
       protein.setPrimaryMSRunPath(step.primary_files);
-      const DataProcessingParameters& params =
-        processing_params.left.at(step.params_key);
-      protein.setSearchEngine(params.tool.getName());
-      protein.setSearchEngineVersion(params.tool.getVersion());
+      const DataProcessingSoftware& software =
+        processing_software.left.at(step.software_key);
+      protein.setSearchEngine(software.tool.getName());
+      protein.setSearchEngineVersion(software.tool.getVersion());
       map<ProcessingStepKey, pair<vector<ProteinHit>, ScoreTypeKey>>::
         const_iterator pd_pos = prot_data.find(*step_it);
       if (pd_pos != prot_data.end())
@@ -505,11 +505,11 @@ namespace OpenMS
   }
 
 
-  pair<IdentificationData::ProcessingParamsKey, bool>
-  IdentificationData::registerDataProcessingParameters(
-    const DataProcessingParameters& params)
+  pair<IdentificationData::ProcessingSoftwareKey, bool>
+  IdentificationData::registerDataProcessingSoftware(
+    const DataProcessingSoftware& software)
   {
-    return insertIntoBimap_(params, processing_params);
+    return insertIntoBimap_(software, processing_software);
   }
 
 
@@ -526,9 +526,9 @@ namespace OpenMS
   IdentificationData::registerDataProcessingStep(const DataProcessingStep& step,
                                                  SearchParamsKey search_key)
   {
-    // valid reference to parameters is required:
-    if (!UniqueIdInterface::isValid(step.params_key) ||
-        (processing_params.left.count(step.params_key) == 0))
+    // valid reference to software is required:
+    if (!UniqueIdInterface::isValid(step.software_key) ||
+        (processing_software.left.count(step.software_key) == 0))
     {
       String msg = "invalid reference to data processing parameters - register those first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -566,11 +566,11 @@ namespace OpenMS
   pair<IdentificationData::ScoreTypeKey, bool>
   IdentificationData::registerScoreType(const ScoreType& score)
   {
-    // reference to parameters may be missing, but otherwise must be valid:
-    if (UniqueIdInterface::isValid(score.params_key) &&
-        (processing_params.left.count(score.params_key) == 0))
+    // reference to software may be missing, but otherwise must be valid:
+    if (UniqueIdInterface::isValid(score.software_key) &&
+        (processing_software.left.count(score.software_key) == 0))
     {
-      String msg = "invalid reference to data processing parameters - register those first";
+      String msg = "invalid reference to data processing software - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }

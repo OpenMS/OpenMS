@@ -62,19 +62,19 @@ namespace OpenMS
 
 
     /*!
-      Data processing parameters.
+      Information about software used for data processing.
 
       If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
- parameters only once.
+ software information only once.
     */
-    struct DataProcessingParameters
+    struct DataProcessingSoftware
     {
       Software tool; // also captures CV terms and meta data (MetaInfoInterface)
 
       // @TODO: add processing actions that are relevant for ID data
       std::set<DataProcessing::ProcessingAction> actions;
 
-      explicit DataProcessingParameters(
+      explicit DataProcessingSoftware(
         const Software& tool = Software(),
         std::set<DataProcessing::ProcessingAction> actions =
         std::set<DataProcessing::ProcessingAction>()):
@@ -82,7 +82,7 @@ namespace OpenMS
       {
       }
 
-      explicit DataProcessingParameters(
+      explicit DataProcessingSoftware(
         const String& tool_name, const String& tool_version = "",
         std::set<DataProcessing::ProcessingAction> actions =
         std::set<DataProcessing::ProcessingAction>()):
@@ -92,16 +92,16 @@ namespace OpenMS
         tool.setVersion(tool_version);
       }
 
-      DataProcessingParameters(const DataProcessingParameters& other) = default;
+      DataProcessingSoftware(const DataProcessingSoftware& other) = default;
 
-      bool operator<(const DataProcessingParameters& other) const
+      bool operator<(const DataProcessingSoftware& other) const
       {
         return (std::tie(tool.getName(), tool.getVersion(), actions) <
                 std::tie(other.tool.getName(), other.tool.getVersion(),
                          other.actions));
       }
 
-      bool operator==(const DataProcessingParameters& other) const
+      bool operator==(const DataProcessingSoftware& other) const
       {
         return (std::tie(tool.getName(), tool.getVersion(), actions) ==
                 std::tie(other.tool.getName(), other.tool.getVersion(),
@@ -109,10 +109,10 @@ namespace OpenMS
       }
     };
 
-    typedef UniqueKey ProcessingParamsKey;
-    typedef boost::bimap<ProcessingParamsKey,
-                         DataProcessingParameters> ParamsBimap;
-    ParamsBimap processing_params;
+    typedef UniqueKey ProcessingSoftwareKey;
+    typedef boost::bimap<ProcessingSoftwareKey,
+                         DataProcessingSoftware> SoftwareBimap;
+    SoftwareBimap processing_software;
 
 
     /*!
@@ -120,7 +120,7 @@ namespace OpenMS
     */
     struct DataProcessingStep: public MetaInfoInterface
     {
-      ProcessingParamsKey params_key;
+      ProcessingSoftwareKey software_key;
 
       std::vector<InputFileKey> input_files; // reference into "input_files"
 
@@ -128,40 +128,29 @@ namespace OpenMS
 
       DateTime date_time;
 
-      DataProcessingStep():
-        params_key(0)
-      {
-      }
-
-      explicit DataProcessingStep(ProcessingParamsKey params_key,
-                                  const std::vector<InputFileKey>& input_files,
-                                  const std::vector<String>& primary_files,
-                                  const DateTime& date_time = DateTime::now()):
-        params_key(params_key), input_files(input_files),
+      explicit DataProcessingStep(
+        ProcessingSoftwareKey software_key = 0,
+        const std::vector<InputFileKey>& input_files =
+        std::vector<InputFileKey>(), const std::vector<String>& primary_files =
+        std::vector<String>(), const DateTime& date_time = DateTime::now()):
+        software_key(software_key), input_files(input_files),
         primary_files(primary_files), date_time(date_time)
       {
-        if (!UniqueIdInterface::isValid(params_key))
-        {
-          String msg = "invalid reference to data processing parameters";
-          throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                           OPENMS_PRETTY_FUNCTION, msg);
-        }
-        // @TODO: disallow empty "input_files" (and "primary_files")?
       }
 
       DataProcessingStep(const DataProcessingStep& other) = default;
 
       bool operator<(const DataProcessingStep& other) const
       {
-        return (std::tie(params_key, input_files, primary_files, date_time) <
-                std::tie(other.params_key, other.input_files,
+        return (std::tie(software_key, input_files, primary_files, date_time) <
+                std::tie(other.software_key, other.input_files,
                          other.primary_files, other.date_time));
       }
 
       bool operator==(const DataProcessingStep& other) const
       {
-        return (std::tie(params_key, input_files, primary_files, date_time) ==
-                std::tie(other.params_key, other.input_files,
+        return (std::tie(software_key, input_files, primary_files, date_time) ==
+                std::tie(other.software_key, other.input_files,
                          other.primary_files, other.date_time));
       }
     };
@@ -183,22 +172,24 @@ namespace OpenMS
       bool higher_better;
 
       // reference to the software that assigned the score:
-      ProcessingParamsKey params_key;
+      ProcessingSoftwareKey software_key;
 
       ScoreType():
-        higher_better(true), params_key(0)
+        higher_better(true), software_key(0)
       {
       }
 
-      explicit ScoreType(const CVTerm& cv_term, bool higher_better, ProcessingParamsKey params_key = 0):
+      explicit ScoreType(const CVTerm& cv_term, bool higher_better,
+                         ProcessingSoftwareKey software_key = 0):
         cv_term(cv_term), name(cv_term.getName()), higher_better(higher_better),
-        params_key(params_key)
+        software_key(software_key)
       {
       }
 
-      explicit ScoreType(const String& name, bool higher_better, ProcessingParamsKey params_key = 0):
+      explicit ScoreType(const String& name, bool higher_better,
+                         ProcessingSoftwareKey software_key = 0):
         cv_term(), name(name), higher_better(higher_better),
-        params_key(params_key)
+        software_key(software_key)
       {
       }
 
@@ -207,17 +198,17 @@ namespace OpenMS
       // don't include "higher_better" in the comparison:
       bool operator<(const ScoreType& other) const
       {
-        return (std::tie(cv_term.getAccession(), name, params_key) <
+        return (std::tie(cv_term.getAccession(), name, software_key) <
                 std::tie(other.cv_term.getAccession(), other.name,
-                         other.params_key));
+                         other.software_key));
       }
 
       // don't include "higher_better" in the comparison:
       bool operator==(const ScoreType& other) const
       {
-        return (std::tie(cv_term.getAccession(), name, params_key) ==
+        return (std::tie(cv_term.getAccession(), name, software_key) ==
                 std::tie(other.cv_term.getAccession(), other.name,
-                         other.params_key));
+                         other.software_key));
       }
     };
 
@@ -576,8 +567,8 @@ namespace OpenMS
 
     std::pair<InputFileKey, bool> registerInputFile(const String& file);
 
-    std::pair<ProcessingParamsKey, bool> registerDataProcessingParameters(
-      const DataProcessingParameters& params);
+    std::pair<ProcessingSoftwareKey, bool> registerDataProcessingSoftware(
+      const DataProcessingSoftware& software);
 
     std::pair<SearchParamsKey, bool> registerDBSearchParameters(
       const DBSearchParameters& params);
