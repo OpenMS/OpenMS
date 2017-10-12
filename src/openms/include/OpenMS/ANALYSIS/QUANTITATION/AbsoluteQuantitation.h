@@ -143,12 +143,14 @@ public:
       @param transformation_model model used to fit the calibration points
       @param transformation_model_params parameters used by the transformation_model
 
+      @returns updated Param object
+
       @exception Exception::UnableToFit
     */ 
-    void fitCalibration(std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-      String & feature_name,
-      String & transformation_model,
-      Param & transformation_model_params);
+    Param fitCalibration(const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params);
       
     /**
       @brief This function optimizes the parameters of the calibration for a 
