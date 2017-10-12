@@ -111,20 +111,20 @@ namespace OpenMS
     return bias;
   }
   
-  // Param AbsoluteQuantitation::fitCalibration(
-  //   const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-  //   const String & feature_name,
-  //   const String & transformation_model,
-  //   const Param & transformation_model_params)
-  // {
-  //   // extract out the calibration points
-  //   TransformationModel::DataPoints data;
-  //   TransformationModel::DataPoint point;
-  //   for (size_t i = 0; i < component_concentrations.size(); i++){
-  //     point.first = component_concentrations[i].actual_concentration;
-  //     point.second = component_concentrations[i].feature.getMetaValue(feature_name);
-  //     data.push_back(point);
-  //   }
+  Param AbsoluteQuantitation::fitCalibration(
+    const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+    const String & feature_name,
+    const String & transformation_model,
+    const Param & transformation_model_params)
+  {
+    // extract out the calibration points
+    TransformationModel::DataPoints data;
+    TransformationModel::DataPoint point;
+    for (size_t i = 0; i < component_concentrations.size(); i++){
+      point.first = component_concentrations[i].actual_concentration;
+      point.second = component_concentrations[i].feature.getMetaValue(feature_name);
+      data.push_back(point);
+    }
 
     // fit the data to the model
     AbsoluteQuantitationMethod aqm;
@@ -278,49 +278,49 @@ namespace OpenMS
     // }
   }
 
-  // void AbsoluteQuantitation::optimizeCalibrationCurveBruteForce(
-  //   std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-  //   String & feature_name,
-  //   String & transformation_model,
-  //   Param & transformation_model_params)
-  // {
-  //   double bias;
-  //   double r2;
-  //   int n_points;
-  //   double min_points;
-  //   Param = params;
-  //   size_t n_loops;
-  //   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub;
-  //   std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_start_it;
-  //   std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_end_it;
+  void AbsoluteQuantitation::optimizeCalibrationCurveBruteForce(
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+    String & feature_name,
+    String & transformation_model,
+    Param & transformation_model_params)
+  {
+    double bias;
+    double r2;
+    int n_points;
+    double min_points;
+    Param = params;
+    size_t n_loops;
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub;
+    std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_start_it;
+    std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_end_it;
 
-  //   // sort from min to max concentration
+    // sort from min to max concentration
 
-  //   // loop from all points to min_points
-  //   for (size_t n_points = component_concentrations.size(); n_points >= min_points; n_points--)
-  //   {
-  //     n_loops = component_concentrations.size() - n_points;
-  //     for (size_t  component_it = 0; component_it < n_loops; component_it++)
-  //     {
-  //       // extract out components
-  //       component_start_it = component_concentrations.begin() + component_it;
-  //       component_end_it = component_concentrations.begin() + component_it + n_points;
-  //       component_concentrations_sub(component_start_it, component_end_it);
+    // loop from all points to min_points
+    for (size_t n_points = component_concentrations.size(); n_points >= min_points; n_points--)
+    {
+      n_loops = component_concentrations.size() - n_points;
+      for (size_t  component_it = 0; component_it < n_loops; component_it++)
+      {
+        // extract out components
+        component_start_it = component_concentrations.begin() + component_it;
+        component_end_it = component_concentrations.begin() + component_it + n_points;
+        component_concentrations_sub(component_start_it, component_end_it);
 
-  //       // fit the model
-  //       params = fitCalibration(component_concentrations_sub,
-  //         feature_name,
-  //         transformation_model,
-  //         transformation_model_params)
+        // fit the model
+        params = fitCalibration(component_concentrations_sub,
+          feature_name,
+          transformation_model,
+          transformation_model_params)
 
-  //       // calculate the R2 and bias
-  //       for (size_t fit_it = 0; fit_it < component_concentrations_sub.size(); fit_it++)
-  //       {
-  //         bias = calculateBias(double & actual_concentration, double & calculated_concentration)
-  //       }
-  //     }
-  //   }
-  // }
+        // calculate the R2 and bias
+        for (size_t fit_it = 0; fit_it < component_concentrations_sub.size(); fit_it++)
+        {
+          bias = calculateBias(double & actual_concentration, double & calculated_concentration)
+        }
+      }
+    }
+  }
 
 } // namespace
 
