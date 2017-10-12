@@ -206,6 +206,7 @@ namespace OpenMS
     util_map["MetaProSIP"] = Internal::ToolDescription("MetaProSIP", util_category);
     util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
+    util_map["MSFraggerAdapter"] = Internal::ToolDescription("MSFraggerAdapter", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
     util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
