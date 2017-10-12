@@ -130,11 +130,11 @@ public:
 
 
         // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
-        double intensity = (it + left_index)->getIntensity();
-        intensity += (first + i)->getIntensity() * distance_right / spacing_;
+        double intensity = static_cast<double>((it + left_index)->getIntensity());
+        intensity += static_cast<double>((first + i)->getIntensity()) * distance_right / spacing_;
         (it + left_index)->setIntensity(intensity);
-        intensity = (it + right_index)->getIntensity();
-        intensity += (first + i)->getIntensity() * distance_left;
+        intensity = static_cast<double>((it + right_index)->getIntensity());
+        intensity += static_cast<double>((first + i)->getIntensity()) * distance_left;
         (it + right_index)->setIntensity(intensity);
       }
 

@@ -38,6 +38,7 @@ set(datastructures_executables_list
   Date_test
   DefaultParamHandler_test
   DistanceMatrix_test
+  FASTAContainer_test
   GridBasedCluster_test
   GridBasedClustering_test
   GridFeature_test
