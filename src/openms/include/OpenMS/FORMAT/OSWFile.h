@@ -36,6 +36,7 @@
 #define OPENMS_FORMAT_OSWFILE_H
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <sqlite3.h>
 
