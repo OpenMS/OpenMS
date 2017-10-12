@@ -119,8 +119,11 @@ namespace OpenMS
   {
     // extract out the calibration points
     TransformationModel::DataPoints data;
+    TransformationModel::DataPoint point;
     for (size_t i = 0; i < component_concentrations.size(); i++){
-      data.push_back(std::make_pair(component_concentrations[i].actual_concentration, component_concentrations[i].feature.getMetaValue(feature_name)));
+      point.first = component_concentrations[i].actual_concentration;
+      point.second = component_concentrations[i].feature.getMetaValue(feature_name);
+      data.push_back(point);
     }
 
     // fit the data to the model
@@ -274,6 +277,27 @@ namespace OpenMS
     }
     // }
   }
+
+  // void AbsoluteQuantitation::optimizeCalibrationCurveBruteForce(
+  //   std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+  //   String & feature_name,
+  //   String & transformation_model,
+  //   Param & transformation_model_params)
+  // {
+  //   double bias;
+  //   double r2;
+  //   double n_points;
+  //   double min_points;
+  //   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub;
+  //   for (size_t component_it = 0; component_it < component_concentrations.size(); component_it++)
+  //   {
+  //     fitCalibration(std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+  //       String & feature_name,
+  //       String & transformation_model,
+  //       Param & transformation_model_params)
+
+  //   }
+  // }
 
 } // namespace
 

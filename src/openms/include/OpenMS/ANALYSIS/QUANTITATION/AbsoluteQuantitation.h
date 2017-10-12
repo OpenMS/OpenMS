@@ -161,7 +161,11 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    void optimizeCalibrationCurve();
+    void optimizeCalibrationCurveBruteForce(
+      std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+      String & feature_name,
+      String & transformation_model,
+      Param & transformation_model_params);
         
     /**
       @brief This function optimizes the parameters of the calibration for a 
