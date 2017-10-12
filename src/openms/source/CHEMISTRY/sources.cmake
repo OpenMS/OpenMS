@@ -10,8 +10,10 @@ ElementDB.cpp
 EmpiricalFormula.cpp
 EnzymaticDigestionLogModel.cpp
 EnzymaticDigestion.cpp
-Enzyme.cpp
-EnzymesDB.cpp
+DigestionEnzyme.cpp
+DigestionEnzymeProtein.cpp
+DigestionEnzymeRNA.cpp
+DigestionEnzymeDB.cpp
 IsotopeDistribution.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
@@ -20,9 +22,13 @@ ModifierRep.cpp
 ModifiedNASequenceGenerator.cpp
 NASequence.cpp
 PepIterator.cpp
+ProteaseDB.cpp
+ProteaseDigestion.cpp
 Residue.cpp
 ResidueDB.cpp
 ResidueModification.cpp
+RNaseDB.cpp
+RNaseDigestion.cpp
 Ribonucleotide.cpp
 RibonucleotideDB.cpp
 SpectrumAnnotator.cpp

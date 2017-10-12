@@ -46,6 +46,7 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
+RNADigestor
 RNPxl
 RNPxlXICFilter
 RNPxlSearch

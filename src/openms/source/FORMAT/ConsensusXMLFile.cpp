@@ -40,7 +40,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <fstream>
 
 using namespace std;
@@ -48,11 +48,11 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.7"), 
-    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"), 
-    ProgressLogger(), 
-    consensus_map_(0), 
-    act_cons_element_(), 
+    XMLHandler("", "1.7"),
+    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"),
+    ProgressLogger(),
+    consensus_map_(0),
+    act_cons_element_(),
     last_meta_(0)
   {
   }
@@ -392,9 +392,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+        search_param_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
       }
       last_meta_ = &search_param_;
     }

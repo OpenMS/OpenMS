@@ -10,8 +10,10 @@ ElementDB.h
 EmpiricalFormula.h
 EnzymaticDigestionLogModel.h
 EnzymaticDigestion.h
-Enzyme.h
-EnzymesDB.h
+DigestionEnzyme.h
+DigestionEnzymeProtein.h
+DigestionEnzymeRNA.h
+DigestionEnzymeDB.h
 IsotopeDistribution.h
 ModificationDefinition.h
 ModificationDefinitionsSet.h
@@ -20,9 +22,13 @@ ModificationsDB.h
 ModifierRep.h
 NASequence.h
 PepIterator.h
+ProteaseDB.h
+ProteaseDigestion.h
 Residue.h
 ResidueDB.h
 ResidueModification.h
+RNaseDB.h
+RNaseDigestion.h
 Ribonucleotide.h
 RibonucleotideDB.h
 TheoreticalSpectrumGenerator.h

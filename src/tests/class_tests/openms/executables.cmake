@@ -354,13 +354,12 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
+  DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
   EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
-  Enzyme_test
-  EnzymesDB_test
   FastaIteratorIntern_test
   FastaIterator_test
   IsotopeDistribution_test
@@ -372,6 +371,8 @@ set(chemistry_executables_list
   ModifierRep_test
   NASequence_test
   PepIterator_test
+  ProteaseDB_test
+  ProteaseDigestion_test
   ResidueDB_test
   ResidueModification_test
   Residue_test

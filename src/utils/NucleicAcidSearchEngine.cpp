@@ -60,6 +60,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModifiedNASequenceGenerator.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/RNaseDB.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -222,7 +223,7 @@ protected:
   };
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
-  void deisotopeAndSingleChargeMSSpectrum(
+  void deisotopeAndSingleChargeMSSpectrum_(
     MSSpectrum& in,
     Int min_charge,
     Int max_charge,
@@ -428,7 +429,7 @@ protected:
   void postProcessHits_(const PeakMap& exp,
                         vector<vector<AnnotatedHit> >& annotated_hits,
                         vector<ProteinIdentification>& protein_ids,
-                        PeptideIdentifications& oligo_ids,  // TODO: adapt to new datastructures
+                        PeptideIdentification& oligo_ids,  // TODO: adapt to new datastructures
                         Size top_hits,
                         const vector<ConstRibonucleotidePtr>& fixed_modifications,
                         const vector<ConstRibonucleotidePtr>& variable_modifications,
@@ -623,7 +624,7 @@ protected:
 
     const Size missed_cleavages = getIntOption_("oligo:missed_cleavages");
     EnzymaticDigestion digestor;
-    digestor.setEnzyme(getStringOption_("oligo:enzyme"));
+    digestor.setEnzyme(getStringOption_("oligo:enzyme"));// TODO need to construct digestionEnzyme here
     digestor.setMissedCleavages(missed_cleavages);
 
     progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring oligo models against spectra...");
