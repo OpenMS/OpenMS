@@ -1,6 +1,8 @@
 from Types cimport *
 from Param cimport *
 
+from TransformationModel cimport *
+
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>" namespace "OpenMS":
 
     cdef cppclass AbsoluteQuantitationMethod:
@@ -24,5 +26,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>" n
         # void getActualConcentration(double actual_concentration) nogil except +
         void setStatistics(int n_points, double correlation_coefficient) nogil except +
         # void getStatistics(int n_points, double correlation_coefficient) nogil except +
-        Param fitTransformationModel(String transformation_model, libcpp_vector[ libcpp_pair[double, double] ]& data, Param & transformation_model_params) nogil except +
+        Param fitTransformationModel(String transformation_model, libcpp_vector[TM_DataPoint]& data, Param & transformation_model_params) nogil except +
         double evaluateTransformationModel(String transformation_model, double datum, Param & transformation_model_params) nogil except +
