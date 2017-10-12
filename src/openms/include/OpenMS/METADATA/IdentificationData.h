@@ -328,6 +328,16 @@ namespace OpenMS
       String smile;
 
       String inchi;
+
+      explicit CompoundMetaData(
+        const EmpiricalFormula& formula = EmpiricalFormula(),
+        const String& name = "", const String& smile = "",
+        const String& inchi = ""):
+        formula(formula), name(name), smile(smile), inchi(inchi)
+      {
+      }
+
+      CompoundMetaData(const CompoundMetaData& other) = default;
     };
 
     std::unordered_map<IdentifiedMoleculeKey,
@@ -621,12 +631,15 @@ namespace OpenMS
 
     std::pair<IdentifiedMoleculeKey, bool> registerCompound(
       const String& id,
-      const IdentifiedMetaData& meta_data = IdentifiedMetaData(MT_COMPOUND));
+      const CompoundMetaData& compound_meta = CompoundMetaData(),
+      const IdentifiedMetaData& id_meta = IdentifiedMetaData(MT_COMPOUND));
 
     std::pair<ParentMoleculeKey, bool> registerParentMolecule(
       const String& accession,
       const ParentMetaData& meta_data = ParentMetaData());
 
+    // these ones are called "add..." instead of "register..." because they
+    // don't return a key:
     bool addMoleculeParentMatch(
       IdentifiedMoleculeKey molecule_key, ParentMoleculeKey parent_key,
       const MoleculeParentMatch& meta_data = MoleculeParentMatch());

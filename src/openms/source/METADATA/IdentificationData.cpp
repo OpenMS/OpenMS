@@ -608,7 +608,8 @@ namespace OpenMS
 
   pair<IdentificationData::IdentifiedMoleculeKey, bool>
   IdentificationData::registerCompound(const String& id,
-                                       const IdentifiedMetaData& meta_data)
+                                       const CompoundMetaData& compound_meta,
+                                       const IdentifiedMetaData& id_meta)
   {
     if (id.empty())
     {
@@ -616,20 +617,22 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    if (meta_data.molecule_type != MT_COMPOUND)
+    if (id_meta.molecule_type != MT_COMPOUND)
     {
       String msg = "invalid molecule type setting for compound";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    checkScoreTypes_(meta_data.scores);
-    checkProcessingSteps_(meta_data.processing_steps);
+    checkScoreTypes_(id_meta.scores);
+    checkProcessingSteps_(id_meta.processing_steps);
 
     pair<IdentifiedMoleculeKey, bool> result =
       insertIntoBimap_(id, identified_compounds);
     if (result.second)
     {
-      identified_meta_data.insert(make_pair(result.first, meta_data));
+      // @TODO: insert "compound_meta" even if it's empty?
+      compound_meta_data.insert(make_pair(result.first, compound_meta));
+      identified_meta_data.insert(make_pair(result.first, id_meta));
     }
     return result;
   }
@@ -702,6 +705,7 @@ namespace OpenMS
     }
     checkScoreTypes_(meta_data.scores);
     checkProcessingSteps_(meta_data.processing_steps);
+    // @TODO: disallow charge zero in "meta_data"?
 
     QueryMatchKey match_key = make_pair(molecule_key, query_key);
     return query_matches.insert(make_pair(match_key, meta_data)).second;
