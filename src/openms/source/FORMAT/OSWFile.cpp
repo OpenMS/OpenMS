@@ -163,17 +163,6 @@ namespace OpenMS
       }
     }
 
-    int OSWFile::callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
-    {
-      int i;
-      for (i=0; i<argc; i++)
-      {
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-      }
-      printf("\n");
-      return(0);
-    }
-
     void OSWFile::write(const std::string& in_osw, const std::string& osw_level, const std::map< std::string, std::vector<double> >& features) {
       std::string table;
       std::string create_sql;
@@ -266,6 +255,17 @@ namespace OpenMS
 
       sqlite3_exec(db, "END TRANSACTION", NULL, NULL, &zErrMsg);
       sqlite3_close(db);
+    }
+
+    int OSWFile::callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
+    {
+      int i;
+      for (i=0; i<argc; i++)
+      {
+        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+      }
+      printf("\n");
+      return(0);
     }
 
 } // namespace OpenMS

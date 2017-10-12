@@ -701,7 +701,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    if (!in_list.empty() && (out.empty() || mzid_out.empty()))
+    if (!in_list.empty() && (out.empty() && mzid_out.empty()))
     {
       writeLog_("Fatal error: idXML/mzid input requires idXML/mzid output.");
       printUsage_();

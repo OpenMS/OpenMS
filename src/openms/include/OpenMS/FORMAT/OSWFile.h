@@ -73,12 +73,16 @@ public:
     */
     void read(const std::string& in_osw, const std::string& osw_level, std::stringstream& pin_output, const double& ipf_max_peakgroup_pep, const double& ipf_max_transition_isotope_overlap, const double& ipf_min_transition_sn);
 
-    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName);
-
     /**
     @brief Updates an OpenSWATH OSW SQLite files with the MS1-, MS2- or transition-level results of Percolator.
     */
     void write(const std::string& in_osw, const std::string& osw_level, const std::map< std::string, std::vector<double> >& features);
+
+private:
+    /**
+    @brief Helper function for writing OSW SQLite files
+    */
+    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName);
 
   };
 
