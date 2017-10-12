@@ -1090,7 +1090,7 @@ protected:
     else
     {
       std::map< std::string, std::vector<double> > features;
-      for(auto const &feat : pep_map)
+      for (auto const &feat : pep_map)
       {
         features[feat.second.PSMId].push_back(feat.second.score);
         features[feat.second.PSMId].push_back(feat.second.qvalue);

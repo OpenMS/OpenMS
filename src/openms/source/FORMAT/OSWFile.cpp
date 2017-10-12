@@ -78,7 +78,6 @@ namespace OpenMS
       // Generate features
       int k = 0;
       std::vector<std::string> group_id_index;
-      std::vector<std::string> features_names;
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
@@ -108,7 +107,7 @@ namespace OpenMS
           }
           if (OpenMS::String(sqlite3_column_name( stmt, i )) == "DECOY")
           {
-            if(sqlite3_column_int( stmt, i ) == 1)
+            if (sqlite3_column_int( stmt, i ) == 1)
             {
               label = -1;
             }
@@ -131,14 +130,14 @@ namespace OpenMS
         if (k == 0)
         {
           pin_output << "PSMId\tLabel\tScanNr";
-          for(auto const &feat : features)
+          for (auto const &feat : features)
           {
             pin_output << "\t" << feat.first;
           }
           pin_output << "\tPeptide\tProteins\n";
         }
         pin_output << psm_id << "\t" << label << "\t" << scan_id;
-        for(auto const &feat : features)
+        for (auto const &feat : features)
         {
           pin_output << "\t" << feat.second;
         }
@@ -167,7 +166,7 @@ namespace OpenMS
     int OSWFile::callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
     {
       int i;
-      for(i=0; i<argc; i++)
+      for (i=0; i<argc; i++)
       {
         printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
       }
@@ -209,7 +208,7 @@ namespace OpenMS
       }
 
       std::vector<std::string> insert_sqls;
-      for(auto const &feat : features)
+      for (auto const &feat : features)
       {
         std::stringstream insert_sql;
         if (osw_level == "transition") {
@@ -242,14 +241,14 @@ namespace OpenMS
 
       // Open database
       rc = sqlite3_open(in_osw.c_str(), &db);
-      if( rc )
+      if ( rc )
       {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
       }
 
       // Execute SQL create statement
       rc = sqlite3_exec(db, create_sql.c_str(), callback, 0, &zErrMsg);
-      if( rc != SQLITE_OK )
+      if ( rc != SQLITE_OK )
       {
         sqlite3_free(zErrMsg);
       }
@@ -259,7 +258,7 @@ namespace OpenMS
       for (size_t i = 0; i < insert_sqls.size(); i++)
       {
         rc = sqlite3_exec(db, insert_sqls[i].c_str(), callback, 0, &zErrMsg);
-        if( rc != SQLITE_OK )
+        if ( rc != SQLITE_OK )
         {
           sqlite3_free(zErrMsg);
         }
