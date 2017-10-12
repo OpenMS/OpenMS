@@ -39,6 +39,13 @@ using namespace std;
 
 namespace OpenMS
 {
+  const Size IdentificationData::MoleculeParentMatch::UNKNOWN_POSITION =
+    Size(-1);
+  const char IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR = 'X';
+  const char IdentificationData::MoleculeParentMatch::LEFT_TERMINUS = '[';
+  const char IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS = ']';
+
+
   void IdentificationData::importIDs(
     const vector<ProteinIdentification>& proteins,
     const vector<PeptideIdentification>& peptides)
@@ -48,17 +55,20 @@ namespace OpenMS
     // ProteinIdentification:
     for (const ProteinIdentification& prot : proteins)
     {
-      DataProcessingParameters params(prot.getSearchEngine(),
+      DataProcessingSoftware software(prot.getSearchEngine(),
                                       prot.getSearchEngineVersion());
-      ProcessingParamsKey params_key =
-        registerDataProcessingParameters(params).first;
+      ProcessingSoftwareKey software_key =
+        registerDataProcessingSoftware(software).first;
 
       ScoreType score_type(prot.getScoreType(),
-                           prot.isHigherScoreBetter(), params_key);
+                           prot.isHigherScoreBetter(), software_key);
       ScoreTypeKey score_key = registerScoreType(score_type).first;
 
+      SearchParamsKey search_key =
+        importDBSearchParameters_(prot.getSearchParameters());
+
       DataProcessingStep step;
-      step.params_key = params_key;
+      step.software_key = software_key;
       prot.getPrimaryMSRunPath(step.primary_files);
       for (const String& path : step.primary_files)
       {
@@ -66,12 +76,10 @@ namespace OpenMS
         step.input_files.push_back(file_key);
       }
       step.date_time = prot.getDateTime();
-      ProcessingStepKey step_key = registerDataProcessingStep(step).first;
+      ProcessingStepKey step_key =
+        registerDataProcessingStep(step, search_key).first;
       id_to_step[prot.getIdentifier()] = step_key;
-
-      SearchParamsKey search_key =
-        importDBSearchParameters_(prot.getSearchParameters());
-      db_search_steps.insert(make_pair(step_key, search_key));
+      setCurrentProcessingStep(step_key);
 
       // ProteinHit:
       for (const ProteinHit& hit : prot.getHits())
@@ -88,8 +96,8 @@ namespace OpenMS
         }
         // add this information also for previously seen proteins:
         meta.scores.push_back(make_pair(score_key, hit.getScore()));
-        meta.processing_steps.push_back(step_key);
       }
+      clearCurrentProcessingStep();
     }
 
     // PeptideIdentification:
@@ -135,7 +143,7 @@ namespace OpenMS
       DataQueryKey query_key = registerDataQuery(query).first;
 
       ScoreType score_type(pep.getScoreType(), pep.isHigherScoreBetter(),
-                           step.params_key);
+                           step.software_key);
       ScoreTypeKey score_key = registerScoreType(score_type).first;
 
       // PeptideHit:
@@ -165,13 +173,11 @@ namespace OpenMS
         IdentifiedMetaData& meta = identified_meta_data.at(result.first);
         meta.processing_steps.push_back(step_key);
 
-        pair<IdentifiedMoleculeKey, DataQueryKey> psm_key =
-          make_pair(result.first, query_key);
+        QueryMatchKey psm_key = make_pair(result.first, query_key);
         QueryMatchMap::iterator pos = query_matches.find(psm_key);
         if (pos == query_matches.end()) // new PSM
         {
           MoleculeQueryMatch match;
-          match.rank = hit.getRank();
           match.charge = hit.getCharge();
           match.peak_annotations = hit.getPeakAnnotations();
           static_cast<MetaInfoInterface&>(match) = hit;
@@ -184,12 +190,12 @@ namespace OpenMS
         for (const PeptideHit::PepXMLAnalysisResult& ana_res :
                hit.getAnalysisResults())
         {
-          DataProcessingParameters params;
-          params.tool.setName(ana_res.score_type); // e.g. "peptideprophet"
-          ProcessingParamsKey params_key =
-            insertIntoBimap_(params, processing_params).first;
+          DataProcessingSoftware software;
+          software.tool.setName(ana_res.score_type); // e.g. "peptideprophet"
+          ProcessingSoftwareKey software_key =
+            registerDataProcessingSoftware(software).first;
           DataProcessingStep sub_step;
-          sub_step.params_key = params_key;
+          sub_step.software_key = software_key;
           if (query.input_file_key != 0)
           {
             sub_step.input_files.push_back(query.input_file_key);
@@ -201,7 +207,7 @@ namespace OpenMS
           {
             ScoreType sub_score;
             sub_score.name = sub_pair.first;
-            sub_score.params_key = params_key;
+            sub_score.software_key = software_key;
             ScoreTypeKey sub_score_key =
               insertIntoBimap_(sub_score, score_types).first;
             match.scores.push_back(make_pair(sub_score_key, sub_pair.second));
@@ -209,7 +215,7 @@ namespace OpenMS
           ScoreType main_score;
           main_score.name = ana_res.score_type + "_probability";
           main_score.higher_better = ana_res.higher_is_better;
-          main_score.params_key = params_key;
+          main_score.software_key = software_key;
           ScoreTypeKey main_score_key =
             insertIntoBimap_(main_score, score_types).first;
           match.scores.push_back(make_pair(main_score_key, ana_res.main_score));
@@ -245,18 +251,17 @@ namespace OpenMS
       PeptideHit hit;
       hit.setSequence(identified_peptides.left.at(molecule_key));
       hit.setCharge(match.charge);
-      hit.setRank(match.rank);
       hit.setPeakAnnotations(match.peak_annotations);
       ParentMatchMap::const_iterator pos = parent_matches.find(molecule_key);
       if (pos != parent_matches.end())
       {
         for (const ParentSubMap::value_type& sub : pos->second)
         {
+          ParentMoleculeKey parent_key = sub.first;
           for (const MoleculeParentMatch& match : sub.second)
           {
             PeptideEvidence evidence;
-            evidence.setProteinAccession(parent_molecules.left.at(sub.
-                                                                  first));
+            evidence.setProteinAccession(parent_molecules.left.at(parent_key));
             evidence.setStart(match.start_pos);
             evidence.setEnd(match.end_pos);
             evidence.setAABefore(match.left_neighbor);
@@ -277,7 +282,7 @@ namespace OpenMS
              score_it != match.scores.rend(); ++score_it)
         {
           const ScoreType& score = score_types.left.at(score_it->first);
-          if (score.params_key == step.params_key)
+          if (score.software_key == step.software_key)
           {
             hit.setScore(score_it->second);
             pair<DataQueryKey, ProcessingStepKey> key =
@@ -302,7 +307,6 @@ namespace OpenMS
       peptide.setHits(psm_it->second.first);
       const ScoreType& score_type = score_types.left.at(psm_it->second.second);
       peptide.setScoreType(score_type.name);
-      peptide.sortByRank();
       peptide.setIdentifier(String(psm_it->first.second));
       peptides.push_back(peptide);
       steps.insert(psm_it->first.second);
@@ -332,7 +336,7 @@ namespace OpenMS
              score_it != meta.scores.rend(); ++score_it)
         {
           const ScoreType& score = score_types.left.at(score_it->first);
-          if (score.params_key == step.params_key)
+          if (score.software_key == step.software_key)
           {
             hit.setScore(score_it->second);
             prot_data[*step_it].first.push_back(hit);
@@ -352,10 +356,10 @@ namespace OpenMS
       const DataProcessingStep& step = processing_steps.left.at(*step_it);
       protein.setDateTime(step.date_time);
       protein.setPrimaryMSRunPath(step.primary_files);
-      const DataProcessingParameters& params =
-        processing_params.left.at(step.params_key);
-      protein.setSearchEngine(params.tool.getName());
-      protein.setSearchEngineVersion(params.tool.getVersion());
+      const DataProcessingSoftware& software =
+        processing_software.left.at(step.software_key);
+      protein.setSearchEngine(software.tool.getName());
+      protein.setSearchEngineVersion(software.tool.getVersion());
       map<ProcessingStepKey, pair<vector<ProteinHit>, ScoreTypeKey>>::
         const_iterator pd_pos = prot_data.find(*step_it);
       if (pd_pos != prot_data.end())
@@ -418,7 +422,7 @@ namespace OpenMS
     dbsp.missed_cleavages = pisp.missed_cleavages;
     static_cast<MetaInfoInterface&>(dbsp) = pisp;
 
-    return insertIntoBimap_(dbsp, db_search_params).first;
+    return registerDBSearchParameters(dbsp).first;
   }
 
 
@@ -487,11 +491,25 @@ namespace OpenMS
       if (!UniqueIdInterface::isValid(step) ||
           (processing_steps.left.count(step) == 0))
       {
-        String msg = "invalid reference to a processing step - register that first";
+        String msg = "invalid reference to a data processing step - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
     }
+  }
+
+
+  bool IdentificationData::addCurrentProcessingStep_(
+    vector<ProcessingStepKey>& processing_steps)
+  {
+    if (UniqueIdInterface::isValid(current_step_key_) &&
+        (processing_steps.empty() ||
+         (processing_steps.back() != current_step_key_)))
+    {
+      processing_steps.push_back(current_step_key_);
+      return true;
+    }
+    return false;
   }
 
 
@@ -502,20 +520,30 @@ namespace OpenMS
   }
 
 
-  pair<IdentificationData::ProcessingParamsKey, bool>
-  IdentificationData::registerDataProcessingParameters(
-    const DataProcessingParameters& params)
+  pair<IdentificationData::ProcessingSoftwareKey, bool>
+  IdentificationData::registerDataProcessingSoftware(
+    const DataProcessingSoftware& software)
   {
-    return insertIntoBimap_(params, processing_params);
+    return insertIntoBimap_(software, processing_software);
+  }
+
+
+  pair<IdentificationData::SearchParamsKey, bool>
+  IdentificationData::registerDBSearchParameters(
+    const DBSearchParameters& params)
+  {
+    // @TODO: any required information that should be checked?
+    return insertIntoBimap_(params, db_search_params);
   }
 
 
   pair<IdentificationData::ProcessingStepKey, bool>
-  IdentificationData::registerDataProcessingStep(const DataProcessingStep& step)
+  IdentificationData::registerDataProcessingStep(const DataProcessingStep& step,
+                                                 SearchParamsKey search_key)
   {
-    // valid reference to parameters is required:
-    if (!UniqueIdInterface::isValid(step.params_key) ||
-        (processing_params.left.count(step.params_key) == 0))
+    // valid reference to software is required:
+    if (!UniqueIdInterface::isValid(step.software_key) ||
+        (processing_software.left.count(step.software_key) == 0))
     {
       String msg = "invalid reference to data processing parameters - register those first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -533,20 +561,44 @@ namespace OpenMS
       }
     }
 
-    return insertIntoBimap_(step, processing_steps);
+    pair<ProcessingStepKey, bool> result =
+      insertIntoBimap_(step, processing_steps);
+    if (result.second && UniqueIdInterface::isValid(search_key))
+    {
+      // if given, reference to DB search params must be valid:
+      if (db_search_params.left.count(search_key) == 0)
+      {
+        String msg = "invalid reference to DB search parameters - register those first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+      db_search_steps.insert(make_pair(result.first, search_key));
+    }
+    return result;
   }
 
 
   pair<IdentificationData::ScoreTypeKey, bool>
   IdentificationData::registerScoreType(const ScoreType& score)
   {
-    // reference to parameters may be missing, but otherwise must be valid:
-    if (UniqueIdInterface::isValid(score.params_key) &&
-        (processing_params.left.count(score.params_key) == 0))
+    // reference to software may be missing, but otherwise must be valid:
+    if (UniqueIdInterface::isValid(score.software_key))
     {
-      String msg = "invalid reference to data processing parameters - register those first";
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, msg);
+      if (processing_software.left.count(score.software_key) == 0)
+      {
+        String msg = "invalid reference to data processing software - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+    }
+    else if (UniqueIdInterface::isValid(current_step_key_))
+    {
+      // transfer the software key from the current data processing step:
+      const DataProcessingStep& step =
+        processing_steps.left.at(current_step_key_);
+      ScoreType copy(score); // need a copy so we can modify it
+      copy.software_key = step.software_key;
+      return insertIntoBimap_(copy, score_types);
     }
     return insertIntoBimap_(score, score_types);
   }
@@ -576,7 +628,7 @@ namespace OpenMS
 
   pair<IdentificationData::IdentifiedMoleculeKey, bool>
   IdentificationData::registerPeptide(const AASequence& seq,
-                                      const IdentifiedMetaData& meta_data)
+                                      IdentifiedMetaData meta_data)
   {
     if (seq.empty())
     {
@@ -584,13 +636,22 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    checkScoreTypes_(meta_data.scores);
-    checkProcessingSteps_(meta_data.processing_steps);
+    if (meta_data.molecule_type != MT_PROTEIN)
+    {
+      String msg = "invalid molecule type setting for peptide";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
 
     pair<IdentifiedMoleculeKey, bool> result =
       insertIntoBimap_(seq, identified_peptides);
     if (result.second)
     {
+      checkScoreTypes_(meta_data.scores);
+      checkProcessingSteps_(meta_data.processing_steps);
+      // @TODO: this prevents passing "meta_data" by const ref. - any
+      // workaround?
+      addCurrentProcessingStep_(meta_data.processing_steps);
       identified_meta_data.insert(make_pair(result.first, meta_data));
     }
     return result;
@@ -599,7 +660,8 @@ namespace OpenMS
 
   pair<IdentificationData::IdentifiedMoleculeKey, bool>
   IdentificationData::registerCompound(const String& id,
-                                       const IdentifiedMetaData& meta_data)
+                                       const CompoundMetaData& compound_meta,
+                                       IdentifiedMetaData id_meta)
   {
     if (id.empty())
     {
@@ -607,14 +669,24 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    checkScoreTypes_(meta_data.scores);
-    checkProcessingSteps_(meta_data.processing_steps);
+    if (id_meta.molecule_type != MT_COMPOUND)
+    {
+      String msg = "invalid molecule type setting for compound";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
 
     pair<IdentifiedMoleculeKey, bool> result =
       insertIntoBimap_(id, identified_compounds);
     if (result.second)
     {
-      identified_meta_data.insert(make_pair(result.first, meta_data));
+      checkScoreTypes_(id_meta.scores);
+      checkProcessingSteps_(id_meta.processing_steps);
+      // @TODO: this prevents passing "id_meta" by const ref. - any workaround?
+      addCurrentProcessingStep_(id_meta.processing_steps);
+      identified_meta_data.insert(make_pair(result.first, id_meta));
+      // @TODO: insert "compound_meta" even if it's empty?
+      compound_meta_data.insert(make_pair(result.first, compound_meta));
     }
     return result;
   }
@@ -622,7 +694,7 @@ namespace OpenMS
 
   pair<IdentificationData::ParentMoleculeKey, bool>
   IdentificationData::registerParentMolecule(const String& accession,
-                                             const ParentMetaData& meta_data)
+                                             ParentMetaData meta_data)
   {
     if (accession.empty())
     {
@@ -630,16 +702,98 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
-    checkScoreTypes_(meta_data.scores);
-    checkProcessingSteps_(meta_data.processing_steps);
 
     pair<ParentMoleculeKey, bool> result =
       insertIntoBimap_(accession, parent_molecules);
     if (result.second)
     {
+      checkScoreTypes_(meta_data.scores);
+      checkProcessingSteps_(meta_data.processing_steps);
+      addCurrentProcessingStep_(meta_data.processing_steps);
       parent_meta_data.insert(make_pair(result.first, meta_data));
     }
     return result;
+  }
+
+
+  bool IdentificationData::addMoleculeParentMatch(
+    IdentifiedMoleculeKey molecule_key, ParentMoleculeKey parent_key,
+    const MoleculeParentMatch& meta_data)
+  {
+    if (!UniqueIdInterface::isValid(molecule_key) ||
+        // don't know which "identified_[type]" to check, so check meta data:
+        (identified_meta_data.count(molecule_key) == 0))
+    {
+      String msg = "invalid reference to an identified molecule - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    if (!UniqueIdInterface::isValid(parent_key) ||
+        (parent_molecules.left.count(parent_key) == 0))
+    {
+      String msg = "invalid reference to a parent molecule - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    const ParentMetaData& parent_meta = parent_meta_data.at(parent_key);
+    const IdentifiedMetaData& id_meta = identified_meta_data.at(molecule_key);
+    if (parent_meta.molecule_type != id_meta.molecule_type)
+    {
+      String msg = "molecule types of parent and child molecule don't match";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+
+    return parent_matches[molecule_key][parent_key].insert(meta_data).second;
+  }
+
+
+  bool IdentificationData::addMoleculeQueryMatch(
+    IdentifiedMoleculeKey molecule_key, DataQueryKey query_key,
+    MoleculeQueryMatch meta_data)
+  {
+    if (!UniqueIdInterface::isValid(molecule_key) ||
+        // don't know which "identified_[type]" to check, so check meta data:
+        (identified_meta_data.count(molecule_key) == 0))
+    {
+      String msg = "invalid reference to an identified molecule - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    if (!UniqueIdInterface::isValid(query_key) ||
+        (data_queries.left.count(query_key) == 0))
+    {
+      String msg = "invalid reference to a data query - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    checkScoreTypes_(meta_data.scores);
+    checkProcessingSteps_(meta_data.processing_steps);
+    // @TODO: this prevents passing "meta_data" by const ref. - any workaround?
+    addCurrentProcessingStep_(meta_data.processing_steps);
+    // @TODO: disallow charge zero in "meta_data"?
+
+    QueryMatchKey match_key = make_pair(molecule_key, query_key);
+    return query_matches.insert(make_pair(match_key, meta_data)).second;
+  }
+
+
+  void IdentificationData::setCurrentProcessingStep(ProcessingStepKey step_key)
+  {
+    if (!UniqueIdInterface::isValid(step_key) ||
+        (processing_steps.left.count(step_key) == 0))
+    {
+      String msg = "invalid reference to a processing step - register that first";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    current_step_key_ = step_key;
+  }
+
+
+  void IdentificationData::clearCurrentProcessingStep()
+  {
+    current_step_key_ = 0;
   }
 
 } // end namespace OpenMS
