@@ -35,6 +35,7 @@
 #ifndef OPENMS_METADATA_IDENTIFICATIONDATA_H
 #define OPENMS_METADATA_IDENTIFICATIONDATA_H
 
+// #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -49,7 +50,6 @@
 
 namespace OpenMS
 {
-
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
   {
   public:
@@ -268,8 +268,10 @@ namespace OpenMS
     typedef UniqueKey IdentifiedMoleculeKey;
     typedef boost::bimap<IdentifiedMoleculeKey, AASequence> PeptideBimap;
     typedef boost::bimap<IdentifiedMoleculeKey, String> CompoundBimap;
+    // typedef boost::bimap<IdentifiedMoleculeKey, NASequence> OligoBimap;
     PeptideBimap identified_peptides;
     CompoundBimap identified_compounds;
+    // OligoBimap identified_oligos;
 
     enum MoleculeType
     {
@@ -601,6 +603,10 @@ namespace OpenMS
       const CompoundMetaData& compound_meta = CompoundMetaData(),
       IdentifiedMetaData id_meta = IdentifiedMetaData(MT_COMPOUND));
 
+    // std::pair<IdentifiedMoleculeKey, bool> registerOligo(
+    //   const NASequence& seq,
+    //   IdentifiedMetaData meta_data = IdentifiedMetaData(MT_OLIGO));
+
     std::pair<ParentMoleculeKey, bool> registerParentMolecule(
       const String& accession, ParentMetaData meta_data = ParentMetaData());
 
@@ -633,6 +639,7 @@ namespace OpenMS
 
   protected:
 
+    /// Key of the current data processing step (see @ref setCurrentProcessingStep())
     ProcessingStepKey current_step_key_;
 
     /*!
@@ -658,15 +665,12 @@ namespace OpenMS
       return std::make_pair(pos->second, false);
     }
 
-
     /// Helper function to find a score value by its key
     double findScore_(ScoreTypeKey key, const ScoreList& scores);
-
 
     /// Helper function to import DB search parameters from legacy format
     SearchParamsKey importDBSearchParameters_(
       const ProteinIdentification::SearchParameters& pisp);
-
 
     /// Helper function to export DB search parameters to legacy format
     ProteinIdentification::SearchParameters exportDBSearchParameters_(

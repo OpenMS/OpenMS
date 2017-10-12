@@ -735,6 +735,15 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__,
                                        OPENMS_PRETTY_FUNCTION, msg);
     }
+    const ParentMetaData& parent_meta = parent_meta_data.at(parent_key);
+    const IdentifiedMetaData& id_meta = identified_meta_data.at(molecule_key);
+    if (parent_meta.molecule_type != id_meta.molecule_type)
+    {
+      String msg = "molecule types of parent and child molecule don't match";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+
     return parent_matches[molecule_key][parent_key].insert(meta_data).second;
   }
 
