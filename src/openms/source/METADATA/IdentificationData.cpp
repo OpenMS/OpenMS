@@ -64,6 +64,9 @@ namespace OpenMS
                            prot.isHigherScoreBetter(), params_key);
       ScoreTypeKey score_key = registerScoreType(score_type).first;
 
+      SearchParamsKey search_key =
+        importDBSearchParameters_(prot.getSearchParameters());
+
       DataProcessingStep step;
       step.params_key = params_key;
       prot.getPrimaryMSRunPath(step.primary_files);
@@ -73,12 +76,9 @@ namespace OpenMS
         step.input_files.push_back(file_key);
       }
       step.date_time = prot.getDateTime();
-      ProcessingStepKey step_key = registerDataProcessingStep(step).first;
+      ProcessingStepKey step_key =
+        registerDataProcessingStep(step, search_key).first;
       id_to_step[prot.getIdentifier()] = step_key;
-
-      SearchParamsKey search_key =
-        importDBSearchParameters_(prot.getSearchParameters());
-      db_search_steps.insert(make_pair(step_key, search_key));
 
       // ProteinHit:
       for (const ProteinHit& hit : prot.getHits())
@@ -421,7 +421,7 @@ namespace OpenMS
     dbsp.missed_cleavages = pisp.missed_cleavages;
     static_cast<MetaInfoInterface&>(dbsp) = pisp;
 
-    return insertIntoBimap_(dbsp, db_search_params).first;
+    return registerDBSearchParameters(dbsp).first;
   }
 
 
@@ -513,8 +513,18 @@ namespace OpenMS
   }
 
 
+  pair<IdentificationData::SearchParamsKey, bool>
+  IdentificationData::registerDBSearchParameters(
+    const DBSearchParameters& params)
+  {
+    // @TODO: any required information that should be checked?
+    return insertIntoBimap_(params, db_search_params);
+  }
+
+
   pair<IdentificationData::ProcessingStepKey, bool>
-  IdentificationData::registerDataProcessingStep(const DataProcessingStep& step)
+  IdentificationData::registerDataProcessingStep(const DataProcessingStep& step,
+                                                 SearchParamsKey search_key)
   {
     // valid reference to parameters is required:
     if (!UniqueIdInterface::isValid(step.params_key) ||
@@ -536,7 +546,20 @@ namespace OpenMS
       }
     }
 
-    return insertIntoBimap_(step, processing_steps);
+    pair<ProcessingStepKey, bool> result =
+      insertIntoBimap_(step, processing_steps);
+    if (result.second && UniqueIdInterface::isValid(search_key))
+    {
+      // if given, reference to DB search params must be valid:
+      if (db_search_params.left.count(search_key) == 0)
+      {
+        String msg = "invalid reference to DB search parameters - register those first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+      db_search_steps.insert(make_pair(result.first, search_key));
+    }
+    return result;
   }
 
 

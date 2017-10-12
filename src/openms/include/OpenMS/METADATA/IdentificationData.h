@@ -52,7 +52,7 @@ namespace OpenMS
 
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
   {
-  protected:
+  public:
     typedef UInt64 UniqueKey; // in case 64 bit isn't enough
 
     // Input files that were processed:
@@ -519,16 +519,19 @@ namespace OpenMS
       {
       }
 
+      DBSearchParameters(const DBSearchParameters& other) = default;
+
       bool operator<(const DBSearchParameters& other) const
       {
-        return (std::tie(molecule_type, database, database_version, taxonomy,
-                         charges, fixed_mods, variable_mods,
-                         fragment_mass_tolerance, precursor_mass_tolerance,
-                         fragment_tolerance_ppm, precursor_tolerance_ppm,
-                         digestion_enzyme, missed_cleavages) <
-                std::tie(other.molecule_type, other.database,
-                         other.database_version, other.taxonomy, other.charges,
-                         other.fixed_mods, other.variable_mods,
+        return (std::tie(molecule_type, peak_mass_type, database,
+                         database_version, taxonomy, charges, fixed_mods,
+                         variable_mods, fragment_mass_tolerance,
+                         precursor_mass_tolerance, fragment_tolerance_ppm,
+                         precursor_tolerance_ppm, digestion_enzyme,
+                         missed_cleavages) <
+                std::tie(other.molecule_type, other.peak_mass_type,
+                         other.database, other.database_version, other.taxonomy,
+                         other.charges, other.fixed_mods, other.variable_mods,
                          other.fragment_mass_tolerance,
                          other.precursor_mass_tolerance,
                          other.fragment_tolerance_ppm,
@@ -538,14 +541,15 @@ namespace OpenMS
 
       bool operator==(const DBSearchParameters& other) const
       {
-        return (std::tie(molecule_type, database, database_version, taxonomy,
-                         charges, fixed_mods, variable_mods,
-                         fragment_mass_tolerance, precursor_mass_tolerance,
-                         fragment_tolerance_ppm, precursor_tolerance_ppm,
-                         digestion_enzyme, missed_cleavages) ==
-                std::tie(other.molecule_type, other.database,
-                         other.database_version, other.taxonomy, other.charges,
-                         other.fixed_mods, other.variable_mods,
+        return (std::tie(molecule_type, peak_mass_type, database,
+                         database_version, taxonomy, charges, fixed_mods,
+                         variable_mods, fragment_mass_tolerance,
+                         precursor_mass_tolerance, fragment_tolerance_ppm,
+                         precursor_tolerance_ppm, digestion_enzyme,
+                         missed_cleavages) ==
+                std::tie(other.molecule_type, other.peak_mass_type,
+                         other.database, other.database_version, other.taxonomy,
+                         other.charges, other.fixed_mods, other.variable_mods,
                          other.fragment_mass_tolerance,
                          other.precursor_mass_tolerance,
                          other.fragment_tolerance_ppm,
@@ -560,6 +564,56 @@ namespace OpenMS
     std::unordered_map<ProcessingStepKey, SearchParamsKey> db_search_steps;
 
 
+    // functions:
+
+    void importIDs(const std::vector<ProteinIdentification>& proteins,
+                   const std::vector<PeptideIdentification>& peptides);
+
+    // "export" is a reserved keyword!
+    void exportIDs(std::vector<ProteinIdentification>& proteins,
+                   std::vector<PeptideIdentification>& peptides) const;
+
+
+    std::pair<InputFileKey, bool> registerInputFile(const String& file);
+
+    std::pair<ProcessingParamsKey, bool> registerDataProcessingParameters(
+      const DataProcessingParameters& params);
+
+    std::pair<SearchParamsKey, bool> registerDBSearchParameters(
+      const DBSearchParameters& params);
+
+    std::pair<ProcessingStepKey, bool> registerDataProcessingStep(
+      const DataProcessingStep& step, SearchParamsKey search_key = 0);
+
+    std::pair<ScoreTypeKey, bool> registerScoreType(const ScoreType& score);
+
+    std::pair<DataQueryKey, bool> registerDataQuery(const DataQuery& query);
+
+    std::pair<IdentifiedMoleculeKey, bool> registerPeptide(
+      const AASequence& seq,
+      const IdentifiedMetaData& meta_data = IdentifiedMetaData());
+
+    std::pair<IdentifiedMoleculeKey, bool> registerCompound(
+      const String& id,
+      const CompoundMetaData& compound_meta = CompoundMetaData(),
+      const IdentifiedMetaData& id_meta = IdentifiedMetaData(MT_COMPOUND));
+
+    std::pair<ParentMoleculeKey, bool> registerParentMolecule(
+      const String& accession,
+      const ParentMetaData& meta_data = ParentMetaData());
+
+    // these ones are called "add..." instead of "register..." because they
+    // don't return a key:
+    bool addMoleculeParentMatch(
+      IdentifiedMoleculeKey molecule_key, ParentMoleculeKey parent_key,
+      const MoleculeParentMatch& meta_data = MoleculeParentMatch());
+
+    bool addMoleculeQueryMatch(
+      IdentifiedMoleculeKey molecule_key, DataQueryKey query_key,
+      const MoleculeQueryMatch& meta_data = MoleculeQueryMatch());
+
+
+  protected:
     /*!
       Helper function for inserting an item into a bidirectional map.
 
@@ -603,50 +657,6 @@ namespace OpenMS
     /// Helper function to check if all processing steps are valid and registered
     void checkProcessingSteps_(const std::vector<ProcessingStepKey>& steps);
 
-  public:
-
-    void importIDs(const std::vector<ProteinIdentification>& proteins,
-                   const std::vector<PeptideIdentification>& peptides);
-
-    // "export" is a reserved keyword!
-    void exportIDs(std::vector<ProteinIdentification>& proteins,
-                   std::vector<PeptideIdentification>& peptides) const;
-
-
-    std::pair<InputFileKey, bool> registerInputFile(const String& file);
-
-    std::pair<ProcessingParamsKey, bool> registerDataProcessingParameters(
-      const DataProcessingParameters& params);
-
-    std::pair<ProcessingStepKey, bool> registerDataProcessingStep(
-      const DataProcessingStep& step);
-
-    std::pair<ScoreTypeKey, bool> registerScoreType(const ScoreType& score);
-
-    std::pair<DataQueryKey, bool> registerDataQuery(const DataQuery& query);
-
-    std::pair<IdentifiedMoleculeKey, bool> registerPeptide(
-      const AASequence& seq,
-      const IdentifiedMetaData& meta_data = IdentifiedMetaData());
-
-    std::pair<IdentifiedMoleculeKey, bool> registerCompound(
-      const String& id,
-      const CompoundMetaData& compound_meta = CompoundMetaData(),
-      const IdentifiedMetaData& id_meta = IdentifiedMetaData(MT_COMPOUND));
-
-    std::pair<ParentMoleculeKey, bool> registerParentMolecule(
-      const String& accession,
-      const ParentMetaData& meta_data = ParentMetaData());
-
-    // these ones are called "add..." instead of "register..." because they
-    // don't return a key:
-    bool addMoleculeParentMatch(
-      IdentifiedMoleculeKey molecule_key, ParentMoleculeKey parent_key,
-      const MoleculeParentMatch& meta_data = MoleculeParentMatch());
-
-    bool addMoleculeQueryMatch(
-      IdentifiedMoleculeKey molecule_key, DataQueryKey query_key,
-      const MoleculeQueryMatch& meta_data = MoleculeQueryMatch());
   };
 }
 
