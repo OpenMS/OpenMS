@@ -182,9 +182,6 @@ namespace OpenMS
     double delta_int = intensity_max - intensity_min;
     double delta_rt = best_right - best_left;
     double delta_rt_apex = std::fabs(rt_min-rt_apex);
-    // DEBUG:
-    std::cout << delta_int << "  " << delta_rt << "  " << delta_rt_apex << std::endl;
-    std::cout << rt_min << "  " << rt_apex <<  std::endl;
     double delta_int_apex = delta_int*delta_rt_apex/delta_rt;
 
     avg_noise_level = intensity_min + delta_int_apex;
