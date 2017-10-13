@@ -166,20 +166,18 @@ namespace OpenMS
       }
     }
 
-    double intensity_max, intensity_min, rt_max, rt_min;
+    double intensity_max, intensity_min, rt_max;
     if (intensity_left >= intensity_right)
     {
       intensity_max = intensity_left;
       rt_max = best_left;
       intensity_min = intensity_right;
-      rt_min = best_right;
     }
     else 
     {
       intensity_max = intensity_right;
       rt_max = best_right;
       intensity_min = intensity_left;
-      rt_min = best_left;
     }
     double delta_int = intensity_max - intensity_min;
     double delta_rt = best_right - best_left;
