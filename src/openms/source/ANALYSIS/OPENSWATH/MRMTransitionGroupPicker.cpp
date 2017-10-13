@@ -184,7 +184,7 @@ namespace OpenMS
     double delta_rt_apex = abs(rt_min-rt_apex);
     double delta_int_apex = delta_int*delta_rt_apex/delta_rt;
 
-    avg_noise_level = intensity_min - delta_int_apex;
+    avg_noise_level = intensity_min + delta_int_apex;
     background = intensity_min*delta_rt + 0.5*delta_int*delta_rt;
   }
 
