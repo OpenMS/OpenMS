@@ -152,15 +152,15 @@ namespace OpenMS
       MSChromatogram::const_iterator it_prev = it;
       it_prev--; //previous point
 
-      if (it->getMZ() >= best_left && it_prev->getMZ() <= best_left)
+      if (it->getMZ() >= best_left && it_prev->getMZ() < best_left)
       {
-        intensity_left = it_prev->getIntensity();
+        intensity_left = it->getIntensity();
       }
-      else if (it->getIntensity() >= peak_height && it_prev->getIntensity() <= peak_height)
+      else if (it->getIntensity() >= peak_height && it_prev->getIntensity() < peak_height)
       {
-        rt_apex = (it->getMZ() + it_prev->getMZ())/2;
+        rt_apex = it->getMZ();
       }
-      else if (it->getMZ() >= best_right && it_prev->getMZ() <= best_right)
+      else if (it->getMZ() >= best_right && it_prev->getMZ() < best_right)
       {
         intensity_right = it->getIntensity();
       }
