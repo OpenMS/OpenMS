@@ -214,8 +214,11 @@ protected:
     registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
     setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
     registerOutputFile_("out", "<file>", "", "Output file in idXML format", !is_required);
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("mzid_out", "<file>", "", "Output file in mzid format", !is_required);
+    setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
     registerOutputFile_("osw_out", "<file>", "", "Output file in OSW format", !is_required);
+    setValidFormats_("osw_out", ListUtils::create<String>("OSW"));
     String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin";
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , !is_required);
     setValidStrings_("enzyme", ListUtils::create<String>(enzs));
