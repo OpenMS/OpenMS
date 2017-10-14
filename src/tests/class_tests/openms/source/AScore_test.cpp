@@ -845,7 +845,13 @@ START_SECTION(PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& re
   
   // http://ascore.med.harvard.edu/ascore.html result=88.3
   TEST_REAL_SIMILAR(static_cast<double>(hit6.getMetaValue("AScore_1")), 20.1669211754322);
-  TEST_EQUAL(hit6.getSequence().toString(), "ATPGNLGSSVLHS(Phospho)K");  
+  TEST_EQUAL(hit6.getSequence().toString(), "ATPGNLGSSVLHS(Phospho)K");
+
+  // ===========================================================================
+  // check if special score is used for unambiguous assignment:
+  PeptideHit hit7(1.0, 1, 1, AASequence::fromString("PEPT(Phospho)IDE"));
+  hit7 = ptr_test->compute(hit7, real_spectrum);
+  TEST_REAL_SIMILAR(hit7.getScore(), ptr_test->getParameters().getValue("unambiguous_score"));
 }
 END_SECTION 
 
