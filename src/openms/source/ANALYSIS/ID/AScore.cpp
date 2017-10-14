@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  PeptideHit AScore::compute(const PeptideHit & hit, PeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, Size max_peptide_len, Size max_num_perm)
+  PeptideHit AScore::compute(const PeptideHit& hit, PeakSpectrum& real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm, Size max_peptide_len, Size max_num_perm)
   {
     PeptideHit phospho = hit;
     
@@ -88,7 +88,7 @@ namespace OpenMS
       return phospho;
     }
     
-    vector<vector<Size> > permutations(computePermutations_(sites, (Int)number_of_phosphorylation_events));
+    vector<vector<Size>> permutations(computePermutations_(sites, (Int)number_of_phosphorylation_events));
     LOG_DEBUG << "\tnumber of permutations: " << permutations.size() << std::endl;
     
     // TODO: using a heuristic to calculate the best phospho sites if the number of permutations are exceeding the maximum.
@@ -110,7 +110,7 @@ namespace OpenMS
     vector<PeakSpectrum> windows_top10(peakPickingPerWindowsInSpectrum_(real_spectrum));
     
     // calculate peptide score for each possible phospho site permutation
-    vector<vector<double> > peptide_site_scores(calculatePermutationPeptideScores_(th_spectra, windows_top10, fragment_mass_tolerance, fragment_mass_unit_ppm));
+    vector<vector<double>> peptide_site_scores(calculatePermutationPeptideScores_(th_spectra, windows_top10, fragment_mass_tolerance, fragment_mass_unit_ppm));
     
     // rank peptide permutations ascending
     multimap<double, Size> ranking(rankWeightedPermutationPeptideScores_(peptide_site_scores));
@@ -218,7 +218,7 @@ namespace OpenMS
     return score;
   }
 
-  void AScore::determineHighestScoringPermutations_(const std::vector<std::vector<double> >& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const vector<vector<Size> >& permutations, std::multimap<double, Size>& ranking) const
+  void AScore::determineHighestScoringPermutations_(const std::vector<std::vector<double>>& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const vector<vector<Size>>& permutations, std::multimap<double, Size>& ranking) const
   {
     // For every phospho site of the highest (weighted) scoring phospho site assignment:
     // 1. determine the next best (weighted) score assignment with this site in unphosporylated state.
@@ -308,7 +308,7 @@ namespace OpenMS
   }
   
   // calculation of the number of different speaks between the theoretical spectra of the two best scoring peptide permutations, respectively
-  void AScore::computeSiteDeterminingIons_(const vector<PeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, vector<PeakSpectrum> & site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  void AScore::computeSiteDeterminingIons_(const vector<PeakSpectrum>& th_spectra, const ProbablePhosphoSites& candidates, vector<PeakSpectrum>& site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
   {
     site_determining_ions.clear();
     site_determining_ions.resize(2);
@@ -338,7 +338,7 @@ namespace OpenMS
     site_determining_ions[1].sortByPosition(); 
   }
 
-  Size AScore::numberOfMatchedIons_(const PeakSpectrum & th, const PeakSpectrum & window, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm) const
+  Size AScore::numberOfMatchedIons_(const PeakSpectrum& th, const PeakSpectrum& window, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm) const
   {
     PeakSpectrum window_reduced = window;
     if (window_reduced.size() > depth)
@@ -375,7 +375,7 @@ namespace OpenMS
     return n;
   }
 
-  double AScore::peptideScore_(const std::vector<double> & scores) const
+  double AScore::peptideScore_(const std::vector<double>& scores) const
   {
     OPENMS_PRECONDITION(scores.size() == 10, "Scores vector must contain a score for every peak level."); 
     return (scores[0] * 0.5
@@ -405,7 +405,7 @@ namespace OpenMS
     return tupel;
   }
 
-  vector<vector<Size> > AScore::computePermutations_(const vector<Size> & sites, Int n_phosphorylation_events) const
+  vector<vector<Size>> AScore::computePermutations_(const vector<Size>& sites, Int n_phosphorylation_events) const
   {
     vector<vector<Size>  > permutations;
     
@@ -433,7 +433,7 @@ namespace OpenMS
     // Generate all n_phosphorylation_events sized sets from sites
     {
       vector<Size> head;
-      vector<vector<Size> > tail;
+      vector<vector<Size>> tail;
       
       // all permutations with first site selected
       head.push_back(sites[0]);
@@ -442,7 +442,7 @@ namespace OpenMS
       
       tail = computePermutations_(tupel_left, tail_phospho_sites);
       
-      for (vector<vector<Size> >::iterator it = tail.begin(); it != tail.end(); ++it)
+      for (vector<vector<Size>>::iterator it = tail.begin(); it != tail.end(); ++it)
       {
         vector<Size> temp(head);
         temp.insert(temp.end(), it->begin(), it->end());
@@ -450,7 +450,7 @@ namespace OpenMS
       }
 
       // all permutations with first site not selected
-      vector<vector<Size> > other_possibilities(computePermutations_(tupel_left, n_phosphorylation_events));
+      vector<vector<Size>> other_possibilities(computePermutations_(tupel_left, n_phosphorylation_events));
       permutations.insert(permutations.end(), other_possibilities.begin(), other_possibilities.end());
       return permutations;
     }
@@ -480,7 +480,7 @@ namespace OpenMS
   }
   
   /// Create theoretical spectra
-  vector<PeakSpectrum> AScore::createTheoreticalSpectra_(const vector<vector<Size> > & permutations, const AASequence & seq_without_phospho) const
+  vector<PeakSpectrum> AScore::createTheoreticalSpectra_(const vector<vector<Size>>& permutations, const AASequence& seq_without_phospho) const
   {
     vector<PeakSpectrum> th_spectra;
     TheoreticalSpectrumGenerator spectrum_generator;
@@ -512,7 +512,7 @@ namespace OpenMS
     return th_spectra;
   }
     
-  std::vector<PeakSpectrum> AScore::peakPickingPerWindowsInSpectrum_(PeakSpectrum &real_spectrum) const
+  std::vector<PeakSpectrum> AScore::peakPickingPerWindowsInSpectrum_(PeakSpectrum& real_spectrum) const
   {
     vector<PeakSpectrum> windows_top10;
     
@@ -545,11 +545,11 @@ namespace OpenMS
     return windows_top10;
   }
   
-  std::vector<std::vector<double> > AScore::calculatePermutationPeptideScores_(vector<PeakSpectrum>& th_spectra, const vector<PeakSpectrum>& windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
+  std::vector<std::vector<double>> AScore::calculatePermutationPeptideScores_(vector<PeakSpectrum>& th_spectra, const vector<PeakSpectrum>& windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
   {
     //prepare peak depth for all windows in the actual spectrum
-    vector<vector<double> > permutation_peptide_scores(th_spectra.size());
-    vector<vector<double> >::iterator site_score = permutation_peptide_scores.begin();
+    vector<vector<double>> permutation_peptide_scores(th_spectra.size());
+    vector<vector<double>>::iterator site_score = permutation_peptide_scores.begin();
     
     // for each phospho site assignment
     for (vector<PeakSpectrum>::iterator it = th_spectra.begin(); it != th_spectra.end(); ++it, ++site_score)
@@ -574,7 +574,7 @@ namespace OpenMS
     return permutation_peptide_scores;
   }
   
-  std::multimap<double, Size> AScore::rankWeightedPermutationPeptideScores_(const vector<vector<double> > & peptide_site_scores) const
+  std::multimap<double, Size> AScore::rankWeightedPermutationPeptideScores_(const vector<vector<double>>& peptide_site_scores) const
   {
     multimap<double, Size> ranking;
     
