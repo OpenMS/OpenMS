@@ -286,10 +286,9 @@ protected:
     String out(getStringOption_("out"));
 
     AScore ascore;
-    ascore.setParameters(getParam_());
-    // Param ascore_params = ascore.getDefaults();
-    // ascore_params.update(param_);
-    // ascore.setParameters(ascore_params);
+    Param ascore_params = ascore.getDefaults();
+    ascore_params.update(getParam_(), false, false, false, false, Log_debug);
+    ascore.setParameters(ascore_params);
 
     //-------------------------------------------------------------
     // loading input
