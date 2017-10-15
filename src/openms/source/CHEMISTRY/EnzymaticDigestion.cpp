@@ -300,16 +300,16 @@ namespace OpenMS
 
     // Unspecific cleavage:
     // For unspecific cleavage every amino acid is a cutting position.
-    // All substrings of legnth min_size..max_size are generated.
+    // All substrings of length min_size..max_size are generated.
     if (enzyme_.getName() == UnspecificCleavage)
     {
       output.reserve(sequence.size() * (max_length - min_length + 1));
       for (Size i = 0; i <= sequence.size() - min_length; ++i)
       {
-        const Size right = std::min(i + max_length, sequence.size());
-        for (Size j = i + min_length; j <= right; ++j)
+        const Size limit = std::min(max_length, sequence.size() - i);
+        for (Size j = min_length; j <= limit; ++j)
         {
-          output.push_back(sequence.substr(i, j - 1));
+          output.push_back(sequence.substr(i, j));
         }
       }
       return;
@@ -335,7 +335,7 @@ namespace OpenMS
       Size l = pep_positions[i] - pep_positions[i - 1];
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(sequence.substr(pep_positions[i - 1], pep_positions[i] - 1));
+        output.push_back(sequence.substr(pep_positions[i - 1], l));
       }
     }
 
@@ -343,7 +343,7 @@ namespace OpenMS
     Size l = sequence.size() - pep_positions[count - 1];
     if (l >= min_length && l <= max_length)
     {
-      output.push_back(sequence.substr(pep_positions[count - 1], sequence.size() - 1));
+      output.push_back(sequence.substr(pep_positions[count - 1], l));
     }
 
     // generate fragments with missed cleavages
@@ -354,7 +354,7 @@ namespace OpenMS
         Size l = pep_positions[j + i] - pep_positions[j - 1];
         if (l >= min_length && l <= max_length)
         {
-          output.push_back(sequence.substr(pep_positions[j - 1], pep_positions[j + i] - 1));
+          output.push_back(sequence.substr(pep_positions[j - 1], l));
         }
       }
 
@@ -362,7 +362,7 @@ namespace OpenMS
       Size l = sequence.size() - pep_positions[count - i - 1];
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(sequence.substr(pep_positions[count - i - 1], sequence.size() - 1 ));
+        output.push_back(sequence.substr(pep_positions[count - i - 1], l));
       }
     }
   }
