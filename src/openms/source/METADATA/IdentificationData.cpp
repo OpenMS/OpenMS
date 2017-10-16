@@ -692,6 +692,38 @@ namespace OpenMS
   }
 
 
+  pair<IdentificationData::IdentifiedMoleculeKey, bool>
+  IdentificationData::registerOligo(const NASequence& seq,
+                                    IdentifiedMetaData meta_data)
+  {
+    if (seq.empty())
+    {
+      String msg = "missing sequence for oligonucleotide";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+    if (meta_data.molecule_type != MT_RNA)
+    {
+      String msg = "invalid molecule type setting for oligonucleotide";
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       OPENMS_PRETTY_FUNCTION, msg);
+    }
+
+    pair<IdentifiedMoleculeKey, bool> result =
+      insertIntoBimap_(seq, identified_oligos);
+    if (result.second)
+    {
+      checkScoreTypes_(meta_data.scores);
+      checkProcessingSteps_(meta_data.processing_steps);
+      // @TODO: this prevents passing "meta_data" by const ref. - any
+      // workaround?
+      addCurrentProcessingStep_(meta_data.processing_steps);
+      identified_meta_data.insert(make_pair(result.first, meta_data));
+    }
+    return result;
+  }
+
+
   pair<IdentificationData::ParentMoleculeKey, bool>
   IdentificationData::registerParentMolecule(const String& accession,
                                              ParentMetaData meta_data)

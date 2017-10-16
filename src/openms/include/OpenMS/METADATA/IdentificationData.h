@@ -35,7 +35,7 @@
 #ifndef OPENMS_METADATA_IDENTIFICATIONDATA_H
 #define OPENMS_METADATA_IDENTIFICATIONDATA_H
 
-// #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -268,16 +268,16 @@ namespace OpenMS
     typedef UniqueKey IdentifiedMoleculeKey;
     typedef boost::bimap<IdentifiedMoleculeKey, AASequence> PeptideBimap;
     typedef boost::bimap<IdentifiedMoleculeKey, String> CompoundBimap;
-    // typedef boost::bimap<IdentifiedMoleculeKey, NASequence> OligoBimap;
+    typedef boost::bimap<IdentifiedMoleculeKey, NASequence> OligoBimap;
     PeptideBimap identified_peptides;
     CompoundBimap identified_compounds;
-    // OligoBimap identified_oligos;
+    OligoBimap identified_oligos;
 
     enum MoleculeType
     {
       MT_PROTEIN,
       MT_COMPOUND,
-      // MT_RNA,
+      MT_RNA,
       SIZE_OF_MOLECULETYPES
     };
 
@@ -507,13 +507,15 @@ namespace OpenMS
       // allow for either "DigestionEnzymeProtein" or "DigestionEnzymeRNA":
       const DigestionEnzyme* digestion_enzyme;
       Size missed_cleavages;
+      Size min_length;
+      Size max_length;
 
       DBSearchParameters():
         molecule_type(MT_PROTEIN),
         peak_mass_type(ProteinIdentification::MONOISOTOPIC),
         precursor_mass_tolerance(0.0), fragment_mass_tolerance(0.0),
         precursor_tolerance_ppm(false), fragment_tolerance_ppm(false),
-        digestion_enzyme(0), missed_cleavages(0)
+        digestion_enzyme(0), missed_cleavages(0), min_length(0), max_length(0)
       {
       }
 
@@ -526,7 +528,7 @@ namespace OpenMS
                          variable_mods, fragment_mass_tolerance,
                          precursor_mass_tolerance, fragment_tolerance_ppm,
                          precursor_tolerance_ppm, digestion_enzyme,
-                         missed_cleavages) <
+                         missed_cleavages, min_length, max_length) <
                 std::tie(other.molecule_type, other.peak_mass_type,
                          other.database, other.database_version, other.taxonomy,
                          other.charges, other.fixed_mods, other.variable_mods,
@@ -534,7 +536,8 @@ namespace OpenMS
                          other.precursor_mass_tolerance,
                          other.fragment_tolerance_ppm,
                          other.precursor_tolerance_ppm,
-                         other.digestion_enzyme, other.missed_cleavages));
+                         other.digestion_enzyme, other.missed_cleavages,
+                         other.min_length, other.max_length));
       }
 
       bool operator==(const DBSearchParameters& other) const
@@ -544,7 +547,7 @@ namespace OpenMS
                          variable_mods, fragment_mass_tolerance,
                          precursor_mass_tolerance, fragment_tolerance_ppm,
                          precursor_tolerance_ppm, digestion_enzyme,
-                         missed_cleavages) ==
+                         missed_cleavages, min_length, max_length) ==
                 std::tie(other.molecule_type, other.peak_mass_type,
                          other.database, other.database_version, other.taxonomy,
                          other.charges, other.fixed_mods, other.variable_mods,
@@ -552,7 +555,8 @@ namespace OpenMS
                          other.precursor_mass_tolerance,
                          other.fragment_tolerance_ppm,
                          other.precursor_tolerance_ppm,
-                         other.digestion_enzyme, other.missed_cleavages));
+                         other.digestion_enzyme, other.missed_cleavages,
+                         other.min_length, other.max_length));
       }
     };
 
@@ -603,9 +607,9 @@ namespace OpenMS
       const CompoundMetaData& compound_meta = CompoundMetaData(),
       IdentifiedMetaData id_meta = IdentifiedMetaData(MT_COMPOUND));
 
-    // std::pair<IdentifiedMoleculeKey, bool> registerOligo(
-    //   const NASequence& seq,
-    //   IdentifiedMetaData meta_data = IdentifiedMetaData(MT_OLIGO));
+    std::pair<IdentifiedMoleculeKey, bool> registerOligo(
+      const NASequence& seq,
+      IdentifiedMetaData meta_data = IdentifiedMetaData(MT_RNA));
 
     std::pair<ParentMoleculeKey, bool> registerParentMolecule(
       const String& accession, ParentMetaData meta_data = ParentMetaData());
