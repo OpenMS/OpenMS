@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -116,36 +116,36 @@ public:
     /// Non-mutable iterator
     typedef std::vector<SpectrumType>::const_iterator ConstIterator;
     /// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<PeakT, PeakT &, PeakT *, Iterator, SpectrumType::Iterator> AreaIterator;
+    typedef Internal::AreaIterator<PeakT, PeakT&, PeakT*, Iterator, SpectrumType::Iterator> AreaIterator;
     /// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<const PeakT, const PeakT &, const PeakT *, ConstIterator, SpectrumType::ConstIterator> ConstAreaIterator;
+    typedef Internal::AreaIterator<const PeakT, const PeakT&, const PeakT*, ConstIterator, SpectrumType::ConstIterator> ConstAreaIterator;
     //@}
 
     /// @name Delegations of calls to the vector of MSSpectra
     // Attention: these refer to the spectra vector only!
     //@{
-    typedef Base::value_type value_type; 
-    typedef Base::iterator iterator; 
-    typedef Base::const_iterator const_iterator; 
+    typedef Base::value_type value_type;
+    typedef Base::iterator iterator;
+    typedef Base::const_iterator const_iterator;
 
     inline Size size() const
     {
-      return spectra_.size(); 
+      return spectra_.size();
     }
 
     inline void resize(Size s)
     {
-      spectra_.resize(s); 
+      spectra_.resize(s);
     }
 
     inline bool empty() const
     {
-      return spectra_.empty(); 
+      return spectra_.empty();
     }
 
     inline void reserve(Size s)
     {
-      spectra_.reserve(s); 
+      spectra_.reserve(s);
     }
 
     inline SpectrumType& operator[] (Size n)
@@ -158,7 +158,7 @@ public:
       return spectra_[n];
     }
 
-    inline Iterator begin() 
+    inline Iterator begin()
     {
       return spectra_.begin();
     }
@@ -168,7 +168,7 @@ public:
       return spectra_.begin();
     }
 
-    inline Iterator end() 
+    inline Iterator end()
     {
       return spectra_.end();
     }
@@ -182,11 +182,11 @@ public:
     // Aliases / chromatograms
     inline void reserveSpaceSpectra(Size s)
     {
-      spectra_.reserve(s); 
+      spectra_.reserve(s);
     }
     inline void reserveSpaceChromatograms(Size s)
     {
-      chromatograms_.reserve(s); 
+      chromatograms_.reserve(s);
     }
 
     /// Constructor
@@ -198,7 +198,7 @@ public:
     {}
 
     /// Copy constructor
-    MSExperiment(const MSExperiment & source) :
+    MSExperiment(const MSExperiment& source) :
       RangeManagerType(source),
       ExperimentalSettings(source),
       ms_levels_(source.ms_levels_),
@@ -208,7 +208,7 @@ public:
     {}
 
     /// Assignment operator
-    MSExperiment & operator=(const MSExperiment & source)
+    MSExperiment& operator=(const MSExperiment& source)
     {
       if (&source == this) return *this;
 
@@ -227,22 +227,22 @@ public:
     }
 
     /// Assignment operator
-    MSExperiment & operator=(const ExperimentalSettings & source)
+    MSExperiment& operator=(const ExperimentalSettings& source)
     {
       ExperimentalSettings::operator=(source);
       return *this;
     }
 
     /// Equality operator
-    bool operator==(const MSExperiment & rhs) const
+    bool operator==(const MSExperiment& rhs) const
     {
       return ExperimentalSettings::operator==(rhs) &&
-          chromatograms_ == rhs.chromatograms_ && 
+          chromatograms_ == rhs.chromatograms_ &&
           spectra_ == rhs.spectra_;
     }
 
     /// Equality operator
-    bool operator!=(const MSExperiment & rhs) const
+    bool operator!=(const MSExperiment& rhs) const
     {
       return !(operator==(rhs));
     }
@@ -256,7 +256,7 @@ public:
       supports push_back(), end() and back()
     */
     template <class Container>
-    void get2DData(Container & cont) const
+    void get2DData(Container& cont) const
     {
       for (typename Base::const_iterator spec = spectra_.begin(); spec != spectra_.end(); ++spec)
       {
@@ -347,7 +347,7 @@ public:
 
       @exception Exception::Precondition is thrown if the container is not sorted according to
       retention time (in debug AND release mode) OR a "masstrace_intensity_<X>" value is expected but not found
-         
+
     */
     template <bool add_mass_traces, class Container>
     void set2DData(const Container& container)
@@ -543,14 +543,9 @@ public:
             if (pc_mz < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(pc_mz);
             if (pc_mz > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(pc_mz);
           }
-
         }
-
       }
       std::sort(ms_levels_.begin(), ms_levels_.end());
-
-
-
 
       if (this->chromatograms_.empty())
       {
@@ -561,7 +556,6 @@ public:
 
       for (std::vector<ChromatogramType>::iterator it = chromatograms_.begin(); it != chromatograms_.end(); ++it)
       {
-
         // ignore TICs and ECs (as these are usually positioned at 0 and therefor lead to a large white margin in plots if included)
         if (it->getChromatogramType() == ChromatogramSettings::TOTAL_ION_CURRENT_CHROMATOGRAM ||
             it->getChromatogramType() == ChromatogramSettings::EMISSION_CHROMATOGRAM)
@@ -619,7 +613,7 @@ public:
 
       RT is dimension 0, m/z is dimension 1
     */
-    const AreaType & getDataRange() const
+    const AreaType& getDataRange() const
     {
       return RangeManagerType::pos_range_;
     }
@@ -631,7 +625,7 @@ public:
     }
 
     /// returns an array of MS levels
-    const std::vector<UInt> & getMSLevels() const
+    const std::vector<UInt>& getMSLevels() const
     {
       return ms_levels_;
     }
@@ -734,13 +728,13 @@ public:
     }
 
     /// returns the meta information of this experiment (const access)
-    const ExperimentalSettings & getExperimentalSettings() const
+    const ExperimentalSettings& getExperimentalSettings() const
     {
       return *this;
     }
 
     /// returns the meta information of this experiment (mutable access)
-    ExperimentalSettings & getExperimentalSettings()
+    ExperimentalSettings& getExperimentalSettings()
     {
       return *this;
     }
@@ -795,7 +789,7 @@ public:
     }
 
     /// Swaps the content of this map with the content of @p from
-    void swap(MSExperiment & from)
+    void swap(MSExperiment& from)
     {
       MSExperiment tmp;
 
@@ -821,63 +815,75 @@ public:
     }
 
     /// sets the spectrum list
-    void setSpectra(const std::vector<MSSpectrum> & spectra)
+    void setSpectra(const std::vector<MSSpectrum>& spectra)
     {
       spectra_ = spectra;
     }
 
     /// adds a spectrum to the list
-    void addSpectrum(const MSSpectrum & spectrum)
+    void addSpectrum(const MSSpectrum& spectrum)
     {
       spectra_.push_back(spectrum);
     }
 
     /// returns the spectrum list
-    const std::vector<MSSpectrum> & getSpectra() const
+    const std::vector<MSSpectrum>& getSpectra() const
     {
       return spectra_;
     }
 
     /// returns the spectrum list (mutable)
-    std::vector<MSSpectrum> & getSpectra()
+    std::vector<MSSpectrum>& getSpectra()
     {
       return spectra_;
     }
 
     /// sets the chromatogram list
-    void setChromatograms(const std::vector<MSChromatogram > & chromatograms)
+    void setChromatograms(const std::vector<MSChromatogram>& chromatograms)
     {
       chromatograms_ = chromatograms;
     }
 
     /// adds a chromatogram to the list
-    void addChromatogram(const MSChromatogram & chromatogram)
+    void addChromatogram(const MSChromatogram& chromatogram)
     {
       chromatograms_.push_back(chromatogram);
     }
 
     /// returns the chromatogram list
-    const std::vector<MSChromatogram > & getChromatograms() const
+    const std::vector<MSChromatogram>& getChromatograms() const
     {
       return chromatograms_;
     }
 
     /// returns the chromatogram list (mutable)
-    std::vector<MSChromatogram > & getChromatograms()
+    std::vector<MSChromatogram>& getChromatograms()
     {
       return chromatograms_;
     }
 
     /// @name Easy Access interface
     //@{
-    /// returns a single chromatogram 
-    MSChromatogram & getChromatogram(Size id)
+    /// returns a single chromatogram (immutable)
+    const MSChromatogram& getChromatogram(Size id) const
     {
       return chromatograms_[id];
     }
 
-    /// returns a single spectrum 
-    MSSpectrum & getSpectrum(Size id)
+    /// returns a single chromatogram (mutable)
+    MSChromatogram& getChromatogram(Size id)
+    {
+      return chromatograms_[id];
+    }
+
+    /// returns a single spectrum (immutable)
+    const MSSpectrum& getSpectrum(Size id) const
+    {
+      return spectra_[id];
+    }
+
+    /// returns a single spectrum (mutable)
+    MSSpectrum& getSpectrum(Size id)
     {
       return spectra_[id];
     }
@@ -941,7 +947,6 @@ public:
 
 protected:
 
-
     /// MS levels of the data
     std::vector<UInt> ms_levels_;
     /// Number of all data points
@@ -954,13 +959,13 @@ protected:
     std::vector<SpectrumType> spectra_;
 
 private:
-   
+
     /// Helper class to add either general data points in set2DData or use mass traces from meta values
     template<typename ContainerValueType, bool addMassTraces>
     struct ContainerAdd_
     {
       static void addData_(SpectrumType* spectrum, const ContainerValueType* item);
-      static void addData_(SpectrumType* spectrum, const ContainerValueType* item, const StringList& store_metadata_names);      
+      static void addData_(SpectrumType* spectrum, const ContainerValueType* item, const StringList& store_metadata_names);
     };
 
     template<typename ContainerValueType>
@@ -1015,7 +1020,7 @@ private:
     };
 
         /*
-      @brief Append a spectrum to current MSExperiment 
+      @brief Append a spectrum to current MSExperiment
 
       @param rt RT of new spectrum
       @return Pointer to newly created spectrum
@@ -1031,7 +1036,7 @@ private:
     }
 
     /*
-      @brief Append a spectrum including floatdata arrays to current MSExperiment 
+      @brief Append a spectrum including floatdata arrays to current MSExperiment
 
       @param rt RT of new spectrum
       @param metadata_names Names of floatdata arrays attached to this spectrum
@@ -1054,12 +1059,12 @@ private:
   };
 
   /// Print the contents to a stream.
-  inline std::ostream & operator<<(std::ostream & os, const MSExperiment & exp)
+  inline std::ostream& operator<<(std::ostream& os, const MSExperiment& exp)
   {
     os << "-- MSEXPERIMENT BEGIN --" << std::endl;
 
     //experimental settings
-    os << static_cast<const ExperimentalSettings &>(exp);
+    os << static_cast<const ExperimentalSettings&>(exp);
 
     //spectra
     for (std::vector<MSSpectrum>::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
