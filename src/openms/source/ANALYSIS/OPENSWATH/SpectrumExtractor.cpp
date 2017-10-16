@@ -107,6 +107,56 @@ namespace OpenMS
     return mz_tolerance_units_;
   }
 
+  void SpectrumExtractor::setSGolayFrameLength(const UInt& sgolay_frame_length)
+  {
+    sgolay_frame_length_ = sgolay_frame_length;
+  }
+
+  UInt SpectrumExtractor::getSGolayFrameLength() const
+  {
+    return sgolay_frame_length_;
+  }
+
+  void SpectrumExtractor::setSGolayPolynomialOrder(const UInt& sgolay_polynomial_order)
+  {
+    sgolay_polynomial_order_ = sgolay_polynomial_order;
+  }
+
+  UInt SpectrumExtractor::getSGolayPolynomialOrder() const
+  {
+    return sgolay_polynomial_order_;
+  }
+
+  void SpectrumExtractor::setGaussWidth(const double& gauss_width)
+  {
+    gauss_width_ = gauss_width;
+  }
+
+  double SpectrumExtractor::getGaussWidth() const
+  {
+    return gauss_width_;
+  }
+
+  void SpectrumExtractor::setUseGauss(const bool& use_gauss)
+  {
+    use_gauss_ = use_gauss;
+  }
+
+  bool SpectrumExtractor::getUseGauss() const
+  {
+    return use_gauss_;
+  }
+
+  void SpectrumExtractor::setSignalToNoise(const double& signal_to_noise)
+  {
+    signal_to_noise_ = signal_to_noise;
+  }
+
+  double SpectrumExtractor::getSignalToNoise() const
+  {
+    return signal_to_noise_;
+  }
+
   void SpectrumExtractor::updateMembers_()
   {
     rt_window_ = (double)param_.getValue("rt_window");
@@ -115,6 +165,12 @@ namespace OpenMS
     min_reverse_match_ = (double)param_.getValue("min_reverse_match");
     mz_tolerance_ = (double)param_.getValue("mz_tolerance");
     mz_tolerance_units_ = (String)param_.getValue("mz_tolerance_units");
+
+    sgolay_frame_length_ = (UInt)param_.getValue("sgolay_frame_length");
+    sgolay_polynomial_order_ = (UInt)param_.getValue("sgolay_polynomial_order");
+    gauss_width_ = (double)param_.getValue("gauss_width");
+    use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
+    signal_to_noise_ = (double)param_.getValue("signal_to_noise");
   }
 
   void SpectrumExtractor::getDefaultParameters(Param& params)
@@ -139,5 +195,63 @@ namespace OpenMS
 
     params.setValue("mz_tolerance_units", "Da", "Mass to Charge tolerance units.");
     params.setValidStrings("mz_tolerance_units", ListUtils::create<String>("ppm,Da"));
+
+    params.setValue("sgolay_frame_length", 15, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
+    params.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
+    params.setValue("gauss_width", 0.2, "Gaussian width in Da or ppm, estimated peak size.");
+    params.setValue("use_gauss", "true", "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)");
+    params.setValidStrings("use_gauss", ListUtils::create<String>("false,true"));
+    params.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
+    params.setMinFloat("signal_to_noise", 0.0);
+  }
+
+  void SpectrumExtractor::pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum)
+  {
+    if (!spectrum.isSorted())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Spectrum must be sorted by position");
+    }
+
+    LOG_DEBUG << " ====  Picking spectrum " << spectrum.getNativeID() << " with " << spectrum.size() << " peaks ";
+    if (spectrum.empty())
+    {
+        LOG_DEBUG << std::endl;
+        LOG_DEBUG << " - Error: spectrum is empty, abort picking."  << std::endl;
+        return;
+    }
+    LOG_DEBUG << "(start at RT " << spectrum[0].getMZ() << " to RT " << spectrum[spectrum.size() - 1].getMZ() << ") " << std::endl;
+
+    // Smooth the spectrum
+    MSSpectrum smoothed_spectrum = spectrum;
+    if (!use_gauss_)
+    {
+      SavitzkyGolayFilter sgolay;
+      Param filter_parameters = sgolay.getParameters();
+      filter_parameters.setValue("frame_length", sgolay_frame_length_);
+      filter_parameters.setValue("polynomial_order", sgolay_polynomial_order_);
+      sgolay.setParameters(filter_parameters);
+      sgolay.filter(smoothed_spectrum);
+    }
+    else
+    {
+      GaussFilter gauss;
+      Param filter_parameters = gauss.getParameters();
+      filter_parameters.setValue("gaussian_width", gauss_width_);
+      gauss.setParameters(filter_parameters);
+      gauss.filter(smoothed_spectrum);
+    }
+
+    // Find initial seeds (peak picking)
+    Param pepi_param = PeakPickerHiRes().getDefaults();
+    pepi_param.setValue("signal_to_noise", signal_to_noise_);
+    // disable spacing constraints, since we're dealing with spectrum
+    pepi_param.setValue("spacing_difference", 0.0);
+    pepi_param.setValue("spacing_difference_gap", 0.0);
+    picked_spectrum.clear(true);
+    PeakPickerHiRes pp;
+    pp.setParameters(pepi_param);
+    pp.pick(smoothed_spectrum, picked_spectrum);
+    LOG_DEBUG << "Found " << picked_spectrum.size() << " spectrum peaks." << std::endl;
   }
 }

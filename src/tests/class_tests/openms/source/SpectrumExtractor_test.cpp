@@ -294,6 +294,23 @@ END_SECTION
 
 ptr = new SpectrumExtractor();
 
+START_SECTION(getParameters())
+{
+  Param params = ptr->getParameters();
+  TEST_EQUAL(params.getValue("rt_window"), 30)
+  TEST_EQUAL(params.getValue("min_score"), 0.7)
+  TEST_EQUAL(params.getValue("min_forward_match"), 0.9)
+  TEST_EQUAL(params.getValue("min_reverse_match"), 0.9)
+  TEST_EQUAL(params.getValue("mz_tolerance"), 0.1)
+  TEST_EQUAL(params.getValue("mz_tolerance_units"), "Da")
+  TEST_EQUAL(params.getValue("sgolay_frame_length"), 15)
+  TEST_EQUAL(params.getValue("sgolay_polynomial_order"), 3)
+  TEST_EQUAL(params.getValue("gauss_width"), 0.2)
+  TEST_EQUAL(params.getValue("use_gauss"), "true")
+  TEST_EQUAL(params.getValue("signal_to_noise"), 1.0)
+}
+END_SECTION
+
 START_SECTION(setRTWindow())
 {
   TEST_EQUAL(ptr->getRTWindow(), 30)
@@ -343,6 +360,46 @@ START_SECTION(setMZToleranceUnits())
 }
 END_SECTION
 
+START_SECTION(setSGolayFrameLength())
+{
+  TEST_EQUAL(ptr->getSGolayFrameLength(), 15)
+  ptr->setSGolayFrameLength(7);
+  TEST_EQUAL(ptr->getSGolayFrameLength(), 7)
+}
+END_SECTION
+
+START_SECTION(setSGolayPolynomialOrder())
+{
+  TEST_EQUAL(ptr->getSGolayPolynomialOrder(), 3)
+  ptr->setSGolayPolynomialOrder(2);
+  TEST_EQUAL(ptr->getSGolayPolynomialOrder(), 2)
+}
+END_SECTION
+
+START_SECTION(setGaussWidth())
+{
+  TEST_EQUAL(ptr->getGaussWidth(), 0.2)
+  ptr->setGaussWidth(0.5);
+  TEST_EQUAL(ptr->getGaussWidth(), 0.5)
+}
+END_SECTION
+
+START_SECTION(setUseGauss())
+{
+  TEST_EQUAL(ptr->getUseGauss(), true)
+  ptr->setUseGauss(false);
+  TEST_EQUAL(ptr->getUseGauss(), false)
+}
+END_SECTION
+
+START_SECTION(setSignalToNoise())
+{
+  TEST_EQUAL(ptr->getSignalToNoise(), 1.0)
+  ptr->setSignalToNoise(0.6);
+  TEST_EQUAL(ptr->getSignalToNoise(), 0.6)
+}
+END_SECTION
+
 START_SECTION(getParameters().getValue("rt_window"))
 {
   TEST_EQUAL(ptr->getParameters().getValue("rt_window"), 50)
@@ -352,6 +409,37 @@ END_SECTION
 START_SECTION(getParameters().getDescription("rt_window"))
 {
   TEST_EQUAL(ptr->getParameters().getDescription("rt_window"), "Retention time window in seconds.")
+}
+END_SECTION
+
+START_SECTION(pickSpectrum())
+{
+  // TODO replace and improve this test
+  // at the moment the output is a text file to use
+  // as plotly input data (x and y of a scatter plot)
+  MSSpectrum picked;
+  spectrum.sortByPosition();
+  ptr->setGaussWidth(0.2);
+  ptr->setUseGauss(true);
+  ptr->pickSpectrum(spectrum, picked);
+  TEST_NOT_EQUAL(spectrum.size(), picked.size())
+  ofstream outfile;
+  outfile.open("plot_output.txt", ios::out | ios::trunc);
+  if (outfile.is_open()) {
+    outfile << "Fill plotly data with this:" << std::endl << "x: [";
+    for (UInt i=0; i<picked.size(); ++i) {
+      outfile << picked[i].getMZ() << ", ";
+    }
+    outfile << "]," << std::endl << "y: [";
+    for (UInt i=0; i<picked.size(); ++i) {
+      outfile << picked[i].getIntensity() << ", ";
+    }
+    outfile << "],";
+    outfile.close();
+  }
+  else {
+    cout << "Unable to open file to write the spectrum";
+  }
 }
 END_SECTION
 

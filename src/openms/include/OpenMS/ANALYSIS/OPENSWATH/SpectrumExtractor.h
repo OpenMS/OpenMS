@@ -36,8 +36,13 @@
 #define OPENMS_ANALYSIS_OPENSWATH_SPECTRUMEXTRACTOR_H
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
+#include <OpenMS/KERNEL/MSSpectrum.h> // MSSpectrum
 #include <OpenMS/DATASTRUCTURES/String.h> // String
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h> // DefaultParamHandler
+#include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h> // SavitzkyGolayFilter
+#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h> // GaussFilter
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h> // PeakPickerHiRes
 
 namespace OpenMS
 {
@@ -74,7 +79,24 @@ public:
     void setMZToleranceUnits(const String& mz_tolerance_units);
     String getMZToleranceUnits() const;
 
+    void setSGolayFrameLength(const UInt& sgolay_frame_length);
+    UInt getSGolayFrameLength() const;
+
+    void setSGolayPolynomialOrder(const UInt& sgolay_polynomial_order);
+    UInt getSGolayPolynomialOrder() const;
+
+    void setGaussWidth(const double& gauss_width);
+    double getGaussWidth() const;
+
+    void setUseGauss(const bool& use_gauss);
+    bool getUseGauss() const;
+
+    void setSignalToNoise(const double& signal_to_noise);
+    double getSignalToNoise() const;
+
     void getDefaultParameters(Param& params);
+
+    void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum);
 
 protected:
     /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
@@ -87,6 +109,12 @@ private:
     double min_reverse_match_;
     double mz_tolerance_;
     String mz_tolerance_units_;
+
+    UInt sgolay_frame_length_;
+    UInt sgolay_polynomial_order_;
+    double gauss_width_;
+    bool use_gauss_;
+    double signal_to_noise_;
   };
 }
 
