@@ -89,34 +89,6 @@
 using namespace OpenMS;
 using namespace std;
 
-
-/// Single fragment annotation
-struct FragmentAnnotationDetail_
-{
-  FragmentAnnotationDetail_(String s, int z, double m, double i):
-    shift(s),
-    charge(z),
-    mz(m),
-    intensity(i)
-    {}
-  String shift;
-  int charge;
-  double mz;
-  double intensity;
-
-  bool operator<(const FragmentAnnotationDetail_& other) const
-  {
-    return std::tie(charge, shift, mz, intensity) < std::tie(other.charge, other.shift, other.mz, other.intensity);
-  }
-
-  bool operator==(const FragmentAnnotationDetail_& other) const
-  {
-    double mz_diff = fabs(mz - other.mz);
-    double intensity_diff = fabs(intensity - other.intensity);
-    return (charge == other.charge && shift == other.shift && mz_diff < 1e-6 && intensity_diff < 1e-6); // mz and intensity difference comparison actually not needed but kept for completeness
-  }
-};
-
 class RNPxlSearch :
   public TOPPBase
 {
@@ -1031,7 +1003,7 @@ protected:
           set<Size> peak_is_annotated;  // experimental peak index
 
           // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
-          using MapIonIndexToFragmentAnnotation = map<Size, vector<FragmentAnnotationDetail_> >;
+          using MapIonIndexToFragmentAnnotation = map<Size, vector<FragmentAnnotationHelper::FragmentAnnotationDetail_> >;
           MapIonIndexToFragmentAnnotation unshifted_b_ions, unshifted_y_ions, unshifted_a_ions, shifted_b_ions, shifted_y_ions, shifted_a_ions;
           vector<PeptideHit::PeakAnnotation> shifted_immonium_ions;
           vector<PeptideHit::PeakAnnotation> annotated_marker_ions;
@@ -1075,7 +1047,7 @@ protected:
               // only allow matching charges (if a fragment charge was assigned)
               if (fragment_charge == 0 || fragment_charge == charge)
               { 
-                FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+                FragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
                 unshifted_y_ions[ion_number].push_back(d);
               }
               #ifdef DEBUG_RNPXLSEARCH
@@ -1100,7 +1072,7 @@ protected:
               // only allow matching charges (if a fragment charge was assigned)
               if (fragment_charge == 0 || fragment_charge == charge)
               { 
-                FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+                FragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
                 unshifted_b_ions[ion_number].push_back(d);
               }
               #ifdef DEBUG_RNPXLSEARCH
@@ -1125,7 +1097,7 @@ protected:
               // only allow matching charges (if a fragment charge was assigned)
               if (fragment_charge == 0 || fragment_charge == charge)
               { 
-                FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+                FragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
                 unshifted_a_ions[ion_number].push_back(d);
               }
               #ifdef DEBUG_RNPXLSEARCH
@@ -1226,7 +1198,7 @@ protected:
               // only allow matching charges (if a fragment charge was assigned)
               if (fragment_charge == 0 || fragment_charge == charge)
               { 
-                FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+                FragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
                 shifted_y_ions[ion_number].push_back(d);
               }
               #ifdef DEBUG_RNPXLSEARCH
@@ -1246,7 +1218,7 @@ protected:
               // only allow matching charges (if a fragment charge was assigned)
               if (fragment_charge == 0 || fragment_charge == charge)
               { 
-                FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+                FragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
                 shifted_b_ions[ion_number].push_back(d);
               }
               #ifdef DEBUG_RNPXLSEARCH
@@ -1266,7 +1238,7 @@ protected:
               // only allow matching charges (if a fragment charge was assigned)
               if (fragment_charge == 0 || fragment_charge == charge)
               { 
-                FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+                FragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
                 shifted_a_ions[ion_number].push_back(d);
               }
               #ifdef DEBUG_RNPXLSEARCH
@@ -1513,9 +1485,9 @@ protected:
     }
   }
 
-  void addShiftedPeakFragmentAnnotation_(const map<Size, vector<FragmentAnnotationDetail_>> &shifted_b_ions,
-                                         const map<Size, vector<FragmentAnnotationDetail_>> &shifted_y_ions,
-                                         const map<Size, vector<FragmentAnnotationDetail_>> &shifted_a_ions,
+  void addShiftedPeakFragmentAnnotation_(const map<Size, vector<FragmentAnnotationHelper::FragmentAnnotationDetail_>> &shifted_b_ions,
+                                         const map<Size, vector<FragmentAnnotationHelper::FragmentAnnotationDetail_>> &shifted_y_ions,
+                                         const map<Size, vector<FragmentAnnotationHelper::FragmentAnnotationDetail_>> &shifted_a_ions,
                                          const vector<PeptideHit::PeakAnnotation> &shifted_immonium_ions,
                                          const vector<PeptideHit::PeakAnnotation> &annotated_marker_ions,
                                          const vector<PeptideHit::PeakAnnotation> &annotated_precursor_ions,
@@ -1689,7 +1661,7 @@ protected:
     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("peptide:enzyme"));
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
@@ -2354,7 +2326,7 @@ protected:
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
     param_pi.setValue("decoy_string_position", "prefix");
-    param_pi.setValue("enzyme:specificity", "none");
+    param_pi.setValue("enzyme:specificity", "full");
     param_pi.setValue("missing_decoy_action", "warn");
     param_pi.setValue("log", getStringOption_("log"));
     indexer.setParameters(param_pi);

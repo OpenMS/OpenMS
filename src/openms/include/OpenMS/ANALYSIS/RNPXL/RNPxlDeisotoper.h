@@ -32,6 +32,9 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_ANALYSIS_RNPXL_DEISOTOPER_H
+#define OPENMS_ANALYSIS_RNPXL_DEISOTOPER_H
+
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
@@ -225,4 +228,5 @@ class Deisotoper
   }
 };
 }
+#endif
 
