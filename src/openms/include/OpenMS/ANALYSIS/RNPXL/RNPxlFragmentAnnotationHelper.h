@@ -32,9 +32,20 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_ANALYSIS_RNPXL_FRAGMENTANNOTATIONHELPER_H
+#define OPENMS_ANALYSIS_RNPXL_FRAGMENTANNOTATIONHELPER_H
+
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <set>
+#include <map>
+#include <vector>
+#include <algorithm>
+
+namespace OpenMS 
+{
 
 /* @brief Convenience functions to construct appealing fragment annotation strings
  *
@@ -43,18 +54,46 @@ class FragmentAnnotationHelper
 {
   public:
 
+  /// Single fragment annotation
+  struct FragmentAnnotationDetail_
+  {
+    FragmentAnnotationDetail_(String s, int z, double m, double i):
+      shift(s),
+      charge(z),
+      mz(m),
+      intensity(i)
+      {}
+    String shift;
+    int charge;
+    double mz;
+    double intensity;
+
+    bool operator<(const FragmentAnnotationDetail_& other) const
+    {
+      return std::tie(charge, shift, mz, intensity) < 
+        std::tie(other.charge, other.shift, other.mz, other.intensity);
+    }
+
+    bool operator==(const FragmentAnnotationDetail_& other) const
+    {
+      double mz_diff = fabs(mz - other.mz);
+      double intensity_diff = fabs(intensity - other.intensity);
+      return (charge == other.charge && shift == other.shift && mz_diff < 1e-6 && intensity_diff < 1e-6); // mz and intensity difference comparison actually not needed but kept for completeness
+    }
+  };
+
   static String getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
   {
     return String("i") + c + "+" + fragment_shift_name;
   }
 
   // deprecated: for PD community nodes compatibility 
-  static String fragmentAnnotationDetailsToString(const String& ion_type, map<Size, vector<FragmentAnnotationDetail_> > ion_annotation_details)
+  static String fragmentAnnotationDetailsToString(const String& ion_type, std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details)
   {
     String fas;
-    for (map<Size, vector<FragmentAnnotationDetail_> >::const_iterator ait = ion_annotation_details.begin(); ait != ion_annotation_details.end(); ++ait)
+    for (auto ait = ion_annotation_details.begin(); ait != ion_annotation_details.end(); ++ait)
     {
-      for (vector<FragmentAnnotationDetail_>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
+      for (auto sit = ait->second.begin(); sit != ait->second.end(); ++sit)
       {
         if (ait != ion_annotation_details.begin() || sit != ait->second.begin())
         {
@@ -71,7 +110,7 @@ class FragmentAnnotationHelper
   }
 
   // conversion of RNPxl annotations to PeptideHit::PeakAnnotation
-  static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(const String& ion_type, map<Size, vector<FragmentAnnotationDetail_> > ion_annotation_details)
+  static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(const String& ion_type, std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details)
   {
     std::vector<PeptideHit::PeakAnnotation> fas;
     for (auto ait : ion_annotation_details)
@@ -97,7 +136,7 @@ class FragmentAnnotationHelper
     return fas;
   }
 
-  static std::vector<PeptideHit::PeakAnnotation> shiftedToPHFA(const map<String, set<pair<String, double > > >& shifted_ions)
+  static std::vector<PeptideHit::PeakAnnotation> shiftedToPHFA(const std::map<String, std::set<std::pair<String, double> > >& shifted_ions)
   {
     std::vector<PeptideHit::PeakAnnotation> fas;
     for (auto ait : shifted_ions)
@@ -117,12 +156,12 @@ class FragmentAnnotationHelper
   }
 
 
-  static String shiftedIonsToString(const vector<PeptideHit::PeakAnnotation>& as)
+  static String shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as)
   {
-    vector<PeptideHit::PeakAnnotation> sorted(as);
+    std::vector<PeptideHit::PeakAnnotation> sorted(as);
     stable_sort(sorted.begin(), sorted.end());
     String fas;
-    for (auto&  a : sorted)
+    for (auto & a : sorted)
     {
       fas += String("(") + String::number(a.mz, 3) + "," + String::number(100.0 * a.intensity, 1) + ",\"" + a.annotation + "\")";    
       if (&a != &sorted.back()) { fas += "|"; }     
@@ -131,4 +170,8 @@ class FragmentAnnotationHelper
   }
 
 };
+
+}
+
+#endif
 

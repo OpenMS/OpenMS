@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
@@ -601,6 +602,35 @@ class SimpleSearchEngine :
       StringList ms_runs;
       spectra.getPrimaryMSRunPath(ms_runs);
       protein_ids[0].setPrimaryMSRunPath(ms_runs);
+
+      // reindex peptides to proteins
+      PeptideIndexing indexer;
+      Param param_pi = indexer.getParameters();
+      param_pi.setValue("decoy_string_position", "prefix");
+      param_pi.setValue("enzyme:name", getStringOption_("enzyme"));
+      param_pi.setValue("enzyme:specificity", "full");
+      param_pi.setValue("missing_decoy_action", "warn");
+      param_pi.setValue("log", getStringOption_("log"));
+      indexer.setParameters(param_pi);
+
+      PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
+
+      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+      {
+        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+        {
+          return INPUT_FILE_EMPTY;       
+        }
+        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        {
+          return UNEXPECTED_RESULT;
+        }
+        else
+        {
+          return UNKNOWN_ERROR;
+        }
+      } 
 
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
