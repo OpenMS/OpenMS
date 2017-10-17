@@ -48,6 +48,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -94,13 +95,25 @@ using namespace std;
           continue;
         }
 
-   - make hyperscore scoring linear
-   - single and multiple neutral loss spectra creation
 */
 
 class SimpleSearchEngine :
     public TOPPBase
 {
+  /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
+  struct AnnotatedHit
+  {
+    StringView sequence;
+    SignedSize peptide_mod_index; // enumeration index of the non-RNA peptide modification
+    double score = 0; // main score
+    std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
+
+    static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
+    {
+      return a.score > b.score;
+    }
+  };
+
   public:
     SimpleSearchEngine() :
       TOPPBase("SimpleSearchEngine", "Annotates MS/MS spectra using SimpleSearchEngine.", false)
@@ -183,136 +196,6 @@ class SimpleSearchEngine :
       return modifications;
     }
 
-    // spectrum must not contain 0 intensity peaks and must be sorted by m/z
-    template <typename SpectrumType>
-    static void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
-    {
-      if (in.empty())
-      {
-        return;
-      }
-
-      SpectrumType old_spectrum = in;
-
-      // determine charge seeds and extend them
-      vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
-      vector<Int> features(old_spectrum.size(), -1);
-      Int feature_number = 0;
-
-      for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
-      {
-        double current_mz = old_spectrum[current_peak].getPosition()[0];
-
-        for (Int q = max_charge; q >= min_charge; --q)   // important: test charge hypothesis from high to low
-        {
-          // try to extend isotopes from mono-isotopic peak
-          // if extension larger then min_isopeaks possible:
-          //   - save charge q in mono_isotopic_peak[]
-          //   - annotate all isotopic peaks with feature number
-          if (features[current_peak] == -1)   // only process peaks which have no assigned feature number
-          {
-            bool has_min_isopeaks = true;
-            vector<Size> extensions;
-            for (Size i = 0; i < max_isopeaks; ++i)
-            {
-              double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
-              Size p = old_spectrum.findNearest(expected_mz);
-              double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-              if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton)   // test for missing peak
-              {
-                if (i < min_isopeaks)
-                {
-                  has_min_isopeaks = false;
-                }
-                break;
-              }
-              else
-              {
-                // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
-                Size n_extensions = extensions.size();
-                if (n_extensions != 0)
-                {
-                  if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
-                  {
-                    if (i < min_isopeaks)
-                    {
-                      has_min_isopeaks = false;
-                    }
-                    break;
-                  }
-                }
-
-                // averagine check passed
-                extensions.push_back(p);
-              }
-            }
-
-            if (has_min_isopeaks)
-            {
-              //cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
-              mono_isotopic_peak[current_peak] = q;
-              for (Size i = 0; i != extensions.size(); ++i)
-              {
-                features[extensions[i]] = feature_number;
-              }
-              feature_number++;
-            }
-          }
-        }
-      }
-
-      in.clear(false);
-      for (Size i = 0; i != old_spectrum.size(); ++i)
-      {
-        Int z = mono_isotopic_peak[i];
-        if (keep_only_deisotoped)
-        {
-          if (z == 0)
-          {
-            continue;
-          }
-
-          // if already single charged or no decharging selected keep peak as it is
-          if (!make_single_charged)
-          {
-            in.push_back(old_spectrum[i]);
-          }
-          else
-          {
-            Peak1D p = old_spectrum[i];
-            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-            in.push_back(p);
-          }
-        }
-        else
-        {
-          // keep all unassigned peaks
-          if (features[i] < 0)
-          {
-            in.push_back(old_spectrum[i]);
-            continue;
-          }
-
-          // convert mono-isotopic peak with charge assigned by deisotoping
-          if (z != 0)
-          {
-            if (!make_single_charged)
-            {
-              in.push_back(old_spectrum[i]);
-            }
-            else
-            {
-              Peak1D p = old_spectrum[i];
-              p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-              in.push_back(p);
-            }
-          }
-        }
-      }
-
-      in.sortByPosition();
-    }
-
     void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
     {
       // filter MS2 map
@@ -345,7 +228,7 @@ class SimpleSearchEngine :
         exp[exp_index].sortByPosition();
 
         // deisotope
-        deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 10, true);
+        Deisotoper::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 10, true);
 
         // remove noise
         window_mower_filter.filterPeakSpectrum(exp[exp_index]);
@@ -356,51 +239,99 @@ class SimpleSearchEngine :
       }
     }
 
-    void postProcessHits_(const PeakMap& exp, const vector<vector<PeptideHit> >& peptide_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits)
+    void postProcessHits_(const PeakMap& exp, 
+      vector<vector<AnnotatedHit> >& annotated_hits, 
+      vector<ProteinIdentification>& protein_ids, 
+      vector<PeptideIdentification>& peptide_ids, 
+      Size top_hits,
+      const vector<ResidueModification>& fixed_modifications, 
+      const vector<ResidueModification>& variable_modifications, 
+      Size max_variable_mods_per_peptide)
     {
-      for (vector<vector<PeptideHit> >::const_iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
+      // remove all but top n scoring
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+      for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
       {
-        if (!pit->empty())
-        {
-          Size scan_index = pit - peptide_hits.begin();
+        // sort and keeps n best elements according to score
+        Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
+        std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
+        annotated_hits[scan_index].resize(topn);
+        annotated_hits.shrink_to_fit();
+      }
 
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+      for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+      {
+        if (!annotated_hits[scan_index].empty())
+        {
           // create empty PeptideIdentification object and fill meta data
           PeptideIdentification pi;
+          pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
           pi.setScoreType("hyperscore");
           pi.setHigherScoreBetter(true);
           pi.setRT(exp[scan_index].getRT());
           pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
-          pi.setHits(*pit);
-          pi.assignRanks();
+          Size charge = exp[scan_index].getPrecursors()[0].getCharge();
+
+          // create full peptide hit structure from annotated hits
+          vector<PeptideHit> phs;
+          for (vector<AnnotatedHit>::const_iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
+          {
+            PeptideHit ph;
+            ph.setCharge(charge);
+
+            // get unmodified string
+            AASequence aas = AASequence::fromString(a_it->sequence.getString());
+
+            // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
+            vector<AASequence> all_modified_peptides;
+            ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+            ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+
+            // reannotate much more memory heavy AASequence object
+            AASequence fixed_and_variable_modified_peptide = all_modified_peptides[a_it->peptide_mod_index]; 
+            ph.setScore(a_it->score);
+            ph.setSequence(fixed_and_variable_modified_peptide);
+            phs.push_back(ph);
+        }
+        pi.setHits(phs);
+        pi.assignRanks();
+
+#ifdef _OPENMP
+#pragma omp critical (peptide_ids_access)
+#endif
+        {
           peptide_ids.push_back(pi);
         }
       }
-
-      // only store top n hits
-      IDFilter::keepNBestHits(peptide_ids, top_hits);
-
-      // protein identifications (leave as is...)
-      protein_ids = vector<ProteinIdentification>(1);
-      protein_ids[0].setDateTime(DateTime::now());
-      protein_ids[0].setSearchEngine("SimpleSearchEngine");
-      protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
-
-      ProteinIdentification::SearchParameters search_parameters;
-      search_parameters.db = getStringOption_("database");
-      search_parameters.charges = "+" + String(getIntOption_("precursor:min_charge")) + "-+" + String(getIntOption_("precursor:max_charge"));
-
-      ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
-      search_parameters.mass_type = mass_type;
-      search_parameters.fixed_modifications = getStringList_("modifications:fixed");
-      search_parameters.variable_modifications = getStringList_("modifications:variable");
-      search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
-      search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
-      search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
-      search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
-      search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
-      protein_ids[0].setSearchParameters(search_parameters);
     }
+
+    // protein identifications (leave as is...)
+    protein_ids = vector<ProteinIdentification>(1);
+    protein_ids[0].setDateTime(DateTime::now());
+    protein_ids[0].setSearchEngine("SimpleSearchEngine");
+    protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+
+    ProteinIdentification::SearchParameters search_parameters;
+    search_parameters.db = getStringOption_("database");
+    search_parameters.charges = String(getIntOption_("precursor:min_charge")) + ":" + String(getIntOption_("precursor:max_charge"));
+
+    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_parameters.mass_type = mass_type;
+    search_parameters.fixed_modifications = getStringList_("modifications:fixed");
+    search_parameters.variable_modifications = getStringList_("modifications:variable");
+    search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
+    search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+    search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+    search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
+    search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+    protein_ids[0].setSearchParameters(search_parameters);
+  }
 
     ExitCodes main_(int, const char**)
     {
@@ -438,8 +369,8 @@ class SimpleSearchEngine :
         return ILLEGAL_PARAMETERS;
       }
 
-      vector<ResidueModification> fixedMods = getModifications_(fixedModNames);
-      vector<ResidueModification> varMods = getModifications_(varModNames);
+      vector<ResidueModification> fixed_modifications = getModifications_(fixedModNames);
+      vector<ResidueModification> variable_modifications = getModifications_(varModNames);
       Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
 
       Int report_top_hits = getIntOption_("report:top_hits");
@@ -499,7 +430,7 @@ class SimpleSearchEngine :
       param.setValue("add_metainfo", "true");
       spectrum_generator.setParameters(param);
 
-      vector<vector<PeptideHit> > peptide_hits(spectra.size(), vector<PeptideHit>());
+      vector<vector<AnnotatedHit> > annotated_hits(spectra.size(), vector<AnnotatedHit>());
 
       progresslogger.startProgress(0, 1, "Load database from FASTA file...");
       FASTAFile fastaFile;
@@ -521,11 +452,18 @@ class SimpleSearchEngine :
       Size min_peptide_length = getIntOption_("peptide:min_size");
       Size max_peptide_length = getIntOption_("peptide:max_size");
 
+      Size count_proteins(0), count_peptides(0);
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
+#ifdef _OPENMP
+#pragma omp atomic
+#endif
+        ++count_proteins;
+
         IF_MASTERTHREAD
         {
           progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
@@ -534,33 +472,36 @@ class SimpleSearchEngine :
         vector<StringView> current_digest;
         digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
 
-        for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+        for (auto const & c : current_digest)
         {
-          if (cit->getString().has('X')) continue;
+          if (c.getString().has('X')) continue;
         
           bool already_processed = false;
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)
 #endif
           {
-            if (processed_petides.find(*cit) != processed_petides.end())
+            // peptide (and all modified variants) already processed so skip it
+            if (processed_petides.find(c) != processed_petides.end())
             {
-              // peptide (and all modified variants) already processed so skip it
               already_processed = true;
             }
           }
 
-          if (already_processed)
-          {
-            continue;
-          }
+          // skip peptides that have already been processed
+          if (already_processed) { continue; }
 
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)
 #endif
           {
-            processed_petides.insert(*cit);
+            processed_petides.insert(c);
           }
+
+#ifdef _OPENMP
+#pragma omp atomic
+#endif
+          ++count_peptides;
 
           vector<AASequence> all_modified_peptides;
 
@@ -569,9 +510,9 @@ class SimpleSearchEngine :
 #pragma omp critical (residuedb_access)
 #endif
           {
-            AASequence aas = AASequence::fromString(cit->getString());
-            ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), aas);
-            ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+            AASequence aas = AASequence::fromString(c.getString());
+            ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+            ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
           }
 
           for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
@@ -594,18 +535,16 @@ class SimpleSearchEngine :
               up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * precursor_mass_tolerance);
             }
 
-            if (low_it == up_it)
-            {
-              continue;     // no matching precursor in data
-            }
+            // no matching precursor in data
+            if (low_it == up_it) { continue; }
 
-            //create theoretical spectrum
+            // create theoretical spectrum
             PeakSpectrum theo_spectrum;
 
-            //add peaks for b and y ions with charge 1
+            // add peaks for b and y ions with charge 1
             spectrum_generator.getSpectrum(theo_spectrum, candidate, 1, 1);
 
-            //sort by mz
+            // sort by mz
             theo_spectrum.sortByPosition();
 
             for (; low_it != up_it; ++low_it)
@@ -621,15 +560,17 @@ class SimpleSearchEngine :
                 continue;
               }
 
-              PeptideHit hit;
-              hit.setSequence(candidate);
-              hit.setCharge(exp_spectrum.getPrecursors()[0].getCharge());
-              hit.setScore(score);
+              // add peptide hit
+              AnnotatedHit ah;
+              ah.sequence = c;
+              ah.peptide_mod_index = mod_pep_idx;
+              ah.score = score;
+
 #ifdef _OPENMP
 #pragma omp critical (peptide_hits_access)
 #endif
               {
-                peptide_hits[scan_index].push_back(hit);
+                annotated_hits[scan_index].push_back(ah);
               }
             }
           }
@@ -637,11 +578,26 @@ class SimpleSearchEngine :
       }
       progresslogger.endProgress();
 
+      LOG_INFO << "Proteins: " << count_proteins << endl;
+      LOG_INFO << "Peptides: " << count_peptides << endl;
+      LOG_INFO << "Processed peptides: " << processed_petides.size() << endl;
+
       vector<PeptideIdentification> peptide_ids;
       vector<ProteinIdentification> protein_ids;
+
       progresslogger.startProgress(0, 1, "Post-processing PSMs...");
-      postProcessHits_(spectra, peptide_hits, protein_ids, peptide_ids, report_top_hits);
+      postProcessHits_(spectra, 
+        annotated_hits, 
+        protein_ids, 
+        peptide_ids, 
+        report_top_hits,
+        fixed_modifications, 
+        variable_modifications, 
+        max_variable_mods_per_peptide
+        );
       progresslogger.endProgress();
+
+      // add meta data on spectra file
       StringList ms_runs;
       spectra.getPrimaryMSRunPath(ms_runs);
       protein_ids[0].setPrimaryMSRunPath(ms_runs);

@@ -6,8 +6,10 @@ set(sources_list_h
 ModifiedPeptideGenerator.h
 HyperScore.h
 PScore.h
+RNPxlDeisotoper.h
 RNPxlMarkerIonExtractor.h
 RNPxlModificationsGenerator.h
+RNPxlFragmentAnnotationHelper.h
 RNPxlReport.h
 )
 

@@ -45,10 +45,12 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlFragmentAnnotationHelper.h>
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -87,195 +89,6 @@
 using namespace OpenMS;
 using namespace std;
 
-class Deisotoper
-{
-  public:
-
-  /* @brief Detect isotopic clusters in a fragment spectrum.
-
-     Note: spectrum must must be sorted by m/z
-
-   * @param [min_charge] The minimum charge considered
-   * @param [max_charge] The maximum charge considered
-   * @param [fragment_tolerance] The tolerance used to match isotopic peaks
-   * @oaram [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
-   * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
-   * @param [min_isopeaks] The minimum number of isotopic peaks required for an isotopic cluster
-   * @param [max_isopeaks] The maximum number of isotopic peaks considered for an isotopic cluster
-   * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
-   * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
-   * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
-   */
-  static void deisotopeAndSingleChargeMSSpectrum(MSSpectrum& in, 
-                                          double fragment_tolerance, bool fragment_unit_ppm, 
-                                          Int min_charge = 1, Int max_charge = 3,
-                                          bool keep_only_deisotoped = false, 
-                                          Size min_isopeaks = 3, Size max_isopeaks = 10, 
-                                          bool make_single_charged = true,
-                                          bool annotate_charge = false)
-  {
-    if (in.empty())
-    {
-      return;
-    }
-
-    SpectrumType old_spectrum = in;
-
-    // reserve integer data array to store charge of peaks
-    if (annotate_charge) 
-    {
-      // expand to hold one additional integer data array to hold the charge
-      in.getIntegerDataArrays().resize(in.getIntegerDataArrays().size() + 1);
-      in.getIntegerDataArrays().back().setName("charge");
-    }
-
-    // determine charge seeds and extend them
-    vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
-    vector<Int> features(old_spectrum.size(), -1);
-    Int feature_number = 0;
-
-    for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
-    {
-      double current_mz = old_spectrum[current_peak].getPosition()[0];
-
-      for (Int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
-      {
-        // try to extend isotopes from mono-isotopic peak
-        // if extension larger then min_isopeaks possible:
-        //   - save charge q in mono_isotopic_peak[]
-        //   - annotate_charge all isotopic peaks with feature number
-        if (features[current_peak] == -1) // only process peaks which have no assigned feature number
-        {
-          bool has_min_isopeaks = true;
-          vector<Size> extensions;
-          for (Size i = 0; i < max_isopeaks; ++i)
-          {
-            double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
-            Size p = old_spectrum.findNearest(expected_mz);
-            double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
-            {
-              if (i < min_isopeaks)
-              {
-                has_min_isopeaks = false;
-              }
-              break;
-            }
-            else
-            {
-              // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
-              Size n_extensions = extensions.size();
-              if (n_extensions != 0)
-              {
-                if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
-                {
-                  if (i < min_isopeaks)
-                  {
-                    has_min_isopeaks = false;
-                  }
-                  break;
-                }
-              }
-
-              // averagine check passed
-              extensions.push_back(p);
-            }
-          }
-
-          if (has_min_isopeaks)
-          {
-            //cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
-            mono_isotopic_peak[current_peak] = q;
-            for (Size i = 0; i != extensions.size(); ++i)
-            {
-              features[extensions[i]] = feature_number;
-            }
-            feature_number++;
-          }
-        }
-      }
-    }
-
-    in.clear(false);
-    for (Size i = 0; i != old_spectrum.size(); ++i)
-    {
-      Int z = mono_isotopic_peak[i];
-      if (keep_only_deisotoped)
-      {
-        if (z == 0)
-        {
-          continue;
-        }
-
-        // if already single charged or no decharging selected keep peak as it is
-        if (!make_single_charged)
-        {
-          in.push_back(old_spectrum[i]);
-
-          // add peak charge to annotation array
-          if (annotate_charge)
-          {
-            in.getIntegerDataArrays().back().push_back(z);
-          }
-        }
-        else
-        {
-          Peak1D p = old_spectrum[i];
-          p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-          in.push_back(p);
-
-          // add peak charge to annotation array
-          if (annotate_charge)
-          {
-            in.getIntegerDataArrays().back().push_back(z);
-          }
-        }
-      }
-      else
-      {
-        // keep all unassigned peaks
-        if (features[i] < 0)
-        {
-          in.push_back(old_spectrum[i]);
-
-          // add peak charge to annotation array
-          if (annotate_charge)
-          {
-            in.getIntegerDataArrays().back().push_back(z);
-          }
-          continue;
-        }
-
-        // convert mono-isotopic peak with charge assigned by deisotoping
-        if (z != 0)
-        {
-          if (!make_single_charged)
-          {
-            in.push_back(old_spectrum[i]);
-
-            if (annotate_charge)
-            {
-              in.getIntegerDataArrays().back().push_back(z);
-            }
-          }
-          else // make single charged
-          {
-            Peak1D p = old_spectrum[i];
-            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-            in.push_back(p);
-
-            if (annotate_charge)
-            {
-              // annotate the original charge
-              in.getIntegerDataArrays().back().push_back(z);
-            }
-          }
-        }
-      }
-    }
-    in.sortByPosition();
-  }
-};
 
 /// Single fragment annotation
 struct FragmentAnnotationDetail_
@@ -302,102 +115,6 @@ struct FragmentAnnotationDetail_
     double intensity_diff = fabs(intensity - other.intensity);
     return (charge == other.charge && shift == other.shift && mz_diff < 1e-6 && intensity_diff < 1e-6); // mz and intensity difference comparison actually not needed but kept for completeness
   }
-};
-
-/* @brief Convenience functions to construct appealing fragment annotation strings
- *
- */
-class FragmentAnnotationHelper
-{
-  public:
-
-  static String getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
-  {
-    return String("i") + c + "+" + fragment_shift_name;
-  }
-
-  // deprecated: for PD community nodes compatibility 
-  static String fragmentAnnotationDetailsToString(const String& ion_type, map<Size, vector<FragmentAnnotationDetail_> > ion_annotation_details)
-  {
-    String fas;
-    for (map<Size, vector<FragmentAnnotationDetail_> >::const_iterator ait = ion_annotation_details.begin(); ait != ion_annotation_details.end(); ++ait)
-    {
-      for (vector<FragmentAnnotationDetail_>::const_iterator sit = ait->second.begin(); sit != ait->second.end(); ++sit)
-      {
-        if (ait != ion_annotation_details.begin() || sit != ait->second.begin())
-        {
-          fas += "|";
-        }
-
-        String annotation_text;
-        annotation_text = sit->shift.empty() ? "[" + ion_type + String(ait->first) + "]" + String(sit->charge, '+') : "[" + ion_type + String(ait->first) + "+" + sit->shift + "]" + String(sit->charge, '+'); // e.g.: [b3]+ and  [y3+H3PO4]++
-        // e.g.: (343.5,99.5,"[b2-H2O]+")
-        fas += "(" + String::number(sit->mz, 3) + "," + String::number(100.0 * sit->intensity, 1) + "," + "\"" + annotation_text+ "\")";
-      }
-    }
-    return fas;
-  }
-
-  // conversion of RNPxl annotations to PeptideHit::PeakAnnotation
-  static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(const String& ion_type, map<Size, vector<FragmentAnnotationDetail_> > ion_annotation_details)
-  {
-    std::vector<PeptideHit::PeakAnnotation> fas;
-    for (auto ait : ion_annotation_details)
-    {
-      for (auto sit : ait.second)
-      {
-        PeptideHit::PeakAnnotation fa;
-        fa.charge = sit.charge;
-        fa.mz = sit.mz;
-        fa.intensity = sit.intensity;
-        if (sit.shift.empty())
-        {
-          fa.annotation = ion_type + String(ait.first);
-        }
-        else
-        {
-          const String annotation_text = ion_type + String(ait.first) + "+" + sit.shift; 
-          fa.annotation = annotation_text;
-        }
-        fas.push_back(fa);
-      }
-    }
-    return fas;
-  }
-
-  static std::vector<PeptideHit::PeakAnnotation> shiftedToPHFA(const map<String, set<pair<String, double > > >& shifted_ions)
-  {
-    std::vector<PeptideHit::PeakAnnotation> fas;
-    for (auto ait : shifted_ions)
-    {
-      for (auto sit : ait.second)
-      {
-        PeptideHit::PeakAnnotation fa;
-        fa.charge = 1;
-        fa.mz = sit.second;
-        fa.intensity = 1;
-        const String annotation_text = sit.first;
-        fa.annotation = annotation_text;
-        fas.push_back(fa); 
-      }
-    }
-    return fas;
-  }
-
-
-  static String shiftedIonsToString(const vector<PeptideHit::PeakAnnotation>& as)
-  {
-    vector<PeptideHit::PeakAnnotation> sorted(as);
-    stable_sort(sorted.begin(), sorted.end());
-    String fas;
-    for (auto&  a : sorted)
-    {
-      fas += String("(") + String::number(a.mz, 3) + "," + String::number(100.0 * a.intensity, 1) + ",\"" + a.annotation + "\")";    
-      if (&a != &sorted.back()) { fas += "|"; }     
-    }
-    return fas;
-  }
-
 };
 
 class RNPxlSearch :
@@ -1965,9 +1682,14 @@ protected:
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = getStringOption_("database");
     search_parameters.charges = String(getIntOption_("precursor:min_charge")) + ":" + String(getIntOption_("precursor:max_charge"));
+    search_parameters.fixed_modifications = getStringList_("modifications:fixed");
+    search_parameters.variable_modifications = getStringList_("modifications:variable");
     search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
     search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+    search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
+    search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
@@ -2347,8 +2069,7 @@ protected:
     // set minimum size of peptide after digestion
     Size min_peptide_length = getIntOption_("peptide:min_size");
 
-    Size count_proteins = 0;
-    Size count_peptides = 0;
+    Size count_proteins(0), count_peptides(0);
 
 #ifdef _OPENMP
 #pragma omp parallel for
