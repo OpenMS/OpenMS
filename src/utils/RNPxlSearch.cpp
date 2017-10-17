@@ -232,6 +232,9 @@ protected:
 
     registerStringList_("RNPxl:modifications", "", modifications, "format: empirical formula e.g -H2O, ..., H2O+PO3", false, false);
 
+    registerStringOption_("RNPxl:scoring", "<method>", "fast", "Scoring algorithm used in prescoring (fast: total-loss, slow: all losses).", false, false);
+    setValidStrings_("RNPxl:scoring", {"fast", "slow"});
+
     registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.");
     registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.");
     registerFlag_("RNPxl:localization", "Use this flag to perform crosslink localization by partial loss scoring as post-analysis.");
@@ -1764,6 +1767,8 @@ protected:
     String out_idxml = getStringOption_("out");
     String out_csv = getStringOption_("out_tsv");
 
+    bool fast_scoring = getStringOption_("RNPxl:scoring") == "fast" ? true : false;
+
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
@@ -2046,11 +2051,11 @@ protected:
 
         // no critial section is needed despite ResidueDB not beeing thread sage.
         // It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
-        const String s = cit->getString();
+        const String unmodified_sequence = cit->getString();
         {
-          if (!s.has('X')) // only process peptides without X (placeholder / any amino acid)
+          if (!unmodified_sequence.has('X')) // only process peptides without X (placeholder / any amino acid)
           {
-            AASequence aas = AASequence::fromString(cit->getString());
+            AASequence aas = AASequence::fromString(unmodified_sequence);
             ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
             ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
           }
@@ -2096,6 +2101,8 @@ protected:
             if (low_it == up_it) { continue; } // no matching precursor in data
 
             // add peaks for b- and y- ions with charge 1 (sorted by m/z)
+
+            // fast scoring? so we only consider the complete loss spectrum (independent of oligo on precursor)
             if (complete_loss_spectrum.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
             {
               spectrum_generator.getSpectrum(complete_loss_spectrum, candidate, 1, 1);
@@ -2107,48 +2114,24 @@ protected:
               for (auto& n : precursor_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }              
               a_ion_sub_score_spectrum_generator.getSpectrum(a_ion_sub_score_spectrum, candidate, 1, 1);
               for (auto& n : a_ion_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }
+            }
 
-/*
-              // add shifted immonium and marker ions for common fragment adducts
-              shifted_immonium_ions_sub_score_spectrum.getIntegerDataArrays().resize(1);
-              shifted_immonium_ions_sub_score_spectrum.getStringDataArrays().resize(1);
-              shifted_marker_ions_sub_score_spectrum.getIntegerDataArrays().resize(1);
-              shifted_marker_ions_sub_score_spectrum.getStringDataArrays().resize(1);
-              for (const auto & cfa : common_fragment_adducts)
-              {
-                addShiftedImmoniumIons(s,
-                  cfa.name,
-                  cfa.formula.getMonoWeight() + Constants::PROTON_MASS_U, // fragment shift m/z (charge 1)
-                  shifted_immonium_ions_sub_score_spectrum,
-                  shifted_immonium_ions_sub_score_spectrum.getIntegerDataArrays()[0],
-                  shifted_immonium_ions_sub_score_spectrum.getStringDataArrays()[0]
-                );
-
-                addShiftedMS2MarkerIons(
-                 cfa.name,
-                 cfa.formula.getMonoWeight() + Constants::PROTON_MASS_U, // fragment shift m/z (charge 1)
-                 shifted_marker_ions_sub_score_spectrum,
-                 shifted_marker_ions_sub_score_spectrum.getIntegerDataArrays()[0],
-                 shifted_marker_ions_sub_score_spectrum.getStringDataArrays()[0]
-                );
-              }
-              shifted_immonium_ions_sub_score_spectrum.sortByPosition();
-              for (auto& n : shifted_immonium_ions_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }
-
-              shifted_marker_ions_sub_score_spectrum.sortByPosition();
-              for (auto& n : shifted_marker_ions_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }
-
-              // Add all standard (unshifted) marker ions to all spectra (currently) independent of RNA
-              marker_ions_sub_score_spectrum.getIntegerDataArrays().resize(1);
-              marker_ions_sub_score_spectrum.getStringDataArrays().resize(1);
-              addMS2MarkerIons("UCGA", // TODO: make configurable / maybe make precursor adduct specific 
-                marker_ions_sub_score_spectrum,
-                marker_ions_sub_score_spectrum.getIntegerDataArrays()[0],
-                marker_ions_sub_score_spectrum.getStringDataArrays()[0]
-              );
-              marker_ions_sub_score_spectrum.sortByPosition();
-              for (auto& n : marker_ions_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }
-*/
+            PeakSpectrum partial_loss_spectrum;
+            if (!fast_scoring)
+            {
+              // shifted b- / y- / a-ions
+              // generate shifted_immonium_ions_sub_score_spectrum.empty
+              // shifted_marker_ions_sub_score_spectrum.empty
+              generatePartialLossSpectrum(unmodified_sequence,
+                                      fixed_and_variable_modified_peptide,
+                                      fixed_and_variable_modified_peptide_weight,
+                                      precursor_rna_adduct,
+                                      precursor_rna_weight,
+                                      precursor_charge,
+                                      partial_loss_modification,
+                                      spectrum_generator,
+                                      partial_loss_spectrum); 
+              for (auto& n : partial_loss_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }
             }
 
             for (; low_it != up_it; ++low_it)
@@ -2181,6 +2164,9 @@ protected:
               {
                 a_ion_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, a_ion_sub_score_spectrum);           
               }
+
+              //TODO: these are currently empty
+/*
               if (!shifted_immonium_ions_sub_score_spectrum.empty())
               {
                 shifted_immonium_ions_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, shifted_immonium_ions_sub_score_spectrum);           
@@ -2189,7 +2175,11 @@ protected:
               {
                 shifted_marker_ions_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, shifted_marker_ions_sub_score_spectrum);           
               }
-
+*/
+              if (!partial_loss_spectrum.empty())
+              {
+                partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, partial_loss_spectrum);           
+              }
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
               #endif
@@ -2202,14 +2192,15 @@ protected:
 
               // add peptide hit
               AnnotatedHit ah;
-              ah.sequence = *cit;
+              ah.sequence = unmodified_sequence;
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = score;
               ah.immonium_score = immonium_sub_score;
               ah.precursor_score = precursor_sub_score;
               ah.a_ion_score = a_ion_sub_score;
-              ah.shifted_immonium_ions_score = shifted_immonium_ions_sub_score;
-              ah.shifted_marker_ions_score = shifted_marker_ions_sub_score;
+              //ah.shifted_immonium_ions_score = shifted_immonium_ions_sub_score;
+              //ah.shifted_marker_ions_score = shifted_marker_ions_sub_score;
+              ah.partial_loss_score = partial_loss_sub_score;
               ah.marker_ions_score = marker_ions_sub_score;
               ah.rna_mod_index = rna_mod_index;
 
