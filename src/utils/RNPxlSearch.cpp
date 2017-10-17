@@ -247,18 +247,23 @@ protected:
   struct AnnotatedHit
   {
     StringView sequence;
-    SignedSize peptide_mod_index; // enumeration index of the non-RNA peptide modification
-    Size rna_mod_index; // index of the RNA modification
-    double score = 0; // main score
+    SignedSize peptide_mod_index = 0; // enumeration index of the non-RNA peptide modification
+    Size rna_mod_index = 0; // index of the RNA modification
+    int isotope_error = 0; // wheter the hit has been matched with isotopic misassignment
 
-    double immonium_score = 0;
-    double precursor_score = 0;
-    double a_ion_score = 0;
-    double shifted_immonium_ions_score = 0;
-    double marker_ions_score = 0;
-    double shifted_marker_ions_score = 0;
+    // main score
+    float score = 0;
 
-    double best_localization_score = 0;
+    // subscores
+    float immonium_score = 0;
+    float precursor_score = 0;
+    float a_ion_score = 0;
+    float shifted_immonium_ions_score = 0;
+    float marker_ions_score = 0;
+    float shifted_marker_ions_score = 0;
+    float partial_loss_score = 0;
+
+    float best_localization_score = 0;
     String localization_scores;
     String best_localization;  
     String fragment_annotation_string; // for visualizaion in Proteome Discoverer
@@ -399,6 +404,16 @@ protected:
     EmpiricalFormula formula; // formula
     String name;  // name used in annotation
 
+    FragmentAdductDefinition_() = default;
+
+    FragmentAdductDefinition_(const FragmentAdductDefinition_&) = default;
+
+    FragmentAdductDefinition_(FragmentAdductDefinition_&&) = default;
+ 
+   FragmentAdductDefinition_& operator=(const FragmentAdductDefinition_&) = default;
+
+    FragmentAdductDefinition_& operator=(FragmentAdductDefinition_&&) = default;
+
     bool operator<(const FragmentAdductDefinition_& other) const
     {
       String fa = formula.toString();
@@ -410,6 +425,7 @@ protected:
     {
       return std::tie(formula, name) == std::tie(other.formula, other.name);
     }
+
   };
 
   using NucleotideToFragmentAdductMap = map<char, set<FragmentAdductDefinition_> >; // map a nucleotide (e.g. U to all possible fragment adducts)
@@ -518,19 +534,21 @@ protected:
       {
         const char & nucleotide = n2fa.first; // the nucleotide without any associated loss
         set<FragmentAdductDefinition_> fas = n2fa.second; // all potential fragment adducts that may arise from the unmodified nucleotide
- 
-        for (auto const & fa : fas)
+
+        // check chemical feasibility by checking if subtraction of adduct would result in negative elemental composition
+        for (auto it = fas.begin(); it != fas.end(); ) 
         {
-          // rough check for chemical feasibility: fragment adduct may not contain more of each element than present its precursor
-          EmpiricalFormula diff_formula = EmpiricalFormula(exp_pc_formula) - fa.formula; 
-          if (diff_formula.toString().hasSubstring("-")) // difference my not contain negative element counts
+          bool negative_elements = (EmpiricalFormula(exp_pc_formula) - it->formula).toString().hasSubstring("-");
+          if (negative_elements) 
           {
-            fas.erase(fa);
-      #ifdef DEBUG_RNPXLSEARCH
-            LOG_DEBUG << "feasible fragment adduct: " << fa.name << "\t" << fa.formula.toString() << endl;
-      #endif
+            it = fas.erase(it);
+          } 
+          else 
+          {
+            ++it; // erase idiom
           }
         }
+
         // store feasible adducts associated with a cross-link with character nucleotide[0]
         vector<FragmentAdductDefinition_> faa;
         std::copy(fas.begin(), fas.end(), back_inserter(faa));
@@ -983,10 +1001,8 @@ protected:
           // first get all possible RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
 
-          OPENMS_POSTCONDITION(!feasible_MS2_adducts.empty(),
-                               String("FATAL: No feasible adducts for " + precursor_rna_adduct).c_str());
+          if (feasible_MS2_adducts.empty()) { continue; } // should not be the case - check case of no nucleotide but base fragment ?
   
-
           // TODO: score individually for every nucleotide
           const vector<FragmentAdductDefinition_>& partial_loss_modification = feasible_MS2_adducts.front().second;
 
@@ -1574,6 +1590,7 @@ protected:
           ph.setMetaValue(String("RNPxl:shifted_immonium_ions_score"), a_it->shifted_immonium_ions_score);
           ph.setMetaValue(String("RNPxl:marker_ions_score"), a_it->marker_ions_score);
           ph.setMetaValue(String("RNPxl:shifted_marker_ions_score"), a_it->shifted_marker_ions_score);
+          ph.setMetaValue(String("RNPxl:partial_loss_score"), a_it->partial_loss_score);
 
           ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
           ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // RNA uncharged mass via empirical formula
@@ -1583,6 +1600,8 @@ protected:
           ph.setMetaValue(String("RNPxl:best_localization"), a_it->best_localization);
           ph.setMetaValue(String("RNPxl:fragment_annotation"), a_it->fragment_annotation_string);
           ph.setPeakAnnotations(a_it->fragment_annotations);
+          ph.setMetaValue("isotope_error", static_cast<int>(a_it->isotope_error));
+          ph.setMetaValue("rank", static_cast<int>(a_it - annotated_hits[scan_index].begin()));
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
           phs.push_back(ph);
@@ -1876,7 +1895,9 @@ protected:
     // build multimap of precursor mass to scan index
     Size fractional_mass_filtered(0);
     Size small_peptide_mass_filtered(0);
-    multimap<double, Size> multimap_mass_2_scan_index;
+    using MassToScanMultiMap = multimap<double, pair<Size, int>>;
+    MassToScanMultiMap multimap_mass_2_scan_index;  // map precursor mass to scan index and (potential) isotopic missassignment
+
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
       int scan_index = s_it - spectra.begin();
@@ -1918,7 +1939,7 @@ protected:
             continue;
           }
 
-          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
+          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, make_pair(scan_index, i)));          
         }
       }
     }
@@ -2063,8 +2084,8 @@ protected:
 
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
         {
-          const AASequence& candidate = all_modified_peptides[mod_pep_idx];
-          double current_peptide_mass_without_RNA = candidate.getMonoWeight();
+          const AASequence& fixed_and_variable_modified_peptide = all_modified_peptides[mod_pep_idx];
+          double current_peptide_mass_without_RNA = fixed_and_variable_modified_peptide.getMonoWeight();
 
           //create empty theoretical spectrum
           PeakSpectrum complete_loss_spectrum;
@@ -2074,18 +2095,19 @@ protected:
                        a_ion_sub_score_spectrum, 
                        precursor_sub_score_spectrum,
                        marker_ions_sub_score_spectrum,
-                       shifted_marker_ions_sub_score_spectrum,
+                       shifted_marker_ions_sub_score_spectrum_z1,
                        shifted_immonium_ions_sub_score_spectrum;
 
           // iterate over all RNA sequences, calculate peptide mass and generate complete loss spectrum only once as this can potentially be reused
           Size rna_mod_index = 0;
           for (std::map<String, double>::const_iterator rna_mod_it = mm.mod_masses.begin(); rna_mod_it != mm.mod_masses.end(); ++rna_mod_it, ++rna_mod_index)
           {
-            double current_peptide_mass = current_peptide_mass_without_RNA + rna_mod_it->second; // add RNA mass
+            const double precursor_rna_weight = rna_mod_it->second;
+            const double current_peptide_mass = current_peptide_mass_without_RNA + precursor_rna_weight; // add RNA mass
 
             // determine MS2 precursors that match to the current peptide mass
-            multimap<double, Size>::const_iterator low_it;
-            multimap<double, Size>::const_iterator up_it;
+            MassToScanMultiMap::const_iterator low_it;
+            MassToScanMultiMap::const_iterator up_it;
 
             if (precursor_mass_tolerance_unit_ppm) // ppm
             {
@@ -2105,49 +2127,104 @@ protected:
             // fast scoring? so we only consider the complete loss spectrum (independent of oligo on precursor)
             if (complete_loss_spectrum.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
             {
-              spectrum_generator.getSpectrum(complete_loss_spectrum, candidate, 1, 1);
+              spectrum_generator.getSpectrum(complete_loss_spectrum, fixed_and_variable_modified_peptide, 1, 1);
 
               // small hack to make sub scores compatible with hyperscore. Let ion names begin with y
-              immonium_ion_sub_score_spectrum_generator.getSpectrum(immonium_sub_score_spectrum, candidate, 1, 1);
+              immonium_ion_sub_score_spectrum_generator.getSpectrum(immonium_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
               for (auto& n : immonium_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }              
-              precursor_ion_sub_score_spectrum_generator.getSpectrum(precursor_sub_score_spectrum, candidate, 1, 1);
+              precursor_ion_sub_score_spectrum_generator.getSpectrum(precursor_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
               for (auto& n : precursor_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }              
-              a_ion_sub_score_spectrum_generator.getSpectrum(a_ion_sub_score_spectrum, candidate, 1, 1);
+              a_ion_sub_score_spectrum_generator.getSpectrum(a_ion_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
               for (auto& n : a_ion_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }
             }
 
-            PeakSpectrum partial_loss_spectrum;
+            PeakSpectrum partial_loss_spectrum_z1, partial_loss_spectrum_z2;
             if (!fast_scoring)
             {
-              // shifted b- / y- / a-ions
-              // generate shifted_immonium_ions_sub_score_spectrum.empty
-              // shifted_marker_ions_sub_score_spectrum.empty
-              generatePartialLossSpectrum(unmodified_sequence,
-                                      fixed_and_variable_modified_peptide,
-                                      fixed_and_variable_modified_peptide_weight,
-                                      precursor_rna_adduct,
-                                      precursor_rna_weight,
-                                      precursor_charge,
-                                      partial_loss_modification,
-                                      spectrum_generator,
-                                      partial_loss_spectrum); 
-              for (auto& n : partial_loss_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }
+              // retrieve RNA adduct name
+              auto mod_combinations_it = mm.mod_combinations.begin();
+              std::advance(mod_combinations_it, rna_mod_index);
+              const String& precursor_rna_adduct = *mod_combinations_it->second.begin();
+
+              // we don't post-score non-cross-links for now
+              if (precursor_rna_adduct == "none") { continue; }
+
+              // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
+              // first get all possible RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
+              const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_fragment_adducts.at(precursor_rna_adduct).feasible_adducts;
+
+              //cout << "'" << precursor_rna_adduct << "'" << endl;
+              //OPENMS_POSTCONDITION(!feasible_MS2_adducts.empty(),
+               //                String("FATAL: No feasible adducts for " + precursor_rna_adduct).c_str());
+  
+/*
+ * Currently there is a problem if only a base is present. Then we get no feasible adducts.
+ */
+
+              if (!feasible_MS2_adducts.empty())
+              {
+                // TODO: score individually for every nucleotide
+                const vector<FragmentAdductDefinition_>& partial_loss_modification = feasible_MS2_adducts.front().second;
+
+                if (!partial_loss_modification.empty())
+                {
+                  // shifted b- / y- / a-ions
+                  // generate shifted_immonium_ions_sub_score_spectrum.empty
+                  // shifted_marker_ions_sub_score_spectrum.empty
+                  generatePartialLossSpectrum(unmodified_sequence,
+                                        fixed_and_variable_modified_peptide,
+                                        current_peptide_mass_without_RNA,
+                                        precursor_rna_adduct,
+                                        precursor_rna_weight,
+                                        1, 
+                                        partial_loss_modification,
+                                        spectrum_generator,
+                                        partial_loss_spectrum_z1); 
+                  for (auto& n : partial_loss_spectrum_z1.getStringDataArrays()[0]) { n[0] = 'y'; }
+
+                  generatePartialLossSpectrum(unmodified_sequence,
+                                        fixed_and_variable_modified_peptide,
+                                        current_peptide_mass_without_RNA,
+                                        precursor_rna_adduct,
+                                        precursor_rna_weight,
+                                        2, // don't know the charge of the precursor at that point
+                                        partial_loss_modification,
+                                        spectrum_generator,
+                                        partial_loss_spectrum_z2); 
+                  for (auto& n : partial_loss_spectrum_z2.getStringDataArrays()[0]) { n[0] = 'y'; }
+                }
+
+                // add shifted marker ions
+                shifted_marker_ions_sub_score_spectrum_z1.getStringDataArrays().resize(1); // annotation
+                shifted_marker_ions_sub_score_spectrum_z1.getIntegerDataArrays().resize(1); // annotation
+                addShiftedMS2MarkerIons(
+		    precursor_rna_adduct,
+                    precursor_rna_weight,
+ 		    shifted_marker_ions_sub_score_spectrum_z1, 
+   		    shifted_marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0], 
+   		    shifted_marker_ions_sub_score_spectrum_z1.getStringDataArrays()[0]);
+              }
             }
 
             for (; low_it != up_it; ++low_it)
             {
-              const Size& scan_index = low_it->second;
+              //const double exp_pc_mass = low_it->first;
+              const Size& scan_index = low_it->second.first;
+              const int& isotope_error = low_it->second.second;
               const PeakSpectrum& exp_spectrum = spectra[scan_index];
-
-              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
+              const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
+              double total_loss_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
 
               // determine sub scores
               double immonium_sub_score(0), 
                 precursor_sub_score(0), 
                 a_ion_sub_score(0), 
-                shifted_immonium_ions_sub_score(0), 
-                marker_ions_sub_score(0), 
+                partial_loss_sub_score(0),
+                marker_ions_sub_score(0),
                 shifted_marker_ions_sub_score(0);
+/* 
+                shifted_immonium_ions_sub_score(0),
+*/
               if (!immonium_sub_score_spectrum.empty())
               {
                 immonium_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, immonium_sub_score_spectrum);           
@@ -2171,18 +2248,28 @@ protected:
               {
                 shifted_immonium_ions_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, shifted_immonium_ions_sub_score_spectrum);           
               }
-              if (!shifted_marker_ions_sub_score_spectrum.empty())
-              {
-                shifted_marker_ions_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, shifted_marker_ions_sub_score_spectrum);           
-              }
 */
-              if (!partial_loss_spectrum.empty())
+              if (!shifted_marker_ions_sub_score_spectrum_z1.empty())
               {
-                partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, partial_loss_spectrum);           
+                shifted_marker_ions_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, shifted_marker_ions_sub_score_spectrum_z1);           
+              }
+
+              if (!partial_loss_spectrum_z1.empty()) // check if we generated partial loss spectra
+              {
+                if (exp_pc_charge == 1)
+                {
+                  partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, partial_loss_spectrum_z1);
+                }
+                else if (exp_pc_charge >= 2)
+                {
+                  partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, partial_loss_spectrum_z2);
+                }
               }
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
               #endif
+
+              double score = total_loss_score;
 
               // no good hit
               if (score < 0.001)
@@ -2192,18 +2279,18 @@ protected:
 
               // add peptide hit
               AnnotatedHit ah;
-              ah.sequence = unmodified_sequence;
+              ah.sequence = *cit; // copy StringView
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = score;
               ah.immonium_score = immonium_sub_score;
               ah.precursor_score = precursor_sub_score;
               ah.a_ion_score = a_ion_sub_score;
-              //ah.shifted_immonium_ions_score = shifted_immonium_ions_sub_score;
-              //ah.shifted_marker_ions_score = shifted_marker_ions_sub_score;
+              // ah.shifted_immonium_ions_score = shifted_immonium_ions_sub_score;
+              ah.shifted_marker_ions_score = shifted_marker_ions_sub_score;
               ah.partial_loss_score = partial_loss_sub_score;
               ah.marker_ions_score = marker_ions_sub_score;
               ah.rna_mod_index = rna_mod_index;
-
+              ah.isotope_error = isotope_error;
 
               #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "best score in pre-score: " << score << endl;

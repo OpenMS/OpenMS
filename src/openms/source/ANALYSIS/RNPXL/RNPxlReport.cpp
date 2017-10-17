@@ -234,7 +234,9 @@ namespace OpenMS
           row.m_3H = weight_z3;
           row.m_4H = weight_z4;
 
-          if (ph.metaValueExists("RNPxl:best_localization_score") && ph.metaValueExists("RNPxl:localization_scores") && ph.metaValueExists("RNPxl:best_localization"))
+          if (ph.metaValueExists("RNPxl:best_localization_score") && 
+              ph.metaValueExists("RNPxl:localization_scores") && 
+              ph.metaValueExists("RNPxl:best_localization"))
           {
             row.best_localization_score = ph.getMetaValue("RNPxl:best_localization_score");
             row.localization_scores = ph.getMetaValue("RNPxl:localization_scores");
