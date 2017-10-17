@@ -96,16 +96,6 @@
 using namespace OpenMS;
 using namespace std;
 
-// TODO: adapt to new datastructure
-struct SequenceLessComparator
-{
-  bool operator()(const PeptideHit& a, const PeptideHit& b)
-  {
-    if (a.getSequence().toString() < b.getSequence().toString()) { return true; }
-    return false;
-  }
-};
-
 class NucleicAcidSearchEngine :
   public TOPPBase
 {
@@ -196,14 +186,14 @@ protected:
   vector<ConstRibonucleotidePtr> getModifications_(const set<String>& mod_names)
   {
     vector<ConstRibonucleotidePtr> modifications;
-    for (auto const & m : mod_names)
+    for (String m : mod_names)
     {
+      m.substitute('_', ',');
       ConstRibonucleotidePtr rm = RibonucleotideDB::getInstance()->getRibonucleotide(m);
       modifications.push_back(rm);
     }
     return modifications;
   }
-
 
 
   // check for minimum size
