@@ -154,7 +154,12 @@ protected:
     vector<String> all_mods;
     for (auto r : *RibonucleotideDB::getInstance())
     {
-      if (r->isModified()) { all_mods.push_back(r->getCode());}
+      if (r->isModified())
+      {
+        String code = r->getCode();
+        // commas aren't allowed in parameter string restrictions:
+        all_mods.push_back(code.substitute(',', '_'));
+      }
     }
 
     registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications'", false);
@@ -169,9 +174,8 @@ protected:
 
     StringList all_enzymes;
     RNaseDB::getInstance()->getAllNames(all_enzymes);
-    registerStringOption_("oligo:enzyme", "<choice>", "no digestion", "The enzyme used for RNA digestion.", false);
+    registerStringOption_("oligo:enzyme", "<choice>", "no cleavage", "The enzyme used for RNA digestion.", false);
     setValidStrings_("oligo:enzyme", all_enzymes);
-
 
     registerTOPPSubsection_("report", "Reporting Options");
     registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
