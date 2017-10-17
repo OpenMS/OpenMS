@@ -169,6 +169,60 @@ class FragmentAnnotationHelper
     return fas;
   }
 
+  static addShiftedPeakFragmentAnnotation_(const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_b_ions,
+                                         const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_y_ions,
+                                         const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_a_ions,
+                                         const std::vector<PeptideHit::PeakAnnotation>& shifted_immonium_ions,
+                                         const std::vector<PeptideHit::PeakAnnotation>& annotated_marker_ions,
+                                         const std::vector<PeptideHit::PeakAnnotation>& annotated_precursor_ions,
+                                         StringList &fa_strings, 
+                                         std::vector<PeptideHit::PeakAnnotation>& fas) 
+  {
+    String sb = fragmentAnnotationDetailsToString("b", shifted_b_ions);
+    if (!sb.empty())
+    {
+      fa_strings.push_back(sb);
+      const std::vector<PeptideHit::PeakAnnotation>& fas_tmp = fragmentAnnotationDetailsToPHFA("b", shifted_b_ions);;
+      fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+    }
+
+    String sy = fragmentAnnotationDetailsToString("y", shifted_y_ions);
+    if (!sy.empty())
+    {
+      fa_strings.push_back(sy);
+      const std::vector<PeptideHit::PeakAnnotation>& fas_tmp = fragmentAnnotationDetailsToPHFA("y", shifted_y_ions);;
+      fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+    }
+
+    String sa = fragmentAnnotationDetailsToString("a", shifted_a_ions);
+    if (!sa.empty())
+    {
+      fa_strings.push_back(sa);
+      const std::vector<PeptideHit::PeakAnnotation>& fas_tmp = fragmentAnnotationDetailsToPHFA("a", shifted_a_ions);;
+      fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+    }
+
+    String sii = shiftedIonsToString(shifted_immonium_ions);
+    if (!sii.empty())
+    {
+      fa_strings.push_back(sii);
+      fas.insert(fas.end(), shifted_immonium_ions.begin(), shifted_immonium_ions.end());
+    }
+
+    String smi = shiftedIonsToString(annotated_marker_ions);
+    if (!smi.empty())
+    {
+      fa_strings.push_back(smi);
+      fas.insert(fas.end(), annotated_marker_ions.begin(), annotated_marker_ions.end());
+    }
+
+    String spi = shiftedIonsToString(annotated_precursor_ions);
+    if (!spi.empty())
+    {
+      fa_strings.push_back(spi);
+      fas.insert(fas.end(), annotated_precursor_ions.begin(), annotated_precursor_ions.end());
+    }
+  }
 };
 
 }

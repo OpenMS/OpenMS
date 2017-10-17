@@ -1447,7 +1447,7 @@ protected:
           #endif
 
           // create annotation strings for shifted fragment ions
-          addShiftedPeakFragmentAnnotation_(shifted_b_ions, shifted_y_ions, shifted_a_ions, shifted_immonium_ions,
+          FragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(shifted_b_ions, shifted_y_ions, shifted_a_ions, shifted_immonium_ions,
                                             annotated_marker_ions,
                                             annotated_precursor_ions, fa_strings, fas);
 
@@ -1488,58 +1488,6 @@ protected:
     }
   }
 
-  void addShiftedPeakFragmentAnnotation_(const map<Size, vector<FragmentAnnotationHelper::FragmentAnnotationDetail_>> &shifted_b_ions,
-                                         const map<Size, vector<FragmentAnnotationHelper::FragmentAnnotationDetail_>> &shifted_y_ions,
-                                         const map<Size, vector<FragmentAnnotationHelper::FragmentAnnotationDetail_>> &shifted_a_ions,
-                                         const vector<PeptideHit::PeakAnnotation> &shifted_immonium_ions,
-                                         const vector<PeptideHit::PeakAnnotation> &annotated_marker_ions,
-                                         const vector<PeptideHit::PeakAnnotation> &annotated_precursor_ions,
-                                         StringList &fa_strings, vector<PeptideHit::PeakAnnotation> &fas) const {
-    String sb = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions);
-    if (!sb.empty())
-          {
-            fa_strings.push_back(sb);
-            const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", shifted_b_ions);;
-            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
-          }
-
-    String sy = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions);
-    if (!sy.empty())
-          {
-            fa_strings.push_back(sy);
-            const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", shifted_y_ions);;
-            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
-          }
-
-    String sa = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions);
-    if (!sa.empty())
-          {
-            fa_strings.push_back(sa);
-            const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", shifted_a_ions);;
-            fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
-          }
-
-    String sii = FragmentAnnotationHelper::shiftedIonsToString(shifted_immonium_ions);
-    if (!sii.empty())
-          {
-            fa_strings.push_back(sii);
-            fas.insert(fas.end(), shifted_immonium_ions.begin(), shifted_immonium_ions.end());
-          }
-
-    String smi = FragmentAnnotationHelper::shiftedIonsToString(annotated_marker_ions);
-    if (!smi.empty())
-          {
-            fa_strings.push_back(smi);
-            fas.insert(fas.end(), annotated_marker_ions.begin(), annotated_marker_ions.end());
-          }
-
-    String spi = FragmentAnnotationHelper::shiftedIonsToString(annotated_precursor_ions);
-    if (!spi.empty())
-          {
-            fa_strings.push_back(spi);
-            fas.insert(fas.end(), annotated_precursor_ions.begin(), annotated_precursor_ions.end());
-          }
-  }
 
   void addPrecursorWithCompleteRNA_(const double fixed_and_variable_modified_peptide_weight,
                                     const String & precursor_rna_adduct,
@@ -2145,7 +2093,7 @@ protected:
               up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + precursor_mass_tolerance);
             }
 
-            if (low_it == up_it) continue; // no matching precursor in data
+            if (low_it == up_it) { continue; } // no matching precursor in data
 
             // add peaks for b- and y- ions with charge 1 (sorted by m/z)
             if (complete_loss_spectrum.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
