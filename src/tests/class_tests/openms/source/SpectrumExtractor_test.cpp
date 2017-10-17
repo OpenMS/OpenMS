@@ -56,222 +56,222 @@ spectrum.resize(73);
 MSSpectrum::Iterator it = spectrum.begin();
 
 it->setMZ(61.92);
-it->setIntensity(6705.41660838088f);
+it++->setIntensity(6705.41660838088f);
 
-it++->setMZ(68.88);
-it->setIntensity(1676.35415209522f);
+it->setMZ(68.88);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(71.4);
-it->setIntensity(1676.35415209522f);
+it->setMZ(71.4);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(79.56);
-it->setIntensity(1676.35415209522f);
+it->setMZ(79.56);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(84.6);
-it->setIntensity(3352.70830419044f);
+it->setMZ(84.6);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(84.72);
-it->setIntensity(5029.06245628566f);
+it->setMZ(84.72);
+it++->setIntensity(5029.06245628566f);
 
-it++->setMZ(84.84);
-it->setIntensity(8381.7707604761f);
+it->setMZ(84.84);
+it++->setIntensity(8381.7707604761f);
 
-it++->setMZ(84.96);
-it->setIntensity(53643.332867047f);
+it->setMZ(84.96);
+it++->setIntensity(53643.332867047f);
 
-it++->setMZ(85.08);
-it->setIntensity(51966.9787149518f);
+it->setMZ(85.08);
+it++->setIntensity(51966.9787149518f);
 
-it++->setMZ(85.2);
-it->setIntensity(6705.41660838088f);
+it->setMZ(85.2);
+it++->setIntensity(6705.41660838088f);
 
-it++->setMZ(85.32);
-it->setIntensity(8381.7707604761f);
+it->setMZ(85.32);
+it++->setIntensity(8381.7707604761f);
 
-it++->setMZ(85.44);
-it->setIntensity(1676.35415209522f);
+it->setMZ(85.44);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(85.68);
-it->setIntensity(11734.4790646665f);
+it->setMZ(85.68);
+it++->setIntensity(11734.4790646665f);
 
-it++->setMZ(85.8);
-it->setIntensity(25145.3122814283f);
+it->setMZ(85.8);
+it++->setIntensity(25145.3122814283f);
 
-it++->setMZ(85.92);
-it->setIntensity(68730.520235904f);
+it->setMZ(85.92);
+it++->setIntensity(68730.520235904f);
 
-it++->setMZ(86.04);
-it->setIntensity(112315.72819038f);
+it->setMZ(86.04);
+it++->setIntensity(112315.72819038f);
 
-it++->setMZ(86.16);
-it->setIntensity(6705.41660838088f);
+it->setMZ(86.16);
+it++->setIntensity(6705.41660838088f);
 
-it++->setMZ(86.28);
-it->setIntensity(6705.41660838088f);
+it->setMZ(86.28);
+it++->setIntensity(6705.41660838088f);
 
-it++->setMZ(86.4);
-it->setIntensity(3352.70830419044f);
+it->setMZ(86.4);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(87.72);
-it->setIntensity(1676.35415209522f);
+it->setMZ(87.72);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(87.96);
-it->setIntensity(1676.35415209522f);
+it->setMZ(87.96);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(88.08);
-it->setIntensity(1676.35415209522f);
+it->setMZ(88.08);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(90.36);
-it->setIntensity(3352.70830419044f);
+it->setMZ(90.36);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(94.44);
-it->setIntensity(1676.35415209522f);
+it->setMZ(94.44);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(99.84);
-it->setIntensity(1676.35415209522f);
+it->setMZ(99.84);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(100.8);
-it->setIntensity(1676.35415209522f);
+it->setMZ(100.8);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(101.04);
-it->setIntensity(5029.06245628566f);
+it->setMZ(101.04);
+it++->setIntensity(5029.06245628566f);
 
-it++->setMZ(101.88);
-it->setIntensity(3352.70830419044f);
+it->setMZ(101.88);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(102);
-it->setIntensity(3352.70830419044f);
+it->setMZ(102);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(102.96);
-it->setIntensity(3352.70830419044f);
+it->setMZ(102.96);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(110.16);
-it->setIntensity(1676.35415209522f);
+it->setMZ(110.16);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(110.88);
-it->setIntensity(5029.06245628566f);
+it->setMZ(110.88);
+it++->setIntensity(5029.06245628566f);
 
-it++->setMZ(111);
-it->setIntensity(3352.70830419044f);
+it->setMZ(111);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(111.12);
-it->setIntensity(5029.06245628566f);
+it->setMZ(111.12);
+it++->setIntensity(5029.06245628566f);
 
-it++->setMZ(111.24);
-it->setIntensity(3352.70830419044f);
+it->setMZ(111.24);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(111.84);
-it->setIntensity(5029.06245628566f);
+it->setMZ(111.84);
+it++->setIntensity(5029.06245628566f);
 
-it++->setMZ(111.96);
-it->setIntensity(18439.8956730474f);
+it->setMZ(111.96);
+it++->setIntensity(18439.8956730474f);
 
-it++->setMZ(112.08);
-it->setIntensity(20116.2498251426f);
+it->setMZ(112.08);
+it++->setIntensity(20116.2498251426f);
 
-it++->setMZ(112.2);
-it->setIntensity(5029.06245628566f);
+it->setMZ(112.2);
+it++->setIntensity(5029.06245628566f);
 
-it++->setMZ(112.32);
-it->setIntensity(1676.35415209522f);
+it->setMZ(112.32);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(112.44);
-it->setIntensity(1676.35415209522f);
+it->setMZ(112.44);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(112.56);
-it->setIntensity(3352.70830419044f);
+it->setMZ(112.56);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(112.68);
-it->setIntensity(3352.70830419044f);
+it->setMZ(112.68);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(114);
-it->setIntensity(3352.70830419044f);
+it->setMZ(114);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(128.16);
-it->setIntensity(6705.41660838088f);
+it->setMZ(128.16);
+it++->setIntensity(6705.41660838088f);
 
-it++->setMZ(128.4);
-it->setIntensity(1676.35415209522f);
+it->setMZ(128.4);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(128.88);
-it->setIntensity(3352.70830419044f);
+it->setMZ(128.88);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(129);
-it->setIntensity(3352.70830419044f);
+it->setMZ(129);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(129.12);
-it->setIntensity(6705.41660838088f);
+it->setMZ(129.12);
+it++->setIntensity(6705.41660838088f);
 
-it++->setMZ(129.84);
-it->setIntensity(5029.06245628566f);
+it->setMZ(129.84);
+it++->setIntensity(5029.06245628566f);
 
-it++->setMZ(129.96);
-it->setIntensity(10058.1249125713f);
+it->setMZ(129.96);
+it++->setIntensity(10058.1249125713f);
 
-it++->setMZ(130.08);
-it->setIntensity(31850.7288898092f);
+it->setMZ(130.08);
+it++->setIntensity(31850.7288898092f);
 
-it++->setMZ(130.2);
-it->setIntensity(10058.1249125713f);
+it->setMZ(130.2);
+it++->setIntensity(10058.1249125713f);
 
-it++->setMZ(130.32);
-it->setIntensity(1676.35415209522f);
+it->setMZ(130.32);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(130.44);
-it->setIntensity(1676.35415209522f);
+it->setMZ(130.44);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(130.56);
-it->setIntensity(3352.70830419044f);
+it->setMZ(130.56);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(132.12);
-it->setIntensity(1676.35415209522f);
+it->setMZ(132.12);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(138);
-it->setIntensity(1676.35415209522f);
+it->setMZ(138);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(139.08);
-it->setIntensity(1676.35415209522f);
+it->setMZ(139.08);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(140.16);
-it->setIntensity(3352.70830419044f);
+it->setMZ(140.16);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(144.12);
-it->setIntensity(1676.35415209522f);
+it->setMZ(144.12);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(146.04);
-it->setIntensity(3352.70830419044f);
+it->setMZ(146.04);
+it++->setIntensity(3352.70830419044f);
 
-it++->setMZ(146.16);
-it->setIntensity(1676.35415209522f);
+it->setMZ(146.16);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(156);
-it->setIntensity(1676.35415209522f);
+it->setMZ(156);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(156.12);
-it->setIntensity(5029.06245628566f);
+it->setMZ(156.12);
+it++->setIntensity(5029.06245628566f);
 
-it++->setMZ(156.36);
-it->setIntensity(1676.35415209522f);
+it->setMZ(156.36);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(173.76);
-it->setIntensity(1676.35415209522f);
+it->setMZ(173.76);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(174);
-it->setIntensity(1676.35415209522f);
+it->setMZ(174);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(174.12);
-it->setIntensity(6705.41660838088f);
+it->setMZ(174.12);
+it++->setIntensity(6705.41660838088f);
 
-it++->setMZ(174.24);
-it->setIntensity(11734.4790646665f);
+it->setMZ(174.24);
+it++->setIntensity(11734.4790646665f);
 
-it++->setMZ(174.36);
-it->setIntensity(6705.41660838088f);
+it->setMZ(174.36);
+it++->setIntensity(6705.41660838088f);
 
-it++->setMZ(174.6);
-it->setIntensity(1676.35415209522f);
+it->setMZ(174.6);
+it++->setIntensity(1676.35415209522f);
 
-it++->setMZ(175.08);
+it->setMZ(175.08);
 it->setIntensity(1676.35415209522f);
 
 /////////////////////////////////////////////////////////////
@@ -440,6 +440,21 @@ START_SECTION(pickSpectrum())
   else {
     cout << "Unable to open file to write the spectrum";
   }
+}
+END_SECTION
+
+START_SECTION(getMZ())
+{
+  TEST_EQUAL(spectrum[0].getMZ(), 61.92)
+  TEST_EQUAL(spectrum[0].getIntensity(), 6705.41660838088f)
+  TEST_EQUAL(spectrum[1].getMZ(), 68.88)
+  TEST_EQUAL(spectrum[1].getIntensity(), 1676.35415209522f)
+  TEST_EQUAL(spectrum[6].getMZ(), 84.84)
+  TEST_EQUAL(spectrum[6].getIntensity(), 8381.7707604761f)
+  TEST_EQUAL(spectrum[71].getMZ(), 174.6)
+  TEST_EQUAL(spectrum[71].getIntensity(), 1676.35415209522f)
+  TEST_EQUAL(spectrum[72].getMZ(), 175.08)
+  TEST_EQUAL(spectrum[72].getIntensity(), 1676.35415209522f)
 }
 END_SECTION
 
