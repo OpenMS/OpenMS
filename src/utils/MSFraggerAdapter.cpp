@@ -106,6 +106,48 @@ class TOPPMSFraggerAdapter :
 public:
 	  static const String param_executable;
 	  static const String param_in;
+	  static const String param_database;
+
+	  // tolerance
+	  static const String param_precursor_mass_tolerance;
+	  static const String param_precursor_mass_unit;
+	  static const String param_precursor_true_tolerance;
+	  static const String param_precursor_true_unit;
+	  static const String param_fragment_mass_tolerance;
+	  static const String param_fragment_mass_unit;
+	  static const String param_isotope_error;
+
+	  // digest
+	  static const String param_search_enzyme_name;
+	  static const String param_search_enzyme_cutafter;
+	  static const String param_search_enzyme_nocutbefore;
+	  static const String param_num_enzyme_termini;
+	  static const String param_allowed_missed_cleavage;
+	  static const String param_digest_min_length;
+	  static const String param_digest_max_length;
+	  static const String param_digest_mass_range_min;
+	  static const String param_digest_mass_range_max;
+
+	  // varmod
+	  static const String param_clip_nterm_m;
+	  static const String param_
+
+
+
+
+	  static const String param_allow_multiple_variable_mods_on_residue;
+	  static const String param_max_variable_mods_per_mod;
+	  static const String param_max_variable_mods_combinations;
+	  static const String param_precursor_charge_min;
+	  static const String param_precursor_charge_max;
+	  static const String param_override_charge;
+	  static const String param_max_fragment_charge;
+	  static const String param_track_zero_topn;
+	  static const String param_zero_bin_accept_expect;
+	  static const String param_zero_bin_mult_expect;
+	  static const String param_add_topn_complementary;
+
+
 
   TOPPMSFraggerAdapter() :
     TOPPBase("MSFraggerAdapter", "Annotates MS/MS spectra using MSFragger.")
@@ -116,6 +158,9 @@ protected:
   void registerOptionsAndFlags_()
   {
 	 const StringList empty;
+	 const StringList validUnits = ListUtils::create<String>("Da,ppm");
+	 const StringList isotope_error_and_enzyme_termini = ListUtils::create<String>("0,1,2");
+	 const StringList zero_to_five = ListUtils::create<String>("0,1,2,3,4,5");
 
 	 // Handle executable
 	 registerInputFile_(TOPPMSFraggerAdapter::param_executable, "<path_to_executable>", "MSFragger.jar", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", true, false, ListUtils::create<String>("skipexists"));
@@ -124,13 +169,116 @@ protected:
 	 registerInputFileList_(TOPPMSFraggerAdapter::param_in, "<spectra_files>", empty, "Spectra files to search with MSFragger", true, false);
 	 setValidFormats_(TOPPMSFraggerAdapter::param_in, ListUtils::create<String>("mzML,mzXML"));
 
+	 // Path to database to search
+	 registerInputFile_(TOPPMSFraggerAdapter::param_database, "<path_to_fasta>", "", "FASTA file", true, false);
+	 setValidFormats_(TOPPMSFraggerAdapter::param_database, ListUtils::create<String>("FASTA,fasta,fa,fas"), false);
+
+	 // TOPP tolerance
+	 registerTOPPSubsection_("tolerance", "Search Tolerances");
+
+	 // Precursor mass tolerance and unit
+	 registerDoubleOption_(TOPPMSFraggerAdapter::param_precursor_mass_tolerance, "<precursor_mass_tolerance>", 20.0, "Precursor mass tolerance", false, false);
+	 registerStringOption_(TOPPMSFraggerAdapter::param_precursor_mass_unit, "<precursor_mass_unit>", "ppm", "Unit of precursor mass tolerance", false, false);
+	 setValidStrings_(TOPPMSFraggerAdapter::param_precursor_mass_unit, validUnits);
+
+	 // Precursor true tolerance
+	 registerDoubleOption_(TOPPMSFraggerAdapter::param_precursor_true_tolerance, "<precursor_true_tolerance>", 0.0, "Precursor true tolerance. It is strongly recommended to set this feature!", false, false);
+	 registerStringOption_(TOPPMSFraggerAdapter::param_precursor_true_unit, "<precursor_true_unit>", "ppm", "Unit of precursor true tolerance", false, false);
+	 setValidStrings_(TOPPMSFraggerAdapter::param_precursor_true_unit, validUnits);
+
+	 // Fragment mass tolerance
+	 registerDoubleOption_(TOPPMSFraggerAdapter::param_fragment_mass_tolerance, "<fragment_mass_tolerance>", 20.0, "Fragment mass tolerance", false, false);
+	 registerStringOption_(TOPPMSFraggerAdapter::param_fragment_mass_unit, "<fragment_mass_unit>", "ppm", "Fragment mass unit", false, false);
+	 setValidStrings_(TOPPMSFraggerAdapter::param_fragment_mass_unit, validUnits);
+
+	 // Isotope error
+	 registerStringOption_(TOPPMSFraggerAdapter::param_isotope_error, "<isotope_error>", "0", "Isotope correction for MS/MS events triggered on isotopic peaks. Should be set to 0 for open search or 0/1/2 for correction of narrow window searches", false, false);
+	 setValidStrings_(TOPPMSFraggerAdapter::param_isotope_error, isotope_error_and_enzyme_termini);
+
+	 // TOPP digest
+	 registerTOPPSubsection_("digest", "In-Silico Digestion Parameters");
+
+	 // Enzyme
+	 StringList enzyme_names;
+	 EnzymesDB::getInstance()->getAllNames(enzyme_names);
+	 registerStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_name, "<search_enzyme_name>", "Trypsin", "Name of the enzyme to be written to the pepXML file", false, false);
+	 setValidStrings_(TOPPMSFraggerAdapter::param_search_enzyme_name, enzyme_names);
+
+	 // Cut after
+	registerStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_cutafter, "<search_enzyme_cutafter>", "KR", "Residues after which the enzyme cuts", false , false);
+
+	// No cut before
+	registerStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_nocutbefore, "<search_enzyme_nocutbefore>", "P", "Residues that the enzyme will not cut before", false, false);
+
+	// Number of enzyme termini
+	registerStringOption_(TOPPMSFraggerAdapter::param_num_enzyme_termini, "<num_enzyme_termini>", "2", "Number of enzyme termini (0, 1, or 2 for non-enzymatic, semi-enzymatic, fully-enzymatic)", false, false);
+	setValidStrings_(TOPPMSFraggerAdapter::param_num_enzyme_termini, isotope_error_and_enzyme_termini);
+
+	// Allowed missed cleavages
+	registerStringOption_(TOPPMSFraggerAdapter::param_allowed_missed_cleavage, "<allowed_missed_cleavage>", "2", "Allowed number of missed cleavages", false, false);
+	setValidStrings_(TOPPMSFraggerAdapter::param_allowed_missed_cleavage, zero_to_five); // 5 is the max. allowed value according to MSFragger
+
+	// Digest min length
+	registerIntOption_(TOPPMSFraggerAdapter::param_digest_min_length, "<digest_min_length>", 7, "Minimum length of peptides to be generated during in-silico digestion", false, false);
+
+	// Digest max length
+	registerIntOption_(TOPPMSFraggerAdapter::param_digest_max_length, "<digest_max_length>", 64, "Maximum length of peptides to be generated during in-silico digestion", false, false);
+
+	// Digest min mass range
+	registerDoubleOption_(TOPPMSFraggerAdapter::param_digest_mass_range_min, "<digest_mass_range_min>", 500.0, "Min mass of peptides to be generated (Da)", false, false);
+
+	// Digest max mass range
+	registerDoubleOption_(TOPPMSFraggerAdapter::param_digest_mass_range_max, "<digest_mass_range_max>", 5000.0, "Max mass of peptides to be generated (Da)", false, false);
+
+
+	// TOPP varmod
+	registerTOPPSubsection_("varmod", "Variable Modification Parameters");
+
+	// Clip nterm M
+	registerFlag_(TOPPMSFraggerAdapter::param_clip_nterm_m, "Specifies the trimming of a protein N-terminal methionine as a variable modification", false);
+
+	// TODO Modifications
+
+
+
+	// allow_multiple_variable_mods_on_residue
+	registerFlag_(TOPPMSFraggerAdapter::param_allow_multiple_variable_mods_on_residue, "Allow each amino acid to be modified by multiple variable modifications", false);
+
+	// Max variable mods per mod
+	registerStringOption_(TOPPMSFraggerAdapter::param_max_variable_mods_per_mod, "<max_variable_mods_per_mod>", "2", "Maximum number of residues that can be occupied by each variable modification", false, true);
+	setValidStrings_(TOPPMSFraggerAdapter::param_max_variable_mods_per_mod, zero_to_five);
+
+	// Max variable mods combinations
+	registerIntOption_(TOPPMSFraggerAdapter::param_max_variable_mods_combinations, "<max_variable_mods_combinations>", 5000, "Maximum allowed number of modified variably modified peptides from each peptide sequence, (maximum of 65534). If a greater number than the maximum is generated, only the unmodified peptide is considered.", false, true);
+
+	// Minimum charge of precursor
+	registerIntOption_(TOPPMSFraggerAdapter::param_precursor_charge_min, "<precursor_charge_min>", 1, "Min charge of precursor charge range to consider" , false, false);
+
+	// Maximum charge of precursor
+	registerIntOption_(TOPPMSFraggerAdapter::param_precursor_charge_max, "<precursor_charge_max>", 4, "Max charge of precursor charge range to consider" , false, false);
+
+	// Override charge
+	registerFlag_(TOPPMSFraggerAdapter::param_override_charge, "Ignores precursor charge and uses charge state specified in precursor_charge range" , false);
+
+
+	// Max fragment charge
+	registerStringOption_(TOPPMSFraggerAdapter::param_max_fragment_charge, "<max_fragment_charge>", "2", "Maximum charge state for theoretical fragments to match", false, false);
+	setValidStrings_(TOPPMSFraggerAdapter::param_max_fragment_charge, ListUtils::create<String>("1,2,3,4"));
+
+	// track zero top N
+	registerIntOption_(TOPPMSFraggerAdapter::param_track_zero_topn, "<track_zero_topn>", 0, "Track top N unmodified peptide results separately from main results internally for boosting features. Should be set to a number greater than output_report_topN if zero bin boosting is desired.", false, true);
+
+	// zero_bin_accept_expect
+	registerDoubleOption_(TOPPMSFraggerAdapter::param_zero_bin_accept_expect, "<zero_bin_accept_expect>", 0.0, "Ranks a zero-bin hit above all non-zero-bin hit if it has expectation less than this value", false, false);
+
+
+
+	// Output file
+	// TODO
+
 
    // registerOutputFile_("out", "<file>", "", "Output file");
    // setValidFormats_("out", ListUtils::create<String>("idXML"));
-    //registerInputFile_("database", "<file>", "", "FASTA file", true, false, ListUtils::create<String>("skipexists"));
-    //setValidFormats_("database", ListUtils::create<String>("FASTA"));
-    //registerStringOption_("MSFragger_version","<choice>", "2016.01 rev. 2","comet version: (year,version,revision)",false,false);               //required as first line in the param file
-    //setValidStrings_("MSFragger_version", ListUtils::create<String>("2016.01 rev. 2"));
     //
     // Optional parameters //
     //
@@ -138,17 +286,7 @@ protected:
     //Files
     //registerInputFile_("default_params_file", "<file>", "", "Default Comet params file. All parameters of this take precedence. A template file can be generated using comet.exe -p", false, false, ListUtils::create<String>("skipexists"));
     //setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
-    //registerIntOption_("threads", "<num>", 1, "number of threads", false, true);
-
     //Masses
-    //registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 20.0, "Precursor mass tolerance (MSFragger)", false, false);
-    //registerStringOption_("precursor_error_units", "<choice>", "ppm", "precursor_mass_units 0=Dalton, 1=ppm", false, false);
-    //setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
-    //registerDoubleOption_("precursor_true_tolerance", "<tolerance>", 0, "Used for tie breaker of results (in spectrally ambiguous cases) and zero bin boosting in open searches (0 disables these features). This option is STRONGLY recommended for open searches.", false, false);
-    //registerStringOption_("precursor_true_units", "<choice>", "ppm", "precursor_mass_units 0=Dalton, 1=ppm", false, false);
-    //setValidStrings_("precursor_true_units", ListUtils::create<String>("Da,ppm"));
-   // registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 6, "fragment_mass_tolerance (MSGF+), fragment_bin_tol (Comet)", false, true);
-    //registerDoubleOption_("fragment_mass_units", "<tolerance>", 0.25, "fragment_mass_units 0=Dalton, 1=ppm", false, true);
    //registerStringOption_("isotope_error", "<choice>", "off", "Isotope correction for MS/MS events triggered on isotopic peaks. Should be set to off for open search or 0/1/2 for correction of narrow window searches. Shifts the precursor mass window to multiples of this value multiplied by the mass of C13-C12.", false, false);
   //  setValidStrings_("isotope_error", ListUtils::create<String>("off,0/1/2"));
 
@@ -212,15 +350,167 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
+   try
+   {
+	   // Get and validate parameters
 
-    return EXECUTION_OK;
+	   // tolerance
+	   const double arg_precursor_mass_tolerance(this->_getNonNegativeDouble(TOPPMSFraggerAdapter::param_precursor_mass_tolerance));
+	   const String & arg_precursor_mass_unit = this->getStringOption_(TOPPMSFraggerAdapter::param_precursor_mass_unit);
+	   const double arg_precursor_true_tolerance(this->_getNonNegativeDouble(TOPPMSFraggerAdapter::param_precursor_true_tolerance));
+	   const String & arg_precursor_true_unit = this->getStringOption_(TOPPMSFraggerAdapter::param_precursor_true_unit);
+	   const double arg_fragment_mass_tolerance(this->_getNonNegativeDouble(TOPPMSFraggerAdapter::param_fragment_mass_tolerance));
+	   const String & arg_fragment_mass_unit = this->getStringOption_(TOPPMSFraggerAdapter::param_fragment_mass_unit);
+	   const String & arg_isotope_error = this->getStringOption_(TOPPMSFraggerAdapter::param_isotope_error);
+
+	   // digest
+	   const String & arg_search_enzyme_name = this->getStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_name);
+	   const String & arg_search_enzyme_cutafter = this->getStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_cutafter);
+	   const String & arg_search_enzyme_nocutbefore = this->getStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_nocutbefore);
+	   const String & arg_num_enzyme_termini = this->getStringOption_(TOPPMSFraggerAdapter::param_num_enzyme_termini);
+	   const String & arg_allowed_missed_cleavage = this>getStringOption_(TOPPMSFraggerAdapter::param_allowed_missed_cleavage);
+	   const int arg_digest_min_length = this->_getNonNegativeInt(TOPPMSFraggerAdapter::param_digest_min_length);
+	   const int arg_digest_max_length = this->_getNonNegativeInt(TOPPMSFraggerAdapter::param_digest_max_length);
+	   if (arg_digest_max_length < arg_digest_min_length)
+	   {
+	     LOG_ERROR << "FATAL: Maximum length of digest is not allowed to be smaller than minimum length of digest" << std::endl;
+		 throw 1;
+	   }
+	   const double arg_digest_mass_range_min = this->_getNonNegativeDouble(TOPPMSFraggerAdapter::param_digest_mass_range_min);
+	   const double arg_digest_mass_range_max = this->_getNonNegativeDouble(TOPPMSFraggerAdapter::param_digest_mass_range_max);
+
+	   if (arg_digest_mass_range_max < arg_digest_mass_range_min)
+	   {
+	     LOG_ERROR << "FATAL: Maximum digest mass is not allowed to be smaller than minimum digest mass!" << std::endl;
+	     throw 1;
+	   }
+
+	   // varmod
+	   const bool arg_clip_nterm_m = this->getFlag_(TOPPMSFraggerAdapter::param_clip_nterm_m);
+
+
+
+	   const bool arg_allow_multiple_variable_mods_on_residue = this->getFlag_(TOPPMSFraggerAdapter::param_allow_multiple_variable_mods_on_residue);
+	   const String & arg_max_variable_mods_per_mod  = this->getStringOption_(TOPPMSFraggerAdapter::param_max_variable_mods_per_mod);
+	   const int arg_max_variable_mods_combinations = this->_getInRangeInt(TOPPMSFraggerAdapter::param_max_variable_mods_combinations, 0, 65534);
+	   const int arg_precursor_charge_min = this->_getNonNegativeInt(TOPPMSFraggerAdapter::param_precursor_charge_min);
+	   const int arg_precursor_charge_max = this->_getNonNegativeInt(TOPPMSFraggerAdapter::param_precursor_charge_max);
+	   if (arg_precursor_charge_max < arg_precursor_charge_min)
+	   {
+		   LOG_ERROR << "FATAL: Maximum precursor charge is not allowed to be smaller than minimum precursor charge!" << std::endl;
+		   throw 1;
+	   }
+	   const bool arg_override_charge = this->getFlag_(TOPPMSFraggerAdapter::param_override_charge);
+
+
+
+
+
+
+	   const String & arg_max_fragment_charge = this->getStringOption_(TOPPMSFraggerAdapter::param_max_fragment_charge);
+	   const int arg_track_zero_topn = this->_getNonNegativeInt(TOPPMSFraggerAdapter::param_track_zero_topn);
+	   const double arg_zero_bin_accept_expect = this->_getNonNegativeDouble(TOPPMSFraggerAdapter::param_zero_bin_accept_expect);
+	   const double arg_zero_bin_mult_expect = this->_getNonNegativeDouble(TOPPMSFraggerAdapter::param_zero_bin_mult_expect);
+	   const int arg_add_topn_complementary = this->_getNonNegativeInt(TOPPMSFraggerAdapter::param_add_topn_complementary);
+
+   }
+   catch (...)
+   {
+	   return ILLEGAL_PARAMETERS;
+   }
+
+
+
+
+
+
+
+  return EXECUTION_OK;
   }
+
+
+private:
+
+  double _getNonNegativeDouble(const String & param_name) const
+  {
+	 const double arg_value(this->getDoubleOption_(param_name));
+	 if (arg_value < 0)
+	 {
+		 LOG_ERROR << "FATAL: Parameter " << param_name << " is not allowed to be negative!" << std::endl;
+		 throw 1;
+	 }
+	 return arg_value;
+  }
+
+  int _getNonNegativeInt(const String & param_name) const
+  {
+	  const int arg_value(this->getIntOption_(param_name));
+	  if (arg_value < 0)
+	  {
+		  LOG_ERROR << "FATAL: Parameter " << param_name << " is not allowed to be negative!" << std::endl;
+		  throw 1;
+	  }
+	  return arg_value;
+  }
+
+  int _getInRangeInt(const String & param_name, const int min_value, const int max_value) const
+  {
+	  const int arg_value(this->getIntOption_(param_name));
+	  if (arg_value < min_value || arg_value > max_value)
+	  {
+		  LOG_ERROR << "FATAL: Parameter " << param_name << " is out of range: " << min_value << "..." << max_value << std::endl;
+		  throw 1;
+	  }
+	  return arg_value;
+  }
+
 
 };
 
-
 const String TOPPMSFraggerAdapter::param_executable = "executable";
 const String TOPPMSFraggerAdapter::param_in = "in";
+const String TOPPMSFraggerAdapter::param_database = "database";
+
+// tolerance
+const String TOPPMSFraggerAdapter::param_precursor_mass_tolerance = "tolerance:precursor_mass_tolerance";
+const String TOPPMSFraggerAdapter::param_precursor_mass_unit = "tolerance:precursor_mass_unit";
+const String TOPPMSFraggerAdapter::param_precursor_true_tolerance = "tolerance:precursor_true_tolerance";
+const String TOPPMSFraggerAdapter::param_precursor_true_unit = "tolerance:precursor_true_unit";
+const String TOPPMSFraggerAdapter::param_fragment_mass_tolerance = "tolerance:fragment_mass_tolerance";
+const String TOPPMSFraggerAdapter::param_fragment_mass_unit = "tolerance:fragment_mass_unit";
+const String TOPPMSFraggerAdapter::param_isotope_error = "tolerance:isotope_error";
+
+// digest
+const String TOPPMSFraggerAdapter::param_search_enzyme_name = "digest:search_enzyme_name";
+const String TOPPMSFraggerAdapter::param_search_enzyme_cutafter = "digest:search_enzyme_cutafter";
+const String TOPPMSFraggerAdapter::param_search_enzyme_nocutbefore = "digest:search_enzyme_nocutbefore";
+const String TOPPMSFraggerAdapter::param_num_enzyme_termini = "digest:num_enzyme_termini";
+const String TOPPMSFraggerAdapter::param_allowed_missed_cleavage = "digest:allowed_missed_cleavage";
+const String TOPPMSFraggerAdapter::param_digest_min_length = "digest:digest_min_length";
+const String TOPPMSFraggerAdapter::param_digest_max_length = "digest:digest_max_length";
+const String TOPPMSFraggerAdapter::param_digest_mass_range_min = "digest:digest_mass_range_min";
+const String TOPPMSFraggerAdapter::param_digest_mass_range_max = "digest:digest_mass_range_max";
+
+// varmod
+const String TOPPMSFraggerAdapter::param_clip_nterm_m = "varmod:clip_nterm_m";
+
+
+
+
+
+const String TOPPMSFraggerAdapter::param_allow_multiple_variable_mods_on_residue = "allow_multiple_variable_mods_on_residue";
+const String TOPPMSFraggerAdapter::param_max_variable_mods_per_mod = "max_variable_mods_per_mod";
+const String TOPPMSFraggerAdapter::param_max_variable_mods_combinations = "max_variable_mods_combinations";
+const String TOPPMSFraggerAdapter::param_precursor_charge_min = "precursor_charge_min";
+const String TOPPMSFraggerAdapter::param_precursor_charge_max = "precursor_charge_max";
+const String TOPPMSFraggerAdapter::param_override_charge = "override_charge";
+
+const String TOPPMSFraggerAdapter::param_max_fragment_charge = "max_fragment_charge";
+const String TOPPMSFraggerAdapter::param_track_zero_topn = "track_zero_topn";
+const String TOPPMSFraggerAdapter::param_zero_bin_accept_expect = "zero_bin_accept_expect";
+const String TOPPMSFraggerAdapter::param_zero_bin_mult_expect = "zero_bin_mult_expect";
+const String TOPPMSFraggerAdapter::param_add_topn_complementary = "add_topn_complementary";
+
 
 int main(int argc, const char** argv)
 {
