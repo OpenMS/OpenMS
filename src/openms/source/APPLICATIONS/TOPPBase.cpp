@@ -100,32 +100,25 @@ namespace OpenMS
 #endif
   }
 
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, bool id_tag_support, bool require_args, const String& version) :
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations) :
     tool_name_(tool_name),
     tool_description_(tool_description),
-    id_tag_support_(id_tag_support),
-    require_args_(require_args),
-    id_tagger_(tool_name),
     instance_number_(-1),
-    version_(version),
-    verboseVersion_(version),
+    version_(""),
+    verboseVersion_(""),
+    citations_(citations),
     official_(official),
     log_type_(ProgressLogger::NONE),
     test_mode_(false),
     debug_level_(-1)
   {
+    version_ = VersionInfo::getVersion();
+    verboseVersion_ = version_ + " " + VersionInfo::getTime();
 
-    // if version is empty, use the OpenMS/TOPP version and date/time
-    if (version_ == "")
+    // if the revision info is meaningful, show it as well
+    if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
     {
-      version_ = VersionInfo::getVersion();
-      verboseVersion_ = version_ + " " + VersionInfo::getTime();
-
-      // if the revision info is meaningful, show it as well
-      if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
-      {
-        verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
-      }
+      verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
     }
 
     //check if tool is in official tools list
@@ -180,10 +173,6 @@ namespace OpenMS
     registerStringOption_("write_wsdl", "<file>", "", "Writes the default WSDL file", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
     registerFlag_("force", "Overwrite tool specific checks.", true);
-    if (id_tag_support_)
-    {
-      registerStringOption_("id_pool", "<file>", "", String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")", false);
-    }
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
     registerFlag_("-help", "Shows options");
     registerFlag_("-helphelp", "Shows all options (including advanced)", false);
@@ -226,7 +215,7 @@ namespace OpenMS
 
 
     // test if no options were given
-    if (require_args_ && argc == 1)
+    if (argc == 1)
     {
       writeLog_("No options given. Aborting!");
       printUsage_();
@@ -451,33 +440,6 @@ namespace OpenMS
       log_type_ = ProgressLogger::CMD;
     }
 
-    //-------------------------------------------------------------
-    //document ID tagging
-    //-------------------------------------------------------------
-    if (id_tag_support_ && getStringOption_("id_pool").length() > 0)
-    {
-      // set custom pool file if given
-      if (!(getStringOption_("id_pool") == String("main")))
-        id_tagger_.setPoolFile(getStringOption_("id_pool"));
-
-      //check if there are enough IDs in the pool (we require at least one and warn below 5)
-      Int id_count(0);
-      if (!id_tagger_.countFreeIDs(id_count))
-      {
-        writeLog_("Error: Unable to query ID pool! Ending program (no computation was performed)!");
-        return INTERNAL_ERROR;
-      }
-      if (id_count == 0)
-      {
-        writeLog_("Error: No Document IDs in the ID pool. Please restock now! Ending program (no computation was performed)!");
-        return INTERNAL_ERROR;
-      }
-      else if (id_count <= 5)
-      {
-        writeLog_("Warning: Less than five(!) Document IDs in the ID pool. Please restock soon!");
-      }
-    }
-
     //----------------------------------------------------------
     //threads
     //----------------------------------------------------------
@@ -585,11 +547,22 @@ namespace OpenMS
     // show advanced options?
     bool verbose = getFlag_("-helphelp");
 
-    //common output
+    // common output
+    Citation cite_openms = { "Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
+      "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
+      "Nat Meth. 2016; 13, 9: 741-748",
+      "10.1038/nmeth.3959" };
     cerr << "\n"
          << ConsoleUtils::breakString(tool_name_ + " -- " + tool_description_, 0, 10) << "\n"
-         << "Version: " << verboseVersion_ << "\n" << "\n"
-         << "Usage:" << "\n"
+         << "Version: " << verboseVersion_ << "\n"
+         << "To cite OpenMS:\n  " << cite_openms.toString() << "\n";
+    if (!citations_.empty())
+    {
+      cerr << "To cite " << tool_name_ << ":\n";
+      for (const Citation& c : citations_) cerr << "  " << c.toString() << "\n";
+    }
+    cerr << "\n";
+    cerr << "Usage:" << "\n"
          << "  " << tool_name_ << " <options>" << "\n"
          << "\n";
 
@@ -2218,21 +2191,6 @@ namespace OpenMS
       paramFile.load(ini_name, p);
     }
     return p;
-  }
-
-  const DocumentIDTagger& TOPPBase::getDocumentIDTagger_() const
-  {
-    if (!id_tag_support_)
-    {
-      writeLog_(String("Error: Message to maintainer - You created your TOPP tool without id_tag_support and query the ID Pool class! Decide what you want!"));
-      exit(INTERNAL_ERROR);
-    }
-    else if (id_tag_support_ && getStringOption_("id_pool").length() == 0)
-    {
-      writeLog_(String("Error: Message to maintainer - You created your TOPP tool with id_tag_support and query the ID Pool class without the user actually requesting it (-id_pool is not set)!"));
-      exit(INTERNAL_ERROR);
-    }
-    return id_tagger_;
   }
 
   const String& TOPPBase::toolName_() const
