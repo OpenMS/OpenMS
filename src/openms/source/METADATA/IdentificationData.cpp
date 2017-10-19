@@ -168,7 +168,7 @@ namespace OpenMS
           MoleculeParentMatch match(evidence.getStart(), evidence.getEnd(),
                                     evidence.getAABefore(),
                                     evidence.getAAAfter());
-          parent_matches[result.first][parent_key].insert(match);
+          addMoleculeParentMatch(result.first, parent_key, match);
         }
         IdentifiedMetaData& meta = identified_meta_data.at(result.first);
         meta.processing_steps.push_back(step_key);
@@ -377,6 +377,236 @@ namespace OpenMS
       }
 
       proteins.push_back(protein);
+    }
+  }
+
+
+  MzTab IdentificationData::exportMzTab() const
+  {
+    MzTabMetaData meta;
+    Size counter = 1;
+    for (const auto& sw_pair : processing_software)
+    {
+      MzTabSoftwareMetaData sw_meta;
+      sw_meta.software.setName(sw_pair.right.tool.getName());
+      sw_meta.software.setValue(sw_pair.right.tool.getVersion());
+      meta.software[counter] = sw_meta;
+      ++counter;
+    }
+    counter = 1;
+    map<InputFileKey, Size> file_map;
+    for (const auto& file_pair : input_files)
+    {
+      MzTabMSRunMetaData run_meta;
+      run_meta.location.set(file_pair.right);
+      meta.ms_run[counter] = run_meta;
+      file_map[file_pair.left] = counter;
+      ++counter;
+    }
+    set<String> fixed_mods, variable_mods;
+    for (const auto& search_pair : db_search_params)
+    {
+      fixed_mods.insert(search_pair.right.fixed_mods.begin(),
+                        search_pair.right.fixed_mods.end());
+      variable_mods.insert(search_pair.right.variable_mods.begin(),
+                           search_pair.right.variable_mods.end());
+    }
+    counter = 1;
+    for (const String& mod : fixed_mods)
+    {
+      MzTabModificationMetaData mod_meta;
+      mod_meta.modification.setName(mod);
+      meta.fixed_mod[counter] = mod_meta;
+      ++counter;
+    }
+    counter = 1;
+    for (const String& mod : variable_mods)
+    {
+      MzTabModificationMetaData mod_meta;
+      mod_meta.modification.setName(mod);
+      meta.variable_mod[counter] = mod_meta;
+      ++counter;
+    }
+
+    map<ScoreTypeKey, Size> protein_scores, peptide_scores, psm_scores;
+    // compound_scores;
+
+    MzTabProteinSectionRows proteins;
+    for (const auto& parent_pair : parent_molecules)
+    {
+      const ParentMetaData& parent_meta = parent_meta_data.at(parent_pair.left);
+      if (parent_meta.molecule_type != MT_PROTEIN) continue;
+      MzTabProteinSectionRow protein;
+      protein.accession.set(parent_pair.right);
+      for (const pair<ScoreTypeKey, double>& score_pair : parent_meta.scores)
+      {
+        if (protein_scores.count(score_pair.first) == 0) // new score type
+        {
+          protein_scores.insert(make_pair(score_pair.first,
+                                          protein_scores.size() + 1));
+        }
+        Size index = protein_scores[score_pair.first];
+        protein.best_search_engine_score[index].set(score_pair.second);
+      }
+      vector<MzTabParameter> search_engines;
+      for (const ProcessingStepKey& step_key : parent_meta.processing_steps)
+      {
+        const DataProcessingStep& step = processing_steps.left.at(step_key);
+        const DataProcessingSoftware& sw =
+          processing_software.left.at(step.software_key);
+        MzTabParameter param;
+        param.setName(sw.tool.getName());
+        param.setValue(sw.tool.getVersion());
+        search_engines.push_back(param);
+      }
+      protein.search_engine.set(search_engines);
+      protein.description.set(parent_meta.description);
+      protein.protein_coverage.set(parent_meta.coverage);
+      MzTabOptionalColumnEntry opt_seq;
+      opt_seq.first = "sequence";
+      opt_seq.second.set(parent_meta.sequence);
+      protein.opt_.push_back(opt_seq);
+      proteins.push_back(protein);
+    }
+
+    MzTabPeptideSectionRows peptides;
+    for (const auto& peptide_pair : identified_peptides)
+    {
+      MzTabPeptideSectionRow peptide;
+      // @TODO: handle modifications properly
+      peptide.sequence.set(peptide_pair.right.toString());
+      const IdentifiedMetaData& peptide_meta =
+        identified_meta_data.at(peptide_pair.left);
+      for (const pair<ScoreTypeKey, double>& score_pair : peptide_meta.scores)
+      {
+        if (peptide_scores.count(score_pair.first) == 0) // new score type
+        {
+          peptide_scores.insert(make_pair(score_pair.first,
+                                          peptide_scores.size() + 1));
+        }
+        Size index = peptide_scores[score_pair.first];
+        peptide.best_search_engine_score[index].set(score_pair.second);
+      }
+      vector<MzTabParameter> search_engines;
+      for (const ProcessingStepKey& step_key : peptide_meta.processing_steps)
+      {
+        const DataProcessingStep& step = processing_steps.left.at(step_key);
+        const DataProcessingSoftware& sw =
+          processing_software.left.at(step.software_key);
+        MzTabParameter param;
+        param.setName(sw.tool.getName());
+        param.setValue(sw.tool.getVersion());
+        search_engines.push_back(param);
+      }
+      peptide.search_engine.set(search_engines);
+      // we write all protein accessions into one field, rather than create
+      // multiple rows for the same peptide:
+      String accessions;
+      bool unique = false; // default to false if there's no protein reference
+      ParentMatchMap::const_iterator pos =
+        parent_matches.find(peptide_pair.left);
+      if (pos != parent_matches.end())
+      {
+        for (const pair<ParentMoleculeKey, set<MoleculeParentMatch>>&
+               match_pair : pos->second)
+        {
+          const String& accession = parent_molecules.left.at(match_pair.first);
+          if (accessions.empty())
+          {
+            accessions = accession;
+            unique = true;
+          }
+          else
+          {
+            accessions = accessions + "/" + accession;
+            unique = false;
+          }
+        }
+      }
+      peptide.accession.set(accessions);
+      peptide.unique.set(unique);
+      peptides.push_back(peptide);
+    }
+
+    MzTabPSMSectionRows psms;
+    counter = 1;
+    for (const pair<QueryMatchKey, MoleculeQueryMatch>& psm_pair :
+           query_matches)
+    {
+      IdentifiedMoleculeKey molecule_key = psm_pair.first.first;
+      const IdentifiedMetaData& id_meta = identified_meta_data.at(molecule_key);
+      // @TODO: what about small molecules?
+      if (id_meta.molecule_type != MT_PROTEIN) continue;
+      DataQueryKey query_key = psm_pair.first.second;
+      const DataQuery& query = data_queries.left.at(query_key);
+      const MoleculeQueryMatch& match = psm_pair.second;
+      MzTabPSMSectionRow psm;
+      const AASequence& seq = identified_peptides.left.at(molecule_key);
+      // @TODO: handle modifications properly
+      psm.sequence.set(seq.toString());
+      psm.PSM_ID.set(counter);
+      for (const pair<ScoreTypeKey, double>& score_pair : match.scores)
+      {
+        if (psm_scores.count(score_pair.first) == 0) // new score type
+        {
+          psm_scores.insert(make_pair(score_pair.first, psm_scores.size() + 1));
+        }
+        Size index = psm_scores[score_pair.first];
+        psm.search_engine_score[index].set(score_pair.second);
+      }
+      vector<MzTabParameter> search_engines;
+      for (const ProcessingStepKey& step_key : match.processing_steps)
+      {
+        const DataProcessingStep& step = processing_steps.left.at(step_key);
+        const DataProcessingSoftware& sw =
+          processing_software.left.at(step.software_key);
+        MzTabParameter param;
+        param.setName(sw.tool.getName());
+        param.setValue(sw.tool.getVersion());
+        search_engines.push_back(param);
+      }
+      psm.search_engine.set(search_engines);
+      vector<MzTabDouble> rts(1);
+      rts[0].set(query.rt);
+      psm.retention_time.set(rts);
+      psm.charge.set(match.charge);
+      psm.exp_mass_to_charge.set(query.mz);
+      psm.calc_mass_to_charge.set(seq.getMonoWeight(Residue::Full,
+                                                    match.charge));
+      psm.spectra_ref.setMSFile(file_map[query.input_file_key]);
+      psm.spectra_ref.setSpecRef(query.data_id);
+      // don't repeat data from the peptide section (e.g. accessions)
+      // why are "pre"/"post"/"start"/"end" not in the peptide section?!
+      ++counter;
+      psms.push_back(psm);
+    }
+
+    addMzTabSEScores_(protein_scores, meta.protein_search_engine_score);
+    addMzTabSEScores_(peptide_scores, meta.peptide_search_engine_score);
+    addMzTabSEScores_(psm_scores, meta.psm_search_engine_score);
+
+    MzTab output;
+    output.setMetaData(meta);
+    output.setProteinSectionRows(proteins);
+    output.setPeptideSectionRows(peptides);
+    output.setPSMSectionRows(psms);
+
+    return output;
+  }
+
+
+  void IdentificationData::addMzTabSEScores_(
+    const map<ScoreTypeKey, Size>& scores, map<Size, MzTabParameter>& output)
+    const
+  {
+    for (const pair<ScoreTypeKey, Size>& score_pair : scores)
+    {
+      const ScoreType& score_type = score_types.left.at(score_pair.first);
+      MzTabParameter param;
+      param.setName(score_type.name); // or "score_type.cv_term.getName()"?
+      param.setAccession(score_type.cv_term.getAccession());
+      param.setCVLabel(score_type.cv_term.getCVIdentifierRef());
+      output[score_pair.second] = param;
     }
   }
 
