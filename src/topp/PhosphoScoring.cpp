@@ -77,19 +77,12 @@ using namespace std;
   individual Ascore was calculated and listed as meta value of the peptide hit (e.g. AScore_1,
   AScore_2).
   
-<<<<<<< HEAD
-  The Ascore results of this TOPP tool differs with the results of the Ascore calculation provided on the website <a href="http://ascore.med.harvard.edu/ascore.html">,
-  but it seems that the implementation according to Beausoleil <em>et al.</em> has some calculation errors. 
-  It is not possible to recalculate the Ascore using the cumulative binomial probability formula with the given values (see Fig. 3c). 
-  In addition the site determining ions calculation seems unreliable, because in some test cases more site determining ions were calculated than it could be possible.
-=======
-  The Ascore results of this TOPP tool differs with the results of the Ascore calculation provided 
+  The Ascore results of this TOPP tool differ with the results of the Ascore calculation provided 
   <a href="http://ascore.med.harvard.edu/ascore.html">on the website</a>, but it seems that the
   implementation according to Beausoleil <em>et al.</em> has some calculation errors.  It is not
   possible to recalculate the Ascore using the cumulative binomial probability formula with the
   given values (see Fig. 3c).  In addition the site determining ions calculation seems not reliable,
   because in some test cases more site determining ions were calculated than it could be possible.
->>>>>>> 9886726bb7347e3e7f7d9f2e16d583b219729ca0
 
   @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool.
   Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.

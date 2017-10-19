@@ -43,10 +43,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
-<<<<<<< HEAD
-=======
-#include <OpenMS/FORMAT/FASTAFile.h>
->>>>>>> 9886726bb7347e3e7f7d9f2e16d583b219729ca0
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
