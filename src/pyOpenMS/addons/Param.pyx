@@ -30,17 +30,21 @@
 
         cdef Param p
         cdef int flag
+        cdef bool r
 
         if len(a) == 1 and isinstance(a[0], dict):
             dd, = a
             for key, v in dd.items():
                 self[key] = v
+            return True
         elif len(a) == 1 and isinstance(a[0], Param):
             p, = a
-            self.inst.get().update(<_Param>deref(p.inst.get()))
+            r = self.inst.get().update(<_Param>deref(p.inst.get()))
+            return r
         elif len(a) == 2 and isinstance(a[0], Param) and isinstance(a[1], int):
             p, flag = a
-            self.inst.get().update(<_Param>deref(p.inst.get()), <bool> flag)
+            r = self.inst.get().update(<_Param>deref(p.inst.get()), <bool> flag)
+            return r
         else:
             raise Exception("can not handle parameters of type %s" % (map(type, a)))
 

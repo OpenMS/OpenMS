@@ -7,6 +7,7 @@ cdef extern from "<OpenMS/METADATA/SampleTreatment.h>" namespace "OpenMS":
     
     cdef cppclass SampleTreatment(MetaInfoInterface) :
         # wrap-ignore
+        # no-pxd-import
         # ABSTRACT class
 
         # wrap-inherits:

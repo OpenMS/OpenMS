@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,9 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
@@ -81,7 +84,12 @@ public:
       spectrum.sortByIntensity(true);
 
       // keep the n largest peaks if more than n are present
-      spectrum.resize(peakcount_);
+      std::vector<Size> indices;
+      for (Size i = 0; i != peakcount_; ++i)
+      {
+        indices.push_back(i);
+      }
+      spectrum.select(indices);
     }
 
     void filterPeakSpectrum(PeakSpectrum & spectrum);

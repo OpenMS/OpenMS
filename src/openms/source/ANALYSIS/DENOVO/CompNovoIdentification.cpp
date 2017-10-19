@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -512,22 +512,6 @@ namespace OpenMS
       String mod_string = getModifiedStringFromAASequence_(it->getSequence());
       getETDSpectrum_(ETD_sim_spec, mod_string, charge);
       getCIDSpectrum_(CID_sim_spec, mod_string, charge);
-
-
-      /*RichPeakSpectrum CID_sim_pilis_spec;
-      cerr << "PILIS Model disabled: " << endl;
-      exit(1);
-      //pilis_model_.getSpectrum (CID_sim_pilis_spec, it->getSequence(), charge);
-      CID_sim_pilis_spec.sortByPosition();
-
-      for (RichPeakSpectrum::ConstIterator pit = CID_sim_pilis_spec.begin(); pit != CID_sim_pilis_spec.end(); ++pit)
-      {
-          Peak1D p;
-          p.setPosition(pit->getPosition()[0]);
-          p.setIntensity(pit->getIntensity());
-          CID_sim_spec.push_back(p);
-      }
-      */
 
       normalizer.filterSpectrum(ETD_sim_spec);
       normalizer.filterSpectrum(CID_sim_spec);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -249,8 +249,8 @@ private:
     void computeIntensityOfMSD_(std::vector<MSDGroup> & msd_groups);
 
     /// traverse protein and peptide nodes for building MSD groups
-    void traversProtein_(ProteinEntry * prot_node, MSDGroup & group);
-    void traversPeptide_(PeptideEntry * pep_node, MSDGroup & group);
+    void traverseProtein_(ProteinEntry * prot_node, MSDGroup & group);
+    void traversePeptide_(PeptideEntry * pep_node, MSDGroup & group);
     /// searches given sequence in all nodes and returns its index or nodes.size() if not found.
     Size findPeptideEntry_(String seq, std::vector<PeptideEntry> & nodes);
     /// helper function for findPeptideEntry.

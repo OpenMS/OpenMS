@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -196,7 +196,7 @@ protected:
     void extendMassTrace_(MassTrace& trace, SignedSize spectrum_index, double mz, bool increase_rt, Size meta_index_overall, double min_rt = 0.0, double max_rt = 0.0) const;
 
     /// Returns the index of the peak nearest to m/z @p pos in spectrum @p spec (linear search starting from index @p start)
-    Size nearest_(double pos, const MSSpectrum<>& spec, Size start) const;
+    Size nearest_(double pos, const MSSpectrum& spec, Size start) const;
 
     /**
       @brief Searches for an isotopic peak in the current spectrum and the adjacent spectra

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,6 +51,7 @@ using namespace std;
 
 TransformationModel* ptr = 0;
 TransformationModel* nullPointer = 0;
+
 START_SECTION((TransformationModel()))
 {
   ptr = new TransformationModel();
@@ -58,7 +59,7 @@ START_SECTION((TransformationModel()))
 }
 END_SECTION
 
-START_SECTION((TransformationModel(const DataPoints &, const Param &)))
+START_SECTION((TransformationModel(const DataPoints&, const Param&)))
 {
   ptr = new TransformationModel(TransformationModel::DataPoints(), Param());
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -81,7 +82,7 @@ START_SECTION((virtual double evaluate(double value) const))
 }
 END_SECTION
 
-START_SECTION((void getParameters(Param & params) const))
+START_SECTION((void getParameters(Param& params) const))
 {
   TransformationModel tm;
   Param p = tm.getParameters();
@@ -89,12 +90,49 @@ START_SECTION((void getParameters(Param & params) const))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] static void getDefaultParameters(Param & params)))
+START_SECTION(([EXTRA] static void getDefaultParameters(Param& params)))
 {
   Param param;
   param.setValue("some-value", 12.3);
   TransformationModel::getDefaultParameters(param);
   TEST_EQUAL(param.empty(), true)
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DataPoint::DataPoint(double, double, const String&)))
+{
+  NOT_TESTABLE // tested below
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DataPoint::DataPoint(const pair<double, double>&)))
+{
+  NOT_TESTABLE // tested below
+}
+END_SECTION
+
+START_SECTION(([EXTRA] bool DataPoint::operator<(const DataPoint& other) const))
+{
+  TransformationModel::DataPoint p1(1.0, 2.0, "abc");
+  TransformationModel::DataPoint p2(make_pair(1.0, 2.0));
+  TEST_EQUAL(p1 < p2, false);
+  TEST_EQUAL(p2 < p1, true);
+  p2.note = "def";
+  TEST_EQUAL(p1 < p2, true);
+  TEST_EQUAL(p2 < p1, false);
+  p1.first = 1.5;
+  TEST_EQUAL(p1 < p2, false);
+  TEST_EQUAL(p2 < p1, true);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] bool DataPoint::operator==(const DataPoint& other) const))
+{
+  TransformationModel::DataPoint p1(1.0, 2.0, "abc");
+  TransformationModel::DataPoint p2(make_pair(1.0, 2.0));
+  TEST_EQUAL(p1 == p2, false);
+  p2.note = "abc";
+  TEST_EQUAL(p1 == p2, true);
 }
 END_SECTION
 

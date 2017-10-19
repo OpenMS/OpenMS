@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,9 +100,10 @@ namespace OpenMS
 
           for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
           {
-            if (orig_it->size() == 1)
+            // we don't allow modifications with ambiguity codes as origin (except "X"):
+            if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
             {
-              mod.setOrigin((*orig_it));
+              mod.setOrigin((*orig_it)[0]);
               all_mods.insert(make_pair(id, mod));
             }
           }
@@ -110,13 +111,13 @@ namespace OpenMS
           if (origin.hasSubstring("ProteinN-term"))
           {
             mod.setTermSpecificity(ResidueModification::N_TERM);
-            mod.setOrigin("N-term");
+            mod.setOrigin('X');
             all_mods.insert(make_pair(id, mod));
           }
           if (origin.hasSubstring("ProteinC-term"))
           {
             mod.setTermSpecificity(ResidueModification::C_TERM);
-            mod.setOrigin("C-term");
+            mod.setOrigin('X');
             all_mods.insert(make_pair(id, mod));
           }
 
@@ -166,7 +167,9 @@ namespace OpenMS
         {
           if (split[i].hasPrefix("UniMod:"))
           {
-            mod.setUniModAccession(split[i].trim());
+            // Parse UniMod identifier to int
+            String identifier = split[i].substr(7, split[i].size());
+            mod.setUniModRecordId(identifier.toInt());
           }
         }
       }
@@ -283,9 +286,10 @@ namespace OpenMS
 
       for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
       {
-        if (orig_it->size() == 1)
+        // we don't allow modifications with ambiguity codes as origin (except "X"):
+        if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
         {
-          mod.setOrigin((*orig_it));
+          mod.setOrigin((*orig_it)[0]);
           all_mods.insert(make_pair(id, mod));
         }
       }
@@ -293,13 +297,13 @@ namespace OpenMS
       if (origin.hasSubstring("ProteinN-term"))
       {
         mod.setTermSpecificity(ResidueModification::N_TERM);
-        mod.setOrigin("N-term");
+        mod.setOrigin('X');
         all_mods.insert(make_pair(id, mod));
       }
       if (origin.hasSubstring("ProteinC-term"))
       {
         mod.setTermSpecificity(ResidueModification::C_TERM);
-        mod.setOrigin("C-term");
+        mod.setOrigin('X');
         all_mods.insert(make_pair(id, mod));
       }
 
@@ -313,7 +317,7 @@ namespace OpenMS
     {
 
       // check whether a unimod definition already exists, then simply add synonyms to it
-      if (it->second.getUniModAccession() != "")
+      if (it->second.getUniModRecordId() > 0)
       {
         //cerr << "Found UniMod PSI-MOD mapping: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
         set<const ResidueModification*> mods = modification_names_[it->second.getUniModAccession()];
@@ -327,8 +331,9 @@ namespace OpenMS
       {
         // the mod has so far not been mapped to a unimod mod
         // first check whether the mod is specific
-        if ( (it->second.getOrigin().size() == 1 && it->second.getOrigin() != "X") ||
-              (it->second.getOrigin() == "N-term") || (it->second.getOrigin() == "C-term"))
+        if ((it->second.getOrigin() != 'X') ||
+            ((it->second.getTermSpecificity() != ResidueModification::ANYWHERE) &&
+             (it->second.getDiffMonoMass() != 0)))
         {
           mods_.push_back(new ResidueModification(it->second));
 
@@ -337,7 +342,10 @@ namespace OpenMS
           synonyms.insert(it->second.getFullName());
           //synonyms.insert(it->second.getUniModAccession());
           synonyms.insert(it->second.getPSIMODAccession());
-          mods_.back()->setFullId(it->second.getFullName() + " (" + it->second.getOrigin() + ")");
+          // full ID is auto-generated based on (short) ID, but we want the name instead:
+          mods_.back()->setId(it->second.getFullName());
+          mods_.back()->setFullId();
+          mods_.back()->setId(it->second.getId());
           synonyms.insert(mods_.back()->getFullId());
 
           // now check each of the names and link it to the residue modification

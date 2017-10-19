@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -120,6 +120,7 @@ foreach(i ${GUI_executables})
   if (MSVC AND EXISTS ${resource_file})
     message(STATUS "Setting resource file ${resource_file} for ${i}")
     add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
+    install_tool(${i})
   elseif(APPLE AND EXISTS ${resource_dir})
     add_mac_app_bundle(${i})
   else()
@@ -129,6 +130,7 @@ foreach(i ${GUI_executables})
       message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
     endif()
     add_executable(${i} ${GUI_DIR}/${i}.cpp)
+    install_tool(${i})
   endif()
 
   ## append visual lib as dependency for GUI tools
@@ -136,9 +138,6 @@ foreach(i ${GUI_executables})
   if (OPENMP_FOUND AND NOT MSVC)
     set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
   endif()
-
-  # we also want to install each GUI tool
-  install_tool(${i})
 endforeach(i)
 add_custom_target(GUI)
 add_dependencies(GUI ${GUI_executables})

@@ -14,6 +14,7 @@ set(sources_list
 	MzMLHandler.cpp
   MzMLHandlerHelper.cpp
   MzMLSpectrumDecoder.cpp
+  MzMLSqliteHandler.cpp
 	MzXMLHandler.cpp
 	PTMXMLHandler.cpp
 	ParamXMLHandler.cpp
@@ -21,6 +22,7 @@ set(sources_list
 	TraMLHandler.cpp
 	UnimodXMLHandler.cpp
 	XMLHandler.cpp
+	XQuestResultXMLHandler.cpp
 )
 
 ### add path to the filenames

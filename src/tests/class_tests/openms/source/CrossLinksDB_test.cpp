@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,10 @@ struct ResidueModificationOriginCmp
 {
   bool operator() (const ResidueModification* a, const ResidueModification* b)
   {
+    if (a->getOrigin() == b->getOrigin())
+    {
+      return a->getTermSpecificity() < b->getTermSpecificity();
+    }
     return a->getOrigin() < b->getOrigin();
   }
 };
@@ -104,42 +108,42 @@ START_SECTION((void searchModifications(std::set<const ResidueModification*>& mo
 
   // EDC is a heterobifunctional cross-linker: one reactive site binds to C-term, D and E, the other to N-term, K, S, T
   // no distinction between the two sites implemented in CrossLinksDB or ResidueModification, the search engine has to take care of that for now
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'D')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'E')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'K')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'S')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'T')
+  TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
+  ++mod_it;
+
+  TEST_EQUAL((*mod_it)->getOrigin(), 'X')
   TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
   ++mod_it;
 
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "D")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "E")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "K")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "N-term")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'X')
   TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::N_TERM)
   ++mod_it;
 
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "S")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "T")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "Y")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'Y')
   TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
 
@@ -156,12 +160,12 @@ START_SECTION((void searchModifications(std::set<const ResidueModification*>& mo
   }
 
   mod_it = mods_sorted.begin();
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_EQUAL((*mod_it)->getOrigin(), 'X')
   TEST_STRING_EQUAL((*mod_it)->getId(), "EDC")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
 
   // no match, thus mods should be empty
-    ptr->searchModifications(mods, "EDC", "R", ResidueModification::ANYWHERE);
+  ptr->searchModifications(mods, "EDC", "R", ResidueModification::ANYWHERE);
 
   TEST_EQUAL(mods.size(), 0)
 }

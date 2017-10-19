@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -176,7 +176,9 @@ protected:
     ProteinIdentification prot_id;
     prot_id.setIdentifier(identifier);
     prot_id.setDateTime(now);
-    prot_id.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
+    prot_id.setPrimaryMSRunPath(ms_runs);
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.charges = "+2-+3";
@@ -195,7 +197,7 @@ protected:
     search_parameters.missed_cleavages = (UInt)algorithm_param.getValue("missed_cleavages");
     search_parameters.fragment_mass_tolerance = (double)algorithm_param.getValue("fragment_mass_tolerance");
     search_parameters.precursor_mass_tolerance = (double)algorithm_param.getValue("precursor_mass_tolerance");
-    search_parameters.fragment_mass_tolerance_ppm = false;    
+    search_parameters.fragment_mass_tolerance_ppm = false;
     search_parameters.precursor_mass_tolerance_ppm = false;
     prot_id.setSearchParameters(search_parameters);
     prot_id.setSearchEngineVersion("0.9beta");

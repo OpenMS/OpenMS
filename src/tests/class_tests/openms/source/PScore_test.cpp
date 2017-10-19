@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,9 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/RNPXL/PScore.h>
 ///////////////////////////
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -100,7 +103,7 @@ START_SECTION((static std::vector<std::vector<Size> > calculateRankMap(const Pea
 }
 END_SECTION
 
-START_SECTION((static std::map<Size, PeakSpectrum > calculatePeakLevelSpectra(const PeakSpectrum &spec, const std::vector< Size > &ranks, Size min_level=2, Size max_level=10)))
+START_SECTION((static std::map<Size, PeakSpectrum> calculatePeakLevelSpectra(const PeakSpectrum &spec, const std::vector< Size > &ranks, Size min_level=2, Size max_level=10)))
 {
   DTAFile dta_file;
   PeakSpectrum spec;
@@ -144,13 +147,13 @@ START_SECTION((static std::map<Size, PeakSpectrum > calculatePeakLevelSpectra(co
 }
 END_SECTION
 
-START_SECTION((static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map< Size, PeakSpectrum > &peak_level_spectra, const std::vector< RichPeakSpectrum > &theo_spectra, double mz_window=100.0)))
+START_SECTION((static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map< Size, PeakSpectrum > &peak_level_spectra, const std::vector< PeakSpectrum > &theo_spectra, double mz_window=100.0)))
 {
   // Convenience function. Calculations tested via computePScore
 }
 END_SECTION
 
-START_SECTION((static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map< Size, PeakSpectrum > &peak_level_spectra, const RichPeakSpectrum &theo_spectrum, double mz_window=100.0)))
+START_SECTION((static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map< Size, PeakSpectrum > &peak_level_spectra, const PeakSpectrum &theo_spectrum, double mz_window=100.0)))
 {
   DTAFile dta_file;
   PeakSpectrum spec;
@@ -162,10 +165,10 @@ START_SECTION((static double computePScore(double fragment_mass_tolerance, bool 
     intensities.push_back(spec[i].getIntensity());
   }
 
-  RichPeakSpectrum theo_spec;
+  PeakSpectrum theo_spec;
   for (Size i = 0; i != spec.size(); ++i)
   {
-    RichPeak1D p;
+    Peak1D p;
     p.setMZ(spec[i].getMZ());
     p.setIntensity(spec[i].getIntensity());
     theo_spec.push_back(p);
@@ -180,6 +183,29 @@ START_SECTION((static double computePScore(double fragment_mass_tolerance, bool 
 
   TEST_REAL_SIMILAR(pscore_all_match_top_1, 83.867454)
   TEST_REAL_SIMILAR(pscore_all_match_top_2, 154.682242)
+
+  AASequence peptide = AASequence::fromString("IFSQVGK");
+  TheoreticalSpectrumGenerator tg;
+  Param param(tg.getParameters());
+  param.setValue("add_first_prefix_ion", "true");
+  tg.setParameters(param);
+  spec.clear(true);
+  tg.getSpectrum(spec, peptide, 1, 1);
+  TEST_EQUAL(spec.size(), 12)
+
+  mz.clear();
+  intensities.clear();
+
+  for (Size i = 0; i != spec.size(); ++i)
+  {
+    mz.push_back(spec[i].getMZ());
+    intensities.push_back(spec[i].getIntensity());
+  }
+
+  ranks = PScore::calculateIntensityRankInMZWindow(mz, intensities, 100.0);
+  pls = PScore::calculatePeakLevelSpectra(spec, ranks, 0, 0);
+  double all_match = PScore::computePScore(0.1, true, pls, spec);
+  TEST_REAL_SIMILAR(all_match, 240)
 }
 END_SECTION
 

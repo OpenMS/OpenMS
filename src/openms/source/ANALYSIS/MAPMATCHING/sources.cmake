@@ -10,7 +10,6 @@ ConsensusMapNormalizerAlgorithmMedian.cpp
 ConsensusMapNormalizerAlgorithmQuantile.cpp
 FeatureDistance.cpp
 FeatureGroupingAlgorithm.cpp
-FeatureGroupingAlgorithmIdentification.cpp
 FeatureGroupingAlgorithmLabeled.cpp
 FeatureGroupingAlgorithmKD.cpp
 FeatureGroupingAlgorithmQT.cpp

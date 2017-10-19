@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,7 @@ namespace OpenMS
       ModelParameters rm_fit(const DVecIt& begin, const DVecIt& end) const
       {
         return static_cast<const ModelT*>(this)->rm_fit_impl(begin, end);
-      };
+      }
       
       /**
         @brief Returns the R-squared of the data applied to the model (computed on-the-fly).

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -507,7 +507,7 @@ protected:
         ppm_difference = absolute_difference / theo_mz * 1000000;
 
         String protein_accessions;
-        set<String> accs = hit->extractProteinAccessions();
+        set<String> accs = hit->extractProteinAccessionsSet();
 
         for (set<String>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)
         {
@@ -614,7 +614,9 @@ protected:
     if (!pr_tmp.empty())
     {
       ProteinIdentification &p_tmp = pr_tmp[0];
-      p_tmp.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+      StringList ms_runs;
+      exp.getPrimaryMSRunPath(ms_runs);
+      p_tmp.setPrimaryMSRunPath(ms_runs);
     }
     IdXMLFile().store(out_idXML, pr_tmp, pt_tmp, "summary");
 
@@ -648,7 +650,7 @@ protected:
       {
         double rt = pit->getRT();
 
-        set<String> accessions = hit->extractProteinAccessions();
+        set<String> accessions = hit->extractProteinAccessionsSet();
 
         String accession_string;
         Size j = 0;

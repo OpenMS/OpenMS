@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -421,20 +421,12 @@ file formats, data reduction functionality and all other analysis algorithms.
 
   @par MSExperiment
   The following figure shows the big picture of the kernel data structures. @a MSExperiment is
-  derived from @a ExperimentalSettings (meta data of the experiment) and from @a vector<MSSpectrum>.
+  derived from @a ExperimentalSettings (meta data of the experiment) and
+  contains two data vectors, available as @a vector<MSSpectrum> and @a vector<MSChromatogram>.
   The one-dimensional spectrum @a MSSpectrum is derived from SpectrumSettings (meta data of a spectrum. @n
-  Since MSSpectrum can store different peak types derived from @a Peak1D, all the data containers
-  are template classes that take the peak type as template argument.
 
   @image html Kernel.png "Overview of the main kernel data structures"
   @image latex Kernel.png "Overview of the main kernel data structures" width=12cm
-
-  @par Typedefs
-  For convenience, the following map types are defined in @a OpenMS/KERNEL/StandardTypes.h.
-  @code
-  typedef MSExperiment<RichPeak1D> RichPeakMap;
-  typedef MSExperiment<Peak1D> PeakMap;
-  @endcode
 
   The following example program (Tutorial_MSExperiment.cpp) creates a @a MSExperiment containing four @a MSSpectrum instances.
   Then it iterates over an area and prints the peak positions in the area:
@@ -613,7 +605,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   data structure independently of the file type. The file type is determined
   from the file extension or the file contents:
   @code
-  MSExperiment<> in;
+  MSExperiment in;
   FileHandler handler();
   handler.loadExperiment("input.mzML",in);
   @endcode

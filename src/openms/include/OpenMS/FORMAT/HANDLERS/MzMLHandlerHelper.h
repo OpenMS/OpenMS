@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,7 +92,7 @@ namespace OpenMS
       /**
         @brief Returns the appropriate compression term given the PeakFileOptions and the NumpressConfig  
       */
-      static String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, bool use_numpress = false);
+      static String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, String indent = "", bool use_numpress = false);
 
       /**
         @brief Write the mzML footer the appropriate compression term given the PeakFileOptions and the NumpressConfig  
@@ -120,4 +120,5 @@ namespace OpenMS
   } // namespace Internal
 } // namespace OpenMS
 
-#endif
+#endif // OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
+

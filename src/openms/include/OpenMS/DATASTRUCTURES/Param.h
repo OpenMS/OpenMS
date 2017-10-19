@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -384,6 +384,13 @@ protected:
       If the section does not exist an empty string is returned.
     */
     const String& getSectionDescription(const String& key) const;
+
+    /**
+    @brief Adds a parameter section under the path @p key with the given @p description.
+
+    If the section already exists, the description is only overwritten if not empty.
+    */
+    void addSection(const String& key, const String& description);
     //@}
 
     ///@name Manipulation of the whole parameter set

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,15 @@
 // $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
-#ifndef  OPENMS_ANALYSIS_ID_ASCORE_H
-#define  OPENMS_ANALYSIS_ID_ASCORE_H
+#ifndef OPENMS_ANALYSIS_ID_ASCORE_H
+#define OPENMS_ANALYSIS_ID_ASCORE_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/ANALYSIS/RNPXL/PScore.h>
+
 #include <limits>
 #include <vector>
 
@@ -140,7 +143,7 @@ class OPENMS_DLLAPI AScore
     }
     
     ///Computes the site determining_ions for the given AS and sequences in candidates
-    void computeSiteDeterminingIons_(const std::vector<RichPeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<RichPeakSpectrum> & site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    void computeSiteDeterminingIons_(const std::vector<PeakSpectrum> & th_spectra, const ProbablePhosphoSites & candidates, std::vector<PeakSpectrum> & site_determining_ions, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
 
     /// return all phospho sites
     std::vector<Size> getSites_(const AASequence & without_phospho) const;
@@ -149,7 +152,7 @@ class OPENMS_DLLAPI AScore
     std::vector<std::vector<Size> > computePermutations_(const std::vector<Size> & sites, Int n_phosphorylation_events) const;
 
     /// Computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by position!
-    Size numberOfMatchedIons_(const RichPeakSpectrum & th, const PeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const;
+    Size numberOfMatchedIons_(const PeakSpectrum & th, const PeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const;
 
     /// Computes the peptide score according to Beausoleil et al. page 1291
     double peptideScore_(const std::vector<double> & scores) const;
@@ -170,13 +173,13 @@ class OPENMS_DLLAPI AScore
     AASequence removePhosphositesFromSequence_(const String sequence) const;
     
     /// Create theoretical spectra with all combinations with the number of phosphorylation events
-    std::vector<RichPeakSpectrum> createTheoreticalSpectra_(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho) const;
+    std::vector<PeakSpectrum> createTheoreticalSpectra_(const std::vector<std::vector<Size> > & permutations, const AASequence & seq_without_phospho) const;
     
     /// Pick top 10 intensity peaks for each 100 Da windows
     std::vector<PeakSpectrum> peakPickingPerWindowsInSpectrum_(PeakSpectrum & real_spectrum) const;
     
     /// Create 10 scores for each theoretical spectrum (permutation), according to Beausoleil et al. Figure 3 b
-    std::vector<std::vector<double> > calculatePermutationPeptideScores_(std::vector<RichPeakSpectrum> & th_spectra, const std::vector<PeakSpectrum> & windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
+    std::vector<std::vector<double> > calculatePermutationPeptideScores_(std::vector<PeakSpectrum> & th_spectra, const std::vector<PeakSpectrum> & windows_top10, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
     
     /// Rank weighted permutation scores ascending
     std::multimap<double, Size> rankWeightedPermutationPeptideScores_(const std::vector<std::vector<double> > & peptide_site_scores) const;
@@ -185,3 +188,4 @@ class OPENMS_DLLAPI AScore
 } // namespace OpenMS
 
 #endif // OPENMS_ANALYSIS_ID_ASCORE_H
+

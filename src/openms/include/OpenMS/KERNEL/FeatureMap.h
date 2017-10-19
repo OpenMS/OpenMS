@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -250,7 +250,7 @@ public:
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
     /// get the file path to the first MS run
-    OPENMS_DLLAPI StringList getPrimaryMSRunPath() const;
+    OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
 
     /**
       @brief Clears all data and meta data

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_PeakPickerHiRes PeakPickerHiRes
+  @page UTILS_LowMemPeakPickerHiRes_RandomAccess LowMemPeakPickerHiRes_RandomAccess
 
   @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
 
@@ -151,7 +151,7 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    OnDiscMSExperiment<> exp;
+    OnDiscPeakMap exp;
     loader.load(in, exp);
 
     // We could write out this warning in the constructor if no spectra have come our way ...
@@ -202,7 +202,7 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    MSExperiment<> ms_exp_peaks;
+    PeakMap ms_exp_peaks;
 
     ///////////////////////////////////
     // Create PeakPickerHiRes and hand it to the PPHiResMzMLConsumer

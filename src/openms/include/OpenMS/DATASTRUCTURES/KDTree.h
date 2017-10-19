@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,8 +58,8 @@
  * \author Martin F. Krafft <libkdtree@pobox.madduck.net>
  */
 
-#ifndef INCLUDE_KDTREE_NODE_HPP
-#define INCLUDE_KDTREE_NODE_HPP
+#ifndef OPENMS_DATASTRUCTURES_KDTREE_H
+#define OPENMS_DATASTRUCTURES_KDTREE_H
 
 #ifdef KDTREE_DEFINE_OSTREAM_OPERATORS
 #  include <ostream>
@@ -1032,7 +1032,7 @@ struct _Region
 
 
 //
-//  This number is guarenteed to change with every release.
+//  This number is guaranteed to change with every release.
 //
 //  KDTREE_VERSION % 100 is the patch level
 //  KDTREE_VERSION / 100 % 1000 is the minor version

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSPY v2004 rel. 3 U (http://www.xmlspy.com) by Patrick Pedrioli (Institute For Systems Biology) -->
+<xs:schema targetNamespace="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_3.1" elementFormDefault="qualified" attributeFormDefault="unqualified" version="3.1">
+	<xs:include schemaLocation="mzXML_3.1_mod.xsd"/> <!-- a modified mzXML_3.1.xsd, since we need a locally fixed mzXML3.1 scheme for XercesC parsing -->
+	<xs:element name="mzXML">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="msRun"/>
+				<xs:element name="index" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Index for non sequential data access</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="offset" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Offset of the element identified by name (index attribute) and id</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:simpleContent>
+										<xs:extension base="xs:long">
+											<xs:attribute name="id" type="xs:positiveInteger" use="required">
+												<xs:annotation>
+													<xs:documentation>This is a unique identifier for the elements of type "name" present in the index (e.g.: for an element of type scan, this will be the scan number)</xs:documentation>
+												</xs:annotation>
+											</xs:attribute>
+										</xs:extension>
+									</xs:simpleContent>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="name" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>name of the element the index entries are pointing to (e.g: scan)</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="indexOffset" type="xs:long" nillable="1">
+					<xs:annotation>
+						<xs:documentation>offset of the index element (if 0 no index present)</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="sha1" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>sha-1 sum for this file (from the beginning of the file up to (and including) the opening tag of sha1</xs:documentation>
+					</xs:annotation>
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:length value="40"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

@@ -8,10 +8,12 @@ MRMAssay.cpp
 MRMDecoy.cpp
 MRMRTNormalizer.cpp
 TransitionTSVReader.cpp
+TransitionPQPReader.cpp
 SwathMapMassCorrection.cpp
 OpenSwathHelper.cpp
 OpenSwathScoring.cpp
 OpenSwathTSVWriter.cpp
+OpenSwathOSWWriter.cpp
 OpenSwathWorkflow.cpp
 ChromatogramExtractor.cpp
 ChromatogramExtractorAlgorithm.cpp

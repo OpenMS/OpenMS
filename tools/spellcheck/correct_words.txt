@@ -432,6 +432,7 @@ Faires
 Fohlman
 Roepstoff
 Gutenbrunner
+Spectrometry
 # }}}
 
 ###################################
@@ -439,8 +440,9 @@ Gutenbrunner
 ###################################
 
 # {{{Classnames
+AAIndex
 MapAlignmentAlgorithm
-ConvertTSVToTraML
+TargetedFileConverter
 MultiplexPeakPattern
 SILACAnalyzer
 LowLevelComparator

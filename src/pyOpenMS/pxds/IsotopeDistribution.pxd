@@ -38,6 +38,9 @@ cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
         #   "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
         void estimateFromPeptideWeight(double average_weight) nogil except +
 
+        # Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
+        void estimateFromPeptideWeightAndS(double average_weight, UInt S);
+
         # Estimate Nucleotide Isotopedistribution from weight
         void estimateFromRNAWeight(double average_weight) nogil except +
 
@@ -49,9 +52,17 @@ cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
 
         void estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P) nogil except +
 
+        # Estimate IsotopeDistribution from weight, exact number of sulfurs, and average remaining composition
+        void estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P);
+
         # Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
         # fragment's average weight, and a set of isolated precursor isotopes.
         void estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
+
+        # Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
+        # number of sulfurs in the precursor, fragment's average weight, number of sulfurs in the fragment,
+        # and a set of isolated precursor isotopes.
+        void estimateForFragmentFromPeptideWeightAndS(double average_weight_precursor, UInt S_precursor, double average_weight_fragment, UInt S_fragment, libcpp_set[ unsigned int ]& precursor_isotopes);
 
         # Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
         # fragment's average weight, and a set of isolated precursor isotopes.

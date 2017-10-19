@@ -438,6 +438,9 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         TraMLProduct(TraMLProduct) nogil except + #wrap-ignore
         bool operator==(TraMLProduct & rhs) nogil except +
 
+        void setMZ(double mz) nogil except +
+        double getMZ() nogil except +
+
         void setChargeState(int charge) nogil except +
         int getChargeState() nogil except +
         bool hasCharge() nogil except +
@@ -464,7 +467,6 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         bool hasCVTerm(String accession)  nogil except +
         bool empty()                      nogil except +
 
-
         # MetaInfoInterface:
         # cython has a problem with inheritance of overloaded methods,
         # so we do not declare them here, but separately in each derived
@@ -489,6 +491,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
 
         # members
         double avg_mass_delta
-        int location
         double mono_mass_delta
+        int location
+        int unimod_id
 

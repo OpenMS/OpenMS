@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
 # a collection of wrapper for install functions that allows easier usage
@@ -43,14 +43,12 @@ set(OPENMS_EXPORT_SET "OpenMSTargets")
 #
 # @param lib_target_name The target name of the library that should be installed
 macro(install_library lib_target_name)
-  if ("${PACKAGE_TYPE}" STREQUAL "none")
     install(TARGETS ${lib_target_name}
       EXPORT ${OPENMS_EXPORT_SET}
-      LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-      ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-      RUNTIME DESTINATION ${INSTALL_LIB_DIR}
-      COMPONENT library)
-  endif()
+      LIBRARY DESTINATION ${INSTALL_LIB_DIR} COMPONENT library
+      ARCHIVE DESTINATION ${INSTALL_LIB_DIR} COMPONENT library
+      RUNTIME DESTINATION ${INSTALL_LIB_DIR} COMPONENT library
+      )
 endmacro()
 
 #------------------------------------------------------------------------------
@@ -83,12 +81,10 @@ endmacro()
 # Installs the tool tool_target_name
 # @param tool_target_name The target name of the tool that should be installed
 macro(install_tool tool_target_name)
-  if ("${PACKAGE_TYPE}" STREQUAL "none")
     install(TARGETS ${tool_target_name}
-      RUNTIME DESTINATION ${INSTALL_BIN_DIR}
-      BUNDLE DESTINATION ${INSTALL_BIN_DIR}
-      COMPONENT applications)
-  endif()
+      RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+      BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+      )
 endmacro()
 
 #------------------------------------------------------------------------------
@@ -97,11 +93,18 @@ endmacro()
 # @param destination The destination (relative to the prefix) where it should be installed
 # @param component The component to which to the directory belongs
 macro(install_directory directory destination component)
-  if ("${PACKAGE_TYPE}" STREQUAL "none")
     install(DIRECTORY ${directory}
       DESTINATION ${destination}
-      COMPONENT ${component})
-  endif()
+      COMPONENT ${component}
+      FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
+                            GROUP_READ
+                            WORLD_READ
+      DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                            GROUP_EXECUTE GROUP_READ
+                            WORLD_EXECUTE WORLD_READ
+      REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+      REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+        )
 endmacro()
 
 #------------------------------------------------------------------------------
@@ -110,11 +113,9 @@ endmacro()
 # @param destination The destination (relative to the prefix) where it should be installed
 # @param component The component to which to the file belongs
 macro(install_file file destination component)
-  if ("${PACKAGE_TYPE}" STREQUAL "none")
     install(FILES ${file}
       DESTINATION ${destination}
       COMPONENT ${component})
-  endif()
 endmacro()
 
 #------------------------------------------------------------------------------
@@ -122,18 +123,34 @@ endmacro()
 # @param code_snippet The code to execute
 # @param component The component to which the code will be associated
 macro(install_code code_snippet component)
-  if ("${PACKAGE_TYPE}" STREQUAL "none")
     install(CODE ${code_snippet}
             COMPONENT ${component})
-  endif()
 endmacro()
 
 #------------------------------------------------------------------------------
 # Installs the exported target information
 macro(install_export_targets )
-  if ("${PACKAGE_TYPE}" STREQUAL "none")
     install(EXPORT ${OPENMS_EXPORT_SET}
             DESTINATION ${INSTALL_SHARE_DIR}/cmake
             COMPONENT share)
+endmacro()
+
+#------------------------------------------------------------------------------
+# Installs Thirdparty folders with executables
+macro(install_thirdparty_folder foldername)
+  if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/${foldername})
+    install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/${foldername}
+            DESTINATION           ${INSTALL_BIN_DIR}/SEARCHENGINES
+            COMPONENT             ${foldername}
+            FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                                  GROUP_READ GROUP_EXECUTE
+                                  WORLD_READ WORLD_EXECUTE
+            REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+            REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+            )
+    list(APPEND THIRDPARTY_COMPONENT_GROUP ${foldername})
   endif()
 endmacro()

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_PeakPickerIterative PeakPickerIterative
+        @page UTILS_PeakPickerIterative PeakPickerIterative
 
         @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerIterative "high_res" algorithm.
 <CENTER>
@@ -74,17 +74,14 @@ using namespace std;
   As the name implies, the @ref OpenMS::PeakPickerIterative "high_res"
   algorithm is fit for high resolution data.
 
-	@ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
-
-	<B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PeakPickerIterative.cli
-
-	For the parameters of the algorithm section see the algorithm documentation: @n
-    @ref OpenMS::PeakPickerIterative "PeakPickerIterative" @n
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_PeakPickerIterative.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_PeakPickerIterative.html
 
 */
 
-typedef MSExperiment<Peak1D> MapType;
+typedef PeakMap MapType;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES

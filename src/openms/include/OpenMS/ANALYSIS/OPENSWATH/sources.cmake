@@ -19,12 +19,14 @@ set(sources_list_h
   OpenSwathHelper.h
   OpenSwathScoring.h
   OpenSwathTSVWriter.h
+  OpenSwathOSWWriter.h
   OpenSwathWorkflow.h
   SONARScoring.h
   SpectrumAddition.h
   SwathMapMassCorrection.h
   SwathWindowLoader.h
   TransitionTSVReader.h
+  TransitionPQPReader.h
 )
 
 ### add path to the filenames

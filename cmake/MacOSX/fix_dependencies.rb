@@ -4,7 +4,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -60,10 +60,12 @@ def debug(message)
 end
 
 ###############################################################################
-def fixable(path)
-  if path.match(/^\./)
+def fixable(name, path)
+  if File.directory?(path + name)
     return false
-  elsif path.match(/\.app$/)
+  elsif name.match(/^\./)
+    return false
+  elsif name.match(/\.app$/)
     return false
   else
     return true
@@ -329,7 +331,7 @@ end
 
 # fix libraries contained in lib-path
 for content in Dir.entries(lib) 
-  if fixable(content)
+  if fixable(content, lib)
     if isFramework(content)
 #      handleFramework(lib + content, lib)
     else
@@ -340,7 +342,7 @@ end
 
 # fix binary references
 for content in Dir.entries(bin)
-  if fixable(content)
+  if fixable(content, bin)
     debug "Handle binary #{bin + content}"
     handleBinary(bin + content, lib)
   end

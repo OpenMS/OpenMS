@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -250,14 +250,12 @@ namespace OpenMS
   }
 
   /// get the file path to the first MS run
-  StringList ProteinIdentification::getPrimaryMSRunPath() const
+  void ProteinIdentification::getPrimaryMSRunPath(StringList& toFill) const
   {
-    StringList ret;
     if (this->metaValueExists("spectra_data"))
     {
-      ret = this->getMetaValue("spectra_data");
+      toFill = this->getMetaValue("spectra_data");
     }
-    return ret;
   }
 
   ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)
@@ -382,7 +380,17 @@ namespace OpenMS
           
           if (start == PeptideEvidence::UNKNOWN_POSITION || stop == PeptideEvidence::UNKNOWN_POSITION)
           {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
+          }
+
+          if (start < 0 || stop < start || stop > static_cast<int>(protein_length))
+          {
+            const String message = " PeptideEvidence (start/end) (" + String(start) + "/" + String(stop) +
+                                   " ) are invalid or point outside of protein '" + accession + 
+                                   "' (length: " + String(protein_length) + 
+                                   "). Cannot compute coverage!";
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
           }
           
           std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);

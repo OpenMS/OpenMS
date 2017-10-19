@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -221,12 +221,11 @@ protected:
       ConsensusMap map;
       file.load(in, map);
 
-      MSExperiment<Peak1D> exp;
+      PeakMap exp;
       if (!spectra.empty())
       {
         MzMLFile().load(spectra, exp);
       }
-
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
       bool annotate_ids_with_subelements = getFlag_("consensus:annotate_ids_with_subelements");
@@ -235,8 +234,11 @@ protected:
                       measure_from_subelements, annotate_ids_with_subelements,
                       exp);
 
-      //annotate output with data processing info
+      // annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+
+      // sort list of peptide identifications in each consensus feature by map index
+      map.sortPeptideIdentificationsByMapIndex();
 
       file.store(out, map);
     }
@@ -251,7 +253,7 @@ protected:
       FeatureXMLFile file;
       file.load(in, map);
 
-      MSExperiment<Peak1D> exp;
+      PeakMap exp;
 
       if (!spectra.empty())
       {

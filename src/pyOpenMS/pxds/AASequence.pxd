@@ -3,6 +3,7 @@ from Types cimport *
 from String cimport *
 from Residue cimport *
 from EmpiricalFormula cimport *
+from ResidueModification cimport *
 from Map cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
@@ -28,7 +29,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         String toUnmodifiedString() nogil except +
 
         # returns the peptide as a pepXML style bracket string . fixed modifications are omitted
-        String toBracketString(libcpp_vector[String] fixed_modifications) nogil except +
+        String toBracketString(bool integer_mass, libcpp_vector[String] fixed_modifications) nogil except +
 
         # set the modification of the residue at position index
         void setModification(Size index, String modification) nogil except +
@@ -36,18 +37,18 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # sets the N-terminal modification
         void setNTerminalModification(String modification) nogil except +
 
-        # returns the name (ID) of the N-terminal modification, or an empty string if none is set nogil except +
+        # returns the name (ID) of the N-terminal modification, or an empty string if none is set
         String getNTerminalModificationName() nogil except +
 
         # sets the C-terminal modification
         void setCTerminalModification(String modification) nogil except +
 
-        # CONST POINTER # ResidueModification * getNTerminalModification() nogil except +
+        const ResidueModification * getNTerminalModification() nogil except +
 
         # returns the name (ID) of the C-terminal modification, or an empty string if none is set nogil except +
         String getCTerminalModificationName() nogil except +
 
-        # CONST POINTER # ResidueModification * getCTerminalModification() nogil except +
+        const ResidueModification * getCTerminalModification() nogil except +
 
         # returns the residue at position index
         Residue getResidue(Size index) nogil except +
@@ -100,6 +101,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns true if any of the residues or termini are modified
         bool isModified() nogil except +
 
+# COMMENT: wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
 
         # static members

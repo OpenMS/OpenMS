@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -972,7 +972,7 @@ namespace OpenMS
       width = max(width, 4 + metrics.width(text[i]));
     }
 
-    //draw backgrond for text
+    //draw background for text
     painter.fillRect(2, 3, width, height, QColor(255, 255, 255, 200));
 
     //draw text
@@ -981,7 +981,6 @@ namespace OpenMS
     {
       painter.drawText(3, 3 + (i + 1) * line_spacing, text[i]);
     }
-
     painter.restore();
   }
 

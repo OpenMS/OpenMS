@@ -16,6 +16,10 @@
 			<search_score name="hyperscore" value="13.1"/>
 			<search_score name="nextscore" value="13.1"/>
 			<search_score name="expect" value="0.79432823472"/>
+			<search_score name="Posterior Error Probability" value="0.999999703800026"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="2.9619997399255e-07" all_ntt_prob="(0.0000,0.0000,2.9619997399255e-07)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -25,6 +29,10 @@
 			<search_score name="hyperscore" value="12.1"/>
 			<search_score name="nextscore" value="12.1"/>
 			<search_score name="expect" value="0.34673685045"/>
+			<search_score name="Posterior Error Probability" value="0.999997619610497"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="2.38038950295394e-06" all_ntt_prob="(0.0000,0.0000,2.38038950295394e-06)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -34,6 +42,10 @@
 			<search_score name="hyperscore" value="19.3"/>
 			<search_score name="nextscore" value="19.3"/>
 			<search_score name="expect" value="0.30199517204"/>
+			<search_score name="Posterior Error Probability" value="0.999996682184601"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="3.31781539897325e-06" all_ntt_prob="(0.0000,0.0000,3.31781539897325e-06)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -43,6 +55,10 @@
 			<search_score name="hyperscore" value="13.7"/>
 			<search_score name="nextscore" value="13.7"/>
 			<search_score name="expect" value="0.13182567386"/>
+			<search_score name="Posterior Error Probability" value="0.999977806014592"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="2.21939854080366e-05" all_ntt_prob="(0.0000,0.0000,2.21939854080366e-05)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -52,6 +68,10 @@
 			<search_score name="hyperscore" value="17.3"/>
 			<search_score name="nextscore" value="17.3"/>
 			<search_score name="expect" value="0.0457088189615"/>
+			<search_score name="Posterior Error Probability" value="0.999799808981541"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.000200191018459028" all_ntt_prob="(0.0000,0.0000,0.000200191018459028)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -61,6 +81,10 @@
 			<search_score name="hyperscore" value="9.4"/>
 			<search_score name="nextscore" value="9.4"/>
 			<search_score name="expect" value="0.0389045144994"/>
+			<search_score name="Posterior Error Probability" value="0.99972646822851"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.000273531771490032" all_ntt_prob="(0.0000,0.0000,0.000273531771490032)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -70,6 +94,10 @@
 			<search_score name="hyperscore" value="14.4"/>
 			<search_score name="nextscore" value="14.4"/>
 			<search_score name="expect" value="0.00851138038202"/>
+			<search_score name="Posterior Error Probability" value="0.995387619683354"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.00461238031664601" all_ntt_prob="(0.0000,0.0000,0.00461238031664601)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -79,6 +107,10 @@
 			<search_score name="hyperscore" value="15.1"/>
 			<search_score name="nextscore" value="15.1"/>
 			<search_score name="expect" value="0.00831763771103"/>
+			<search_score name="Posterior Error Probability" value="0.99519248174031"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.00480751825968995" all_ntt_prob="(0.0000,0.0000,0.00480751825968995)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -92,6 +124,10 @@
 			<search_score name="hyperscore" value="16.8"/>
 			<search_score name="nextscore" value="16.8"/>
 			<search_score name="expect" value="0.00691830970919"/>
+			<search_score name="Posterior Error Probability" value="0.993318846453717"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.00668115354628296" all_ntt_prob="(0.0000,0.0000,0.00668115354628296)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -104,6 +140,10 @@
 			<search_score name="hyperscore" value="14.2"/>
 			<search_score name="nextscore" value="14.2"/>
 			<search_score name="expect" value="0.0063095734448"/>
+			<search_score name="Posterior Error Probability" value="0.992137188268975"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.00786281173102499" all_ntt_prob="(0.0000,0.0000,0.00786281173102499)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -113,6 +153,10 @@
 			<search_score name="hyperscore" value="16"/>
 			<search_score name="nextscore" value="16"/>
 			<search_score name="expect" value="0.00144543977075"/>
+			<search_score name="Posterior Error Probability" value="0.915003523314301"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.084996476685699" all_ntt_prob="(0.0000,0.0000,0.084996476685699)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -122,6 +166,10 @@
 			<search_score name="hyperscore" value="21"/>
 			<search_score name="nextscore" value="21"/>
 			<search_score name="expect" value="0.000223872113857"/>
+			<search_score name="Posterior Error Probability" value="0.453250508471886"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.546749491528114" all_ntt_prob="(0.0000,0.0000,0.546749491528114)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -131,6 +179,10 @@
 			<search_score name="hyperscore" value="22.7"/>
 			<search_score name="nextscore" value="22.7"/>
 			<search_score name="expect" value="7.58577575029e-05"/>
+			<search_score name="Posterior Error Probability" value="0.205898136317334"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.794101863682666" all_ntt_prob="(0.0000,0.0000,0.794101863682666)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -144,6 +196,10 @@
 			<search_score name="hyperscore" value="23.4"/>
 			<search_score name="nextscore" value="23.4"/>
 			<search_score name="expect" value="3.0199517204e-05"/>
+			<search_score name="Posterior Error Probability" value="0.105295709433451"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.894704290566549" all_ntt_prob="(0.0000,0.0000,0.894704290566549)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -156,6 +212,10 @@
 			<search_score name="hyperscore" value="23.1"/>
 			<search_score name="nextscore" value="23.1"/>
 			<search_score name="expect" value="2.08929613085e-05"/>
+			<search_score name="Posterior Error Probability" value="0.0829167864461242"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.917083213553876" all_ntt_prob="(0.0000,0.0000,0.917083213553876)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -169,6 +229,10 @@
 			<search_score name="hyperscore" value="24.9"/>
 			<search_score name="nextscore" value="24.9"/>
 			<search_score name="expect" value="1e-05"/>
+			<search_score name="Posterior Error Probability" value="0.0552026346076845"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.944797365392316" all_ntt_prob="(0.0000,0.0000,0.944797365392316)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -181,6 +245,10 @@
 			<search_score name="hyperscore" value="21.3"/>
 			<search_score name="nextscore" value="21.3"/>
 			<search_score name="expect" value="4.78630092323e-06"/>
+			<search_score name="Posterior Error Probability" value="0.039216373494282"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.960783626505718" all_ntt_prob="(0.0000,0.0000,0.960783626505718)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -190,6 +258,10 @@
 			<search_score name="hyperscore" value="14.3"/>
 			<search_score name="nextscore" value="14.3"/>
 			<search_score name="expect" value="2.08929613085e-06"/>
+			<search_score name="Posterior Error Probability" value="0.0265340096810519"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.973465990318948" all_ntt_prob="(0.0000,0.0000,0.973465990318948)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -199,6 +271,10 @@
 			<search_score name="hyperscore" value="22.2"/>
 			<search_score name="nextscore" value="22.2"/>
 			<search_score name="expect" value="1.17489755494e-06"/>
+			<search_score name="Posterior Error Probability" value="0.0201592377248982"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.979840762275102" all_ntt_prob="(0.0000,0.0000,0.979840762275102)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>
@@ -211,6 +287,10 @@
 			<search_score name="hyperscore" value="13.5"/>
 			<search_score name="nextscore" value="13.5"/>
 			<search_score name="expect" value="2.39883291902e-07"/>
+			<search_score name="Posterior Error Probability" value="0.00935505970276241"/>
+			<analysis_result analysis="peptideprophet">
+				<peptideprophet_result probability="0.990644940297238" all_ntt_prob="(0.0000,0.0000,0.990644940297238)"/>
+			</analysis_result>
 		</search_hit>
 	</search_result>
 	</spectrum_query>

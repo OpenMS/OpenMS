@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@ namespace OpenMS
 {
   PeakFileOptions::PeakFileOptions() :
     metadata_only_(false),
+    force_maxquant_compatibility_(false),
     write_supplemental_data_(true),
     has_rt_range_(false),
     has_mz_range_(false),
@@ -69,6 +70,7 @@ namespace OpenMS
 
   PeakFileOptions::PeakFileOptions(const PeakFileOptions& options) :
     metadata_only_(options.metadata_only_),
+    force_maxquant_compatibility_(options.force_maxquant_compatibility_),
     write_supplemental_data_(options.write_supplemental_data_),
     has_rt_range_(options.has_rt_range_),
     has_mz_range_(options.has_mz_range_),
@@ -105,6 +107,16 @@ namespace OpenMS
   bool PeakFileOptions::getMetadataOnly() const
   {
     return metadata_only_;
+  }
+  
+  void PeakFileOptions::setForceMQCompatability(bool forceMQ)
+  {
+    force_maxquant_compatibility_ = forceMQ;
+  }
+  
+  bool PeakFileOptions::getForceMQCompatability() const
+  {
+    return force_maxquant_compatibility_;
   }
 
   void PeakFileOptions::setWriteSupplementalData(bool write)

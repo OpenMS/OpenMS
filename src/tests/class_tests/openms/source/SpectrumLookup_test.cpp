@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,8 +64,8 @@ START_SECTION((~SpectrumLookup()))
 }
 END_SECTION
 
-vector<MSSpectrum<> > spectra;
-MSSpectrum<> spectrum;
+vector<MSSpectrum> spectra;
+MSSpectrum spectrum;
 spectrum.setNativeID("spectrum=0");
 spectrum.setRT(1.0);
 spectra.push_back(spectrum);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,12 +60,12 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringCentroided::MultiplexFilteringCentroided(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+  MultiplexFilteringCentroided::MultiplexFilteringCentroided(const PeakMap& exp_picked, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
     MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type)
   {
 
     // fill peak registry and initialise blacklist
-    MSExperiment<Peak1D>::Iterator it_rt;
+    PeakMap::Iterator it_rt;
     blacklist_.reserve(exp_picked_.getNrSpectra());
     registry_.reserve(exp_picked_.getNrSpectra());
     for (it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
@@ -76,7 +76,7 @@ namespace OpenMS
       vector<BlackListEntry> blacklist_spec;
       registry_spec.reserve(it_rt->size());
       blacklist_spec.reserve(it_rt->size());
-      for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (MSSpectrum::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
         const double scaling = 3.0; // mz_tolerance_ is the tolerance when searching for peak patterns. Let's be more generous when searching for corresponding peaks in neighbouring spectra.
         const double tolerance_th = mz_tolerance_unit_ ? (scaling * mz_tolerance_ / 1000000) * it_mz->getMZ() : scaling * mz_tolerance_;
@@ -130,7 +130,7 @@ namespace OpenMS
       MultiplexFilterResult result;
 
       // iterate over spectra
-      for (MSExperiment<Peak1D>::Iterator it_rt_picked = exp_picked_.begin(); it_rt_picked < exp_picked_.end(); ++it_rt_picked)
+      for (PeakMap::Iterator it_rt_picked = exp_picked_.begin(); it_rt_picked < exp_picked_.end(); ++it_rt_picked)
       {
         // skip empty spectra
         if (it_rt_picked->empty())
@@ -148,7 +148,7 @@ namespace OpenMS
         vector<double> peak_intensity;
         peak_position.reserve(it_rt_picked->size());
         peak_intensity.reserve(it_rt_picked->size());
-        for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt_picked->begin(); it_mz < it_rt_picked->end(); ++it_mz)
+        for (MSSpectrum::Iterator it_mz = it_rt_picked->begin(); it_mz < it_rt_picked->end(); ++it_mz)
         {
           peak_position.push_back(it_mz->getMZ());
           peak_intensity.push_back(it_mz->getIntensity());
@@ -250,7 +250,7 @@ namespace OpenMS
 
   int MultiplexFilteringCentroided::nonLocalIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const
   {
-    MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
+    PeakMap::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
 
     // read out peak intensities
     for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)

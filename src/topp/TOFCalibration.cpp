@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -149,7 +149,7 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MSExperiment<Peak1D> ms_exp_calib, ms_exp_raw;
+    PeakMap ms_exp_calib, ms_exp_raw;
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
     mz_data_file.load(in_calib, ms_exp_calib);

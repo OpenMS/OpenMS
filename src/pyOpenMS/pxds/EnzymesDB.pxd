@@ -5,7 +5,8 @@ from Enzyme cimport *
 cdef extern from "<OpenMS/CHEMISTRY/EnzymesDB.h>" namespace "OpenMS":
     
     cdef cppclass EnzymesDB "OpenMS::EnzymesDB":
-        # wrap-manual-memory
+        # wrap-manual-memory:
+        #     cdef AutowrapPtrHolder[_EnzymesDB] inst
 
         EnzymesDB() nogil except + #wrap-ignore
         EnzymesDB(EnzymesDB) nogil except + #wrap-ignore
@@ -18,6 +19,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymesDB.h>" namespace "OpenMS":
         void getAllNames(libcpp_vector[ String ] & all_names) nogil except + 
         void getAllXTandemNames(libcpp_vector[ String ] & all_names) nogil except +
         void getAllOMSSANames(libcpp_vector[ String ] & all_names) nogil except +
+        void getAllCometNames(libcpp_vector[ String ] & all_names) nogil except +
         bool hasEnzyme(String & name) nogil except +
         bool hasRegEx(String & cleavage_regex) nogil except +
         # bool hasEnzyme(Enzyme * enzyme) nogil except + # does not make sense as the ptr wont match

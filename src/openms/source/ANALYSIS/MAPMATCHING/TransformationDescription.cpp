@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,12 +41,14 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
+#include <iomanip>
+
 using namespace std;
 
 namespace OpenMS
 {
   TransformationDescription::TransformationDescription() :
-    data_(TransformationDescription::DataPoints()), 
+    data_(TransformationDescription::DataPoints()),
     model_type_("none"),
     model_(new TransformationModel())
   {
@@ -152,6 +154,18 @@ namespace OpenMS
     model_ = new TransformationModel();
   }
 
+  void TransformationDescription::setDataPoints(const vector<pair<double, double> >& data)
+  {
+    data_.resize(data.size());
+    for (Size i = 0; i < data.size(); ++i)
+    {
+      data_[i] = data[i];
+    }
+    model_type_ = "none"; // reset the model even if it was "identity"
+    delete model_;
+    model_ = new TransformationModel();
+  }
+
   const TransformationDescription::DataPoints&
   TransformationDescription::getDataPoints() const
   {
@@ -168,7 +182,8 @@ namespace OpenMS
     for (TransformationDescription::DataPoints::iterator it = data_.begin();
          it != data_.end(); ++it)
     {
-      *it = make_pair(it->second, it->first);
+      *it = TransformationDescription::DataPoint(it->second, it->first,
+                                                 it->note);
     }
     // ugly hack for linear model with explicit slope/intercept parameters:
     if ((model_type_ == "linear") && data_.empty())
@@ -237,7 +252,7 @@ namespace OpenMS
     }
     // else:
     getDeviations(diffs, true);
-    os << "Summary of x/y deviations after applying '" << model_type_ 
+    os << "Summary of x/y deviations after applying '" << model_type_
        << "' transformation:\n";
     for (Size i = 0; i < 7; ++i)
     {

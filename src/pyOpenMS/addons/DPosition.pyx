@@ -1,9 +1,13 @@
+# This goes into the PXD file
 from DPosition cimport DPosition1 as _DPosition1
 from DPosition cimport DPosition2 as _DPosition2
+cdef class DPosition1:
+    cdef shared_ptr[_DPosition1] inst
+cdef class DPosition2:
+    cdef shared_ptr[_DPosition2] inst
+
 
 cdef class DPosition1:
-
-    cdef shared_ptr[_DPosition1] inst
 
     def __dealloc__(self):
         self.inst.reset()
@@ -18,8 +22,6 @@ cdef class DPosition1:
 
 
 cdef class DPosition2:
-
-    cdef shared_ptr[_DPosition2] inst
 
     def __dealloc__(self):
         self.inst.reset()

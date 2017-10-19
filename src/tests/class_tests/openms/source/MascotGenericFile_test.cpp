@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,9 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <sstream>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -118,7 +121,7 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
   ptr->setParameters(ptr->getDefaults()); // reset parameters
 
   // test compact format:
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   spec.setNativeID("ident");
   spec.setMSLevel(2);
   spec.setRT(234.5678901);

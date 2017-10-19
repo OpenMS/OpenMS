@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CachedMzML.h>
+
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 namespace OpenMS
 {
@@ -207,7 +210,7 @@ namespace OpenMS
   {
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
-    std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp.getChromatograms(); // copy 
+    std::vector<MSChromatogram > chromatograms = exp.getChromatograms(); // copy
     for (Size i = 0; i < exp.size(); i++)
     {
       exp[i].clear(false);
@@ -230,7 +233,7 @@ namespace OpenMS
       {
         exp[i].getDataProcessing().push_back(dp);
       }
-      std::vector<MSChromatogram<ChromatogramPeak> > l_chromatograms = exp.getChromatograms();
+      std::vector<MSChromatogram > l_chromatograms = exp.getChromatograms();
       for (Size i=0; i<l_chromatograms.size(); ++i)
       {
         l_chromatograms[i].getDataProcessing().push_back(dp);
@@ -333,7 +336,7 @@ namespace OpenMS
     for (Size j = 0; j < spectrum.size(); j++)
     {
       mz_data.push_back(spectrum[j].getMZ());
-      int_data.push_back(spectrum[j].getIntensity());
+      int_data.push_back(static_cast<double>(spectrum[j].getIntensity()));
     }
 
     ofs.write((char*)&mz_data.front(), mz_data.size() * sizeof(mz_data.front()));

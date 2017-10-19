@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
   { // check the run including output
     ConsensusXMLFile cm_file;
     ConsensusMap cm_in, cm_out;
-    cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
+    cm_file.load(OPENMS_GET_TEST_DATA_PATH("IsobaricIsotopeCorrector.consensusXML"),cm_in);
 
     // copy in/output
     cm_out = cm_in;
@@ -107,7 +107,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
   {
     ConsensusXMLFile cm_file;
     ConsensusMap cm_in, cm_out;
-    cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
+    cm_file.load(OPENMS_GET_TEST_DATA_PATH("IsobaricIsotopeCorrector.consensusXML"),cm_in);
     cm_in.clear(false);
 
     // copy in/output
@@ -186,7 +186,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
   {
     ConsensusXMLFile cm_file;
     ConsensusMap cm_in, cm_out;
-    cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
+    cm_file.load(OPENMS_GET_TEST_DATA_PATH("IsobaricIsotopeCorrector.consensusXML"),cm_in);
 
     TEST_PRECONDITION_VIOLATED(IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in,cm_out, &quant_meth))
   }

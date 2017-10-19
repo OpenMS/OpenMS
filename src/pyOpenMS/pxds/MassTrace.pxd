@@ -11,6 +11,9 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         Kernel_MassTrace()  nogil except +
         Kernel_MassTrace(Kernel_MassTrace &) nogil except +
 
+        # public members
+        double fwhm_mz_avg
+
         Size getSize() nogil except +
         String getLabel() nogil except +
         void setLabel(String label) nogil except +

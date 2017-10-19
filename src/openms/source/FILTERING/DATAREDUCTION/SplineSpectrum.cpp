@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <vector>
 #include <algorithm>
@@ -56,11 +57,11 @@ namespace OpenMS
     SplineSpectrum::init_(mz, intensity, scaling);
   }
 
-  SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum)
+  SplineSpectrum::SplineSpectrum(MSSpectrum& raw_spectrum)
   {
     std::vector<double> mz;
     std::vector<double> intensity;
-    for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
+    for (MSSpectrum::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
     {
       mz.push_back(it->getMZ());
       intensity.push_back(it->getIntensity());
@@ -68,11 +69,11 @@ namespace OpenMS
     SplineSpectrum::init_(mz, intensity, 0.7);
   }
 
-  SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling)
+  SplineSpectrum::SplineSpectrum(MSSpectrum& raw_spectrum, double scaling)
   {
     std::vector<double> mz;
     std::vector<double> intensity;
-    for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
+    for (MSSpectrum::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
     {
       mz.push_back(it->getMZ());
       intensity.push_back(it->getIntensity());

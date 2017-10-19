@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/QTCluster.h>" namespace "OpenMS":
     
     cdef cppclass QTCluster "OpenMS::QTCluster":
         QTCluster(QTCluster) nogil except + #wrap-ignore
+
         # POINTER #  QTCluster(GridFeature * center_point, Size num_maps, double max_distance, bool use_IDs) nogil except +
         double getCenterRT() nogil except +
         double getCenterMZ() nogil except +

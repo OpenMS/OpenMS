@@ -33,6 +33,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
     cdef cppclass ISDGroup "OpenMS::ProteinResolver::ISDGroup":
         ISDGroup() nogil except +
         ISDGroup(ISDGroup) nogil except + #wrap-ignore
+
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
         Size index
@@ -43,10 +44,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
     cdef cppclass MSDGroup "OpenMS::ProteinResolver::MSDGroup":
         MSDGroup() nogil except +
         MSDGroup(MSDGroup) nogil except + #wrap-ignore
+
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
         Size index
-        # POINTER # ISDGroup * isd_group
+        ISDGroup * isd_group
         Size number_of_decoy
         Size number_of_target
         Size number_of_target_plus_decoy
@@ -59,21 +61,22 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         ResolverResult(ResolverResult) nogil except +
 
         String identifier
-        # std::vector<ISDGroup> * isds;
-        # std::vector<MSDGroup> * msds;
-        # std::vector<ProteinEntry> * protein_entries;
-        # std::vector<PeptideEntry> * peptide_entries;
-        # std::vector<Size> * reindexed_peptides;
-        # std::vector<Size> * reindexed_proteins;
-        # enum type  {PeptideIdent, Consensus} input_type;
-        # std::vector<PeptideIdentification> * peptide_identification;
-        # ConsensusMap * consensus_map;
+        libcpp_vector[ISDGroup] * isds
+        libcpp_vector[MSDGroup] * msds
+        libcpp_vector[ProteinEntry] * protein_entries
+        libcpp_vector[PeptideEntry] * peptide_entries
+        # libcpp_vector[size_t] * reindexed_peptides
+        # libcpp_vector[size_t] * reindexed_proteins
+        ProteinResolverResult_Type input_type
+        libcpp_vector[PeptideIdentification] * peptide_identification
+        ConsensusMap * consensus_map
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
     
     cdef cppclass PeptideEntry "OpenMS::ProteinResolver::PeptideEntry":
         PeptideEntry() nogil except +
         PeptideEntry(PeptideEntry) nogil except + #wrap-ignore
+
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] proteins
         bool traversed
         String sequence
@@ -97,9 +100,10 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
     cdef cppclass ProteinEntry "OpenMS::ProteinResolver::ProteinEntry":
         ProteinEntry() nogil except +
         ProteinEntry(ProteinEntry) nogil except + #wrap-ignore
+
         # NAMESPACE # # POINTER # std::list[ PeptideEntry * ] peptides
         bool traversed
-        # NAMESPACE # # POINTER # FASTAFile::FASTAEntry * fasta_entry
+        FASTAEntry * fasta_entry
         ProteinEntry_type protein_type
         double weight
         float coverage
@@ -110,9 +114,11 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         Size number_of_experimental_peptides
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver::ProteinEntry":
+
     cdef enum ProteinEntry_type "OpenMS::ProteinResolver::ProteinEntry::type":
         #wrap-attach:
         #    ProteinEntry
+
         primary
         secondary
         primary_indistinguishable

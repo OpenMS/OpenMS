@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
+
+#include <QTextDocument>
 
 // STL
 #include <vector>
@@ -125,6 +127,9 @@ public:
 
     /// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
     PointType widgetToData(double x, double y, bool percentage = false);
+
+    /// Display a static text box on the top right
+    void setTextBox(const QString& html);
 
     /// ----- Annotations
 
@@ -278,6 +283,8 @@ protected:
 
     /// Ensure that all annotations are within data range
     void ensureAnnotationsWithinDataRange_();
+
+    QTextDocument text_box_content_;
 
     /** @name Reimplemented QT events */
     //@{

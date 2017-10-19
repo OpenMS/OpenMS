@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -669,14 +669,14 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     {
       ResidueModification mod = it->getModification();
       char aa = ' ';
-      if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
+      if (mod.getOrigin() == 'X')
       {
         cerr << "Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
       else
       {
-        aa = mod.getOrigin()[0];
+        aa = mod.getOrigin();
       }
 
       if (mod.getMonoMass() != 0)
@@ -713,14 +713,14 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
       char origin_aa = ' ';
       ++actual_mod_name;
 
-      if (mod.getOrigin().size() != 1 || mod.getOrigin() == "X")
+      if (mod.getOrigin() == 'X')
       {
         cerr << "CompNovoIdentificationBase: Warning: cannot handle modification " << mod.getName() << ", because aa is ambiguous (" << mod.getOrigin() << "), ignoring modification!" << endl;
         continue;
       }
       else
       {
-        origin_aa = mod.getOrigin()[0];
+        origin_aa = mod.getOrigin();
       }
 
       if (mod.getMonoMass() != 0)

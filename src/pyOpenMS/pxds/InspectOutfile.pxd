@@ -48,7 +48,7 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
                                              libcpp_map[ size_t, size_t ] & wanted_records,
                                              libcpp_vector[ String ] & sequences) nogil except +
 
-        void getExperiment(MSExperiment[ Peak1D, ChromatogramPeak ] & exp, String & type_, String & in_filename) nogil except +
+        void getExperiment(MSExperiment & exp, String & type_, String & in_filename) nogil except +
 
         bool getSearchEngineAndVersion(String & cmd_output, ProteinIdentification & protein_identification) nogil except +
 

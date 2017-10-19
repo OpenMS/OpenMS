@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -139,17 +139,37 @@ namespace OpenMS
     // FEATURE we should not punish so much when one transition is missing!
     scores.massdev_score = scores.massdev_score / transitions.size();
 
+    if (ms1_map && ms1_map->getNrSpectra() > 0) 
+    {
+      double precursor_mz = transitions[0].precursor_mz;
+      double rt = imrmfeature->getRT();
+
+      calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, scores);
+    }
+
+  }
+
+  void OpenSwathScoring::calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
+                                   OpenMS::DIAScoring & diascoring, 
+                                   double precursor_mz, 
+                                   double rt, 
+                                   const CompoundType& compound, 
+                                   OpenSwath_Scores & scores)
+  {
     // Compute precursor-level scores:
     // - compute mass difference in ppm
     // - compute isotopic pattern score
     if (ms1_map && ms1_map->getNrSpectra() > 0)
     {
-      double precursor_mz = transitions[0].precursor_mz;
-      OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, imrmfeature->getRT(), add_up_spectra_);
+      OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, rt, add_up_spectra_);
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
 
+      // derive precursor charge state (get from data if possible)
       int precursor_charge = 1;
-      if (compound.getChargeState() != 0) {precursor_charge = compound.getChargeState();}
+      if (compound.getChargeState() != 0) 
+      {
+        precursor_charge = compound.getChargeState();
+      }
 
       if (compound.isPeptide())
       {
@@ -215,6 +235,7 @@ namespace OpenMS
   void OpenSwathScoring::calculateChromatographicScores(
         OpenSwath::IMRMFeature* imrmfeature,
         const std::vector<std::string>& native_ids,
+        const std::string& precursor_feature_id,
         const std::vector<double>& normalized_library_intensity,
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
         OpenSwath_Scores & scores)
@@ -242,7 +263,7 @@ namespace OpenMS
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
     if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation)
     {
-      mrmscore_.initializeMS1XCorr(imrmfeature, native_ids, "Precursor_i0"); // perform cross-correlation on monoisotopic precursor
+      mrmscore_.initializeMS1XCorr(imrmfeature, native_ids, precursor_feature_id); // perform cross-correlation on monoisotopic precursor
       scores.xcorr_ms1_coelution_score = mrmscore_.calcMS1XcorrCoelutionScore();
       scores.xcorr_ms1_shape_score = mrmscore_.calcMS1XcorrShape_score();
     }

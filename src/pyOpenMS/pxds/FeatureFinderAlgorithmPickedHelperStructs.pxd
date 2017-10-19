@@ -24,6 +24,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
     # equivalent would be and we need to name it MassTrace
     cdef cppclass MassTrace:
         MassTrace(MassTrace) nogil except + #wrap-ignore
+
         # POINTER # PeakType * max_peak
         double max_rt
         double theoretical_int
@@ -38,6 +39,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
     cdef cppclass MassTraces:
         MassTraces() nogil except +
         MassTraces(MassTraces) nogil except + #wrap-ignore
+
         Size max_trace
         double baseline
         Size getPeakCount() nogil except +
@@ -59,6 +61,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 
     cdef cppclass IsotopePattern "OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern":
         IsotopePattern(IsotopePattern) nogil except + #wrap-ignore
+
         # TODO STL attributes -- Signed size does not work either!
         # vector.from_py:33:13: 'ptrdiff_t' is not a type identifier
         # libcpp_vector[ SignedSize ] peak

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,8 +43,6 @@
 
 #include <string>
 #include <fstream>
-
-//#define DEBUG_READER
 
 namespace OpenMS
 {
@@ -89,7 +87,7 @@ namespace OpenMS
       std::ifstream filestream_;
       /// Whether parsing the indexedmzML file was successful
       bool parsing_success_;
-
+      /// Whether to skip XML checks
       bool skip_xml_checks_;
 
     /**
@@ -105,9 +103,9 @@ namespace OpenMS
     public:
 
     /**
-      @brief Constructor
+      @brief Default constructor
     */
-    IndexedMzMLFile() : parsing_success_(false), skip_xml_checks_(false) {}
+    IndexedMzMLFile();
 
     /**
       @brief Constructor
@@ -166,7 +164,7 @@ namespace OpenMS
     */
     OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id);
 
-    ///sets whether to skip some XML checks and be fast instead
+    /// Whether to skip some XML checks (removing whitespace from base64 arrays) and be fast instead
     void setSkipXMLChecks(bool skip)
     {
       skip_xml_checks_ = skip;
@@ -175,4 +173,5 @@ namespace OpenMS
   };
 }
 
-#endif
+#endif // OPENMS_FORMAT_INDEXEDMZMLFILE_H
+

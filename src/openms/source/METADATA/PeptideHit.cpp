@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -231,7 +231,7 @@ namespace OpenMS
     rank_ = newrank;
   }
 
-  std::set<String> PeptideHit::extractProteinAccessions() const
+  std::set<String> PeptideHit::extractProteinAccessionsSet() const
   {
     set<String> accessions;
     for (vector<PeptideEvidence>::const_iterator it = peptide_evidences_.begin(); it != peptide_evidences_.end(); ++it)
@@ -245,12 +245,12 @@ namespace OpenMS
     return accessions;
   }
 
-  std::vector<PeptideHit::FragmentAnnotation> PeptideHit::getFragmentAnnotations() const
+  std::vector<PeptideHit::PeakAnnotation> PeptideHit::getPeakAnnotations() const
   {
     return fragment_annotations_;
   }
 
-  void PeptideHit::setFragmentAnnotations(std::vector<PeptideHit::FragmentAnnotation> frag_annotations)
+  void PeptideHit::setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations)
   {
     fragment_annotations_ = frag_annotations;
   }

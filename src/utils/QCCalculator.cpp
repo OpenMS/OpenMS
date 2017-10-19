@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -149,16 +149,18 @@ protected:
     return error;
   }
 
-//  void calculateSNident (PeptideHit& hit, MSSpectrum<Peak1D>& spec)
+//  void calculateSNident (PeptideHit& hit, MSSpectrum& spec)
 //  {
     // TODO
 //  }
 
-  float calculateSNmedian (MSSpectrum<Peak1D>& spec, bool norm = true)
+  float calculateSNmedian (MSSpectrum& spec, bool norm = true)
   {
+    if (spec.size() == 0) return 0;
     float median = 0;
     float maxi = 0;
     spec.sortByIntensity();
+    
     if (spec.size() % 2 == 0)
     {
       median = (spec[spec.size() / 2 - 1].getIntensity() + spec[spec.size() / 2].getIntensity()) / 2;
@@ -178,7 +180,7 @@ protected:
     float nois_int = 0;
     size_t sign_cnt= 0;
     size_t nois_cnt = 0;
-    for (MSSpectrum<Peak1D>::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+    for (MSSpectrum::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
     {
       if (pt->getIntensity() <= median)
       {
@@ -229,7 +231,7 @@ protected:
     String base_name = QFileInfo(QString::fromStdString(inputfile_raw)).baseName();
 
     cout << "Reading mzML file..." << endl;
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile().load(inputfile_raw, exp);
     
     //---prep input

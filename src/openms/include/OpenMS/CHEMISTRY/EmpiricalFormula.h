@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -139,6 +139,23 @@ public:
       @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, 1 = negative hydrogens requested.
     */
     bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+
+    /**
+      @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight,
+      exact number of sulfurs, and approximate elemental stoichiometry
+
+      @param average_weight: Average weight to estimate an EmpiricalFormula for
+      @param S: The exact number of Sulfurs in this molecule
+      @param C: The approximate relative stoichiometry of Carbons to other elements (excluding Sulfur) in this molecule
+      @param H: The approximate relative stoichiometry of Hydrogens to other elements (excluding Sulfur) in this molecule
+      @param N: The approximate relative stoichiometry of Nitrogens to other elements (excluding Sulfur) in this molecule
+      @param O: The approximate relative stoichiometry of Oxygens to other elements (excluding Sulfur) in this molecule
+      @param P: The approximate relative stoichiometry of Phosphoruses to other elements (excluding Sulfur) in this molecule
+
+      @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, false = negative hydrogens requested.
+   */
+    bool estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P);
+
 
     /**
       @brief returns the isotope distribution of the formula

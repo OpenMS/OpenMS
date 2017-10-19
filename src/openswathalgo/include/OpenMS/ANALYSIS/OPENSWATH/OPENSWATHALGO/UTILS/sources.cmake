@@ -7,6 +7,7 @@ MRMIonSeries.h
 MRMAssay.h
 MRMDecoy.h
 TransitionTSVReader.h
+TransitionPQPReader.h
 OpenSwathHelper.h
 ChromatogramExtractor.h
 )

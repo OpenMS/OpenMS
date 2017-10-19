@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -692,7 +692,7 @@ public:
    * @param consensus_map    consensus map with complete quantitative information
    * @param quantifications    MSQuantifications data structure for writing mzQuantML (mzq)
    */
-  void generateMSQuantifications(MSExperiment<Peak1D>& exp, ConsensusMap& consensus_map, MSQuantifications& quantifications)
+  void generateMSQuantifications(PeakMap& exp, ConsensusMap& consensus_map, MSQuantifications& quantifications)
   {
     // generate the labels
     // (for each sample a list of (label string, mass shift) pairs)
@@ -928,7 +928,7 @@ private:
      * load input
      */
     MzMLFile file;
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
 
     // only read MS1 spectra
     std::vector<int> levels;
@@ -974,7 +974,7 @@ private:
     /**
      * pick peaks
      */
-    MSExperiment<Peak1D> exp_picked;
+    PeakMap exp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
 
@@ -1044,10 +1044,12 @@ private:
      * write to output
      */
     ConsensusMap consensus_map;
-    consensus_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
+    consensus_map.setPrimaryMSRunPath(ms_runs);
 
     FeatureMap feature_map;
-    feature_map.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    feature_map.setPrimaryMSRunPath(ms_runs);
 
     generateMaps_(centroided, patterns, filter_results, cluster_results, consensus_map, feature_map);
     if (out_ != "")

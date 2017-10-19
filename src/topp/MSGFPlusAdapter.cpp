@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@
 #include <QtCore/QProcess>
 #include <QDir>
 
+#include <algorithm>
 #include <fstream>
 #include <map>
 #include <cstddef>
@@ -114,10 +115,11 @@ public:
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
-    enzymes_(ListUtils::create<String>("unspecific,trypsin,chymotrypsin,LysC,LysN,GluC,ArgC,AspN,alphaLP,no_cleavage")),  // EnzymesDB::getInstance()->getAllNames()
     protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
     tryptic_(ListUtils::create<String>("non,semi,fully"))
   {
+    EnzymesDB::getInstance()->getAllMSGFNames(enzymes_);
+    std::sort(enzymes_.begin(),enzymes_.end());
   }
 
 protected:
@@ -150,7 +152,7 @@ protected:
 
     registerFlag_("add_decoys", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.");
 
-    registerDoubleOption_("precursor_mass_tolerance", "<value>", 20, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
+    registerDoubleOption_("precursor_mass_tolerance", "<value>", 10, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance (MS-GF+ parameter '-t')", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
 
@@ -162,7 +164,7 @@ protected:
     registerStringOption_("instrument", "<choice>", instruments_[0], "Instrument that generated the data ('low_res'/'high_res' refer to LCQ and LTQ instruments; MS-GF+ parameter '-inst')", false);
     setValidStrings_("instrument", instruments_);
 
-    registerStringOption_("enzyme", "<choice>", enzymes_[1], "Enzyme used for digestion, or type of cleavage (MS-GF+ parameter '-e')", false);
+    registerStringOption_("enzyme", "<choice>", enzymes_[6], "Enzyme used for digestion, or type of cleavage. Note: MS-GF+ does not support blocking rules. (MS-GF+ parameter '-e')", false);
     setValidStrings_("enzyme", enzymes_);
 
     registerStringOption_("protocol", "<choice>", protocols_[0], "Labeling or enrichment protocol used, if any (MS-GF+ parameter '-p')", false);
@@ -300,7 +302,7 @@ protected:
       MzMLFile f;
       f.getOptions().addMSLevel(2);
       f.load(exp_name, exp);
-      primary_ms_run_path_ = exp.getPrimaryMSRunPath();
+      exp.getPrimaryMSRunPath(primary_ms_run_path_);
 
       if (exp.getSpectra().empty())
       {
@@ -333,8 +335,8 @@ protected:
   String makeModString_(const String& mod_name, bool fixed=true)
   {
     ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
-    String residue = mod.getOrigin();
-    if (residue.size() != 1) residue = "*"; // specificity groups, e.g. "Deamidated (NQ)", are not supported by OpenMS
+    char residue = mod.getOrigin();
+    if (residue == 'X') residue = '*'; // terminal mod. without residue specificity
     String position = mod.getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
     if (position == "none") position = "any";
     return String(mod.getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod.getId() + "    # " + mod_name;
@@ -474,7 +476,7 @@ protected:
     // no need to handle "not found" case - would have given error during parameter parsing:
     Int fragment_method_code = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
-    Int enzyme_code = ListUtils::getIndex<String>(enzymes_, enzyme);
+    Int enzyme_code = EnzymesDB::getInstance()->getEnzyme(enzyme)->getMSGFID();
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
@@ -731,7 +733,9 @@ protected:
         {
           switchScores_(*pep_it);
         }
+
         SpectrumMetaDataLookup::addMissingRTsToPeptideIDs(peptide_ids, in, false);
+
         IdXMLFile().store(out, protein_ids, peptide_ids);
       }
     }

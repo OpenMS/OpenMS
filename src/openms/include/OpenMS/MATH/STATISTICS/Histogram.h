@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,23 +98,28 @@ public:
         max_(max),
         bin_size_(bin_size)
       {
-        if (bin_size_ <= 0)
+        this->initBins_();
+      }
+
+
+      /**
+        @brief constructor with data iterator and min, max, bin_size parameters
+
+        @exception Exception::OutOfRange is thrown if @p bin_size negative or zero
+      */
+      template <typename DataIterator>
+      Histogram(DataIterator begin, DataIterator end, BinSizeType min, BinSizeType max, BinSizeType bin_size) :
+        min_(min),
+        max_(max),
+        bin_size_(bin_size)
+      {
+        this->initBins_();
+        for (DataIterator it = begin; it != end; ++it)
         {
-          throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-        }
-        else
-        {
-          // if max_ == min_ there is only one bin
-          if (max_ != min_)
-          {
-            bins_ = std::vector<ValueType>(Size(ceil((max_ - min_) / bin_size_)), 0);
-          }
-          else
-          {
-            bins_ = std::vector<ValueType>(1, 0);
-          }
+          this->inc((BinSizeType) *it);
         }
       }
+
 
       ///destructor
       virtual ~Histogram()
@@ -207,10 +212,59 @@ public:
       */
       Size inc(BinSizeType val, ValueType increment = 1)
       {
-        Size bin_index = valToBin_(val);
-        bins_[bin_index] += increment;
+        Size bin_index = this->valToBin_(val);
+        this->bins_[bin_index] += increment;
         return bin_index;
       }
+
+
+      Size incUntil(BinSizeType val, bool inclusive, ValueType increment = 1)
+      {
+        Size bin_index = this->valToBin_(val);
+        for (Size i = 0; i < bin_index; ++i)
+        {
+         this->bins_[i] += increment;
+        }
+        if (inclusive)
+        {
+          this->bins_[bin_index] += increment;
+        }
+        return bin_index;
+      }
+
+      Size incFrom(BinSizeType val, bool inclusive, ValueType increment = 1)
+      {
+        Size bin_index = this->valToBin_(val);
+        for (Size i = bin_index + 1; i < this->bins_.size(); ++i)
+        {
+          this->bins_[i] += increment;
+        }
+        if (inclusive)
+        {
+          this->bins_[bin_index] += increment;
+        }
+        return bin_index;
+      }
+
+      template< typename DataIterator >
+      static void getCumulativeHistogram(DataIterator begin, DataIterator end,
+                                         bool complement,
+                                         bool inclusive,
+                                         Histogram< ValueType, BinSizeType > & histogram)
+      {
+        for (DataIterator it = begin; it != end; ++it)
+        {
+          if (complement)
+          {
+            histogram.incUntil(*it, inclusive);
+          }
+          else
+          {
+            histogram.incFrom(*it, inclusive);
+          }
+        }
+      }
+
 
       /**
         @brief resets the histogram with the given range and bin size
@@ -325,6 +379,26 @@ protected:
         }
       }
 
+      ///initialize the bins
+      void initBins_()
+      {
+        if (this->bin_size_ <= 0)
+        {
+          throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
+        else
+        {
+          // if max_ == min_ there is only one bin
+          if (this->max_ != this->min_)
+          {
+            this->bins_ = std::vector<ValueType>(Size(ceil((max_ - min_) / bin_size_)), 0);
+          }
+          else
+          {
+            this->bins_ = std::vector<ValueType>(1, 0);
+          }
+        }
+      }
     };
 
     ///Print the contents to a stream.

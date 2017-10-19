@@ -6,7 +6,6 @@ cdef extern from "<OpenMS/METADATA/AcquisitionInfo.h>" namespace "OpenMS":
 
     cdef cppclass AcquisitionInfo:
         
-
         AcquisitionInfo()    nogil except +
         AcquisitionInfo(AcquisitionInfo)    nogil except +
 
@@ -15,3 +14,4 @@ cdef extern from "<OpenMS/METADATA/AcquisitionInfo.h>" namespace "OpenMS":
 
         String getMethodOfCombination() nogil except +
         void setMethodOfCombination(String method) nogil except +
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,22 +65,20 @@ public:
     /// Destructor
     virtual ~XTandemXMLFile();
     /**
-      @brief loads data from a XTandemXML file
+      @brief loads data from an X! Tandem XML file
 
       @param filename the file to be loaded
       @param protein_identification protein identifications belonging to the whole experiment
       @param id_data the identifications with m/z and RT
+      @param mod_def_set Fixed and variable modifications defined for the search. May be extended with additional (X! Tandem default) modifications if those are found in the file.
 
-      This class serves to read in a XTandemXML file. The information can be
+      This class serves to read in an X! Tandem XML file. The information can be
       retrieved via the load function.
 
       @ingroup FileIO
     */
-    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data);
+    void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, ModificationDefinitionsSet& mod_def_set);
 
-
-    /// sets the valid modifications
-    void setModificationDefinitionsSet(const ModificationDefinitionsSet& rhs);
 
 protected:
 

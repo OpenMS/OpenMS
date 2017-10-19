@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,7 +156,7 @@ protected:
     //-------------------------------------------------------------
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
-    MSExperiment<Peak1D> ms_peakmap;
+    PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     (mz_data_file.getOptions()).setMSLevels(ms_level);
     mz_data_file.load(in, ms_peakmap);
@@ -237,7 +237,10 @@ protected:
     if (out_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap consensus_map;
-      consensus_map.setPrimaryMSRunPath(ms_peakmap.getPrimaryMSRunPath());
+      StringList ms_runs;
+      ms_peakmap.getPrimaryMSRunPath(ms_runs);
+      consensus_map.setPrimaryMSRunPath(ms_runs);
+
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
         if (m_traces_final[i].getSize() == 0) continue;
@@ -279,7 +282,9 @@ protected:
 
       std::vector<double> stats_sd;
       FeatureMap ms_feat_map;
-      ms_feat_map.setPrimaryMSRunPath(ms_peakmap.getPrimaryMSRunPath());
+      StringList ms_runs;
+      ms_peakmap.getPrimaryMSRunPath(ms_runs);
+      ms_feat_map.setPrimaryMSRunPath(ms_runs);
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
         if (m_traces_final[i].getSize() == 0) continue;

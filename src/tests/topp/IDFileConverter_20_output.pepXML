@@ -5,7 +5,7 @@
 		<specificity cut="" sense="C"/>
 	</sample_enzyme>
 	<search_summary base_name="IDFileConverter_20_output" search_engine="RNPxlSearch" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
-		<search_database local_path="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/RNPxlSearch_1_output.fasta" type="AA"/>
+		<search_database local_path="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/RNPxlSearch_1_input.fasta" type="AA"/>
 		<aminoacid_modification aminoacid="M" massdiff="15.994915" mass="147.0354000171" variable="Y" binary="N" description="Oxidation (M)"/>
 	</search_summary>
 	<spectrum_query spectrum="IDFileConverter_20_output.1.1.2" start_scan="1" end_scan="1" precursor_neutral_mass="1117.5251393925" assumed_charge="2" index="0" retention_time_sec="17.7875061035156" >

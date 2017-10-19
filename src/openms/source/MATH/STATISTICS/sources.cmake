@@ -6,6 +6,7 @@ set(sources_list
 AsymmetricStatistics.cpp
 AveragePosition.cpp
 BasicStatistics.cpp
+CumulativeBinomial.cpp
 GammaDistributionFitter.cpp
 GaussFitter.cpp
 GumbelDistributionFitter.cpp

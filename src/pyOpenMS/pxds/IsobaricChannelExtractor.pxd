@@ -22,5 +22,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>" nam
         IsobaricChannelExtractor(TMTSixPlexQuantitationMethod *quant_method) nogil except +
         IsobaricChannelExtractor(TMTTenPlexQuantitationMethod *quant_method) nogil except +
 
-        void extractChannels(MSExperiment[ Peak1D, ChromatogramPeak ] & ms_exp_data, ConsensusMap & consensus_map) nogil except +
+        void extractChannels(MSExperiment & ms_exp_data, ConsensusMap & consensus_map) nogil except +
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1455,7 +1455,7 @@ namespace OpenMS
     if (debug_) log_ << "   - Added " << (trace.peaks.size() - peaks_before_extension) << " peaks (abort: " << abort_reason << ")" << std::endl;
   }
 
-  Size FeatureFinderAlgorithmPicked::nearest_(double pos, const MSSpectrum<Peak1D>& spec, Size start) const
+  Size FeatureFinderAlgorithmPicked::nearest_(double pos, const MSSpectrum& spec, Size start) const
   {
     Size index = start;
     double distance = std::fabs(pos - spec[index].getMZ());

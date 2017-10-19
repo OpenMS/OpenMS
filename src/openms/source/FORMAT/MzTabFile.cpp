@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,16 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/TextFile.h>
+
+#include <QString>
 #include <boost/regex.hpp>
 #include <fstream>
+#include <iostream>
 
 using namespace std;
 
@@ -2499,6 +2504,12 @@ String MzTabFile::generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMolecule
 
 void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
 {
+
+  if (!FileHandler::hasValidExtension(filename, FileTypes::TSV))
+  {
+    throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::TSV) + "'");
+  }
+
   StringList out;
 
   generateMzTabMetaDataSection_(mz_tab.getMetaData(), out);

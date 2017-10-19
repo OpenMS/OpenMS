@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,7 @@ END_SECTION
 START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr > &output, std::vector< ExtractionCoordinates > extraction_coordinates, double mz_extraction_window, bool ppm, String filter))
 {
   double extract_window = 0.05;
-  boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+  boost::shared_ptr<PeakMap > exp(new PeakMap);
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), *exp);
   OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
 
@@ -212,7 +212,7 @@ START_SECTION(void extract_value_tophat(const std::vector< double >::const_itera
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
 
   // convert the data into a spectrum
-  MSSpectrum<Peak1D> spectrum;
+  MSSpectrum spectrum;
   for(Size i=0; i<mz.size(); ++i)
   {
     Peak1D peak;
@@ -290,7 +290,7 @@ START_SECTION([EXTRA]void extract_value_tophat(const std::vector< double >::cons
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
 
   // convert the data into a spectrum
-  MSSpectrum<Peak1D> spectrum;
+  MSSpectrum spectrum;
   for(Size i=0; i<mz.size(); ++i)
   {
     Peak1D peak;

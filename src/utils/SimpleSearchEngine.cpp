@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,7 +57,6 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -132,6 +131,10 @@ class SimpleSearchEngine :
 
       registerIntOption_("precursor:min_charge", "<num>", 2, "Minimum precursor charge to be considered.", false, true);
       registerIntOption_("precursor:max_charge", "<num>", 5, "Maximum precursor charge to be considered.", false, true);
+
+      // consider one before annotated monoisotopic peak and the annotated one
+      IntList isotopes = {0, 1};
+      registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
 
       registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
       registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
@@ -411,6 +414,7 @@ class SimpleSearchEngine :
       Int max_precursor_charge = getIntOption_("precursor:max_charge");
       double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
       bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
+      IntList precursor_isotopes = getIntList_("precursor:isotopes");
 
       double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
       bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
@@ -474,8 +478,17 @@ class SimpleSearchEngine :
           }
 
           double precursor_mz = precursor[0].getMZ();
-          double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
-          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
+
+          // calculate precursor mass (optionally corrected for misassignment) and map it to MS scan index
+          for (int isotope_number : precursor_isotopes)
+          {
+            double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
+
+            // correct for monoisotopic misassignments of the precursor annotation
+            if (isotope_number != 0) { precursor_mass -= isotope_number * Constants::C13C12_MASSDIFF_U; }
+
+            multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
+          }
         }
       }
 
@@ -523,6 +536,8 @@ class SimpleSearchEngine :
 
         for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
         {
+          if (cit->getString().has('X')) continue;
+        
           bool already_processed = false;
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)
@@ -585,10 +600,10 @@ class SimpleSearchEngine :
             }
 
             //create theoretical spectrum
-            MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
+            PeakSpectrum theo_spectrum;
 
             //add peaks for b and y ions with charge 1
-            spectrum_generator.getSpectrum(theo_spectrum, candidate, 1);
+            spectrum_generator.getSpectrum(theo_spectrum, candidate, 1, 1);
 
             //sort by mz
             theo_spectrum.sortByPosition();
@@ -596,7 +611,7 @@ class SimpleSearchEngine :
             for (; low_it != up_it; ++low_it)
             {
               const Size& scan_index = low_it->second;
-              const MSSpectrum<Peak1D>& exp_spectrum = spectra[scan_index];
+              const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
               double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
@@ -627,8 +642,9 @@ class SimpleSearchEngine :
       progresslogger.startProgress(0, 1, "Post-processing PSMs...");
       postProcessHits_(spectra, peptide_hits, protein_ids, peptide_ids, report_top_hits);
       progresslogger.endProgress();
-
-      protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
+      StringList ms_runs;
+      spectra.getPrimaryMSRunPath(ms_runs);
+      protein_ids[0].setPrimaryMSRunPath(ms_runs);
 
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);

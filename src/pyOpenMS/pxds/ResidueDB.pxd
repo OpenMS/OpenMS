@@ -5,7 +5,8 @@ from Residue cimport *
 cdef extern from "<OpenMS/CHEMISTRY/ResidueDB.h>" namespace "OpenMS":
     
     cdef cppclass ResidueDB "OpenMS::ResidueDB":
-        # wrap-manual-memory
+        # wrap-manual-memory:
+        #   cdef AutowrapPtrHolder[_ResidueDB] inst
 
         ResidueDB(ResidueDB) nogil except + #wrap-ignore
 
@@ -21,7 +22,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueDB.h>" namespace "OpenMS":
         bool hasResidue(String & name) nogil except +
         # bool hasResidue(Residue * residue) nogil except + # does not really work as the ptr is different
 
-## wrap static methods
+# COMMENT: wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/ResidueDB.h>" namespace "OpenMS::ResidueDB":
     
     ResidueDB* getInstance() nogil except + # wrap-ignore

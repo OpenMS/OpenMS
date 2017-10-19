@@ -36,10 +36,16 @@
 		<PeptideSequence>PEPTIDERR</PeptideSequence> 
 	</Peptide> 
  	<Peptide id="4943767272410482976"> 
-		<PeptideSequence>PEPTIDERRR</PeptideSequence> 
+		<PeptideSequence>PEPTIDECK</PeptideSequence> 
+		<Modification location="8" monoisotopicMassDelta="57.021464">
+			<cvParam cvRef="UNIMOD" accession="UNIMOD:4" name="Carbamidomethyl" value=""/>
+		</Modification>
 	</Peptide> 
- 	<Peptide id="7485621129914001920"> 
-		<PeptideSequence>PEPTIDERRRR</PeptideSequence> 
+ 	<Peptide id="7485621129914001920" name="N[+3785.30710]PEPTIDEK"> 
+		<PeptideSequence>NPEPTIDEK</PeptideSequence> 
+		<Modification location="1" monoisotopicMassDelta="3785.3070989">
+			<cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
+		</Modification>
 	</Peptide> 
  	<PeptideEvidence id="10918478775903385808" peptide_ref="12687397162581935028" dBSequence_ref="1370410586476450684" post="B" pre="A" isDecoy="0"/> 
 	<PeptideEvidence id="11064349190525804944" peptide_ref="354584743404697772" dBSequence_ref="5172702226708088127" post="B" pre="A" isDecoy="1"/> 
