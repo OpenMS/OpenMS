@@ -39,6 +39,7 @@
 
 #include <OpenMS/METADATA/IdentificationData.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 
 ///////////////////////////
@@ -78,6 +79,12 @@ START_SECTION(([EXTRA]))
   // NEW_TMP_FILE(filename);
   // cout << "Test file:" << filename << endl;
   IdXMLFile().store(filename, proteins_out, peptides_out);
+
+  MzTab mztab = ids.exportMzTab();
+  filename = OPENMS_GET_TEST_DATA_PATH("IdentificationData_out.mzTab");
+  // NEW_TMP_FILE(filename);
+  // cout << "Test file:" << filename << endl;
+  MzTabFile().store(filename, mztab);
 }
 END_SECTION
 

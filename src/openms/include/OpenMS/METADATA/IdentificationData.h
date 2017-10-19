@@ -38,6 +38,7 @@
 // #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -173,6 +174,8 @@ namespace OpenMS
 
       // reference to the software that assigned the score:
       ProcessingSoftwareKey software_key;
+      // @TODO: scores assigned by different software tools/versions are
+      // considered as different scores - does that make sense?
 
       ScoreType():
         higher_better(true), software_key(0)
@@ -571,13 +574,16 @@ namespace OpenMS
     /// Copy constructor
     IdentificationData(const IdentificationData& other) = default;
 
+    /// Import from legacy peptide/protein identifications
     void importIDs(const std::vector<ProteinIdentification>& proteins,
                    const std::vector<PeptideIdentification>& peptides);
 
-    // "export" is a reserved keyword!
+    /// Export to legacy peptide/protein identifications
     void exportIDs(std::vector<ProteinIdentification>& proteins,
                    std::vector<PeptideIdentification>& peptides) const;
 
+    /// Export to mzTab format
+    MzTab exportMzTab() const;
 
     std::pair<InputFileKey, bool> registerInputFile(const String& file);
 
@@ -664,6 +670,10 @@ namespace OpenMS
       }
       return std::make_pair(pos->second, false);
     }
+
+    /// Helper function to add search engine score entries to MzTab's meta data section
+    void addMzTabSEScores_(const std::map<ScoreTypeKey, Size>& scores,
+                           std::map<Size, MzTabParameter>& output) const;
 
     /// Helper function to find a score value by its key
     double findScore_(ScoreTypeKey key, const ScoreList& scores);
