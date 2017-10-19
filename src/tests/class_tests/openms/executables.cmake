@@ -284,7 +284,6 @@ set(filtering_executables_list
   InternalCalibration_test
   IsotopeDiffFilter_test
   IsotopeDistributionCache_test
-  IsotopeDistributionMIDAS_test
   IsotopeMarker_test
   LinearResampler_test
   LinearResamplerAlign_test
