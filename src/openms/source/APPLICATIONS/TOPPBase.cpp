@@ -106,8 +106,8 @@ namespace OpenMS
     instance_number_(-1),
     version_(""),
     verboseVersion_(""),
-    citations_(citations),
     official_(official),
+    citations_(citations),
     log_type_(ProgressLogger::NONE),
     test_mode_(false),
     debug_level_(-1)
