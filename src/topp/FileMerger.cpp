@@ -39,10 +39,10 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
@@ -59,9 +59,7 @@ using namespace std;
 
 /**
   @page TOPP_FileMerger FileMerger
-
   @brief Merges several files. Multiple output format supported, depending on input format.
-
   <center>
   <table>
   <tr>
@@ -75,10 +73,8 @@ using namespace std;
   </tr>
   </table>
   </center>
-
   The meta information that is valid for the whole experiment (e.g. MS instrument and sample)
   is taken from the first file.
-
   The retention times for the individual scans are taken from either:
   <ul>
   <li>the input file meta data (e.g. mzML)
@@ -86,7 +82,6 @@ using namespace std;
   <li>as a list (one RT for each file)
   <li>or are auto-generated (starting at 1 with 1 second increment).
   </ul>
-
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FileMerger.cli
   <B>INI file documentation of this tool:</B>
@@ -119,7 +114,7 @@ protected:
     registerStringOption_("in_type", "<type>", "", "Input file type (default: determined from file extension or content)", false);
     setValidStrings_("in_type", valid_in);
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML,FASTA"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
     
@@ -347,6 +342,29 @@ protected:
 
       fh.store(out_file, out);
     }
+
+
+    /***FASTA****/
+    else if (force_type == FileTypes::FASTA)
+    {
+      FASTAFile fastafile, fastamerged;
+      std::vector<FASTAFile::FASTAEntry> entry, merged;
+
+      for (Size i = 0; i < file_list.size(); ++i)
+      {
+        fastafile.load(file_list[i], entry);
+        for(std::vector<FASTAFile::FASTAEntry>::iterator it = entry.begin(); it != entry.end(); ++it)
+        {
+        	merged.push_back(*it);
+        }
+      }
+
+      fastafile.store(out_file, merged);
+
+    }
+    /****End FASTA****/
+
+
     else // raw data input (e.g. mzML)
     {
       // RT
@@ -468,7 +486,7 @@ protected:
         }
         else // otherwise append
         {
-          out.getSourceFiles().insert(out.getSourceFiles().end(), in.getSourceFiles().begin(), in.getSourceFiles().end()); // could be emtpty if spectrum was annotated above, but that's ok then
+          out.getSourceFiles().insert(out.getSourceFiles().end(), in.getSourceFiles().begin(), in.getSourceFiles().end()); // could be empty if spectrum was annotated above, but that's ok then
         }
       }
 

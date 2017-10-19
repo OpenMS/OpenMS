@@ -77,7 +77,7 @@ using namespace std;
   individual Ascore was calculated and listed as meta value of the peptide hit (e.g. AScore_1,
   AScore_2).
   
-  The Ascore results of this TOPP tool differs with the results of the Ascore calculation provided 
+  The Ascore results of this TOPP tool differ with the results of the Ascore calculation provided 
   <a href="http://ascore.med.harvard.edu/ascore.html">on the website</a>, but it seems that the
   implementation according to Beausoleil <em>et al.</em> has some calculation errors.  It is not
   possible to recalculate the Ascore using the cumulative binomial probability formula with the
