@@ -999,8 +999,18 @@ namespace OpenMS
           os << ">" << mz << "</precursorMz>\n";
         }
 
-        // note: line breaks between attributes are required here! (MaxQuants mzXML reader will fail otherwise! -- dont ask..)
-        String s_peaks("<peaks precision=\"32\"\n byteOrder=\"network\"\n contentType=\"m/z-int\"\n compressionType=\"none\"\n compressedLen=\"0\" ");
+        // Note: Some parsers require the following line breaks (MaxQuants
+        // mzXML reader will fail otherwise! -- dont ask..) while others cannot
+        // deal with them (mostly TPP tools such as SpectraST).
+        String s_peaks;
+        if (options_.getForceMQCompatability() )
+        {
+          s_peaks = "<peaks precision=\"32\"\n byteOrder=\"network\"\n contentType=\"m/z-int\"\n compressionType=\"none\"\n compressedLen=\"0\" ";
+        }
+        else
+        {
+          s_peaks = "<peaks precision=\"32\" byteOrder=\"network\" contentType=\"m/z-int\" compressionType=\"none\" compressedLen=\"0\" ";
+        }
         if (options_.getForceMQCompatability() && !s_peaks.has('\n'))
         { // internal check against inadvertedly removing line breaks above!
           fatalError(STORE, "Internal error: <peaks> tag does not contain newlines as required by MaxQuant. Please report this as a bug.", __LINE__, 0);
