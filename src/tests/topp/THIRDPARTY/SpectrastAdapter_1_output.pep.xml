@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/local/TPP/schema/pepXML_std.xsl"?>
+<msms_pipeline_analysis date="2017-10-20T16:52:44" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML /local/TPP/schema/pepXML_v120.xsd" summary_xml="spectra_spectrast.xml">
+<msms_run_summary base_name="/home/hr/openmsall/source/OpenMS/src/tests/topp/THIRDPARTY/spectra_spectrast" msManufacturer="Thermo Scientific" msModel="" msIonization="NSI" msMassAnalyzer="FTMS" msDetector="" raw_data_type=".mzXML" raw_data=".mzXML">
+<sample_enzyme name="trypsin">
+<specificity cut="KR" no_cut="P" sense="C"/>
+</sample_enzyme>
+<search_summary base_name="/home/hr/openmsall/source/OpenMS/src/tests/topp/THIRDPARTY/spectra_spectrast" search_engine="SpectraST" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="out" out_data=".tgz" search_id="1">
+<search_database local_path="/home/hr/openmsall/source/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta" type="AA"/>
+<parameter name="spectral_library" value="/home/hr/openmsall/source/OpenMS/src/tests/topp/THIRDPARTY/testLib.splib"/>
+<parameter name="precursor_mz_tolerance" value="3"/>
+<parameter name="precursor_mz_use_average" value="false"/>
+<parameter name="params_file" value=""/>
+<parameter name="detect_homologs_max_rank" value="4"/>
+<parameter name="use_sp4_scoring" value="false"/>
+<parameter name="use_P_value" value="false"/>
+<parameter name="use_tierwise_open_modification_search" value="false"/>
+<parameter name="peak_scaling_mz_power" value="0"/>
+<parameter name="peak_scaling_intensity_power" value="0.5"/>
+<parameter name="peak_scaling_unassigned_peaks" value="1"/>
+<parameter name="peak_binning_num_bins_per_mz" value="1"/>
+<parameter name="peak_binning_fraction_to_neighbor" value="0.5"/>
+<parameter name="peak_no_binning" value="false"/>
+<parameter name="filter_min_peak_count" value="10"/>
+<parameter name="filter_min_mz_range" value="350"/>
+<parameter name="filter_all_peaks_below_mz" value="520"/>
+<parameter name="filter_max_peaks_used" value="150"/>
+<parameter name="filter_max_dynamic_range" value="1000"/>
+<parameter name="filter_max_intensity_below" value="0"/>
+<parameter name="filter_lib_max_peaks_used" value="50"/>
+<parameter name="filter_iTRAQ_reporter_peaks" value="false"/>
+<parameter name="filter_TMT_reporter_peaks" value="false"/>
+<parameter name="filter_light_ions_mz_threshold" value="180"/>
+<parameter name="fval_fraction_delta" value="0.4"/>
+<parameter name="fval_use_dot_bias" value="false"/>
+</search_summary>
+</msms_run_summary>
+</msms_pipeline_analysis>
