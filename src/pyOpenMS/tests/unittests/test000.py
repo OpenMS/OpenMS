@@ -4518,6 +4518,18 @@ def testElementDB():
 
 
 @report
+def testDPosition():
+    dp = pyopenms.DPosition1()
+    dp = pyopenms.DPosition1(1.0)
+    assert dp[0] == 1.0
+
+    dp = pyopenms.DPosition2()
+    dp = pyopenms.DPosition2(1.0, 2.0)
+
+    assert dp[0] == 1.0
+    assert dp[1] == 2.0
+
+@report
 def testResidueDB():
     rdb = pyopenms.ResidueDB()
     del rdb
