@@ -139,11 +139,7 @@ protected:
       throw();
 
       /// The OPENMS new handler
-#ifdef OPENMS_COMPILER_MSVC
       static void newHandler();
-#else
-      static void newHandler() throw(OutOfMemory);
-#endif
 
       /**
         @name	Wrapper for static member.

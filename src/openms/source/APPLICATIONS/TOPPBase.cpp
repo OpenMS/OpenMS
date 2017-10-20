@@ -36,6 +36,7 @@
 
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/SYSTEM/UpdateCheck.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
@@ -176,7 +177,6 @@ namespace OpenMS
     registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
-    registerStringOption_("write_wsdl", "<file>", "", "Writes the default WSDL file", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
     registerFlag_("force", "Overwrite tool specific checks.", true);
     if (id_tag_support_)
@@ -298,15 +298,6 @@ namespace OpenMS
         return INTERNAL_ERROR;
       }
       return EXECUTION_OK;
-    }
-
-    // '-write_wsdl' given
-    String wsdl_file("");
-    if (param_cmdline_.exists("write_wsdl"))
-      wsdl_file = param_cmdline_.getValue("write_wsdl");
-    if (wsdl_file != "")
-    {
-      return writeWSDL_(wsdl_file);
     }
 
     //-------------------------------------------------------------
@@ -491,6 +482,14 @@ namespace OpenMS
     result = main_(argc, argv);
     sw.stop();
     LOG_INFO << this->tool_name_ << " took " << sw.toString() << "." << std::endl;
+
+    // useful for benchmarking
+    if (debug_level_ >= 1)
+    {
+      size_t mem_virtual(0);
+      writeLog_(String("Peak Memory Usage: ") + (SysInfo::getProcessPeakMemoryConsumption(mem_virtual) ? String(mem_virtual / 1024) + " MB" : "<unknown>"));
+    }
+
 
 #ifndef DEBUG_TOPP
   }
@@ -2027,7 +2026,7 @@ namespace OpenMS
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (it->name == "ini" || it->name == "-help" || it->name == "-helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_wsdl" || it->name == "write_ctd") // do not store those params in ini file
+      if (it->name == "ini" || it->name == "-help" || it->name == "-helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_ctd") // do not store those params in ini file
       {
         continue;
       }
@@ -2362,171 +2361,6 @@ namespace OpenMS
     }
 
     return true;
-  }
-
-  TOPPBase::ExitCodes TOPPBase::writeWSDL_(const String& filename)
-  {
-    outputFileWritable_(filename, "write_wsdl");
-    ofstream os(filename.c_str());
-
-    //write header
-    os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
-    os << "<wsdl:definitions targetNamespace=\"http://www-bs.informatik.uni-tuebingen.de/compas\" xmlns:ns1=\"http://org.apache.axis2/xsd\" xmlns:plnk=\"http://schemas.xmlsoap.org/ws/2003/05/partner-link/\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\" xmlns:tns=\"http://www-bs.informatik.uni-tuebingen.de/compas\" xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" << endl;
-    os << "  <wsdl:types>" << endl;
-    os << "    <xs:schema attributeFormDefault=\"unqualified\" elementFormDefault=\"qualified\" targetNamespace=\"http://org.apache.axis2/xsd\" xmlns:ns1=\"http://org.apache.axis2/xsd\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" << endl;
-    os << "      <xs:element name=\"" << tool_name_ << "Request\">" << endl;
-    os << "        <xs:complexType>" << endl;
-    os << "          <xs:sequence>" << endl;
-
-    //write types (forward declaration for readability only. Could be defined in the message as well.
-    Param param = getDefaultParameters_();
-    param = param.copy(tool_name_ + ":" + String(instance_number_) + ":", true);
-    for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
-    {
-      //find out if the value is restricted
-      bool restricted = false;
-      if (it->value.valueType() == DataValue::STRING_VALUE  && !it->valid_strings.empty())
-      {
-        restricted = true;
-      }
-      else if (it->value.valueType() == DataValue::STRING_LIST || it->value.valueType() == DataValue::INT_LIST || it->value.valueType() == DataValue::DOUBLE_LIST)
-      {
-        restricted = true;
-      }
-      else if (it->value.valueType() == DataValue::INT_VALUE && (it->min_int != -std::numeric_limits<Int>::max() || it->max_int != std::numeric_limits<Int>::max()))
-      {
-        restricted = true;
-      }
-      else if (it->value.valueType() == DataValue::DOUBLE_VALUE && (it->min_float != -std::numeric_limits<double>::max() || it->max_float != std::numeric_limits<double>::max()))
-      {
-        restricted = true;
-      }
-
-      //name, default (and type if not restricted)
-      os << "            <xs:element name=\"" << it.getName() << "\"";
-      if (!restricted)
-      {
-        if (it->value.valueType() == DataValue::STRING_VALUE)
-          os << " type=\"xs:string\"";
-        if (it->value.valueType() == DataValue::DOUBLE_VALUE)
-          os << " type=\"xs:double\"";
-        if (it->value.valueType() == DataValue::INT_VALUE)
-          os << " type=\"xs:integer\"";
-      }
-      os << " default=\"" << it->value.toString() << "\">" << endl;
-      //docu
-      if (it->description != "")
-      {
-        String description = it->description;
-        description.substitute("<", "&lt;");
-        description.substitute(">", "&gt;");
-        os << "              <xs:annotation>" << endl;
-        os << "                <xs:documentation>" << description << "</xs:documentation>" << endl;
-        os << "              </xs:annotation>" << endl;
-      }
-      //restrictions
-      if (restricted)
-      {
-        os << "              <xs:simpleType>" << endl;
-        if (it->value.valueType() == DataValue::STRING_LIST)
-        {
-          os << "                <xs:restriction base=\"xs:stringlist\">" << endl;
-          os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
-        }
-        else if (it->value.valueType() == DataValue::INT_LIST)
-        {
-          os << "                <xs:restriction base=\"xs:intlist\">" << endl;
-          os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
-        }
-        else if (it->value.valueType() == DataValue::DOUBLE_LIST)
-        {
-          os << "                <xs:restriction base=\"xs:doublelist\">" << endl;
-          os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
-        }
-        else if (it->value.valueType() == DataValue::STRING_VALUE)
-        {
-          os << "                <xs:restriction base=\"xs:string\">" << endl;
-          for (Size i = 0; i < it->valid_strings.size(); ++i)
-          {
-            os << "                  <xs:enumeration value=\"" << it->valid_strings[i] << "\"/>" << endl;
-          }
-        }
-        else if (it->value.valueType() == DataValue::DOUBLE_VALUE)
-        {
-          os << "                <xs:restriction base=\"xs:double\">" << endl;
-          if (it->min_float != -std::numeric_limits<double>::max())
-          {
-            os << "                  <xs:minInclusive value=\"" << it->min_float << "\"/>" << endl;
-          }
-          if (it->max_float != std::numeric_limits<double>::max())
-          {
-            os << "                  <xs:maxInclusive value=\"" << it->max_float << "\"/>" << endl;
-          }
-        }
-        else if (it->value.valueType() == DataValue::INT_VALUE)
-        {
-          os << "                <xs:restriction base=\"xs:integer\">" << endl;
-          if (it->min_int != -std::numeric_limits<Int>::max())
-          {
-            os << "                  <xs:minInclusive value=\"" << it->min_int << "\"/>" << endl;
-          }
-          if (it->max_int != std::numeric_limits<Int>::max())
-          {
-            os << "                  <xs:maxInclusive value=\"" << it->max_int << "\"/>" << endl;
-          }
-        }
-        os << "                </xs:restriction>" << endl;
-        os << "              </xs:simpleType>" << endl;
-      }
-      os << "            </xs:element>" << endl;
-    }
-    os << "          </xs:sequence>" << endl;
-    os << "        </xs:complexType>" << endl;
-    os << "      </xs:element>" << endl;
-    os << "    </xs:schema>" << endl;
-    os << "  </wsdl:types>" << endl;
-    //message
-    os << "  <wsdl:message name=\"" << tool_name_ << "RequestMessage\">" << endl;
-    os << "    <wsdl:part element=\"ns1:" << tool_name_ << "Request\" name=\"part1\"/>" << endl;
-    os << "  </wsdl:message>" << endl;
-    //port
-    os << "  <wsdl:portType name=\"SVMHCProcessPortType\">" << endl;
-    os << "    <wsdl:operation name=\"request\">" << endl;
-    os << "      <wsdl:input message=\"tns:" << tool_name_ << "RequestMessage\"/>" << endl;
-    os << "    </wsdl:operation>" << endl;
-    os << "  </wsdl:portType>" << endl;
-    //binding
-    os << "  <wsdl:binding name=\"" << tool_name_ << "ProviderServiceBinding\" type=\"tns:" << tool_name_ << "PortType\">" << endl;
-    os << "    <soap:binding style=\"rpc\" transport=\"http://schemas.xmlsoap.org/soap/http\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-    os << "    <wsdl:operation name=\"request\">" << endl;
-    os << "      <soap:operation soapAction=\"\" style=\"rpc\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-    os << "      <wsdl:input>" << endl;
-    os << "        <soap:body encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" use=\"encoded\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-    os << "      </wsdl:input>" << endl;
-    os << "      <wsdl:output>" << endl;
-    os << "        <soap:body encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" use=\"encoded\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-    os << "      </wsdl:output>" << endl;
-    os << "    </wsdl:operation>" << endl;
-    os << "  </wsdl:binding>" << endl;
-    //service
-    os << "  <wsdl:service name=\"" << tool_name_ << "ProviderService\">" << endl;
-    os << "    <wsdl:port binding=\"tns:" << tool_name_ << "ProviderServiceBinding\" name=\"" << tool_name_ << "ProviderServicePort\">" << endl;
-    os << "     <soap:address location=\"http://trypsin.informatik.uni-tuebingen.de:30090/active-bpel/services/" << tool_name_ << "ProviderService\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-    os << "    </wsdl:port>" << endl;
-    os << "  </wsdl:service>" << endl;
-    //end
-    os << "</wsdl:definitions>" << endl;
-    os.close();
-
-    //validate written file
-    XMLValidator validator;
-    if (!validator.isValid(filename, File::find("SCHEMAS/WSDL_20030211.xsd")))
-    {
-      writeLog_("Error: The written WSDL file does not validate against the XML schema. Please report this bug!");
-      return INTERNAL_ERROR;
-    }
-
-    return EXECUTION_OK;
   }
 
   Param TOPPBase::parseCommandLine_(const int argc, const char** argv, const String& misc, const String& unknown)

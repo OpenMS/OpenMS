@@ -69,13 +69,6 @@ namespace OpenMS
 
     void TraMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
-
-      // We should not need any previous dynamically allocated strings any more
-      // once we start processing a new element. Further optimization may move this
-      // statement down so that we dont call it too often.
-      // This results in substantial memory efficiency gains.
-      sm_.clear();
-
       static const XMLCh* s_type = xercesc::XMLString::transcode("type");
       static const XMLCh* s_value = xercesc::XMLString::transcode("value");
       static const XMLCh* s_name = xercesc::XMLString::transcode("name");

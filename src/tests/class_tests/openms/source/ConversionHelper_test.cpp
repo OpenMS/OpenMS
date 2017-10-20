@@ -87,7 +87,7 @@ END_SECTION
 // Prepare data
 PeakMap mse;
 {
-  MSSpectrum<Peak1D> mss;
+  MSSpectrum mss;
   Peak1D p;
   for ( UInt m = 0; m < 3; ++m )
   {

@@ -115,10 +115,10 @@ namespace OpenMS
     {
       std::cerr << "Compomer::add() was given adduct with negative amount! Are you sure this is what you want?!\n";
     }
-    if (a.getCharge() < 0)
-    {
-      std::cerr << "Compomer::add() was given adduct with negative charge! Are you sure this is what you want?!\n";
-    }
+    //if (a.getCharge() < 0)
+    //{
+    //  std::cerr << "Compomer::add() was given adduct with negative charge! Are you sure this is what you want?!\n";
+    //}
 
     if (cmp_[side].count(a.getFormula()) == 0)
     {

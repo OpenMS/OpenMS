@@ -125,7 +125,7 @@ namespace OpenMS
     // see if we have a header
     try
     {
-      // try to convert... if not: thats a header
+      // try to convert... if not: that's a header
       rt = headers[0].toDouble();
       mz = headers[1].toDouble();
       it = headers[2].toDouble();
@@ -290,8 +290,7 @@ namespace OpenMS
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::EDTA))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::EDTA) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::EDTA) + "'");
     }
 
     TextFile tf;

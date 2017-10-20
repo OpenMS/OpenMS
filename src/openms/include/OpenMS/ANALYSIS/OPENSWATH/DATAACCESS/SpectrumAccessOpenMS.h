@@ -55,8 +55,8 @@ namespace OpenMS
   {
 public:
     typedef OpenMS::PeakMap MSExperimentType;
-    typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
-    typedef OpenMS::MSChromatogram<ChromatogramPeak> MSChromatogramType;
+    typedef OpenMS::MSSpectrum MSSpectrumType;
+    typedef OpenMS::MSChromatogram MSChromatogramType;
 
     /// Constructor
     explicit SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment);

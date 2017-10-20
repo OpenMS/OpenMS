@@ -67,7 +67,7 @@ namespace OpenMS
     defaults_.setValidStrings("report_FWHM_unit", ListUtils::create<String>("relative,absolute"));
 
     // parameters for STN estimator
-    defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum<Peak1D> >().getDefaults());
+    defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum >().getDefaults());
 
     // write defaults into Param object param_
     defaultsToParam_();

@@ -370,7 +370,9 @@ protected:
     protein_ids[0].setDateTime(DateTime::now());
     protein_ids[0].setSearchEngine("OpenXQuest");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
-    protein_ids[0].setPrimaryMSRunPath(unprocessed_spectra.getPrimaryMSRunPath());
+    StringList ms_runs;
+    unprocessed_spectra.getPrimaryMSRunPath(ms_runs);
+    protein_ids[0].setPrimaryMSRunPath(ms_runs);
     protein_ids[0].setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
 
     ProteinIdentification::SearchParameters search_params;
@@ -894,7 +896,7 @@ protected:
 
         // write fragment annotations
         LOG_DEBUG << "Start writing annotations" << endl;
-        vector<PeptideHit::FragmentAnnotation> frag_annotations;
+        vector<PeptideHit::PeakAnnotation> frag_annotations;
 
         OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_common_alpha, theoretical_spec_common_alpha, spectrum);
         OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_common_beta, theoretical_spec_common_beta, spectrum);
@@ -904,7 +906,7 @@ protected:
 
         // make annotations unique
         sort(frag_annotations.begin(), frag_annotations.end());
-        vector<PeptideHit::FragmentAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
+        vector<PeptideHit::PeakAnnotation>::iterator last_unique_anno = unique(frag_annotations.begin(), frag_annotations.end());
         if (last_unique_anno != frag_annotations.end())
         {
           frag_annotations.erase(last_unique_anno, frag_annotations.end());

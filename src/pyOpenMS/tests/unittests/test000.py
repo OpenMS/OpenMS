@@ -139,8 +139,8 @@ def testSpectrumAlignment():
     p.setIntensity(200.0)
     spec.push_back(p)
 
-    rich_spec = pyopenms.RichMSSpectrum()
-    p = pyopenms.RichPeak1D()
+    rich_spec = pyopenms.MSSpectrum()
+    p = pyopenms.Peak1D()
     p.setMZ(1000.001)
     p.setIntensity(200.0)
     rich_spec.push_back(p)
@@ -807,8 +807,8 @@ def testXTandemInfile():
     f.getDefaultParametersFilename is not None
 
 
-    f.setTaxon("testTaxon")
-    assert f.getTaxon() == "testTaxon"
+    f.setTaxon(b"testTaxon")
+    assert f.getTaxon() == b"testTaxon"
 
     assert f.setMaxPrecursorCharge is not None
     assert f.getMaxPrecursorCharge is not None
@@ -2870,8 +2870,8 @@ def testMSSpectrum():
     string_da[1].push_back("other")
     spec.setStringDataArrays( string_da )
     assert len(spec.getStringDataArrays()) == 2
-    assert spec.getStringDataArrays()[0][0] == "hello"
-    assert spec.getStringDataArrays()[1][0] == "other"
+    assert spec.getStringDataArrays()[0][0] == b"hello"
+    assert spec.getStringDataArrays()[1][0] == b"other"
 
     assert len(spec.getIntegerDataArrays()) == 0
     # int_da = [ [5, 6], [8] ]
@@ -2907,10 +2907,10 @@ def testStringDataArray():
     da.push_back("hello")
     da.push_back("world")
     assert da.size() == 2
-    assert da[0] == "hello"
-    assert da[1] == "world"
+    assert da[0] == b"hello"
+    assert da[1] == b"world"
     da[1] = "hello world"
-    assert da[1] == "hello world", da[1]
+    assert da[1] == b"hello world", da[1]
     da.clear()
     assert da.size() == 0
     da.push_back("hello")
@@ -3058,7 +3058,7 @@ def testMRMTransitionGroup():
     """
     @tests:
      """
-    mrmgroup = pyopenms.MRMTransitionGroup()
+    mrmgroup = pyopenms.MRMTransitionGroupCP()
     assert mrmgroup is not None
 
     mrmgroup.setTransitionGroupID(b"this_id")
@@ -3803,14 +3803,6 @@ def testRichPeak():
      RichPeak2D.__lt__
      RichPeak2D.__ne__
      """
-    p1 = pyopenms.RichPeak1D()
-    _testMetaInfoInterface(p1)
-    assert p1 == p1
-    assert not p1 != p1
-    p1.setMZ(12.0)
-    p1.setIntensity(23.0)
-    assert p1.getMZ() == (12.0)
-    assert p1.getIntensity() == (23.0)
 
     p2 = pyopenms.RichPeak2D()
     _testMetaInfoInterface(p2)
@@ -3965,7 +3957,9 @@ def testTransformationModels():
                 pyopenms.TransformationModelBSpline,
                 pyopenms.TransformationModelInterpolated]:
         p = pyopenms.Param()
-        data = [ [9.0, 8.9], [5.0, 6.0], [8.0, 8.0] ]
+        data = [ pyopenms.TM_DataPoint(9.0, 8.9),
+                 pyopenms.TM_DataPoint(5.0, 6.0),
+                 pyopenms.TM_DataPoint(8.0, 8.0) ]
         mod = clz(data, p)
         mod.evaluate(7.0)
         mod.getDefaultParameters(p)
@@ -4373,7 +4367,15 @@ def testConsensusIDAlgorithmWorst():
 @report
 def testEnzymes():
     f = pyopenms.EmpiricalFormula()
-    e = pyopenms.Enzyme(b"testEnzyme", "K", set([]), b"", f, f, b"", b"", 0)
+
+    regex_description = b""
+    psi_id = b""
+    xtandem_id = b""
+    comet_id = 0
+    omssa_id = 0
+    e = pyopenms.Enzyme(b"testEnzyme", "K", set([]), regex_description,
+                        f, f, psi_id, xtandem_id,
+                        comet_id, omssa_id)
 
 @report
 def testMRMAssay():
@@ -4454,7 +4456,14 @@ def testEnzymesDB():
 
     f = pyopenms.EmpiricalFormula()
     synonyms = set([b"dummy", b"other"])
-    e = pyopenms.Enzyme(b"testEnzyme", b"someregex", synonyms, b"", f, f, b"", b"", 0)
+
+    regex_description = b""
+    psi_id = b""
+    xtandem_id = b""
+    comet_id = 0
+    omssa_id = 0
+    e = pyopenms.Enzyme(b"testEnzyme", b"someregex", synonyms, regex_description,
+                        f, f, psi_id, xtandem_id, comet_id, omssa_id)
     edb.addEnzyme(e)
     assert edb.hasEnzyme(pyopenms.String("testEnzyme"))
 
@@ -4647,6 +4656,7 @@ def testString():
     assert (pystr.toString() == u"bläh")
     pystr = pyopenms.String(pystr)
     assert (pystr.toString() == u"bläh")
+    cstr = pystr.c_str()
 
     # Printing should work ...
     print(cstr)

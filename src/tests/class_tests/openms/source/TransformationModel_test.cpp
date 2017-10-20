@@ -64,7 +64,7 @@ START_SECTION((TransformationModel()))
 }
 END_SECTION
 
-START_SECTION((TransformationModel(const DataPoints &, const Param &)))
+START_SECTION((TransformationModel(const DataPoints&, const Param&)))
 {
   ptr = new TransformationModel(TransformationModel::DataPoints(), Param());
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -87,7 +87,7 @@ START_SECTION((virtual double evaluate(double value) const))
 }
 END_SECTION
 
-START_SECTION((void getParameters(Param & params) const))
+START_SECTION((void getParameters(Param& params) const))
 {
   TransformationModel tm;
   Param p = tm.getParameters();
@@ -95,7 +95,7 @@ START_SECTION((void getParameters(Param & params) const))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] static void getDefaultParameters(Param & params)))
+START_SECTION(([EXTRA] static void getDefaultParameters(Param& params)))
 {
   Param param;
   param.setValue("some-value", 12.3);
@@ -331,6 +331,41 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
     TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
     TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
   }
+
+START_SECTION(([EXTRA] DataPoint::DataPoint(double, double, const String&)))
+{
+  NOT_TESTABLE // tested below
+}
+END_SECTION
+
+START_SECTION(([EXTRA] DataPoint::DataPoint(const pair<double, double>&)))
+{
+  NOT_TESTABLE // tested below
+}
+END_SECTION
+
+START_SECTION(([EXTRA] bool DataPoint::operator<(const DataPoint& other) const))
+{
+  TransformationModel::DataPoint p1(1.0, 2.0, "abc");
+  TransformationModel::DataPoint p2(make_pair(1.0, 2.0));
+  TEST_EQUAL(p1 < p2, false);
+  TEST_EQUAL(p2 < p1, true);
+  p2.note = "def";
+  TEST_EQUAL(p1 < p2, true);
+  TEST_EQUAL(p2 < p1, false);
+  p1.first = 1.5;
+  TEST_EQUAL(p1 < p2, false);
+  TEST_EQUAL(p2 < p1, true);
+}
+END_SECTION
+
+START_SECTION(([EXTRA] bool DataPoint::operator==(const DataPoint& other) const))
+{
+  TransformationModel::DataPoint p1(1.0, 2.0, "abc");
+  TransformationModel::DataPoint p2(make_pair(1.0, 2.0));
+  TEST_EQUAL(p1 == p2, false);
+  p2.note = "abc";
+  TEST_EQUAL(p1 == p2, true);
 }
 END_SECTION
 

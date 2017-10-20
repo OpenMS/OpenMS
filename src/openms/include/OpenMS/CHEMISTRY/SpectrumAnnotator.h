@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -110,7 +109,7 @@ namespace OpenMS
       See the parameter section of this class for the available statistics.
       @htmlinclude OpenMS_SpectrumAnnotator.parameters
     */
-    void addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum<Peak1D> &spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
+    void addIonMatchStatistics(PeptideIdentification& pi, MSSpectrum &spec, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const;
 
     /// overwrite
     void updateMembers_();

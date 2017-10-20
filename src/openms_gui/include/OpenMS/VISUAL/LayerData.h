@@ -141,6 +141,8 @@ public:
       modifiable(false),
       modified(false),
       label(L_NONE),
+      peptide_id_index(-1),
+      peptide_hit_index(-1),
       features(new FeatureMapType()),
       consensus(new ConsensusMapType()),
       peaks(new ExperimentType()),
@@ -269,6 +271,13 @@ public:
       }
     }
 
+    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
+    /// if no PeptideIdentification or PeptideHit for the spectrum exist, it is generated
+    void synchronizePeakAnnotations();
+
+    /// remove peak annotations in the given list from the currently active PeptideHit
+    void removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations);
+
     /// if this layer is visible
     bool visible;
 
@@ -308,7 +317,14 @@ public:
     /// Label type
     LabelType label;
 
+    /// Selected peptide id and hit index (-1 if none is selected)
+    int peptide_id_index;
+    int peptide_hit_index;
+
 private:
+    /// updates the PeakAnnotations in the current PeptideHit with manually changed annotations
+    void updatePeptideHitAnnotations_(PeptideHit& hit);
+
     /// feature data
     FeatureMapSharedPtrType features;
 

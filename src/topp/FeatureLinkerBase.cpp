@@ -198,7 +198,8 @@ protected:
         out_map.getFileDescriptions()[i].unique_id = tmp.getUniqueId();
 
         // copy over information on the primary MS run
-        const StringList& ms_runs = tmp.getPrimaryMSRunPath();
+        StringList ms_runs;
+        tmp.getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
 
         // to save memory, remove convex hulls, subordinates:
@@ -257,7 +258,8 @@ protected:
         f.load(ins[i], maps[i]);
         maps[i].updateRanges();
         // copy over information on the primary MS run
-        const StringList& ms_runs = maps[i].getPrimaryMSRunPath();
+        StringList ms_runs;
+        maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
       }
       // group
@@ -291,6 +293,9 @@ protected:
 
     // set primary MS runs
     out_map.setPrimaryMSRunPath(ms_run_locations);
+
+    // sort list of peptide identifications in each consensus feature by map index
+    out_map.sortPeptideIdentificationsByMapIndex();
 
     // write output
     ConsensusXMLFile().store(out, out_map);

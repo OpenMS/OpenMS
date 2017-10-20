@@ -301,9 +301,7 @@ protected:
       }
     }
     real_2D_ = real2D;
-    typedef typename InputSpectrumIterator::value_type InputSpectrumType;
-    typedef typename InputSpectrumType::value_type PeakType;
-    typedef MSSpectrum<PeakType> SpectrumType;
+    typedef MSSpectrum SpectrumType;
 
     typename PeakMap::Iterator ms_exp_it = ms_exp.begin();
     typename PeakMap::Iterator ms_exp_it_end = ms_exp.end();
@@ -348,7 +346,7 @@ protected:
       std::cout << "Next scan, rt = " << current_rt << " last_rt: " << last_rt << std::endl;
       std::cout << "---------------------------------------------------------------------------" << std::endl;
 #endif
-      MSSpectrum<PeakType> s;
+      MSSpectrum s;
       s.setRT(current_rt);
       // check if there were scans in between
       if (last_rt == 0 || // are we in the first scan
@@ -701,17 +699,17 @@ protected:
           if ((PeakShape::Type)(Int)ms_exp[itv->second[j].spectrum].getFloatDataArrays()[5][itv->second[j].peak] == PeakShape::LORENTZ_PEAK)
           {
             double x_left_endpoint = mz - 1 / left_width* sqrt(height / 1 - 1);
-            double x_rigth_endpoint = mz + 1 / right_width* sqrt(height / 1 - 1);
+            double x_right_endpoint = mz + 1 / right_width* sqrt(height / 1 - 1);
             double area_left = -height / left_width* atan(left_width * (x_left_endpoint - mz));
-            double area_right = -height / right_width* atan(right_width * (mz - x_rigth_endpoint));
+            double area_right = -height / right_width* atan(right_width * (mz - x_right_endpoint));
             ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity(area_left + area_right);
           }
           else         // it's a sech peak
           {
             double x_left_endpoint = mz - 1 / left_width* boost::math::acosh(sqrt(height / 0.001));
-            double x_rigth_endpoint = mz + 1 / right_width* boost::math::acosh(sqrt(height / 0.001));
+            double x_right_endpoint = mz + 1 / right_width* boost::math::acosh(sqrt(height / 0.001));
             double area_left = -height / left_width * (sinh(left_width * (mz - x_left_endpoint)) / cosh(left_width * (mz - x_left_endpoint)));
-            double area_right = -height / right_width * (sinh(right_width * (mz - x_rigth_endpoint)) / cosh(right_width * (mz - x_rigth_endpoint)));
+            double area_right = -height / right_width * (sinh(right_width * (mz - x_right_endpoint)) / cosh(right_width * (mz - x_right_endpoint)));
             ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity(area_left + area_right);
           }
 
@@ -852,7 +850,7 @@ protected:
         while (set_iter != set_iter2)
         {
           const Size peak_index = set_iter->second;
-          const MSSpectrum<>& spec = ms_exp[set_iter->first];
+          const MSSpectrum& spec = ms_exp[set_iter->first];
           PeakShape shape(spec.getFloatDataArrays()[1][peak_index], //intensity
                           spec[peak_index].getMZ(),
                           spec.getFloatDataArrays()[3][peak_index], //left width
@@ -895,7 +893,7 @@ protected:
         Size p = 0;
         while (p < peak_shapes.size())
         {
-          MSSpectrum<>& spec = ms_exp[set_iter->first];
+          MSSpectrum& spec = ms_exp[set_iter->first];
           spec[set_iter->second].setMZ(peak_shapes[p].mz_position);
           spec.getFloatDataArrays()[3][set_iter->second] = peak_shapes[p].left_width;
           spec.getFloatDataArrays()[4][set_iter->second] = peak_shapes[p].right_width;
@@ -905,18 +903,18 @@ protected:
           {
             PeakShape& ps = peak_shapes[p];
             double x_left_endpoint = ps.mz_position - 1 / ps.left_width* sqrt(ps.height / 1 - 1);
-            double x_rigth_endpoint = ps.mz_position + 1 / ps.right_width* sqrt(ps.height / 1 - 1);
+            double x_right_endpoint = ps.mz_position + 1 / ps.right_width* sqrt(ps.height / 1 - 1);
             double area_left = -ps.height / ps.left_width* atan(ps.left_width * (x_left_endpoint - ps.mz_position));
-            double area_right = -ps.height / ps.right_width* atan(ps.right_width * (ps.mz_position - x_rigth_endpoint));
+            double area_right = -ps.height / ps.right_width* atan(ps.right_width * (ps.mz_position - x_right_endpoint));
             spec[set_iter->second].setIntensity(area_left + area_right); // area is stored as peak intensity
           }
           else        //It's a Sech - Peak
           {
             PeakShape& ps = peak_shapes[p];
             double x_left_endpoint = ps.mz_position - 1 / ps.left_width* boost::math::acosh(sqrt(ps.height / 0.001));
-            double x_rigth_endpoint = ps.mz_position + 1 / ps.right_width* boost::math::acosh(sqrt(ps.height / 0.001));
+            double x_right_endpoint = ps.mz_position + 1 / ps.right_width* boost::math::acosh(sqrt(ps.height / 0.001));
             double area_left = ps.height / ps.left_width * (sinh(ps.left_width * (ps.mz_position - x_left_endpoint)) / cosh(ps.left_width * (ps.mz_position - x_left_endpoint)));
-            double area_right = -ps.height / ps.right_width * (sinh(ps.right_width * (ps.mz_position - x_rigth_endpoint)) / cosh(ps.right_width * (ps.mz_position - x_rigth_endpoint)));
+            double area_right = -ps.height / ps.right_width * (sinh(ps.right_width * (ps.mz_position - x_right_endpoint)) / cosh(ps.right_width * (ps.mz_position - x_right_endpoint)));
             spec[set_iter->second].setIntensity(area_left + area_right); // area is stored as peak intensity
           }
           ++set_iter;
@@ -945,7 +943,6 @@ protected:
 
     double rt, first_peak_mz, last_peak_mz;
 
-    //MSSpectrum<InputPeakType> spec;
     typename PeakMap::SpectrumType spec;
     InputPeakType peak;
 
@@ -968,7 +965,7 @@ protected:
       // first the right scan through binary search
       rt = exp[iso_map_iter->second.scans[i]].getRT();
       spec.setRT(rt);
-      InputSpectrumIterator iter = lower_bound(first, last, spec, typename MSSpectrum<InputPeakType>::RTLess());
+      InputSpectrumIterator iter = lower_bound(first, last, spec, MSSpectrum::RTLess());
       //  if(iter->getRT() != rt) --iter;
       exp_it = exp.RTBegin(rt);
 #ifdef DEBUG2D

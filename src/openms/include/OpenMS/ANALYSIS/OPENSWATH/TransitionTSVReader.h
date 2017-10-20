@@ -236,7 +236,7 @@ private:
     void createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein);
 
     /// Helper function to assign retention times to compounds and peptides
-    void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retentiont_times, const OpenMS::DataValue rt_value);
+    void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value);
 
     /// Populate a new TargetedExperiment::Peptide object from a row in the csv
     void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);

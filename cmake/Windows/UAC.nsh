@@ -2,9 +2,7 @@
 =======================
 UAC helper include file
 .......................
-
 Macros starting with UAC.I should only be called from the installer and vice versa for UAC.U macros.
-
 */
 !ifndef UAC_HDR__INC
 !define UAC_HDR__INC

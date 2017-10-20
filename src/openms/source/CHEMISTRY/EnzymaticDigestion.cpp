@@ -39,13 +39,14 @@
 #include <boost/regex.hpp>
 
 #include <iostream>
+#include <limits>
 
 using namespace std;
 
 namespace OpenMS
 {
   const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
-
+  const std::string EnzymaticDigestion::UnspecificCleavage = "unspecific cleavage";
 
   EnzymaticDigestion::EnzymaticDigestion() :
     missed_cleavages_(0),
@@ -166,11 +167,15 @@ namespace OpenMS
       LOG_WARN << "Error: peptide or protein must not be empty!" << endl;
       return false;
     }
+    
+    // ignore specificity and missed cleavage settings for unspecific cleavage
+    if (enzyme_.getName() == UnspecificCleavage) { return true; }
+    
     const Size pep_end = pep_pos + pep_length; // past-the-end index into protein of last peptide amino acid
 
     if (specificity_ == SPEC_NONE)
     { // we don't care about terminal ends
-      if (ignore_missed_cleavages) return true;
+      if (ignore_missed_cleavages) { return true; }
       const std::vector<Size> cleavage_positions = tokenize_(protein); // has '0' as first site
       return (countMissedCleavages_(cleavage_positions, pep_pos, pep_end) <= missed_cleavages_);
     }
@@ -214,6 +219,11 @@ namespace OpenMS
       return false;
     }
   }
+  
+  bool EnzymaticDigestion::filterByMissingCleavages(const String& sequence, std::function<bool(Int)> filter) const
+  {
+    return filter(tokenize_(sequence).size() - 1);
+  }
 
   Size EnzymaticDigestion::countMissedCleavages_(const std::vector<Size>& cleavage_positions, Size pep_start, Size pep_end) const
   {
@@ -227,6 +237,9 @@ namespace OpenMS
 
   Size EnzymaticDigestion::peptideCount(const AASequence& protein)
   {
+    // For unspecific cleavage every cutting position may be skipped. Thus, we get (n + 1) \choose 2 products.
+    if (enzyme_.getName() == UnspecificCleavage) { return (protein.size() + 1) * (protein.size()) / 2; };
+    
     std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
     Size count = pep_positions.size();
     // missed cleavages
@@ -243,8 +256,10 @@ namespace OpenMS
   {
     // initialization
     output.clear();
+    
+    Size mc = (enzyme_.getName() == UnspecificCleavage) ? std::numeric_limits<Size>::max() : missed_cleavages_;
+    
     // naive cleavage sites
-    Size missed_cleavages = missed_cleavages_;
     std::vector<Size> pep_positions = tokenize_(protein.toUnmodifiedString());
     Size count = pep_positions.size();
     Size begin = pep_positions[0];
@@ -256,10 +271,10 @@ namespace OpenMS
     output.push_back(protein.getSubsequence(begin, protein.size() - begin));
 
     // missed cleavages
-    if (pep_positions.size() > 0 && missed_cleavages_ != 0) // there is at least one cleavage site!
+    if (pep_positions.size() > 0 && mc != 0) // there is at least one cleavage site!
     {
       // generate fragments with missed cleavages
-      for (Size i = 1; ((i <= missed_cleavages) && (count > i)); ++i)
+      for (Size i = 1; ((i <= mc) && (count > i)); ++i)
       {
         begin = pep_positions[0];
         for (Size j = 1; j < count - i; ++j)
@@ -277,15 +292,32 @@ namespace OpenMS
     // initialization
     output.clear();
 
-    // naive cleavage sites
-    std::vector<Size> pep_positions = tokenize_(sequence.getString());
-    Size count = pep_positions.size();
-
     // disable max length filter by setting to maximum length
-    if (max_length == 0)
+    if (max_length == 0 || max_length > sequence.size())
     {
       max_length = sequence.size();
     }
+
+    // Unspecific cleavage:
+    // For unspecific cleavage every amino acid is a cutting position.
+    // All substrings of length min_size..max_size are generated.
+    if (enzyme_.getName() == UnspecificCleavage)
+    {
+      output.reserve(sequence.size() * (max_length - min_length + 1));
+      for (Size i = 0; i <= sequence.size() - min_length; ++i)
+      {
+        const Size limit = std::min(max_length, sequence.size() - i);
+        for (Size j = min_length; j <= limit; ++j)
+        {
+          output.push_back(sequence.substr(i, j));
+        }
+      }
+      return;
+    }
+    
+    // naive cleavage sites
+    std::vector<Size> pep_positions = tokenize_(sequence.getString());
+    Size count = pep_positions.size();
 
     // no cleavage sites? return full string
     if (count == 0) 
@@ -303,7 +335,7 @@ namespace OpenMS
       Size l = pep_positions[i] - pep_positions[i - 1];
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(sequence.substr(pep_positions[i - 1], pep_positions[i] - 1));
+        output.push_back(sequence.substr(pep_positions[i - 1], l));
       }
     }
 
@@ -311,7 +343,7 @@ namespace OpenMS
     Size l = sequence.size() - pep_positions[count - 1];
     if (l >= min_length && l <= max_length)
     {
-      output.push_back(sequence.substr(pep_positions[count - 1], sequence.size() - 1));
+      output.push_back(sequence.substr(pep_positions[count - 1], l));
     }
 
     // generate fragments with missed cleavages
@@ -322,7 +354,7 @@ namespace OpenMS
         Size l = pep_positions[j + i] - pep_positions[j - 1];
         if (l >= min_length && l <= max_length)
         {
-          output.push_back(sequence.substr(pep_positions[j - 1], pep_positions[j + i] - 1));
+          output.push_back(sequence.substr(pep_positions[j - 1], l));
         }
       }
 
@@ -330,9 +362,8 @@ namespace OpenMS
       Size l = sequence.size() - pep_positions[count - i - 1];
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(sequence.substr(pep_positions[count - i - 1], sequence.size() - 1 ));
+        output.push_back(sequence.substr(pep_positions[count - i - 1], l));
       }
     }
   }
 } //namespace
-

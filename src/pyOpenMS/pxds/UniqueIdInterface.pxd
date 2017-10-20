@@ -5,6 +5,7 @@ cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS":
 
     cdef cppclass UniqueIdInterface:
         # wrap-ignore
+        # no-pxd-import
 
         UniqueIdInterface() nogil except +
         UniqueIdInterface(UniqueIdInterface) nogil except +

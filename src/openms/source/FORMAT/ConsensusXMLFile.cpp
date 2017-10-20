@@ -508,7 +508,7 @@ namespace OpenMS
       pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
+      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
       if (refs != 0)
       {
         String accession_string = sm_.convert(refs);
@@ -638,8 +638,7 @@ namespace OpenMS
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::CONSENSUSXML))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
     }
 
     if (!consensus_map.isMapConsistent(&LOG_WARN))

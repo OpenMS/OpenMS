@@ -85,7 +85,7 @@ public:
     template <typename ExperimentType>
     void convertChromatogramsToSpectra(ExperimentType & exp)
     {
-      for (std::vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+      for (std::vector<MSChromatogram >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
       {
         // for each peak add a new spectrum
         for (typename ExperimentType::ChromatogramType::const_iterator pit = it->begin(); pit != it->end(); ++pit)
@@ -120,7 +120,7 @@ public:
         }
       }
 
-      exp.setChromatograms(std::vector<MSChromatogram<> >());
+      exp.setChromatograms(std::vector<MSChromatogram >());
     }
 
     /**

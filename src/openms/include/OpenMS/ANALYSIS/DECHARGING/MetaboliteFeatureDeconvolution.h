@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,6 +97,7 @@ public:
       @param cons_map_p [out] Output of paired features connected by an edge
     */
     void compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p);
+    
 
 protected:
 
@@ -152,6 +153,8 @@ protected:
     Map<String, Size> map_label_inverse_;
     /// status of intensity filter for edges
     bool enable_intensity_filter_;
+    /// status of ionization mode
+    bool negative_mode_;
     /// status of charge discovery
     CHARGEMODE q_try_;
     /// amount of debug information displayed

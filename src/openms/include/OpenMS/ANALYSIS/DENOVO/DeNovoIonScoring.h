@@ -118,7 +118,7 @@ public:
     /// assignment operator
     DeNovoIonScoring & operator=(const DeNovoIonScoring & rhs);
 
-    virtual void getIonScores(std::vector<IonScore> & ion_scores, const RichPeakSpectrum & spec) = 0;
+    virtual void getIonScores(std::vector<IonScore> & ion_scores, const PeakSpectrum & spec) = 0;
 
     virtual void getIonScores(std::vector<std::vector<IonScore> > & ion_scores, const PeakMap & exp) = 0;
   };

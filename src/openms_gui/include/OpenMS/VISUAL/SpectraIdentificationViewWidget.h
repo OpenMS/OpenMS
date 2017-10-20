@@ -93,10 +93,8 @@ private slots:
     void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
     /// Export table entries as csv
     void exportEntries_();
-    /// Saves the (potentially filtered) idXML
-    void saveIdXML_();
-    /// Saves the (potentially filtered) mzIdentML
-    void saveMzIdentML_();
+    /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
+    void saveIDs_();
     /// update PeptideIdentification / PeptideHits, when data in the table changes (status of checkboxes)
     void updateData_(QTableWidgetItem* item);
     /// Display header context menu

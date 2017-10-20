@@ -11,6 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>" n
     cdef cppclass IsobaricQuantitationMethod(DefaultParamHandler) :
         # wrap-ignore
         # ABSTRACT class
+        # no-pxd-import
 
         # wrap-inherits:
         #  DefaultParamHandler

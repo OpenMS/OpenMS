@@ -90,12 +90,6 @@
 	</instrumentConfigurationList>
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000592" name="smoothing" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
@@ -668,26 +662,26 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="1">7205</offset>
-		<offset idRef="2">9098</offset>
-		<offset idRef="3">10991</offset>
-		<offset idRef="4">12884</offset>
-		<offset idRef="5">14777</offset>
-		<offset idRef="6">16666</offset>
-		<offset idRef="7">18559</offset>
-		<offset idRef="8">20452</offset>
-		<offset idRef="9">22341</offset>
-		<offset idRef="10">24234</offset>
-		<offset idRef="11">26128</offset>
-		<offset idRef="12">28019</offset>
-		<offset idRef="13">29914</offset>
-		<offset idRef="16">31810</offset>
-		<offset idRef="14">33706</offset>
-		<offset idRef="17">35598</offset>
-		<offset idRef="15">37490</offset>
-		<offset idRef="18">39386</offset>
+		<offset idRef="1">6874</offset>
+		<offset idRef="2">8767</offset>
+		<offset idRef="3">10660</offset>
+		<offset idRef="4">12553</offset>
+		<offset idRef="5">14446</offset>
+		<offset idRef="6">16335</offset>
+		<offset idRef="7">18228</offset>
+		<offset idRef="8">20121</offset>
+		<offset idRef="9">22010</offset>
+		<offset idRef="10">23903</offset>
+		<offset idRef="11">25797</offset>
+		<offset idRef="12">27688</offset>
+		<offset idRef="13">29583</offset>
+		<offset idRef="16">31479</offset>
+		<offset idRef="14">33375</offset>
+		<offset idRef="17">35267</offset>
+		<offset idRef="15">37159</offset>
+		<offset idRef="18">39055</offset>
 	</index>
 </indexList>
-<indexListOffset>41316</indexListOffset>
+<indexListOffset>40985</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

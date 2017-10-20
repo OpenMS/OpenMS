@@ -113,7 +113,6 @@ public:
     MetaDataBrowser(bool editable = FALSE, QWidget * parent = 0, bool modal = FALSE);
 
     /// Adds a peak map
-    template <class PeakType>
     void add(PeakMap & exp)
     {
       add(static_cast<ExperimentalSettings &>(exp));
@@ -121,8 +120,7 @@ public:
     }
 
     /// Adds a peak spectrum
-    template <class PeakType>
-    void add(MSSpectrum<PeakType> & spectrum)
+    void add(MSSpectrum & spectrum)
     {
       //spectrum settings
       add(static_cast<SpectrumSettings &>(spectrum));

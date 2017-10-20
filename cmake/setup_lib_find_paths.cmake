@@ -38,7 +38,6 @@
 # actual libraries are found in the CMake files of the individual componenents.
 #------------------------------------------------------------------------------
 
-
 #------------------------------------------------------------------------------
 # Specify the path to the contrib-build. Will be added to CMAKE_PREFIX_PATH
 # for searching and as first entry in the includes/libraries to avoid
