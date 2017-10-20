@@ -603,9 +603,9 @@ protected:
     progresslogger.endProgress();
 
     // for PScore, precompute ranks
-    vector<vector<Size> > rankMap_linear = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_linear_peaks);
-    vector<vector<Size> > rankMap_xlink = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_xlink_peaks);
-    vector<vector<Size> > rankMap_all = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_all_peaks);
+    // vector<vector<Size> > rankMap_linear = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_linear_peaks);
+    // vector<vector<Size> > rankMap_xlink = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_xlink_peaks);
+    // vector<vector<Size> > rankMap_all = PScore::calculateRankMap(preprocessed_pair_spectra.spectra_all_peaks);
 
     // one identification run
     vector<ProteinIdentification> protein_ids(1);
@@ -767,14 +767,14 @@ protected:
       vector< double > aucorrx = XQuestScores::xCorrelation(all_peaks, all_peaks, 5, 0.03);
       vector< double > aucorrc = XQuestScores::xCorrelation(all_peaks, all_peaks, 5, 0.02);
 
-      // precompute peak level spectra for thge current spectrum
-      map<Size, PeakSpectrum> peak_level_spectra_all = PScore::calculatePeakLevelSpectra(all_peaks, rankMap_all[pair_index]);
-      map<Size, PeakSpectrum> peak_level_spectra_linear = PScore::calculatePeakLevelSpectra(linear_peaks, rankMap_linear[pair_index]);
-      map<Size, PeakSpectrum> peak_level_spectra_xlinks;
-      if (xlink_peaks.size() > 0)
-      {
-        peak_level_spectra_xlinks = PScore::calculatePeakLevelSpectra(xlink_peaks, rankMap_xlink[pair_index]);
-      }
+      // precompute peak level spectra for the current spectrum
+      // map<Size, PeakSpectrum> peak_level_spectra_all = PScore::calculatePeakLevelSpectra(all_peaks, rankMap_all[pair_index]);
+      // map<Size, PeakSpectrum> peak_level_spectra_linear = PScore::calculatePeakLevelSpectra(linear_peaks, rankMap_linear[pair_index]);
+      // map<Size, PeakSpectrum> peak_level_spectra_xlinks;
+      // if (xlink_peaks.size() > 0)
+      // {
+      //   peak_level_spectra_xlinks = PScore::calculatePeakLevelSpectra(xlink_peaks, rankMap_xlink[pair_index]);
+      // }
 
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > top_csms_spectrum;
 
@@ -1026,7 +1026,7 @@ protected:
           {
             csm.HyperLinear = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, linear_peaks, theoretical_spec_linear);
 
-            csm.PScoreLinear = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_linear, theoretical_spec_linear);
+            // csm.PScoreLinear = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_linear, theoretical_spec_linear);
           }
           else
           {
@@ -1035,11 +1035,11 @@ protected:
           }
 
           csm.HyperAlpha = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_peaks, theoretical_spec_alpha);
-          csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_alpha);
+          // csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_alpha);
           if (theoretical_spec_beta.size() > 0)
           {
             csm.HyperBeta = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_peaks, theoretical_spec_beta);
-            csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_beta);
+            // csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec_beta);
           }
           else
           {
@@ -1051,7 +1051,7 @@ protected:
           if (xlink_peaks.size() > 0)
           {
             csm.HyperXlink = HyperScore::compute(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, xlink_peaks, theoretical_spec_xlinks);
-            csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, peak_level_spectra_xlinks, theoretical_spec_xlinks);
+            // csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, peak_level_spectra_xlinks, theoretical_spec_xlinks);
           } else
           {
             csm.HyperXlink = 0;
@@ -1059,7 +1059,7 @@ protected:
           }
 
           csm.HyperBoth = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, all_peaks, theoretical_spec);
-          csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec);
+          // csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra_all, theoretical_spec);
 
           // Compute score from the 4 scores and 4 weights
           // The weights are adapted from the xQuest algorithm (O. Rinner et al., 2008, "Identification of cross-linked peptides from large sequence databases"),
