@@ -688,82 +688,22 @@ namespace OpenMS
 
   std::vector<String> MzTab::getProteinOptionalColumnNames() const
   {
-    // vector is used to preserve the column order
-    std::vector<String> names;
-    if (!protein_data_.empty())
-    {
-      for (MzTabProteinSectionRows::const_iterator it = protein_data_.begin(); it != protein_data_.end(); ++it)
-      {
-        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
-        {
-          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
-          {
-            names.push_back(it_opt->first);
-          }
-        }
-      }
-    }
-    return names;
+    return getOptionalColumnNames_(protein_data_);
   }
 
   std::vector<String> MzTab::getPeptideOptionalColumnNames() const
   {
-    // vector is used to preserve the column order
-    std::vector<String> names;
-    if (!peptide_data_.empty())
-    {
-      for (MzTabPeptideSectionRows::const_iterator it = peptide_data_.begin(); it != peptide_data_.end(); ++it)
-      {
-        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
-        {
-          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
-          {
-            names.push_back(it_opt->first);
-          }
-        }
-      }
-    }
-    return names;
+    return getOptionalColumnNames_(peptide_data_);
   }
 
   std::vector<String> MzTab::getPSMOptionalColumnNames() const
   {
-    // vector is used to preserve the column order
-    std::vector<String> names;
-    if (!psm_data_.empty())
-    {
-      for (MzTabPSMSectionRows::const_iterator it = psm_data_.begin(); it != psm_data_.end(); ++it)
-      {
-        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
-        {
-          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
-          {
-            names.push_back(it_opt->first);
-          }
-        }
-      }
-    }
-    return names;
+    return getOptionalColumnNames_(psm_data_);
   }
 
   std::vector<String> MzTab::getSmallMoleculeOptionalColumnNames() const
   {
-    // vector is used to preserve the column order
-    std::vector<String> names;
-    if (!small_molecule_data_.empty())
-    {
-      for (MzTabSmallMoleculeSectionRows::const_iterator it = small_molecule_data_.begin(); it != small_molecule_data_.end(); ++it)
-      {
-        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
-        {
-          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
-          {
-            names.push_back(it_opt->first);
-          }
-        }
-      }
-    }
-    return names;
+    return getOptionalColumnNames_(small_molecule_data_);
   }
 
   MzTabParameter::MzTabParameter()

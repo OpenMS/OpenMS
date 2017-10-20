@@ -765,7 +765,7 @@ public:
  */
   class OPENMS_DLLAPI MzTab
   {
-public:
+  public:
     /// Default constructor
     MzTab();
 
@@ -824,7 +824,29 @@ public:
     // Extract opt_ (custom, optional column names)
     std::vector<String> getSmallMoleculeOptionalColumnNames() const;
 
-protected:
+  protected:
+    /// Helper function for "get...OptionalColumnNames" functions
+    template <typename SectionRows>
+    std::vector<String> getOptionalColumnNames_(const SectionRows& rows) const
+    {
+      // vector is used to preserve the column order
+      std::vector<String> names;
+      if (!rows.empty())
+      {
+        for (typename SectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
+        {
+          for (std::vector<MzTabOptionalColumnEntry>::const_iterator it_opt = it->opt_.begin(); it_opt != it->opt_.end(); ++it_opt)
+          {
+            if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
+            {
+              names.push_back(it_opt->first);
+            }
+          }
+        }
+      }
+      return names;
+    }
+
     MzTabMetaData meta_data_;
     MzTabProteinSectionRows protein_data_;
     MzTabPeptideSectionRows peptide_data_;
