@@ -626,6 +626,46 @@ namespace OpenMS
     psm_data_ = psd;
   }
 
+  const MzTabSmallMoleculeSectionRows& MzTab::getSmallMoleculeSectionRows() const
+  {
+    return small_molecule_data_;
+  }
+
+  void MzTab::setSmallMoleculeSectionRows(const MzTabSmallMoleculeSectionRows& smsd)
+  {
+    small_molecule_data_ = smsd;
+  }
+
+  const MzTabNucleicAcidSectionRows& MzTab::getNucleicAcidSectionRows() const
+  {
+    return nucleic_acid_data_;
+  }
+
+  void MzTab::setNucleicAcidSectionRows(const MzTabNucleicAcidSectionRows& nasd)
+  {
+    nucleic_acid_data_ = nasd;
+  }
+
+  const MzTabOligonucleotideSectionRows& MzTab::getOligonucleotideSectionRows() const
+  {
+    return oligonucleotide_data_;
+  }
+
+  void MzTab::setOligonucleotideSectionRows(const MzTabOligonucleotideSectionRows& onsd)
+  {
+    oligonucleotide_data_ = onsd;
+  }
+
+  const MzTabOSMSectionRows& MzTab::getOSMSectionRows() const
+  {
+    return osm_data_;
+  }
+
+  void MzTab::setOSMSectionRows(const MzTabOSMSectionRows& osd)
+  {
+    osm_data_ = osd;
+  }
+
   void MzTab::setCommentRows(const std::map<Size, String>& com)
   {
     comment_rows_ = com;
@@ -644,16 +684,6 @@ namespace OpenMS
   const std::map<Size, String>& MzTab::getCommentRows() const
   {
     return comment_rows_;
-  }
-
-  const MzTabSmallMoleculeSectionRows& MzTab::getSmallMoleculeSectionRows() const
-  {
-    return small_molecule_data_;
-  }
-
-  void MzTab::setSmallMoleculeSectionRows(const MzTabSmallMoleculeSectionRows& smsd)
-  {
-    small_molecule_data_ = smsd;
   }
 
   std::vector<String> MzTab::getProteinOptionalColumnNames() const

@@ -686,10 +686,76 @@ public:
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
   };
 
+  /// NUC - Nucleic acid section (table-based)
+  struct OPENMS_DLLAPI MzTabNucleicAcidSectionRow
+  {
+    MzTabString accession; //< The nucleic acid’s accession.
+    MzTabString description; //< Human readable description (i.e. the name)
+    MzTabInteger taxid; //< NEWT taxonomy for the species.
+    MzTabString species; //< Human readable name of the species
+    MzTabString database; //< Name of the sequence database.
+    MzTabString database_version; //< Version of the sequence database.
+    MzTabParameterList search_engine; //< Search engine(s) that identifyed the nucleic acid.
+    std::map<Size, MzTabDouble>  best_search_engine_score; //< Best search engine(s) score(s) (over all MS runs)
+    std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run;
+    MzTabInteger reliability;
+    std::map<Size, MzTabInteger> num_osms_ms_run;
+    std::map<Size, MzTabInteger> num_oligos_distinct_ms_run;
+    std::map<Size, MzTabInteger> num_oligos_unique_ms_run;
+    MzTabStringList ambiguity_members; //< Alternative nucleic acid identifications.
+    MzTabModificationList modifications; //< Modifications identified in the nucleic acid.
+    MzTabString uri; // Location of the nucleic acid’s source entry.
+    MzTabStringList go_terms; // List of GO terms for the nucleic acid.
+    MzTabDouble sequence_coverage; // (0-1) Fraction of nucleic acid sequence identified.
+    std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
+  };
+
+  /// OLI - Oligonucleotide section (table-based)
+  struct OPENMS_DLLAPI MzTabOligonucleotideSectionRow
+  {
+    MzTabString sequence; //< The oligonucleotide’s sequence.
+    MzTabString accession; //< The nucleic acid’s accession.
+    MzTabBoolean unique; //< 0=false, 1=true, null else: Oligonucleotide maps uniquely to the nucleic acid sequence.
+    MzTabParameterList search_engine; //< Search engine(s) that identified the match.
+    std::map<Size, MzTabDouble> best_search_engine_score; //< Search engine(s) score(s) for the match.
+    std::map<Size, std::map<Size, MzTabDouble>> search_engine_score_ms_run; //< Search engine(s) score(s) per individual MS run
+    MzTabInteger reliability; //< (1-3) 0=null Identification reliability for the match.
+    MzTabModificationList modifications; //< Modifications identified in the oligonucleotide.
+    MzTabDoubleList retention_time; //< Time points in seconds. Semantics may vary.
+    MzTabDoubleList retention_time_window;
+    MzTabString uri; //< Location of the oligonucleotide's source entry.
+    MzTabString pre;
+    MzTabString post;
+    MzTabString start;
+    MzTabString end;
+    std::vector<MzTabOptionalColumnEntry> opt_; //< Optional columns must start with “opt_”.
+  };
+
+  /// OSM - OSM (oligonucleotide-spectrum match) section (table-based)
+  struct OPENMS_DLLAPI MzTabOSMSectionRow
+  {
+    MzTabString sequence; //< The oligonucleotide’s sequence.
+    MzTabParameterList search_engine; //< Search engine(s) that identified the match.
+    std::map<Size, MzTabDouble> search_engine_score; //< Search engine(s) score(s) for the match.
+    MzTabInteger reliability; //< (1-3) 0=null Identification reliability for the match.
+    MzTabModificationList modifications; //< Modifications identified in the oligonucleotide.
+    MzTabDoubleList retention_time; //< Time points in seconds. Semantics may vary.
+    MzTabInteger charge; //< The charge of the experimental precursor ion.
+    MzTabDouble exp_mass_to_charge; //< The m/z ratio of the experimental precursor ion.
+    MzTabDouble calc_mass_to_charge; //< The theoretical m/z ratio of the oligonucleotide.
+    MzTabString uri; //< Location of the OSM’s source entry.
+    MzTabSpectraRef spectra_ref; //< Reference to the spectrum underlying the match.
+    std::vector<MzTabOptionalColumnEntry> opt_; //< Optional columns must start with “opt_”.
+  };
+
   typedef std::vector<MzTabProteinSectionRow> MzTabProteinSectionRows;
   typedef std::vector<MzTabPeptideSectionRow> MzTabPeptideSectionRows;
   typedef std::vector<MzTabPSMSectionRow> MzTabPSMSectionRows;
   typedef std::vector<MzTabSmallMoleculeSectionRow> MzTabSmallMoleculeSectionRows;
+  typedef std::vector<MzTabNucleicAcidSectionRow> MzTabNucleicAcidSectionRows;
+  typedef std::vector<MzTabOligonucleotideSectionRow> MzTabOligonucleotideSectionRows;
+  typedef std::vector<MzTabOSMSectionRow> MzTabOSMSectionRows;
+
 
 /**
       @brief Data model of MzTab files.
@@ -722,6 +788,22 @@ public:
 
     void setPSMSectionRows(const MzTabPSMSectionRows& psd);
 
+    const MzTabSmallMoleculeSectionRows& getSmallMoleculeSectionRows() const;
+
+    void setSmallMoleculeSectionRows(const MzTabSmallMoleculeSectionRows& smsd);
+
+    const MzTabNucleicAcidSectionRows& getNucleicAcidSectionRows() const;
+
+    void setNucleicAcidSectionRows(const MzTabNucleicAcidSectionRows& nasd);
+
+    const MzTabOligonucleotideSectionRows& getOligonucleotideSectionRows() const;
+
+    void setOligonucleotideSectionRows(const MzTabOligonucleotideSectionRows& onsd);
+
+    const MzTabOSMSectionRows& getOSMSectionRows() const;
+
+    void setOSMSectionRows(const MzTabOSMSectionRows& osd);
+
     void setCommentRows(const std::map<Size, String>& com);
 
     void setEmptyRows(const std::vector<Size>& empty);
@@ -729,10 +811,6 @@ public:
     const std::vector<Size>& getEmptyRows() const;
 
     const std::map<Size, String>& getCommentRows() const;
-
-    const MzTabSmallMoleculeSectionRows& getSmallMoleculeSectionRows() const;
-
-    void setSmallMoleculeSectionRows(const MzTabSmallMoleculeSectionRows& smsd);
 
     // Extract opt_ (custom, optional column names)
     std::vector<String> getProteinOptionalColumnNames() const;
@@ -752,6 +830,9 @@ protected:
     MzTabPeptideSectionRows peptide_data_;
     MzTabPSMSectionRows psm_data_;
     MzTabSmallMoleculeSectionRows small_molecule_data_;
+    MzTabNucleicAcidSectionRows nucleic_acid_data_;
+    MzTabOligonucleotideSectionRows oligonucleotide_data_;
+    MzTabOSMSectionRows osm_data_; /// oligonucleotide-spectrum matches
     std::vector<Size> empty_rows_; // index of empty rows
     std::map<Size, String> comment_rows_; // comments
   };
