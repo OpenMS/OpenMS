@@ -225,14 +225,13 @@ namespace OpenMS
           LOG_DEBUG << "Reading a Cross-Linking MS file." << endl;
         }
 
-
         // 0. AnalysisSoftwareList {0,1}
         DOMNodeList* analysisSoftwareElements = xmlDoc->getElementsByTagName(XMLString::transcode("AnalysisSoftware"));
         parseAnalysisSoftwareList_(analysisSoftwareElements);
 
         // 1. DataCollection {1,1}
         DOMNodeList* spectraDataElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectraData"));
-        // if (spectraDataElements->getLength() == 0) throw(runtime_error("No SpectraData nodes")); // temporarily disabled
+        if (spectraDataElements->getLength() == 0) throw(runtime_error("No SpectraData nodes"));
         parseInputElements_(spectraDataElements);
 
         // 1.2. SearchDatabase {0,unbounded}
