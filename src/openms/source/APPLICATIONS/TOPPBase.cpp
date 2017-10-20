@@ -87,6 +87,10 @@ namespace OpenMS
   using namespace Exception;
 
   String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
+  const Citation TOPPBase::cite_openms_ = { "Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
+      "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
+      "Nat Meth. 2016; 13, 9: 741-748",
+      "10.1038/nmeth.3959" };
 
   void TOPPBase::setMaxNumberOfThreads(int
 #ifdef _OPENMP
@@ -538,14 +542,10 @@ namespace OpenMS
     bool verbose = getFlag_("-helphelp");
 
     // common output
-    Citation cite_openms = { "Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
-      "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
-      "Nat Meth. 2016; 13, 9: 741-748",
-      "10.1038/nmeth.3959" };
     cerr << "\n"
          << ConsoleUtils::breakString(tool_name_ + " -- " + tool_description_, 0, 10) << "\n"
          << "Version: " << verboseVersion_ << "\n"
-         << "To cite OpenMS:\n  " << cite_openms.toString() << "\n";
+         << "To cite OpenMS:\n  " << cite_openms_.toString() << "\n";
     if (!citations_.empty())
     {
       cerr << "To cite " << tool_name_ << ":\n";
@@ -2304,6 +2304,17 @@ namespace OpenMS
       lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
       QString html_doc = tool_description_.toQString();
       lines.insert(3, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
+      lines.insert(4, QString("<citations>"));
+      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\">");
+      int l = 5;
+      if (!citations_.empty())
+      {
+        for (Citation c : citations_) 
+        {
+          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\">");
+        }
+      }
+      lines.insert(++l, QString("</citations>"));
 
       lines.insert(lines.size(), "</tool>");
       String ctd_str = String(lines.join("\n")) + "\n";
