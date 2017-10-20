@@ -530,6 +530,9 @@ public:
     std::map<Size, MzTabParameter> peptide_search_engine_score;
     std::map<Size, MzTabParameter> psm_search_engine_score;
     std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
+    std::map<Size, MzTabParameter> nucleic_acid_search_engine_score;
+    std::map<Size, MzTabParameter> oligonucleotide_search_engine_score;
+    std::map<Size, MzTabParameter> osm_search_engine_score;
 
     std::map<Size, MzTabParameterList> sample_processing;
 
@@ -704,10 +707,11 @@ public:
     std::map<Size, MzTabInteger> num_oligos_unique_ms_run;
     MzTabStringList ambiguity_members; //< Alternative nucleic acid identifications.
     MzTabModificationList modifications; //< Modifications identified in the nucleic acid.
-    MzTabString uri; // Location of the nucleic acid’s source entry.
-    MzTabStringList go_terms; // List of GO terms for the nucleic acid.
-    MzTabDouble sequence_coverage; // (0-1) Fraction of nucleic acid sequence identified.
-    std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
+    MzTabString uri; //< Location of the nucleic acid’s source entry.
+    // do GO terms make sense for nucleic acid sequences?
+    MzTabStringList go_terms; //< List of GO terms for the nucleic acid.
+    MzTabDouble sequence_coverage; //< (0-1) Fraction of nucleic acid sequence identified.
+    std::vector<MzTabOptionalColumnEntry> opt_; //< Optional Columns must start with “opt_”
   };
 
   /// OLI - Oligonucleotide section (table-based)
@@ -823,6 +827,15 @@ public:
 
     // Extract opt_ (custom, optional column names)
     std::vector<String> getSmallMoleculeOptionalColumnNames() const;
+
+    // Extract opt_ (custom, optional column names)
+    std::vector<String> getNucleicAcidOptionalColumnNames() const;
+
+    // Extract opt_ (custom, optional column names)
+    std::vector<String> getOligonucleotideOptionalColumnNames() const;
+
+    // Extract opt_ (custom, optional column names)
+    std::vector<String> getOSMOptionalColumnNames() const;
 
   protected:
     /// Helper function for "get...OptionalColumnNames" functions

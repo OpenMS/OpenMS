@@ -706,6 +706,21 @@ namespace OpenMS
     return getOptionalColumnNames_(small_molecule_data_);
   }
 
+  std::vector<String> MzTab::getNucleicAcidOptionalColumnNames() const
+  {
+    return getOptionalColumnNames_(nucleic_acid_data_);
+  }
+
+  std::vector<String> MzTab::getOligonucleotideOptionalColumnNames() const
+  {
+    return getOptionalColumnNames_(oligonucleotide_data_);
+  }
+
+  std::vector<String> MzTab::getOSMOptionalColumnNames() const
+  {
+    return getOptionalColumnNames_(osm_data_);
+  }
+
   MzTabParameter::MzTabParameter()
     : CV_label_(""),
     accession_(""),
