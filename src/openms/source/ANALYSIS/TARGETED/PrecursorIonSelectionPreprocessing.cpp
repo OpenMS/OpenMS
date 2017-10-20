@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 //
@@ -81,7 +81,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  PrecursorIonSelectionPreprocessing::PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing & source) :
+  PrecursorIonSelectionPreprocessing::PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing& source) :
     DefaultParamHandler(source),
     sequences_(source.sequences_),
     prot_masses_(source.prot_masses_),
@@ -96,7 +96,7 @@ namespace OpenMS
     //????
   }
 
-  PrecursorIonSelectionPreprocessing & PrecursorIonSelectionPreprocessing::operator=(const PrecursorIonSelectionPreprocessing & source)
+  PrecursorIonSelectionPreprocessing& PrecursorIonSelectionPreprocessing::operator=(const PrecursorIonSelectionPreprocessing& source)
   {
     if (&source != this)
     {
@@ -109,7 +109,7 @@ namespace OpenMS
     return *this;
   }
 
-  void PrecursorIonSelectionPreprocessing::setFixedModifications(StringList & modifications)
+  void PrecursorIonSelectionPreprocessing::setFixedModifications(StringList& modifications)
   {
     fixed_modifications_.clear();
     for (Size i = 0; i < modifications.size(); ++i)
@@ -138,12 +138,12 @@ namespace OpenMS
       fixed_mods_ = true;
   }
 
-  const std::map<String, std::vector<double> > & PrecursorIonSelectionPreprocessing::getProtMasses() const
+  const std::map<String, std::vector<double> >& PrecursorIonSelectionPreprocessing::getProtMasses() const
   {
     return prot_masses_;
   }
 
-  const std::vector<double> & PrecursorIonSelectionPreprocessing::getMasses(String acc) const
+  const std::vector<double>& PrecursorIonSelectionPreprocessing::getMasses(String acc) const
   {
     std::map<String, std::vector<double> >::const_iterator iter = prot_masses_.begin();
     while (iter != prot_masses_.end() && acc != iter->first)
@@ -152,21 +152,21 @@ namespace OpenMS
       return iter->second;
     else
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "PrecursorIonSelectionPreprocessing: protein " + acc + " could not be found.");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PrecursorIonSelectionPreprocessing: protein " + acc + " could not be found.");
     }
   }
 
-  const std::map<String, std::vector<double> > & PrecursorIonSelectionPreprocessing::getProteinRTMap() const
+  const std::map<String, std::vector<double> >& PrecursorIonSelectionPreprocessing::getProteinRTMap() const
   {
     return rt_prot_map_;
   }
 
-  const std::map<String, std::vector<double> > & PrecursorIonSelectionPreprocessing::getProteinPTMap() const
+  const std::map<String, std::vector<double> >& PrecursorIonSelectionPreprocessing::getProteinPTMap() const
   {
     return pt_prot_map_;
   }
 
-  const std::map<String, std::vector<String> > & PrecursorIonSelectionPreprocessing::getProteinPeptideSequenceMap() const
+  const std::map<String, std::vector<String> >& PrecursorIonSelectionPreprocessing::getProteinPeptideSequenceMap() const
   {
     return prot_peptide_seq_map_;
   }
@@ -256,11 +256,11 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, path);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
   }
 
-  void PrecursorIonSelectionPreprocessing::filterTaxonomyIdentifier_(FASTAFile::FASTAEntry & entry)
+  void PrecursorIonSelectionPreprocessing::filterTaxonomyIdentifier_(FASTAFile::FASTAEntry& entry)
   {
 
 #ifdef PISP_DEBUG
@@ -293,7 +293,7 @@ namespace OpenMS
     std::cout << "Parameters: " << param_.getValue("preprocessed_db_path")
               << "\t" << param_.getValue("precursor_mass_tolerance")
               << " " << param_.getValue("precursor_mass_tolerance_unit")
-    //<< "\t"<<param_.getValue("rt_tolerance")
+      //<< "\t"<<param_.getValue("rt_tolerance")
               << "\t" << param_.getValue("missed_cleavages")
               << "\t" << param_.getValue("taxonomy")
               << "\t" << param_.getValue("tmp_dir") << "---"
@@ -319,7 +319,7 @@ namespace OpenMS
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
 
-        String & seq = entries[e].sequence;
+        String& seq = entries[e].sequence;
         // check for unallowed characters
         if (seq.hasSubstring("X") || seq.hasSubstring("B") ||  seq.hasSubstring("Z"))
         {
@@ -350,7 +350,7 @@ namespace OpenMS
                 std::cout << "w/o Mod " << *vec_iter << " "
                           << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String> & mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
                   vec_iter->setModification(aa, mods[m]);
@@ -592,7 +592,7 @@ namespace OpenMS
           ++counter_[distance(bin_masses_.begin(), tmp_iter)];
         }
         else
-          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)];  // increase right counter
+          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)]; // increase right counter
         // #ifdef PISP_DEBUG
         //                      timer.stop();
         //                      std::cout << timer.getCPUTime ()<<std::endl;
@@ -642,7 +642,7 @@ namespace OpenMS
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
 
-        String & seq = entries[e].sequence;
+        String& seq = entries[e].sequence;
         // check for unallowed characters
         if (seq.hasSubstring("X") || seq.hasSubstring("B") ||  seq.hasSubstring("Z"))
         {
@@ -670,7 +670,7 @@ namespace OpenMS
                 std::cout << "w/o Mod " << *vec_iter << " "
                           << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String> & mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
                   vec_iter->setModification(aa, mods[m]);
@@ -703,7 +703,7 @@ namespace OpenMS
     }
     std::sort(masses_.begin(), masses_.end());
     // now get minimal and maximal mass and create counter_-vectors
-    // count mass occurences using bins
+    // count mass occurrences using bins
 #ifdef PISP_DEBUG
     std::cout << "min\tmax " << masses_[0] << "\t" << *(masses_.end() - 1) << std::endl;
     std::cout << "prot_masses.size() " << prot_masses_.size() << std::endl;
@@ -751,7 +751,7 @@ namespace OpenMS
 #endif
       if (bin_masses_.empty())
       {
-        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
       }
       counter_.resize(size, 0);
 #ifdef PISP_DEBUG
@@ -801,7 +801,7 @@ namespace OpenMS
           ++counter_[distance(bin_masses_.begin(), tmp_iter)];
         }
         else
-          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)];  // increase right counter
+          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)]; // increase right counter
 #ifdef PISP_DEBUG
         timer.stop();
         std::cout << timer.getCPUTime() << std::endl;
@@ -833,7 +833,7 @@ namespace OpenMS
     out.precision(10);
     if (!out)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
     // header: db_name  precursor_mass_tolerance precursor_mass_tolerance_unit  taxonomy);
     Size pos1 = db_path.rfind("/") + 1;
@@ -867,7 +867,7 @@ namespace OpenMS
     //      std::ofstream out2((path + "_counter").c_str());
     //      if (!out2)
     //      {
-    //        throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_counter");
+    //        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path+ "_counter");
     //      }
     //      out2.precision(10);
 
@@ -888,7 +888,7 @@ namespace OpenMS
       //                std::ofstream out3((path + "_bin_masses").c_str());
       //                if (!out3)
       //                {
-      //                  throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_bin_masses");
+      //                  throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path+ "_bin_masses");
       //                }
 
       //                out3.precision(10);
@@ -909,7 +909,7 @@ namespace OpenMS
     out.precision(10);
     if (!out)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path);
     }
     // header: db_name  precursor_mass_tolerance precursor_mass_tolerance_unit  taxonomy);
     Size pos1 = db_path.rfind("/") + 1;
@@ -941,7 +941,7 @@ namespace OpenMS
 #ifdef PISP_DEBUG
         std::cout << entries[e].identifier << std::endl;
 #endif
-        String & seq = entries[e].sequence;
+        String& seq = entries[e].sequence;
         // check for unallowed characters
         if (seq.hasSubstring("X") || seq.hasSubstring("B") ||  seq.hasSubstring("Z"))
         {
@@ -977,7 +977,7 @@ namespace OpenMS
     //      std::ofstream out2((path + "_counter").c_str());
     //      if (!out2)
     //      {
-    //        throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_counter");
+    //        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path+ "_counter");
     //      }
     //      out2.precision(10);
 
@@ -998,7 +998,7 @@ namespace OpenMS
       //                std::ofstream out3((path + "_bin_masses").c_str());
       //                if (!out3)
       //                {
-      //                  throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, path+ "_bin_masses");
+      //                  throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, path+ "_bin_masses");
       //                }
 
       //                out3.precision(10);
@@ -1021,7 +1021,7 @@ namespace OpenMS
     //#ifdef PISP_DEBUG
     std::cout << "load " << path << std::endl;
     //#endif
-    TextFile::Iterator iter = file.begin();
+    TextFile::ConstIterator iter = file.begin();
     ++iter;
     for (; iter != file.end() && !iter->hasPrefix("###"); ++iter)
     {
@@ -1099,7 +1099,7 @@ namespace OpenMS
     if (param_.getValue("precursor_mass_tolerance_unit") == "ppm")
     {
       if (iter == file.end())
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "ppm is used as precursor_mass_tolerance_unit, which requires the file "
                                           + path + "_bin_masses" + ", that could not be found.");
       else if (iter->hasPrefix("###"))
@@ -1117,7 +1117,7 @@ namespace OpenMS
 
       }
       else
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                           "ppm is used as precursor_mass_tolerance_unit, which requires the file "
                                           + path + "_bin_masses" + ", that could not be found.");
     }
@@ -1167,18 +1167,18 @@ namespace OpenMS
     double x2 = double(theo_scan) - obs_scan_begin;
 
     // boost::math::cdf computes the cumulative probs up to x (i.e. the area under the curve)
-    boost::math::normal dist (0.0, sigma_);
-    double prob = boost::math::cdf( dist, x1 ) - boost::math::cdf( dist, x2 );
+    boost::math::normal dist(0.0, sigma_);
+    double prob = boost::math::cdf(dist, x1) - boost::math::cdf(dist, x2);
     if (x2 > x1)
-      prob = boost::math::cdf( dist, x2 ) - boost::math::cdf( dist, x1 );
+      prob = boost::math::cdf(dist, x2) - boost::math::cdf(dist, x1);
     if ((prob < 0.) || (obs_scan_begin == obs_scan_end))
     {
       std::cerr << min_obs_rt << " " << obs_scan_begin << " " << max_obs_rt << " " << obs_scan_end << " "
                 << theo_rt << " " << theo_scan << " " << mu_ << " " << x1 << " " << x2 << " " << prob << std::endl;
       if (x2 > x1)
-        std::cerr <<  boost::math::cdf( dist, x2 ) << " - " << boost::math::cdf( dist, x1 ) << std::endl;
+        std::cerr <<  boost::math::cdf(dist, x2) << " - " << boost::math::cdf(dist, x1) << std::endl;
       else
-        std::cerr << boost::math::cdf( dist, x1 ) << " - " << boost::math::cdf( dist, x2 ) << std::endl;
+        std::cerr << boost::math::cdf(dist, x1) << " - " << boost::math::cdf(dist, x2) << std::endl;
     }
     return prob;
   }
@@ -1208,7 +1208,7 @@ namespace OpenMS
     mu_ = param_.getValue("rt_settings:gauss_mean");
   }
 
-  double PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature & feature)
+  double PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature& feature)
   {
     double theo_rt = 0.;
     if (rt_prot_map_.size() > 0)
@@ -1236,7 +1236,7 @@ namespace OpenMS
     return getRTProbability_(rt_begin, rt_end, theo_rt);
   }
 
-  double PrecursorIonSelectionPreprocessing::getRTProbability(double pred_rt, Feature & feature)
+  double PrecursorIonSelectionPreprocessing::getRTProbability(double pred_rt, Feature& feature)
   {
     double rt_begin = feature.getConvexHull().getBoundingBox().minPosition()[0];
     double rt_end =   feature.getConvexHull().getBoundingBox().maxPosition()[0];

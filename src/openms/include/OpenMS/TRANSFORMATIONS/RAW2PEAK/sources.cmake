@@ -10,6 +10,7 @@ OptimizePick.h
 PeakPickerCWT.h
 PeakPickerHiRes.h
 PeakPickerIterative.h
+PeakPickerMaxima.h
 PeakPickerSH.h
 PeakShape.h
 TwoDOptimization.h

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -165,10 +165,9 @@ private:
      * This function implements a single iteration of this algorithm.
      *
     */
-    template <typename PeakType>
-    void pickRecenterPeaks_(const MSSpectrum<PeakType>& input,
+    void pickRecenterPeaks_(const MSSpectrum& input,
                               std::vector<PeakCandidate>& PeakCandidates,
-                              SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> >& snt)
+                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt)
     {
       for (Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
       {
@@ -298,8 +297,7 @@ public:
      *
      * The output are the remaining peaks.
     */
-    template <typename PeakType>
-    void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)
+    void pick(const MSSpectrum& input, MSSpectrum& output)
     {
       // don't pick a spectrum with less than 3 data points
       if (input.size() < 3) return;
@@ -315,7 +313,7 @@ public:
       output.getFloatDataArrays().clear();
 
       std::vector<PeakCandidate> PeakCandidates;
-      MSSpectrum<PeakType> picked_spectrum;
+      MSSpectrum picked_spectrum;
 
       // Use the PeakPickerHiRes to find candidates ...
       OpenMS::PeakPickerHiRes pp;
@@ -334,7 +332,7 @@ public:
         if (input[k].getMZ() > picked_spectrum[j].getMZ())
         {
           LOG_DEBUG << "got a value " << k << " @ " << input[k] << std::endl;
-          PeakCandidate pc = { /*.index=*/ k, /*.intensity=*/ picked_spectrum[j].getIntensity(), -1, -1, -1, -1};
+          PeakCandidate pc = { /*.index=*/ static_cast<int>(k), /*.intensity=*/ picked_spectrum[j].getIntensity(), -1, -1, -1, -1};
           newPeakCandidates_.push_back(pc);
           j++;
         }
@@ -344,7 +342,7 @@ public:
       std::sort(PeakCandidates.begin(), PeakCandidates.end(), sort_peaks_by_intensity);
 
       // signal-to-noise estimation
-      SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
+      SignalToNoiseEstimatorMedian<MSSpectrum > snt;
       if (signal_to_noise_ > 0.0)
       {
         Param snt_parameters = snt.getParameters();
@@ -384,7 +382,7 @@ public:
           }
         }
 
-        PeakType peak;
+        Peak1D peak;
         peak.setMZ(PeakCandidates[peak_it].mz);
         peak.setIntensity(PeakCandidates[peak_it].integrated_intensity);
         output.push_back(peak);
@@ -399,8 +397,7 @@ public:
       output.sortByPosition();
     }
 
-    template <typename PeakType>
-    void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
+    void pickExperiment(const PeakMap& input, PeakMap& output)
     {
       // make sure that output is clear
       output.clear(true);

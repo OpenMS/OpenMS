@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,10 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -47,10 +48,10 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_PeakPickerHiRes PeakPickerHiRes
+  @page UTILS_LowMemPeakPickerHiRes_RandomAccess LowMemPeakPickerHiRes_RandomAccess
 
   @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
- 
+
   <center>
   <table>
   <tr>
@@ -115,7 +116,7 @@ class TOPPLowMemPeakPickerHiRes_RandomAccess :
 {
 public:
   TOPPLowMemPeakPickerHiRes_RandomAccess() :
-    TOPPBase("LowMemPeakPickerHiRes_RandomAccess", "Finds mass spectrometric peaks in profile mass spectra.",false)
+    TOPPBase("LowMemPeakPickerHiRes_RandomAccess", "Finds mass spectrometric peaks in profile mass spectra.", false)
   {
   }
 
@@ -131,12 +132,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return PeakPickerHiRes().getDefaults();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -145,18 +146,15 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
 
+    IndexedMzMLFileLoader loader; 
+
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
-    OnDiscMSExperiment<> exp(in);
-    /*
-    MSExperiment<Peak1D> ms_exp_raw;
-    mz_data_file.load(in, ms_exp_raw);
-    */
+    OnDiscPeakMap exp;
+    loader.load(in, exp);
 
-    // We could write out this warning in the constructor if no spectra have come our way ... 
+    // We could write out this warning in the constructor if no spectra have come our way ...
     /*
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
     {
@@ -204,8 +202,8 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    MSExperiment<> ms_exp_peaks;
-    
+    PeakMap ms_exp_peaks;
+
     ///////////////////////////////////
     // Create PeakPickerHiRes and hand it to the PPHiResMzMLConsumer
     ///////////////////////////////////
@@ -222,6 +220,9 @@ protected:
     //-------------------------------------------------------------
     //annotate output with data processing info
     addDataProcessing_(ms_exp_peaks, getProcessingInfo_(DataProcessing::PEAK_PICKING));
+
+    MzMLFile mz_data_file;
+    mz_data_file.setLogType(log_type_);
     mz_data_file.store(out, ms_exp_peaks);
 
     return EXECUTION_OK;
@@ -230,7 +231,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPLowMemPeakPickerHiRes_RandomAccess tool;
   return tool.main(argc, argv);

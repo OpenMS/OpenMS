@@ -17,6 +17,8 @@ cdef extern from "<OpenMS/FORMAT/Base64.h>" namespace "OpenMS":
         void encodeStrings(libcpp_vector[ String ] & in_, String &out, bool zlib_compression) nogil except +
         void decodeStrings(String & in_, libcpp_vector[ String ] &out, bool zlib_compression) nogil except +
 
+        # void decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression);
+
 cdef extern from "<OpenMS/FORMAT/Base64.h>" namespace "OpenMS::Base64":
     cdef enum ByteOrder "OpenMS::Base64::ByteOrder":
         #wrap-attach:

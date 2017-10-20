@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,11 @@
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
 using namespace std;
+
 namespace OpenMS
 {
   using namespace Math;
@@ -70,14 +74,14 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void LabeledPairFinder::run(const vector<ConsensusMap> & input_maps, ConsensusMap & result_map)
+  void LabeledPairFinder::run(const vector<ConsensusMap>& input_maps, ConsensusMap& result_map)
   {
     if (input_maps.size() != 1)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "exactly one input map required");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "exactly one input map required");
     if (result_map.getFileDescriptions().size() != 2)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "two file descriptions required");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "two file descriptions required");
     if (result_map.getFileDescriptions().begin()->second.filename != result_map.getFileDescriptions().rbegin()->second.filename)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the two file descriptions have to contain the same file name");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the two file descriptions have to contain the same file name");
     checkIds_(input_maps);
 
     //look up the light and heavy index
@@ -98,7 +102,7 @@ namespace OpenMS
     }
     if (light_index == numeric_limits<Size>::max() || heavy_index == numeric_limits<Size>::max())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the input maps have to be labeled 'light' and 'heavy'");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the input maps have to be labeled 'light' and 'heavy'");
     }
 
     result_map.clear(false);
@@ -151,7 +155,7 @@ namespace OpenMS
           cout << "Warning: Found only " << dists.size() << " pairs. The estimated shift and std deviation are probably not reliable!" << endl;
         }
         //--------------------------- estimate initial parameters of fit ---------------------------
-        GaussFitter::GaussFitResult result (-1,-1,-1);
+        GaussFitter::GaussFitResult result(-1, -1, -1);
         //first estimate of the optimal shift: median of the distances
         sort(dists.begin(), dists.end());
         Size median_index = dists.size() / 2;
@@ -163,7 +167,7 @@ namespace OpenMS
         Size end_index = (Size) min((SignedSize)(dists.size() - 1), (SignedSize)(median_index + max_pairs / 2));
         double start_value = dists[start_index];
         double end_value = dists[end_index];
-        double bin_step = fabs(end_value - start_value) / 99.999;     //ensure that we have 100 bins
+        double bin_step = fabs(end_value - start_value) / 99.999; //ensure that we have 100 bins
         Math::Histogram<> hist(start_value, end_value, bin_step);
         //std::cout << "HIST from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
         for (Size i = start_index; i <= end_index; ++i)
@@ -197,7 +201,7 @@ namespace OpenMS
         }
         double sigma_low =  result.x0 - pos;
         pos = result.x0;
-        while (pos<end_value && hist.binValue(pos)> bin_median)
+        while (pos<end_value&& hist.binValue(pos)> bin_median)
         {
           pos += bin_step;
         }

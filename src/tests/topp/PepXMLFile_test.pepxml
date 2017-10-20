@@ -4,8 +4,8 @@
   <msms_run_summary base_name="PepXMLFile_test" msManufacturer="ThermoFinnigan" msModel="LTQ FT" msIonization="ESI" msMassAnalyzer="msMassAnalyzer" msDetector="EMT" raw_data_type="raw" raw_data=".mzXML">
     <sample_enzyme name="trypsin">
 	  <specificity cut="KR" no_cut="P" sense="C"/>
-	</sample_enzyme>
-	<search_summary base_name="PepXMLFile_test" search_engine="X! Tandem (k-score)" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" search_id="1">
+    </sample_enzyme>
+    <search_summary base_name="PepXMLFile_test" search_engine="X! Tandem (k-score)" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" search_id="1">
       <search_database local_path="./current.fasta" type="AA"/>
       <enzymatic_search_constraint enzyme="trypsin" max_num_internal_cleavages="2" min_number_termini="2" />
       <aminoacid_modification aminoacid="C" massdiff="57.0215" mass="160.0306" variable="N" />

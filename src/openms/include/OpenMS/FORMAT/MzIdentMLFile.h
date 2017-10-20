@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
@@ -39,7 +39,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/METADATA/Identification.h>
-
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -50,7 +49,19 @@ namespace OpenMS
   /**
       @brief File adapter for MzIdentML files
 
-      If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
+      This file adapter exposes the internal MzIdentML processing capabilities to the library. The file
+      adapter interface is kept the same as idXML file adapter for downward capability reasons.
+      For now, read-in will be performed with DOM write-out with STREAM
+
+      @note due to the limited capabilities of idXML/PeptideIdentification/ProteinIdentification not all
+        MzIdentML features can be supported. Development for these structures will be discontinued, a new
+        interface with appropriate structures will be provided.
+      @note If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
+
+      @note All PSM will be read into PeptideIdentification, even the passThreshold=false, threshold will be
+        read into ProteinIdentification (i.e. one id run), considered at writing also will only be the
+        threshold set in ProteinIdentification
+      @note All PSM will be read into PeptideIdentification, even the passThreshold=false
 
       @ingroup FileIO
   */
@@ -65,26 +76,34 @@ public:
     virtual ~MzIdentMLFile();
 
     /**
-        @brief Loads a map from a MzIdentML file.
+        @brief Loads the identifications from a MzIdentML file.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, Identification & id);
+    void load(const String& filename, Identification& id);
 
     /**
-        @brief Stores a map in a MzIdentML file.
+        @brief Loads the identifications from a MzIdentML file.
+
+        @exception Exception::FileNotFound is thrown if the file could not be opened
+        @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    void load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid);
+
+    /**
+        @brief Stores the identifications in a MzIdentML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const std::vector<ProteinIdentification> & poid, const std::vector<PeptideIdentification> & peid) const;
+    void store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const;
 
     /**
-        @brief Stores a map in a MzIdentML file.
+        @brief Stores the identifications in a MzIdentML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const Identification & id) const;
+    void store(const String& filename, const Identification& id) const;
 
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
@@ -95,7 +114,7 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings);
+    bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
 private:
 

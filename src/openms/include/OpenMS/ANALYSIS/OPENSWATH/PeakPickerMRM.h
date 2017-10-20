@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,9 +66,6 @@ namespace OpenMS
 
 public:
 
-    // this is the type in which we store the chromatograms for this analysis
-    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; 
-
     //@{
     /// Constructor
     PeakPickerMRM();
@@ -84,18 +81,18 @@ public:
 
       This function will return a picked chromatogram
     */
-    void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 
 protected:
 
-    void pickChromatogramCrawdad_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 
-    void pickChromatogram_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogram_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 
     /**
       @brief Compute peak area (peak integration)
     */
-    void integratePeaks_(const RichPeakChromatogram& chromatogram);
+    void integratePeaks_(const MSChromatogram& chromatogram);
 
     /**
       @brief Helper function to find the closest peak in a chromatogram to "target_rt" 
@@ -105,13 +102,13 @@ protected:
 
       It will return the index of the closest peak in the chromatogram.
     */
-    Size findClosestPeak_(const RichPeakChromatogram& chromatogram, double target_rt, Size current_peak = 0);
+    Size findClosestPeak_(const MSChromatogram& chromatogram, double target_rt, Size current_peak = 0);
 
     /**
       @brief Helper function to remove overlapping peaks in a single Chromatogram
 
     */
-    void removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
 
 
     /// Synchronize members with param class
@@ -121,24 +118,40 @@ protected:
     PeakPickerMRM& operator=(const PeakPickerMRM& rhs);
 
     // Members
+    /// Frame length for the SGolay smoothing
     UInt sgolay_frame_length_;
+    /// Polynomial order for the SGolay smoothing
     UInt sgolay_polynomial_order_;
+    /// Width of the Gaussian smoothing
     double gauss_width_;
+    /// Whether to use Gaussian smoothing
     bool use_gauss_;
+    /// Whether to resolve overlapping peaks 
     bool remove_overlapping_;
 
+    /// Forced peak with
     double peak_width_;
+    /// Signal to noise threshold
     double signal_to_noise_;
 
+    /// Signal to noise window length
     double sn_win_len_;
+    /// Signal to noise bin count
     UInt sn_bin_count_;
+    /// Whether to write out log messages of the SN estimator
+    bool write_sn_log_messages_;
+    /// Peak picker method
     String method_;
 
+    /// Temporary vector to hold the integrated intensities
     std::vector<double> integrated_intensities_;
+    /// Temporary vector to hold the peak left widths
     std::vector<int> left_width_;
+    /// Temporary vector to hold the peak right widths
     std::vector<int> right_width_;
 
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_PEAKPICKERMRM_H
+

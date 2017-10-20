@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHM_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -45,16 +46,17 @@ namespace OpenMS
 
   // forward declaration
   class FeatureFinder;
+  class FeatureMap;
 
   /// Summary of fitting results
   struct OPENMS_DLLAPI Summary
   {
-    std::map<String, UInt> exception;    //count exceptions
+    std::map<String, UInt> exception; //count exceptions
     UInt no_exceptions;
-    std::map<String, UInt> mz_model;    //count used mz models
-    std::map<float, UInt> mz_stdev;    //count used mz standard deviations
-    std::vector<UInt> charge;     //count used charges
-    double corr_mean, corr_max, corr_min;       //boxplot for correlation
+    std::map<String, UInt> mz_model; //count used mz models
+    std::map<float, UInt> mz_stdev; //count used mz standard deviations
+    std::vector<UInt> charge; //count used charges
+    double corr_mean, corr_max, corr_min; //boxplot for correlation
 
     /// Initial values
     Summary() :
@@ -70,19 +72,16 @@ namespace OpenMS
       @brief Abstract base class for FeatureFinder algorithms
 
   */
-  template <class PeakType, class FeatureType>
   class FeatureFinderAlgorithm :
     public DefaultParamHandler
   {
 public:
     /// Input map type
-    typedef MSExperiment<PeakType> MapType;
+    typedef PeakMap MapType;
     /// Coordinate/Position type of peaks
-    typedef typename MapType::CoordinateType CoordinateType;
+    typedef MapType::CoordinateType CoordinateType;
     /// Intensity type of peaks
-    typedef typename MapType::IntensityType IntensityType;
-    /// Output feature type
-    typedef FeatureMap<FeatureType> FeatureMapType;
+    typedef MapType::IntensityType IntensityType;
 
     /// default constructor
     FeatureFinderAlgorithm() :
@@ -115,7 +114,7 @@ public:
     }
 
     /// Sets a reference to the calling FeatureFinder
-    void setData(const MapType & map, FeatureMapType & features, FeatureFinder & ff)
+    void setData(const MapType& map, FeatureMap& features, FeatureFinder& ff)
     {
       map_ = &map;
       features_ = &features;
@@ -127,32 +126,32 @@ public:
 
         @exception Exception::IllegalArgument is thrown if the algorithm does not support user-specified seed lists
     */
-    virtual void setSeeds(const FeatureMapType & seeds)
+    virtual void setSeeds(const FeatureMap& seeds)
     {
       if (seeds.size() != 0)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The used feature detection algorithm does not support user-specified seed lists!");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The used feature detection algorithm does not support user-specified seed lists!");
       }
     }
 
 protected:
 
     /// Input data pointer
-    const MapType * map_;
+    const MapType* map_;
 
     /// Output data pointer
-    FeatureMapType * features_;
+    FeatureMap* features_;
 
     /// Pointer to the calling FeatureFinder that is used to access the feature flags
-    FeatureFinder * ff_;
+    FeatureFinder* ff_;
 
 private:
 
     /// Not implemented
-    FeatureFinderAlgorithm & operator=(const FeatureFinderAlgorithm &);
+    FeatureFinderAlgorithm& operator=(const FeatureFinderAlgorithm&);
 
     /// Not implemented
-    FeatureFinderAlgorithm(const FeatureFinderAlgorithm &);
+    FeatureFinderAlgorithm(const FeatureFinderAlgorithm&);
 
   };
 }

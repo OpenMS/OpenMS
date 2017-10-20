@@ -1,5 +1,4 @@
 from Types cimport *
-from Types cimport *
 from String cimport *
 
 cdef extern from "<OpenMS/METADATA/MetaInfoRegistry.h>" namespace "OpenMS":

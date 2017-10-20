@@ -8,13 +8,15 @@ cdef extern from "<OpenMS/CHEMISTRY/TrypticIterator.h>" namespace "OpenMS":
     cdef cppclass TrypticIterator(PepIterator) :
         # wrap-inherits:
         #  PepIterator
+
         TrypticIterator() nogil except +
         TrypticIterator(TrypticIterator) nogil except +
-        # POINTER # FASTAEntry operator*() nogil except +
+        # FASTAEntry operator*() nogil except +
         # PepIterator  operator++() nogil except +
         # POINTER # PepIterator * operator++(int i) nogil except +
 
-        # in base classs
+        # in base class
+
         # void setFastaFile(String & f) nogil except +
         # String getFastaFile() nogil except +
         # void setTolerance(double ) nogil except +

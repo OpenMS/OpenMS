@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,47 +59,50 @@ namespace OpenMS
 
     @note This implementation is @a not thread-safe since it keeps internally a
     single file access pointer which it moves when accessing a specific
-    data item. The caller is responsible to ensure that access is performed
-    atomically.
+    data item. Please provide a separate copy to each thread, e.g. 
+
+    @code
+    #pragma omp parallel for firstprivate(ondisc_map) 
+    @endcode
 
   */
-  template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
   class OnDiscMSExperiment
   {
-public:
 
-    OnDiscMSExperiment() {}
+  typedef ChromatogramPeak ChromatogramPeakT;
+  typedef Peak1D PeakT;
+
+public:
 
     /**
       @brief Constructor
 
-      This initializes the object and attempts to read the indexed mzML by
-      parsing the index and then reading the meta information into memory.
+      This initializes the object, use openFile to open a file.
     */
-    OnDiscMSExperiment(const String& filename)
-    {
-      openFile(filename);
-    }
+    OnDiscMSExperiment() {}
 
-    bool openFile(const String& filename)
+    /**
+      @brief Open a specific file on disk.
+
+      This tries to read the indexed mzML by parsing the index and then reading
+      the meta information into memory.
+
+      @return Whether the parsing of the file was successful (if false, the
+      file most likely was not an indexed mzML file)
+    */
+    bool openFile(const String& filename, bool skipMetaData = false)
     {
       filename_ = filename;
       indexed_mzml_file_.openFile(filename);
-      if (filename != "")
+      if (filename != "" && !skipMetaData)
       {
-        meta_ms_experiment_ = boost::shared_ptr< MSExperiment<> >(new MSExperiment<>);
-
-        MzMLFile f;
-        PeakFileOptions options = f.getOptions();
-        options.setFillData(false);
-        f.setOptions(options);
-        f.load(filename, *meta_ms_experiment_.get());
+        loadMetaData_(filename);
       }
       return indexed_mzml_file_.getParsingSuccess();
     }
 
     /// Copy constructor
-    OnDiscMSExperiment(const OnDiscMSExperiment & source) :
+    OnDiscMSExperiment(const OnDiscMSExperiment& source) :
       filename_(source.filename_),
       indexed_mzml_file_(source.indexed_mzml_file_),
       meta_ms_experiment_(source.meta_ms_experiment_)
@@ -113,16 +116,16 @@ public:
       meta-information is the same. Note that the file reader (e.g. the
       std::ifstream of the file) might be in a different state.
     */
-    bool operator==(const OnDiscMSExperiment & rhs) const
+    bool operator==(const OnDiscMSExperiment& rhs) const
     {
       // check if file and meta information is the same
       return filename_ == rhs.filename_ &&
-        (*meta_ms_experiment_) == (*rhs.meta_ms_experiment_);
-        // do not check if indexed_mzml_file_ is equal -> they have the same filename...
+             (*meta_ms_experiment_) == (*rhs.meta_ms_experiment_);
+      // do not check if indexed_mzml_file_ is equal -> they have the same filename...
     }
 
     /// Inequality operator
-    bool operator!=(const OnDiscMSExperiment & rhs) const
+    bool operator!=(const OnDiscMSExperiment& rhs) const
     {
       return !(operator==(rhs));
     }
@@ -169,20 +172,20 @@ public:
     }
 
     /// alias for getSpectrum
-    inline MSSpectrum<PeakT> operator[] (Size n)
+    inline MSSpectrum operator[](Size n)
     {
       return getSpectrum(n);
     }
 
     /**
-      @brief returns a single spectrum 
+      @brief returns a single spectrum
 
-      TODO: make this more efficient by reducing the copying   
+      TODO: make this more efficient by reducing the copying
     */
-    MSSpectrum<PeakT> getSpectrum(Size id)
+    MSSpectrum getSpectrum(Size id)
     {
-      OpenMS::Interfaces::SpectrumPtr sptr = indexed_mzml_file_.getSpectrumById(id);
-      MSSpectrum<PeakT> spectrum(meta_ms_experiment_->operator[](id));
+      OpenMS::Interfaces::SpectrumPtr sptr = indexed_mzml_file_.getSpectrumById(static_cast<int>(id));
+      MSSpectrum spectrum(meta_ms_experiment_->operator[](id));
 
       // recreate a spectrum from the data arrays!
       OpenMS::Interfaces::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
@@ -199,7 +202,7 @@ public:
     }
 
     /**
-      @brief returns a single spectrum 
+      @brief returns a single spectrum
     */
     OpenMS::Interfaces::SpectrumPtr getSpectrumById(Size id)
     {
@@ -207,14 +210,14 @@ public:
     }
 
     /**
-      @brief returns a single chromatogram 
+      @brief returns a single chromatogram
 
-      TODO: make this more efficient by reducing the copying   
+      TODO: make this more efficient by reducing the copying
     */
-    MSChromatogram<ChromatogramPeakT> getChromatogram(Size id)
+    MSChromatogram getChromatogram(Size id)
     {
-      OpenMS::Interfaces::ChromatogramPtr cptr = indexed_mzml_file_.getChromatogramById(id);
-      MSChromatogram<ChromatogramPeakT> chromatogram(meta_ms_experiment_->getChromatogram(id));
+      OpenMS::Interfaces::ChromatogramPtr cptr = indexed_mzml_file_.getChromatogramById(static_cast<int>(id));
+      MSChromatogram chromatogram(meta_ms_experiment_->getChromatogram(id));
 
       // recreate a chromatogram from the data arrays!
       OpenMS::Interfaces::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();
@@ -232,16 +235,35 @@ public:
     }
 
     /**
-      @brief returns a single chromatogram 
+      @brief returns a single chromatogram
     */
     OpenMS::Interfaces::ChromatogramPtr getChromatogramById(Size id)
     {
       return indexed_mzml_file_.getChromatogramById(id);
     }
 
+    ///sets whether to skip some XML checks and be fast instead
+    void setSkipXMLChecks(bool skip)
+    {
+      indexed_mzml_file_.setSkipXMLChecks(skip);
+    }
+
 private:
+
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLFile
-    OnDiscMSExperiment & operator=(const OnDiscMSExperiment & /* source */) {;}
+    OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
+
+    void loadMetaData_(const String& filename)
+    {
+      meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
+
+      MzMLFile f;
+      PeakFileOptions options = f.getOptions();
+      options.setFillData(false);
+      f.setOptions(options);
+      f.load(filename, *meta_ms_experiment_.get());
+    }
+
 
 protected:
 
@@ -249,9 +271,11 @@ protected:
     String filename_;
     /// The index of the underlying data file
     IndexedMzMLFile indexed_mzml_file_;
-    /// The meta-data 
-    boost::shared_ptr< MSExperiment<> > meta_ms_experiment_;
+    /// The meta-data
+    boost::shared_ptr<PeakMap> meta_ms_experiment_;
   };
+
+typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;
 
 } // namespace OpenMS
 

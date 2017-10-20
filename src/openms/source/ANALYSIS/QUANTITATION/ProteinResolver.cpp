@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 //
@@ -194,7 +194,7 @@ namespace OpenMS
     // iteriert ueber alles msd gruppe
     for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
     {
-      DoubleList intensities;
+      std::vector<float> intensities;
       // iterierere ueber peptide entry (peptide identification), intensitaet (summe der einzelintensitaeten)
       for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
       {
@@ -242,7 +242,7 @@ namespace OpenMS
   }
 
   //travers Protein and peptide nodes for building MSD groups
-  void ProteinResolver::traversProtein_(ProteinEntry * prot_node, MSDGroup & group)
+  void ProteinResolver::traverseProtein_(ProteinEntry * prot_node, MSDGroup & group)
   {
     group.proteins.push_back(prot_node);
     prot_node->msd_group = group.index;
@@ -255,13 +255,13 @@ namespace OpenMS
         (*i)->traversed = false;
         if ((*i)->experimental)
         {
-          traversPeptide_((*i), group);
+          traversePeptide_((*i), group);
         }
       }
     }
   }
 
-  void ProteinResolver::traversPeptide_(PeptideEntry * pep_node, MSDGroup & group)
+  void ProteinResolver::traversePeptide_(PeptideEntry * pep_node, MSDGroup & group)
   {
     group.peptides.push_back(pep_node);
     pep_node->msd_group = group.index;
@@ -270,7 +270,7 @@ namespace OpenMS
       if ((*i)->traversed)
       {
         (*i)->traversed = false;
-        traversProtein_((*i), group);
+        traverseProtein_((*i), group);
       }
     }
   }
@@ -447,7 +447,7 @@ namespace OpenMS
   {
     EnzymaticDigestion digestor;
     String enzyme_name = param_.getValue("resolver:enzyme");
-    digestor.setEnzyme(digestor.getEnzymeByName(enzyme_name));
+    digestor.setEnzyme(enzyme_name);
     UInt min_size = param_.getValue("resolver:min_length");
     UInt missed_cleavages = param_.getValue("resolver:missed_cleavages");
     digestor.setMissedCleavages(missed_cleavages);
@@ -572,7 +572,7 @@ namespace OpenMS
           msd_group.number_of_target = 0;
           msd_group.number_of_decoy = 0;
           msd_group.number_of_target_plus_decoy = 0;
-          traversProtein_(&*prot_node, msd_group);
+          traverseProtein_(prot_node, msd_group);
           if (msd_group.peptides.size() > 0)
           {
             msd_groups.push_back(msd_group);
@@ -598,7 +598,7 @@ namespace OpenMS
   //ProteinResolver::indistinguishableProteins(vector<MSDGroup>& msd_groups)
   //{
   //indistinguishable proteins
-  //TODO check which proteins are indistinguishable from eachother. This code seems to be instable.
+  //TODO check which proteins are indistinguishable from each other. This code seems to be unstable.
   /*
   Size mg = 0;
   cout<<"\nindistinguishable\n";
@@ -652,7 +652,7 @@ namespace OpenMS
             it2->second->indis.push_back(it1->second);
           }
         }
-        //TODO gurantee that all indistinguishable have all others in their list
+        //TODO guarantee that all indistinguishable have all others in their list
         //at the moment the key idea is that only the first Protein has all of them. The others have just a pointer to the first one.
       }
     ++i;

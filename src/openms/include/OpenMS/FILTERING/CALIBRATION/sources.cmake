@@ -4,6 +4,7 @@ set(directory include/OpenMS/FILTERING/CALIBRATION)
 ### list all header files of the directory here
 set(sources_list_h
 InternalCalibration.h
+MZTrafoModel.h
 TOFCalibration.h
 )
 

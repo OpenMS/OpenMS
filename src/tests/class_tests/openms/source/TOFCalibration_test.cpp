@@ -1,34 +1,34 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 //
@@ -55,7 +55,7 @@ TOFCalibration* ptr = 0;
 TOFCalibration* nullPointer = 0;
 START_SECTION((TOFCalibration()))
   ptr = new TOFCalibration;
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~TOFCalibration()))
@@ -86,9 +86,9 @@ START_SECTION((const std::vector<double>& getML3s() const))
   vec.push_back(0.3);
   tc.setML3s(vec);
   TEST_EQUAL(tc.getML3s()== vec,true)
-END_SECTION  
+END_SECTION
 
-  
+
 START_SECTION((void setML1s(const std::vector< double > &ml1s)))
   std::vector<double> vec;
   vec.push_back(0.1);
@@ -112,13 +112,13 @@ START_SECTION((void setML3s(const std::vector< double > &ml3s)))
   tc.setML3s(vec);
   TEST_EQUAL(tc.getML3s()== vec,true)
 END_SECTION
-  
 
 
-START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< Peak1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+
+START_SECTION((template<typename PeakType> void pickAndCalibrate(PeakMap &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   std::cout.precision(writtenDigits<double>(0.0));
-  MSExperiment<Peak1D> calib_exp;
-  MSExperiment<Peak1D> exp,res_exp;
+  PeakMap calib_exp;
+  PeakMap exp,res_exp;
   MzDataFile file;
   file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrants.mzData"),calib_exp);
   file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test.mzData"),exp);
@@ -128,20 +128,20 @@ START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< P
 
   ref_file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrant_masses.txt"),true);
 
-  for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
-	{
-		ref_masses.push_back(String(iter->c_str()).toDouble());
-	}
+  for(TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+  {
+    ref_masses.push_back(String(iter->c_str()).toDouble());
+  }
 
   std::vector<double> ml1;
-                                 
+
   ml1.push_back(418327.924993827);
-                
+
   std::vector<double> ml2;
-                
+
   ml2.push_back(253.645187196031);
   std::vector<double> ml3;
-                
+
   ml3.push_back(-0.0414243465397252);
   tc.setML1s(ml1);
   tc.setML2s(ml2);
@@ -157,24 +157,24 @@ START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< P
   tc.setParameters(param);
   tc.pickAndCalibrate(calib_exp,exp,ref_masses);
   TOLERANCE_ABSOLUTE(0.01)
-  TOLERANCE_RELATIVE(1.0)
+  TOLERANCE_RELATIVE(1.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
-	for (Size i=0; i<exp.size(); ++i)
-	{
-		for (Size j=0; j<exp[i].size(); ++j)
-		{
-			TEST_REAL_SIMILAR(exp[i][j].getPos(),res_exp[i][j].getPos())
-			TEST_REAL_SIMILAR(exp[i][j].getIntensity(),res_exp[i][j].getIntensity())
-		}
-	}
+  for (Size i=0; i<exp.size(); ++i)
+  {
+    for (Size j=0; j<exp[i].size(); ++j)
+    {
+      TEST_REAL_SIMILAR(exp[i][j].getPos(),res_exp[i][j].getPos())
+      TEST_REAL_SIMILAR(exp[i][j].getIntensity(),res_exp[i][j].getIntensity())
+    }
+  }
 END_SECTION
 
 tc = TOFCalibration();
 
-START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
+START_SECTION((template<typename PeakType> void calibrate(PeakMap &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
   std::cout.precision(writtenDigits<>(double(0.0)));
-  MSExperiment<> calib_exp;
-  MSExperiment<> exp,res_exp;
+  PeakMap calib_exp;
+  PeakMap exp,res_exp;
   MzDataFile file;
   file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrants2.mzData"),calib_exp);
   file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test2.mzData"),exp);
@@ -184,7 +184,7 @@ START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &
 
   ref_file.load(OPENMS_GET_TEST_DATA_PATH("TOFCalibration_test_calibrant_masses.txt"),true);
 
-  for(TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+  for(TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
    {
      ref_masses.push_back(atof(iter->c_str()));
    }
@@ -210,17 +210,17 @@ START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &
 
   tc.calibrate(calib_exp,exp,ref_masses);
 
-	TOLERANCE_ABSOLUTE(0.01)
-  TOLERANCE_RELATIVE(1.0)
+  TOLERANCE_ABSOLUTE(0.01)
+  TOLERANCE_RELATIVE(1.01)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
-	for (Size i=0; i<exp.size(); ++i)
-	{
-		for (Size j=0; j<exp[i].size(); ++j)
-		{
-			TEST_REAL_SIMILAR(res_exp[i][j].getPos(),exp[i][j].getPos())
-			TEST_REAL_SIMILAR(res_exp[i][j].getIntensity(),exp[i][j].getIntensity())
-		}
-	}
+  for (Size i=0; i<exp.size(); ++i)
+  {
+    for (Size j=0; j<exp[i].size(); ++j)
+    {
+      TEST_REAL_SIMILAR(res_exp[i][j].getPos(),exp[i][j].getPos())
+      TEST_REAL_SIMILAR(res_exp[i][j].getIntensity(),exp[i][j].getIntensity())
+    }
+  }
 
 END_SECTION
 

@@ -10,8 +10,24 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
         PlainMSDataWritingConsumer(String filename) nogil except +
         PlainMSDataWritingConsumer(PlainMSDataWritingConsumer) nogil except + #wrap-ignore
 
-        void consumeSpectrum(MSSpectrum[Peak1D] & s) nogil except + 
-        void consumeChromatogram(MSChromatogram[ChromatogramPeak] & c) nogil except + 
+        void consumeSpectrum(MSSpectrum & s) nogil except +
+        void consumeChromatogram(MSChromatogram & c) nogil except +
+
+        void setExperimentalSettings(ExperimentalSettings& exp) nogil except +
+        void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except +
+
+        void addDataProcessing(DataProcessing d) nogil except +
+        Size getNrSpectraWritten()  nogil except +
+        Size getNrChromatogramsWritten() nogil except +
+
+
+    cdef cppclass NoopMSDataWritingConsumer:
+
+        NoopMSDataWritingConsumer(String filename) nogil except +
+        NoopMSDataWritingConsumer(NoopMSDataWritingConsumer) nogil except + #wrap-ignore
+
+        void consumeSpectrum(MSSpectrum & s) nogil except +
+        void consumeChromatogram(MSChromatogram & c) nogil except +
 
         void setExperimentalSettings(ExperimentalSettings& exp) nogil except +
         void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -153,7 +153,7 @@ namespace OpenMS
       }
       else if (tag_ == "ProcessingMethod")
       {
-        //order gets implicity imposed by set<ProcessingAction> - so nothing to do here
+        //order gets implicitly imposed by set<ProcessingAction> - so nothing to do here
       }
       else if (tag_ == "Software")
       {
@@ -272,7 +272,9 @@ namespace OpenMS
         //~ }
         //~ }
 
-        String f_ref = attributeAsString_(attributes, "feature_ref"); // models which features will be included in this consensus feature - idependent from id(is optional)
+        // models which features will be included in this consensus feature -
+        // independent from id(is optional)
+        String f_ref = attributeAsString_(attributes, "feature_ref");
         f_cf_ids_.insert(std::make_pair(f_ref, current_cf_id_));
 
         //~ StringList a_refs = attributeAsStringList_(attributes,"assay_refs"); // what to do with these??
@@ -315,7 +317,7 @@ namespace OpenMS
 
     void MzQuantMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
-      //if there is data between the element tags - !attention if element is derived from a xsd:list type, each list entry is a charecters call :(
+      //if there is data between the element tags - !attention if element is derived from a xsd:list type, each list entry is a characters call :(
 
       if (tag_ == "PeptideSequence")
       {
@@ -342,7 +344,7 @@ namespace OpenMS
       {
         //overwrites current_col_types_ with the ratio_refs or the assay_refs
         String r = sm_.convert(chars);
-        //clear must have happened earlyer in QuantLayer tag
+        //clear must have happened earlier in QuantLayer tag
         r.trim();
         if (!r.empty()) // always two notifications for a row, only the first one contains chars - dunno why
         {
@@ -388,7 +390,9 @@ namespace OpenMS
         return;
       }
 
-      // no ProcessingMethod endElement action so each userParam under Dataprocessing will be one processingaction - no other way for core-lib compability yet
+      // no ProcessingMethod endElement action so each userParam under
+      // Dataprocessing will be one processingaction - no other way for
+      // core-lib compatibility yet
       if (tag_ == "DataProcessing")
       {
         current_dp_.second.setProcessingActions(current_pas_);
@@ -742,7 +746,7 @@ namespace OpenMS
 
       //---AnalysisSummary---
       os << "\t<AnalysisSummary>\n";
-      cmsq_->getAnalysisSummary().quant_type_;
+      // cmsq_->getAnalysisSummary().quant_type_;
       //~ os << "\t\t<userParam name=\"QuantType\" value=\"";
       //~ os << String(MSQuantifications::NamesOfQuantTypes[cmsq_->getAnalysisSummary().quant_type_]);
       switch (cmsq_->getAnalysisSummary().quant_type_)
@@ -817,7 +821,7 @@ namespace OpenMS
         {
           softwarelist_tag += "\t\t\t<userParam name=\"" + String(dit->getSoftware().getName()) + "\"/>\n";
         }
-        if (dit->getSoftware().getName() == "ITRAQAnalyzer")
+        if (dit->getSoftware().getName() == "ITRAQAnalyzer") // tool does not exist any more. replace by IsobaricAnalyzer?
         {
           softwarelist_tag += "\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"ITRAQAnalyzer\"/>\n";
         }
@@ -1022,7 +1026,7 @@ namespace OpenMS
         assay_xml += "\t\t\t</Label>\n";
         assay_xml += "\t\t</Assay>\n";
 
-        // for SILACAnalyzer/iTRAQAnalyzer one assay is one studyvariable, this may change!!! TODO for iTRAQ
+        // for SILACAnalyzer/IsobaricAnalyzer one assay is one studyvariable, this may change!!! TODO for iTRAQ/TMT
         study_xml += "\t<StudyVariable id=\"v_" + vr + "\" name=\"noname\">\n";
         study_xml += "\t\t\t<Assay_refs>a_" + String(ait->uid_) + "</Assay_refs>\n";
         study_xml += "\t</StudyVariable>\n";
@@ -1063,7 +1067,7 @@ namespace OpenMS
               fwi.push_back(fit->getWidth());
               //~ fqu.push_back(jt->getQuality());
               feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(fit->getRT()) + "\" mz=\"" + String(fit->getMZ()) + "\" charge=\"" + String(fit->getCharge()) + "\">\n";
-              // TODO as soon as SILACanalyzer incorporate convex hulls read from the featuremap
+              // TODO as soon as SILACAnalyzer incorporate convex hulls read from the featuremap
               //~ writeUserParam_(os, *jt, UInt(2)); // FeatureHandle has no MetaInfoInterface!!!
               feature_xml += "\t\t\t<userParam name=\"map_index\" value=\"" + String(fit->getMapIndex()) + "\"/>\n";
               feature_xml += "\t\t\t<userParam name=\"feature_index\" value=\"" + String(fit->getUniqueId()) + "\"/>\n";
@@ -1086,7 +1090,7 @@ namespace OpenMS
             f2i.push_back(fi);
           } break;
 
-          case 2: //label free TODO iterate over featuremaps befor switch or something
+          case 2: //label free TODO iterate over featuremaps before switch or something
             break;
 
           case 3:
@@ -1199,7 +1203,7 @@ namespace OpenMS
               r_values.insert(std::make_pair(rd, String(rit->ratio_value_)));
             }
             std::vector<String> dis;
-            //TODO isert missing ratio_refs into r_values with value "-1"
+            //TODO insert missing ratio_refs into r_values with value "-1"
             for (std::map<String, String>::const_iterator sit = r_values.begin(); sit != r_values.end(); ++sit)
             {
               dis.push_back(sit->second);
@@ -1232,7 +1236,7 @@ namespace OpenMS
                 peptide_xml += String("\t\t\t<EvidenceRef feature_ref=\"f_") + String(fid[i]) + String("\" assay_refs=\"") + ass_refs + String("\" id_refs=\"") + cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().front().getIdentifier() + String("\" identificationFile_ref=\"") + idfile_ref + String("\"/>\n");
                 peptide_xml += String("\t\t</PeptideConsensus>\n");
               }
-              //~ TODO ratios, when available (not yet for the iTRAQ tuples of iTRAQAnalyzer)
+              //~ TODO ratios, when available (not yet for the iTRAQ tuples of IsobaricAnalyzer)
             }
             peptide_xml += String("\t</PeptideConsensusList>\n");
           }
@@ -1318,7 +1322,7 @@ namespace OpenMS
       }
     }
 
-    void MzQuantMLHandler::writeFeature_(String& feature_xml, const std::vector<FeatureMap<> >& fm, UInt indentation_level)
+    void MzQuantMLHandler::writeFeature_(String& feature_xml, const std::vector<FeatureMap >& fm, UInt indentation_level)
     {
       //TODO: remove dummy
       //os << "\n featurewriter: " << identifier_prefix << "-" << String(identifier) << "-" << String(indentation_level) << "\n";
@@ -1326,12 +1330,12 @@ namespace OpenMS
 
       std::vector<UInt64> fid;
       std::vector<float> fin, fwi, fqu;
-//      std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref) TODO renoved unused variables
+//      std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref) TODO removed unused variables
 //      std::vector<std::vector<float> > f2i;
       std::vector<UInt64> idvec;
       idvec.push_back(UniqueIdGenerator::getUniqueId());
 
-      for (std::vector<FeatureMap<> >::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
+      for (std::vector<FeatureMap >::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
       {
         for (std::vector<Feature>::const_iterator fit = fat->begin(); fit != fat->end(); ++fit)
         {

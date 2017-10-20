@@ -8,15 +8,25 @@
 Redistributions
 Tuebingen
 Freie
+Eberhard
 Karls
 ETH
+Hoenggerberg
+IMSB
 Universitaet
 Lund
+MERCHANTABILITY
 # }}}
 
 ###################################
 # 2. Authors {{{
 ###################################
+Julianus
+Pfeuffer
+Demirev
+Zubarev
+Liang
+Xiao
 Alexandra
 Zerck
 Andreas
@@ -113,6 +123,16 @@ Florian
 Zeller
 Peter
 Kunszt
+Johan
+Helge
+Lennart
+Ralf
+Nicolai
+Ivar
+Ruedi
+Aebersold
+Witold
+Wolski
 # }}}
 
 ###################################
@@ -127,12 +147,6 @@ functors
 MSVC
 Quantitation
 recomputation
-SpectraClustering
-SpectraFilter
-Struct
-Typedefs
-UniMod
-consensusXML
 datapoint
 datastructures
 Hiwi
@@ -145,32 +159,18 @@ DeNovo
 Jacobian
 Namespace
 functor
-idXML
 ifndef
-OpenSWATH
 reimplement
 SignalProcessing
 SpectraPreprocessers
 c'tor
 plex
-SpectrumWidgets
-TOPPView
-Witold
-Wolski
-SpectraComparison
 quantitation
-Hoenggerberg
-IMSB
-Ruedi
-Aebersold
 br
 ns
 STL
 Datastructures
 todo
-Metadata
-FileIO
-Destructors
 Docu
 # }}}
 
@@ -186,13 +186,11 @@ cdot
 ClusterMethod
 Const
 C'Tor
+gnuplot
+getter
 IMPL
 Longman
 lookup
-mzIdentML
-MzML
-mzQuantML
-PepNovo
 subtree
 TOPPASINPUTFILESDIALOG
 typedefs
@@ -200,7 +198,6 @@ XMass
 Accessor
 ctor
 defgroup
-HUPO
 maxima
 novo
 PeakDetection
@@ -215,16 +212,17 @@ frameSize
 lorentzian
 lowpass
 mapList
-OpenGL
-PeakSpectra
 versa
-XTandem
-XTandemXML
+
 # }}}
 
 ###################################
 # Directory names and abbreviations {{{
 ###################################
+FNs
+FPs
+RNP
+TPs
 qMZ
 TAc
 TNVs
@@ -431,12 +429,33 @@ Meinicke
 Scherbart
 Tholey
 Faires
+Fohlman
+Roepstoff
+Gutenbrunner
+Spectrometry
 # }}}
 
 ###################################
 # Classnames, functions and closely related {{{
 ###################################
+
 # {{{Classnames
+AAIndex
+MapAlignmentAlgorithm
+TargetedFileConverter
+MultiplexPeakPattern
+SILACAnalyzer
+LowLevelComparator
+IDEvaluatorGUI
+AxisWidget
+SpectrumCanvas
+SpectrumWidget
+CachedMzMLConsumer
+LowLevelComparator
+ParamEditor
+SavitzkyGolayQRFilter
+SavitzkyGolaySVDFilter
+TICWritingConsumer
 IsotopeWaveletFeatureFinder
 MetaInfos
 ChargePairs
@@ -596,9 +615,26 @@ OPENSWATHALGO
 DCanvas
 PersistentObject
 SignalToNoiseEstimatorRapid
+PeptideIdentication
+LabelType
+MissedCleavages
+PeptideGroupLabel
+OnDiskExperiment
+LocalClustering
+MovingAverage
+HierarchicalClustering
+LocalClustering
+SpectraIdentificationViewWidget
+MetaValueInterface
+ProteinIdentificationVisualizer
+
+DWidget
+MetaDataBrowser
 #  }}}
 
 # Functions {{{ 
+computeFwhmAreaRobust
+computeFwhmAreaSmoothRobust
 encodeInt
 encodings
 updateCRC
@@ -675,7 +711,27 @@ encodeOligoBorder
 indistinguishableProteins
 massShift
 removeDatabase
+getChromatogam
+
 #  }}}
+
+AveragineModifications
+FirstScan
+NumOfScans
+
+BFS
+ConnectedComponents
+PepHit
+PeptideIDs
+ProtGroups
+
+JBC
+PEPs
+ScoringMatrix
+PEPIons
+PEPs
+ConsensusID
+PEPs
   
 lastPackage
 AAD
@@ -687,6 +743,21 @@ maximus
 
 ApprLineFit
 GeometricTools
+DataCollection
+IdentificationRuns
+PeptideEvidences
+SequenceCollection
+spectradata
+XSValue
+
+PILIS
+DecoyDatabase
+PeptideIndexer
+RTPredict
+PeptideIndexer
+passesWhitelist
+SavitzkyGolay
+
 # }}}
 
 ###################################
@@ -712,6 +783,23 @@ ltnote
 ###################################
 # common technical words {{{
 ###################################
+Struct
+Typedefs
+FHWM
+datasets
+Fortran
+NETLIB
+nonrobust
+LLVM
+tokenize
+Wikipedia
+Exabyte
+Exbibit
+Exbibyte
+subelement
+subdirectory
+NaN
+peaklist
 doi
 pubmed
 subproblems
@@ -878,11 +966,41 @@ libc
 GSL
 SciPy
 colspan
+html
+inlining
+iterable
+eol
+PIMPL
+multiplet
+multiplets
+NotStarted
+deltaAbsError
+deltaRelError
+higherScoreBetter
+SignificanceThreshold
+KiloBytes
+pearson
+rowspan
+Google
+ol
+Javascript
+BGCOLOR
+EBEBEB
+PRECRT
 # }}}
 
 ###################################
 # common Mass spectrometry and OpenMS words {{{
 ###################################
+dimethyl
+FTICR
+MascotAdapter
+Hydroxylation
+Histidin
+Leucin
+Phenylalanin
+PSM’s
+pepID
 Carboxymethyl
 paramXML
 TOPPASWidgets
@@ -1047,6 +1165,47 @@ hyperscore
 Proc
 SwathMaps
 mzq
+Isotopically
+IBSpectra
+timepoints
+Transcodes
+sulfoxide
+codon
+immonium
+PepNovo
+HUPO
+OpenGL
+PeakSpectra
+XTandem
+XTandemXML
+mzIdentML
+MzML
+mzQuantML
+SpectraClustering
+SpectraFilter
+UniMod
+consensusXML
+idXML
+OpenSWATH
+SpectrumWidgets
+TOPPView
+SpectraComparison
+Metadata
+FileIO
+Destructors
+
+Askenazi
+Savitski
+Sweetman
+
+MAAAR
+AAAR
+PEPTLDE
+SNP
+YEHR
+SSK
+CRTP
+VLSEEEIDDNFK
 # }}}
 
 ###################################
@@ -1054,11 +1213,11 @@ mzq
 ###################################
 prepended
 thresholding
+vivo
 silico
 combinatoric
 crosscorrelation
 crosscorrelations
-accessably
 unclustered
 seeked
 online
@@ -1071,7 +1230,6 @@ deviancies
 proto
 cohesions
 agglomerative
-advancedness
 skipexists
 smoothes
 subregion
@@ -1085,7 +1243,6 @@ preincrement
 ascendingly
 syncronicity
 homonymous
-syncronize
 # }}}
 
 ###################################
@@ -1570,7 +1727,7 @@ ttime
 ttotalIntensity
 # }}}
 
-# Almost english words {{{
+# Almost English words {{{
 Coeluting
 decharged
 decharge
@@ -1614,9 +1771,36 @@ tmpnam
 BinaryTreeNode's
 console's
 alphabetMass
+
+Uncharacterized
+lipop
+cspline
+overdesigning
+peptidoforms
+physicochemically
+metabolomics
 # }}}
 
 # {{{ Variable names and abbreviations
+
+refactoring
+plugin
+arctan
+miscleavages
+numerics
+undef
+amax
+ifix
+lstsq
+RATFOR
+ratfor
+refactored
+robustifying
+Templated
+userw
+x's
+Vandermonde
+pushback
 
 vigintile
 cutil
@@ -1628,7 +1812,6 @@ avalue
 bvalue
 lwidth
 rwidth
-egde
 leftside
 rightside
 sufArray
@@ -1685,6 +1868,27 @@ mymeta
 josie
 kim
 paul
+
+sapf
+nd
+xxxxxx
+xxxxxxx
+iosconstructors
+nd
+ame
+IZ
+evel
+PDF
+nl
+Cmpd
+Deamidated
+NQ
+dx
+dfs
+io
+c'tors
+XXXXX
+
 
 #  }}}
 

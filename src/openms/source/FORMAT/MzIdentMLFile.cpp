@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,16 +28,19 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: Andreas Bertsch, Mathias Walzer$
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzIdentMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/HANDLERS/MzIdentMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzIdentMLDOMHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 namespace OpenMS
 {
@@ -51,25 +54,38 @@ namespace OpenMS
   {
   }
 
-  void MzIdentMLFile::load(const String & filename, Identification & id)
+  void MzIdentMLFile::load(const String& filename, Identification& id)
   {
     Internal::MzIdentMLHandler handler(id, filename, schema_version_, *this);
     parse_(filename, &handler);
   }
 
-  void MzIdentMLFile::store(const String & filename, const Identification & id) const
+  void MzIdentMLFile::load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid)
+  {
+    Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
+    handler.readMzIdentMLFile(filename);
+  }
+
+  void MzIdentMLFile::store(const String& filename, const Identification& id) const
   {
     Internal::MzIdentMLHandler handler(id, filename, schema_version_, *this);
     save_(filename, &handler);
   }
 
-  void MzIdentMLFile::store(const String & filename, const std::vector<ProteinIdentification> & poid, const std::vector<PeptideIdentification> & peid) const
+  void MzIdentMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const
   {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::MZIDENTML))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::MZIDENTML) + "'");
+    }
+
     Internal::MzIdentMLHandler handler(poid, peid, filename, schema_version_, *this);
     save_(filename, &handler);
+//    Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
+//    handler.writeMzIdentMLFile(filename);
   }
 
-  bool MzIdentMLFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
+  bool MzIdentMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
   {
     //load mapping
     CVMappings mapping;

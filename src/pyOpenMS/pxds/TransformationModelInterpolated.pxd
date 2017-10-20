@@ -1,11 +1,27 @@
+from Types cimport *
 from Param cimport *
 
-# class TransformationModelInterpolated declared in TransformationModel.pxd
+from TransformationModel cimport *
 
-# keep TransformationModelInterpolated and TransformationModelLinear 
-# in separate files. Else autowrap can not
-# distinguish the getDefaultParameters() static methods
+cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>" namespace "OpenMS":
 
-cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace "OpenMS::TransformationModelInterpolated":
+    cdef cppclass TransformationModelInterpolated(TransformationModel):
+        # wrap-inherits:
+        #   TransformationModel
 
-    void getDefaultParameters(Param &) # wrap-attach:TransformationModelInterpolated
+        TransformationModelInterpolated(TransformationModelInterpolated) nogil except + #wrap-ignore
+        TransformationModelInterpolated(libcpp_vector[TM_DataPoint]& data, Param& params) nogil except +
+
+        void getDefaultParameters(Param &)
+        double evaluate(double value) nogil except +
+
+cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>" namespace "OpenMS:TransformationModelInterpolated":
+
+    cdef cppclass Interpolator:
+        # wrap-ignore
+        # ABSTRACT
+        # no-pxd-import
+
+      void init(libcpp_vector[double] x, libcpp_vector[double] y)
+
+      double eval(double x)

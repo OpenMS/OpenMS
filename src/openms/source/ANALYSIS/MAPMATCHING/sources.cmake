@@ -10,13 +10,13 @@ ConsensusMapNormalizerAlgorithmMedian.cpp
 ConsensusMapNormalizerAlgorithmQuantile.cpp
 FeatureDistance.cpp
 FeatureGroupingAlgorithm.cpp
-FeatureGroupingAlgorithmIdentification.cpp
 FeatureGroupingAlgorithmLabeled.cpp
+FeatureGroupingAlgorithmKD.cpp
 FeatureGroupingAlgorithmQT.cpp
 FeatureGroupingAlgorithmUnlabeled.cpp
 LabeledPairFinder.cpp
-MapAlignmentAlgorithm.cpp
 MapAlignmentAlgorithmIdentification.cpp
+MapAlignmentAlgorithmKD.cpp
 MapAlignmentAlgorithmPoseClustering.cpp
 MapAlignmentAlgorithmSpectrumAlignment.cpp
 MapAlignmentEvaluationAlgorithm.cpp
@@ -30,6 +30,10 @@ SimplePairFinder.cpp
 StablePairFinder.cpp
 TransformationDescription.cpp
 TransformationModel.cpp
+TransformationModelBSpline.cpp
+TransformationModelLowess.cpp
+TransformationModelLinear.cpp
+TransformationModelInterpolated.cpp
 )
 
 ### add path to the filenames

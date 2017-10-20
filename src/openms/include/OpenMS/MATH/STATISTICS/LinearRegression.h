@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/MATH/STATISTICS/RegressionUtils.h>
 
 #include "Wm5Vector2.h"
@@ -45,8 +46,6 @@
 
 #include <cmath>
 #include <vector>
-
-using std::pow;
 
 namespace OpenMS
 {
@@ -105,13 +104,18 @@ public:
           For a  "x %" Confidence Interval use confidence_interval_P = x/100.
           For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
           containing the true value of the parameter.
-
+          
+          @param confidence_interval_P Value between 0-1 to determine lower and upper CI borders.
+          @param x_begin Begin iterator of x values
+          @param x_end End iterator of x values
+          @param y_begin Begin iterator of y values (same length as x)
+          @param compute_goodness Compute meta stats about the fit. If this is not done, none of the members (except slope and intercept) are meaningful.
           @return If an error occurred during the fit.
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
       template <typename Iterator>
-      void computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin);
+      void computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, bool compute_goodness = true);
 
       /**
           @brief This function computes the best-fit linear regression coefficients \f$ (c_0,c_1) \f$
@@ -125,12 +129,18 @@ public:
           For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
           containing the true value of the parameter.
 
+          @param confidence_interval_P Value between 0-1 to determine lower and upper CI borders.
+          @param x_begin Begin iterator of x values
+          @param x_end End iterator of x values
+          @param y_begin Begin iterator of y values (same length as x)
+          @param w_begin Begin iterator of weight values (same length as x)
+          @param compute_goodness Compute meta stats about the fit. If this is not done, none of the members (except slope and intercept) are meaningful.
           @return If an error occurred during the fit.
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
       template <typename Iterator>
-      void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin);
+      void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, bool compute_goodness = true);
 
       /// Non-mutable access to the y-intercept of the straight line
       double getIntercept() const;
@@ -198,21 +208,23 @@ protected:
 
 private:
 
-    /// Not implemented
-    LinearRegression(const LinearRegression & arg);
-    /// Not implemented
-    LinearRegression & operator=(const LinearRegression & arg);
+      /// Not implemented
+      LinearRegression(const LinearRegression& arg);
+      /// Not implemented
+      LinearRegression& operator=(const LinearRegression& arg);
 
-    };//class
+    }; //class
 
 
-    namespace {
-      //given x compute y = slope * x + intercept
-    double computePointY( double x, double slope, double intercept)
+    namespace
     {
-      return (slope * x + intercept);
-    }
-    }//namespace
+      //given x compute y = slope * x + intercept
+      double computePointY(double x, double slope, double intercept)
+      {
+        return slope * x + intercept;
+      }
+
+    } //namespace
 
     //x, y, w must be of same size
     template <typename Iterator>
@@ -221,13 +233,14 @@ private:
       double chi_squared = 0.0;
       Iterator xIter = x_begin;
       Iterator yIter = y_begin;
-      for(; xIter!=x_end; ++xIter, ++yIter)
+      for (; xIter != x_end; ++xIter, ++yIter)
       {
         chi_squared += std::pow(*yIter - computePointY(*xIter, slope, intercept), 2);
       }
 
       return chi_squared;
     }
+
     //x, y, w must be of same size
     template <typename Iterator>
     double LinearRegression::computeWeightedChiSquare(Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, double slope, double intercept)
@@ -236,37 +249,38 @@ private:
       Iterator xIter = x_begin;
       Iterator yIter = y_begin;
       Iterator wIter = w_begin;
-      for(; xIter != x_end; ++xIter, ++yIter, ++wIter)
+      for (; xIter != x_end; ++xIter, ++yIter, ++wIter)
       {
-        chi_squared += *wIter*std::pow(*yIter - computePointY(*xIter, slope, intercept), 2);
+        chi_squared += *wIter * std::pow(*yIter - computePointY(*xIter, slope, intercept), 2);
       }
 
       return chi_squared;
     }
 
     template <typename Iterator>
-    void LinearRegression::computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)
+    void LinearRegression::computeRegression(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, bool compute_goodness)
     {
       std::vector<Wm5::Vector2d> points = iteratorRange2Wm5Vectors(x_begin, x_end, y_begin);
 
       // Compute the unweighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
       // and the value of Chi squared (sum( (y - evel(x))^2)
-      bool pass = Wm5::HeightLineFit2<double>(points.size(), &points.front(), slope_, intercept_);
+      bool pass = Wm5::HeightLineFit2<double>(static_cast<int>(points.size()), &points.front(), slope_, intercept_);
       chi_squared_ = computeChiSquare(x_begin, x_end, y_begin, slope_, intercept_);
 
       if (pass)
       {
-        computeGoodness_(points, confidence_interval_P);
+        if (compute_goodness && points.size() > 2) computeGoodness_(points, confidence_interval_P);
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
       }
     }
 
     template <typename Iterator>
-    void LinearRegression::computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)
+    void LinearRegression::computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, bool compute_goodness)
     {
       // Compute the weighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
@@ -274,54 +288,51 @@ private:
       std::vector<Wm5::Vector2d> points = iteratorRange2Wm5Vectors(x_begin, x_end, y_begin);
       // Compute sums for linear system. copy&paste from GeometricTools Wm5ApprLineFit2.cpp
       // and modified to allow weights
-      int numPoints = points.size();
+      int numPoints = static_cast<int>(points.size());
       double sumX = 0, sumY = 0;
       double sumXX = 0, sumXY = 0;
       double sumW = 0;
       Iterator wIter = w_begin;
 
-      for (int i=0; i<numPoints; ++i, ++wIter)
+      for (int i = 0; i < numPoints; ++i, ++wIter)
       {
-          sumX += (*wIter)*points[i].X();
-          sumY += (*wIter)*points[i].Y();
-          sumXX += (*wIter)*points[i].X()*points[i].X();
-          sumXY += (*wIter)*points[i].X()*points[i].Y();
-          sumW += (*wIter);
+        sumX += (*wIter) * points[i].X();
+        sumY += (*wIter) * points[i].Y();
+        sumXX += (*wIter) * points[i].X() * points[i].X();
+        sumXY += (*wIter) * points[i].X() * points[i].Y();
+        sumW += (*wIter);
       }
       //create matrices to solve Ax = B
       double A[2][2] =
       {
-          {sumXX, sumX},
-          {sumX, sumW}
+        {sumXX, sumX},
+        {sumX, sumW}
       };
       double B[2] =
       {
-          sumXY,
-          sumY
+        sumXY,
+        sumY
       };
       double X[2];
 
       bool nonsingular = Wm5::LinearSystem<double>().Solve2(A, B, X);
       if (nonsingular)
       {
-          slope_ = X[0];
-          intercept_ = X[1];
+        slope_ = X[0];
+        intercept_ = X[1];
       }
       chi_squared_ = computeWeightedChiSquare(x_begin, x_end, y_begin, w_begin, slope_, intercept_);
 
       if (nonsingular)
       {
-        computeGoodness_(points, confidence_interval_P);
+        if (compute_goodness && points.size() > 2) computeGoodness_(points, confidence_interval_P);
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
       }
     }
-
-
-
-
 
   } // namespace Math
 } // namespace OpenMS

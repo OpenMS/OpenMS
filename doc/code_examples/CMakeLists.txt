@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -60,15 +60,19 @@ foreach(i ${EXAMPLES_executables})
   endif()
 endforeach(i)
 
-# add OpenMS GUI includes
-include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
-
-# add the GUI tutorials -- no tests
-foreach(i ${GUI_EXAMPLES_executables})
-  add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
-  target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
-endforeach(i)
-
 # add collection target
 add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
+
+if(WITH_GUI)
+  # add OpenMS GUI includes
+  include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
+
+  # add the GUI tutorials -- no tests
+  foreach(i ${GUI_EXAMPLES_executables})
+    add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
+    target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
+  endforeach(i)
+
+  add_dependencies(Tutorials_build ${GUI_EXAMPLES_executables})
+endif()

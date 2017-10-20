@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
@@ -36,6 +36,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
+#include <iostream>
 
 using namespace xercesc;
 using namespace std;
@@ -45,26 +48,30 @@ namespace OpenMS
 
   XTandemXMLFile::XTandemXMLFile() :
     XMLHandler("", 1.1),
-    XMLFile(),
-    actual_start_(0),
-    actual_stop_(0)
+    XMLFile()
   {
-
+    // see X! Tandem parameters "protein, quick pyrolidone" and "protein, quick acetyl":
+    default_nterm_mods_.setModifications("", "Gln->pyro-Glu (N-term Q),Glu->pyro-Glu (N-term E),Acetyl (N-term)");
   }
 
   XTandemXMLFile::~XTandemXMLFile()
   {
   }
 
-  void XTandemXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet & rhs)
+  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids, ModificationDefinitionsSet& mod_def_set)
   {
-    mod_def_set_ = rhs;
-  }
-
-  void XTandemXMLFile::load(const String & filename, ProteinIdentification & protein_identification, vector<PeptideIdentification> & peptide_ids)
-  {
-    //File name for error message in XMLHandler
+    // File name for error message in XMLHandler
     file_ = filename;
+    mod_def_set_ = mod_def_set;
+
+    // reset everything, in case "load" is called multiple times:
+    is_protein_note_ = is_spectrum_note_ = false;
+    peptide_hits_.clear();
+    protein_hits_.clear();
+    current_protein_ = tag_ = previous_seq_ = "";
+    current_charge_ = 0;
+    current_id_ = current_start_ = current_stop_ = 0;
+    spectrum_ids_.clear();
 
     enforceEncoding_("ISO-8859-1");
     parse_(filename, this);
@@ -74,65 +81,22 @@ namespace OpenMS
     String identifier("XTandem_" + date_string);
     //vector<String> accessions;
 
-    // convert id -> peptide_hits into peptide hits list
-    //vector<PeptideIdentification> peptide_identifications;
-    PeptideIdentification().metaRegistry().registerName("spectrum_id", "the id of the spectrum counting from 1");
-    for (map<UInt, vector<PeptideHit> >::const_iterator it = peptide_hits_.begin(); it != peptide_hits_.end(); ++it)
+    // convert mapping id -> peptide_hits into peptide hits list
+    peptide_ids.clear();
+    for (map<UInt, vector<PeptideHit> >::iterator it = peptide_hits_.begin(); it != peptide_hits_.end(); ++it)
     {
-      // reduce the hits with the same sequence to one PeptideHit
-      map<String, vector<PeptideHit> > seq_to_hits;
-      for (vector<PeptideHit>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
-      {
-        seq_to_hits[it1->getSequence().toString()].push_back(*it1);
-      }
-
       PeptideIdentification id;
-      // if (descriptions_.find(it->first) != descriptions_.end())
-      // {
-      // id.setMetaValue("Description", descriptions_[it->first]);
-      // }
-      for (map<String, vector<PeptideHit> >::const_iterator it1 = seq_to_hits.begin(); it1 != seq_to_hits.end(); ++it1)
-      {
-        if (it1->second.size() > 0)
-        {
-          // copy the accession of all to the first hit
-          PeptideHit hit = *it1->second.begin();
-          vector<String> accessions;
-          for (vector<PeptideHit>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
-          {
-            for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
-            {
-              String new_acc = protein_hits_[*it3].getAccession();
-              if (find(accessions.begin(), accessions.end(), new_acc) == accessions.end())
-              {
-                accessions.push_back(new_acc);
-              }
-              //accessions.push_back(*it3);
-            }
-          }
-
-          hit.setProteinAccessions(accessions);
-          id.insertHit(hit);
-        }
-      }
-
       id.setScoreType("XTandem");
       id.setHigherScoreBetter(true);
       id.setIdentifier(identifier);
-      id.assignRanks();
-      id.setMetaValue("spectrum_id", it->first);
+      id.setMetaValue("spectrum_reference", spectrum_ids_[it->first]);
 
+      id.getHits().swap(it->second);
+      id.assignRanks();
       peptide_ids.push_back(id);
     }
 
-    //sort(accessions.begin(), accessions.end());
-    //vector<String>::const_iterator end_unique = unique(accessions.begin(), accessions.end());
-
-    for (Map<String, ProteinHit>::const_iterator pit = protein_hits_.begin(); pit != protein_hits_.end(); ++pit)
-    {
-      protein_identification.insertHit(pit->second);
-    }
-
+    protein_identification.getHits().swap(protein_hits_);
 
     // E-values
     protein_identification.setHigherScoreBetter(false);
@@ -145,274 +109,187 @@ namespace OpenMS
     protein_identification.setDateTime(now);
     protein_identification.setIdentifier(identifier);
 
-
     // TODO search parameters are also available
+
+    // mods may be changed, copy them back:
+    mod_def_set = mod_def_set_;
   }
 
-  void XTandemXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+  void XTandemXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
     tag_ = String(sm_.convert(qname));
 
     if (tag_ == "domain")
     {
-      PeptideHit hit;
-      hit.metaRegistry().registerName("E-Value", "E-Value of hit");
-      hit.metaRegistry().registerName("nextscore", "next_score of hit");
-      // get nextscore
-      double nextscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("nextscore"))))).toDouble());
-      hit.setMetaValue("nextscore", nextscore);
-      // get hyperscore
-      double hyperscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("hyperscore"))))).toDouble());
-      hit.setScore(hyperscore);
+      String id_string = attributeAsString_(attributes, "id");
+      UInt id = id_string.prefix('.').toInt();
+      current_id_ = id;
 
-      // get sequence of peptide
-      String seq(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("seq")))));
-      hit.setSequence(AASequence::fromString(seq));
-
+      PeptideEvidence pe;
       // get amino acid before
-      String pre(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("pre")))));
+      String pre = attributeAsString_(attributes, "pre");
       if (!pre.empty())
       {
-        hit.setAABefore(pre[pre.size() - 1]);
+        pe.setAABefore(pre[pre.size()-1]);
       }
-
       // get amino acid after
-      String post(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("post")))));
+      String post = attributeAsString_(attributes, "post");
       if (!post.empty())
       {
-        hit.setAAAfter(post[0]);
+        pe.setAAAfter(post[0]);
       }
 
-      // get expectation value
-      double expect(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("expect"))))).toDouble());
-      hit.setMetaValue("E-Value", expect);
-      
-      // get precursor m/z
-      //double mh(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
-      //hit.setMetaValue("MZ", mh); // not needed, set by the XTandem Adapter itself
+      current_start_ = attributeAsInt_(attributes, "start");
+      pe.setStart(current_start_ - 1);
+      current_stop_ = attributeAsInt_(attributes, "end");
+      pe.setEnd(current_stop_ - 1);
+        
+      pe.setProteinAccession(current_protein_);
+ 
+      String seq = attributeAsString_(attributes, "seq");
+      // is this the same peptide as before, just in a different protein (scores will be the same)?
+      if ((peptide_hits_.find(id) == peptide_hits_.end()) || (seq != previous_seq_))
+      {
+        PeptideHit hit;
+        // can't parse sequences permissively because that would skip characters
+        // that X! Tandem includes when calculating e.g. modification positions,
+        // potentially leading to errors when assigning mods to residues:
+        hit.setSequence(AASequence::fromString(seq, false));
+        hit.setCharge(current_charge_);
+        
+        // get scores etc.:
+        hit.setMetaValue("nextscore", attributeAsDouble_(attributes, "nextscore"));
+        hit.setMetaValue("delta", attributeAsDouble_(attributes, "delta"));
+        hit.setMetaValue("mass", attributeAsDouble_(attributes, "mh")); // note the different names
+        hit.setMetaValue("E-Value", attributeAsDouble_(attributes, "expect")); // note the different names
+        double hyperscore = attributeAsDouble_(attributes, "hyperscore");
+        hit.setMetaValue("hyperscore", hyperscore);
+        hit.setScore(hyperscore);
 
-      // spectrum id
-      String id_string(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("id")))));
-      vector<String> split;
-      id_string.split('.', split);
-      UInt id(split[0].toInt());
-      // hit.setMetaValue("RT_index", id);
-      actual_id_ = id;
+        // try to get a, b, c, x, y, z score (optional)
+        String ions = "abcxyz";
+        String ion_score = " _score";
+        String ion_count = " _ions";
+        for (String::iterator it = ions.begin(); it != ions.end(); ++it)
+        {
+          ion_score[0] = *it;
+          double score;
+          if (optionalAttributeAsDouble_(score, attributes, ion_score.c_str()))
+          {
+            hit.setMetaValue(ion_score, score);
+          }
+          ion_count[0] = *it;
+          UInt count;
+          if (optionalAttributeAsUInt_(count, attributes, ion_count.c_str()))
+          {
+            hit.setMetaValue(ion_count, count);
+          }
+        }
 
-      String tmp;
-      optionalAttributeAsString_(tmp, attributes, "start");
-      actual_start_ = tmp.toInt();
-      tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "end");
-      actual_stop_ = tmp.toInt();
+        peptide_hits_[id].push_back(hit);
+        previous_seq_ = seq;
+      }
 
-      // add the actual protein accession
-      hit.addProteinAccession(actual_protein_id_);
-      hit.setCharge(actual_charge_);
-
-      peptide_hits_[id].push_back(hit);
+      peptide_hits_[id].back().addPeptideEvidence(pe);
       return;
     }
 
     if (tag_ == "aa")
     {
       // e.g. <aa type="S" at="2" modified="42.0106" />
-      String type, at, modified;
-      optionalAttributeAsString_(type, attributes, "type");
-      optionalAttributeAsString_(at, attributes, "at");
-      optionalAttributeAsString_(modified, attributes, "modified");
+      String aa = attributeAsString_(attributes, "type");
+      Int mod_pos = attributeAsInt_(attributes, "at");
+      double mass_shift = attributeAsDouble_(attributes, "modified");
 
-      AASequence aa_seq = peptide_hits_[actual_id_].back().getSequence();
-      UInt mod_pos = (UInt)at.toInt() - actual_start_;
+      AASequence aa_seq = peptide_hits_[current_id_].back().getSequence();
+      mod_pos -= current_start_; // X! Tandem uses position in the protein
 
-      // search mod
-      vector<String> possible_mods, possible_mass_mods;
+      const ResidueModification* res_mod = 0;
 
-      // try to find a mod in the given mods that fits
-
-      if (mod_pos == 0)       // can (!) be a N-terminal mod
+      // first, try to find matching mod in the defined ones:
+      multimap<double, ModificationDefinition> matches;
+      if (mod_pos <= 0) // N-terminal mod?
       {
-        ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::N_TERM);
+        mod_def_set_.findMatches(matches, mass_shift, aa,
+                                 ResidueModification::N_TERM);
       }
-      else if (mod_pos == aa_seq.size())
+      else if (mod_pos >= Int(aa_seq.size() - 1)) // C-terminal mod?
       {
-        ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::C_TERM);
+        mod_def_set_.findMatches(matches, mass_shift, aa,
+                                 ResidueModification::C_TERM);
       }
-
-      // if not found a terminal mod, try normal one
-      if (possible_mass_mods.empty())
+      if (matches.empty())
       {
-        ModificationsDB::getInstance()->getModificationsByDiffMonoMass(possible_mass_mods, type, modified.toDouble(), 0.01);
+        mod_def_set_.findMatches(matches, mass_shift, aa,
+                                 ResidueModification::ANYWHERE);
       }
-
-      // cerr << "Possible mods of type='" << type << "', weight='" << modified.toDouble() << "', mod_pos='" << mod_pos << "'" << "\n";
-      // for (vector<String>::const_iterator it = possible_mass_mods.begin(); it != possible_mass_mods.end(); ++it)
-      // {
-      // cerr << *it << " " << ModificationsDB::getInstance()->getModification(*it).getTermSpecificity() << "\n";
-      // }
-
-      set<String> mod_names = mod_def_set_.getModificationNames();
-
-      // throw out any of the modifications that are not contained in the def set (throws out also s.th. like "Carbamidomethyl (N-term)"
-      for (vector<String>::const_iterator it = possible_mass_mods.begin(); it != possible_mass_mods.end(); ++it)
+      if (matches.empty() && (mod_pos <= 0)) // try X! Tandem's default mods
       {
-        if (mod_names.find(*it) != mod_names.end())
+        default_nterm_mods_.findMatches(matches, mass_shift, aa,
+                                        ResidueModification::N_TERM);
+        if (!matches.empty())
         {
-          possible_mods.push_back(*it);
+          // add the match to the mod. set for output (search parameters):
+          ModificationDefinition mod_def(matches.begin()->second.getModificationName());
+          mod_def.setFixedModification(false);
+          mod_def_set_.addModification(mod_def);
+        }
+      }
+      // matches are sorted by mass error - first one is best match:
+      if (!matches.empty())
+      {
+        res_mod = &(matches.begin()->second.getModification());
+      }
+      else // no match? strange, let's try all possible modifications
+      {
+        ModificationsDB* mod_db = ModificationsDB::getInstance();
+        // try to find a mod that fits
+        if (mod_pos <= 0) // can (!) be an N-terminal mod
+        {
+          res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::N_TERM);
+        }
+        else if (mod_pos >= static_cast<int>(aa_seq.size() - 1))
+        {
+          res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::C_TERM);
+        }
+        if (res_mod == 0) // if no terminal mod, try normal one
+        {
+          res_mod = mod_db->getBestModificationByDiffMonoMass(mass_shift, 0.01, aa, ResidueModification::ANYWHERE);
         }
       }
 
-      // cerr << "Possible mods (#=" << possible_mods.size() << "): " << "\n";
-      // for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
-      // {
-      // cerr << *it << "\n";
-      // }
-
-      // maybe we missed the real modification, even if it's not terminal
-      if (possible_mods.empty() && mod_pos == 0)
+      if (res_mod == 0)
       {
-        vector<String> new_possible_mass_mods;
-        ModificationsDB::getInstance()->getModificationsByDiffMonoMass(new_possible_mass_mods, type, modified.toDouble(), 0.01);
-        // now try to find this in the definitions which are set
-        for (vector<String>::const_iterator it = new_possible_mass_mods.begin(); it != new_possible_mass_mods.end(); ++it)
-        {
-          if (mod_names.find(*it) != mod_names.end())
-          {
-            possible_mods.push_back(*it);
-          }
-        }
-      }
-
-
-      // use all possible mass mods, because the modification was not predefined
-      if (possible_mods.empty())
-      {
-        possible_mods = possible_mass_mods;
-      }
-
-      if (possible_mods.empty())
-      {
-        error(LOAD, String("No modification found which fits residue '") + type + "' with mass '" + modified + "'!");
+        error(LOAD, String("No modification found which fits residue '") + aa + "' with mass '" + String(mass_shift) + "'!");
       }
       else
       {
-        if (possible_mods.size() > 1)
+        // @TODO: avoid unnecessary conversion of mods from/to string below
+        if (res_mod->getTermSpecificity() == ResidueModification::N_TERM)
         {
-          // if available use a specific one, except if the modification is terminal
-          set<String> specific_ones;
-          for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
-          {
-            String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
-            ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
-            if (origin == type && !(term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
-            {
-              specific_ones.insert(*it);
-            }
-          }
-
-          if (specific_ones.size() == 1)
-          {
-            possible_mods.clear();
-            possible_mods.push_back(*specific_ones.begin());
-          }
-          else
-          {
-            if (specific_ones.empty())
-            {
-              // maybe there are terminal modifications but none of them has been selected
-              // search unspecific but terminal residues
-              vector<String> new_possible_mods;
-              for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
-              {
-                String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
-                ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
-                //cerr << "Testing: " << *it << ", origin='" << origin << "', term_spec='" << term_spec << "'" << "\n";
-                if ((origin == "N-term" || origin == "C-term") && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
-                {
-                  //cerr << "Adding1: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << "\n";
-                  new_possible_mods.push_back(*it);
-                }
-              }
-
-              if (new_possible_mods.empty())
-              {
-                // if we haven't found a generic terminal modification, we search for a specific terminal mods which fits
-                for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
-                {
-                  String origin  = ModificationsDB::getInstance()->getModification(*it).getOrigin();
-                  ResidueModification::Term_Specificity term_spec = ModificationsDB::getInstance()->getModification(*it).getTermSpecificity();
-                  if (origin == type && (term_spec == ResidueModification::N_TERM || term_spec == ResidueModification::C_TERM))
-                  {
-                    //cerr << "Adding2: '" << *it << "', origin='" << origin << "' term_spec='" << term_spec << "'" << "\n";
-                    new_possible_mods.push_back(*it);
-                  }
-                }
-              }
-              if (!new_possible_mods.empty())
-              {
-                possible_mods = new_possible_mods;
-              }
-            }
-            else
-            {
-              // also haven't found a non-specific terminal modification
-              //if (specific_ones.empty())
-              //{
-              // put the specific ones in front of the list
-              vector<String> new_possible_mods;
-              for (set<String>::const_iterator it = specific_ones.begin(); it != specific_ones.end(); ++it)
-              {
-                new_possible_mods.push_back(*it);
-              }
-              for (vector<String>::const_iterator it = possible_mods.begin(); it != possible_mods.end(); ++it)
-              {
-                if (specific_ones.find(*it) == specific_ones.end())
-                {
-                  new_possible_mods.push_back(*it);
-                }
-              }
-              possible_mods = new_possible_mods;
-              // }
-              // else
-              // {
-              // for (set<String>::const_iterator it = specific_ones.begin(); it != specific_ones.end(); ++it)
-              // {
-              // possible_mods.push_back(*it);
-              // }
-            }
-          }
-          if (possible_mods.size() > 1)
-          {
-            String error_string = String("More than one modification found which fits residue '") + type + "' with mass '" + modified + "': ";
-            String possbile_mods;
-            possbile_mods.concatenate(possible_mods.begin(), possible_mods.end(), ',');
-            error_string += possbile_mods + ". Using first hit: '" + *possible_mods.begin() + "'.";
-            error(LOAD, error_string);
-          }
+          aa_seq.setNTerminalModification(res_mod->getFullId());
         }
-
-        if (ModificationsDB::getInstance()->getModification(*possible_mods.begin()).getTermSpecificity() == ResidueModification::N_TERM && mod_pos == 0)
+        else if (res_mod->getTermSpecificity() == ResidueModification::C_TERM)
         {
-          aa_seq.setNTerminalModification(*possible_mods.begin());
+          aa_seq.setCTerminalModification(res_mod->getFullId());
         }
         else
         {
-          aa_seq.setModification(mod_pos, *possible_mods.begin());
+          aa_seq.setModification(mod_pos, res_mod->getFullId());
         }
+        peptide_hits_[current_id_].back().setSequence(aa_seq);
       }
-
-      peptide_hits_[actual_id_].back().setSequence(AASequence(aa_seq));
-
       return;
     }
 
     if (tag_ == "group")
     {
-      Int index = attributes.getIndex(sm_.convert("z"));
+      Int index = attributes.getIndex(sm_.convert("z").c_str());
       if (index >= 0)
       {
-        actual_charge_ = String(sm_.convert(attributes.getValue(index))).toInt();
+        current_charge_ = String(sm_.convert(attributes.getValue(index))).toInt();
       }
+      previous_seq_ = "";
       return;
     }
 
@@ -421,46 +298,58 @@ namespace OpenMS
       String label;
       optionalAttributeAsString_(label, attributes, "label");
 
-      if (label == "description")
+      if (label == "description") // in '<"protein" ...>'
       {
-        is_description_ = true;
+        is_protein_note_ = true;
+      }
+      else if (label == "Description") // in '<group type="support" label="fragment ion mass spectrum">'
+      {
+        is_spectrum_note_ = true;
       }
     }
 
     if (tag_ == "protein")
     {
-      //protein_open_ = true;
-      ProteinHit hit;
-
-      String uid;
-      optionalAttributeAsString_(uid, attributes, "uid");
-      actual_protein_id_ = uid;
-
-      if (!protein_hits_.has(uid))
+      UInt uid = attributeAsInt_(attributes, "uid");
+      if (protein_uids_.find(uid) == protein_uids_.end()) // new protein
       {
-        double score(0);
-        optionalAttributeAsDouble_(score, attributes, "expect");
-        hit.setScore(score);
+        ProteinHit hit;
+        // accession may be overwritten based on '<note label="description">', but set it for now:
+        current_protein_ = attributeAsString_(attributes, "label");
+        hit.setAccession(current_protein_);
 
-        protein_hits_[uid] = hit;
+        double score(0);
+        if (optionalAttributeAsDouble_(score, attributes, "expect")) hit.setScore(score);
+
+        protein_hits_.push_back(hit);
+        protein_uids_.insert(uid);
       }
       return;
     }
 
   }
 
-  void XTandemXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void XTandemXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     tag_ = String(sm_.convert(qname));
     return;
   }
 
-  void XTandemXMLFile::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+  void XTandemXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
-    if (tag_ == "note" && is_description_)
+    if (tag_ == "note")
     {
-      is_description_ = false;
-      protein_hits_[actual_protein_id_].setAccession(((String) sm_.convert(chars)).trim());
+      if (is_protein_note_)
+      {
+        current_protein_ = String(sm_.convert(chars)).trim();
+        protein_hits_.back().setAccession(current_protein_);
+      }
+      else if (is_spectrum_note_)
+      {
+        spectrum_ids_[current_id_] = String(sm_.convert(chars)).trim();
+      }
+      is_protein_note_ = false;
+      is_spectrum_note_ = false;
     }
   }
 

@@ -10,8 +10,8 @@ from ConsensusMap cimport *
 from MSExperiment cimport *
 from FeatureMap cimport *
 
-# MSSimExperiment = MSExperiment
-# FeatureMapSim = FeatureMap[Feature]
+# SimTypes::MSSimExperiment = MSExperiment
+# SimTypes::FeatureMapSim = FeatureMap
 cdef extern from "<OpenMS/SIMULATION/MSSim.h>" namespace "OpenMS":
 
     cdef cppclass MSSim:
@@ -26,24 +26,29 @@ cdef extern from "<OpenMS/SIMULATION/MSSim.h>" namespace "OpenMS":
         void simulate(shared_ptr[SimRandomNumberGenerator] rnd_gen, SampleChannels peptides) nogil except +
 
         # Access the simulated experiment
-        MSExperiment[Peak1D, ChromatogramPeak] getExperiment() nogil except +
+        MSExperiment getExperiment() nogil except +
 
         # Access the simulated features
-        FeatureMap[Feature] getSimulatedFeatures() nogil except +
+        FeatureMap getSimulatedFeatures() nogil except +
 
         # Access the charge consensus map of simulated features
         ConsensusMap getChargeConsensus() nogil except +
 
         # Access the contaminants feature map of simulated features
-        FeatureMap[Feature] getContaminants() nogil except +
+        FeatureMap getContaminants() nogil except +
 
         # Access the labeling consensus map of simulated features
         ConsensusMap getLabelingConsensus() nogil except +
 
         # Access the labeling consensus map of simulated features
-        MSExperiment[Peak1D, ChromatogramPeak] getPeakMap() nogil except +
+        MSExperiment getPeakMap() nogil except +
 
         # Returns the default parameters for simulation including the labeling technique with name @p labeling_name
         Param getParameters() nogil except +
 
+        void getIdentifications(libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides) nogil except +
+
         void getMS2Identifications(libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides) nogil except +
+
+        void getFeatureIdentifications(libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides) nogil except +
+

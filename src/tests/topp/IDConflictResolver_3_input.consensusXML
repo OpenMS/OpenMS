@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////Users/pfeuffer/IDE_Workspaces/KNIME_SDK_3.1/de.openms.macosx.x86_64/payload/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_6888843767287282833" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2017-04-21T15:32:16">
+		<software name="FeatureLinkerUnlabeledQT" version="2.1.0" />
+		<processingAction name="Feature grouping" />
+		<UserParam type="stringList" name="parameter: in" value="[/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/29_0_IDMapper_0/BSA1.featureXML,/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/56_1_IDMapper_0/BSA1.featureXML,/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/30_0_IDMapper_0/BSA1.featureXML,/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/58_1_IDMapper_0/BSA1.featureXML,/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/28_0_IDMapper_0/BSA1.featureXML,/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/57_1_IDMapper_0/BSA1.featureXML]"/>
+		<UserParam type="string" name="parameter: out" value="/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-FeatureLinkerUnlabeledQT_0_66-50968/000/000/FeatureLinkerUnlabeledQT_0/BSA1.consensusXML"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: keep_subelements" value="false"/>
+		<UserParam type="string" name="parameter: algorithm:use_identifications" value="false"/>
+		<UserParam type="int" name="parameter: algorithm:nr_partitions" value="100"/>
+		<UserParam type="string" name="parameter: algorithm:ignore_charge" value="false"/>
+		<UserParam type="float" name="parameter: algorithm:distance_RT:max_difference" value="100"/>
+		<UserParam type="float" name="parameter: algorithm:distance_RT:exponent" value="1"/>
+		<UserParam type="float" name="parameter: algorithm:distance_RT:weight" value="1"/>
+		<UserParam type="float" name="parameter: algorithm:distance_MZ:max_difference" value="0.3"/>
+		<UserParam type="string" name="parameter: algorithm:distance_MZ:unit" value="Da"/>
+		<UserParam type="float" name="parameter: algorithm:distance_MZ:exponent" value="2"/>
+		<UserParam type="float" name="parameter: algorithm:distance_MZ:weight" value="1"/>
+		<UserParam type="float" name="parameter: algorithm:distance_intensity:exponent" value="1"/>
+		<UserParam type="float" name="parameter: algorithm:distance_intensity:weight" value="0"/>
+		<UserParam type="string" name="parameter: algorithm:distance_intensity:log_transform" value="disabled"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2017-04-21T12:59:33" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2017-04-21T12:59:35" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="VIMSS14219" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="VIMSS15048" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="VIMSS15634" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="VIMSS16202" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="VIMSS16577" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="VIMSS17651" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="VIMSS18374" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_2" date="2017-04-21T12:59:36" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_7" accession="VIMSS15616" score="0.911347508430481" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_3" date="2017-04-21T14:12:05" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_4" date="2017-04-21T14:12:06" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_8" accession="VIMSS15616" score="0.911347508430481" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_5" date="2017-04-21T14:12:07" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_9" accession="VIMSS14219" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="VIMSS15048" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="VIMSS15634" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="VIMSS16202" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_13" accession="VIMSS16577" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_14" accession="VIMSS17651" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_15" accession="VIMSS18374" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_6" date="2017-04-21T12:59:33" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_7" date="2017-04-21T12:59:35" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_16" accession="VIMSS14219" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_17" accession="VIMSS15048" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_18" accession="VIMSS15634" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_19" accession="VIMSS16202" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_20" accession="VIMSS16577" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_21" accession="VIMSS17651" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_22" accession="VIMSS18374" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_8" date="2017-04-21T12:59:36" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_23" accession="VIMSS15616" score="0.911347508430481" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_9" date="2017-04-21T14:12:05" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_10" date="2017-04-21T14:12:06" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_24" accession="VIMSS15616" score="0.911347508430481" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_11" date="2017-04-21T14:12:07" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_25" accession="VIMSS14219" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_26" accession="VIMSS15048" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_27" accession="VIMSS15634" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_28" accession="VIMSS16202" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_29" accession="VIMSS16577" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_30" accession="VIMSS17651" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_31" accession="VIMSS18374" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_12" date="2017-04-21T12:59:33" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_13" date="2017-04-21T12:59:35" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_32" accession="VIMSS14219" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_33" accession="VIMSS15048" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_34" accession="VIMSS15634" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_35" accession="VIMSS16202" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_36" accession="VIMSS16577" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_37" accession="VIMSS17651" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_38" accession="VIMSS18374" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_14" date="2017-04-21T12:59:36" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_39" accession="VIMSS15616" score="0.911347508430481" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_15" date="2017-04-21T14:12:05" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_16" date="2017-04-21T14:12:06" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_40" accession="VIMSS15616" score="0.911347508430481" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_17" date="2017-04-21T14:12:07" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/git/OpenMS/share/OpenMS/examples/TOPPAS/data/Identification/target_decoy_Ecoli_K12_TaxID_83333.proteomes.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln->pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu->pyro-Glu (N-term E)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="q-value" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_41" accession="VIMSS14219" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_42" accession="VIMSS15048" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_43" accession="VIMSS15634" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_44" accession="VIMSS16202" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_45" accession="VIMSS16577" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_46" accession="VIMSS17651" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_47" accession="VIMSS18374" score="0.963503658771515" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_13" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="842.917114257812" RT="2269.45581054688" spectrum_reference="spectrum=3280" >
+		<PeptideHit score="0.142857142857143" sequence="AESGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_33">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="36.2"/>
+			<UserParam type="float" name="nextscore" value="33.2"/>
+			<UserParam type="float" name="delta" value="2.016"/>
+			<UserParam type="float" name="mass" value="3366.63"/>
+			<UserParam type="float" name="E-Value" value="2.8e-06"/>
+			<UserParam type="float" name="hyperscore" value="36.2"/>
+			<UserParam type="float" name="b_score" value="7.4"/>
+			<UserParam type="int" name="b_ions" value="9"/>
+			<UserParam type="float" name="y_score" value="7.7"/>
+			<UserParam type="int" name="y_ions" value="10"/>
+			<UserParam type="string" name="protein_references" value="unique"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<mapList count="6">
+		<map id="0" name="/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/29_0_IDMapper_0/BSA1.featureXML" unique_id="2091680114383440625" label="" size="749">
+		</map>
+		<map id="1" name="/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/56_1_IDMapper_0/BSA2.featureXML" unique_id="6298469350462364609" label="" size="749">
+		</map>
+		<map id="2" name="/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/30_0_IDMapper_0/BSA3.featureXML" unique_id="13779785992205235931" label="" size="641">
+		</map>
+		<map id="3" name="/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/58_1_IDMapper_0/BSA4.featureXML" unique_id="7812285378008478049" label="" size="641">
+		</map>
+		<map id="4" name="/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/28_0_IDMapper_0/BSA5.featureXML" unique_id="16598120954301684433" label="" size="596">
+		</map>
+		<map id="5" name="/private/var/folders/3w/sgbzzwr94nz6n61hdw97b7740000gn/T/knime_Merge_Replicate50965/knime_fs-ZipLoopStart_0_4-50967/000/000/57_1_IDMapper_0/BSA6.featureXML" unique_id="355568994276909239" label="" size="596">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_12173381914808106004" quality="0.868754" charge="1">
+			<centroid rt="2343.10679031553" mz="696.265981706178" it="1.10181e+06"/>
+			<groupedElementList>
+				<element map="0" id="44940537896328524" rt="2380.66702385972" mz="696.266001043542" it="1.42939e+06" charge="1"/>
+				<element map="1" id="12539050112216439955" rt="2380.66702385972" mz="696.266001043542" it="1.42939e+06" charge="1"/>
+				<element map="2" id="9477281720700273298" rt="2333.60906035971" mz="696.266078139476" it="1.14516e+06" charge="1"/>
+				<element map="3" id="14359705614259976888" rt="2333.60906035971" mz="696.266078139476" it="1.14516e+06" charge="1"/>
+				<element map="4" id="8706416277738488178" rt="2315.04428672715" mz="696.265865935515" it="730870" charge="1"/>
+				<element map="5" id="4155744174359052958" rt="2315.04428672715" mz="696.265865935515" it="730870" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_17962861576887891871" quality="0.880406" charge="2">
+			<centroid rt="1571.27967669544" mz="763.749456309823" it="518860"/>
+			<groupedElementList>
+				<element map="0" id="161479924682668303" rt="1581.71693766615" mz="763.749497545424" it="726557" charge="2"/>
+				<element map="1" id="1743557117411149687" rt="1581.71693766615" mz="763.749497545424" it="726557" charge="2"/>
+				<element map="2" id="12005129277927956100" rt="1536.16267267378" mz="763.74953748574" it="619420" charge="2"/>
+				<element map="3" id="6566016194440987581" rt="1536.16267267378" mz="763.74953748574" it="619420" charge="2"/>
+				<element map="4" id="5197685355969128079" rt="1595.95941974638" mz="763.749333898306" it="210602" charge="2"/>
+				<element map="5" id="17450310248252634930" rt="1595.95941974638" mz="763.749333898306" it="210602" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75" RT="1586.72680664062" spectrum_reference="spectrum=2385" >
+				<UserParam type="int" name="spectrum_index" value="599"/>
+				<UserParam type="int" name="map_index" value="4"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75048828125" RT="1525.90893554688" spectrum_reference="spectrum=2321" >
+				<UserParam type="int" name="spectrum_index" value="540"/>
+				<UserParam type="int" name="map_index" value="2"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75048828125" RT="1525.90893554688" spectrum_reference="spectrum=2321" >
+				<UserParam type="int" name="spectrum_index" value="540"/>
+				<UserParam type="int" name="map_index" value="3"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.749572753906" RT="1571.3095703125" spectrum_reference="spectrum=2463" >
+				<UserParam type="int" name="spectrum_index" value="585"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75" RT="1586.72680664062" spectrum_reference="spectrum=2385" >
+				<UserParam type="int" name="spectrum_index" value="599"/>
+				<UserParam type="int" name="map_index" value="5"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.749572753906" RT="1571.3095703125" spectrum_reference="spectrum=2463" >
+				<UserParam type="int" name="spectrum_index" value="585"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_13678817347185682579" quality="0.854528" charge="2">
+			<centroid rt="2397.48754239827" mz="531.221420810368" it="85397.1"/>
+			<groupedElementList>
+				<element map="0" id="234971990135723357" rt="2441.33707129951" mz="531.221314002266" it="22735.7" charge="2"/>
+				<element map="1" id="14673535038308596984" rt="2441.33707129951" mz="531.221314002266" it="22735.7" charge="2"/>
+				<element map="2" id="5178155017832702620" rt="2382.52457191718" mz="531.221480206081" it="140813" charge="2"/>
+				<element map="3" id="3606584028817432522" rt="2382.52457191718" mz="531.221480206081" it="140813" charge="2"/>
+				<element map="4" id="8318099559567521900" rt="2368.60098397813" mz="531.221468222757" it="92642.5" charge="2"/>
+				<element map="5" id="16680505308898423827" rt="2368.60098397813" mz="531.221468222757" it="92642.5" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="531.220703125" RT="2365.1015625" spectrum_reference="spectrum=3126" >
+				<UserParam type="int" name="spectrum_index" value="1340"/>
+				<UserParam type="int" name="map_index" value="4"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="531.220703125" RT="2365.1015625" spectrum_reference="spectrum=3126" >
+				<UserParam type="int" name="spectrum_index" value="1340"/>
+				<UserParam type="int" name="map_index" value="5"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="531.220825195312" RT="2379.37158203125" spectrum_reference="spectrum=3343" >
+				<UserParam type="int" name="spectrum_index" value="1562"/>
+				<UserParam type="int" name="map_index" value="3"/>
+                <PeptideHit score="0.142857142857143" sequence="AESGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_33">
+                    <UserParam type="string" name="target_decoy" value="target"/>
+                    <UserParam type="float" name="XTandem_score" value="36.2"/>
+                    <UserParam type="float" name="nextscore" value="33.2"/>
+                    <UserParam type="float" name="delta" value="2.016"/>
+                    <UserParam type="float" name="mass" value="3366.63"/>
+                    <UserParam type="float" name="E-Value" value="2.8e-06"/>
+                    <UserParam type="float" name="hyperscore" value="36.2"/>
+                    <UserParam type="float" name="b_score" value="7.4"/>
+                    <UserParam type="int" name="b_ions" value="9"/>
+                    <UserParam type="float" name="y_score" value="7.7"/>
+                    <UserParam type="int" name="y_ions" value="10"/>
+                    <UserParam type="string" name="protein_references" value="unique"/>
+                </PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="531.220825195312" RT="2379.37158203125" spectrum_reference="spectrum=3343" >
+				<UserParam type="int" name="spectrum_index" value="1562"/>
+				<UserParam type="int" name="map_index" value="2"/>
+			</PeptideIdentification>
+		</consensusElement>
+		<consensusElement id="e_60107607427378258" quality="0.933285" charge="1">
+			<centroid rt="1623.98255993453" mz="371.315684578303" it="8.14429e+06"/>
+			<groupedElementList>
+				<element map="0" id="352226604654227566" rt="1611.72841918256" mz="371.315677931391" it="8.5493e+06" charge="1"/>
+				<element map="1" id="2180601948977637832" rt="1611.72841918256" mz="371.315677931391" it="8.5493e+06" charge="1"/>
+				<element map="2" id="16424885679627086074" rt="1615.13332808122" mz="371.315714611543" it="8.07743e+06" charge="1"/>
+				<element map="3" id="6970441537304234442" rt="1615.13332808122" mz="371.315714611543" it="8.07743e+06" charge="1"/>
+				<element map="4" id="1451417439224502937" rt="1645.0859325398" mz="371.315661191974" it="7.80614e+06" charge="1"/>
+				<element map="5" id="12347967316465216374" rt="1645.0859325398" mz="371.315661191974" it="7.80614e+06" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_7556036852336985019" quality="0.860746" charge="2">
+			<centroid rt="1952.89643190768" mz="573.206594089431" it="4.49051e+06"/>
+			<groupedElementList>
+				<element map="0" id="437269422415387106" rt="1995.03123135085" mz="573.206691365374" it="7.42954e+06" charge="2"/>
+				<element map="1" id="8615972878363788185" rt="1995.03123135085" mz="573.206691365374" it="7.42954e+06" charge="2"/>
+				<element map="2" id="12498977513835997759" rt="1925.40433734679" mz="573.206710565334" it="4.22044e+06" charge="2"/>
+				<element map="3" id="1428710784849816890" rt="1925.40433734679" mz="573.206710565334" it="4.22044e+06" charge="2"/>
+				<element map="4" id="8651444236714212547" rt="1938.25372702541" mz="573.206380337584" it="1.82156e+06" charge="2"/>
+				<element map="5" id="11852400886501262671" rt="1938.25372702541" mz="573.206380337584" it="1.82156e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.205688476562" RT="1985.32336425781" spectrum_reference="spectrum=2901" >
+				<UserParam type="int" name="spectrum_index" value="1023"/>
+				<UserParam type="int" name="map_index" value="0"/>
+                <PeptideHit score="0.132857142857143" sequence="AESGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_33">
+                    <UserParam type="string" name="target_decoy" value="target"/>
+                    <UserParam type="float" name="XTandem_score" value="36.2"/>
+                    <UserParam type="float" name="nextscore" value="33.2"/>
+                    <UserParam type="float" name="delta" value="2.016"/>
+                    <UserParam type="float" name="mass" value="3366.63"/>
+                    <UserParam type="float" name="E-Value" value="2.8e-06"/>
+                    <UserParam type="float" name="hyperscore" value="36.2"/>
+                    <UserParam type="float" name="b_score" value="7.4"/>
+                    <UserParam type="int" name="b_ions" value="9"/>
+                    <UserParam type="float" name="y_score" value="7.7"/>
+                    <UserParam type="int" name="y_ions" value="10"/>
+                    <UserParam type="string" name="protein_references" value="unique"/>
+                </PeptideHit>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.206665039062" RT="2017.35913085938" spectrum_reference="spectrum=2953" >
+				<UserParam type="int" name="spectrum_index" value="1075"/>
+				<UserParam type="int" name="map_index" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.205932617188" RT="1932.23840332031" spectrum_reference="spectrum=2680" >
+				<UserParam type="int" name="spectrum_index" value="894"/>
+				<UserParam type="int" name="map_index" value="5"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.20751953125" RT="1919.53979492188" spectrum_reference="spectrum=2753" >
+				<UserParam type="int" name="spectrum_index" value="972"/>
+				<UserParam type="int" name="map_index" value="2"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.20751953125" RT="1919.53979492188" spectrum_reference="spectrum=2753" >
+				<UserParam type="int" name="spectrum_index" value="972"/>
+				<UserParam type="int" name="map_index" value="3"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.205688476562" RT="1985.32336425781" spectrum_reference="spectrum=2901" >
+				<UserParam type="int" name="spectrum_index" value="1023"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.206665039062" RT="2017.35913085938" spectrum_reference="spectrum=2953" >
+				<UserParam type="int" name="spectrum_index" value="1075"/>
+				<UserParam type="int" name="map_index" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="573.205932617188" RT="1932.23840332031" spectrum_reference="spectrum=2680" >
+				<UserParam type="int" name="spectrum_index" value="894"/>
+				<UserParam type="int" name="map_index" value="4"/>
+                <PeptideHit score="0.142857142857143" sequence="AFSGALSTGEAIGTGMSILVMVVQSWEDESRR" charge="4" aa_before="R" aa_after="L" start="1359" end="1390" protein_refs="PH_33">
+                    <UserParam type="string" name="target_decoy" value="target"/>
+                    <UserParam type="float" name="XTandem_score" value="36.2"/>
+                    <UserParam type="float" name="nextscore" value="33.2"/>
+                    <UserParam type="float" name="delta" value="2.016"/>
+                    <UserParam type="float" name="mass" value="3366.63"/>
+                    <UserParam type="float" name="E-Value" value="2.8e-06"/>
+                    <UserParam type="float" name="hyperscore" value="36.2"/>
+                    <UserParam type="float" name="b_score" value="7.4"/>
+                    <UserParam type="int" name="b_ions" value="9"/>
+                    <UserParam type="float" name="y_score" value="7.7"/>
+                    <UserParam type="int" name="y_ions" value="10"/>
+                    <UserParam type="string" name="protein_references" value="unique"/>
+                </PeptideHit>
+			</PeptideIdentification>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

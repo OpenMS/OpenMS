@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,19 +47,24 @@ using namespace OpenMS;
 
   @brief Combines featureXML and mProphet tsv to FDR filtered featureXML.
 
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_OpenSwathRewriteToFeatureXML.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_OpenSwathRewriteToFeatureXML.html
+
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPOpenSwathRewriteToFeatureXML
-  : public TOPPBase, 
-    public ProgressLogger
+class TOPPOpenSwathRewriteToFeatureXML : 
+  public TOPPBase, 
+  public ProgressLogger
 {
  public:
 
   TOPPOpenSwathRewriteToFeatureXML()
-    : TOPPBase("OpenSwathRewriteToFeatureXML","Combines featureXML and mProphet tsv to FDR filtered featureXML.")
+    : TOPPBase("OpenSwathRewriteToFeatureXML","Combines featureXML and mProphet tsv to FDR filtered featureXML.", false)
   {
   }
 
@@ -79,9 +84,9 @@ class TOPPOpenSwathRewriteToFeatureXML
     registerDoubleOption_("FDR_cutoff", "<double>", -1, "FDR cutoff (e.g. to remove all features with a an m_score above 0.05 use 0.05 here)", false);
   }
 
-  void applyFDRcutoff(FeatureMap<Feature> & feature_map, double cutoff, String fdr_name)
+  void applyFDRcutoff(FeatureMap & feature_map, double cutoff, String fdr_name)
   {
-    FeatureMap<Feature> out_feature_map = feature_map;
+    FeatureMap out_feature_map = feature_map;
     out_feature_map.clear(false);
     for (Size i = 0; i < feature_map.size(); i++)
     {
@@ -93,14 +98,14 @@ class TOPPOpenSwathRewriteToFeatureXML
     feature_map = out_feature_map;
   }
 
-  void processInput(const char * filename, FeatureMap<Feature> & feature_map)
+  void processInput(const char * filename, FeatureMap & feature_map)
   {
-    FeatureMap<Feature> out_feature_map = feature_map;
+    FeatureMap out_feature_map = feature_map;
     std::map<String, int> added_already;
     out_feature_map.clear(false);
 
     std::map<String, Feature*> feature_map_ref;
-    //for (FeatureMap<Feature>::iterator feature = feature_map.begin(); feature != feature_map.end(); feature++)
+    //for (FeatureMap::iterator feature = feature_map.begin(); feature != feature_map.end(); feature++)
     for (Size i = 0; i < feature_map.size(); i++)
     {
       feature_map_ref[feature_map[i].getUniqueId()] = &feature_map[i];
@@ -129,7 +134,7 @@ class TOPPOpenSwathRewriteToFeatureXML
         header_dict_inv.find("m_score") == header_dict_inv.end() || 
         header_dict_inv.find("d_score") == header_dict_inv.end() )
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: The tsv file is expected to have at least the following headers: id, m_score, d_score. " );
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: The tsv file is expected to have at least the following headers: id, m_score, d_score. " );
     }
 
     // Read file
@@ -155,7 +160,7 @@ class TOPPOpenSwathRewriteToFeatureXML
       }
       catch (char* /*str*/)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Could not convert String" + ((String)current_row[header_dict_inv["m_score"]]) + " on line " + String(line_nr));
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Could not convert String" + ((String)current_row[header_dict_inv["m_score"]]) + " on line " + String(line_nr));
       }
       try
       {
@@ -163,7 +168,7 @@ class TOPPOpenSwathRewriteToFeatureXML
       }
       catch (char* /*str*/)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Could not convert String" + ((String)current_row[header_dict_inv["d_score"]]) + " on line " + String(line_nr));
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Could not convert String" + ((String)current_row[header_dict_inv["d_score"]]) + " on line " + String(line_nr));
       }
 
       if (feature_map_ref.find(id) != feature_map_ref.end() )
@@ -174,7 +179,7 @@ class TOPPOpenSwathRewriteToFeatureXML
         // we are not allowed to have duplicate unique ids
         if (added_already.find(id) != added_already.end())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: Duplicate id found in CSV file: " + id );
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Duplicate id found in CSV file: " + id );
         }
         out_feature_map.push_back(*feature);
       }
@@ -190,7 +195,7 @@ class TOPPOpenSwathRewriteToFeatureXML
   String out = getStringOption_("out");
   double fdr_cutoff = getDoubleOption_("FDR_cutoff");
 
-  FeatureMap<Feature> feature_map;
+  FeatureMap feature_map;
   FeatureXMLFile().load(feature_file, feature_map);
 
   if (csv.size() > 0)

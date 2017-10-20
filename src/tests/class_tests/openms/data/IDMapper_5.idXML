@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		<FixedModification name="C+57.0215" />
+		<FixedModification name="K+34.0631" />
+		<FixedModification name="+34.0632" />
+		<FixedModification name="+0.0003" />
+		<VariableModification name="C-17.0265" />
+		<VariableModification name="E-18.0106" />
+		<VariableModification name="Q-17.0265" />
+		<VariableModification name="+42.0106" />
+	</SearchParameters>
+	<SearchParameters id="SP_1" db="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+		<FixedModification name="C+57.0215" />
+		<FixedModification name="K+28.0313" />
+		<FixedModification name="+28.0314" />
+		<FixedModification name="+0.0003" />
+		<VariableModification name="C-17.0265" />
+		<VariableModification name="E-18.0106" />
+		<VariableModification name="Q-17.0265" />
+		<VariableModification name="+42.0106" />
+	</SearchParameters>
+	<IdentificationRun date="2015-01-06T13:43:06" search_engine="X! Tandem" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="sp|Q12905|ILF2_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|Q9NZI8|IF2B1_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="784.9271250319" RT="1533.15" >
+			<PeptideHit score="0.9854" sequence="DQTPDENDQVIVK(Dimethyl:2H(4)13C(2))" charge="2" aa_before="R" aa_after="L" protein_refs="PH_1" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="747.4003250319" RT="1550.46" >
+			<PeptideHit score="1" sequence="WFEENASQSTVK(Dimethyl:2H(4)13C(2))" charge="2" aa_before="R" aa_after="V" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+	<IdentificationRun date="2015-01-06T13:43:07" search_engine="X! Tandem" search_engine_version="" search_parameters_ref="SP_1" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_2" accession="sp|P21333|FLNA_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="sp|Q12905|ILF2_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="sp|Q9NYF8|BCLF1_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="sp|Q9UHB9|SRP68_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="sp|Q9NZI8|IF2B1_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="sp|O43765|SGTA_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="sp|P29692|EF1D_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="sp|Q9Y237|PIN4_HUMAN" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="779.3593750319" RT="1502.92" >
+			<PeptideHit score="0.9941" sequence="SSFYPDGGDQETAK(Dimethyl)" charge="2" aa_before="R" aa_after="T" protein_refs="PH_4" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="738.365691698567" RT="1522.23" >
+			<PeptideHit score="1" sequence="SLAGSSGPGASSGTSGDHGELVVR" charge="3" aa_before="K" aa_after="L" protein_refs="PH_8" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="778.8943750319" RT="1529.25" >
+			<PeptideHit score="0.9422" sequence="DQTPDENDQVIVK(Dimethyl)" charge="2" aa_before="R" aa_after="L" protein_refs="PH_6" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="778.8943250319" RT="1532.24" >
+			<PeptideHit score="0.9988" sequence="DQTPDENDQVIVK(Dimethyl)" charge="2" aa_before="R" aa_after="L" protein_refs="PH_6" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="728.8516750319" RT="1542.08" >
+			<PeptideHit score="1" sequence="FNEVAAQYSEDK(Dimethyl)" charge="2" aa_before="R" aa_after="A" protein_refs="PH_9" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="741.3662250319" RT="1547.15" >
+			<PeptideHit score="1" sequence="WFEENASQSTVK(Dimethyl)" charge="2" aa_before="R" aa_after="V" protein_refs="PH_3" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="721.3519250319" RT="1551.13" >
+			<PeptideHit score="0.9873" sequence="YANEVNSDAGAFK(Dimethyl)" charge="2" aa_before="K" aa_after="N" protein_refs="PH_5" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="729.3791250319" RT="1566.06" >
+			<PeptideHit score="1" sequence="AFGPGLQGGSAGSPAR" charge="2" aa_before="K" aa_after="F" protein_refs="PH_2" >
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="740.8456750319" RT="1570.45" >
+			<PeptideHit score="0.8376" sequence="LGNYAGAVQDC(Carbamidomethyl)ER" charge="2" aa_before="K" aa_after="A" protein_refs="PH_7" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

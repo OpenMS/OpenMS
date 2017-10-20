@@ -3,6 +3,7 @@ from ProgressLogger cimport *
 from XMLHandler cimport *
 from XMLFile cimport *
 from String cimport *
+from StringList cimport *
 from Attachment cimport *
 
 cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
@@ -34,6 +35,12 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
         void existsSetQualityParameter(String filename, String qpname, libcpp_vector[ String ] & ids) nogil except +
         void store(String & filename) nogil except +
         void load(String & filename) nogil except +
+
+        void registerRun(String id_, String name) nogil except +
+        void registerSet(String id_, String name, libcpp_set[ String ] & names) nogil except +
+        String exportQP(String filename, String qpname) nogil except +
+        String exportQPs(String filename, StringList qpnames) nogil except +
+        void getRunIDs(libcpp_vector[ String ] & ids) nogil except +
 
 
 cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS::QcMLFile":

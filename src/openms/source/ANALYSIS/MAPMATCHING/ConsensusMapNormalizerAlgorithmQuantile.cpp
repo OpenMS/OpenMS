@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Junker $
+// $Maintainer: Johannes Veit $
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h>
-#include <cmath>
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
+#include <cmath>
 #include <algorithm>
 
 using namespace std;
@@ -74,7 +76,7 @@ namespace OpenMS
       vector<double> sorted = feature_ints[i];
       std::sort(sorted.begin(), sorted.end());
       vector<double> resampled(largest_number_of_features);
-      resample(sorted, resampled, largest_number_of_features);
+      resample(sorted, resampled, static_cast<UInt>(largest_number_of_features));
       resampled_sorted_data.push_back(resampled);
     }
 
@@ -93,17 +95,17 @@ namespace OpenMS
     for (Size i = 0; i < number_of_maps; ++i)
     {
       vector<double> ints;
-      resample(reference_distribution, ints, feature_ints[i].size());
+      resample(reference_distribution, ints, static_cast<UInt>(feature_ints[i].size()));
       normalized_sorted_ints[i] = ints;
     }
 
     //set the intensities of feature_ints to the normalized intensities
     for (Size i = 0; i < number_of_maps; ++i)
     {
-      //we do not want to change the order in feature_ints[i] but normalized_sorted_ints
-      //comes sorted, so we transfer the values in feature_ints[i] into pairs that store
-      //the value and the index in feature_ints[i]. than we sort the vector of pair and as
-      //a result store the indexes of feature_ints[i] in a sorted order in sort_indices.
+      // We do not want to change the order in feature_ints[i] but normalized_sorted_ints
+      // comes sorted, so we transfer the values in feature_ints[i] into pairs that store
+      // the value and the index in feature_ints[i]. Then we sort the vector of pair and as
+      // a result store the indexes of feature_ints[i] in a sorted order in sort_indices.
       std::vector<std::pair<double, UInt> > sort_pairs;
       sort_pairs.reserve(feature_ints[i].size());
       for (Size j = 0; j < feature_ints[i].size(); ++j)
@@ -111,7 +113,8 @@ namespace OpenMS
         sort_pairs.push_back(std::make_pair(feature_ints[i][j], j));
       }
       std::sort(sort_pairs.begin(), sort_pairs.end());
-      vector<Size> sort_indices(sort_pairs.size());
+      vector<Size> sort_indices;
+      sort_indices.reserve(sort_pairs.size());
       for (Size j = 0; j < sort_pairs.size(); ++j)
       {
         sort_indices.push_back(sort_pairs.at(j).second);
@@ -167,7 +170,9 @@ namespace OpenMS
     out_intensities.resize(number_of_maps);
     for (UInt i = 0; i < number_of_maps; i++)
     {
-      out_intensities[i].reserve(map.getFileDescriptions()[i].size);
+      ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
+      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      out_intensities[i].reserve(it->second.size);
     }
     //fill out_intensities
     ConsensusMap::ConstIterator cf_it;

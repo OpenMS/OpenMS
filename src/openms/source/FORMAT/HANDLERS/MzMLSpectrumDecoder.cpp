@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,19 +49,19 @@ namespace OpenMS
 {
 
   /// Small internal function to check the default data vectors
-  void checkData_(std::vector<Internal::MzMLHandlerHelper::BinaryData>& data_, 
-      SignedSize x_index, SignedSize int_index, 
+  void checkData_(std::vector<Internal::MzMLHandlerHelper::BinaryData>& data_,
+      SignedSize x_index, SignedSize int_index,
       bool x_precision_64, bool int_precision_64)
   {
     // Error if intensity or m/z (RT) is encoded as int32|64 - they should be float32|64!
     if ((data_[x_index].ints_32.size() > 0) || (data_[x_index].ints_64.size() > 0))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "", "Encoding m/z or RT array as integer is not allowed!");
     }
     if ((data_[int_index].ints_32.size() > 0) || (data_[int_index].ints_64.size() > 0))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "", "Encoding intensity array as integer is not allowed!");
     }
 
@@ -71,14 +71,28 @@ namespace OpenMS
     // Check if int-size and mz-size are equal
     if (mz_size != int_size)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "", "Error, intensity and m/z array length are unequal");
+    }
+  }
+
+  inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data_,
+                            OpenMS::Interfaces::BinaryDataArrayPtr array, bool precision_64, SignedSize index)
+  {
+    // This seems to be the fastest method to move the data (faster than copy or assign)
+    if (precision_64)
+    {
+      array->data.insert(array->data.begin(), data_[index].floats_64.begin(), data_[index].floats_64.end());
+    }
+    else
+    {
+      array->data.insert(array->data.begin(), data_[index].floats_32.begin(), data_[index].floats_32.end());
     }
   }
 
   OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data_)
   {
-    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
 
     //look up the precision and the index of the intensity and m/z array
@@ -110,19 +124,17 @@ namespace OpenMS
 
     // TODO: handle meta data from the binaryDataArray tag -> currently ignored
     // since we have no place to store them
-
+    // TODO: would need to adopt OpenMS::Interfaces::SpectrumPtr to store additional arrays
     OpenMS::Interfaces::BinaryDataArrayPtr intensity_array(new OpenMS::Interfaces::BinaryDataArray);
     OpenMS::Interfaces::BinaryDataArrayPtr x_array(new OpenMS::Interfaces::BinaryDataArray);
-    for (Size n = 0; n < default_array_length_; n++)
-    {
-      double xcoord = x_precision_64 ? data_[x_index].floats_64[n] : data_[x_index].floats_32[n];
-      double intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
+    x_array->data.reserve(default_array_length_);
+    intensity_array->data.reserve(default_array_length_);
 
-      x_array->data.push_back(xcoord);
-      intensity_array->data.push_back(intensity);
+    fillDataArray(data_, x_array, x_precision_64, x_index);
+    fillDataArray(data_, intensity_array, int_precision_64, int_index);
 
-      // TODO: also handle non-default arrays
-    }
+    // TODO the other arrays
+
     sptr->setMZArray(x_array);
     sptr->setIntensityArray(intensity_array);
     return sptr;
@@ -130,7 +142,7 @@ namespace OpenMS
 
   OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom_(std::vector<BinaryData>& data_)
   {
-    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
 
     //look up the precision and the index of the intensity and m/z array
@@ -165,16 +177,14 @@ namespace OpenMS
 
     OpenMS::Interfaces::BinaryDataArrayPtr intensity_array(new OpenMS::Interfaces::BinaryDataArray);
     OpenMS::Interfaces::BinaryDataArrayPtr x_array(new OpenMS::Interfaces::BinaryDataArray);
-    for (Size n = 0; n < default_array_length_; n++)
-    {
-      double xcoord = x_precision_64 ? data_[x_index].floats_64[n] : data_[x_index].floats_32[n];
-      double intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
+    x_array->data.reserve(default_array_length_);
+    intensity_array->data.reserve(default_array_length_);
 
-      x_array->data.push_back(xcoord);
-      intensity_array->data.push_back(intensity);
+    fillDataArray(data_, x_array, x_precision_64, x_index);
+    fillDataArray(data_, intensity_array, int_precision_64, int_index);
 
-      // TODO the other arrays
-    }
+    // TODO the other arrays
+
     sptr->setTimeArray(x_array);
     sptr->setIntensityArray(intensity_array);
     return sptr;
@@ -203,6 +213,7 @@ namespace OpenMS
     //  - binary (1)
     xercesc::DOMNodeList* index_elems = indexListNode->getChildNodes();
     const  XMLSize_t nodeCount_ = index_elems->getLength();
+    bool has_binary_tag = false;
     for (XMLSize_t j = 0; j < nodeCount_; ++j)
     {
       xercesc::DOMNode* currentNode = index_elems->item(j);
@@ -212,17 +223,35 @@ namespace OpenMS
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
         if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_binary))
         {
+          // Found the <binary> tag
+          has_binary_tag = true;
+
+          // Skip any empty <binary></binary> tags
+          if (!currentNode->hasChildNodes())
+          {
+            continue;
+          }
+
+          // Valid mzML does not have any other child nodes except text
+          if (currentNode->getChildNodes()->getLength() != 1)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "", "Invalid XML: 'binary' element can only have a single, text node child element.");
+          }
+
+          // Now we know that the <binary> node has exactly one single child node, the text that we want!
           xercesc::DOMNode* textNode_ = currentNode->getFirstChild();
+
           if (textNode_->getNodeType() == xercesc::DOMNode::TEXT_NODE)
           {
             xercesc::DOMText* textNode (static_cast<xercesc::DOMText*> (textNode_));
-            sm.appendASCII(textNode->getData(), 
+            sm.appendASCII(textNode->getData(),
                 textNode->getLength(), data_.back().base64);
           }
           else
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-                "", "Binary element can only have a single, text node child element.");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "", "Invalid XML: 'binary' element can only have a single, text node child element.");
           }
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_CV))
@@ -247,6 +276,13 @@ namespace OpenMS
           //std::cout << "unhandled" << (string)xercesc::XMLString::transcode(currentNode->getNodeName() << std::endl;
         }
       }
+    }
+
+    // Throw exception upon invalid mzML: the <binary> tag is required inside <binaryDataArray>
+    if (!has_binary_tag)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "", "Invalid XML: 'binary' element needs to be present at least once inside 'binaryDataArray' element.");
     }
   }
 
@@ -278,13 +314,13 @@ namespace OpenMS
     if (!elementRoot)
     {
       delete parser;
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, in, "No root element");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, in, "No root element");
     }
 
     OPENMS_PRECONDITION(
-        std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "spectrum" || 
+        std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "spectrum" ||
         std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "chromatogram",
-          (String("The input needs to contain a <spectrum> or <chromatgram> tag as root element. Got instead '") +
+          (String("The input needs to contain a <spectrum> or <chromatogram> tag as root element. Got instead '") +
           String(xercesc::XMLString::transcode(elementRoot->getTagName())) + String("'.")).c_str() )
 
     // defaultArrayLength is a required attribute for the spectrum and the
@@ -292,7 +328,7 @@ namespace OpenMS
     if (elementRoot->getAttributeNode(default_array_length_tag) == NULL)
     {
       delete parser;
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           in, "Root element does not contain defaultArrayLength XML tag.");
     }
     int default_array_length = xercesc::XMLString::parseInt(elementRoot->getAttribute(default_array_length_tag));
@@ -322,6 +358,11 @@ namespace OpenMS
     std::vector<BinaryData> data_;
     domParseString_(in, data_);
     sptr = decodeBinaryDataChrom_(data_);
+  }
+
+  void MzMLSpectrumDecoder::setSkipXMLChecks(bool skip)
+  {
+    skip_xml_checks_ = skip;
   }
 
 }

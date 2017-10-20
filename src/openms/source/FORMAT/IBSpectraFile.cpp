@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
@@ -37,6 +37,8 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 // we need the quantitation types to extract the appropriate channels
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
@@ -115,7 +117,7 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__,
                                         __LINE__,
-                                        __PRETTY_FUNCTION__,
+                                        OPENMS_PRETTY_FUNCTION,
                                         "Given ConsensusMap does not hold any isobaric quantification data.");
     }
 
@@ -136,7 +138,7 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__,
                                         __LINE__,
-                                        __PRETTY_FUNCTION__,
+                                        OPENMS_PRETTY_FUNCTION,
                                         "Could not guess isobaric quantification data from ConsensusMap due to non-matching number of input maps.");
     }
   }
@@ -177,16 +179,15 @@ namespace OpenMS
 
   String IBSpectraFile::getModifString_(const AASequence& sequence)
   {
-    String modif = sequence.getNTerminalModification();
+    String modif = sequence.getNTerminalModificationName();
     for (AASequence::ConstIterator aa_it = sequence.begin();
-         aa_it != sequence.end();
-         ++aa_it)
+         aa_it != sequence.end(); ++aa_it)
     {
-      modif += ":" + aa_it->getModification();
+      modif += ":" + aa_it->getModificationName();
     }
-    if (sequence.getCTerminalModification() != "")
+    if (sequence.getCTerminalModificationName() != "")
     {
-      modif += ":" + sequence.getCTerminalModification();
+      modif += ":" + sequence.getCTerminalModificationName();
     }
 
     return modif;
@@ -220,7 +221,7 @@ namespace OpenMS
 
     // start the file by adding the tsv header
     TextFile textFile;
-    textFile.push_back(ListUtils::concatenate(constructHeader_(*quantMethod), "\t"));
+    textFile.addLine(ListUtils::concatenate(constructHeader_(*quantMethod), "\t"));
 
     for (ConsensusMap::ConstIterator cm_iter = cm.begin();
          cm_iter != cm.end();
@@ -238,15 +239,14 @@ namespace OpenMS
       else
       {
         // protein name:
-        if (cFeature.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().size() != 1)
+        const PeptideHit& peptide_hit = cFeature.getPeptideIdentifications()[0].getHits()[0];
+        std::set<String> protein_accessions = peptide_hit.extractProteinAccessionsSet();
+        if (protein_accessions.size() != 1)
         {
-          if (!allow_non_unique)
-            continue; // we only want unique peptides
+          if (!allow_non_unique) continue; // we only want unique peptides
         }
 
-        for (std::vector<String>::const_iterator prot_ac = cFeature.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
-             prot_ac != cFeature.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();
-             ++prot_ac)
+        for (std::set<String>::const_iterator prot_ac = protein_accessions.begin(); prot_ac != protein_accessions.end(); ++prot_ac)
         {
           IdCSV entry;
           entry.charge = cFeature.getPeptideIdentifications()[0].getHits()[0].getCharge();
@@ -315,7 +315,7 @@ namespace OpenMS
           currentLine.push_back(String(intensityMap[int(it->center)]));
         }
 
-        textFile.push_back(ListUtils::concatenate(currentLine, "\t"));
+        textFile.addLine(ListUtils::concatenate(currentLine, "\t"));
       }
     }
 

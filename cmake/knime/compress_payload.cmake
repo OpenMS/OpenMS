@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -41,25 +41,31 @@ set(required_variables "ARCH;PLATFORM;PAYLOAD_FOLDER")
 check_variables(required_variables)
 
 find_package(Java REQUIRED)
+if (NOT Java_JAR_EXECUTABLE)
+	message(FATAL_ERROR "Jar executable not found. It is needed to bundle the sources for the KNIME package. Make sure you have the Java SDK installed and in PATH.")
+endif()
 
 set(zip_file "${PAYLOAD_FOLDER}/binaries_${PLATFORM}_${ARCH}.zip")
 file(TO_NATIVE_PATH ${zip_file} native_zip)
 
-message(STATUS "${Java_JAR_EXECUTABLE} cfM ${native_zip} ${compress_argument}") 
-
-set(CREATE_ZIP On)
+## For the first file/folder we need to create the zip with jar -c
+## Otherwise add files by updating the zip with jar -u
+set(INITIALLY_CREATE_ZIP On)
 file(GLOB payload_content "${PAYLOAD_FOLDER}/*")
 foreach(file ${payload_content})
 	string(REPLACE "${PAYLOAD_FOLDER}/" "" trimmed_file ${file})
-	set(compress_argument "${trimmed_file} ${compress_argument}")
 	
+	## This means basically "just zip the files" (TODO we could think of using a lighter zip program instead)
+	## Generates no new Manifests
 	set(JAR_ARGS "fM") 
-	if(NOT CREATE_ZIP)
+	if(NOT INITIALLY_CREATE_ZIP)
 		set(JAR_ARGS "u${JAR_ARGS}")
 	else()
 		set(JAR_ARGS "c${JAR_ARGS}")
-		set(CREATE_ZIP Off)
+		set(INITIALLY_CREATE_ZIP Off)
 	endif()
+
+	message(STATUS "${Java_JAR_EXECUTABLE} ${JAR_ARGS} ${native_zip} ${trimmed_file}")
 	
 	# add to zip file
 	execute_process(

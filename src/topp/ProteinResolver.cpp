@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
@@ -88,18 +88,15 @@ using namespace OpenMS;
 
   The algorithm tries to assign to each protein its experimentally validated peptide (meaning you should supply peptides with
   have undergone FDR filtering or alike).
-  Proteins are grouped into ISD groups(in-silico derived) and MSD groups(MS/MS derived)
+  Proteins are grouped into ISD groups (in-silico derived) and MSD groups (MS/MS derived)
   if they have in-silico derived or MS/MS derived peptides in common. Proteins and peptides span a bipartite graph.
   There is an edge between a protein node and a peptide node if and only if the protein contains the peptide.
   ISD groups are connected graphs in the forementionend bipartite graph. MSD groups are subgraphs of ISD groups.
   For further information see above paper.
 
   <p><b>Remark:</b>
-  If parameter @p in is given, @p in_path is ignored. Parameter @p in_path is considered only, if @p in is empty.
+  If parameter @p in is given, @p in_path is ignored. Parameter @p in_path is considered only if @p in is empty.
   </p>
-
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_ProteinResolver.cli
 
   <B>Input</B>
 
@@ -202,8 +199,12 @@ using namespace OpenMS;
 
   </p>
 
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_ProteinResolver.html
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_ProteinResolver.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_ProteinResolver.html
 */
 
 // We do not want this class to show up in the docu:
@@ -511,7 +512,7 @@ protected:
     //-------------------------------------------------------------
     if (input_list.empty() && input_path.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "All input options are empty.");
     }
 
@@ -520,7 +521,7 @@ protected:
     //-------------------------------------------------------------
     if (output_pep_table.empty() && ouput_prot_groups.empty() && output_prot_table.empty())
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "All output options are empty.");
     }
 
@@ -592,7 +593,7 @@ protected:
 
       if (list.size() == 0)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         String("Input path ('") + input_path + "') does not contain a valid input file. Check file types! Allowed are .idXML and .consensusXML files.");
       }
 

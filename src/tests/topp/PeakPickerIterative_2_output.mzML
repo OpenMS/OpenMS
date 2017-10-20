@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -12,9 +13,9 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="file://Z:/html/tripletof_workflow/wiff/hroest_L120309/hroest_L120309_002_SW.wiff" location="">
+			<sourceFile id="sf_ru_0" name="hroest_L120309_002_SW.wiff" location="file://Z:/html/tripletof_workflow/wiff/hroest_L120309">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="1660c3f5021c93e7a5ffda118b5cc5c2a80be5fc" />
-				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData file" />
+				<cvParam cvRef="MS" accession="MS:1000564" name="PSI mzData format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>
@@ -34,7 +35,7 @@
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
 		<software id="so_dp_sp_0_pm_0" version="3.0.3316" >
-			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard" />
+			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard software" />
 		</software>
 		<software id="so_dp_sp_0_pm_1" version="1.9.0" >
 			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
@@ -46,7 +47,7 @@
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
 		</software>
 		<software id="so_dp_sp_0_pm_4" version="1.11.0" >
-			<cvParam cvRef="MS" accession="MS:1002133" name="NoiseFilterSGolay" />
+			<cvParam cvRef="MS" accession="MS:1002133" name="TOPP NoiseFilterSGolay" />
 		</software>
 		<software id="so_dp_sp_0_pm_5" version="version_string" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PeakPickerIterative" />
@@ -252,7 +253,7 @@
 						<binary>AAAAIMpKh0AAAADAv06HQAAAAEDXUodAAAAAwDF4h0AAAABA2HqHQAAAAOBBg4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="32">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>tStrRuExHEYa9GpFeHixRTLCokUHcBJF</binary>
@@ -280,3 +281,11 @@
 		</spectrumList>
 	</run>
 </mzML>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="scan=21913">17654</offset>
+	</index>
+</indexList>
+<indexListOffset>20549</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

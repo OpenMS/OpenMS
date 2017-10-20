@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -112,16 +113,14 @@ public:
     MetaDataBrowser(bool editable = FALSE, QWidget * parent = 0, bool modal = FALSE);
 
     /// Adds a peak map
-    template <class PeakType>
-    void add(MSExperiment<PeakType> & exp)
+    void add(PeakMap & exp)
     {
       add(static_cast<ExperimentalSettings &>(exp));
       treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
     }
 
     /// Adds a peak spectrum
-    template <class PeakType>
-    void add(MSSpectrum<PeakType> & spectrum)
+    void add(MSSpectrum & spectrum)
     {
       //spectrum settings
       add(static_cast<SpectrumSettings &>(spectrum));
@@ -146,8 +145,7 @@ public:
     }
 
     /// Adds a feature map
-    template <class FeatureType>
-    void add(FeatureMap<FeatureType> & map)
+    void add(FeatureMap& map)
     {
       //identifier
       add(static_cast<DocumentIdentifier &>(map));
@@ -228,7 +226,7 @@ protected:
     void visualize_(IonSource & meta, QTreeWidgetItem * parent = 0);
     void visualize_(IonDetector & meta, QTreeWidgetItem * parent = 0);
     void visualize_(MassAnalyzer & meta, QTreeWidgetItem * parent = 0);
-    void visualize_(DataProcessing & meta, QTreeWidgetItem * parent = 0);
+    void visualize_(DataProcessingPtr & meta, QTreeWidgetItem * parent = 0);
     void visualize_(ProteinIdentification & meta, QTreeWidgetItem * parent = 0);
     void visualize_(ProteinHit & meta, QTreeWidgetItem * parent = 0);
     void visualize_(PeptideHit & meta, QTreeWidgetItem * parent = 0);

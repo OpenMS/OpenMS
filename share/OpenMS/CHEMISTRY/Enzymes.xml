@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS>
+  <NODE name="Enzymes">
+    <NODE name="Trypsin">
+      <ITEM name="Name" value="Trypsin" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[KR])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="Trypsin cleaves following a K or R residue unless the next residue is P." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001251" type="string" />
+      <ITEM name="XTandemID" value="[KR]|{P}" type="string" />
+      <ITEM name="OMSSAID" value="0" type="int" />
+      <ITEM name="CometID" value="1" type="int" />
+    </NODE>
+    <NODE name="Arg-C">
+      <ITEM name="Name" value="Arg-C" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=R)(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="Arg-C cleaves following R residue unless the next residue is P." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001303" type="string" />
+      <ITEM name="XTandemID" value="[R]|{P}" type="string" />
+      <ITEM name="OMSSAID" value="1" type="int" />
+      <ITEM name="CometID" value="5" type="int" />
+      <NODE name="Synonyms">
+        <ITEM name="Clostripain" value="Clostripain" type="string" />
+        <ITEM name="argc" value="argc" type="string" />
+      </NODE>
+    </NODE>
+    <NODE name="Arg-C/P">
+      <ITEM name="Name" value="Arg-C/P" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=R)" type="string" />
+      <ITEM name="RegExDescription" value="Arg-C/P cleaves after R residues." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="XTandemID" value="[R]|[X]" type="string" />
+      <ITEM name="MSGFID" value="6" type="int" />
+    </NODE>
+    <NODE name="Asp-N">
+      <ITEM name="Name" value="Asp-N" type="string" />
+      <ITEM name="RegEx" value="(?=[BD])" type="string" />
+      <ITEM name="RegExDescription" value="Asp-N cleaves before B or D." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001304" type="string" />
+      <ITEM name="XTandemID" value="[X]|[BD]" type="string" />
+      <ITEM name="OMSSAID" value="12" type="int" />
+      <ITEM name="CometID" value="6" type="int" />
+    </NODE>
+    <NODE name="Asp-N/B">
+      <ITEM name="Name" value="Asp-N/B" type="string" />
+      <ITEM name="RegEx" value="(?=[D])" type="string" />
+      <ITEM name="RegExDescription" value="Asp-N/B cleaves before D." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="XTandemID" value="[X]|[D]" type="string" />
+      <ITEM name="MSGFID" value="7" type="int" />
+    </NODE>
+    <NODE name="Asp-N_ambic">
+      <ITEM name="Name" value="Asp-N_ambic" type="string" />
+      <ITEM name="RegEx" value="(?=[DE])" type="string" />
+      <ITEM name="RegExDescription" value="Asp-N Ammonium bicarbonate cleaves before D or E." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001305" type="string" />
+      <ITEM name="XTandemID" value="[X]|[DE]" type="string" />
+      <ITEM name="OMSSAID" value="19" type="int" />
+    </NODE>
+    <NODE name="Chymotrypsin">
+      <ITEM name="Name" value="Chymotrypsin" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[FLWY])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="Chymotrypsin cleaves following F, Y, W or L residue unless the next residue is P." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001306" type="string" />
+      <ITEM name="XTandemID" value="[FYWL]|{P}" type="string" />
+      <ITEM name="OMSSAID" value="3" type="int" />
+      <ITEM name="CometID" value="10" type="int" />
+    </NODE>
+    <NODE name="Chymotrypsin/P">
+      <ITEM name="Name" value="Chymotrypsin/P" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[FLWY])" type="string" />
+      <ITEM name="RegExDescription" value="Chymotrypsin cleaves following F, Y, W or L residue." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="XTandemID" value="[FYWL]|[X]" type="string" />
+      <ITEM name="MSGFID" value="2" type="int" />
+    </NODE>
+    <NODE name="CNBr">
+      <ITEM name="Name" value="CNBr" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=M)" type="string" />
+      <ITEM name="RegExDescription" value="CNBr cleaves following M." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001307" type="string" />
+      <ITEM name="XTandemID" value="[M]|[X]" type="string" />
+      <ITEM name="OMSSAID" value="2" type="int" />
+      <ITEM name="CometID" value="7" type="int" />
+    </NODE>
+    <NODE name="Formic_acid">
+      <ITEM name="Name" value="Formic_acid" type="string" />
+      <ITEM name="RegEx" value="((?&lt;=D))|((?=D))" type="string" />
+      <ITEM name="RegExDescription" value="Formic_acid cuts after D and next residue is D." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001308" type="string" />
+      <ITEM name="XTandemID" value="[D]|[D]" type="string" />
+      <ITEM name="OMSSAID" value="4" type="int" />
+    </NODE>
+    <NODE name="Lys-C">
+      <ITEM name="Name" value="Lys-C" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=K)(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="Lys-C cuts after K if not followed by P." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001309" type="string" />
+      <ITEM name="XTandemID" value="[K]|{P}" type="string" />
+      <ITEM name="OMSSAID" value="5" type="int" />
+      <ITEM name="CometID" value="3" type="int" />
+    </NODE>
+    <NODE name="Lys-N">
+      <ITEM name="Name" value="Lys-N" type="string" />
+      <ITEM name="RegEx" value="(?=K)" type="string" />
+      <ITEM name="RegExDescription" value="Lys-N cuts before K" type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="" type="string" />
+      <ITEM name="XTandemID" value="[X]|[K]" type="string" />
+      <ITEM name="CometID" value="4" type="int" />
+      <ITEM name="MSGFID" value="4" type="int" />
+    </NODE>
+    <NODE name="Lys-C/P">
+      <ITEM name="Name" value="Lys-C/P" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=K)" type="string" />
+      <ITEM name="RegExDescription" value="Lys-C/P cuts after K." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001310" type="string" />
+      <ITEM name="XTandemID" value="[K]|[X]" type="string" />
+      <ITEM name="OMSSAID" value="6" type="int" />
+      <ITEM name="MSGFID" value="3" type="int" />
+    </NODE>
+    <NODE name="PepsinA">
+      <ITEM name="Name" value="PepsinA" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[FL])" type="string" />
+      <ITEM name="RegExDescription" value="PepsinA cuts after F or L." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001311" type="string" />
+      <ITEM name="XTandemID" value="[FL]|[X]" type="string" />
+      <ITEM name="OMSSAID" value="7" type="int" />
+      <ITEM name="CometID" value="9" type="int" />
+    </NODE>
+    <NODE name="TrypChymo">
+      <ITEM name="Name" value="TrypChymo" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[KRFLWY])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="TrypChymo cuts after F, Y, W, L, K or R if not followed by P." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001312" type="string" />
+      <ITEM name="XTandemID" value="[FYWLKR]|{P}" type="string" />
+      <ITEM name="OMSSAID" value="9" type="int" />
+    </NODE>
+    <NODE name="Trypsin/P">
+      <ITEM name="Name" value="Trypsin/P" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[KR])" type="string" />
+      <ITEM name="RegExDescription" value="Trypsin/P cuts after K or R." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001313" type="string" />
+      <ITEM name="XTandemID" value="[KR]|[X]" type="string" />
+      <ITEM name="OMSSAID" value="10" type="int" />
+      <ITEM name="CometID" value="2" type="int" />
+      <ITEM name="MSGFID" value="1" type="int" />
+    </NODE>
+    <NODE name="V8-DE">
+      <ITEM name="Name" value="V8-DE" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[BDEZ])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="V8-DE cuts after B, D, E or Z if not followed by P." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001314" type="string" />
+      <ITEM name="XTandemID" value="[BDEZ]|{P}" type="string" />
+    </NODE>
+    <NODE name="V8-E">
+      <ITEM name="Name" value="V8-E" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[EZ])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="V8-E cuts after E or Z if not followed by P." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001315" type="string" />
+      <ITEM name="XTandemID" value="[EZ]|{P}" type="string" />
+    </NODE>
+    <NODE name="leukocyte elastase">
+      <ITEM name="Name" value="leukocyte elastase" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[AILV])(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="leukocyte elastase cuts after A, L, I or V if not followed by P." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001915" type="string" />
+      <ITEM name="XTandemID" value="[ALIV]|{P}" type="string" />
+    </NODE>
+    <NODE name="proline endopeptidase">
+      <ITEM name="Name" value="proline endopeptidase" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[HKR]P)(?!P)" type="string" />
+      <ITEM name="RegExDescription" value="proline endopeptidase cuts after HP, KP or RP if not followed by P." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001916" type="string" />
+    </NODE>    
+    <NODE name="glutamyl endopeptidase">
+      <ITEM name="Name" value="glutamyl endopeptidase" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[DE])" type="string" />
+      <ITEM name="RegExDescription" value="glutamyl endopeptidase cuts after D or E." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001917" type="string" />
+      <ITEM name="XTandemID" value="[DE]|[X]" type="string" />
+      <ITEM name="OMSSAID" value="20" type="int" />
+      <ITEM name="CometID" value="8" type="int" />
+      <ITEM name="MSGFID" value="5" type="int" />
+      <NODE name="Synonyms">
+        <ITEM name="Glu-C" value="Glu-C" type="string" />
+        <ITEM name="staphylococcal protease" value="staphylococcal protease" type="string" />
+      </NODE>
+    </NODE>
+    <NODE name="alphaLP">
+      <ITEM name="Name" value="Alpha-lytic protease" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[TASV])" type="string" />
+      <ITEM name="RegExDescription" value="Alpha-lytic protease (aLP) cuts after T, A, S, and V." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="XTandemID" value="[ASTV]|[X]" type="string" />
+      <ITEM name="MSGFID" value="8" type="int" />
+    </NODE>
+    <NODE name="2-iodobenzoate">
+      <ITEM name="Name" value="2-iodobenzoate" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=W)" type="string" />
+      <ITEM name="RegExDescription" value="2-iodobenzoate cuts after W." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001918" type="string" />
+      <ITEM name="XTandemID" value="[W]|[X]" type="string" />
+    </NODE>
+    <NODE name="no cleavage">
+      <ITEM name="Name" value="no cleavage" type="string" />
+      <ITEM name="RegEx" value="()" type="string" />
+      <ITEM name="RegExDescription" value="no cleavage." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001955" type="string" />
+      <ITEM name="XTandemID" value="" type="string" />
+      <ITEM name="OMSSAID" value="11" type="int" />
+      <ITEM name="MSGFID" value="9" type="int" />
+    </NODE>
+    <NODE name="unspecific cleavage">
+      <ITEM name="Name" value="unspecific cleavage" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[A-Z])" type="string" />
+      <ITEM name="RegExDescription" value="unspecific cleavage cuts at every site." type="string" />
+      <ITEM name="NTermGain" value="H" type="string" />
+      <ITEM name="CTermGain" value="OH" type="string" />
+      <ITEM name="PSIID" value="MS:1001956" type="string" />
+      <ITEM name="XTandemID" value="[X]|[X]" type="string" />
+      <ITEM name="OMSSAID" value="17" type="int" />
+      <ITEM name="CometID" value="0" type="int" />
+      <ITEM name="MSGFID" value="0" type="int" />
+    </NODE>
+  </NODE>
+</PARAMETERS>

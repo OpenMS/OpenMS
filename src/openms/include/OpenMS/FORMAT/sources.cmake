@@ -64,6 +64,7 @@ MzTabFile.h
 MzXMLFile.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
+OSWFile.h
 ParamXMLFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
@@ -71,12 +72,15 @@ PepNovoInfile.h
 PepNovoOutfile.h
 PepXMLFile.h
 PepXMLFileMascot.h
+PercolatorOutfile.h
 ProtXMLFile.h
+QcMLFile.h
 SequestInfile.h
 SequestOutfile.h
 SpecArrayFile.h
 SVOutStream.h
 SwathFile.h
+SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
@@ -89,6 +93,8 @@ MzIdentMLFile.h
 MzQuantMLFile.h
 TraMLFile.h
 XMassFile.h
+XQuestResultXMLFile.h
+ZlibCompression.h
 )
 
 ### add path to the filenames

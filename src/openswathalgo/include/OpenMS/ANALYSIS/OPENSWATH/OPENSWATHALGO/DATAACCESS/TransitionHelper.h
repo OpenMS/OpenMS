@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,37 +28,38 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Witold Wolski $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H
 #define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 #include <map>
 #include <vector>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transitions.h>
+#include <string>
 
 namespace OpenSwath
 {
+
+  struct LightCompound;
+  struct LightTargetedExperiment;
+  struct LightTransition;
 
   struct OPENSWATHALGO_DLLAPI TransitionHelper
   {
 
     static void convert(LightTargetedExperiment& lte,
                         std::map<std::string,
-                                 std::vector<OpenSwath::LightTransition> >& transmap);
+                        std::vector<LightTransition> >& transmap);
 
 
     // TODO : remove and explain German comments
     // spiegel
     static bool findPeptide(const LightTargetedExperiment& lte,
                             const std::string& peptideRef,
-                            LightPeptide& pep);
+                            LightCompound& pep);
   };
 
 } //end namespace

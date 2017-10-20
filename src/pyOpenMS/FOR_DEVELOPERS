@@ -22,7 +22,7 @@ about the unittests / testcoverage:
       @tested
       ClassA.method1
       .method2
-      .mehtod3
+      .method3
       .__init__
       ClassB.method_a
       ....
@@ -35,7 +35,7 @@ about the unittests / testcoverage:
 
    the script check_test_coverage.py loads _pyOpenMS.pyd,
    extracts all wrapped classes and their methods and
-   compares them with the delcared ones.
+   compares them with the declared ones.
 
    at the end the script gives an overview over missing
    tests.
@@ -57,7 +57,7 @@ about the code generator:
 
     for template classes you have to specify a comment
     #inst=<A,...> at the end of "cppclass .." line in the .pxd file.
-    this describes the classes for instatiating the class.
+    this describes the classes for instantiating the class.
     at the moment this only works for one instantiation.
 
     --> see pyOpenMS\cython_code\pxd\MSExperiment.pxd

@@ -16,17 +16,18 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
         PeakPickerHiRes()                  nogil except +
         PeakPickerHiRes(PeakPickerHiRes)   nogil except + #wrap-ignore
 
-        void pick(MSSpectrum[Peak1D] & input,
-                  MSSpectrum[Peak1D] & output
+        void pick(MSSpectrum & input,
+                  MSSpectrum & output
                  ) nogil except +
 
-        void pickExperiment(MSExperiment[Peak1D, ChromatogramPeak] & input,
-                            MSExperiment[Peak1D, ChromatogramPeak] & output
+        void pickExperiment(MSExperiment & input,
+                            MSExperiment & output
                            ) nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace "OpenMS::PeakPickerHiRes":
     
     cdef cppclass PeakBoundary "OpenMS::PeakPickerHiRes::PeakBoundary":
+        PeakBoundary() nogil except +
         PeakBoundary(PeakBoundary) nogil except + #wrap-ignore
         double mz_min
         double mz_max

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="OpenMS:" version="1.1.0">
-	<cvList count="2">
+<mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
+	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
 		<cv id="UO" fullName="Unit Ontology" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+		<cv id="BTO" fullName="BrendaTissue545" version="unknown" URI="http://www.brenda-enzymes.info/ontology/tissue/tree/update/update_files/BrendaTissueOBO"/>
+		<cv id="GO" fullName="Gene Ontology - Slim Versions" version="unknown" URI="http://www.geneontology.org/GO_slims/goslim_goa.obo"/>
+		<cv id="PATO" fullName="Quality ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/quality.obo"/>
 	</cvList>
 	<fileDescription>
 		<fileContent>
@@ -11,12 +14,12 @@
 	</fileDescription>
 	<sampleList count="1">
 		<sample id="sa_0" name="">
-			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="0"  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
+			<cvParam cvRef="MS" accession="MS:1000004" name="sample mass" value="0" unitAccession="UO:0000021" unitName="gram" unitCvRef="UO" />
 			<cvParam cvRef="MS" accession="MS:1000005" name="sample volume" value="0" unitAccession="UO:0000098" unitName="milliliter" unitCvRef="UO" />
 			<cvParam cvRef="MS" accession="MS:1000006" name="sample concentration" value="0" unitAccession="UO:0000175" unitName="gram per liter" unitCvRef="UO" />
 		</sample>
 	</sampleList>
-	<softwareList count="3">
+	<softwareList count="4">
 		<software id="so_in_0" version="" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
@@ -29,35 +32,14 @@
 		<software id="so_dp_sp_0_pm_1" version="1.6.0" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectrumCanvas" />
 		</software>
-		<software id="so_dp_sp_0_pm_2" version="1.6.0" >
-			<cvParam cvRef="MS" accession="MS:1000763" name="PeakPicker" />
-		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
 		<instrumentConfiguration id="ic_0">
 			<cvParam cvRef="MS" accession="MS:1000031" name="instrument model" />
-			<componentList count="3">
-				<source order="0">
-					<cvParam cvRef="MS" accession="MS:1000008" name="ionization type" />
-				</source>
-				<analyzer order="1234">
-					<cvParam cvRef="MS" accession="MS:1000014" name="accuracy" value="0" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
-					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="0" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
-					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="0" />
-					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="0" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
-					<cvParam cvRef="MS" accession="MS:1000288" name="cyclotron" />
-					<userParam name="warning" type="xsd:string" value="invented mass analyzer, to fulfill mzML schema"/>
-				</analyzer>
-				<detector order="0">
-					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="0" />
-					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="0" unitAccession="UO:0000106" unitName="hertz" unitCvRef="UO" />
-					<cvParam cvRef="MS" accession="MS:1000026" name="detector type" />
-				</detector>
-			</componentList>
 			<softwareRef ref="so_in_0" />
 		</instrumentConfiguration>
 	</instrumentConfigurationList>
-	<dataProcessingList count="1">
+	<dataProcessingList count="8">
 		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000543" name="data processing action" />
@@ -65,60 +47,6 @@
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
 				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2009-10-20+15:54" />
-			</processingMethod>
-			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
-				<cvParam cvRef="MS" accession="MS:1000035" name="peak picking" />
-				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2009-10-20+16:08" />
-				<userParam name="parameter: ini" type="xsd:string" value="/tmp/TOPPView_2009-10-20_160805_mouse_14404_19_ini"/>
-				<userParam name="parameter: in" type="xsd:string" value="/tmp/TOPPView_2009-10-20_160805_mouse_14404_19_in"/>
-				<userParam name="parameter: no_progress" type="xsd:string" value="true"/>
-				<userParam name="parameter: out" type="xsd:string" value="/tmp/TOPPView_2009-10-20_160805_mouse_14404_19_out"/>
-				<userParam name="parameter: type" type="xsd:string" value="wavelet"/>
-				<userParam name="parameter: log" type="xsd:string" value="TOPP.log"/>
-				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
-				<userParam name="parameter: threads" type="xsd:integer" value="1"/>
-				<userParam name="parameter: test" type="xsd:string" value="false"/>
-				<userParam name="parameter: algorithm:signal_to_noise" type="xsd:double" value="3"/>
-				<userParam name="parameter: algorithm:centroid_percentage" type="xsd:double" value="0.8"/>
-				<userParam name="parameter: algorithm:peak_width" type="xsd:double" value="0.15"/>
-				<userParam name="parameter: algorithm:estimate_peak_width" type="xsd:string" value="false"/>
-				<userParam name="parameter: algorithm:fwhm_bound_factor" type="xsd:double" value="0.7"/>
-				<userParam name="parameter: algorithm:optimization" type="xsd:string" value="no"/>
-				<userParam name="parameter: algorithm:thresholds:peak_bound" type="xsd:double" value="10"/>
-				<userParam name="parameter: algorithm:thresholds:peak_bound_ms2_level" type="xsd:double" value="10"/>
-				<userParam name="parameter: algorithm:thresholds:correlation" type="xsd:double" value="0.5"/>
-				<userParam name="parameter: algorithm:thresholds:noise_level" type="xsd:double" value="0.1"/>
-				<userParam name="parameter: algorithm:thresholds:search_radius" type="xsd:integer" value="3"/>
-				<userParam name="parameter: algorithm:wavelet_transform:spacing" type="xsd:double" value="0.001"/>
-				<userParam name="parameter: algorithm:optimization:iterations" type="xsd:integer" value="15"/>
-				<userParam name="parameter: algorithm:optimization:penalties:position" type="xsd:double" value="0"/>
-				<userParam name="parameter: algorithm:optimization:penalties:left_width" type="xsd:double" value="1"/>
-				<userParam name="parameter: algorithm:optimization:penalties:right_width" type="xsd:double" value="1"/>
-				<userParam name="parameter: algorithm:optimization:penalties:height" type="xsd:double" value="1"/>
-				<userParam name="parameter: algorithm:optimization:2d:tolerance_mz" type="xsd:double" value="2.2"/>
-				<userParam name="parameter: algorithm:optimization:2d:max_peak_distance" type="xsd:double" value="1.2"/>
-				<userParam name="parameter: algorithm:deconvolution:deconvolution" type="xsd:string" value="false"/>
-				<userParam name="parameter: algorithm:deconvolution:asym_threshold" type="xsd:double" value="0.3"/>
-				<userParam name="parameter: algorithm:deconvolution:left_width" type="xsd:double" value="2"/>
-				<userParam name="parameter: algorithm:deconvolution:right_width" type="xsd:double" value="2"/>
-				<userParam name="parameter: algorithm:deconvolution:scaling" type="xsd:double" value="0.12"/>
-				<userParam name="parameter: algorithm:deconvolution:fitting:fwhm_threshold" type="xsd:double" value="0.7"/>
-				<userParam name="parameter: algorithm:deconvolution:fitting:eps_abs" type="xsd:double" value="9.99999974737875e-06"/>
-				<userParam name="parameter: algorithm:deconvolution:fitting:eps_rel" type="xsd:double" value="9.99999974737875e-06"/>
-				<userParam name="parameter: algorithm:deconvolution:fitting:max_iteration" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:deconvolution:fitting:penalties:position" type="xsd:double" value="0"/>
-				<userParam name="parameter: algorithm:deconvolution:fitting:penalties:height" type="xsd:double" value="1"/>
-				<userParam name="parameter: algorithm:deconvolution:fitting:penalties:left_width" type="xsd:double" value="0"/>
-				<userParam name="parameter: algorithm:deconvolution:fitting:penalties:right_width" type="xsd:double" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoiseEstimationParameter:max_intensity" type="xsd:integer" value="-1"/>
-				<userParam name="parameter: algorithm:SignalToNoiseEstimationParameter:auto_max_stdev_factor" type="xsd:double" value="3"/>
-				<userParam name="parameter: algorithm:SignalToNoiseEstimationParameter:auto_max_percentile" type="xsd:integer" value="95"/>
-				<userParam name="parameter: algorithm:SignalToNoiseEstimationParameter:auto_mode" type="xsd:integer" value="0"/>
-				<userParam name="parameter: algorithm:SignalToNoiseEstimationParameter:win_len" type="xsd:double" value="200"/>
-				<userParam name="parameter: algorithm:SignalToNoiseEstimationParameter:bin_count" type="xsd:integer" value="30"/>
-				<userParam name="parameter: algorithm:SignalToNoiseEstimationParameter:stdev_mp" type="xsd:double" value="3"/>
-				<userParam name="parameter: algorithm:SignalToNoiseEstimationParameter:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoiseEstimationParameter:noise_for_empty_window" type="xsd:double" value="1e+20"/>
 			</processingMethod>
 		</dataProcessing>
 		<dataProcessing id="dp_sp_0_bi_0">
@@ -184,16 +112,16 @@
 						<binary>dhbBp3GCm0Cpw1lZeIabQEmKrtRyiptAN33eVW2Om0C9V8eNdJKbQHV+7dJ6lptA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="32">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>g64WRr68JkZ66cNFwEcTRdDrQkSA/pdD</binary>
+						<binary>4rAWRqrBJkY+5sNFe0gTRQ7uQkSCDZhD</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rValue" />
-						<binary>AAAAoDn57j8AAAAgLsDvPwAAAOAD1e8/AAAAIB5b7z8AAACABsvuPwAAAOBLuu4/</binary>
+						<binary>AAAAAEv57j8AAACgNcDvPwAAAGAN1e8/AAAAgBxb7z8AAADA0JrvPwAAAEDqDe8/</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -205,25 +133,25 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="fwhm" />
-						<binary>AAAAoGucwz8AAADA9s/EPwAAAECv2sM/AAAAIFdFwz8AAADgndXDPwAAAMCkycI/</binary>
+						<binary>AAAAYLqcwz8AAAAAlNDEPwAAAGBb2sM/AAAAgG9Fwz8AAABAEOm/PwAAAODG1L8/</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAQObiK0AAAACgIpU0QAAAACDQUDRAAAAAwKZEM0AAAAAg0/EsQAAAAABM4ipA</binary>
+						<binary>AAAAIDfhK0AAAABAm5I0QAAAACDQUDRAAAAAwKZEM0AAAADA62s0QAAAAMDEvDJA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4BSWI0AAAAAALG8dQAAAAMDwjR9AAAAAgH3RIEAAAAAA0r0iQAAAAGC/tCVA</binary>
+						<binary>AAAA4GOWI0AAAABgSW8dQAAAAOCpjh9AAAAA4F7RIEAAAABAIm0qQAAAAIAxLixA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="peakShape" />
-						<binary>AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/</binary>
+						<binary>AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAAAAAAAAAAAAAAAA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />

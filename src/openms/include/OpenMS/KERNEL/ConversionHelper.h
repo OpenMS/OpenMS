@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_CONVERSIONHELPER_H
 #define OPENMS_KERNEL_CONVERSIONHELPER_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -51,7 +52,7 @@ public:
 
       Only the @p n most intense elements are copied.
 
-      Currently MSExperiment<> does not have a unique id but ConsensusMap has
+      Currently PeakMap does not have a unique id but ConsensusMap has
       one, so we assign a new one here.
 
       @param input_map_index The index of the input map.
@@ -60,9 +61,9 @@ public:
       @param n The maximum number of elements to be copied.
     */
     static void convert(UInt64 const input_map_index,
-                                      MSExperiment<> & input_map,
-                                      ConsensusMap & output_map,
-                                      Size n = -1);
+                        PeakMap& input_map,
+                        ConsensusMap& output_map,
+                        Size n = -1);
 
     /**
       @brief Convert a ConsensusMap to a FeatureMap (of any feature type).
@@ -74,31 +75,9 @@ public:
       @param keep_uids Shall the UID's of the elements and the container be kept or created anew
       @param output_map The resulting ConsensusMap.
     */
-    template <typename FeatureT>
-    static void convert(ConsensusMap const & input_map,
+    static void convert(ConsensusMap const& input_map,
                         const bool keep_uids,
-                        FeatureMap<FeatureT> & output_map)
-    {
-      output_map.clear(true);
-      output_map.resize(input_map.size());
-      output_map.DocumentIdentifier::operator=(input_map);
-
-      if (keep_uids) output_map.UniqueIdInterface::operator=(input_map);
-      else output_map.setUniqueId();
-
-      output_map.setProteinIdentifications(input_map.getProteinIdentifications());
-      output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
-
-      for (Size i = 0; i < input_map.size(); ++i)
-      {
-        Feature & f = output_map[i];
-        const ConsensusFeature & c = input_map[i];
-        f.BaseFeature::operator=(c);
-        if (!keep_uids) f.setUniqueId();
-      }
-
-      output_map.updateRanges();
-    }
+                        FeatureMap& output_map);
 
     /**
       @brief Convert a FeatureMap (of any feature type) to a ConsensusMap.
@@ -119,33 +98,10 @@ public:
       @param output_map The resulting ConsensusMap.
       @param n The maximum number of elements to be copied.
     */
-    template <typename FeatureT>
     static void convert(UInt64 const input_map_index,
-                        FeatureMap<FeatureT> const & input_map,
-                        ConsensusMap & output_map,
-                        Size n = -1)
-    {
-      if (n > input_map.size())
-      {
-        n = input_map.size();
-      }
-
-      output_map.clear(true);
-      output_map.reserve(n);
-
-      // An arguable design decision, see above.
-      output_map.setUniqueId(input_map.getUniqueId());
-
-      for (UInt64 element_index = 0; element_index < n; ++element_index)
-      {
-        output_map.push_back(ConsensusFeature(input_map_index, input_map[element_index]));
-      }
-      output_map.getFileDescriptions()[input_map_index].size = (Size) input_map.size();
-      output_map.setProteinIdentifications(input_map.getProteinIdentifications());
-      output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
-      output_map.updateRanges();
-    }
-
+                        FeatureMap const& input_map,
+                        ConsensusMap& output_map,
+                        Size n = -1);
   };
 } // namespace OpenMS
 

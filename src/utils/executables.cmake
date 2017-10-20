@@ -7,67 +7,75 @@ AccurateMassSearch
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CVInspector
-DeMeanderize
+DatabaseFilter
 DecoyDatabase
+DeMeanderize
 Digestor
 DigestorMotif
 ERPairFinder
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
-IDEvaluator
+IDDecoyProbability
 IDExtractor
 IDMassAccuracy
+IDScoreSwitcher
 IDSplitter
-IDDecoyProbability
-RTEvaluation
-ImageCreator
-INIUpdater
 LabeledEval
 LowMemPeakPickerHiRes
 LowMemPeakPickerHiRes_RandomAccess
 MassCalculator
+MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
+MetaProSIP
 MRMPairFinder
 MSSimulator
-MapAlignmentEvaluation
+MultiplexResolver
+MzMLSplitter
 OpenMSInfo
+OpenPepXL
+OpenPepXLLF
 PeakPickerIterative
-SemanticValidator
-SequenceCoverageCalculator
-SimpleSearchEngine
-SpecLibCreator
-SvmTheoreticalSpectrumGeneratorTrainer
-TransformationEvaluation
-XMLValidator
+PSMFeatureExtractor
 QCCalculator
-QCImporter
 QCEmbedder
 QCExporter
 QCExtractor
+QCImporter
 QCMerger
 QCShrinker
 RNPxl
 RNPxlXICFilter
-#SimpleSearchEngine
-#RNPxlSearch
+RNPxlSearch
+RTEvaluation
+SemanticValidator
+SequenceCoverageCalculator
+SimpleSearchEngine
+SiriusAdapter
+SpecLibCreator
+SpectraSTSearchAdapter
+SvmTheoreticalSpectrumGeneratorTrainer
+TICCalculator
+TransformationEvaluation
+XFDR
+XMLValidator
 )
 
 if(NOT DISABLE_OPENSWATH)
   set(UTILS_executables
     ${UTILS_executables}
-    ConvertTSVToTraML
-    ConvertTraMLToTSV
+    TargetedFileConverter
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
     OpenSwathWorkflow
+    OpenSwathFileSplitter
     OpenSwathRewriteToFeatureXML
     MRMTransitionGroupPicker
   )
 endif(NOT DISABLE_OPENSWATH)
 
 
-## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
+## all targets requiring OpenMS_GUI
 set(UTILS_executables_with_GUIlib
 IDEvaluator
 ImageCreator
@@ -76,7 +84,8 @@ INIUpdater
 
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
-foreach(i ${UTILS_executables})
+foreach(i ${UTILS_executables} ${UTILS_executables_with_GUIlib})
 	list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
+
 source_group("" FILES ${sources_VS})

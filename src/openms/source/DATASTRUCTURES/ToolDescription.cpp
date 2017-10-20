@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/ToolDescription.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ToolDescription.h>
+
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
 
 using namespace std;
 
@@ -44,7 +46,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    FileMapping & FileMapping::operator=(const FileMapping & rhs)
+    FileMapping& FileMapping::operator=(const FileMapping& rhs)
     {
       if (this == &rhs) return *this;
 
@@ -53,7 +55,7 @@ namespace OpenMS
       return *this;
     }
 
-    OPENMS_DLLAPI MappingParam & MappingParam::operator=(const MappingParam & rhs)
+    OPENMS_DLLAPI MappingParam& MappingParam::operator=(const MappingParam& rhs)
     {
       if (this == &rhs) return *this;
 
@@ -73,7 +75,7 @@ namespace OpenMS
     }
 
     // C'Tor with arguments
-    ToolDescriptionInternal::ToolDescriptionInternal(const bool p_is_internal, const String & p_name, const String & p_category, const StringList & p_types) :
+    ToolDescriptionInternal::ToolDescriptionInternal(const bool p_is_internal, const String& p_name, const String& p_category, const StringList& p_types) :
       is_internal(p_is_internal),
       name(p_name),
       category(p_category),
@@ -81,7 +83,7 @@ namespace OpenMS
     {
     }
 
-    ToolDescriptionInternal::ToolDescriptionInternal(const String & p_name, const StringList & p_types) :
+    ToolDescriptionInternal::ToolDescriptionInternal(const String& p_name, const StringList& p_types) :
       is_internal(false),
       name(p_name),
       category(),
@@ -89,7 +91,7 @@ namespace OpenMS
     {
     }
 
-    ToolDescriptionInternal & ToolDescriptionInternal::operator=(const ToolDescriptionInternal & rhs)
+    ToolDescriptionInternal& ToolDescriptionInternal::operator=(const ToolDescriptionInternal& rhs)
     {
       if (this == &rhs)
         return *this;
@@ -101,7 +103,7 @@ namespace OpenMS
       return *this;
     }
 
-    bool ToolDescriptionInternal::operator==(const ToolDescriptionInternal & rhs) const
+    bool ToolDescriptionInternal::operator==(const ToolDescriptionInternal& rhs) const
     {
       if (this == &rhs)
         return true;
@@ -112,7 +114,7 @@ namespace OpenMS
              && types == rhs.types;
     }
 
-    bool ToolDescriptionInternal::operator<(const ToolDescriptionInternal & rhs) const
+    bool ToolDescriptionInternal::operator<(const ToolDescriptionInternal& rhs) const
     {
       if (this == &rhs)
         return false;
@@ -127,18 +129,18 @@ namespace OpenMS
     }
 
     // C'Tor for internal TOPP tools
-    ToolDescription::ToolDescription(const String & p_name, const String & p_category, const StringList & p_types) :
+    ToolDescription::ToolDescription(const String& p_name, const String& p_category, const StringList& p_types) :
       ToolDescriptionInternal(true, p_name, p_category, p_types)
     {
     }
 
-    void ToolDescription::addExternalType(const String & type, const ToolExternalDetails & details)
+    void ToolDescription::addExternalType(const String& type, const ToolExternalDetails& details)
     {
       types.push_back(type);
       external_details.push_back(details);
     }
 
-    void ToolDescription::append(const ToolDescription & other)
+    void ToolDescription::append(const ToolDescription& other)
     {
       // sanity check
       if (is_internal != other.is_internal
@@ -150,7 +152,7 @@ namespace OpenMS
          || (!other.is_internal && other.external_details.size() != other.types.size())
           )
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Extending (external) ToolDescription failed!", "");
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Extending (external) ToolDescription failed!", "");
       }
 
       // append types and external information
@@ -167,11 +169,11 @@ namespace OpenMS
         {
           LOG_ERROR << "Check the .ttd files in your share/ folder and remove duplicate types!\n";
         }
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "see above!", "");
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "see above!", "");
       }
     }
 
-    ToolDescription & ToolDescription::operator=(const ToolDescription & rhs)
+    ToolDescription& ToolDescription::operator=(const ToolDescription& rhs)
     {
       if (this == &rhs)
         return *this;

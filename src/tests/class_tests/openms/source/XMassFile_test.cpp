@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Guillaume Belz $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Guillaune Belz $
 // --------------------------------------------------------------------------
 
@@ -61,11 +61,11 @@ START_SECTION(~XMassFile())
 	delete ptr;
 END_SECTION
 
-START_SECTION(template<typename SpectrumType> void load(const String& filename, MSSpectrum<PeakType>& spectrum) )
+START_SECTION(template<typename SpectrumType> void load(const String& filename, MSSpectrum& spectrum) )
 	TOLERANCE_ABSOLUTE(0.001)
-	MSSpectrum<> s;
-	MSSpectrum<>::ConstIterator it;
-  TextFile::Iterator f_it;
+	MSSpectrum s;
+	MSSpectrum::ConstIterator it;
+  TextFile::ConstIterator f_it;
 	XMassFile f;
 
 	TEST_EXCEPTION(Exception::FileNotFound, f.load("data_Idontexist", s);)
@@ -79,8 +79,8 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
   TextFile file;
   file.load(OPENMS_GET_TEST_DATA_PATH("XMassFile_test_data.txt"));
 
-  TEST_EQUAL(file.size(), 80478)
-	ABORT_IF(file.size() != 80478)
+  TEST_EQUAL((file.end() - file.begin()), 80478)
+	ABORT_IF((file.end() - file.begin()) != 80478)
 
 	for(it=s.begin(), f_it = file.begin(); it != s.end() && f_it != file.end(); ++it, ++f_it)
 	{
@@ -93,9 +93,9 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 
 END_SECTION
 
-START_SECTION(template<typename SpectrumType> void store(const String& filename, const MSSpectrum<PeakType>& spectrum) const)
+START_SECTION(template<typename SpectrumType> void store(const String& filename, const MSSpectrum& spectrum) const)
   // not implemented
-	TEST_EXCEPTION(Exception::NotImplemented, XMassFile().store(String(), MSSpectrum<>()))
+	TEST_EXCEPTION(Exception::NotImplemented, XMassFile().store(String(), MSSpectrum()))
 END_SECTION
 
 

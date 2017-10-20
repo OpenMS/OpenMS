@@ -5,24 +5,27 @@ set(directory source/APPLICATIONS/TOPP)
 set(TOPP_executables
 AdditiveSeries
 BaselineFilter
+CometAdapter
 CompNovo
 CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
-DTAExtractor
 Decharger
+DTAExtractor
 EICExtractor
-ExecutePipeline
+ExternalCalibration
 FalseDiscoveryRate
-FeatureFinderMRM
 FeatureFinderCentroided
 FeatureFinderIdentification
 FeatureFinderIsotopeWavelet
 FeatureFinderMetabo
+FeatureFinderMRM
 FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
+FeatureLinkerUnlabeledKD
 FeatureLinkerUnlabeledQT
+FidoAdapter
 FileConverter
 FileFilter
 FileInfo
@@ -30,18 +33,18 @@ FileMerger
 GenericWrapper
 HighResPrecursorMassCorrector
 IDConflictResolver
-IDPosteriorErrorProbability
 IDFileConverter
 IDFilter
 IDMapper
 IDMerger
+IDPosteriorErrorProbability
 IDRipper
 IDRTCalibration
-ITRAQAnalyzer
-IsobaricAnalyzer
 InclusionExclusionListCreator
 InspectAdapter
 InternalCalibration
+IsobaricAnalyzer
+LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
@@ -52,55 +55,52 @@ MascotAdapter
 MascotAdapterOnline
 MassTraceExtractor
 MRMMapper
+MSGFPlusAdapter
 MyriMatchAdapter
+MzTabExporter
 NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter
 OpenSwathAnalyzer
+OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
 OpenSwathConfidenceScoring
 OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
-PhosphoScoring
-PILISIdentification
-PILISModelCV
-PILISModelTrainer
-PILISSpectraGenerator
-PTModel
-PTPredict
 PeakPickerHiRes
 PeakPickerWavelet
 PepNovoAdapter
 PeptideIndexer
+PercolatorAdapter
+PhosphoScoring
 PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference
 ProteinQuantifier
 ProteinResolver
+PTModel
+PTPredict
 RTModel
 RTPredict
-Resampler
 SeedListGenerator
 SpecLibSearcher
-SpectraFilterWindowMower
-SpectraFilterThresholdMower
-SpectraFilterSqrtMower
-SpectraFilterParentPeakMower
-SpectraFilterMarkerMower
-SpectraFilterScaler
 SpectraFilterBernNorm
+SpectraFilterMarkerMower
 SpectraFilterNLargest
 SpectraFilterNormalizer
+SpectraFilterParentPeakMower
+SpectraFilterScaler
+SpectraFilterSqrtMower
+SpectraFilterThresholdMower
+SpectraFilterWindowMower
 SpectraMerger
-TMTAnalyzer
-TOFCalibration
 TextExporter
-MzTabExporter
+TOFCalibration
 XTandemAdapter
 )
 
-## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
+## all targets requiring OpenMS_GUI
 set(TOPP_executables_with_GUIlib
 ExecutePipeline
 Resampler
@@ -108,7 +108,8 @@ Resampler
 
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
-foreach(i ${TOPP_executables})
+foreach(i ${TOPP_executables} ${TOPP_executables_with_GUIlib})
 	list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
+
 source_group("" FILES ${sources_VS})

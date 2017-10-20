@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,27 +58,8 @@ namespace OpenMS
   class OPENMS_DLLAPI MRMRTNormalizer
   {
 
-private:
+protected:
   
-    /**
-      @brief Interface for GSL or OpenMS::MATH linear regression implementation
-      standard least-squares fit to a straight line takes as input a standard
-      vector of a standard pair of points in a 2D space and returns the
-      coefficients of the linear regression Y(c,x) = c0 + c1 * x
-    */
-    static double llsm_rsq(std::vector<std::pair<double, double> >& pairs);
-
-    static std::pair<double, double > llsm_fit(std::vector<std::pair<double, double> >& pairs);
-  
-    /// interface for GSL or OpenMS::MATH linear regression implementation
-    /// calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
-    static double llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients);
-  
-    /// calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
-    /// further removes all points that have an error larger or equal than max_threshold.
-    static std::vector<std::pair<double, double> > llsm_rss_inliers(std::vector<std::pair<double, double> >& pairs,
-        std::pair<double, double >& coefficients, double max_threshold);
-
     /**
       @brief This function computes a candidate outlier peptide by iteratively
        leaving one peptide out to find the one which results in the maximum R^2
@@ -90,7 +71,7 @@ private:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static int jackknifeOutlierCandidate(std::vector<double>& x, std::vector<double>& y);
+    static int jackknifeOutlierCandidate_(std::vector<double>& x, std::vector<double>& y);
 
     /**
       @brief This function computes a candidate outlier peptide by computing
@@ -103,7 +84,7 @@ private:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static int residualOutlierCandidate(std::vector<double>& x, std::vector<double>& y);
+    static int residualOutlierCandidate_(std::vector<double>& x, std::vector<double>& y);
 
 public:
  
@@ -138,24 +119,6 @@ public:
         size_t max_iterations,
         double max_rt_threshold,
         size_t sampling_size);
-
-    /**
-      @brief This function provides a generic implementation of the RANSAC
-       outlier detection algorithm. Is implemented and tested after the
-       SciPy reference: http://wiki.scipy.org/Cookbook/RANSAC
-
-      @param pairs Input data (paired data of type <dim1, dim2>)
-      @param n the minimum number of data points required to fit the model
-      @param k the maximum number of iterations allowed in the algorithm 
-      @param t a threshold value for determining when a data point fits a
-       model. Corresponds to the maximal squared deviation in units of the
-       _second_ dimension (dim2).
-      @param d the number of close data values required to assert that a model fits well to data
-      @param test disables the random component of the algorithm
-
-      @return A vector of pairs
-    */
-    static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test = false); 
 
     /**
       @brief This function removes potential outliers in a linear regression dataset.
@@ -204,7 +167,27 @@ public:
       @return TRUE, if Chauvenet's criterion is fulfilled and the outlier can be removed.
     */
     static bool chauvenet(std::vector<double>& residuals, int pos);
+
+    /**
+      * @brief Computes coverage of the RT normalization peptides over the whole RT range, ensuring that each bin has enough peptides
+      *
+      * @param rtRange The (estimated) full RT range in iRT space (theoretical RT)
+      * @param pairs The RT normalization peptide pairs (pair = experimental RT / theoretical RT)
+      * @param nrBins The number of bins to be used
+      * @param minPeptidesPerBin The minimal number of peptides per bin to be used to be considered full
+      * @param minBinsFilled The minimal number of bins needed to be full
+      *
+      * @return Whether more than the minimal number of bins are covered
+      *
+    */
+    static bool computeBinnedCoverage(const std::pair<double,double> & rtRange, 
+                                      const std::vector<std::pair<double, double> > & pairs,
+                                      int nrBins, 
+                                      int minPeptidesPerBin,
+                                      int minBinsFilled);
+
   };
 
 }
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
+

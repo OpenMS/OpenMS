@@ -1,14 +1,16 @@
 from Types cimport *
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.map cimport map as libcpp_map
 from String cimport *
-from Map cimport *
 
 cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
-    
+
     cdef cppclass InspectInfile "OpenMS::InspectInfile":
+
         InspectInfile() nogil except +
         InspectInfile(InspectInfile) nogil except +
+
         bool operator==(InspectInfile & inspect_infile) nogil except +
         void store(String & filename) nogil except +
         void handlePTMs(String & modification_line, String & modifications_filename, bool monoisotopic) nogil except +
@@ -34,5 +36,6 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
         void setInstrument(String & instrument) nogil except +
         Int getTagCount() nogil except +
         void setTagCount(Int TagCount) nogil except +
-        Map[ String, libcpp_vector[ String ] ]  getModifications() nogil except + # wrap-ignore
+
+        libcpp_map[ String, libcpp_vector[ String ] ]  getModifications() nogil except + # wrap-ignore
 

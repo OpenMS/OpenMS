@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,9 +37,10 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-
 #include <sstream>
 #include <algorithm>
+#include <numeric>
+
 
 using namespace std;
 
@@ -47,16 +48,25 @@ namespace OpenMS
 {
 
   const std::string ProteinIdentification::NamesOfPeakMassType[] = {"Monoisotopic", "Average"};
-  const std::string ProteinIdentification::NamesOfDigestionEnzyme[] = {"Trypsin", "Pepsin A", "Protease K", "Chymotrypsin", "No enzyme", "Unknown"};
 
   ProteinIdentification::ProteinGroup::ProteinGroup() :
     probability(0.0), accessions()
-  {}
-
-  bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup rhs) const
   {
-    return probability == rhs.probability &&
-           accessions == rhs.accessions;
+  }
+
+  bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup& rhs) const
+  {
+    return (probability == rhs.probability) && (accessions == rhs.accessions);
+  }
+
+  bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
+  {
+    // comparison of probabilities is intentionally "the wrong way around":
+    if (probability > rhs.probability) return true;
+    if (probability < rhs.probability) return false;
+    if (accessions.size() < rhs.accessions.size()) return true;
+    if (accessions.size() > rhs.accessions.size()) return false;
+    return accessions < rhs.accessions;
   }
 
   ProteinIdentification::SearchParameters::SearchParameters() :
@@ -67,14 +77,16 @@ namespace OpenMS
     mass_type(MONOISOTOPIC),
     fixed_modifications(),
     variable_modifications(),
-    enzyme(UNKNOWN_ENZYME),
     missed_cleavages(0),
-    peak_mass_tolerance(0.0),
-    precursor_tolerance(0.0)
+    fragment_mass_tolerance(0.0),
+    fragment_mass_tolerance_ppm(false),
+    precursor_mass_tolerance(0.0),
+    precursor_mass_tolerance_ppm(false),
+    digestion_enzyme("unknown_enzyme","")
   {
   }
 
-  bool ProteinIdentification::SearchParameters::operator==(const SearchParameters & rhs) const
+  bool ProteinIdentification::SearchParameters::operator==(const SearchParameters& rhs) const
   {
     return db == rhs.db &&
            db_version == rhs.db_version &&
@@ -83,13 +95,15 @@ namespace OpenMS
            mass_type == rhs.mass_type &&
            fixed_modifications == rhs.fixed_modifications &&
            variable_modifications == rhs.variable_modifications &&
-           enzyme == rhs.enzyme &&
            missed_cleavages == rhs.missed_cleavages &&
-           peak_mass_tolerance == rhs.peak_mass_tolerance &&
-           precursor_tolerance == rhs.precursor_tolerance;
+           fragment_mass_tolerance == rhs.fragment_mass_tolerance &&
+           fragment_mass_tolerance_ppm == rhs.fragment_mass_tolerance_ppm &&
+           precursor_mass_tolerance == rhs.precursor_mass_tolerance &&
+           precursor_mass_tolerance_ppm == rhs.precursor_mass_tolerance_ppm &&
+           digestion_enzyme == rhs.digestion_enzyme;
   }
 
-  bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters & rhs) const
+  bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters& rhs) const
   {
     return !(*this == rhs);
   }
@@ -110,7 +124,7 @@ namespace OpenMS
   {
   }
 
-  ProteinIdentification::ProteinIdentification(const ProteinIdentification & source) :
+  ProteinIdentification::ProteinIdentification(const ProteinIdentification& source) :
     MetaInfoInterface(source),
     id_(source.id_),
     search_engine_(source.search_engine_),
@@ -130,38 +144,33 @@ namespace OpenMS
   {
   }
 
-  void ProteinIdentification::setDateTime(const DateTime & date)
+  void ProteinIdentification::setDateTime(const DateTime& date)
   {
     date_ = date;
   }
 
-  const DateTime & ProteinIdentification::getDateTime() const
+  const DateTime& ProteinIdentification::getDateTime() const
   {
     return date_;
   }
 
-  const vector<ProteinHit> & ProteinIdentification::getHits() const
+  const vector<ProteinHit>& ProteinIdentification::getHits() const
   {
     return protein_hits_;
   }
 
-  vector<ProteinHit> & ProteinIdentification::getHits()
+  vector<ProteinHit>& ProteinIdentification::getHits()
   {
     return protein_hits_;
   }
 
-  void ProteinIdentification::setHits(const vector<ProteinHit> & protein_hits)
+  void ProteinIdentification::setHits(const vector<ProteinHit>& protein_hits)
   {
-    // groups might become invalid by this operation
-    if (!protein_groups_.empty() || !indistinguishable_proteins_.empty())
-    {
-      LOG_ERROR << "New protein hits set while (indistinguishable) proteins groups are non-empty! This might invalidate groups. Delete groups before setting new hits.\n";
-    }
     protein_hits_ = protein_hits;
   }
 
   vector<ProteinHit>::iterator ProteinIdentification::findHit(
-    const String & accession)
+    const String& accession)
   {
     vector<ProteinHit>::iterator pos = protein_hits_.begin();
     for (; pos != protein_hits_.end(); ++pos)
@@ -172,40 +181,40 @@ namespace OpenMS
     return pos;
   }
 
-  const vector<ProteinIdentification::ProteinGroup> & ProteinIdentification::getProteinGroups() const
+  const vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getProteinGroups() const
   {
     return protein_groups_;
   }
 
-  vector<ProteinIdentification::ProteinGroup> & ProteinIdentification::getProteinGroups()
+  vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getProteinGroups()
   {
     return protein_groups_;
   }
 
-  void ProteinIdentification::insertProteinGroup(const ProteinIdentification::ProteinGroup & group)
+  void ProteinIdentification::insertProteinGroup(const ProteinIdentification::ProteinGroup& group)
   {
     protein_groups_.push_back(group);
   }
 
-  const vector<ProteinIdentification::ProteinGroup> &
+  const vector<ProteinIdentification::ProteinGroup>&
   ProteinIdentification::getIndistinguishableProteins() const
   {
     return indistinguishable_proteins_;
   }
 
-  vector<ProteinIdentification::ProteinGroup> &
+  vector<ProteinIdentification::ProteinGroup>&
   ProteinIdentification::getIndistinguishableProteins()
   {
     return indistinguishable_proteins_;
   }
 
   void ProteinIdentification::insertIndistinguishableProteins(
-    const ProteinIdentification::ProteinGroup & group)
+    const ProteinIdentification::ProteinGroup& group)
   {
     indistinguishable_proteins_.push_back(group);
   }
 
-  // retrival of the peptide significance threshold value
+  // retrieval of the peptide significance threshold value
   double ProteinIdentification::getSignificanceThreshold() const
   {
     return protein_significance_threshold_;
@@ -217,22 +226,39 @@ namespace OpenMS
     protein_significance_threshold_ = value;
   }
 
-  void ProteinIdentification::setScoreType(const String & type)
+  void ProteinIdentification::setScoreType(const String& type)
   {
     protein_score_type_ = type;
   }
 
-  const String & ProteinIdentification::getScoreType() const
+  const String& ProteinIdentification::getScoreType() const
   {
     return protein_score_type_;
   }
 
-  void ProteinIdentification::insertHit(const ProteinHit & protein_hit)
+  void ProteinIdentification::insertHit(const ProteinHit& protein_hit)
   {
     protein_hits_.push_back(protein_hit);
   }
 
-  ProteinIdentification & ProteinIdentification::operator=(const ProteinIdentification & source)
+  void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
+  {
+    if (!s.empty())
+    {
+      this->setMetaValue("spectra_data", DataValue(s));
+    }
+  }
+
+  /// get the file path to the first MS run
+  void ProteinIdentification::getPrimaryMSRunPath(StringList& toFill) const
+  {
+    if (this->metaValueExists("spectra_data"))
+    {
+      toFill = this->getMetaValue("spectra_data");
+    }
+  }
+
+  ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)
   {
     if (this == &source)
     {
@@ -254,7 +280,7 @@ namespace OpenMS
   }
 
   // Equality operator
-  bool ProteinIdentification::operator==(const ProteinIdentification & rhs) const
+  bool ProteinIdentification::operator==(const ProteinIdentification& rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
            id_ == rhs.id_ &&
@@ -272,7 +298,7 @@ namespace OpenMS
   }
 
   // Inequality operator
-  bool ProteinIdentification::operator!=(const ProteinIdentification & rhs) const
+  bool ProteinIdentification::operator!=(const ProteinIdentification& rhs) const
   {
     return !operator==(rhs);
   }
@@ -310,70 +336,69 @@ namespace OpenMS
     }
   }
 
-  Size ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification> & pep_ids)
+  void ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
   {
-    // todo: we currently ignore overlapping peptides, i.e. the coverage could be > 100%
-
-    Size no_seq_count(0);
-    // index the proteins by accession
-    // Accession -> set of pep sequences
-    // (use set to discard mutli-pep matches)
-    Map<String, std::set<String> > protein_index;
-    for (Size i = 0; i < protein_hits_.size(); ++i)
-    {
-      std::set<String> empty;
-      protein_index[protein_hits_[i].getAccession()] = empty;
-      if (protein_hits_[i].getSequence().length() == 0)
-        ++no_seq_count;
-    }
-
-    if (no_seq_count > 0)
-    {
-      throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(no_seq_count) + " of " + protein_hits_.size() + " ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
-    }
-
-    // go through peptides and add length to proteinHit
-    Size protein_not_found_counter(0);
-    for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+    // map protein accession to the corresponding peptide evidence
+    map<String, set<PeptideEvidence> > map_acc_2_evidence;
+    for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
     {
       // peptide hits
-      vector<PeptideHit> peptide_hits = it1->getHits();
-      for (vector<PeptideHit>::iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
+      const PeptideIdentification & peptide_id = pep_ids[pep_i];
+      const vector<PeptideHit> peptide_hits = peptide_id.getHits();
+      for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
       {
+        const PeptideHit & peptide_hit = peptide_hits[ph_i];
+        const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
+
         // matched proteins for hit
-        for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+        for (Size pep_ev_i = 0; pep_ev_i != ph_evidences.size(); ++pep_ev_i)
         {
-          if (protein_index.has(*it3))
-          {
-            protein_index[*it3].insert(it2->getSequence().toUnmodifiedString());
-          }
-          else
-          {
-            ++protein_not_found_counter;
-          }
+          const PeptideEvidence & evidence = ph_evidences[pep_ev_i];
+          map_acc_2_evidence[evidence.getProteinAccession()].insert(evidence);
         }
       }
     }
-
-    if (protein_not_found_counter > 0)
-      LOG_WARN << "ProteinIdentification::computeCoverage() was given PeptideIdentifications where " << protein_not_found_counter << " did not match a known Protein!" << std::endl;
-
-    // store coverage
+    
     for (Size i = 0; i < protein_hits_.size(); ++i)
     {
-      // add up peptide sizes
-      Size covered_length(0);
-      for (std::set<String>::const_iterator it = protein_index[protein_hits_[i].getAccession()].begin();
-           it != protein_index[protein_hits_[i].getAccession()].end();
-           ++it)
+      const Size protein_length = protein_hits_[i].getSequence().length();
+      if (protein_length == 0)
       {
-        covered_length += it->size();
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
       }
-      // set coverage
-      protein_hits_[i].setCoverage(double(covered_length) / (double)protein_hits_[i].getSequence().length() * 100.0);
-    }
+      vector<bool> covered_amino_acids(protein_length, false);
+      
+      const String & accession = protein_hits_[i].getAccession();
+      double coverage = 0.0;
+      if (map_acc_2_evidence.find(accession) != map_acc_2_evidence.end())
+      {
+        const set<PeptideEvidence> & evidences = map_acc_2_evidence.find(accession)->second;
+        for (set<PeptideEvidence>::const_iterator sit = evidences.begin(); sit != evidences.end(); ++sit)
+        {
+          int start = sit->getStart();
+          int stop = sit->getEnd();
+          
+          if (start == PeptideEvidence::UNKNOWN_POSITION || stop == PeptideEvidence::UNKNOWN_POSITION)
+          {
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+              " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
+          }
 
-    return protein_not_found_counter;
+          if (start < 0 || stop < start || stop > static_cast<int>(protein_length))
+          {
+            const String message = " PeptideEvidence (start/end) (" + String(start) + "/" + String(stop) +
+                                   " ) are invalid or point outside of protein '" + accession + 
+                                   "' (length: " + String(protein_length) + 
+                                   "). Cannot compute coverage!";
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
+          }
+          
+          std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);
+        }
+        coverage = 100.0 * (double) std::accumulate(covered_amino_acids.begin(), covered_amino_acids.end(), 0) / protein_length;
+      }
+      protein_hits_[i].setCoverage(coverage);
+    }
   }
 
   bool ProteinIdentification::isHigherScoreBetter() const
@@ -386,42 +411,42 @@ namespace OpenMS
     higher_score_better_ = value;
   }
 
-  const String & ProteinIdentification::getIdentifier() const
+  const String& ProteinIdentification::getIdentifier() const
   {
     return id_;
   }
 
-  void ProteinIdentification::setIdentifier(const String & id)
+  void ProteinIdentification::setIdentifier(const String& id)
   {
     id_ = id;
   }
 
-  void ProteinIdentification::setSearchEngine(const String & search_engine)
+  void ProteinIdentification::setSearchEngine(const String& search_engine)
   {
     search_engine_ = search_engine;
   }
 
-  const String & ProteinIdentification::getSearchEngine() const
+  const String& ProteinIdentification::getSearchEngine() const
   {
     return search_engine_;
   }
 
-  void ProteinIdentification::setSearchEngineVersion(const String & search_engine_version)
+  void ProteinIdentification::setSearchEngineVersion(const String& search_engine_version)
   {
     search_engine_version_ = search_engine_version;
   }
 
-  const String & ProteinIdentification::getSearchEngineVersion() const
+  const String& ProteinIdentification::getSearchEngineVersion() const
   {
     return search_engine_version_;
   }
 
-  void ProteinIdentification::setSearchParameters(const SearchParameters & search_parameters)
+  void ProteinIdentification::setSearchParameters(const SearchParameters& search_parameters)
   {
     search_parameters_ = search_parameters;
   }
 
-  const ProteinIdentification::SearchParameters & ProteinIdentification::getSearchParameters() const
+  const ProteinIdentification::SearchParameters& ProteinIdentification::getSearchParameters() const
   {
     return search_parameters_;
   }

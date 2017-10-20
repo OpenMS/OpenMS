@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,8 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
 
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
@@ -62,155 +64,6 @@ using namespace OpenMS;
 #define RT_FACTOR_PRECISION 1000
 #define RT_MODULO_FACTOR 10000 // last 4 digits is the index
 
-struct RNPxlReportRow
-{
-  bool no_id;
-  double rt;
-  double original_mz;
-  String accessions;
-  String RNA;
-  String peptide;
-  Int charge;
-  double score;
-  double peptide_weight;
-  double RNA_weight;
-  double xl_weight;
-  double abs_prec_error;
-  double rel_prec_error;
-  Map<String, vector<pair<double, double> > > marker_ions;
-  double m_H;
-  double m_2H;
-  double m_3H;
-  double m_4H;
-
-  String getString(String separator)
-  {
-    StringList sl;
-
-    // rt mz
-    sl << String::number(rt, 0) << String::number(original_mz, 4);
-
-    // id if available
-    if (no_id)
-    {
-      sl << "" << "" << "" << "" << "" << "" << "" << "";
-    }
-    else
-    {
-      sl << accessions << RNA << peptide << String(charge) << String(score)
-         << String::number(peptide_weight, 4) << String::number(RNA_weight, 4) << String::number(peptide_weight + RNA_weight, 4);
-    }
-
-    // marker ions
-    for (Map<String, vector<pair<double, double> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
-    {
-      for (Size i = 0; i != it->second.size(); ++i)
-      {
-        sl << String::number(it->second[i].second * 100.0, 2);
-      }
-    }
-
-    // id error and multiple charged mass
-    if (no_id)
-    {
-      sl << "" << ""
-         << "" << "" << "" << "";
-    }
-    else
-    {
-      // error
-      sl << String::number(abs_prec_error, 4)
-         << String::number(rel_prec_error, 1);
-
-      // weight
-      sl << String::number(m_H, 4)
-         << String::number(m_2H, 4)
-         << String::number(m_3H, 4)
-         << String::number(m_4H, 4);
-    }
-
-    return ListUtils::concatenate(sl, separator);
-  }
-
-};
-
-struct MarkerIonExtractor
-{
-  static void extractMarkerIons(Map<String, vector<pair<double, double> > >& marker_ions, const PeakSpectrum& s, const double marker_tolerance)
-  {
-    marker_ions.clear();
-    marker_ions["A"].push_back(make_pair(136.06231, 0.0));
-    marker_ions["A"].push_back(make_pair(330.06033, 0.0));
-    marker_ions["C"].push_back(make_pair(112.05108, 0.0));
-    marker_ions["C"].push_back(make_pair(306.04910, 0.0));
-    marker_ions["G"].push_back(make_pair(152.05723, 0.0));
-    marker_ions["G"].push_back(make_pair(346.05525, 0.0));
-    marker_ions["U"].push_back(make_pair(113.03509, 0.0));
-    marker_ions["U"].push_back(make_pair(307.03311, 0.0));
-
-    PeakSpectrum spec(s);
-    Normalizer normalizer;
-    normalizer.filterSpectrum(spec);
-    spec.sortByPosition();
-
-    // for each nucleotide with marker ions
-    for (Map<String, vector<pair<double, double> > >::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
-    {
-      // for each marker ion of the current nucleotide
-      for (Size i = 0; i != it->second.size(); ++i)
-      {
-        double mz = it->second[i].first;
-        double max_intensity = 0;
-        for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit) // TODO: replace by binary search
-        {
-          if (sit->getMZ() + marker_tolerance < mz)
-          {
-            continue;
-          }
-          if (mz < sit->getMZ() - marker_tolerance)
-          {
-            break;
-          }
-          if (fabs(mz - sit->getMZ()) < marker_tolerance)
-          {
-            if (max_intensity < sit->getIntensity())
-            {
-              max_intensity = sit->getIntensity();
-            }
-          }
-        }
-        it->second[i].second = max_intensity;
-      }
-    }
-
-    return;
-  }
-
-};
-
-struct RNPxlReportRowHeader
-{
-  String getString(String separator)
-  {
-    StringList sl;
-    sl << "#RT" << "original m/z" << "proteins" << "RNA" << "peptide" << "charge" << "score"
-       << "peptide weight" << "RNA weight" << "cross-link weight";
-
-    // marker ion fields
-    Map<String, vector<pair<double, double> > > marker_ions;
-    MarkerIonExtractor::extractMarkerIons(marker_ions, PeakSpectrum(), 0.0); // call only to generate header entries
-    for (Map<String, vector<pair<double, double> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
-    {
-      for (Size i = 0; i != it->second.size(); ++i)
-      {
-        sl << String(it->first + "_" + it->second[i].first);
-      }
-    }
-    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H";
-    return ListUtils::concatenate(sl, separator);
-  }
-
-};
 
 
 /**
@@ -231,6 +84,8 @@ struct RNPxlReportRowHeader
         </tr>
     </table>
 </CENTER>
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_RNPxl.cli
@@ -279,6 +134,7 @@ protected:
 
     registerFlag_("CysteineAdduct", "Use this flag if the +152 adduct is expected.");
 
+    registerFlag_("continue", "Do not recreate intermediate files to continue after unexpected crash.", true);
     // search
     registerInputFile_("in_OMSSA_ini", "<file>", "", "Ini file for the OMSSA search engine\n");
     setValidFormats_("in_OMSSA_ini", ListUtils::create<String>("ini"));
@@ -324,6 +180,9 @@ protected:
     double precursor_variant_mz_threshold = getDoubleOption_("precursor_variant_mz_threshold");
 
     const String in_fasta_file(getStringOption_("in_fasta"));
+
+    const String out_idXML = getStringOption_("out_idXML");
+    const string out_csv = getStringOption_("out_csv");
 
     RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_length);
 
@@ -480,10 +339,12 @@ protected:
       String file_name_variant = tmp_path + "/" + base_name + "_"  + rt_string + "_" + mz_string + "_variant.mzML";
       file_list_variants_mzML.push_back(file_name_variant);
 
-      if (!getFlag_("test"))
+      if (getFlag_("continue") && File::exists(file_name_variant))
       {
-        MzMLFile().store(file_name_variant, new_exp);
+        continue;
       }
+
+      MzMLFile().store(file_name_variant, new_exp);
     }
 
     cout << base_name << ": " << "Spectra filtered by fractional mass: " << fractional_mass_filtered << endl;
@@ -504,6 +365,12 @@ protected:
         String in_string = *it;
         String out_string = in_string;
         out_string.substitute(".mzML", ".idXML");
+
+        if (getFlag_("continue") && File::exists(out_string))
+        {
+          continue;
+        }
+
         // Compose argument list and run OMSSA with new ini
         QStringList args;
         args << "-ini" << in_OMSSA_ini.toQString() << "-in" << in_string.toQString() << "-out" << out_string.toQString() << "-database" << in_fasta_file.toQString() << "-no_progress";
@@ -528,8 +395,6 @@ protected:
     }
 
     // create report
-    const String out_idXML = getStringOption_("out_idXML");
-    const string out_csv = getStringOption_("out_csv");
     vector<RNPxlReportRow> csv_rows;
 
     const double marker_tolerance = getDoubleOption_("marker_ions_tolerance");
@@ -538,8 +403,6 @@ protected:
     // protein and peptide identifications for all spectra
     vector<PeptideIdentification> whole_experiment_filtered_peptide_ids;
     vector<ProteinIdentification> whole_experiment_filtered_protein_ids;
-
-    Map<String, vector<pair<double, double> > > marker_ions;
 
     Size counter(0);
     for (vector<String>::const_iterator it = file_list_variants_mzML.begin(); it != file_list_variants_mzML.end(); ++it, ++counter)
@@ -560,25 +423,12 @@ protected:
       // copy protein identifications as is - they are not really needed in the later output
       whole_experiment_filtered_protein_ids.insert(whole_experiment_filtered_protein_ids.end(), prot_ids.begin(), prot_ids.end());
 
-      /*
-      for (size_t k = 0; k != prot_ids.size(); ++k)
-      {
-        vector<ProteinHit> ph_tmp = prot_ids[k].getHits();
-        cout << ph_tmp.size() << endl;
-        for (vector<ProteinHit>::iterator it2 = ph_tmp.begin(); it2 != ph_tmp.end(); ++it2)
-        {
-          cout << it2->getAccession() << endl;
-        }
-      }
-      */
-
       // load map with all precursor variations (originating from one single precursor) that corresponds to this identification run
       PeakMap exp;
       MzMLFile().load(mzml_string, exp);
 
       // find marker ions
-      marker_ions.clear();
-      MarkerIonExtractor::extractMarkerIons(marker_ions, *exp.begin(), marker_tolerance);
+      RNPxlMarkerIonExtractor::MarkerIonsType marker_ions = RNPxlMarkerIonExtractor::extractMarkerIons(*exp.begin(), marker_tolerance);
 
       // case 1: no peptide identification
       RNPxlReportRow row;
@@ -657,13 +507,15 @@ protected:
         ppm_difference = absolute_difference / theo_mz * 1000000;
 
         String protein_accessions;
-        if (hit->getProteinAccessions().size() != 0)
+        set<String> accs = hit->extractProteinAccessionsSet();
+
+        for (set<String>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)
         {
-          protein_accessions += hit->getProteinAccessions()[0];
-        }
-        for (Size acc = 1; acc < hit->getProteinAccessions().size(); ++acc)
-        {
-          protein_accessions += "," + hit->getProteinAccessions()[acc];
+          if (a_it != accs.begin())
+          {
+            protein_accessions += ",";
+          }
+          protein_accessions += *a_it;
         }
 
         row.no_id = false;
@@ -759,6 +611,13 @@ protected:
       }
     }
 
+    if (!pr_tmp.empty())
+    {
+      ProteinIdentification &p_tmp = pr_tmp[0];
+      StringList ms_runs;
+      exp.getPrimaryMSRunPath(ms_runs);
+      p_tmp.setPrimaryMSRunPath(ms_runs);
+    }
     IdXMLFile().store(out_idXML, pr_tmp, pt_tmp, "summary");
 
 
@@ -789,15 +648,17 @@ protected:
     {
       for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
       {
-        double rt = (double)pit->getMetaValue("RT");
-        vector<String> accessions = hit->getProteinAccessions();
+        double rt = pit->getRT();
+
+        set<String> accessions = hit->extractProteinAccessionsSet();
 
         String accession_string;
-        for (Size j = 0; j != accessions.size(); ++j)
+        Size j = 0;
+        for (set<String>::const_iterator a_it = accessions.begin(); a_it != accessions.end(); ++a_it, ++j)
         {
           if (j < 3)
           {
-            accession_string += accessions[j] + " ";
+            accession_string += *a_it + " ";
           }
           else
           {

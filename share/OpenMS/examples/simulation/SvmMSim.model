@@ -3,7 +3,7 @@
 </PrecursorCharge>
 <PrimaryTypes>
 <IonType>
-11
+8
 
 1
 <SvmModelFileClass>
@@ -197,7 +197,7 @@ testModel_11__1_reg.svm
 0.957301887773698
 </IntensityBinValues>
 <IonType>
-11
+8
 H3N1
 1
 <ConditionalProbabilities>
@@ -357,7 +357,7 @@ H3N1
 </ConditionalProbabilities>
 </IonType>
 <IonType>
-11
+8
 H2O1
 1
 <ConditionalProbabilities>
@@ -517,7 +517,7 @@ H2O1
 </ConditionalProbabilities>
 </IonType>
 <IonType>
-11
+8
 
 2
 <ConditionalProbabilities>

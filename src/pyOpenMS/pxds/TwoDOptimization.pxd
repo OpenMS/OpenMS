@@ -16,6 +16,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>" namespac
         #  DefaultParamHandler
         TwoDOptimization() nogil except +
         TwoDOptimization(TwoDOptimization) nogil except +
+
         double getMZTolerance() nogil except +
         void setMZTolerance(double tolerance_mz) nogil except +
         double getMaxPeakDistance() nogil except +
@@ -24,5 +25,5 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>" namespac
         void setMaxIterations(UInt max_iteration) nogil except +
         # NAMESPACE # OptimizationFunctions::PenaltyFactorsIntensity  getPenalties() nogil except +
         # NAMESPACE # void setPenalties(OptimizationFunctions::PenaltyFactorsIntensity & penalties) nogil except +
-        # TEMPLATE # void optimize(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment[ OutputPeakType ] & ms_exp, bool real2D) nogil except +
+        # TEMPLATE # void optimize(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment & ms_exp, bool real2D) nogil except +
 

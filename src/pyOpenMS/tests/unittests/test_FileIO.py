@@ -23,10 +23,10 @@ class TestPepXML(unittest.TestCase):
         prots = []
         pepxml_file.load(self.filename, prots, peps)
 
-        self.assertEqual( len(prots),  1)
-        self.assertEqual( len(peps),  3)
+        self.assertEqual( len(prots),  3)
+        self.assertEqual( len(peps),  19)
 
-        self.assertEqual( peps[0].getHits()[0].getSequence().toString(), b"LAPSAAEDGAFR")
+        self.assertEqual( peps[0].getHits()[0].getSequence().toString(), b'.(Glu->pyro-Glu)ELNKEMAAEKAKAAAG')
 
 class TestIdXML(unittest.TestCase):
 

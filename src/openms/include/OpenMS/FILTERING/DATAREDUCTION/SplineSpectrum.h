@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 
 #include <vector>
@@ -53,7 +52,7 @@ namespace OpenMS
  * Between these splines no raw data points exist and the spectrum intensity is identical to zero.
  *
  * @see SplinePackage
- * @see MSSpectrum<Peak1D>
+ * @see MSSpectrum
  */
 class OPENMS_DLLAPI SplineSpectrum
 {
@@ -71,8 +70,8 @@ class OPENMS_DLLAPI SplineSpectrum
      * @brief constructor taking an MSSpectrum
      * (and an optional scaling factor for the m/z step width)
      */
-    SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum);
-    SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling);
+    SplineSpectrum(MSSpectrum& raw_spectrum);
+    SplineSpectrum(MSSpectrum& raw_spectrum, double scaling);
 
     /**
      * @brief destructor
@@ -95,7 +94,7 @@ class OPENMS_DLLAPI SplineSpectrum
      *  has some usable data to work on.
      *  In case there are no packages, a subsequent call to getNavigator() will throw an exception.
      */
-    unsigned getSplineCount() const;
+    size_t getSplineCount() const;
 
     /**
     * @brief iterator class for access of spline packages
@@ -128,9 +127,6 @@ class OPENMS_DLLAPI SplineSpectrum
 
       private:
         
-        /// hide default Ctor
-        Navigator();
-
         /**
         * @brief list of spline packages to be accessed
         */
@@ -139,7 +135,7 @@ class OPENMS_DLLAPI SplineSpectrum
         /**
         * @brief index of spline package last accessed
         */
-        unsigned last_package_;
+        size_t last_package_;
 
         /**
         * @brief m/z limits of the spectrum

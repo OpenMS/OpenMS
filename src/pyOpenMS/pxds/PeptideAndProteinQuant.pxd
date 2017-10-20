@@ -20,8 +20,12 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
         PeptideAndProteinQuant() nogil except +
         PeptideAndProteinQuant(PeptideAndProteinQuant) nogil except + #wrap-ignore
 
-        void quantifyPeptides(FeatureMap[Feature] & map_in) nogil except +
-        void quantifyPeptides(ConsensusMap & map_in) nogil except +
+        void readQuantData(FeatureMap & map_in) nogil except +
+        void readQuantData(ConsensusMap & map_in) nogil except +
+        void readQuantData(libcpp_vector[ProteinIdentification] & proteins,
+                           libcpp_vector[PeptideIdentification] & peptides) nogil except +
+
+        void quantifyPeptides(libcpp_vector[PeptideIdentification] & peptides) nogil except +
         void quantifyProteins(ProteinIdentification & proteins) nogil except +
 
         PeptideAndProteinQuant_Statistics getStatistics() nogil except +
@@ -49,7 +53,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
       Size quant_features
       Size total_features
       Size blank_features
-      Size ambig_features 
+      Size ambig_features
 
       # constructor
       PeptideAndProteinQuant_Statistics()  nogil except +
@@ -57,8 +61,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
 
     cdef cppclass PeptideAndProteinQuant_PeptideData "OpenMS::PeptideAndProteinQuant::PeptideData":
 
-      # libcpp_map[Int, SampleAbundances] abundances 
-      # SampleAbundances total_abundances 
+      # libcpp_map[Int, SampleAbundances] abundances
+      # SampleAbundances total_abundances
 
       # protein accessions for this peptide
       libcpp_set[String] accessions

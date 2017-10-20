@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,8 +36,20 @@
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 namespace OpenMS
 {
+  ClusterFunctor * SingleLinkage::create()
+  {
+    return new SingleLinkage();
+  }
+
+  const String SingleLinkage::getProductName()
+  {
+    return "SingleLinkage";
+  }
+
   SingleLinkage::SingleLinkage() :
     ClusterFunctor(), ProgressLogger()
   {
@@ -67,14 +79,14 @@ namespace OpenMS
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)
     {
-      throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Distance matrix to start from only contains one element");
+      throw ClusterFunctor::InsufficientInput(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Distance matrix to start from only contains one element");
     }
 
     cluster_tree.clear();
     if (threshold < 1)
     {
       LOG_ERROR << "You tried to use Single Linkage clustering with a threshold. This is currently not supported!" << std::endl;
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     //SLINK
@@ -119,7 +131,7 @@ namespace OpenMS
         }
       }
 
-      //update clustering if neccessary
+      //update clustering if necessary
       for (Size i = 0; i < k; ++i)
       {
         if (lambda[i] >= lambda[pi[i]])

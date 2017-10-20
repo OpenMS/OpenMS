@@ -1,0 +1,35 @@
+
+PROJECT_NAME           = "EOL BSpline Library"
+PROJECT_NUMBER         = "Version 1.5"
+HTML_OUTPUT            = doc/
+
+INPUT                  = ./BSpline/BSpline.dox ./BSpline
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+PAPER_TYPE             = letter
+PDF_HYPERLINKS         = YES
+USE_PDFLATEX           = YES
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+JAVADOC_AUTOBRIEF      = YES
+
+# 
+# Specifically disable extracting private class members and file static
+# members, for the case of generating documentation for only the public
+# interface of a library.  Instead require individual directories to
+# override those as needed.
+#
+EXTRACT_ALL	       = NO
+EXTRACT_STATIC	       = NO
+EXTRACT_PRIVATE	       = NO
+
+SOURCE_BROWSER         = NO
+REFERENCED_BY_RELATION = NO
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = NO
+INCLUDE_GRAPH          = NO
+INCLUDED_BY_GRAPH      = NO
+ALPHABETICAL_INDEX     = NO
+
+GRAPHICAL_HIERARCHY    = YES
+

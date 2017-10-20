@@ -11,4 +11,5 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>" namespace "Ope
         MzMLSpectrumDecoder(MzMLSpectrumDecoder) nogil except +
         void domParseChromatogram(libcpp_string in_, shared_ptr[Chromatogram] & cptr) nogil except +
         void domParseSpectrum(libcpp_string in_, shared_ptr[Spectrum] & cptr) nogil except +
+        void setSkipXMLChecks(bool only) nogil except +
 

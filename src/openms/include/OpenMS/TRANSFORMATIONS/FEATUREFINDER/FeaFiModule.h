@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEAFIMODULE_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -153,15 +154,13 @@ protected:
   /**
   @brief Implements a module of the FeatureFinder algorithm.
   */
-  template <class PeakType, class FeatureType>
+  template <class PeakType>
   class FeaFiModule :
     public DefaultParamHandler
   {
 public:
-    ///Output feature map type
-    typedef FeatureMap<FeatureType> FeatureMapType;
     ///Input map type
-    typedef MSExperiment<PeakType> MapType;
+    typedef PeakMap MapType;
     ///Input spectrum type
     typedef typename MapType::SpectrumType SpectrumType;
     ///Input intensity type
@@ -170,7 +169,7 @@ public:
     typedef typename PeakType::CoordinateType CoordinateType;
 
     ///Constructor
-    FeaFiModule(const MSExperiment<PeakType> * map, FeatureMap<FeatureType> * features, FeatureFinder * ff) :
+    FeaFiModule(const PeakMap * map, FeatureMap* features, FeatureFinder * ff) :
       DefaultParamHandler("FeaFiModule"),
       map_(0),
       features_(0),
@@ -410,7 +409,7 @@ protected:
     ///Input data pointer
     const MapType * map_;
     ///Output data pointer
-    FeatureMapType * features_;
+    FeatureMap * features_;
     ///Pointer to the calling FeatureFinder that is used to access the feature flags and report progress
     FeatureFinder * ff_;
 

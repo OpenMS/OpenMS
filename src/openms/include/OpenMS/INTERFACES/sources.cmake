@@ -5,6 +5,7 @@ set(directory include/OpenMS/INTERFACES)
 set(sources_list_h
 DataStructures.h
 ISpectrumAccess.h
+IMSDataConsumer.h
 )
 
 ### add path to the filenames

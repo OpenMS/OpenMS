@@ -8,7 +8,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
     def setUp(self):
 
         lt = pyopenms.LightTransition()
-        lt.charge = 2
+        lt.fragment_charge = 2
         lt.transition_name = b"X"
         lt.peptide_ref = b"Y"
         lt.library_intensity = 12.0
@@ -17,15 +17,15 @@ class TestLightTargetedExperiment(unittest.TestCase):
 
         lm = pyopenms.LightModification()
         lm.location = 13
-        lm.unimod_id = b"ID"
+        lm.unimod_id = 4
 
         self.lm = lm
 
-        lpep = pyopenms.LightPeptide()
+        lpep = pyopenms.LightCompound()
         lpep.rt = 12.0
         lpep.charge =  2
         lpep.sequence =  b"SEQ"
-        lpep.protein_ref =  b"REF"
+        lpep.protein_refs =  [b"REF"]
 
 
         lpep.modifications = [lm]
@@ -38,7 +38,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
         self.lprot = lprot
 
         lte = pyopenms.LightTargetedExperiment()
-        lte.peptides = [self.lpep]
+        lte.compounds = [self.lpep]
         lte.proteins = [self.lprot]
         lte.transitions = [self.lt]
 
@@ -47,8 +47,8 @@ class TestLightTargetedExperiment(unittest.TestCase):
 
     @staticmethod
     def _test_light_transition(lt):
-        assert lt.charge == 2
-        assert lt.getProductChargeState() == lt.charge
+        assert lt.fragment_charge == 2
+        assert lt.getProductChargeState() == lt.fragment_charge
         assert lt.transition_name == b"X"
         assert lt.peptide_ref == b"Y"
         assert lt.library_intensity == 12.0
@@ -57,7 +57,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
     @staticmethod
     def _test_light_modification(lm):
         assert lm.location == 13
-        assert lm.unimod_id == b"ID"
+        assert lm.unimod_id == 4
 
     @staticmethod
     def _test_light_peptide(lpep):
@@ -65,7 +65,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
         assert lpep.rt == 12.0
         assert lpep.charge ==  2
         assert lpep.sequence ==  b"SEQ"
-        assert lpep.protein_ref ==  b"REF"
+        assert lpep.protein_refs ==  [b"REF"]
 
         mod, = lpep.modifications
         TestLightTargetedExperiment._test_light_modification(mod)
@@ -92,7 +92,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
 
     def test_light_targeted_experiment(self):
         lprot, = self.lte.proteins
-        lpep, = self.lte.peptides
+        lpep, = self.lte.compounds
         ltrans, = self.lte.transitions
 
         TestLightTargetedExperiment._test_light_protein(lprot)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Timo Sachsenberg$
+// $Authors: Marc Sturm, Timo Sachsenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_VISUAL_SPECTRUM1DCANVAS_H
@@ -38,14 +38,16 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+// OpenMS
+#include <OpenMS/VISUAL/SpectrumCanvas.h>
+
+#include <QTextDocument>
+
 // STL
 #include <vector>
 #include <utility>
 
-// OpenMS
-#include <OpenMS/VISUAL/SpectrumCanvas.h>
-
-//QT
+// QT
 class QAction;
 
 namespace OpenMS
@@ -126,10 +128,13 @@ public:
     /// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
     PointType widgetToData(double x, double y, bool percentage = false);
 
+    /// Display a static text box on the top right
+    void setTextBox(const QString& html);
+
     /// ----- Annotations
 
     /// Add an annotation item for the given peak
-    Annotation1DItem * addPeakAnnotation(PeakIndex peak_index, QString text, QColor color);
+    Annotation1DItem * addPeakAnnotation(const PeakIndex& peak_index, const QString& text, const QColor& color);
 
     /// Draws all annotation items of @p layer_index on @p painter
     void drawAnnotations(Size layer_index, QPainter & painter);
@@ -279,6 +284,8 @@ protected:
     /// Ensure that all annotations are within data range
     void ensureAnnotationsWithinDataRange_();
 
+    QTextDocument text_box_content_;
+
     /** @name Reimplemented QT events */
     //@{
     void paintEvent(QPaintEvent * e);
@@ -294,9 +301,9 @@ protected:
     /// docu in base class
     virtual void zoom_(int x, int y, bool zoom_in);
     //docu in base class
-    virtual void translateLeft_();
+    virtual void translateLeft_(Qt::KeyboardModifiers m);
     //docu in base class
-    virtual void translateRight_();
+    virtual void translateRight_(Qt::KeyboardModifiers m);
     //docu in base class
     virtual void paintGridLines_(QPainter & painter);
   };

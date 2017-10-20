@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -43,45 +43,57 @@ namespace OpenMS
   // default constructor
   PeptideHit::PeptideHit() :
     MetaInfoInterface(),
+    sequence_(),
     score_(0),
+    analysis_results_(NULL),
     rank_(0),
     charge_(0),
-    aa_before_(' '),
-    aa_after_(' ')
+    peptide_evidences_(),
+    fragment_annotations_()
   {
   }
 
   // values constructor
-  PeptideHit::PeptideHit(double score, UInt rank, Int charge, const AASequence & sequence) :
+  PeptideHit::PeptideHit(double score, UInt rank, Int charge, const AASequence& sequence) :
     MetaInfoInterface(),
+    sequence_(sequence),
     score_(score),
+    analysis_results_(NULL),
     rank_(rank),
     charge_(charge),
-    sequence_(sequence),
-    aa_before_(' '),
-    aa_after_(' ')
+    peptide_evidences_(),
+    fragment_annotations_()
   {
   }
 
   // copy constructor
-  PeptideHit::PeptideHit(const PeptideHit & source) :
+  PeptideHit::PeptideHit(const PeptideHit& source) :
     MetaInfoInterface(source),
+    sequence_(source.sequence_),
     score_(source.score_),
+    analysis_results_(NULL),
     rank_(source.rank_),
     charge_(source.charge_),
-    sequence_(source.sequence_),
-    aa_before_(source.aa_before_),
-    aa_after_(source.aa_after_),
-    corresponding_protein_accessions_(source.corresponding_protein_accessions_)
+    peptide_evidences_(source.peptide_evidences_),
+    fragment_annotations_(source.fragment_annotations_)
   {
+    if (source.analysis_results_ != NULL)
+    {
+      analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
+    }
   }
 
   // destructor
   PeptideHit::~PeptideHit()
   {
+    if (analysis_results_ != NULL)
+    {
+      // free memory again
+      delete analysis_results_;
+    }
   }
 
-  PeptideHit & PeptideHit::operator=(const PeptideHit & source)
+  PeptideHit& PeptideHit::operator=(const PeptideHit& source)
   {
     if (this == &source)
     {
@@ -89,40 +101,48 @@ namespace OpenMS
     }
 
     MetaInfoInterface::operator=(source);
+    sequence_ = source.sequence_;
     score_ = source.score_;
+    analysis_results_ = NULL;
+    if (source.analysis_results_ != NULL)
+    {
+      if (analysis_results_ != NULL)
+      {
+        // free memory first
+        delete analysis_results_;
+      }
+      analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
+    }
     charge_ = source.charge_;
     rank_  = source.rank_;
-    sequence_ = source.sequence_;
-    aa_before_ = source.aa_before_;
-    aa_after_ = source.aa_after_;
-    corresponding_protein_accessions_ = source.corresponding_protein_accessions_;
-
+    peptide_evidences_ = source.peptide_evidences_;
+    fragment_annotations_ = source.fragment_annotations_;
     return *this;
   }
 
-  bool PeptideHit::operator==(const PeptideHit & rhs) const
+  bool PeptideHit::operator==(const PeptideHit& rhs) const
   {
+    bool ar_equal = false;
+    if (analysis_results_ == NULL && rhs.analysis_results_ == NULL) ar_equal = true;
+    else if (analysis_results_ != NULL && rhs.analysis_results_ != NULL)
+    {
+      ar_equal = (*analysis_results_ == *rhs.analysis_results_);
+    }
+    else return false; // one is null the other isn't
+
     return MetaInfoInterface::operator==(rhs)
+           && sequence_ == rhs.sequence_
            && score_ == rhs.score_
+           && ar_equal
            && rank_ == rhs.rank_
            && charge_ == rhs.charge_
-           && sequence_ == rhs.sequence_
-           && aa_before_ == rhs.aa_before_
-           && aa_after_ == rhs.aa_after_
-           && corresponding_protein_accessions_ == rhs.corresponding_protein_accessions_;
+           && peptide_evidences_ == rhs.peptide_evidences_
+           && fragment_annotations_ == rhs.fragment_annotations_;
   }
 
-  bool PeptideHit::operator!=(const PeptideHit & rhs) const
+  bool PeptideHit::operator!=(const PeptideHit& rhs) const
   {
     return !operator==(rhs);
-  }
-
-  void PeptideHit::addProteinAccession(const String & accession)
-  {
-    if (find(corresponding_protein_accessions_.begin(), corresponding_protein_accessions_.end(), accession) == corresponding_protein_accessions_.end())
-    {
-      corresponding_protein_accessions_.push_back(accession);
-    }
   }
 
   // returns the score of the peptide hit
@@ -138,9 +158,14 @@ namespace OpenMS
   }
 
   // returns the peptide sequence without trailing or following spaces
-  const AASequence & PeptideHit::getSequence() const
+  const AASequence& PeptideHit::getSequence() const
   {
     return sequence_;
+  }
+
+  void PeptideHit::setSequence(const AASequence& sequence)
+  {
+    sequence_ = sequence;
   }
 
   Int PeptideHit::getCharge() const
@@ -148,25 +173,24 @@ namespace OpenMS
     return charge_;
   }
 
-  void PeptideHit::setSequence(const AASequence & sequence)
-  {
-    sequence_ = sequence;
-  }
-
   void PeptideHit::setCharge(Int charge)
   {
     charge_ = charge;
   }
 
-  // returns the corresponding protein accessions
-  const vector<String> & PeptideHit::getProteinAccessions() const
+  const std::vector<PeptideEvidence>& PeptideHit::getPeptideEvidences() const
   {
-    return corresponding_protein_accessions_;
+    return peptide_evidences_;
   }
 
-  void PeptideHit::setProteinAccessions(const vector<String> & accessions)
+  void PeptideHit::setPeptideEvidences(const std::vector<PeptideEvidence>& peptide_evidences)
   {
-    corresponding_protein_accessions_ = accessions;
+    peptide_evidences_ = peptide_evidences;
+  }
+
+  void PeptideHit::addPeptideEvidence(const PeptideEvidence& peptide_evidence)
+  {
+    peptide_evidences_.push_back(peptide_evidence);
   }
 
   // sets the score of the peptide hit
@@ -175,30 +199,60 @@ namespace OpenMS
     score_ = score;
   }
 
+  void PeptideHit::setAnalysisResults(std::vector<PeptideHit::PepXMLAnalysisResult> aresult)
+  {
+    // delete old results first
+    if (analysis_results_ != NULL) delete analysis_results_;
+    analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult> (aresult);
+  }
+
+  void PeptideHit::addAnalysisResults(PeptideHit::PepXMLAnalysisResult aresult)
+  {
+    if (analysis_results_ == NULL)
+    {
+      analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult>();
+    }
+    analysis_results_->push_back(aresult);
+  }
+  
+  const std::vector<PeptideHit::PepXMLAnalysisResult>& PeptideHit::getAnalysisResults() const
+  {
+    static std::vector<PeptideHit::PepXMLAnalysisResult> empty;
+    if (analysis_results_ == NULL)
+    {
+      return empty;
+    }
+    return (*analysis_results_);
+  }
+
   // sets the rank
   void PeptideHit::setRank(UInt newrank)
   {
     rank_ = newrank;
   }
 
-  void PeptideHit::setAABefore(char acid)
+  std::set<String> PeptideHit::extractProteinAccessionsSet() const
   {
-    aa_before_ = acid;
+    set<String> accessions;
+    for (vector<PeptideEvidence>::const_iterator it = peptide_evidences_.begin(); it != peptide_evidences_.end(); ++it)
+    {
+      // don't return empty accessions
+      if (!it->getProteinAccession().empty())
+      {
+        accessions.insert(it->getProteinAccession());
+      }
+    }
+    return accessions;
   }
 
-  char PeptideHit::getAABefore() const
+  std::vector<PeptideHit::PeakAnnotation> PeptideHit::getPeakAnnotations() const
   {
-    return aa_before_;
+    return fragment_annotations_;
   }
 
-  void PeptideHit::setAAAfter(char acid)
+  void PeptideHit::setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations)
   {
-    aa_after_ = acid;
-  }
-
-  char PeptideHit::getAAAfter() const
-  {
-    return aa_after_;
+    fragment_annotations_ = frag_annotations;
   }
 
 } // namespace OpenMS

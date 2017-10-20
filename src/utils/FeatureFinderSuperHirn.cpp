@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-typedef FeatureFinderAlgorithmSH<Peak1D, Feature> FFSH;
+typedef FeatureFinderAlgorithmSH FFSH;
 
 class TOPPFeatureFinderSH :
   public TOPPBase
@@ -88,12 +88,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return FFSH().getDefaults();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -107,7 +107,7 @@ protected:
     //-------------------------------------------------------------
     MzMLFile mzMLFile;
     mzMLFile.setLogType(log_type_);
-    MSExperiment<Peak1D> input;
+    PeakMap input;
     mzMLFile.getOptions().addMSLevel(1);
     mzMLFile.load(in, input);
 
@@ -131,7 +131,7 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    FeatureMap<> output;
+    FeatureMap output;
 
     FeatureFinder ff;
     Param param = getParam_().copy("algorithm:", true);
@@ -152,6 +152,9 @@ protected:
     {
       output[i].ensureUniqueId();
     }
+    StringList ms_runs;
+    input.getPrimaryMSRunPath(ms_runs);
+    output.setPrimaryMSRunPath(ms_runs);
     FeatureXMLFile().store(out, output);
 
     return EXECUTION_OK;
@@ -159,7 +162,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFeatureFinderSH tool;
   return tool.main(argc, argv);

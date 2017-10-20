@@ -4,12 +4,16 @@ set(directory include/OpenMS/MATH/MISC)
 ### list all header files of the directory here
 set(sources_list_h
 BilinearInterpolation.h
+BSpline2d.h
 CubicSpline2d.h
 LinearInterpolation.h
 MathFunctions.h
 NonNegativeLeastSquaresSolver.h
 MSNumpress.h
-Spline2d.h
+RANSAC.h
+RANSACModel.h
+RANSACModelLinear.h
+RANSACModelQuadratic.h
 )
 
 ### add path to the filenames
@@ -22,4 +26,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\MATH\\MISC" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

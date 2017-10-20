@@ -78,7 +78,7 @@
       <Modification location="0" monoisotopicMassDelta="127.063324">
         <cvParam cvRef="UNIMOD" accession="UNIMOD:29" name="SMA"/>
       </Modification>
-      <Modification location="1" monoisotopicMassDelta="15.994919">
+      <Modification location="2" monoisotopicMassDelta="15.994919">
         <cvParam cvRef="UNIMOD" accession="UNIMOD:35" name="Oxidation"/>
       </Modification>
       <RetentionTimeList>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -69,6 +69,7 @@ namespace OpenMS
     mz_(rhs.mz_),
     rt_(rhs.rt_)
   {
+    setExperimentLabel( rhs.getExperimentLabel() );
   }
 
   PeptideIdentification::~PeptideIdentification()
@@ -84,13 +85,14 @@ namespace OpenMS
 
     MetaInfoInterface::operator=(rhs);
     id_ = rhs.id_;
-    rt_ = rhs.rt_;
-    mz_ = rhs.mz_;
     hits_ = rhs.hits_;
     significance_threshold_ = rhs.significance_threshold_;
     score_type_ = rhs.score_type_;
     higher_score_better_ = rhs.higher_score_better_;
+    setExperimentLabel( rhs.getExperimentLabel() );
     base_name_ = rhs.base_name_;
+    mz_ = rhs.mz_;
+    rt_ = rhs.rt_;
 
     return *this;
   }
@@ -100,13 +102,14 @@ namespace OpenMS
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
-           && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT()))     // might be NaN, so comparing == will always be false
-           && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ()))     // might be NaN, so comparing == will always be false
-           && hits_ == rhs.getHits()
+           && hits_ == rhs.hits_
            && significance_threshold_ == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
            && higher_score_better_ == rhs.higher_score_better_
-           && base_name_ == rhs.base_name_;
+           && getExperimentLabel() == rhs.getExperimentLabel()
+           && base_name_ == rhs.base_name_
+           && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
+           && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT()));// might be NaN, so comparing == will always be false
   }
 
   // Inequality operator
@@ -215,6 +218,29 @@ namespace OpenMS
     base_name_ = base_name;
   }
 
+  const String PeptideIdentification::getExperimentLabel() const
+  {
+    // implement as meta value in order to reduce bloat of PeptideIdentification object
+    //  -> this is mostly used for pepxml at the moment which allows each peptide id to belong to a different experiment
+    if (metaValueExists("experiment_label"))
+    {
+      return getMetaValue("experiment_label").toString();
+    }
+    else
+    {
+      return "";
+    }
+  }
+
+  void PeptideIdentification::setExperimentLabel(const String& label)
+  {
+    // do not store empty label (default value)
+    if (!label.empty())
+    {
+      setMetaValue("experiment_label", label);
+    }
+  }
+
   void PeptideIdentification::assignRanks()
   {
     if (hits_.empty())
@@ -241,12 +267,17 @@ namespace OpenMS
   {
     if (higher_score_better_)
     {
-      std::sort(hits_.begin(), hits_.end(), PeptideHit::ScoreMore());
+      std::stable_sort(hits_.begin(), hits_.end(), PeptideHit::ScoreMore());
     }
     else
     {
-      std::sort(hits_.begin(), hits_.end(), PeptideHit::ScoreLess());
+      std::stable_sort(hits_.begin(), hits_.end(), PeptideHit::ScoreLess());
     }
+  }
+
+  void PeptideIdentification::sortByRank()
+  {
+    std::sort(hits_.begin(), hits_.end(), PeptideHit::RankLess());
   }
 
   bool PeptideIdentification::empty() const
@@ -259,105 +290,38 @@ namespace OpenMS
            && base_name_ == "";
   }
 
-  void PeptideIdentification::getReferencingHits(const String& protein_accession, std::vector<PeptideHit>& peptide_hits) const
+  std::vector<PeptideHit> PeptideIdentification::getReferencingHits(const std::vector<PeptideHit>& hits, const std::set<String>& accession)
   {
-    vector<String> accession;
-
-    accession.push_back(protein_accession);
-    getReferencingHits(accession, peptide_hits);
-  }
-
-  void PeptideIdentification::getReferencingHits(const std::vector<String>& accessions, std::vector<PeptideHit>& peptide_hits) const
-  {
-    for (Size i = 0; i < hits_.size(); ++i)
+    std::vector<PeptideHit> filtered;
+    for (std::vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
     {
-      vector<String>::const_iterator it = hits_[i].getProteinAccessions().begin();
-      while (it != hits_[i].getProteinAccessions().end())
+      set<String> hit_accessions = h_it->extractProteinAccessionsSet();
+      set<String> intersect;
+      set_intersection(hit_accessions.begin(), hit_accessions.end(), accession.begin(), accession.end(), std::inserter(intersect, intersect.begin()));
+      if (!intersect.empty())
       {
-        if (find(accessions.begin(), accessions.end(), *it) != accessions.end())
-        {
-          peptide_hits.push_back(hits_[i]);
-          it = hits_[i].getProteinAccessions().end();
-        }
-        else
-        {
-          ++it;
-        }
+        filtered.push_back(*h_it);
       }
     }
+    return filtered;
   }
 
-  void PeptideIdentification::getReferencingHits(const std::vector<ProteinHit>& protein_hits, std::vector<PeptideHit>& peptide_hits) const
-  {
-    vector<String> accessions;
-
-    for (vector<ProteinHit>::const_iterator it = protein_hits.begin();
-         it != protein_hits.end();
-         ++it)
-    {
-      accessions.push_back(it->getAccession());
-    }
-    getReferencingHits(accessions, peptide_hits);
-  }
-
-  void PeptideIdentification::getNonReferencingHits(const String& protein_accession, std::vector<PeptideHit>& peptide_hits) const
-  {
-    vector<String> accession;
-
-    accession.push_back(protein_accession);
-    getNonReferencingHits(accession, peptide_hits);
-  }
-
-  void PeptideIdentification::getNonReferencingHits(const std::vector<String>& accessions, std::vector<PeptideHit>& peptide_hits) const
-  {
-    for (Size i = 0; i < hits_.size(); ++i)
-    {
-      bool found = false;
-      vector<String>::const_iterator it = hits_[i].getProteinAccessions().begin();
-      while (it != hits_[i].getProteinAccessions().end())
-      {
-        if (find(accessions.begin(), accessions.end(), *it) != accessions.end())
-        {
-          found = true;
-        }
-        ++it;
-      }
-      if (!found)
-      {
-        peptide_hits.push_back(hits_[i]);
-      }
-    }
-  }
-
-  void PeptideIdentification::getNonReferencingHits(const std::vector<ProteinHit>& protein_hits, std::vector<PeptideHit>& peptide_hits) const
-  {
-    vector<String> accessions;
-
-    for (vector<ProteinHit>::const_iterator it = protein_hits.begin();
-         it != protein_hits.end();
-         ++it)
-    {
-      accessions.push_back(it->getAccession());
-    }
-    getNonReferencingHits(accessions, peptide_hits);
-  }
-
-  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
   const DataValue& PeptideIdentification::getMetaValue(const String& name) const
   {
     if (name == "RT" || name == "MZ")
-    {   // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
+    { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
       std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
       exit(1);
     }
     return MetaInfoInterface::getMetaValue(name);
   }
 
-  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
   void PeptideIdentification::setMetaValue(const String& name, const DataValue& value)
   {
     if (name == "RT" || name == "MZ")
-    {   // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
+    { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
       std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
       exit(1);
     }

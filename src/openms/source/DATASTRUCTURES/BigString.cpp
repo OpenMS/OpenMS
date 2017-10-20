@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl,Andreas Bertsch$
+// $Maintainer: Timo Sachsenberg,Andreas Bertsch$
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/BigString.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/config.h>
 
 #include <iostream>
 
@@ -52,7 +53,7 @@ namespace OpenMS
     FASTA_header_.push_back("");
   }
 
-  BigString::BigString(const BigString & bs) :
+  BigString::BigString(const BigString& bs) :
     big_string_(bs.big_string_),
     separator_(bs.separator_),
     count_(bs.count_),
@@ -68,7 +69,7 @@ namespace OpenMS
 
   }
 
-  void BigString::add(FASTAEntry const & new_entry)
+  void BigString::add(FASTAEntry const& new_entry)
   {
     big_string_ += new_entry.second;
     big_string_ += separator_;
@@ -98,19 +99,19 @@ namespace OpenMS
     return len_;
   }
 
-  void BigString::getPeptide(FASTAEntry & entry, Size start, Size length)
+  void BigString::getPeptide(FASTAEntry& entry, Size start, Size length)
   {
     Size index_start = getIndex_(start);
     if (index_start != getIndex_(start + length))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "desired peptide is part of 2 fasta entries", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "desired peptide is part of 2 fasta entries", "");
     }
     entry.first = FASTA_header_[index_start];
     entry.second = big_string_.substr(start, length);
     return;
   }
 
-  const String & BigString::getBigString() const
+  const String& BigString::getBigString() const
   {
     return big_string_;
   }

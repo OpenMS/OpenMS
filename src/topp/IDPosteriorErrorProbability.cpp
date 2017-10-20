@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
@@ -72,20 +72,21 @@ using namespace std;
     By default an estimation is performed using the (inverse) Gumbel distribution for incorrectly assigned sequences
     and a Gaussian distribution for correctly assigned sequences. The probabilities are calculated by using Bayes' law, similar to PeptideProphet.
     Alternatively, a second Gaussian distribution can be used for incorrectly assigned sequences.
-    At the moment, IDPosteriorErrorProbability is able to handle X!Tandem, Mascot, MyriMatch and OMSSA scores.
+    At the moment, IDPosteriorErrorProbability is able to handle X! Tandem, Mascot, MyriMatch and OMSSA scores.
 
-  No target/decoy information needs to be provided, since the model fits are done on the mixed distribution.
+    No target/decoy information needs to be provided, since the model fits are done on the mixed distribution.
 
     In order to validate the computed probabilities an optional plot output can be generated.
     There are two parameters for the plot:
-    The scores are plotted in form of bins. Each bin represents a set of scores in a range of (highest_score - smallest_score)/number_of_bins (if all scores have positive values).
+    The scores are plotted in the form of bins. Each bin represents a set of scores in a range of '(highest_score - smallest_score) / number_of_bins' (if all scores have positive values).
     The midpoint of the bin is the mean of the scores it represents.
     The parameter 'out_plot' should be used to give the plot a unique name. Two files are created. One with the binned scores and one with all steps of the estimation.
-    If top_hits_only is set, only the top hits of each PeptideIdentification are used for the estimation process.
-    Additionally, if 'top_hits_only' is set and target_decoy information are available and a False Discovery Rate run was performed before, an additional plot will be plotted with target and decoy bins('out_plot' must not be empty).
-    A peptide hit is assumed to be a target if its q-value is smaller than fdr_for_targets_smaller.
-    The plots are saved as a gnuplot file. An attempt is made to call Gnuplot, which will create a PDF file which contains all steps of the estimation. If this fails, the user has to run Gnuplot manually
-    or adjust the PATH environment such that this tool can find it.
+    If parameter @p top_hits_only is set, only the top hits of each peptide identification are used for the estimation process.
+    Additionally, if 'top_hits_only' is set, target/decoy information is available and a @ref TOPP_FalseDiscoveryRate run was performed previously, an additional plot will be generated with target and decoy bins ('out_plot' must not be empty).
+    A peptide hit is assumed to be a target if its q-value is smaller than @p fdr_for_targets_smaller.
+    The plots are saved as a Gnuplot file. An attempt is made to call Gnuplot, which will create a PDF file containing all steps of the estimation. If this fails, the user has to run Gnuplot manually - or adjust the PATH environment such that Gnuplot can be found and retry.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDPosteriorErrorProbability.cli
@@ -121,12 +122,11 @@ protected:
     registerOutputFile_("out_plot", "<file>", "", "txt file (if gnuplot is available, a corresponding PDF will be created as well.)", false);
     setValidFormats_("out_plot", ListUtils::create<String>("txt"));
 
-    registerDoubleOption_("smallest_e_value", "<value>", 10e-20, "This value gives a lower bound to E-Values. It should not be 0, as transformation in a real number (log of E-value) is not possible for certain values then.", false, true);
     registerFlag_("split_charge", "The search engine scores are split by charge if this flag is set. Thus, for each charge state a new model will be computed.");
     registerFlag_("top_hits_only", "If set only the top hits of every PeptideIdentification will be used");
-    registerDoubleOption_("fdr_for_targets_smaller", "<value>", 0.05, "Only used, when top_hits_only set. Additionally, target_decoy information should be available. The score_type must be q-value from an previous False Discovery Rate run.", false, true);
+    registerDoubleOption_("fdr_for_targets_smaller", "<value>", 0.05, "Only used, when top_hits_only set. Additionally, target/decoy information should be available. The score_type must be q-value from an previous False Discovery Rate run.", false, true);
     registerFlag_("ignore_bad_data", "If set errors will be written but ignored. Useful for pipelines with many datasets where only a few are bad, but the pipeline should run through.");
-    registerFlag_("prob_correct", "If set scores will be calculated as 1-ErrorProbabilities and can be interpreted as probabilities for correct identifications.");
+    registerFlag_("prob_correct", "If set scores will be calculated as '1 - ErrorProbabilities' and can be interpreted as probabilities for correct identifications.");
     registerSubsection_("fit_algorithm", "Algorithm parameter subsection");
     addEmptyLine_();
   }
@@ -141,7 +141,7 @@ protected:
     }
     else 
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "INTERNAL ERROR: Param 'out_plot' was removed from fit-algorithm. Please update param handling internally!");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "INTERNAL ERROR: Param 'out_plot' was removed from fit-algorithm. Please update param handling internally!");
     }
     return p;
   }
@@ -167,7 +167,7 @@ protected:
     else if (engine == "MASCOT")
     {
       // issue #740: unable to fit data with score 0
-      if (hit.getScore() == 0) 
+      if (hit.getScore() == 0.0) 
       {
         return numeric_limits<double>::quiet_NaN();
       }
@@ -192,9 +192,31 @@ protected:
         return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
       }
     }
+    else if ((engine == "MSGFPlus") || (engine == "MS-GF+"))
+    {
+      if (hit.metaValueExists("MS:1002053"))  // name: MS-GF:EValue
+      {
+        return (-1) * log10(max((double)hit.getMetaValue("MS:1002053"), smallest_e_value_));
+      }
+      else if (hit.metaValueExists("expect"))
+      {
+        return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
+      }
+    }
+    else if (engine == "Comet")
+    {
+      if (hit.metaValueExists("MS:1002257")) // name: Comet:expectation value
+      {
+        return (-1) * log10(max((double)hit.getMetaValue("MS:1002257"), smallest_e_value_));
+      }
+      else if (hit.metaValueExists("expect"))
+      {
+        return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
+      }
+    }
     else
     {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
+      throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
     }
 
     // avoid compiler warning (every code path must return a value, even if there is a throw() somewhere)
@@ -209,7 +231,6 @@ protected:
 
     String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
-    smallest_e_value_ = getDoubleOption_("smallest_e_value");
     Param fit_algorithm = getParam_().copy("fit_algorithm:", true);
     fit_algorithm.setValue("out_plot", getStringOption_("out_plot")); // re-assemble full param (was moved to top-level)
     bool split_charge = getFlag_("split_charge");
@@ -218,6 +239,10 @@ protected:
     bool target_decoy_available = false;
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
+
+    // Set fixed e-value threshold
+    smallest_e_value_ = numeric_limits<double>::denorm_min();
+
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -228,67 +253,64 @@ protected:
     vector<double> scores;
     vector<double> decoy;
     vector<double> target;
-    vector<Int> charges;
+    set<Int> charges;
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);
-    StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem");
+    StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet");
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
     if (split_charge)
     {
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it < peptide_ids.end(); ++it)
+      for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
       {
-        vector<PeptideHit> hits = it->getHits();
-        for (std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
+        vector<PeptideHit>& hits = pep_it->getHits();
+        for (std::vector<PeptideHit>::iterator hit_it = hits.begin(); hit_it != hits.end(); ++hit_it)
         {
-          if (charges.end() == find(charges.begin(), charges.end(), hit->getCharge()))
-          {
-            charges.push_back(hit->getCharge());
-          }
+          charges.insert(hit_it->getCharge());
         }
       }
       if (charges.empty())
       {
-        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "no charges found!");
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "no charges found!");
       }
     }
-    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it < peptide_ids.end(); ++it)
+    for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
     {
-      if (!it->getHits().empty())
+      if (!pep_it->getHits().empty())
       {
-        target_decoy_available = (it->getScoreType() == "q-value" &&  it->getHits()[0].metaValueExists("target_decoy"));
+        target_decoy_available = ((pep_it->getScoreType() == "q-value") && pep_it->getHits()[0].metaValueExists("target_decoy"));
         break;
       }
     }
 
-    vector<Int>::iterator charge = charges.begin(); // charges can be empty, no problem if split_charge is not set
+    set<Int>::iterator charge_it = charges.begin(); // charges can be empty, no problem if split_charge is not set
     if (split_charge && charges.empty())
     {
-      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "split_charge is set and the list of charge states is empty but should not be!");
+      throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "'split_charge' is set, but the list of charge states is empty");
     }
     map<String, vector<vector<double> > > all_scores;
-    char splitter = ','; //to split the engine from the charge state later on
+    char splitter = ','; // to split the engine from the charge state later on
     do
     {
-      for (StringList::iterator engine = search_engines.begin(); engine < search_engines.end(); ++engine)
+      for (StringList::iterator engine_it = search_engines.begin(); engine_it != search_engines.end(); ++engine_it)
       {
-        for (vector<ProteinIdentification>::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
+        for (vector<ProteinIdentification>::iterator prot_it = protein_ids.begin(); prot_it != protein_ids.end(); ++prot_it)
         {
-          String searchengine_toUpper =  prot_iter->getSearchEngine();
-          searchengine_toUpper.toUpper();
-          if (*engine == prot_iter->getSearchEngine() || *engine == searchengine_toUpper)
+          String searchengine = prot_it->getSearchEngine();
+          if ((*engine_it == searchengine) || (*engine_it == searchengine.toUpper()))
           {
-            for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it < peptide_ids.end(); ++it)
+            for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
             {
-              if (prot_iter->getIdentifier().compare(it->getIdentifier()) == 0)
+              if (prot_it->getIdentifier() == pep_it->getIdentifier())
               {
-                vector<PeptideHit> hits = it->getHits();
+                vector<PeptideHit>& hits = pep_it->getHits();
                 if (top_hits_only)
                 {
-                  if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge))
+                  pep_it->sort();
+                  if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
                   {
-                    double score = getScore_(*engine, hits[0]);
+                    double score = getScore_(*engine_it, hits[0]);
                     if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                     {
                       scores.push_back(score);
@@ -309,11 +331,11 @@ protected:
                 }
                 else
                 {
-                  for (std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
+                  for (std::vector<PeptideHit>::iterator hit_it = hits.begin(); hit_it != hits.end(); ++hit_it)
                   {
-                    if (!split_charge || hit->getCharge() == *charge)
+                    if (!split_charge || (hit_it->getCharge() == *charge_it))
                     {
-                      double score = getScore_(*engine, *hit);
+                      double score = getScore_(*engine_it, *hit_it);
                       if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                       {
                         scores.push_back(score);
@@ -333,12 +355,12 @@ protected:
           tmp.push_back(decoy);
           if (split_charge)
           {
-            String engine_with_charge_state = *engine + String(splitter) + String(*charge);
+            String engine_with_charge_state = *engine_it + String(splitter) + String(*charge_it);
             all_scores.insert(make_pair(engine_with_charge_state, tmp));
           }
           else
           {
-            all_scores.insert(make_pair(*engine, tmp));
+            all_scores.insert(make_pair(*engine_it, tmp));
           }
         }
 
@@ -347,10 +369,9 @@ protected:
         decoy.clear();
       }
 
-      if (split_charge) ++charge;
-
+      if (split_charge) ++charge_it;
     }
-    while (charge < charges.end());
+    while (charge_it != charges.end());
 
     if (all_scores.empty())
     {
@@ -358,11 +379,11 @@ protected:
       if (!ignore_bad_data) return INPUT_FILE_EMPTY;
     }
 
-    String out_plot  = fit_algorithm.getValue("out_plot").toString().trim();
-    for (map<String, vector<vector<double> > >::iterator it = all_scores.begin(); it != all_scores.end(); ++it)
+    String out_plot = fit_algorithm.getValue("out_plot").toString().trim();
+    for (map<String, vector<vector<double> > >::iterator score_it = all_scores.begin(); score_it != all_scores.end(); ++score_it)
     {
       vector<String> engine_info;
-      it->first.split(splitter, engine_info);
+      score_it->first.split(splitter, engine_info);
       String engine = engine_info[0];
       Int charge = -1;
       if (engine_info.size() == 2)
@@ -377,73 +398,71 @@ protected:
         PEP_model.setParameters(fit_algorithm);
       }
 
-      const bool return_value = PEP_model.fit(it->second[0]);
+      const bool return_value = PEP_model.fit(score_it->second[0]);
       if (!return_value) writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
       if (!return_value && !ignore_bad_data) return UNEXPECTED_RESULT;
 
       if (return_value)
       {
         // plot target_decoy
-        if (!out_plot.empty() && top_hits_only && target_decoy_available && it->second[0].size() > 0)
+        if (!out_plot.empty() && top_hits_only && target_decoy_available && (score_it->second[0].size() > 0))
         {
-          PEP_model.plotTargetDecoyEstimation(it->second[1], it->second[2]); //target, decoy
+          PEP_model.plotTargetDecoyEstimation(score_it->second[1], score_it->second[2]); //target, decoy
         }
 
         bool unable_to_fit_data = true;
         bool data_might_not_be_well_fit = true;
-        for (vector<ProteinIdentification>::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
+        for (vector<ProteinIdentification>::iterator prot_it = protein_ids.begin(); prot_it != protein_ids.end(); ++prot_it)
         {
-          String searchengine_toUpper =  prot_iter->getSearchEngine();
-          searchengine_toUpper.toUpper();
-
-          if (engine == prot_iter->getSearchEngine() || engine == searchengine_toUpper)
+          String searchengine = prot_it->getSearchEngine();
+          if ((engine == searchengine) || (engine == searchengine.toUpper()))
           {
-            for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it < peptide_ids.end(); ++it)
+            for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it != peptide_ids.end(); ++pep_it)
             {
-              if (prot_iter->getIdentifier().compare(it->getIdentifier()) == 0)
+              if (prot_it->getIdentifier() == pep_it->getIdentifier())
               {
-                String score_type = it->getScoreType() + "_score";
-                vector<PeptideHit> hits = it->getHits();
-                for (std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
+                String score_type = pep_it->getScoreType() + "_score";
+                vector<PeptideHit> hits = pep_it->getHits();
+                for (std::vector<PeptideHit>::iterator hit_it = hits.begin(); hit_it != hits.end(); ++hit_it)
                 {
-                  if (!split_charge || hit->getCharge() == charge)
+                  if (!split_charge || (hit_it->getCharge() == charge))
                   {
                     double score;
-                    hit->setMetaValue(score_type, hit->getScore());
+                    hit_it->setMetaValue(score_type, hit_it->getScore());
 
-                    score = getScore_(engine, *hit);
+                    score = getScore_(engine, *hit_it);
                     if (boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                     {
-                      score = 1;
+                      score = 1.0;
                     }
                     else 
                     { 
                       score = PEP_model.computeProbability(score);
-                      if (score > 0 && score < 1) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
-                      if (score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;  //same as above
+                      if ((score > 0.0) && (score < 1.0)) unable_to_fit_data = false;  // only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
+                      if ((score > 0.2) && (score < 0.8)) data_might_not_be_well_fit = false;  //same as above
                     }
-                    hit->setScore(score);
+                    hit_it->setScore(score);
                     if (prob_correct)
                     {
-                      hit->setScore(1 - score);
+                      hit_it->setScore(1.0 - score);
                     }
                     else
                     {
-                      hit->setScore(score);
+                      hit_it->setScore(score);
                     }
                   }
                 }
-                it->setHits(hits);
+                pep_it->setHits(hits);
               }
               if (prob_correct)
               {
-                it->setScoreType("Posterior Probability");
-                it->setHigherScoreBetter(true);
+                pep_it->setScoreType("Posterior Probability");
+                pep_it->setHigherScoreBetter(true);
               }
               else
               {
-                it->setScoreType("Posterior Error Probability");
-                it->setHigherScoreBetter(false);
+                pep_it->setScoreType("Posterior Error Probability");
+                pep_it->setHigherScoreBetter(false);
               }
             }
           }

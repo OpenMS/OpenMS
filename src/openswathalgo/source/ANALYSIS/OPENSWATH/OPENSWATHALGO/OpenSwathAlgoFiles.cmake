@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -37,17 +37,18 @@ set(directory source/ANALYSIS/OPENSWATH/OPENSWATHALGO)
 
 ### list all files of the directory here
 set(sources_algo_list
-  ALGO/Scoring.cpp
   ALGO/MRMScoring.cpp
+  ALGO/Scoring.cpp
   ALGO/StatsHelpers.cpp
 )
 
 set(sources_dataaccess_list
+  DATAACCESS/DataFrameWriter.cpp
+  DATAACCESS/ISpectrumAccess.cpp
+  DATAACCESS/MockObjects.cpp
   DATAACCESS/SpectrumHelpers.cpp
-	DATAACCESS/ISpectrumAccess.cpp
-	DATAACCESS/TransitionHelper.cpp
-	DATAACCESS/MockObjects.cpp
-	DATAACCESS/DataFrameWriter.cpp
+  DATAACCESS/TransitionHelper.cpp
+  DATAACCESS/Transitions.cpp
 )
 
 ### add path to the filenames
@@ -81,11 +82,11 @@ set(header_dataaccess_list
   DATAACCESS/DataFrameWriter.h
   DATAACCESS/DataStructures.h
   DATAACCESS/ISpectrumAccess.h
-  DATAACCESS/TransitionHelper.h
   DATAACCESS/ITransition.h
   DATAACCESS/MockObjects.h
   DATAACCESS/SpectrumHelpers.h
   DATAACCESS/TransitionExperiment.h
+  DATAACCESS/TransitionHelper.h
   DATAACCESS/Transitions.h
 )
 

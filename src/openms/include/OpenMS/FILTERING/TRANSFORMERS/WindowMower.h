@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <set>
 
@@ -111,15 +113,17 @@ public:
         if (end) break;
       }
 
-      // replace the old peaks by the new ones
-      spectrum.clear(false);
-      for (ConstIterator it = old_spectrum.begin(); it != old_spectrum.end(); ++it)
+      // select peaks that were retained
+      std::vector<Size> indices;
+      for (ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
       {
         if (positions.find(it->getMZ()) != positions.end())
         {
-          spectrum.push_back(*it);
+          Size index(it - spectrum.begin());
+          indices.push_back(index);
         }
       }
+      spectrum.select(indices);
     }
 
     void filterPeakSpectrum(PeakSpectrum& spectrum);
@@ -137,8 +141,8 @@ public:
 
       spectrum.sortByPosition();
 
-      windowsize_ = (double)param_.getValue("windowsize");
-      peakcount_ = (UInt)param_.getValue("peakcount");
+      windowsize_ = static_cast<double>(param_.getValue("windowsize"));
+      peakcount_ = static_cast<UInt>(param_.getValue("peakcount"));
 
       // copy meta data
       SpectrumType out = spectrum;
@@ -148,13 +152,13 @@ public:
       double window_start = spectrum[0].getMZ();
       for (Size i = 0; i != spectrum.size(); ++i)
       {
-        if (spectrum[i].getMZ() - window_start < windowsize_)      // collect peaks in window
+        if (spectrum[i].getMZ() - window_start < windowsize_) // collect peaks in window
         {
           peaks_in_window.push_back(spectrum[i]);
         }
-        else       // step over window boundaries
+        else // step over window boundaries
         {
-          window_start = spectrum[i].getMZ();       // as there might be large gaps between peaks resulting in empty windows, set new window start to next peak
+          window_start = spectrum[i].getMZ(); // as there might be large gaps between peaks resulting in empty windows, set new window start to next peak
 
           // copy N highest peaks to out
           if (peaks_in_window.size() > peakcount_)
@@ -173,10 +177,19 @@ public:
         }
       }
 
-      if (peaks_in_window.empty())    // last window is empty -> no special handling needed
+      if (peaks_in_window.empty()) // last window is empty -> no special handling needed
       {
-        out.sortByPosition();
-        spectrum = out;
+        // select peaks that were retained
+        std::vector<Size> indices;
+        for (typename SpectrumType::ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
+        {
+          if (std::find(out.begin(), out.end(), *it) != out.end())
+          {
+            Size index(it - spectrum.begin());
+            indices.push_back(index);
+          }
+        }
+        spectrum.select(indices);
         return;
       }
 
@@ -188,7 +201,7 @@ public:
       double last_window_size_fraction = last_window_size / windowsize_;
       Size last_window_peakcount = last_window_size_fraction * peakcount_;
 
-      if (last_window_peakcount)    // handle single peak in last window (will produce no proper fraction)
+      if (last_window_peakcount) // handle single peak in last window (will produce no proper fraction)
       {
         last_window_peakcount = 1;
       }
@@ -205,8 +218,18 @@ public:
         std::copy(peaks_in_window.begin(), peaks_in_window.end(), std::back_inserter(out));
       }
 
-      out.sortByPosition();
-      spectrum = out;
+      // select peaks that were retained
+      std::vector<Size> indices;
+      for (typename SpectrumType::ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
+      {
+        if (std::find(out.begin(), out.end(), *it) != out.end())
+        {
+          Size index(it - spectrum.begin());
+          indices.push_back(index);
+        }
+      }
+      spectrum.select(indices);
+
       return;
     }
 
@@ -220,3 +243,4 @@ private:
 }
 
 #endif //OPENMS_FILTERING_TRANSFORMERS_WINDOWMOWER_H
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,21 +28,23 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H
 
-#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <vector>
-#include <boost/regex.hpp>
 
 namespace OpenMS
 {
@@ -55,38 +57,35 @@ namespace OpenMS
       public XMLHandler
     {
 public:
-
-      typedef Map<Size, float> RTMapping;
-
       /// Constructor
       MascotXMLHandler(ProteinIdentification& protein_identification,
                        std::vector<PeptideIdentification>& identifications,
                        const String& filename,
                        std::map<String, std::vector<AASequence> >& peptides,
-                       const RTMapping& rt_mapping = RTMapping(),
-                       const String& scan_regex = "");
+                       const SpectrumMetaDataLookup& lookup);
 
       /// Destructor
       virtual ~MascotXMLHandler();
 
       // Docu in base class
-      virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 
       // Docu in base class
-      virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
       // Docu in base class
-      virtual void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
-
-      // Primary regex used to extract a scan number (for use by PepXMLFile)
-      static const String primary_scan_regex;
+      virtual void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
+      
+      /// Split modification search parameter if for more than one amino acid specified e.g. Phospho (ST)
+      static std::vector<String> splitModificationBySpecifiedAA(String mod);
 
 private:
 
-      ProteinIdentification & protein_identification_; ///< the protein identifications
-      std::vector<PeptideIdentification> & id_data_; ///< the identifications (storing the peptide hits)
+      ProteinIdentification& protein_identification_; ///< the protein identifications
+      std::vector<PeptideIdentification>& id_data_; ///< the identifications (storing the peptide hits)
       ProteinHit actual_protein_hit_;
       PeptideHit actual_peptide_hit_;
+      PeptideEvidence actual_peptide_evidence_;
       UInt peptide_identification_index_;
       String tag_;
       DateTime date_;
@@ -95,25 +94,25 @@ private:
       ProteinIdentification::SearchParameters search_parameters_;
       String identifier_;
       String actual_title_;
-      std::map<String, std::vector<AASequence> > & modified_peptides_;
+      std::map<String, std::vector<AASequence> >& modified_peptides_;
 
       StringList tags_open_; ///< tracking the current XML tree
       String character_buffer_; ///< filled by MascotXMLHandler::characters
       String major_version_;
       String minor_version_;
+      
+      // list of modifications, which cannot be set as fixed and needs
+      // to be removed, because added from mascot as variable modification
+      std::vector<String> remove_fixed_mods_;
 
-      const RTMapping & rt_mapping_; ///< optional mapping of scan indices to RTs if scan numbers are given;
-                                     ///< without this mapping, other sources of RT information are used (if available);
-                                     ///< if all fails, there will be no RT information for peptide hits
-
-      /// List of possible Perl-style regular expressions used to extract the scan number (named group "SCAN") or retention time (named group "RT"), and possibly precursor m/z (named group "MZ") from the "pep_scan_title" element
-      std::vector<boost::regex> scan_regex_;
+      /// Helper object for looking up RT information
+      const SpectrumMetaDataLookup& lookup_;
 
       /// Error for missing RT information already reported?
       bool no_rt_error_;
     };
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS
 
 #endif // OPENMS_FORMAT_HANDLERS_MASCOTXMLHANDLER_H

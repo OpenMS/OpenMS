@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -55,6 +55,7 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+    static const double COVERAGE_UNKNOWN; // == -1
 
     /// @name Comparators ProteinHit
     //@{
@@ -140,6 +141,9 @@ public:
 
     /// returns the accession of the protein
     const String & getAccession() const;
+    
+    /// returns the description of the protein
+    String getDescription() const;
 
     /// returns the coverage (in percent) of the protein hit based upon matched peptides
     double getCoverage() const;
@@ -155,6 +159,9 @@ public:
 
     /// sets the accession of the protein
     void setAccession(const String & accession);
+
+    /// sets the description of the protein
+    void setDescription(const String & description);
 
     /// sets the coverage (in percent) of the protein hit based upon matched peptides
     void setCoverage(const double coverage);

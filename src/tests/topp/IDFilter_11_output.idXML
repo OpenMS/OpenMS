@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="c:/Inetpub/wwwroot/ISB/data/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled_convert.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="C+57.0215" />
+		<FixedModification name="K+34.0631" />
+		<FixedModification name="+34.0631" />
+		<VariableModification name="C-17.0265" />
+		<VariableModification name="E-18.0106" />
+		<VariableModification name="Q-17.0265" />
+		<VariableModification name="+42.0106" />
+	</SearchParameters>
+	<IdentificationRun date="2015-01-21T18:28:17" search_engine="X! Tandem" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="sp|Q96QS3|ARX_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|Q96NH3|BROMI_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="isDecoy" value="false"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|Q8TE49|OTU7A_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="sp|Q2PPJ7|RGPA2_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="sp|Q07020|RL18_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="sp|P23588|IF4B_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="float" name="Fido_prob_protein" value="0.7"/>
+			<UserParam type="float" name="Fido_prob_peptide" value="0.04"/>
+			<UserParam type="float" name="Fido_prob_spurious" value="0"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.9999923201,PH_4"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.9999517411,PH_2"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.9999027972,PH_3"/>
+			<UserParam type="string" name="indistinguishable_proteins_3" value="0.9998474097,PH_5"/>
+			<UserParam type="string" name="indistinguishable_proteins_4" value="0.9997695599,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_5" value="0.999643163,PH_0"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="486.4753250319" RT="358.38" >
+			<PeptideHit score="0.0486" sequence=".(Dimethyl:2H(4)13C(2))NTIMEC(Carbamidomethyl)QVC(Carbamidomethyl)GFHEQR" charge="4" aa_before="R" aa_after="S" protein_refs="PH_4" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="323.9933450319" RT="377.21" >
+			<PeptideHit score="0" sequence=".(Dimethyl:2H(4)13C(2))APGTPHSHTK(Dimethyl:2H(4)13C(2))PYVR" charge="5" aa_before="K" aa_after="S" protein_refs="PH_3" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="345.1932250319" RT="377.29" >
+			<PeptideHit score="0" sequence=".(Dimethyl:2H(4)13C(2))NPSFLISSWHR" charge="4" aa_before="R" aa_after="D" protein_refs="PH_2" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="350.7008750319" RT="378.29" >
+			<PeptideHit score="0" sequence=".(Dimethyl:2H(4)13C(2))RPETEGVPVPER" charge="4" protein_refs="PH_5" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="804.3831750319" RT="383.88" >
+			<PeptideHit score="0" sequence=".(Dimethyl:2H(4)13C(2))TGSESSQTGTSTTSSR" charge="2" aa_before="R" aa_after="N" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="PeptideProphet probability" higher_score_better="true" significance_threshold="0" MZ="383.2173500319" RT="391" >
+			<PeptideHit score="0" sequence=".(Glu-&gt;pyro-Glu)EELLLHPEDAEGK(Dimethyl:2H(4)13C(2))" charge="4" aa_before="K" aa_after="D" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

@@ -1,17 +1,11 @@
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.string cimport string as libcpp_string
-from InstrumentSettings cimport *
-from Precursor cimport *
+from Types cimport *
+from String cimport *
 from Peak1D cimport *
+from InstrumentSettings cimport *
 from SourceFile cimport *
 from PeptideIdentification cimport *
-from libcpp cimport bool
-from libcpp.vector cimport vector as libcpp_vector
-from DataValue cimport *
-from String cimport *
-from Types cimport *
+from Precursor cimport *
 from DataProcessing cimport *
-
 from Product cimport *
 from AcquisitionInfo cimport *
 
@@ -46,9 +40,8 @@ cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS":
         libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
         void setPeptideIdentifications(libcpp_vector[PeptideIdentification])   nogil except +
 
-        libcpp_vector[DataProcessing] getDataProcessing() nogil except +
-        void setDataProcessing(libcpp_vector[DataProcessing])   nogil except +
-
+        libcpp_vector[ shared_ptr[DataProcessing] ] getDataProcessing() nogil except +
+        void setDataProcessing(libcpp_vector[ shared_ptr[DataProcessing] ])   nogil except +
 
 cdef extern from "<OpenMS/METADATA/SpectrumSettings.h>" namespace "OpenMS::SpectrumSettings":
 

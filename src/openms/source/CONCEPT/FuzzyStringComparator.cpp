@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Stephan Aiche $
 // --------------------------------------------------------------------------
 
@@ -119,6 +119,16 @@ namespace OpenMS
   void FuzzyStringComparator::setWhitelist(const StringList& rhs)
   {
     whitelist_ = rhs;
+  }
+
+  void FuzzyStringComparator::setMatchedWhitelist(const std::vector< std::pair<std::string, std::string> >& rhs)
+  {
+    matched_whitelist_ = rhs;
+  }
+
+  const std::vector< std::pair<std::string, std::string> >& FuzzyStringComparator::getMatchedWhitelist() const
+  {
+    return matched_whitelist_;
   }
 
   const int& FuzzyStringComparator::getVerboseLevel() const
@@ -218,7 +228,7 @@ namespace OpenMS
         << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
         << "\n"
         #ifdef WIN32
-        << "TortoiseMerge"
+        << "TortoiseGitMerge"
         << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
         << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\""
         #else
@@ -296,6 +306,25 @@ namespace OpenMS
           )
       {
         ++whitelist_cases_[*slit];
+        // *log_dest_ << "whitelist_ case: " << *slit << '\n';
+        return is_status_success_;
+      }
+    }
+
+    // check matched whitelist
+    // If file 1 contains element 1 and file 2 contains element 2, they are skipped over.
+    for (std::vector< std::pair<std::string, std::string> >::const_iterator pair_it = matched_whitelist_.begin(); 
+         pair_it != matched_whitelist_.end(); ++pair_it)
+    {
+      if ((line_str_1.find(pair_it->first) != String::npos &&
+           line_str_2.find(pair_it->second) != String::npos
+          ) ||
+          (line_str_1.find(pair_it->second) != String::npos &&
+           line_str_2.find(pair_it->first) != String::npos
+          )
+         )
+      {
+        // ++whitelist_cases_[*slit];
         // *log_dest_ << "whitelist_ case: " << *slit << '\n';
         return is_status_success_;
       }
@@ -509,7 +538,7 @@ namespace OpenMS
 
   bool FuzzyStringComparator::compareStreams(std::istream& input_1, std::istream& input_2)
   {
-    // reset 'sucess' state to true, in case its currently false due to a prior call (reporting depends on it)
+    // reset 'success' state to true, in case its currently false due to a prior call (reporting depends on it)
     const_cast<bool&>(is_status_success_) = true;
 
     std::string line_str_1;
@@ -538,7 +567,7 @@ namespace OpenMS
 
   void FuzzyStringComparator::readNextLine_(std::istream& input_stream, std::string& line_string, int& line_number) const
   {
-    for (line_string.clear(); ++line_number, std::getline(input_stream, line_string); )
+    for (line_string.clear(); static_cast<void>(++line_number), std::getline(input_stream, line_string); )
     {
       if (line_string.empty())
         continue; // shortcut

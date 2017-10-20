@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -139,7 +139,8 @@ struct HeaderInfo
     header_description = "-- empty --";
     TextFile tf;
     tf.load(filename);
-    String content = ListUtils::concatenate(tf, ";");
+    String content;
+    content.concatenate(tf.begin(), tf.end(), ";");
 
     String search = "$$ Sample Description:";
     Size pos = content.find(search);
@@ -198,9 +199,9 @@ public:
     setValidFormats_("out", ListUtils::create<String>("csv"));
   }
 
-  MSChromatogram<> toChromatogram(const MSSpectrum<>& in)
+  MSChromatogram toChromatogram(const MSSpectrum& in)
   {
-    MSChromatogram<> out;
+    MSChromatogram out;
     for (Size ic = 0; ic < in.size(); ++ic)
     {
       ChromatogramPeak peak;
@@ -256,7 +257,7 @@ public:
     //-------------------------------------------------------------
     MzMLFile mzml_file;
     mzml_file.setLogType(log_type_);
-    MSExperiment<Peak1D> exp, exp_pp;
+    PeakMap exp, exp_pp;
 
     EDTAFile ed;
     ConsensusMap cm;
@@ -264,8 +265,8 @@ public:
 
     StringList tf_single_header0, tf_single_header1, tf_single_header2; // header content, for each column
 
-    TextFile tf_single; // one line for each compound, multiple columns per experiment
-    tf_single.resize(cm.size());
+    std::vector<String> vec_single; // one line for each compound, multiple columns per experiment
+    vec_single.resize(cm.size());
     for (Size fi = 0; fi < in.size(); ++fi)
     {
       // load raw data
@@ -287,8 +288,8 @@ public:
         cm.clear(false); // reset global list (about to be filled)
 
         // compute TIC
-        MSChromatogram<> tic = exp.getTIC();
-        MSSpectrum<> tics, tic_gf, tics_pp, tics_sn;
+        MSChromatogram tic = exp.getTIC();
+        MSSpectrum tics, tic_gf, tics_pp, tics_sn;
         for (Size ic = 0; ic < tic.size(); ++ic)
         { // rewrite Chromatogram to MSSpectrum (GaussFilter requires it)
           Peak1D peak;
@@ -325,11 +326,11 @@ public:
 
         if (!out_TIC_debug.empty()) // if debug file was given
         { // store intermediate steps for debug
-          MSExperiment<> out_debug;
+          PeakMap out_debug;
           out_debug.addChromatogram(toChromatogram(tics));
           out_debug.addChromatogram(toChromatogram(tic_gf));
 
-          SignalToNoiseEstimatorMedian<MSSpectrum<> > snt;
+          SignalToNoiseEstimatorMedian<MSSpectrum> snt;
           snt.init(tics);
           for (Size is = 0; is < tics.size(); ++is)
           {
@@ -368,7 +369,7 @@ public:
             }
 
             ConsensusMap cm_RT_multiplex;
-            for (MSSpectrum<>::ConstIterator itp = tics_pp.begin(); itp != tics_pp.end(); ++itp)
+            for (MSSpectrum::ConstIterator itp = tics_pp.begin(); itp != tics_pp.end(); ++itp)
             {
               ConsensusFeature f = *cit;
               f.setRT(itp->getMZ());
@@ -384,7 +385,7 @@ public:
         }
 
         // resize, since we have more positions now
-        tf_single.resize(cm.size());
+        vec_single.resize(cm.size());
       }
 
 
@@ -416,7 +417,7 @@ public:
         //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
 
         double mz_da = mztol * cm[i].getMZ() / 1e6; // mz tolerance in Dalton
-        MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT() - rttol / 2,
+        PeakMap::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT() - rttol / 2,
                                                                   cm[i].getRT() + rttol / 2,
                                                                   cm[i].getMZ() - mz_da,
                                                                   cm[i].getMZ() + mz_da);
@@ -443,10 +444,10 @@ public:
         {
           // take median for m/z found
           std::vector<double> mz;
-          MSExperiment<>::Iterator itm = exp.RTBegin(max_peak.getRT());
+          PeakMap::Iterator itm = exp.RTBegin(max_peak.getRT());
           SignedSize low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_collect);
           SignedSize high = std::min<SignedSize>(std::distance(itm, exp.end()) - 1, rt_collect);
-          MSExperiment<>::AreaIterator itt = exp.areaBegin((itm - low)->getRT() - 0.01, (itm + high)->getRT() + 0.01, cm[i].getMZ() - mz_da, cm[i].getMZ() + mz_da);
+          PeakMap::AreaIterator itt = exp.areaBegin((itm - low)->getRT() - 0.01, (itm + high)->getRT() + 0.01, cm[i].getMZ() - mz_da, cm[i].getMZ() + mz_da);
           for (; itt != exp.areaEnd(); ++itt)
           {
             mz.push_back(itt->getMZ());
@@ -467,17 +468,17 @@ public:
         // appending the second column set requires separator
         String append_sep = (fi == 0 ? "" : out_sep);
 
-        tf_single[i] += append_sep; // new line
+        vec_single[i] += append_sep; // new line
         if (fi == 0)
         {
-          tf_single[i] += String(cm[i].getRT()) + out_sep +
-                          String(cm[i].getMZ()) + out_sep;
+          vec_single[i] += String(cm[i].getRT()) + out_sep +
+                           String(cm[i].getMZ()) + out_sep;
         }
-        tf_single[i] += String(max_peak.getRT()) + out_sep +
-                        String(max_peak.getRT() - cm[i].getRT()) + out_sep +
-                        String(max_peak.getMZ()) + out_sep +
-                        String(ppm)  + out_sep +
-                        String(max_peak.getIntensity());
+        vec_single[i] += String(max_peak.getRT()) + out_sep +
+                         String(max_peak.getRT() - cm[i].getRT()) + out_sep +
+                         String(max_peak.getMZ()) + out_sep +
+                         String(ppm)  + out_sep +
+                         String(max_peak.getIntensity());
       }
 
       if (not_found) LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
@@ -486,14 +487,19 @@ public:
     //-------------------------------------------------------------
     // create header
     //-------------------------------------------------------------
-    tf_single.insert(tf_single.begin(), ListUtils::concatenate(tf_single_header2, out_sep));
-    tf_single.insert(tf_single.begin(), ListUtils::concatenate(tf_single_header1, out_sep));
-    tf_single.insert(tf_single.begin(), ListUtils::concatenate(tf_single_header0, out_sep));
+    vec_single.insert(vec_single.begin(), ListUtils::concatenate(tf_single_header2, out_sep));
+    vec_single.insert(vec_single.begin(), ListUtils::concatenate(tf_single_header1, out_sep));
+    vec_single.insert(vec_single.begin(), ListUtils::concatenate(tf_single_header0, out_sep));
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    tf_single.store(out);
+    TextFile tf;
+    for (std::vector<String>::iterator v_it = vec_single.begin(); v_it != vec_single.end(); ++v_it)
+    {
+      tf.addLine(*v_it);
+    }
+    tf.store(out);
 
     return EXECUTION_OK;
   }

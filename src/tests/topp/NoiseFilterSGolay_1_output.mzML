@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -13,7 +14,7 @@
 		</fileContent>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value=", " />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="" />
 		</contact>
 	</fileDescription>
 	<sampleList count="1">
@@ -37,7 +38,7 @@
 			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
 		</software>
 		<software id="so_dp_sp_0_pm_2" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1002133" name="NoiseFilterSGolay" />
+			<cvParam cvRef="MS" accession="MS:1002133" name="TOPP NoiseFilterSGolay" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
@@ -100,7 +101,7 @@
 						<binary>AAAAAAAgjUAAAACgmSGNQAAAAEAzI41AAAAAwMwkjUAAAABgZiaNQAAAAAAAKI1AAAAAoJkpjUAAAABAMyuNQAAAAMDMLI1AAAAAYGYujUAAAAAAADCNQAAAAKCZMY1AAAAAQDMzjUAAAADAzDSNQAAAAGBmNo1AAAAAAAA4jUAAAACgmTmNQAAAAEAzO41AAAAAwMw8jUAAAABgZj6NQAAAAAAAQI1AAAAAoJlBjUAAAABAM0ONQAAAAMDMRI1AAAAAYGZGjUAAAAAAAEiNQAAAAKCZSY1AAAAAQDNLjUAAAADAzEyNQAAAAGBmTo1AAAAAAABQjUAAAACgmVGNQAAAAEAzU41AAAAAwMxUjUAAAABgZlaNQAAAAAAAWI1AAAAAoJlZjUAAAABAM1uNQAAAAMDMXI1AAAAAYGZejUAAAAAAAGCNQAAAAKCZYY1AAAAAQDNjjUAAAADAzGSNQAAAAGBmZo1AAAAAAABojUAAAACgmWmNQAAAAEAza41AAAAAwMxsjUAAAABgZm6NQAAAAAAAcI1AAAAAoJlxjUAAAABAM3ONQAAAAMDMdI1AAAAAYGZ2jUAAAAAAAHiNQAAAAKCZeY1AAAAAQDN7jUAAAADAzHyNQAAAAGBmfo1AAAAAAACAjUAAAACgmYGNQAAAAEAzg41AAAAAwMyEjUAAAABgZoaNQAAAAAAAiI1A</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="352">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>pU/oQrFJ+0KoLENDBb5yQ7dNZEPoSxdDDvypQg9Bw0JTm7pC8QptQmbnu0EAAAAAKNGCQgJPqkI2mwlCa1KGQtUaikPNbPpDIGEERCHCoEOqJOBCZsnLQtk97kIAAAAAkrtuRHUNBEaJ/mVG4J5jRnhW60VTeddE7SU/RU36xEUmNrNF4W8PRcWgL0SrC1VF5eCoRTLBlkWMFQlFUr0uQ3rGR0REIsxED5ejRC+/A0QAAAAAv7OVQhLQrkNG3btDn8yFQ8Tf3EJQ/pJDlp4URA+VCETepK1DlZDiQgAAAABkpKRDb9QGRKo0/UPTcaxDYvEbQ0/48kIMHMxCFZ8BQ6848UIAAAAA</binary>
@@ -125,7 +126,7 @@
 						<binary>AAAAAAAgjUAAAACgmSGNQAAAAEAzI41AAAAAwMwkjUAAAABgZiaNQAAAAAAAKI1AAAAAoJkpjUAAAABAMyuNQAAAAMDMLI1AAAAAYGYujUAAAAAAADCNQAAAAKCZMY1AAAAAQDMzjUAAAADAzDSNQAAAAGBmNo1AAAAAAAA4jUAAAACgmTmNQAAAAEAzO41AAAAAwMw8jUAAAABgZj6NQAAAAAAAQI1AAAAAoJlBjUAAAABAM0ONQAAAAMDMRI1AAAAAYGZGjUAAAAAAAEiNQAAAAKCZSY1AAAAAQDNLjUAAAADAzEyNQAAAAGBmTo1AAAAAAABQjUAAAACgmVGNQAAAAEAzU41AAAAAwMxUjUAAAABgZlaNQAAAAAAAWI1AAAAAoJlZjUAAAABAM1uNQAAAAMDMXI1AAAAAYGZejUAAAAAAAGCNQAAAAKCZYY1AAAAAQDNjjUAAAADAzGSNQAAAAGBmZo1AAAAAAABojUAAAACgmWmNQAAAAEAza41AAAAAwMxsjUAAAABgZm6NQAAAAAAAcI1AAAAAoJlxjUAAAABAM3ONQAAAAMDMdI1AAAAAYGZ2jUAAAAAAAHiNQAAAAKCZeY1AAAAAQDN7jUAAAADAzHyNQAAAAGBmfo1AAAAAAACAjUAAAACgmYGNQAAAAEAzg41AAAAAwMyEjUAAAABgZoaNQAAAAAAAiI1A</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="352">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AAAAAJjFCEN6N1FDnYNlQ93HVEMDhyhDrOMMQwpLCEIb0L0/yFiFQWH7DkKoZ4BCD8g3QjSSXUEAAAAAqHVRQDzEFkJO24hCXyt1QszJHUGB8YxB07iAQyO2y0IAAAAAw3HVRCHN5EU/YCtGWJkWRlK5aUULzCdETi5SRTSsq0V8voxF1ffSRHYZ0EE1rbFEMNYMRQo7/kQMaEZE5a2OQxw6ckT0M89EQd+zRNMkI0SE9n1DFhU7RMuEf0S5OkZEG/IDQwAAAAD8C3hDs+3NQyQr3kN1Wq1DX/RBQwObN0N48dJCKSUwQSb1AkKNLFBBC+k2QsGvoEJVWKxCM1mSQvJdG0IAAAAA</binary>
@@ -135,3 +136,12 @@
 		</spectrumList>
 	</run>
 </mzML>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="spectrum=1">5378</offset>
+		<offset idRef="spectrum=2">7876</offset>
+	</index>
+</indexList>
+<indexListOffset>10376</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

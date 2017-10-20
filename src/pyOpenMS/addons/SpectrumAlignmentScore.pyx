@@ -7,15 +7,12 @@
         return self._score_2(args[0], args[1])
 
     def _score_1(self, spec1):
-        assert isinstance(spec1, (MSSpectrum, RichMSSpectrum))
-        cdef _MSSpectrum[_Peak1D] * _new_spec1 = new _MSSpectrum[_Peak1D]()
+        assert isinstance(spec1, (MSSpectrum,))
+        cdef _MSSpectrum * _new_spec1 = new _MSSpectrum()
         cdef _Peak1D _peak
 
-        if isinstance(spec1, RichMSSpectrum):
-            for _peak in deref(<_MSSpectrum[_RichPeak1D] *>(<RichMSSpectrum>spec1).inst.get()):
-                _new_spec1.push_back(<_Peak1D>_peak)
-        else:
-            for _peak in deref(<_MSSpectrum[_Peak1D] *>(<MSSpectrum>spec1).inst.get()):
+        if True:
+            for _peak in deref(<_MSSpectrum *>(<MSSpectrum>spec1).inst.get()):
                 _new_spec1.push_back(<_Peak1D>_peak)
 
         cdef _SpectrumAlignmentScore * scorer = self.inst.get()
@@ -24,24 +21,18 @@
         return score
 
     def _score_2(self, spec1, spec2):
-        assert isinstance(spec1, (MSSpectrum, RichMSSpectrum))
-        assert isinstance(spec2, (MSSpectrum, RichMSSpectrum))
-        cdef _MSSpectrum[_Peak1D] * _new_spec1 = new _MSSpectrum[_Peak1D]()
-        cdef _MSSpectrum[_Peak1D] * _new_spec2 = new _MSSpectrum[_Peak1D]()
+        assert isinstance(spec1, (MSSpectrum))
+        assert isinstance(spec2, (MSSpectrum))
+        cdef _MSSpectrum * _new_spec1 = new _MSSpectrum()
+        cdef _MSSpectrum * _new_spec2 = new _MSSpectrum()
         cdef _Peak1D _peak
 
-        if isinstance(spec1, RichMSSpectrum):
-            for _peak in deref(<_MSSpectrum[_RichPeak1D] *>(<RichMSSpectrum>spec1).inst.get()):
-                _new_spec1.push_back(<_Peak1D>_peak)
-        else:
-            for _peak in deref(<_MSSpectrum[_Peak1D] *>(<MSSpectrum>spec1).inst.get()):
+        if True:
+            for _peak in deref(<_MSSpectrum *>(<MSSpectrum>spec1).inst.get()):
                 _new_spec1.push_back(<_Peak1D>_peak)
 
-        if isinstance(spec2, RichMSSpectrum):
-            for _peak in deref(<_MSSpectrum[_RichPeak1D] *>(<RichMSSpectrum>spec2).inst.get()):
-                _new_spec2.push_back(<_Peak1D>_peak)
-        else:
-            for _peak in deref(<_MSSpectrum[_Peak1D] *>(<MSSpectrum>spec2).inst.get()):
+        if True:
+            for _peak in deref(<_MSSpectrum *>(<MSSpectrum>spec2).inst.get()):
                 _new_spec2.push_back(<_Peak1D>_peak)
 
         cdef _SpectrumAlignmentScore * scorer = self.inst.get()

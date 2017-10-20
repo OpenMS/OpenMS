@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,27 +28,28 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_DATASTRUCTURES_LISTUTILS_H
 #define OPENMS_DATASTRUCTURES_LISTUTILS_H
 
-#include <vector>
-#include <algorithm>
-#include <iterator>
-#include <cmath>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/config.h>
+
+#include <algorithm>
+#include <cmath>
+#include <iterator>
+#include <vector>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
 namespace OpenMS
 {
-
 
   /**
     @brief Vector of signed integers.
@@ -168,16 +169,28 @@ public:
     /**
       @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
 
-      @param container The container to concatenate.
+      @param container The container to concatenate;
       @param glue The string to add in between elements.
     */
     template <typename T>
     static String concatenate(const std::vector<T>& container, const String& glue = "")
     {
+      return concatenate< std::vector<T> >(container, glue);
+    }
+
+    /**
+      @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
+
+      @param container The container <T> to concatenate; must have begin() and end() iterator.
+      @param glue The string to add in between elements.
+    */
+    template <typename T>
+    static String concatenate(const T& container, const String& glue = "")
+    {
       // handle empty containers
       if (container.empty()) return "";
 
-      typename std::vector<T>::const_iterator it = container.begin();
+      typename T::const_iterator it = container.begin();
       String ret = String(*it);
       // we have handled the first element
       ++it;
@@ -188,6 +201,19 @@ public:
       }
 
       return ret;
+    }
+
+    /**
+       @brief Get the index of the first occurrence of an element in the vector (or -1 if not found)
+    */
+    template <typename T, typename E>
+    static Int getIndex(const std::vector<T>& container, const E& elem)
+    {
+      typename std::vector<T>::const_iterator pos =
+        std::find(container.begin(), container.end(), elem);
+      if (pos == container.end()) return -1;
+
+      return static_cast<Int>(std::distance(container.begin(), pos));
     }
 
   };
@@ -201,11 +227,11 @@ public:
     {
       try
       {
-        c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it)));
+        c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it))); // succeeds only if the whole output can be explained, i.e. "1.3 3" will fail (which is good)
       }
       catch (boost::bad_lexical_cast&)
       {
-        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + *it + "'");
       }
     }
 

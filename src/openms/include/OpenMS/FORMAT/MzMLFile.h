@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,19 +28,20 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_MZMLFILE_H
 #define OPENMS_FORMAT_MZMLFILE_H
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 namespace OpenMS
@@ -49,10 +50,6 @@ namespace OpenMS
     @brief File adapter for MzML files
 
     This implementation does currently not support the whole functionality of MzML.
-    Some minor features are still missing:
-        - chromatograms
-
-    @todo Implement chromatograms (Andreas)
 
     @ingroup FileIO
   */
@@ -76,138 +73,65 @@ public:
     void setOptions(const PeakFileOptions &);
 
     /**
-      @brief Loads a map from a MzML file.
+      @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
 
-      @p map has to be a MSExperiment or have the same interface.
+      @p filename The filename with the data
+      @p map Is an MSExperiment
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    template <typename MapType>
-    void load(const String& filename, MapType& map)
-    {
-      map.reset();
-
-      //set DocumentIdentifier
-      map.setLoadedFileType(filename);
-      map.setLoadedFilePath(filename);
-
-      Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
-      handler.setOptions(options_);
-      //handler can throw parse error and other errors - catch those here - they are the cause for a parse error - report accordingly
-      try
-      {
-        parse_(filename, &handler);
-      }
-      catch (Exception::BaseException& e)
-      {
-        std::string expr;
-        expr.append(e.getFile());
-        expr.append("@");
-        std::stringstream ss;
-        ss << e.getLine(); // we need c++11!! maybe in 2012?
-        expr.append(ss.str());
-        expr.append("-");
-        expr.append(e.getFunction());
-        std::string mess = "- due to that error of type ";
-        mess.append(e.getName());
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, expr, mess);
-      }
-
-    }
+    void load(const String& filename, PeakMap& map);
 
     /**
-      @brief Only count he number of spectra and chromatograms from a file
+      @brief Only count the number of spectra and chromatograms from a file
     */
     void loadSize(const String & filename, Size& scount, Size& ccount);
 
     /**
-      @brief Stores a map in a MzML file.
+      @brief Stores a map in an MzML file.
 
-      @p map has to be a MSExperiment or have the same interface.
+      @p map has to be an MSExperiment or have the same interface.
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    template <typename MapType>
-    void store(const String& filename, const MapType& map) const
-    {
-      Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
-      handler.setOptions(options_);
-      save_(filename, &handler);
-    }
+    void store(const String& filename, const PeakMap& map) const;
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer.
 
-      The result will not be stored by this class.
+      The result will not be stored directly but is available through the
+      events triggered by the parser and caught by the provided IMSDataConsumer
+      object.
+
+      This function should be used if processing and storage of the result can
+      be performed directly in the provided IMSDataConsumer object.
+
+      @note Transformation can be speed up by setting skip_full_count which
+      does not require a full first pass through the file to compute the
+      correct number of spectra and chromatograms in the input file.
+
+      @param filename_in Filename of input mzML file to transform
+      @param consumer Consumer class to operate on the input filename (implementing a transformation)
+      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
-    template <typename MapType>
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer/* , const MapType& map */)
-    {
-      //    typedef MSExperiment<> MapType;
-      
-      // First pass through the file -> get the meta-data and hand it to the consumer
-      {
-        Size scount = 0, ccount = 0;
-        MapType experimental_settings;
-        bool size_only_before_ = options_.getSizeOnly();
-        options_.setSizeOnly(true);
-        Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        parse_(filename_in, &handler);
-        handler.getCounts(scount, ccount);
-        options_.setSizeOnly(size_only_before_);
-        consumer->setExpectedSize(scount, ccount);
-        consumer->setExperimentalSettings(experimental_settings);
-      }
-      
-      // Second pass through the data, now read the spectra!
-      {
-        MapType dummy;
-        Internal::MzMLHandler<MapType> handler(dummy, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        handler.setMSDataConsumer(consumer);
-        // TODO catch errors as above ?
-        parse_(filename_in, &handler);
-      }
-    }
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
 
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer
 
-      The result will be stored in the supplied map.
+      The result will be stored in the provided map.
+
+      This function should be used if a specific pre-processing should be
+      applied to the data before storing them in a map (e.g. if data-reduction
+      should be applied to the data before loading all data into memory).
+
+      @param filename_in Filename of input mzML file to transform
+      @param consumer Consumer class to operate on the input filename (implementing a transformation)
+      @param map Map to store the resulting spectra and chromatograms
+      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
-    template <typename MapType>
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map)
-    {
-      // First pass through the file -> get the meta-data and hand it to the consumer
-      {
-        Size scount = 0, ccount = 0;
-        MapType experimental_settings;
-        bool size_only_before_ = options_.getSizeOnly();
-        options_.setSizeOnly(true);
-        Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        parse_(filename_in, &handler);
-        handler.getCounts(scount, ccount);
-        options_.setSizeOnly(size_only_before_);
-        consumer->setExpectedSize(scount, ccount);
-        consumer->setExperimentalSettings(experimental_settings);
-      }
-
-      // Second pass through the data, now read the spectra!
-      {
-        Internal::MzMLHandler<MapType> handler(map, filename_in, getVersion(), *this);
-        bool always_append_data = options_.getAlwaysAppendData();
-        options_.setAlwaysAppendData(true);
-        handler.setOptions(options_);
-        handler.setMSDataConsumer(consumer);
-
-        // TODO catch errors as above ?
-        parse_(filename_in, &handler);
-        options_.setAlwaysAppendData(always_append_data);
-      }
-    }
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, PeakMap& map, bool skip_full_count = false, bool skip_first_pass = false);
 
     /**
       @brief Checks if a file validates against the XML schema.
@@ -227,6 +151,14 @@ public:
     */
     bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
+protected:
+
+    /// Perform first pass through the file and retrieve the meta-data to initialize the consumer
+    void transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count);
+
+    /// Safe parse that catches exceptions and handles them accordingly
+    void safeParse_(const String & filename, Internal::XMLHandler * handler);
+
 private:
 
     /// Options for loading / storing
@@ -238,4 +170,5 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_MZMLFILE_H
+#endif // OPENMS_FORMAT_MZMLFILE_H
+

@@ -31,6 +31,10 @@ cdef extern from "<OpenMS/METADATA/Gradient.h>" namespace "OpenMS":
         #   @exception Exception::InvalidValue is thrown if the eluent, timepoint or percentage is invalid.
         void setPercentage(String eluent, Int timepoint, UInt percentage) nogil except +
         UInt getPercentage(String eluent, Int timepoint) nogil except +
+
+        # TODO 
+        # libcpp_vector[ libcpp_vector[unsigned int] ] getPercentages() nogil except +
+
         # sets all precentage values to 0
         void clearPercentages() nogil except +
         # checks if the percentages of all timepoints add up to 100%

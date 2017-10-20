@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,19 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
-#include <iostream>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/config.h>
+
 #include <ctime>
+#include <iostream>
 
 using namespace std;
 
@@ -48,19 +52,19 @@ namespace OpenMS
 
   }
 
-  DateTime::DateTime(const DateTime & date) :
+  DateTime::DateTime(const DateTime& date) :
     QDateTime(date)
   {
 
   }
 
-  DateTime::DateTime(const QDateTime & date) :
+  DateTime::DateTime(const QDateTime& date) :
     QDateTime(date)
   {
 
   }
 
-  DateTime & DateTime::operator=(const DateTime & source)
+  DateTime& DateTime::operator=(const DateTime& source)
   {
     if (&source == this)
     {
@@ -72,7 +76,7 @@ namespace OpenMS
     return *this;
   }
 
-  void DateTime::set(const String & date)
+  void DateTime::set(const String& date)
   {
     clear();
 
@@ -121,7 +125,7 @@ namespace OpenMS
 
     if (!QDateTime::isValid())
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Invalid date time string");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date, "Invalid date time string");
     }
   }
 
@@ -134,7 +138,7 @@ namespace OpenMS
     {
       String date_time = String(year) + "-" + String(month) + "-" + String(day)
                          + " " + String(hour) + ":" + String(minute) + ":" + String(second);
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date_time, "Invalid date time");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date_time, "Invalid date time");
     }
   }
 
@@ -152,11 +156,11 @@ namespace OpenMS
     return "0000-00-00 00:00:00";
   }
 
-  void DateTime::get(UInt & month, UInt & day, UInt & year,
-                     UInt & hour, UInt & minute, UInt & second) const
+  void DateTime::get(UInt& month, UInt& day, UInt& year,
+                     UInt& hour, UInt& minute, UInt& second) const
   {
-    const QDate & temp_date = QDateTime::date();
-    const QTime & temp_time = QDateTime::time();
+    const QDate& temp_date = QDateTime::date();
+    const QTime& temp_time = QDateTime::time();
 
     year = temp_date.year();
     month = temp_date.month();
@@ -171,7 +175,7 @@ namespace OpenMS
     QDateTime::operator=(QDateTime());
   }
 
-  void DateTime::setDate(const String & date)
+  void DateTime::setDate(const String& date)
   {
     QDate temp_date;
 
@@ -189,24 +193,24 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Could not set date");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date, "Could not set date");
     }
     if (!temp_date.isValid())
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, date, "Could not set date");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, date, "Could not set date");
     }
 
     QDateTime::setDate(temp_date);
   }
 
-  void DateTime::setTime(const String & time)
+  void DateTime::setTime(const String& time)
   {
     QTime temp_time;
 
     temp_time = QTime::fromString(time.c_str(), "hh:mm:ss");
     if (!temp_time.isValid())
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, time, "Could not set time");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, time, "Could not set time");
     }
 
     QDateTime::setTime(temp_time);
@@ -218,7 +222,7 @@ namespace OpenMS
 
     if (!temp_date.setDate(year, month, day))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(year) + "-" + String(month) + "-" + String(day), "Could not set date");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(year) + "-" + String(month) + "-" + String(day), "Could not set date");
     }
 
     QDateTime::setDate(temp_date);
@@ -230,14 +234,14 @@ namespace OpenMS
 
     if (!temp_time.setHMS(hour, minute, second))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(hour) + ":" + String(minute) + ":" + String(second), "Could not set time");
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(hour) + ":" + String(minute) + ":" + String(second), "Could not set time");
     }
     QDateTime::setTime(temp_time);
   }
 
-  void DateTime::getDate(UInt & month, UInt & day, UInt & year) const
+  void DateTime::getDate(UInt& month, UInt& day, UInt& year) const
   {
-    const QDate & temp_date = QDateTime::date();
+    const QDate& temp_date = QDateTime::date();
 
     month = temp_date.month();
     day = temp_date.day();
@@ -253,9 +257,9 @@ namespace OpenMS
     return "0000-00-00";
   }
 
-  void DateTime::getTime(UInt & hour, UInt & minute, UInt & second) const
+  void DateTime::getTime(UInt& hour, UInt& minute, UInt& second) const
   {
-    const QTime & temp_time = QDateTime::time();
+    const QTime& temp_time = QDateTime::time();
 
     hour = temp_time.hour();
     minute = temp_time.minute();

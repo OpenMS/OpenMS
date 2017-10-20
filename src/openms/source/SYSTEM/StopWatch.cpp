@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -243,8 +243,8 @@ namespace OpenMS
   //accumulated time + the time since the stop_watch was last started.
   double StopWatch::getClockTime() const
   {
-    PointerSizeInt elapsed_seconds;
-    PointerSizeInt elapsed_useconds;
+    PointerSizeInt elapsed_seconds = 0;
+    PointerSizeInt elapsed_useconds = 0;
 
     if (is_running_ == false)
     {
@@ -293,16 +293,10 @@ namespace OpenMS
   //getUserTime reports the current amount of user cpu time
   //accumulated by this StopWatch.  If the stop_watch is currently off,
   //this is just the accumulated time.  If the StopWatch is running, this
-  //is the accumulated time plust the time since the stop_watch was last started.
+  //is the accumulated time plus the time since the stop_watch was last started.
   double StopWatch::getUserTime() const
   {
-    double temp_value;
-
-#ifdef OPENMS_WINDOWSPLATFORM
-    FILETIME kt, ut, ct, et;
-#else
-    struct tms tms_buffer;
-#endif
+    double temp_value(0.0);
     if (is_running_ == false)
     {
       /* stop_watch is off, just return accumulated time */
@@ -312,6 +306,7 @@ namespace OpenMS
     {
       /* stop_watch is on, add current running time to accumulated time */
 #ifdef OPENMS_WINDOWSPLATFORM
+      FILETIME kt, ut, ct, et;
       HANDLE my_id = GetCurrentProcess();
       GetProcessTimes(my_id, &ct, &et, &kt, &ut);
 
@@ -324,6 +319,7 @@ namespace OpenMS
 
       temp_value = (double)(current_user_time_ - start_user_time_ + user_time.QuadPart / 10.0);
 #else
+      struct tms tms_buffer;
       times(&tms_buffer);
       temp_value = (double)(current_user_time_ - start_user_time_ + tms_buffer.tms_utime);
 #endif
@@ -355,27 +351,33 @@ namespace OpenMS
     }
     else
     {
-      /* stop_watch is on, return accumulated plus current */
+        /* stop_watch is on, return accumulated plus current */
 #ifdef OPENMS_WINDOWSPLATFORM
-      //struct tms tms_buffer;
-      FILETIME kt, ut, ct, et;
-      //times(&tms_buffer);
-      HANDLE my_id = GetCurrentProcess();
-      GetProcessTimes(my_id, &ct, &et, &kt, &ut);
+        FILETIME kt, ut, ct, et;
+        
+        HANDLE my_id = GetCurrentProcess();
+        GetProcessTimes(my_id, &ct, &et, &kt, &ut);
 
-      ULARGE_INTEGER kernel_time;
-      kernel_time.HighPart = kt.dwHighDateTime;
-      kernel_time.LowPart = kt.dwLowDateTime;
-      ULARGE_INTEGER user_time;
-      user_time.HighPart = ut.dwHighDateTime;
-      user_time.LowPart = ut.dwLowDateTime;
-      temp_value = (double)((double)(current_system_time_ - start_system_time_) + kernel_time.QuadPart / 10.0);
+        ULARGE_INTEGER kernel_time;
+        kernel_time.HighPart = kt.dwHighDateTime;
+        kernel_time.LowPart = kt.dwLowDateTime;
+        ULARGE_INTEGER user_time;
+        user_time.HighPart = ut.dwHighDateTime;
+        user_time.LowPart = ut.dwLowDateTime;
+        temp_value = (double)((double)(current_system_time_ - start_system_time_) + kernel_time.QuadPart / 10.0);
+#else
+        struct tms tms_buffer;
+        times(&tms_buffer);
+        temp_value = (double)(current_system_time_ - start_system_time_ + tms_buffer.tms_stime);
 #endif
     }
-
-    /* convert from clock ticks to seconds using the */
-    /* cpu-speed value obtained by the constructor   */
-    return (double)(temp_value / 1000000.0);
+#ifdef OPENMS_WINDOWSPLATFORM
+      return (double)(temp_value / 1000000.0);
+#else
+      /* convert from clock ticks to seconds using the */
+      /* cpu-speed value obtained in the constructor   */
+      return (double)(temp_value / (double)cpu_speed_);
+#endif
   }
 
   StopWatch & StopWatch::operator=(const StopWatch & stop_watch)
@@ -449,6 +451,52 @@ namespace OpenMS
              (m>0 ?                    s_m + s_s + " m" :
              (                        s_s_single + " s")))));
 
+  }
+
+  String StopWatch::toString() const
+  {
+    return(
+      StopWatch::toString(this->getClockTime()) + " (wall), " +
+      StopWatch::toString(this->getCPUTime()) + " (CPU), " + 
+      StopWatch::toString(this->getSystemTime()) + " (system), " +
+      StopWatch::toString(this->getUserTime()) + " (user)"
+    );
+  }
+
+  double StopWatch::getCPUTime() const
+  {
+    return getUserTime() + getSystemTime();
+  }
+
+  bool StopWatch::isRunning() const
+  {
+    return is_running_;
+  }
+
+  bool StopWatch::operator!=(const StopWatch & stop_watch) const
+  {
+    return !(*this == stop_watch);
+  }
+
+  bool StopWatch::operator<(const StopWatch & stop_watch) const
+  {
+    return getCPUTime() < stop_watch.getCPUTime();
+  }
+
+ 
+  bool StopWatch::operator<=(const StopWatch & stop_watch) const
+  {
+    return !(stop_watch < *this);
+  }
+
+  bool StopWatch::operator>=(const StopWatch & stop_watch) const
+  {
+    return !(*this < stop_watch);
+  }
+
+  bool StopWatch::operator>(const StopWatch & stop_watch) const
+  {
+    return stop_watch < *this;
   }
 
 } // namespace OpenMS

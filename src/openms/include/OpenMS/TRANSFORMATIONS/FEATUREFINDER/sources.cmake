@@ -8,6 +8,7 @@ BaseModel_impl.h
 BiGaussFitter1D.h
 BiGaussModel.h
 EGHTraceFitter.h
+ElutionModelFitter.h
 EmgFitter1D.h
 EmgModel.h
 EmgScoring.h
@@ -20,11 +21,7 @@ FeatureFinderAlgorithmIsotopeWavelet.h
 FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
-FeatureFinderAlgorithmSimple.h
-FeatureFinderAlgorithmSimplest.h
-FeatureFinderAlgorithm_impl.h
 FeatureFinderDefs.h
-FeatureFinder_impl.h
 Fitter1D.h
 GaussFitter1D.h
 GaussModel.h
@@ -38,18 +35,19 @@ IsotopeWaveletTransform.h
 LevMarqFitter1D.h
 MaxLikeliFitter1D.h
 ModelDescription.h
-ModelFitter.h
 MultiplexClustering.h
+MultiplexDeltaMasses.h
+MultiplexDeltaMassesGenerator.h
 MultiplexFiltering.h
+MultiplexFilteringCentroided.h
+MultiplexFilteringProfile.h
 MultiplexFilterResult.h
 MultiplexFilterResultPeak.h
 MultiplexFilterResultRaw.h
-MultiplexPeakPattern.h
+MultiplexIsotopicPeakPattern.h
 PeakWidthEstimator.h
 ProductModel.h
 SeedListGenerator.h
-SimpleExtender.h
-SimpleSeeder.h
 TraceFitter.h
 )
 

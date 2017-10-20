@@ -1,19 +1,27 @@
 
 -- General information --
 
-File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_3_input.featureXML
+File name: /Users/willi/Documents/Work/OpenMS/src/tests/topp/FileInfo_3_input.featureXML
 File type: featureXML
 Number of features: 10
 
 Ranges:
-  retention time: 537.11 .. 539.53
-  mass-to-charge: 407.28 .. 648.69
+  retention time: 537.41 .. 539.23
+  mass-to-charge: 407.58 .. 648.39
   intensity:      1376.00 .. 6712.00
 
 Total ion current in features: 36739
+
 Charge distribution:
   charge 2: 4
   charge 3: 6
+
+Distribution of peptide identifications (IDs) per feature:
+  0 IDs: 7
+  1 IDs: 2
+  8 IDs: 1
+
+Unassigned peptide identifications: 2
 
 -- Meta information --
 

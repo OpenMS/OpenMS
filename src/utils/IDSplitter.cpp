@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,6 +55,8 @@ using namespace std;
     @brief Splits protein/peptide identifications off of annotated data files.
 
     This performs the reverse operation as IDMapper.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_IDSplitter.cli
@@ -119,7 +121,7 @@ protected:
     if (out.empty() && id_out.empty())
     {
       throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__,
-                                                 __PRETTY_FUNCTION__,
+                                                 OPENMS_PRETTY_FUNCTION,
                                                  "out/id_out");
     }
 
@@ -130,10 +132,10 @@ protected:
 
     if (in_type == FileTypes::MZML)
     {
-      MSExperiment<> experiment;
+      PeakMap experiment;
       MzMLFile().load(in, experiment);
       // what about unassigned peptide IDs?
-      for (MSExperiment<>::Iterator exp_it = experiment.begin();
+      for (PeakMap::Iterator exp_it = experiment.begin();
            exp_it != experiment.end(); ++exp_it)
       {
         peptides.insert(peptides.end(),
@@ -151,10 +153,10 @@ protected:
     }
     else if (in_type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> features;
+      FeatureMap features;
       FeatureXMLFile().load(in, features);
       features.getUnassignedPeptideIdentifications().swap(peptides);
-      for (FeatureMap<>::Iterator feat_it = features.begin();
+      for (FeatureMap::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
         peptides.insert(peptides.end(),

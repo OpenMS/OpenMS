@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -75,6 +75,8 @@ using namespace std;
 </CENTER>
 
     @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_SpecLibSearcher.cli
@@ -174,7 +176,7 @@ protected:
 
     time_t prog_time = time(NULL);
     MSPFile spectral_library;
-    RichPeakMap query, library;
+    PeakMap query, library;
     //spectrum which will be identified
     MzMLFile spectra;
     spectra.setLogType(log_type_);
@@ -190,12 +192,12 @@ protected:
 
     map<Size, vector<PeakSpectrum> > MSLibrary;
     {
-      RichPeakMap::iterator s;
-      vector<PeptideIdentification>::iterator i;
+      PeakMap::iterator s_it;
+      vector<PeptideIdentification>::iterator it;
       ModificationsDB* mdb = ModificationsDB::getInstance();
-      for (s = library.begin(), i = ids.begin(); s < library.end(); ++s, ++i)
+      for (s_it = library.begin(), it = ids.begin(); s_it < library.end(); ++s_it, ++it)
       {
-        double precursor_MZ = (*s).getPrecursors()[0].getMZ();
+        double precursor_MZ = (*s_it).getPrecursors()[0].getMZ();
         Size MZ_multi = (Size)precursor_MZ * precursor_mass_multiplier;
         map<Size, vector<PeakSpectrum> >::iterator found;
         found = MSLibrary.find(MZ_multi);
@@ -203,16 +205,16 @@ protected:
         PeakSpectrum librar;
         bool variable_modifications_ok = true;
         bool fixed_modifications_ok = true;
-        const AASequence& aaseq = i->getHits()[0].getSequence();
+        const AASequence& aaseq = it->getHits()[0].getSequence();
         //variable fixed modifications
         if (!fixed_modifications.empty())
         {
-          for (Size i = 0; i < aaseq.size(); ++i)
+          for (Size j = 0; j < aaseq.size(); ++j)
           {
-            const   Residue& mod  = aaseq.getResidue(i);
-            for (Size s = 0; s < fixed_modifications.size(); ++s)
+            const Residue& mod = aaseq.getResidue(j);
+            for (Size k = 0; k < fixed_modifications.size(); ++k)
             {
-              if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[s]).getOrigin() && fixed_modifications[s] != mod.getModification())
+              if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModificationName())
               {
                 fixed_modifications_ok = false;
                 break;
@@ -223,14 +225,14 @@ protected:
         //variable modifications
         if (aaseq.isModified() && (!variable_modifications.empty()))
         {
-          for (Size i = 0; i < aaseq.size(); ++i)
+          for (Size j = 0; j < aaseq.size(); ++j)
           {
-            if (aaseq.isModified(i))
+            if (aaseq[j].isModified())
             {
-              const   Residue& mod  = aaseq.getResidue(i);
-              for (Size s = 0; s < variable_modifications.size(); ++s)
+              const Residue& mod = aaseq.getResidue(j);
+              for (Size k = 0; k < variable_modifications.size(); ++k)
               {
-                if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[s]).getOrigin() && variable_modifications[s] != mod.getModification())
+                if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModificationName())
                 {
                   variable_modifications_ok = false;
                   break;
@@ -241,27 +243,35 @@ protected:
         }
         if (variable_modifications_ok && fixed_modifications_ok)
         {
-          PeptideIdentification& translocate_pid = *i;
+          PeptideIdentification& translocate_pid = *it;
           librar.getPeptideIdentifications().push_back(translocate_pid);
-          librar.setPrecursors(s->getPrecursors());
+          librar.setPrecursors(s_it->getPrecursors());
+
+          // empty array would segfault
+          if ( (*s_it).getStringDataArrays().empty() )
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected StringDataArray of type MSPeakInfo");
+          }
+
           //library entry transformation
-          for (UInt l = 0; l < s->size(); ++l)
+          for (UInt l = 0; l < s_it->size(); ++l)
           {
             Peak1D peak;
-            if ((*s)[l].getIntensity() >  remove_peaks_below_threshold)
+            if ((*s_it)[l].getIntensity() >  remove_peaks_below_threshold)
             {
-              const String& info = (*s)[l].getMetaValue("MSPPeakInfo");
+              // this is the "MSPPeakInfo" array, see MSPFile which creates a single StringDataArray
+              const String& info = (*s_it).getStringDataArrays()[0][l];
               if (info[0] == '?')
               {
-                peak.setIntensity(sqrt(0.2 * (*s)[l].getIntensity()));
+                peak.setIntensity(sqrt(0.2 * (*s_it)[l].getIntensity()));
               }
               else
               {
-                peak.setIntensity(sqrt((*s)[l].getIntensity()));
+                peak.setIntensity(sqrt((*s_it)[l].getIntensity()));
               }
 
-              peak.setMZ((*s)[l].getMZ());
-              peak.setPosition((*s)[l].getPosition());
+              peak.setMZ((*s_it)[l].getMZ());
+              peak.setPosition((*s_it)[l].getPosition());
               librar.push_back(peak);
             }
           }
@@ -302,7 +312,7 @@ protected:
       prot_id.setDateTime(DateTime::now());
       prot_id.setScoreType(compare_function);
       ProteinIdentification::SearchParameters searchparam;
-      searchparam.precursor_tolerance = precursor_mass_tolerance;
+      searchparam.precursor_mass_tolerance = precursor_mass_tolerance;
       prot_id.setSearchParameters(searchparam);
       /***********SEARCH**********/
       for (UInt j = 0; j < query.size(); ++j)
@@ -358,7 +368,7 @@ protected:
           bool charge_one = false;
           Int percent = (Int) Math::round((query[j].size() / 100.0) * 3.0);
           Int margin  = (Int) Math::round((query[j].size() / 100.0) * 1.0);
-          for (vector<RichPeak1D>::iterator peak = query[j].end() - 1; percent >= 0; --peak, --percent)
+          for (vector<Peak1D>::iterator peak = query[j].end() - 1; percent >= 0; --peak, --percent)
           {
             if (peak->getMZ() < query_MZ)
             {
@@ -391,13 +401,13 @@ protected:
                     SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
                     BinnedSpectrum quer_bin = sp->transform(quer);
                     BinnedSpectrum librar_bin = sp->transform(librar);
-                    score = (* sp)(quer, librar); //(*sp)(quer_bin,librar_bin);
+                    score = (*sp)(quer, librar); //(*sp)(quer_bin,librar_bin);
                     double dot_bias = sp->dot_bias(quer_bin, librar_bin, score);
                     hit.setMetaValue("DOTBIAS", dot_bias);
                   }
                   else
                   {
-                    score = (* comparor)(quer, librar);
+                    score = (*comparor)(quer, librar);
                   }
 
                   DataValue RT(library[i].getRT());
@@ -405,7 +415,9 @@ protected:
                   hit.setMetaValue("RT", RT);
                   hit.setMetaValue("MZ", MZ);
                   hit.setScore(score);
-                  hit.addProteinAccession(pr_hit.getAccession());
+                  PeptideEvidence pe;
+                  pe.setProteinAccession(pr_hit.getAccession());
+                  hit.addPeptideEvidence(pe);
                   pid.insertHit(hit);
                 }
               }

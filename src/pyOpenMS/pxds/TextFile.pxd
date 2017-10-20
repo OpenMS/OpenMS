@@ -10,3 +10,4 @@ cdef extern from "<OpenMS/FORMAT/TextFile.h>" namespace "OpenMS":
         TextFile(String &filename, bool trim_linesalse, Int first_n1) nogil except +
         void load(String &filename, bool trim_linesalse, Int first_n1) nogil except +
         void store(String &filename) nogil except +
+        void addLine(String line) nogil except +

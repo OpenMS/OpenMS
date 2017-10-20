@@ -4,12 +4,14 @@ set(directory source/CHEMISTRY)
 ### list all filenames of the directory here
 set(sources_list
 AASequence.cpp
-EdwardsLippertIterator.cpp
-EdwardsLippertIteratorTryptic.cpp
+CrossLinksDB.cpp
 Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
+EnzymaticDigestionLogModel.cpp
 EnzymaticDigestion.cpp
+Enzyme.cpp
+EnzymesDB.cpp
 IsotopeDistribution.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
@@ -20,6 +22,8 @@ Residue.cpp
 ResidueDB.cpp
 ResidueModification.cpp
 TheoreticalSpectrumGenerator.cpp
+SpectrumAnnotator.cpp
+TheoreticalSpectrumGeneratorXLMS.cpp
 SvmTheoreticalSpectrumGenerator.cpp
 SvmTheoreticalSpectrumGeneratorTrainer.cpp
 SvmTheoreticalSpectrumGeneratorSet.cpp

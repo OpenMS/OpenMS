@@ -13,7 +13,7 @@
 		</fileContent>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value=", " />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="" />
 		</contact>
 	</fileDescription>
 	<sampleList count="1">
@@ -101,7 +101,7 @@
 						<binary>ZGaMXCFQkQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="44">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>ZGaMXCFQkQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</binary>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
 #define OPENMS_FORMAT_TRANSFORMATIONXMLFILE_H
-
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -72,7 +71,7 @@ public:
     @exception Exception::FileNotFound is thrown if the file could not be opened
     @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, TransformationDescription & transformation);
+    void load(const String& filename, TransformationDescription& transformation, bool fit_model=true);
 
     /**
     @brief Stores the data in an TransformationXML file
@@ -82,11 +81,11 @@ public:
     @exception Exception::UnableToCreateFile is thrown if the file could not be created
     @exception Exception::IllegalArgument is thrown if unsupported parameter types have been set
     */
-    void store(String filename, const TransformationDescription & transformation);
+    void store(String filename, const TransformationDescription& transformation);
 
 protected:
     // Docu in base class
-    virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     /// @name Members for use during loading data
     //@{

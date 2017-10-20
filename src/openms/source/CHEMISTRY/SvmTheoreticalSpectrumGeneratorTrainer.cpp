@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Sandro Andreotti $
 // --------------------------------------------------------------------------
 
@@ -209,13 +209,13 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer(const SvmTheoreticalSpectrumGeneratorTrainer & rhs) :
+  SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer(const SvmTheoreticalSpectrumGeneratorTrainer& rhs) :
     DefaultParamHandler(rhs)
   {
     updateMembers_();
   }
 
-  SvmTheoreticalSpectrumGeneratorTrainer & SvmTheoreticalSpectrumGeneratorTrainer::operator=(const SvmTheoreticalSpectrumGeneratorTrainer & rhs)
+  SvmTheoreticalSpectrumGeneratorTrainer& SvmTheoreticalSpectrumGeneratorTrainer::operator=(const SvmTheoreticalSpectrumGeneratorTrainer& rhs)
   {
     if (this != &rhs)
     {
@@ -229,7 +229,7 @@ namespace OpenMS
   {
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap & spectra, const std::vector<AASequence> & annotations, String filename, Int precursor_charge)
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap& spectra, const std::vector<AASequence>& annotations, String filename, Int precursor_charge)
   {
     //----------- BEGIN OF PARAMETER READING-------------------------
 
@@ -365,7 +365,7 @@ namespace OpenMS
       double gamma_step_size = (double)param_.getValue("svm:svr:gamma_step_size");
       if (!additive_cv && gamma_step_size <= 1)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
       }
       double gamma_stop = (double)param_.getValue("svm:svr:degree_stop");
       start_values_reg.insert(make_pair(SVMWrapper::GAMMA, gamma_start));
@@ -382,7 +382,7 @@ namespace OpenMS
         degree_step_size = (Int)param_.getValue("svm:svr:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of degree <= 1 and additive_cv is false. Aborting!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of degree <= 1 and additive_cv is false. Aborting!");
         }
         degree_stop = (Int)param_.getValue("svm:svr:degree_stop");
 
@@ -397,7 +397,7 @@ namespace OpenMS
         double p_step_size = (double)param_.getValue("svm:svr:p_step_size");
         if (!additive_cv && p_step_size <= 1)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of p <= 1 and additive_cv is false. Aborting!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of p <= 1 and additive_cv is false. Aborting!");
         }
         double p_stop = (double)param_.getValue("svm:svr:p_stop");
 
@@ -410,7 +410,7 @@ namespace OpenMS
       double c_step_size = (double)param_.getValue("svm:svr:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of c <= 1 and additive_cv is false. Aborting!");
       }
       double c_stop = (double)param_.getValue("svm:svr:c_stop");
 
@@ -424,7 +424,7 @@ namespace OpenMS
         double nu_step_size = (double)param_.getValue("svm:svr:nu_step_size");
         if (!additive_cv && nu_step_size <= 1)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of nu <= 1 and additive_cv is false. Aborting!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of nu <= 1 and additive_cv is false. Aborting!");
         }
         double nu_stop = (double)param_.getValue("svm:svr:nu_stop");
 
@@ -443,7 +443,7 @@ namespace OpenMS
       double gamma_step_size = (double)param_.getValue("svm:svc:gamma_step_size");
       if (!additive_cv && gamma_step_size <= 1)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
       }
       double gamma_stop = (double)param_.getValue("svm:svc:degree_stop");
       start_values_class.insert(make_pair(SVMWrapper::GAMMA, gamma_start));
@@ -456,7 +456,7 @@ namespace OpenMS
         UInt degree_step_size = (Int)param_.getValue("svm:svc:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of degree <= 1 and additive_cv is false. Aborting!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of degree <= 1 and additive_cv is false. Aborting!");
         }
         UInt degree_stop = (Int)param_.getValue("svm:svc:degree_stop");
 
@@ -469,7 +469,7 @@ namespace OpenMS
       double c_step_size = (double)param_.getValue("svm:svc:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of c <= 1 and additive_cv is false. Aborting!");
       }
       double c_stop = (double)param_.getValue("svm:svc:c_stop");
 
@@ -483,7 +483,7 @@ namespace OpenMS
         double nu_step_size = (double)param_.getValue("svm:svc:nu_step_size");
         if (!additive_cv && nu_step_size <= 1)
         {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of nu <= 1 and additive_cv is false. Aborting!");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Step size of nu <= 1 and additive_cv is false. Aborting!");
         }
         double nu_stop = (double)param_.getValue("svm:svc:nu_stop");
 
@@ -499,11 +499,11 @@ namespace OpenMS
 
     String info_outfile_name = filename + ".info";
     TextFile info_outfile;
-    info_outfile.push_back("<PrecursorCharge>");
-    info_outfile.push_back(precursor_charge);
-    info_outfile.push_back("</PrecursorCharge>");
+    info_outfile.addLine("<PrecursorCharge>");
+    info_outfile.addLine(precursor_charge);
+    info_outfile.addLine("</PrecursorCharge>");
 
-    info_outfile.push_back("<PrimaryTypes>");
+    info_outfile.addLine("<PrimaryTypes>");
 
     //count number of usable spectra
     Size usable_spectra = spectra.size();
@@ -730,8 +730,8 @@ namespace OpenMS
       else
       {
         //std::vector<double> predictions_reg(training_input_reg.size(), 0);
-        svm_node ** input_training_reg = new svm_node *[training_input_reg.size()];
-        double * output_training_reg = &training_output_reg[0];
+        svm_node** input_training_reg = new svm_node*[training_input_reg.size()];
+        double* output_training_reg = &training_output_reg[0];
         for (Size i = 0; i < training_input_reg.size(); ++i)
         {
           input_training_reg[i] = &(training_input_reg[i].descriptors[0]);
@@ -820,8 +820,8 @@ namespace OpenMS
       }
       else
       {
-        double * output_training_class = &training_output[type_nr][0];
-        svm_node ** input_training_class = new svm_node *[training_input[type_nr].size()];
+        double* output_training_class = &training_output[type_nr][0];
+        svm_node** input_training_class = new svm_node*[training_input[type_nr].size()];
         for (Size i = 0; i < training_input[type_nr].size(); ++i)
         {
           input_training_class[i] = &(training_input[type_nr][i].descriptors[0]);
@@ -866,63 +866,69 @@ namespace OpenMS
 
 
         //add entries to info file
-        info_outfile.push_back("<IonType>");
-        info_outfile.push_back(ion_types[type_nr].residue);
-        info_outfile.push_back(ion_types[type_nr].loss.toString());
-        info_outfile.push_back(ion_types[type_nr].charge);
-        info_outfile.push_back("<SvmModelFileClass>");
-        info_outfile.push_back(svm_model_file_class);
-        info_outfile.push_back("</SvmModelFileClass>");
-        info_outfile.push_back("<SvmModelFileReg>");
-        info_outfile.push_back(svm_model_file_reg);
-        info_outfile.push_back("</SvmModelFileReg>");
-        info_outfile.push_back("</IonType>");
+        info_outfile.addLine("<IonType>");
+        info_outfile.addLine(ion_types[type_nr].residue);
+        info_outfile.addLine(ion_types[type_nr].loss.toString());
+        info_outfile.addLine(ion_types[type_nr].charge);
+        info_outfile.addLine("<SvmModelFileClass>");
+        info_outfile.addLine(svm_model_file_class);
+        info_outfile.addLine("</SvmModelFileClass>");
+        info_outfile.addLine("<SvmModelFileReg>");
+        info_outfile.addLine(svm_model_file_reg);
+        info_outfile.addLine("</SvmModelFileReg>");
+        info_outfile.addLine("</IonType>");
 
       } //end of else
 
     } //End of training SVR and SVC for the primary types
 
 
-    //If we are only generating the outfiles we can terminare here
+    //If we are only generating the outfiles we can terminate here
     if (write_outfiles)
     {
       return;
     }
 
-    info_outfile.push_back("</PrimaryTypes>");
-    info_outfile.push_back("<ScalingUpper>");
-    info_outfile.push_back(upper);
-    info_outfile.push_back("</ScalingUpper>");
-    info_outfile.push_back("<ScalingLower>");
-    info_outfile.push_back(lower);
-    info_outfile.push_back("</ScalingLower>");
-    info_outfile.push_back("<MaxFeatures>");
-    info_outfile.insert(info_outfile.end(), max_features.begin(), max_features.end());
-    info_outfile.push_back("</MaxFeatures>");
-    info_outfile.push_back("<MinFeatures>");
-    info_outfile.insert(info_outfile.end(), min_features.begin(), min_features.end());
-    info_outfile.push_back("</MinFeatures>");
+    info_outfile.addLine("</PrimaryTypes>");
+    info_outfile.addLine("<ScalingUpper>");
+    info_outfile.addLine(upper);
+    info_outfile.addLine("</ScalingUpper>");
+    info_outfile.addLine("<ScalingLower>");
+    info_outfile.addLine(lower);
+    info_outfile.addLine("</ScalingLower>");
+    info_outfile.addLine("<MaxFeatures>");
+    for (std::vector<double>::const_iterator maxFeatIt = max_features.begin(); maxFeatIt != max_features.end(); ++maxFeatIt)
+    {
+      info_outfile.addLine(*maxFeatIt);
+    }
+    info_outfile.addLine("</MaxFeatures>");
+    info_outfile.addLine("<MinFeatures>");
+    for (std::vector<double>::const_iterator minFeatIt = min_features.begin(); minFeatIt != min_features.end(); ++minFeatIt)
+    {
+      info_outfile.addLine(*minFeatIt);
+    }
+    info_outfile.addLine("</MinFeatures>");
 
     //------------------------------------------------------------------------------------------
     //----------------------Training prob. model for secondary types------------------
     //------------------------------------------------------------------------------------------
 
-    info_outfile.push_back("<SecondaryTypes>");
+    info_outfile.addLine("<SecondaryTypes>");
     if (secondary_types)
     {
-      info_outfile.push_back("<IntensityLevels>");
-      info_outfile.push_back(number_of_intensity_levels);
-      info_outfile.push_back("</IntensityLevels>");
+      info_outfile.addLine("<IntensityLevels>");
+      info_outfile.addLine(number_of_intensity_levels);
+      info_outfile.addLine("</IntensityLevels>");
 
       trainSecondaryTypes_(info_outfile, number_of_regions, number_of_intensity_levels, observed_intensities, ion_types, is_primary);
     }
 
-    info_outfile.push_back("</SecondaryTypes>");
+    info_outfile.addLine("</SecondaryTypes>");
     info_outfile.store(info_outfile_name);
   }
 
   //like in Cong Zhou paper
-  void SvmTheoreticalSpectrumGeneratorTrainer::normalizeIntensity(PeakSpectrum & S) const
+  void SvmTheoreticalSpectrumGeneratorTrainer::normalizeIntensity(PeakSpectrum& S) const
   {
     NLargest n_larg;
     Param larg_param = n_larg.getParameters();
@@ -960,8 +966,8 @@ namespace OpenMS
       if (S[i].getIntensity() > 0)
       {
         double intens = lower + (upper - lower) *
-                            (intensities[i] - min_intens) /
-                            (max_intens - min_intens);
+                        (intensities[i] - min_intens) /
+                        (max_intens - min_intens);
         S[i].setIntensity(intens);
       }
       else
@@ -972,12 +978,12 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::trainSecondaryTypes_(TextFile & info_outfile,
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainSecondaryTypes_(TextFile& info_outfile,
                                                                     Size number_of_regions,
                                                                     Size number_of_intensity_levels,
-                                                                    ObservedIntensMap & observed_intensities,
-                                                                    const std::vector<IonType> & ion_types,
-                                                                    const std::vector<bool> & is_primary
+                                                                    ObservedIntensMap& observed_intensities,
+                                                                    const std::vector<IonType>& ion_types,
+                                                                    const std::vector<bool>& is_primary
                                                                     )
   {
     std::vector<double> tmp;
@@ -985,9 +991,9 @@ namespace OpenMS
     {
       //we start by binning the intensities. We select the bin boarders such that
       //the intensities of the primary ions are equally split
-      std::vector<double> & observed_b = observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
+      std::vector<double>& observed_b = observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
       tmp.insert(tmp.end(), observed_b.begin(), observed_b.end());
-      std::vector<double> & observed_y = observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
+      std::vector<double>& observed_y = observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
       tmp.insert(tmp.end(), observed_y.begin(), observed_y.end());
     }
 
@@ -1017,25 +1023,25 @@ namespace OpenMS
       prev_index = index;
     }
 
-    info_outfile.push_back("<IntensityBinBoarders>");
+    info_outfile.addLine("<IntensityBinBoarders>");
     for (Size i = 0; i < number_of_intensity_levels - 1; ++i)
     {
-      info_outfile.push_back(bin_boarders[i]);
+      info_outfile.addLine(bin_boarders[i]);
     }
-    info_outfile.push_back("</IntensityBinBoarders>");
-    info_outfile.push_back("<IntensityBinValues>");
+    info_outfile.addLine("</IntensityBinBoarders>");
+    info_outfile.addLine("<IntensityBinValues>");
     for (Size i = 0; i < number_of_intensity_levels - 1; ++i)
     {
-      info_outfile.push_back(bin_values[i]);
+      info_outfile.addLine(bin_values[i]);
     }
-    info_outfile.push_back("</IntensityBinValues>");
+    info_outfile.addLine("</IntensityBinValues>");
 
     //use the boarder values to bin the entries
     for (Size region = 0; region < number_of_regions; ++region)
     {
       for (Size i = 0; i < ion_types.size(); ++i)
       {
-        std::vector<double> & intensities = observed_intensities[std::make_pair(ion_types[i], region)];
+        std::vector<double>& intensities = observed_intensities[std::make_pair(ion_types[i], region)];
         for (Size j = 0; j < intensities.size(); ++j)
         {
           double intens = intensities[j];
@@ -1057,7 +1063,7 @@ namespace OpenMS
     //count joint appearances of primary and secondary peaks
     for (Size i = 0; i < ion_types.size(); ++i)
     {
-      const IonType & type = ion_types[i];
+      const IonType& type = ion_types[i];
       if (is_primary[i])
         continue;
 
@@ -1073,8 +1079,8 @@ namespace OpenMS
       {
         joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<double>(number_of_intensity_levels, 1));
         background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, number_of_intensity_levels);
-        const std::vector<double> & secondary = observed_intensities[std::make_pair(type, region)];
-        const std::vector<double> & primary = observed_intensities[std::make_pair(primary_type, region)];
+        const std::vector<double>& secondary = observed_intensities[std::make_pair(type, region)];
+        const std::vector<double>& primary = observed_intensities[std::make_pair(primary_type, region)];
 
         for (Size j = 0; j < primary.size(); ++j)
         {
@@ -1090,20 +1096,20 @@ namespace OpenMS
     //compute conditional probabilities and store them in the outfile
     for (Size i = 0; i < ion_types.size(); ++i)
     {
-      const IonType & type = ion_types[i];
+      const IonType& type = ion_types[i];
       if (is_primary[i])
         continue;
 
-      info_outfile.push_back("<IonType>");
-      info_outfile.push_back(type.residue);
-      info_outfile.push_back(type.loss.toString());
-      info_outfile.push_back(type.charge);
-      info_outfile.push_back("<ConditionalProbabilities>");
+      info_outfile.addLine("<IonType>");
+      info_outfile.addLine(type.residue);
+      info_outfile.addLine(type.loss.toString());
+      info_outfile.addLine(type.charge);
+      info_outfile.addLine("<ConditionalProbabilities>");
 
       for (Size region = 0; region < number_of_regions; ++region)
       {
-        info_outfile.push_back("<Region " + String(region) + ">");
-        std::vector<double> & back_counts = background_counts[std::make_pair(type, region)];
+        info_outfile.addLine("<Region " + String(region) + ">");
+        std::vector<double>& back_counts = background_counts[std::make_pair(type, region)];
 
         for (Size prim = 0; prim < number_of_intensity_levels; ++prim)
         {
@@ -1114,20 +1120,20 @@ namespace OpenMS
               joint_counts[std::make_pair(type, region)][sec][prim] = joint_counts[std::make_pair(type, region)][sec][prim] / back_counts[prim];
               //std::cerr<<"conditional prob  "<<type.residue<<" "<<sec<<"  "<<prim<<"  "<<joint_counts[std::make_pair(type, region)][sec][prim]<<std::endl;
             }
-            info_outfile.push_back(joint_counts[std::make_pair(type, region)][sec][prim]);
+            info_outfile.addLine(joint_counts[std::make_pair(type, region)][sec][prim]);
           }
         }
-        info_outfile.push_back("</Region " + String(region) + ">");
+        info_outfile.addLine("</Region " + String(region) + ">");
       }
-      info_outfile.push_back("</ConditionalProbabilities>");
-      info_outfile.push_back("</IonType>");
+      info_outfile.addLine("</ConditionalProbabilities>");
+      info_outfile.addLine("</IonType>");
     }
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum & spectrum,
-                                                                 const AASequence & annotation,
+  void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum& spectrum,
+                                                                 const AASequence& annotation,
                                                                  IonType type,
-                                                                 std::map<std::pair<IonType, Size>, std::vector<double> > & observed_intensities,
+                                                                 std::map<std::pair<IonType, Size>, std::vector<double> >& observed_intensities,
                                                                  double tolerance,
                                                                  Size number_of_regions
                                                                  )
@@ -1209,7 +1215,7 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet> & training_input, std::vector<double> & training_output, String filename)
+  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet>& training_input, std::vector<double>& training_output, String filename)
   {
     std::cerr << "Creating Training File.. " << filename;
     TextFile file;
@@ -1222,7 +1228,7 @@ namespace OpenMS
       {
         ss << " " << it_debug->index << ":" << it_debug->value;
       }
-      file.push_back(ss.str());
+      file.addLine(ss.str());
     }
     file.store(filename);
     std::cerr << " Done" << std::endl;

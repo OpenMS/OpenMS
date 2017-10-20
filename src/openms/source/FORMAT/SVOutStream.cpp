@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,27 +36,61 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <limits>
+#include <string>
 
 using namespace std;
 
 namespace OpenMS
 {
 
+  SVOutStream::SVOutStream(const String& file_out,
+                           const String& sep,
+                           const String& replacement,
+                           String::QuotingMethod quoting)
+    :
+    ostream(NULL), ofs_(NULL), sep_(sep), replacement_(replacement), nan_("nan"),
+    inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
+  {
+    ofs_ = new std::ofstream;
+    ofs_->open(file_out.c_str());
+
+    if (!ofs_->is_open())
+    {
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, file_out);
+    }
+
+    // bind to filestream
+    this->rdbuf(ofs_->rdbuf());
+
+    // use high decimal precision (appropriate for double):
+    precision(std::numeric_limits<double>::digits10);
+  }
+
   SVOutStream::SVOutStream(ostream& out, const String& sep,
                            const String& replacement,
                            String::QuotingMethod quoting) :
-    ostream(out.rdbuf()), sep_(sep), replacement_(replacement), nan_("nan"),
+    ostream(out.rdbuf()), ofs_(NULL), sep_(sep), replacement_(replacement), nan_("nan"),
     inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
   {
     // use high decimal precision (appropriate for double):
     precision(std::numeric_limits<double>::digits10);
   }
 
+
+  SVOutStream::~SVOutStream()
+  {
+    if (ofs_)
+    {
+      ofs_->close();
+      delete ofs_;
+    }
+  }
+
   SVOutStream& SVOutStream::operator<<(String str)
   {
     if (str.find('\n') != String::npos)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "argument must not contain newline characters");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "argument must not contain newline characters");
     }
 
     if (!newline_)
@@ -93,7 +127,7 @@ namespace OpenMS
     return operator<<(String(c));
   }
 
-  SVOutStream& SVOutStream::operator<<(const string& str)
+  SVOutStream& SVOutStream::operator<<(const std::string& str)
   {
     return operator<<((String&)str);
   }

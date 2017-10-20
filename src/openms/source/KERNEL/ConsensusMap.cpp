@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,11 +28,22 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {
@@ -46,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap::FileDescription::FileDescription(const ConsensusMap::FileDescription & other):
+  ConsensusMap::FileDescription::FileDescription(const ConsensusMap::FileDescription& other) :
     MetaInfoInterface(other),
     filename(other.filename),
     label(other.label),
@@ -70,7 +81,7 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap::ConsensusMap(const ConsensusMap & source) :
+  ConsensusMap::ConsensusMap(const ConsensusMap& source) :
     Base(source),
     MetaInfoInterface(source),
     RangeManagerType(source),
@@ -103,7 +114,7 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap & ConsensusMap::operator=(const ConsensusMap & source)
+  ConsensusMap& ConsensusMap::operator=(const ConsensusMap& source)
   {
     if (this == &source)
     {
@@ -124,7 +135,7 @@ namespace OpenMS
     return *this;
   }
 
-  ConsensusMap & ConsensusMap::operator+=(const ConsensusMap & rhs)
+  ConsensusMap& ConsensusMap::operator+=(const ConsensusMap& rhs)
   {
     ConsensusMap empty_map;
 
@@ -138,6 +149,14 @@ namespace OpenMS
 
     DocumentIdentifier::operator=(empty_map);
     UniqueIdInterface::operator=(empty_map);
+
+    // append spectra_data information
+    StringList thisRuns_;
+    this->getPrimaryMSRunPath(thisRuns_);
+    StringList rhsRuns_;
+    rhs.getPrimaryMSRunPath(rhsRuns_);
+    thisRuns_.insert(thisRuns_.end(), rhsRuns_.begin(), rhsRuns_.end());
+    this->setPrimaryMSRunPath(thisRuns_);
 
     // append dataProcessing
     data_processing_.insert(data_processing_.end(),
@@ -157,7 +176,7 @@ namespace OpenMS
       getFileDescriptions()[it->first].size = it->second.size + it2->second.size;
     }
 
-    // append proteinIdenficiation
+    // append proteinIdentification
     protein_identifications_.insert(protein_identifications_.end(),
                                     rhs.protein_identifications_.begin(),
                                     rhs.protein_identifications_.end());
@@ -170,19 +189,19 @@ namespace OpenMS
       std::vector<String>::iterator it_2;
 
       // remove redundant variable modifications
-      std::vector<String> & varMod = const_cast<std::vector<String> &>(it_1->getSearchParameters().variable_modifications);
+      std::vector<String>& varMod = const_cast<std::vector<String>&>(it_1->getSearchParameters().variable_modifications);
       sort(varMod.begin(), varMod.end());
       it_2 = unique(varMod.begin(), varMod.end());
       varMod.resize(it_2 - varMod.begin());
 
       // remove redundant fixed modifications
-      std::vector<String> & fixMod = const_cast<std::vector<String> &>(it_1->getSearchParameters().fixed_modifications);
+      std::vector<String>& fixMod = const_cast<std::vector<String>&>(it_1->getSearchParameters().fixed_modifications);
       sort(fixMod.begin(), fixMod.end());
       it_2 = unique(fixMod.begin(), fixMod.end());
       fixMod.resize(it_2 - fixMod.begin());
     }
 
-    // append unassignedPeptideIdentifiactions
+    // append unassignedPeptideIdentifications
     unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(),
                                                rhs.unassigned_peptide_identifications_.begin(),
                                                rhs.unassigned_peptide_identifications_.end());
@@ -226,27 +245,27 @@ namespace OpenMS
     }
   }
 
-  const ConsensusMap::FileDescriptions & ConsensusMap::getFileDescriptions() const
+  const ConsensusMap::FileDescriptions& ConsensusMap::getFileDescriptions() const
   {
     return file_description_;
   }
 
-  ConsensusMap::FileDescriptions & ConsensusMap::getFileDescriptions()
+  ConsensusMap::FileDescriptions& ConsensusMap::getFileDescriptions()
   {
     return file_description_;
   }
 
-  void ConsensusMap::setFileDescriptions(const ConsensusMap::FileDescriptions & file_description)
+  void ConsensusMap::setFileDescriptions(const ConsensusMap::FileDescriptions& file_description)
   {
-      file_description_ = file_description;
+    file_description_ = file_description;
   }
 
-  const String & ConsensusMap::getExperimentType() const
+  const String& ConsensusMap::getExperimentType() const
   {
     return experiment_type_;
   }
 
-  void ConsensusMap::setExperimentType(const String & experiment_type)
+  void ConsensusMap::setExperimentType(const String& experiment_type)
   {
     experiment_type_ = experiment_type;
   }
@@ -300,7 +319,38 @@ namespace OpenMS
     std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::MapsLess());
   }
 
-  void ConsensusMap::swap(ConsensusMap & from)
+  void ConsensusMap::sortPeptideIdentificationsByMapIndex()
+  {
+    // lambda predicate
+    auto mapIndexLess = [] (const PeptideIdentification & a, const PeptideIdentification & b) -> bool
+    {
+      const bool has_a = a.metaValueExists("map_index");
+      const bool has_b = b.metaValueExists("map_index");
+
+      // moves IDs without meta value to end
+      if (has_a && !has_b) { return true; }
+      if (!has_a && has_b) { return false; }
+
+      // both have map index annotated
+      if (has_a && has_b)
+      {
+        return a.getMetaValue("map_index") < b.getMetaValue("map_index");
+      }
+
+      // no map index annotated in both
+      return false;
+    };
+
+    std::transform(begin(), end(), begin(),
+      [mapIndexLess](ConsensusFeature& c) 
+      { 
+        vector<PeptideIdentification> & pids = c.getPeptideIdentifications();
+        stable_sort(pids.begin(), pids.end(), mapIndexLess);
+        return c;
+      });
+  }
+
+  void ConsensusMap::swap(ConsensusMap& from)
   {
     ConsensusMap tmp;
 
@@ -330,61 +380,79 @@ namespace OpenMS
   }
 
   /// non-mutable access to the protein identifications
-  const std::vector<ProteinIdentification> & ConsensusMap::getProteinIdentifications() const
+  const std::vector<ProteinIdentification>& ConsensusMap::getProteinIdentifications() const
   {
     return protein_identifications_;
   }
 
   /// mutable access to the protein identifications
-  std::vector<ProteinIdentification> & ConsensusMap::getProteinIdentifications()
+  std::vector<ProteinIdentification>& ConsensusMap::getProteinIdentifications()
   {
     return protein_identifications_;
   }
 
   /// sets the protein identifications
-  void ConsensusMap::setProteinIdentifications(const std::vector<ProteinIdentification> & protein_identifications)
+  void ConsensusMap::setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
   {
     protein_identifications_ = protein_identifications;
   }
 
   /// non-mutable access to the unassigned peptide identifications
-  const std::vector<PeptideIdentification> & ConsensusMap::getUnassignedPeptideIdentifications() const
+  const std::vector<PeptideIdentification>& ConsensusMap::getUnassignedPeptideIdentifications() const
   {
     return unassigned_peptide_identifications_;
   }
 
   /// mutable access to the unassigned peptide identifications
-  std::vector<PeptideIdentification> & ConsensusMap::getUnassignedPeptideIdentifications()
+  std::vector<PeptideIdentification>& ConsensusMap::getUnassignedPeptideIdentifications()
   {
     return unassigned_peptide_identifications_;
   }
 
   /// sets the unassigned peptide identifications
-  void ConsensusMap::setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification> & unassigned_peptide_identifications)
+  void ConsensusMap::setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)
   {
     unassigned_peptide_identifications_ = unassigned_peptide_identifications;
   }
 
   /// returns a const reference to the description of the applied data processing
-  const std::vector<DataProcessing> & ConsensusMap::getDataProcessing() const
+  const std::vector<DataProcessing>& ConsensusMap::getDataProcessing() const
   {
     return data_processing_;
   }
 
   /// returns a mutable reference to the description of the applied data processing
-  std::vector<DataProcessing> & ConsensusMap::getDataProcessing()
+  std::vector<DataProcessing>& ConsensusMap::getDataProcessing()
   {
     return data_processing_;
   }
 
   /// sets the description of the applied data processing
-  void ConsensusMap::setDataProcessing(const std::vector<DataProcessing> & processing_method)
+  void ConsensusMap::setDataProcessing(const std::vector<DataProcessing>& processing_method)
   {
     data_processing_ = processing_method;
   }
 
+  /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+  void ConsensusMap::setPrimaryMSRunPath(const StringList& s)
+  {
+    if (!s.empty())
+    {
+      this->setMetaValue("spectra_data", DataValue(s));
+    }
+  }
+
+  /// get the file path to the first MS run
+  void ConsensusMap::getPrimaryMSRunPath(StringList& toFill) const
+  {
+    if (this->metaValueExists("spectra_data"))
+    {
+      toFill = this->getMetaValue("spectra_data");
+    }
+  }
+
   /// Equality operator
-  bool ConsensusMap::operator==(const ConsensusMap & rhs) const
+  bool ConsensusMap::operator==(const ConsensusMap& rhs) const
   {
     return std::operator==(*this, rhs) &&
            MetaInfoInterface::operator==(rhs) &&
@@ -399,12 +467,12 @@ namespace OpenMS
   }
 
   /// Equality operator
-  bool ConsensusMap::operator!=(const ConsensusMap & rhs) const
+  bool ConsensusMap::operator!=(const ConsensusMap& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  std::ostream & operator<<(std::ostream & os, const ConsensusMap & cons_map)
+  std::ostream& operator<<(std::ostream& os, const ConsensusMap& cons_map)
   {
     for (ConsensusMap::FileDescriptions::const_iterator it = cons_map.getFileDescriptions().begin(); it != cons_map.getFileDescriptions().end(); ++it)
     {
@@ -464,16 +532,15 @@ namespace OpenMS
     }
   }
 
-
   bool ConsensusMap::isMapConsistent(Logger::LogStream* stream) const
   {
     Size stats_wrongMID(0); // invalid map ID references by a feature handle
-    Map<Size,Size> wrong_ID_count; // which IDs were given which are not valid
+    Map<Size, Size> wrong_ID_count; // which IDs were given which are not valid
 
     // check file descriptions
     std::set<String> maps;
     String all_maps; // for output later
-    for (FileDescriptions::ConstIterator it=file_description_.begin();  it!=file_description_.end(); ++it)
+    for (FileDescriptions::const_iterator it = file_description_.begin(); it != file_description_.end(); ++it)
     {
       String s = String("  file: ") + it->second.filename + " label: " + it->second.label;
       maps.insert(s);
@@ -484,7 +551,7 @@ namespace OpenMS
     {
       if (stream != 0)
       {
-        *stream << "ConsensusMap file descriptions are not unique:\n" << all_maps << std::endl;
+        *stream << "Map descriptions (file name + label) in ConsensusMap are not unique:\n" << all_maps << std::endl;
       }
       return false;
     }
@@ -496,7 +563,7 @@ namespace OpenMS
       const ConsensusFeature& elem = (*this)[i];
       for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
       {
-        if (!file_description_.has(it->getMapIndex()))
+        if (file_description_.find(it->getMapIndex()) == file_description_.end())
         {
           ++stats_wrongMID;
           ++wrong_ID_count[it->getMapIndex()];
@@ -509,9 +576,9 @@ namespace OpenMS
       if (stream != 0)
       {
         *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
-        for (Map<Size,Size>::ConstIterator it=wrong_ID_count.begin(); it!=wrong_ID_count.end(); ++it)
+        for (Map<Size, Size>::ConstIterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)
         {
-           *stream << "  wrong id="<< it->first << " (occurred " << it->second << "x)\n";
+          *stream << "  wrong id=" << it->first << " (occurred " << it->second << "x)\n";
         }
         *stream << std::endl;
       }

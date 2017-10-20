@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,22 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/CHEMISTRY/ElementDB.h>
-#include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/config.h>
 
 namespace OpenMS
 {
@@ -45,30 +52,30 @@ namespace OpenMS
   {
   }
 
-  ConsensusFeature::ConsensusFeature(const ConsensusFeature & rhs) :
+  ConsensusFeature::ConsensusFeature(const ConsensusFeature& rhs) :
     BaseFeature(rhs), handles_(rhs.handles_), ratios_()
   {
     ratios_ = rhs.ratios_;
   }
 
-  ConsensusFeature::ConsensusFeature(const BaseFeature & feature) :
+  ConsensusFeature::ConsensusFeature(const BaseFeature& feature) :
     BaseFeature(feature), handles_(), ratios_()
   {
   }
 
-  ConsensusFeature::ConsensusFeature(UInt64 map_index, const Peak2D & element, UInt64 element_index) :
+  ConsensusFeature::ConsensusFeature(UInt64 map_index, const Peak2D& element, UInt64 element_index) :
     BaseFeature(element), handles_(), ratios_()
   {
     insert(map_index, element, element_index);
   }
 
-  ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature & element) :
+  ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature& element) :
     BaseFeature(element), handles_(), ratios_()
   {
     insert(FeatureHandle(map_index, element));
   }
 
-  ConsensusFeature & ConsensusFeature::operator=(const ConsensusFeature & rhs)
+  ConsensusFeature& ConsensusFeature::operator=(const ConsensusFeature& rhs)
   {
     if (&rhs == this)
       return *this;
@@ -83,21 +90,21 @@ namespace OpenMS
   {
   }
 
-  void ConsensusFeature::insert(const ConsensusFeature & cf)
+  void ConsensusFeature::insert(const ConsensusFeature& cf)
   {
     handles_.insert(cf.handles_.begin(), cf.handles_.end());
   }
 
-  void ConsensusFeature::insert(const FeatureHandle & handle)
+  void ConsensusFeature::insert(const FeatureHandle& handle)
   {
     if (!(handles_.insert(handle).second))
     {
       String key = String("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The set already contained an element with this key.", key);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The set already contained an element with this key.", key);
     }
   }
 
-  void ConsensusFeature::insert(const HandleSetType & handle_set)
+  void ConsensusFeature::insert(const HandleSetType& handle_set)
   {
     for (ConsensusFeature::HandleSetType::const_iterator it = handle_set.begin(); it != handle_set.end(); ++it)
     {
@@ -105,20 +112,36 @@ namespace OpenMS
     }
   }
 
-  void ConsensusFeature::insert(UInt64 map_index, const Peak2D & element, UInt64 element_index)
+  void ConsensusFeature::insert(UInt64 map_index, const Peak2D& element, UInt64 element_index)
   {
     insert(FeatureHandle(map_index, element, element_index));
   }
 
-  void ConsensusFeature::insert(UInt64 map_index, const BaseFeature & element)
+  void ConsensusFeature::insert(UInt64 map_index, const BaseFeature& element)
   {
     insert(FeatureHandle(map_index, element));
-    peptides_.insert(peptides_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
+    // annotate map index to peptide identification
+    std::vector<PeptideIdentification> ids(element.getPeptideIdentifications());
+    for (std::vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
+    {
+      it->setMetaValue("map_index", map_index);
+    }
+    peptides_.insert(peptides_.end(), ids.begin(), ids.end());
   }
 
-  const ConsensusFeature::HandleSetType & ConsensusFeature::getFeatures() const
+  const ConsensusFeature::HandleSetType& ConsensusFeature::getFeatures() const
   {
     return handles_;
+  }
+
+  std::vector<FeatureHandle> ConsensusFeature::getFeatureList() const
+  {
+    std::vector<FeatureHandle> tmp;
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    {
+      tmp.push_back(*it);
+    }
+    return tmp;
   }
 
   DRange<2> ConsensusFeature::getPositionRange() const
@@ -236,7 +259,7 @@ namespace OpenMS
     return;
   }
 
-  void ConsensusFeature::computeDechargeConsensus(const FeatureMap<> & fm, bool intensity_weighted_averaging)
+  void ConsensusFeature::computeDechargeConsensus(const FeatureMap& fm, bool intensity_weighted_averaging)
   {
     // for computing average position and intensity
     double rt = 0.0;
@@ -265,7 +288,7 @@ namespace OpenMS
       double adduct_mass;
       Size index = fm.uniqueIdToIndex(it->getUniqueId());
       if (index > fm.size())
-        throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, fm.size());
+        throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, fm.size());
       if (fm[index].metaValueExists("dc_charge_adduct_mass"))
       {
         adduct_mass = (double) fm[index].getMetaValue("dc_charge_adduct_mass");
@@ -278,7 +301,7 @@ namespace OpenMS
       if (intensity_weighted_averaging)
         weighting_factor = it->getIntensity() / intensity;
       rt += it->getRT() * weighting_factor;
-      m += (it->getMZ() * q - adduct_mass) * weighting_factor;
+      m += (it->getMZ() * abs(q) - adduct_mass) * weighting_factor;
     }
 
     // compute the average position and intensity
@@ -289,17 +312,17 @@ namespace OpenMS
     return;
   }
 
-  void ConsensusFeature::addRatio(const ConsensusFeature::Ratio & r)
+  void ConsensusFeature::addRatio(const ConsensusFeature::Ratio& r)
   {
     ratios_.push_back(r);
   }
 
-  void ConsensusFeature::setRatios(std::vector<ConsensusFeature::Ratio> & rs)
+  void ConsensusFeature::setRatios(std::vector<ConsensusFeature::Ratio>& rs)
   {
     ratios_ = rs;
   }
 
-  std::vector<ConsensusFeature::Ratio> & ConsensusFeature::getRatios()
+  std::vector<ConsensusFeature::Ratio>& ConsensusFeature::getRatios()
   {
     return ratios_;
   }
@@ -323,7 +346,6 @@ namespace OpenMS
   {
     return handles_.begin();
   }
-
 
   ConsensusFeature::const_iterator ConsensusFeature::end() const
   {
@@ -365,8 +387,7 @@ namespace OpenMS
     return handles_.empty();
   }
 
-
-  std::ostream & operator<<(std::ostream & os, const ConsensusFeature & cons)
+  std::ostream& operator<<(std::ostream& os, const ConsensusFeature& cons)
   {
     os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
     os << "Position: " << cons.getPosition() << std::endl;
@@ -377,10 +398,10 @@ namespace OpenMS
     for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
       os << " - Map index: " << it->getMapIndex() << std::endl
-        << "   Feature id: " << it->getUniqueId() << std::endl
-        << "   RT: " << precisionWrapper(it->getRT()) << std::endl
-        << "   m/z: " << precisionWrapper(it->getMZ()) << std::endl
-        << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
+         << "   Feature id: " << it->getUniqueId() << std::endl
+         << "   RT: " << precisionWrapper(it->getRT()) << std::endl
+         << "   m/z: " << precisionWrapper(it->getMZ()) << std::endl
+         << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
     }
 
     os << "Meta information: " << std::endl;

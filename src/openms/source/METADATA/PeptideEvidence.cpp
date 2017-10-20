@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,124 +28,105 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideEvidence.h>
-
-#include <algorithm>
-
-using namespace std;
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 namespace OpenMS
 {
-  // default constructor
-  PeptideEvidence::PeptideEvidence() :
-    MetaInfoInterface(),
-    db_sequence_ref_(""),
-    translation_table_ref_(""),
-    start_(-1),
-    end_(-1),
-    pre_('?'),
-    post_('?'),
-    id_(""),
-    name_(""),
-    missed_cleavages_(-1),
-    is_decoy_(false),
-    frame_(-1)
+
+  const int PeptideEvidence::UNKNOWN_POSITION = -1;
+  const int PeptideEvidence::N_TERMINAL_POSITION = 0;
+  const char PeptideEvidence::UNKNOWN_AA = 'X';
+  const char PeptideEvidence::N_TERMINAL_AA = '[';
+  const char PeptideEvidence::C_TERMINAL_AA = ']';
+
+  PeptideEvidence::PeptideEvidence()
+   : accession_(),
+     start_(UNKNOWN_POSITION),
+     end_(UNKNOWN_POSITION),
+     aa_before_(UNKNOWN_AA),
+     aa_after_(UNKNOWN_AA)
   {
   }
 
-  // copy constructor
-  PeptideEvidence::PeptideEvidence(const PeptideEvidence & rhs) :
-    MetaInfoInterface(rhs),
-    db_sequence_ref_(rhs.db_sequence_ref_),
-    translation_table_ref_(rhs.translation_table_ref_),
-    start_(rhs.start_),
-    end_(rhs.end_),
-    pre_(rhs.pre_),
-    post_(rhs.post_),
-    id_(rhs.id_),
-    name_(rhs.name_),
-    missed_cleavages_(rhs.missed_cleavages_),
-    is_decoy_(rhs.is_decoy_),
-    frame_(rhs.frame_)
+  PeptideEvidence::PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after)
+    : accession_(accession),
+      start_(start),
+      end_(end),
+      aa_before_(aa_before),
+      aa_after_(aa_after)
   {
   }
 
-  // destructor
-  PeptideEvidence::~PeptideEvidence()
+  PeptideEvidence::PeptideEvidence(const PeptideEvidence& rhs)
   {
-  }
-
-  PeptideEvidence & PeptideEvidence::operator=(const PeptideEvidence & rhs)
-  {
-    if (this == &rhs)
-    {
-      return *this;
-    }
-
-    MetaInfoInterface::operator=(rhs);
-    db_sequence_ref_ = rhs.db_sequence_ref_;
-    translation_table_ref_ = rhs.translation_table_ref_;
+    accession_ = rhs.accession_;
     start_ = rhs.start_;
     end_ = rhs.end_;
-    pre_ = rhs.pre_;
-    post_ = rhs.post_;
-    id_ = rhs.id_;
-    name_ = name_;
-    missed_cleavages_ = rhs.missed_cleavages_;
-    is_decoy_ = rhs.is_decoy_;
-    frame_ = rhs.frame_;
+    aa_before_ = rhs.aa_before_;
+    aa_after_ = rhs.aa_after_;
+  }
 
+  PeptideEvidence& PeptideEvidence::operator=(const PeptideEvidence& rhs)
+  {
+    accession_ = rhs.accession_;
+    start_ = rhs.start_;
+    end_ = rhs.end_;
+    aa_before_ = rhs.aa_before_;
+    aa_after_ = rhs.aa_after_;
     return *this;
   }
 
-  bool PeptideEvidence::operator==(const PeptideEvidence & rhs) const
+  bool PeptideEvidence::operator==(const PeptideEvidence& rhs) const
   {
-    return MetaInfoInterface::operator==(rhs) &&
-           db_sequence_ref_ == rhs.db_sequence_ref_ &&
-           translation_table_ref_ == rhs.translation_table_ref_ &&
+    return accession_ == rhs.accession_ &&
            start_ == rhs.start_ &&
            end_ == rhs.end_ &&
-           pre_ == rhs.pre_ &&
-           post_ == rhs.post_ &&
-           id_ == rhs.id_ &&
-           name_ == rhs.name_ &&
-           missed_cleavages_ == rhs.missed_cleavages_ &&
-           is_decoy_ == rhs.is_decoy_ &&
-           frame_ == rhs.frame_;
+           aa_before_ == rhs.aa_before_ &&
+           aa_after_ == rhs.aa_after_;
   }
 
-  bool PeptideEvidence::operator!=(const PeptideEvidence & rhs) const
+  bool PeptideEvidence::operator<(const PeptideEvidence& rhs) const
+  {
+    if (accession_ != rhs.accession_) return accession_ < rhs.accession_;
+    if (start_ != rhs.start_) return start_ < rhs.start_;
+    if (end_ != rhs.end_) return end_ < rhs.end_;
+    if (aa_before_ != rhs.aa_before_) return aa_before_ < rhs.aa_before_;
+    if (aa_after_ != rhs.aa_after_) return aa_after_ < rhs.aa_after_;
+    return false;
+  }
+
+  
+  bool PeptideEvidence::operator!=(const PeptideEvidence& rhs) const
   {
     return !operator==(rhs);
   }
-
-  const String & PeptideEvidence::getDBSequenceRef() const
+  
+  bool PeptideEvidence::hasValidLimits() const
   {
-    return db_sequence_ref_;
+    return !(
+      getStart() == UNKNOWN_POSITION ||
+      getEnd() == UNKNOWN_POSITION ||
+      getEnd() == N_TERMINAL_POSITION);
   }
 
-  void PeptideEvidence::setDBSequenceRef(const String & rhs)
+  void PeptideEvidence::setProteinAccession(const String& s)
   {
-    db_sequence_ref_ = rhs;
+    accession_ = s;
   }
 
-  const String & PeptideEvidence::getTranslationTableRef() const
+  const String& PeptideEvidence::getProteinAccession() const
   {
-    return translation_table_ref_;
+    return accession_;
   }
 
-  void PeptideEvidence::setTranslationTableRef(const String & rhs)
+  void PeptideEvidence::setStart(const Int a)
   {
-    translation_table_ref_ = rhs;
-  }
-
-  void PeptideEvidence::setStart(Int start)
-  {
-    start_ = start;
+    start_ = a;
   }
 
   Int PeptideEvidence::getStart() const
@@ -153,9 +134,9 @@ namespace OpenMS
     return start_;
   }
 
-  void PeptideEvidence::setEnd(Int end)
+  void PeptideEvidence::setEnd(const Int a)
   {
-    end_ = end;
+    end_ = a;
   }
 
   Int PeptideEvidence::getEnd() const
@@ -163,74 +144,24 @@ namespace OpenMS
     return end_;
   }
 
-  void PeptideEvidence::setPre(char rhs)
+  void PeptideEvidence::setAABefore(const char acid)
   {
-    pre_ = rhs;
+    aa_before_ = acid;
   }
 
-  char PeptideEvidence::getPre() const
+  char PeptideEvidence::getAABefore() const
   {
-    return pre_;
+    return aa_before_;
   }
 
-  void PeptideEvidence::setPost(char rhs)
+  void PeptideEvidence::setAAAfter(const char acid)
   {
-    post_ = rhs;
+    aa_after_ = acid;
   }
 
-  char PeptideEvidence::getPost() const
+  char PeptideEvidence::getAAAfter() const
   {
-    return post_;
-  }
-
-  void PeptideEvidence::setId(const String & id)
-  {
-    id_ = id;
-  }
-
-  const String & PeptideEvidence::getId() const
-  {
-    return id_;
-  }
-
-  void PeptideEvidence::setName(const String & name)
-  {
-    name_ = name;
-  }
-
-  const String & PeptideEvidence::getName() const
-  {
-    return name_;
-  }
-
-  void PeptideEvidence::setMissedCleavages(Int rhs)
-  {
-    missed_cleavages_ = rhs;
-  }
-
-  Int PeptideEvidence::getMissedCleavages() const
-  {
-    return missed_cleavages_;
-  }
-
-  void PeptideEvidence::setIsDecoy(bool is_decoy)
-  {
-    is_decoy_ = is_decoy;
-  }
-
-  bool PeptideEvidence::getIsDecoy() const
-  {
-    return is_decoy_;
-  }
-
-  void PeptideEvidence::setFrame(Int frame)
-  {
-    frame_ = frame;
-  }
-
-  Int PeptideEvidence::getFrame() const
-  {
-    return frame_;
+    return aa_after_;
   }
 
 } // namespace OpenMS

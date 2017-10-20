@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Alexandra Zerck, Chris Bielow$
 // --------------------------------------------------------------------------
 
 //#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -85,6 +87,8 @@ using namespace std;
     with [rt-rel_rt_window_size*rt,rt+rel_rt_window_size*rt] or absolute window.
 
     The default is RT in minutes, but seconds can also be used (see INI file).
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_InclusionExclusionListCreator.cli
@@ -145,8 +149,8 @@ protected:
     Param tmp;
     tmp.insert("InclusionExclusionList:", fdc.getParameters());
     tmp.insert("PrecursorSelection:", ops.getParameters());
-    tmp.remove("PrecursorSelection:selection_window");
-    tmp.remove("PrecursorSelection:min_peak_distance");
+    tmp.remove("PrecursorSelection:mz_isolation_window");
+    tmp.remove("PrecursorSelection:min_mz_peak_distance");
     tmp.insert("PrecursorSelection:", lp.getParameters().copy("feature_based"));
     return tmp;
   }
@@ -204,7 +208,7 @@ protected:
       if (in_type == FileTypes::FEATUREXML)
       {
         // load feature map
-        FeatureMap<> map;
+        FeatureMap map;
         FeatureXMLFile().load(include, map);
 
         if (strategy == "ALL")
@@ -233,13 +237,17 @@ protected:
         {
 
           String raw_data_path = getStringOption_("raw_data");
-          MSExperiment<> exp, ms2;
-          FeatureMap<> out_map;
+          PeakMap exp, ms2;
           MzMLFile().load(raw_data_path, exp);
+          FeatureMap out_map;
+          StringList ms_runs;
+          exp.getPrimaryMSRunPath(ms_runs);
+          out_map.setPrimaryMSRunPath(ms_runs);
+
           IntList levels;
           levels.push_back(1);
           exp.getSpectra().erase(remove_if(exp.begin(), exp.end(),
-                                           InMSLevelRange<MSSpectrum<> >(levels, true)), exp.end());
+                                           InMSLevelRange<MSSpectrum>(levels, true)), exp.end());
           exp.sortSpectra(true);
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
@@ -327,7 +335,7 @@ protected:
           param.removeAll("feature_based:");
           opis.setParameters(param);
 
-          FeatureMap<> precursors;
+          FeatureMap precursors;
           opis.createProteinSequenceBasedLPInclusionList(include, rt_model_file, pt_model_file, precursors);
           if (out.hasSuffix("featureXML"))
           {
@@ -376,7 +384,7 @@ protected:
         }
 
         // load feature map
-        FeatureMap<> map;
+        FeatureMap map;
         FeatureXMLFile().load(exclude, map);
 
         // convert to targeted experiment if traML output is selected

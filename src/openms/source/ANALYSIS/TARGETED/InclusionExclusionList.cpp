@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Zerck $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Alexandra Zerck, Chris Bielow $
 // --------------------------------------------------------------------------
 //
@@ -90,7 +90,7 @@ namespace OpenMS
       ClusterHierarchical ch;
 
       //ch.setThreshold(0.99);
-      // clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similiarity 0) will not be clustered
+      // clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similarity 0) will not be clustered
       ch.cluster<IEWindow, WindowDistance_>(list, llc, sl, tree, dist);
     }
 
@@ -143,7 +143,7 @@ namespace OpenMS
     list = list_new;
   }
 
-//   void InclusionExclusionList::loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
+//   void InclusionExclusionList::loadTargets(FeatureMap& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
 //   {
 
 //   }
@@ -237,7 +237,7 @@ namespace OpenMS
     writeToFile_(out_path, result);
   }
 
-  void InclusionExclusionList::writeTargets(const FeatureMap<>& map,
+  void InclusionExclusionList::writeTargets(const FeatureMap& map,
                                             const String& out_path)
   {
     WindowList result;
@@ -281,11 +281,11 @@ namespace OpenMS
     {
       if (pep_id_iter->getHits().size() > 1)
       {
-        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, pep_id_iter->getHits().size());
+        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pep_id_iter->getHits().size());
       }
       if (!pep_id_iter->hasRT())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide identification contains no RT information.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide identification contains no RT information.");
       }
       double rt = pep_id_iter->getRT();
 
@@ -339,7 +339,7 @@ namespace OpenMS
     outs.precision(8);
     if (!outs)
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot open output file '" + out_path + "'.");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot open output file '" + out_path + "'.");
     }
 
     for (Size i = 0; i < windows.size(); ++i)

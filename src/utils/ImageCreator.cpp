@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -126,7 +126,7 @@ protected:
     delete painter;
   }
 
-  void markMS2Locations_(MSExperiment<> & exp, QImage & image, bool transpose,
+  void markMS2Locations_(PeakMap & exp, QImage & image, bool transpose,
                          QColor color, Size size)
   {
     double xcoef = image.width(), ycoef = image.height();
@@ -140,7 +140,7 @@ protected:
       xcoef /= exp.getMaxMZ() - exp.getMinMZ();
       ycoef /= exp.getMaxRT() - exp.getMinRT();
     }
-    for (MSExperiment<>::Iterator spec_iter = exp.begin();
+    for (PeakMap::Iterator spec_iter = exp.begin();
          spec_iter != exp.end(); ++spec_iter)
     {
       if (spec_iter->getMSLevel() == 2)
@@ -163,7 +163,7 @@ protected:
     }
   }
 
-  void markFeatureLocations_(FeatureMap<> & feature_map, MSExperiment<> & exp, QImage & image, bool transpose, QColor color)
+  void markFeatureLocations_(FeatureMap & feature_map, PeakMap & exp, QImage & image, bool transpose, QColor color)
   {
     double xcoef = image.width(), ycoef = image.height();
     if (transpose)
@@ -177,7 +177,7 @@ protected:
       ycoef /= exp.getMaxRT() - exp.getMinRT();
     }
 
-    for (FeatureMap<>::Iterator feat_iter = feature_map.begin();
+    for (FeatureMap::Iterator feat_iter = feature_map.begin();
          feat_iter != feature_map.end(); ++feat_iter)
     {
       const ConvexHull2D convex_hull = feat_iter->getConvexHull();
@@ -274,7 +274,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
     }
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile f;
     f.setLogType(log_type_);
     f.load(in, exp);
@@ -315,11 +315,11 @@ protected:
       // peaks run left-right:
       bilip.setMapping_1(0, exp.getMinMZ(), cols - 1, exp.getMaxMZ());
 
-      for (MSExperiment<>::Iterator spec_iter = exp.begin();
+      for (PeakMap::Iterator spec_iter = exp.begin();
            spec_iter != exp.end(); ++spec_iter)
       {
         if (spec_iter->getMSLevel() != 1) continue;
-        for (MSExperiment<>::SpectrumType::ConstIterator peak1_iter =
+        for (PeakMap::SpectrumType::ConstIterator peak1_iter =
                spec_iter->begin(); peak1_iter != spec_iter->end();
              ++peak1_iter)
         {
@@ -335,11 +335,11 @@ protected:
       // scans run left-right:
       bilip.setMapping_1(0, exp.getMinRT(), cols - 1, exp.getMaxRT());
 
-      for (MSExperiment<>::Iterator spec_iter = exp.begin();
+      for (PeakMap::Iterator spec_iter = exp.begin();
            spec_iter != exp.end(); ++spec_iter)
       {
         if (spec_iter->getMSLevel() != 1) continue;
-        for (MSExperiment<>::SpectrumType::ConstIterator peak1_iter =
+        for (PeakMap::SpectrumType::ConstIterator peak1_iter =
                spec_iter->begin(); peak1_iter != spec_iter->end();
              ++peak1_iter)
         {
@@ -415,7 +415,7 @@ protected:
 
     if (!in_featureXML.empty())
     {
-      FeatureMap<> feature_map;
+      FeatureMap feature_map;
       FeatureXMLFile ff;
       ff.load(in_featureXML, feature_map);
       markFeatureLocations_(feature_map, exp, image, getFlag_("transpose"), feature_color);

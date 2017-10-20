@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>" namespace "Op
         SpectraMerger()            nogil except +
         SpectraMerger(SpectraMerger) nogil except + #wrap-ignore
 
-        void mergeSpectraBlockWise(MSExperiment[Peak1D, ChromatogramPeak] & exp) nogil except +
-        void mergeSpectraPrecursors(MSExperiment[Peak1D, ChromatogramPeak] & exp) nogil except +
+        void mergeSpectraBlockWise(MSExperiment & exp) nogil except +
+        void mergeSpectraPrecursors(MSExperiment & exp) nogil except +
 
 

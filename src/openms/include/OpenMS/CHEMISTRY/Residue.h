@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -37,6 +37,7 @@
 #define OPENMS_CHEMISTRY_RESIDUE_H
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -46,7 +47,6 @@
 
 namespace OpenMS
 {
-
   /**
       @ingroup Chemistry
 
@@ -61,295 +61,80 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI Residue
   {
+    friend class ResidueDB;
+
 public:
 
     /** @name Typedefs and Constants
     */
     //@{
-    // Internal
-    inline static const EmpiricalFormula & getInternalToFull()
+
+    // Formulae that need to be added to the internal residues to get to fragment type
+    // Formulae from http://www.matrixscience.com/help/fragmentation_help.html
+    inline static const EmpiricalFormula& getInternalToFull()
     {
-      static const EmpiricalFormula internal_to_full = EmpiricalFormula("H2O");
-      return internal_to_full;
+      static const EmpiricalFormula to_full = EmpiricalFormula("H2O");
+      return to_full;
     }
 
-    inline static double getInternalToFullAverageWeight()
+    inline static const EmpiricalFormula& getInternalToNTerm()
     {
-      static const double internal_to_full_average_weight = getInternalToFull().getAverageWeight();
-      return internal_to_full_average_weight;
+      static const EmpiricalFormula to_full = EmpiricalFormula("H");
+      return to_full;
     }
 
-    inline static double getInternalToFullMonoWeight()
+    inline static const EmpiricalFormula& getInternalToCTerm()
     {
-      static const double internal_to_full_mono_weight = getInternalToFull().getMonoWeight();
-      return internal_to_full_mono_weight;
+      static const EmpiricalFormula to_full = EmpiricalFormula("OH");
+      return to_full;
     }
 
-    // N-terminal
-    inline static const EmpiricalFormula & getNTerminalToFull()
+    inline static const EmpiricalFormula& getInternalToAIon()
     {
-      static const EmpiricalFormula Nterminal_to_full = EmpiricalFormula("HO");
-      return Nterminal_to_full;
+      // Mind the "-"
+      static const EmpiricalFormula to_full =
+        getInternalToNTerm() - EmpiricalFormula("CHO");
+      return to_full;
     }
 
-    inline static double getNTerminalToFullAverageWeight()
+    inline static const EmpiricalFormula& getInternalToBIon()
     {
-      static const double Nterminal_to_full_average_weight = getNTerminalToFull().getAverageWeight();
-      return Nterminal_to_full_average_weight;
+      // Mind the "-"
+      static const EmpiricalFormula to_full =
+        getInternalToNTerm() - EmpiricalFormula("H");
+      return to_full;
     }
 
-    inline static double getNTerminalToFullMonoWeight()
+    inline static const EmpiricalFormula& getInternalToCIon()
     {
-      static const double Nterminal_to_full_mono_weight = getNTerminalToFull().getMonoWeight();
-      return Nterminal_to_full_mono_weight;
+      static const EmpiricalFormula to_full =
+        getInternalToNTerm() + EmpiricalFormula("NH2");
+      return to_full;
     }
 
-    // C-terminal
-    inline static const EmpiricalFormula & getCTerminalToFull()
+    inline static const EmpiricalFormula& getInternalToXIon()
     {
-      static const EmpiricalFormula Cterminal_to_full = EmpiricalFormula("H");
-      return Cterminal_to_full;
+      // Mind the "-"
+      static const EmpiricalFormula to_full = 
+        getInternalToCTerm() + EmpiricalFormula("CO") - EmpiricalFormula("H");
+      return to_full;
     }
 
-    inline static double getCTerminalToFullAverageWeight()
+    inline static const EmpiricalFormula& getInternalToYIon()
     {
-      static const double Cterminal_to_full_average_weight = getCTerminalToFull().getAverageWeight();
-      return Cterminal_to_full_average_weight;
+      static const EmpiricalFormula to_full = 
+        getInternalToCTerm() + EmpiricalFormula("H");
+      return to_full;
     }
 
-    inline static double getCTerminalToFullMonoWeight()
+    inline static const EmpiricalFormula& getInternalToZIon()
     {
-      static const double Cterminal_to_full_mono_weight = getCTerminalToFull().getMonoWeight();
-      return Cterminal_to_full_mono_weight;
+      // Mind the "-"
+      static const EmpiricalFormula to_full = 
+        getInternalToCTerm() - EmpiricalFormula("NH2");
+      return to_full;
     }
 
-    // b ion
-    inline static const EmpiricalFormula & getBIonToFull()
-    {
-      static const EmpiricalFormula b_ion_to_full = EmpiricalFormula("HO");
-      return b_ion_to_full;
-    }
-
-    inline static double getBIonToFullAverageWeight()
-    {
-      static const double b_ion_to_full_average_weight = getBIonToFull().getAverageWeight();
-      return b_ion_to_full_average_weight;
-    }
-
-    inline static double getBIonToFullMonoWeight()
-    {
-      static const double b_ion_to_full_mono_weight = getBIonToFull().getMonoWeight();
-      return b_ion_to_full_mono_weight;
-    }
-
-    // a ion
-    inline static const EmpiricalFormula & getAIonToFull()
-    {
-      static const EmpiricalFormula a_ion_to_full = EmpiricalFormula("HCO2");
-      return a_ion_to_full;
-    }
-
-    inline static double getAIonToFullAverageWeight()
-    {
-      static const double a_ion_to_full_average_weight = getAIonToFull().getAverageWeight();
-      return a_ion_to_full_average_weight;
-    }
-
-    inline static double getAIonToFullMonoWeight()
-    {
-      static const double a_ion_to_full_mono_weight = getAIonToFull().getMonoWeight();
-      return a_ion_to_full_mono_weight;
-    }
-
-    // y ion
-    inline static const EmpiricalFormula & getYIonToFull()
-    {
-      static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("");
-      return y_ion_to_full;
-    }
-
-    inline static double getYIonToFullAverageWeight()
-    {
-      static const double y_ion_to_full_average_weight = getYIonToFull().getAverageWeight();
-      return y_ion_to_full_average_weight;
-    }
-
-    inline static double getYIonToFullMonoWeight()
-    {
-      static const double y_ion_to_full_mono_weight = getYIonToFull().getMonoWeight();
-      return y_ion_to_full_mono_weight;
-    }
-
-    // c ion
-    inline static const EmpiricalFormula & getCIonToFull()
-    {
-      static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H-1");
-      return c_ion_to_full;
-    }
-
-    inline static double getCIonToFullAverageWeight()
-    {
-      static const double c_ion_to_full_average_weight = getCIonToFull().getAverageWeight();
-      return c_ion_to_full_average_weight;
-    }
-
-    inline static double getCIonToFullMonoWeight()
-    {
-      static const double c_ion_to_full_mono_weight = getCIonToFull().getMonoWeight();
-      return c_ion_to_full_mono_weight;
-    }
-
-    // c-1 ion
-    inline static const EmpiricalFormula & getCIonMinusOneToFull()
-    {
-      static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H-2");
-      return c_ion_to_full;
-    }
-
-    inline static double getCIonMinusOneToFullAverageWeight()
-    {
-      static const double c_ion_to_full_average_weight = getCIonMinusOneToFull().getAverageWeight();
-      return c_ion_to_full_average_weight;
-    }
-
-    inline static double getCIonMinusOneToFullMonoWeight()
-    {
-      static const double c_ion_to_full_mono_weight = getCIonMinusOneToFull().getMonoWeight();
-      return c_ion_to_full_mono_weight;
-    }
-
-    // c+1 ion
-    inline static const EmpiricalFormula & getCIonPlusOneToFull()
-    {
-      static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("");
-      return c_ion_to_full;
-    }
-
-    inline static double getCIonPlusOneToFullAverageWeight()
-    {
-      static const double c_ion_to_full_average_weight = getCIonPlusOneToFull().getAverageWeight();
-      return c_ion_to_full_average_weight;
-    }
-
-    inline static double getCIonPlusOneToFullMonoWeight()
-    {
-      static const double c_ion_to_full_mono_weight = getCIonPlusOneToFull().getMonoWeight();
-      return c_ion_to_full_mono_weight;
-    }
-
-    // c+2 ion
-    inline static const EmpiricalFormula & getCIonPlusTwoToFull()
-    {
-      static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H2");
-      return c_ion_to_full;
-    }
-
-    inline static double getCIonPlusTwoToFullAverageWeight()
-    {
-      static const double c_ion_to_full_average_weight = getCIonPlusTwoToFull().getAverageWeight();
-      return c_ion_to_full_average_weight;
-    }
-
-    inline static double getCIonPlusTwoToFullMonoWeight()
-    {
-      static const double c_ion_to_full_mono_weight = getCIonPlusTwoToFull().getMonoWeight();
-      return c_ion_to_full_mono_weight;
-    }
-
-    // x ion
-    inline static const EmpiricalFormula & getXIonToFull()
-    {
-      static const EmpiricalFormula x_ion_to_full = EmpiricalFormula("HCO");
-      return x_ion_to_full;
-    }
-
-    inline static double getXIonToFullAverageWeight()
-    {
-      static const double x_ion_to_full_average_weight = getXIonToFull().getAverageWeight();
-      return x_ion_to_full_average_weight;
-    }
-
-    inline static double getXIonToFullMonoWeight()
-    {
-      static const double x_ion_to_full_mono_weight = getXIonToFull().getMonoWeight();
-      return x_ion_to_full_mono_weight;
-    }
-
-    // z ion
-    inline static const EmpiricalFormula & getZIonToFull()
-    {
-      static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("NH2");
-      return z_ion_to_full;
-    }
-
-    inline static double getZIonToFullAverageWeight()
-    {
-      static const double z_ion_to_full_average_weight = getZIonToFull().getAverageWeight();
-      return z_ion_to_full_average_weight;
-    }
-
-    inline static double getZIonToFullMonoWeight()
-    {
-      static const double z_ion_to_full_mono_weight = getZIonToFull().getMonoWeight();
-      return z_ion_to_full_mono_weight;
-    }
-
-    // z-1 ion
-    inline static const EmpiricalFormula & getZIonMinusOneToFull()
-    {
-      static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("N2");
-      return z_ion_to_full;
-    }
-
-    inline static double getZIonMinusOneToFullAverageWeight()
-    {
-      static const double z_ion_to_full_average_weight = getZIonMinusOneToFull().getAverageWeight();
-      return z_ion_to_full_average_weight;
-    }
-
-    inline static double getZIonMinusOneToFullMonoWeight()
-    {
-      static const double z_ion_to_full_mono_weight = getZIonMinusOneToFull().getMonoWeight();
-      return z_ion_to_full_mono_weight;
-    }
-
-    // z+1 ion
-    inline static const EmpiricalFormula & getZIonPlusOneToFull()
-    {
-      static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("NH3");
-      return z_ion_to_full;
-    }
-
-    inline static double getZIonPlusOneToFullAverageWeight()
-    {
-      static const double z_ion_to_full_average_weight = getZIonPlusOneToFull().getAverageWeight();
-      return z_ion_to_full_average_weight;
-    }
-
-    inline static double getZIonPlusOneToFullMonoWeight()
-    {
-      static const double z_ion_to_full_mono_weight = getZIonPlusOneToFull().getMonoWeight();
-      return z_ion_to_full_mono_weight;
-    }
-
-    // z+2 ion
-    inline static const EmpiricalFormula & getZIonPlusTwoToFull()
-    {
-      static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("NH4");
-      return z_ion_to_full;
-    }
-
-    inline static double getZIonPlusTwoToFullAverageWeight()
-    {
-      static const double z_ion_to_full_average_weight = getZIonPlusTwoToFull().getAverageWeight();
-      return z_ion_to_full_average_weight;
-    }
-
-    inline static double getZIonPlusTwoToFullMonoWeight()
-    {
-      static const double z_ion_to_full_mono_weight = getZIonPlusTwoToFull().getMonoWeight();
-      return z_ion_to_full_mono_weight;
-    }
 
     //@}
 
@@ -358,25 +143,24 @@ public:
     //@{
     enum ResidueType
     {
-      Full = 0,           // with N-terminus and C-terminus
-      Internal,           // internal, without any termini
-      NTerminal,           // only N-terminus
-      CTerminal,           // only C-terminus
-      AIon,           // N-terminus up to the C-alpha/carbonyl carbon bond
-      BIon,           // N-terminus up to the peptide bond
-      CIonMinusOne,           // N-terminus up to the amide/C-alpha bond
-      CIon,           // N-terminus up to the amide/C-alpha bond
-      CIonPlusOne,           // N-terminus up to the amide/C-alpha bond
-      CIonPlusTwo,           // N-terminus up to the amide/C-alpha bond
-      XIon,           // amide/C-alpha bond up to the C-terminus
-      YIon,           // peptide bond up to the C-terminus
-      ZIonMinusOne,           // C-alpha/carbonyl carbon bond
-      ZIon,            // C-alpha/carbonyl carbon bond
-      ZIonPlusOne,            // C-alpha/carbonyl carbon bond
-      ZIonPlusTwo,            // C-alpha/carbonyl carbon bond
+      Full = 0,       // with N-terminus and C-terminus
+      Internal,       // internal, without any termini
+      NTerminal,      // only N-terminus
+      CTerminal,      // only C-terminus
+      AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+      BIon,           // MS:1001224 N-terminus up to the peptide bond
+      CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
+      XIon,           // MS:1001228 amide/C-alpha bond up to the C-terminus
+      YIon,           // MS:1001220 peptide bond up to the C-terminus
+      ZIon,           // MS:1001230 C-alpha/carbonyl carbon bond
+      Precursor,      // MS:1001523 Precursor ion
+      BIonMinusH20,   // MS:1001222 b ion without water
+      YIonMinusH20,   // MS:1001223 y ion without water
+      BIonMinusNH3,   // MS:1001232 b ion without ammonia
+      YIonMinusNH3,   // MS:1001233 y ion without ammonia
+      NonIdentified,  // MS:1001240 Non-identified ion
+      Unannotated,    // no stored annotation
       SizeOfResidueType
-
-      /// @todo add c+1, z+1, z+2 ion types (Andreas)
     };
     //@}
 
@@ -391,13 +175,13 @@ public:
     Residue();
 
     /// copy constructor
-    Residue(const Residue & residue);
+    Residue(const Residue& residue);
 
     /// detailed constructor
-    Residue(const String & name,
-            const String & three_letter_code,
-            const String & one_letter_code,
-            const EmpiricalFormula & formula);
+    Residue(const String& name,
+            const String& three_letter_code,
+            const String& one_letter_code,
+            const EmpiricalFormula& formula);
 
     /// destructor
     virtual ~Residue();
@@ -407,83 +191,83 @@ public:
      */
     //@{
     /// assignment operator
-    Residue & operator=(const Residue & residue);
+    Residue& operator=(const Residue& residue);
     //@}
 
     /** Accessors
     */
     //@{
     /// sets the name of the residue
-    void setName(const String & name);
+    void setName(const String& name);
 
     /// returns the name of the residue
-    const String & getName() const;
+    const String& getName() const;
 
     /// sets the short name of the residue, this name is used in the PeptideSequence for output
-    void setShortName(const String & short_name);
+    void setShortName(const String& short_name);
 
     /// returns the short name of the residue
-    const String & getShortName() const;
+    const String& getShortName() const;
 
     /// sets the synonyms
-    void setSynonyms(const std::set<String> & synonyms);
+    void setSynonyms(const std::set<String>& synonyms);
 
     /// adds a synonym
-    void addSynonym(const String & synonym);
+    void addSynonym(const String& synonym);
 
     /// returns the synonyms
-    const std::set<String> & getSynonyms() const;
+    const std::set<String>& getSynonyms() const;
 
-    /// sets the name of the residue as three letter code
-    void setThreeLetterCode(const String & three_letter_code);
+    /// sets the name of the residue as three letter code (String of size 3)
+    void setThreeLetterCode(const String& three_letter_code);
 
-    /// returns the name of the residue as three letter code
-    const String & getThreeLetterCode() const;
+    /// returns the name of the residue as three letter code (String of size 3)
+    const String& getThreeLetterCode() const;
 
-    /// sets the name as one letter code
-    void setOneLetterCode(const String & one_letter_code);
+    /// sets the name as one letter code (String of size 1)
+    void setOneLetterCode(const String& one_letter_code);
 
-    /// returns the name as one letter code
-    const String & getOneLetterCode() const;
+    /// returns the name as one letter code (String of size 1)
+    const String& getOneLetterCode() const;
 
     /// adds a neutral loss formula
-    void addLossFormula(const EmpiricalFormula &);
+    void addLossFormula(const EmpiricalFormula&);
 
     /// sets the neutral loss formulas
-    void setLossFormulas(const std::vector<EmpiricalFormula> &);
+    void setLossFormulas(const std::vector<EmpiricalFormula>&);
 
     /// adds N-terminal losses
-    void addNTermLossFormula(const EmpiricalFormula &);
+    void addNTermLossFormula(const EmpiricalFormula&);
 
     /// sets the N-terminal losses
-    void setNTermLossFormulas(const std::vector<EmpiricalFormula> &);
+    void setNTermLossFormulas(const std::vector<EmpiricalFormula>&);
 
     /// returns the neutral loss formulas
-    const std::vector<EmpiricalFormula> & getLossFormulas() const;
+    const std::vector<EmpiricalFormula>& getLossFormulas() const;
 
     /// returns N-terminal loss formulas
-    const std::vector<EmpiricalFormula> & getNTermLossFormulas() const;
+    const std::vector<EmpiricalFormula>& getNTermLossFormulas() const;
 
     /// set the neutral loss molecule name
-    void setLossNames(const std::vector<String> & name);
+    void setLossNames(const std::vector<String>& name);
 
     /// sets the N-terminal loss names
-    void setNTermLossNames(const std::vector<String> & name);
+    void setNTermLossNames(const std::vector<String>& name);
 
     /// add neutral loss molecule name
-    void addLossName(const String & name);
+    void addLossName(const String& name);
 
     /// adds a N-terminal loss name
-    void addNTermLossName(const String & name);
+    void addNTermLossName(const String& name);
 
     /// gets neutral loss name (if there is one, else returns an empty string)
-    const std::vector<String> & getLossNames() const;
+    const std::vector<String>& getLossNames() const;
 
     /// returns the N-terminal loss names
-    const std::vector<String> & getNTermLossNames() const;
+    const std::vector<String>& getNTermLossNames() const;
 
     /// set empirical formula of the residue (must be full, with N and C-terminus)
-    void setFormula(const EmpiricalFormula & formula);
+    void setFormula(const EmpiricalFormula& formula);
 
     /// returns the empirical formula of the residue
     EmpiricalFormula getFormula(ResidueType res_type = Full) const;
@@ -494,32 +278,35 @@ public:
     /// returns average weight of the residue
     double getAverageWeight(ResidueType res_type = Full) const;
 
-    /// sets mono weight of the residue (must be full, with N and C-terminus)
+    /// sets monoisotopic weight of the residue (must be full, with N and C-terminus)
     void setMonoWeight(double weight);
 
-    /// returns mono weight of the residue
+    /// returns monoisotopic weight of the residue
     double getMonoWeight(ResidueType res_type = Full) const;
 
-    /// sets by the name, this mod should be present in ModificationsDB
-    void setModification(const String & name);
+    /// returns a pointer to the modification, or zero if none is set
+    const ResidueModification* getModification() const;
 
-    /// returns the name of the modification to the modification
-    const String & getModification() const;
+    /// sets the modification by name; the mod should be present in ModificationsDB
+    void setModification(const String& name);
+
+    /// returns the name (ID) of the modification, or an empty string if none is set
+    const String& getModificationName() const;
 
     /// sets the low mass marker ions as a vector of formulas
-    void setLowMassIons(const std::vector<EmpiricalFormula> & low_mass_ions);
+    void setLowMassIons(const std::vector<EmpiricalFormula>& low_mass_ions);
 
     /// returns a vector of formulas with the low mass markers of the residue
-    const std::vector<EmpiricalFormula> & getLowMassIons() const;
+    const std::vector<EmpiricalFormula>& getLowMassIons() const;
 
     /// sets the residue sets the amino acid is contained in
-    void setResidueSets(const std::set<String> & residues_sets);
+    void setResidueSets(const std::set<String>& residues_sets);
 
     /// adds a residue set to the residue sets
-    void addResidueSet(const String & residue_sets);
+    void addResidueSet(const String& residue_sets);
 
     /// returns the residue sets this residue is contained in
-    const std::set<String> & getResidueSets() const;
+    const std::set<String>& getResidueSets() const;
     //@}
 
     /** @name Predicates
@@ -532,10 +319,10 @@ public:
     bool hasNTermNeutralLosses() const;
 
     /// equality operator
-    bool operator==(const Residue & residue) const;
+    bool operator==(const Residue& residue) const;
 
     /// inequality operator
-    bool operator!=(const Residue & residue) const;
+    bool operator!=(const Residue& residue) const;
 
     /// equality operator for one letter code
     bool operator==(char one_letter_code) const;
@@ -586,11 +373,11 @@ public:
     bool isModified() const;
 
     /// true if the residue is contained in the set
-    bool isInResidueSet(const String & residue_set);
+    bool isInResidueSet(const String& residue_set);
     //@}
 
     /// ostream iterator to write the residue to a stream
-    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Residue & residue);
+    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
 protected:
 
@@ -614,11 +401,7 @@ protected:
     double mono_weight_;
 
     // modification
-    bool is_modified_;
-
-    String pre_mod_name_;
-
-    String modification_;
+    const ResidueModification* modification_;
 
     // loss
     std::vector<String> loss_names_;
@@ -654,9 +437,12 @@ protected:
     // residue sets this amino acid is contained in
     std::set<String> residue_sets_;
 
+    /// sets the modification (helper function)
+    void setModification_(const ResidueModification& mod);
+
   };
 
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Residue & residue);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
 }
 

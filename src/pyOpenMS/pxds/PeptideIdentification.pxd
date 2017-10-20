@@ -1,5 +1,6 @@
 from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.set cimport set as libcpp_set
 from DataValue cimport *
 from String cimport *
 from Types cimport *
@@ -44,18 +45,15 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         String     getBaseName() nogil except +
         void       setBaseName(String) nogil except +
 
+        String     getExperimentLabel() nogil except +
+        void       setExperimentLabel(String) nogil except +
+
         void       assignRanks() nogil except +
         void       sort() nogil except +
+        void sortByRank() nogil except +
         bool       empty() nogil except +
 
-        void       getReferencingHits(String, libcpp_vector[PeptideHit] &) nogil except +
-        void       getReferencingHits(libcpp_vector[String], libcpp_vector[PeptideHit] &) nogil except +
-        void       getReferencingHits(libcpp_vector[ProteinHit], libcpp_vector[PeptideHit] &) nogil except +
-
-        void       getNonReferencingHits(String, libcpp_vector[PeptideHit] &) nogil except +
-        void       getNonReferencingHits(libcpp_vector[String], libcpp_vector[PeptideHit] &) nogil except +
-        void       getNonReferencingHits(libcpp_vector[ProteinHit], libcpp_vector[PeptideHit] &) nogil except +
-
+        libcpp_vector[PeptideHit] getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) nogil except +
 
         # cython has a problem with inheritance of overloaded methods,
         # so we do not declare them here, but separately in each derived

@@ -10,11 +10,11 @@
 		</fileContent>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Piech, " />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="aff" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="aff" />
 		</contact>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value=", " />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="" />
 			<userParam name="contact_info" type="xsd:string" value="ttss"/>
 		</contact>
 	</fileDescription>
@@ -132,7 +132,7 @@
 						<binary>zczMzMzAgkDNzMzMzOCFQM3MzMzMAIlA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AEANRAAAG0QAQC9E</binary>
@@ -185,7 +185,7 @@
 						<binary>UrgehesJWUAAAAAAAMhiQAAAAAAAyHJA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AABSQwAAykIAALRC</binary>

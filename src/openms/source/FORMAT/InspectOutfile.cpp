@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Martin Langwisch $
 // --------------------------------------------------------------------------
 
@@ -39,8 +39,11 @@
 #endif
 
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <QRegExp>
 
 #include <set>
+#include <fstream>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunreachable-code"
@@ -84,13 +87,13 @@ namespace OpenMS
     // check whether the p_value is correct
     if ((p_value_threshold < 0) || (p_value_threshold > 1))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The parameters 'p_value_threshold' must be >= 0 and <=1 !");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The parameters 'p_value_threshold' must be >= 0 and <=1 !");
     }
 
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
     }
 
     String
@@ -115,7 +118,7 @@ namespace OpenMS
     {
       result_file.close();
       result_file.clear();
-      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+      throw Exception::FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
     }
     if (!line.empty() && (line[line.length() - 1] < 33))
       line.resize(line.length() - 1);
@@ -191,22 +194,28 @@ namespace OpenMS
       // the database position of the protein (the i-th protein)
       record_number = substrings[record_number_column].toInt();
 
-      // map the database position of the protein to its position in the protein hits and insert it, if it's a new protein
+      // map the database position of the protein to its position in the
+      // protein hits and insert it, if it's a new protein
       if (rn_position_map.find(record_number) == rn_position_map.end())
       {
         rn_position_map[record_number] = protein_identification.getHits().size();
         protein_identification.insertHit(protein_hit);
       }
 
-      // if a new scan is found (new file or new scan), insert it into the vector (the first time the condition is fullfilled because spectrum_file is "")
+      // if a new scan is found (new file or new scan), insert it into the
+      // vector (the first time the condition is fulfilled because
+      // spectrum_file is "")
       if ((substrings[spectrum_file_column] != spectrum_file) || ((Size) substrings[scan_column].toInt() != scan_number))
       {
-        if (substrings[spectrum_file_column] != spectrum_file) // if it's a new file, insert it into the vector (used to retrieve RT and MT later)
+        // if it's a new file, insert it into the vector (used to retrieve RT and MT later)
+        if (substrings[spectrum_file_column] != spectrum_file)
         {
           // if it's the first file or if hits have been found in the file before, insert a new file
-          if (files_and_peptide_identification_with_scan_number.empty() || !files_and_peptide_identification_with_scan_number.back().second.empty())
+          if (files_and_peptide_identification_with_scan_number.empty() ||
+              !files_and_peptide_identification_with_scan_number.back().second.empty())
           {
-            files_and_peptide_identification_with_scan_number.push_back(make_pair(substrings[spectrum_file_column], vector<pair<Size, Size> >()));
+            files_and_peptide_identification_with_scan_number.push_back(make_pair(substrings[spectrum_file_column],
+                  vector<pair<Size, Size> >()));
           }
           // otherwise change the name of the last file entry (the one without hits)
           else
@@ -240,10 +249,18 @@ namespace OpenMS
       sequence_with_mods = substrings[peptide_column];
       start = sequence_with_mods.find('.') + 1;
       end = sequence_with_mods.find_last_of('.');
+
+      PeptideEvidence pe;
+
       if (start >= 2)
-        peptide_hit.setAABefore(sequence_with_mods[start - 2]);
+      {
+        pe.setAABefore(sequence_with_mods[start - 2]);
+      }
+
       if (end < sequence_with_mods.length() + 1)
-        peptide_hit.setAAAfter(sequence_with_mods[end + 1]);
+      {
+        pe.setAAAfter(sequence_with_mods[end + 1]);
+      }
 
       //remove modifications (small characters and anything that's not in the alphabet)
       sequence_with_mods = substrings[peptide_column].substr(start, end - start);
@@ -254,7 +271,8 @@ namespace OpenMS
       }
 
       peptide_hit.setSequence(AASequence::fromString(sequence));
-      peptide_hit.addProteinAccession(accession);
+      pe.setProteinAccession(accession);
+      peptide_hit.addPeptideEvidence(pe);
 
       peptide_identification.insertHit(peptide_hit);
     }
@@ -315,7 +333,7 @@ namespace OpenMS
     ifstream database(database_filename.c_str());
     if (!database)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
     }
 
     vector<Size> not_found;
@@ -507,7 +525,7 @@ namespace OpenMS
     const vector<pair<String, vector<pair<Size, Size> > > >& files_and_peptide_identification_with_scan_number,
     vector<PeptideIdentification>& ids)
   {
-    MSExperiment<> experiment;
+    PeakMap experiment;
     String type;
 
     for (vector<pair<String, vector<pair<Size, Size> > > >::const_iterator fs_i = files_and_peptide_identification_with_scan_number.begin(); fs_i != files_and_peptide_identification_with_scan_number.end(); ++fs_i)
@@ -516,7 +534,7 @@ namespace OpenMS
 
       if (experiment.size() < fs_i->second.back().second)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enought scans in file! (" + String(experiment.size()) + " available, should be at least " + String(fs_i->second.back().second) + ")", fs_i->first);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enought scans in file! (" + String(experiment.size()) + " available, should be at least " + String(fs_i->second.back().second) + ")", fs_i->first);
       }
 
       for (vector<pair<Size, Size> >::const_iterator pi_scan_i = fs_i->second.begin(); pi_scan_i != fs_i->second.end(); ++pi_scan_i)
@@ -538,16 +556,16 @@ namespace OpenMS
   {
     if (database_filename == snd_database_filename)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Same filename can not be used for original and second database!", database_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Same filename can not be used for original and second database!", database_filename);
     }
     if (index_filename == snd_index_filename)
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Same filename can not be used for original and second database!", index_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Same filename can not be used for original and second database!", index_filename);
     }
     ifstream database(database_filename.c_str());
     if (!database)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
     }
 
     ifstream index(index_filename.c_str(), ios::in | ios::binary);
@@ -555,7 +573,7 @@ namespace OpenMS
     {
       database.close();
       database.clear();
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, index_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index_filename);
     }
 
     // determine the length of the index file
@@ -581,7 +599,7 @@ namespace OpenMS
       database.clear();
       index.close();
       index.clear();
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_database_filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, snd_database_filename);
     }
 
     ofstream snd_index;
@@ -597,7 +615,7 @@ namespace OpenMS
       index.clear();
       snd_database.close();
       snd_database.clear();
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, snd_index_filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, snd_index_filename);
     }
 
     char* index_record = new char[record_length_]; // to copy one record from the index file
@@ -618,7 +636,7 @@ namespace OpenMS
         snd_database.clear();
         snd_index.close();
         snd_index.clear();
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "index file is too short!", index_filename);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "index file is too short!", index_filename);
       }
       index.seekg((*wr_i) * record_length_);
       index.read(index_record, record_length_);
@@ -694,7 +712,7 @@ namespace OpenMS
     ifstream source_database(source_database_filename.c_str());
     if (!source_database)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, source_database_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source_database_filename);
     }
 
     // get the labels
@@ -714,7 +732,7 @@ namespace OpenMS
     {
       source_database.close();
       source_database.clear();
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, database_filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, database_filename);
     }
     ofstream index;
     if (append)
@@ -731,7 +749,7 @@ namespace OpenMS
       source_database.clear();
       database.close();
       database.clear();
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, index_filename);
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index_filename);
     }
 
     // using flags to mark what has already been read
@@ -940,7 +958,7 @@ namespace OpenMS
     ifstream source_database(source_database_filename.c_str());
     if (!source_database)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, source_database_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, source_database_filename);
     }
 
     String line;
@@ -974,7 +992,7 @@ namespace OpenMS
     // if no known start separator is found
     if (sequence_start_label.empty())
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "database has unknown file format (neither trie nor FASTA nor swissprot)", source_database_filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "database has unknown file format (neither trie nor FASTA nor swissprot)", source_database_filename);
     }
   }
 
@@ -983,13 +1001,13 @@ namespace OpenMS
     // check whether the p_value is correct
     if ((p_value_threshold < 0) || (p_value_threshold > 1))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the parameters 'p_value_threshold' must be >= 0 and <=1 !");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the parameters 'p_value_threshold' must be >= 0 and <=1 !");
     }
 
     ifstream result_file(result_filename.c_str());
     if (!result_file)
     {
-      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
     }
 
     String line;
@@ -1022,7 +1040,7 @@ namespace OpenMS
     {
       result_file.close();
       result_file.clear();
-      throw Exception::FileEmpty(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
+      throw Exception::FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, result_filename);
     }
     ++line_number;
     readOutHeader(result_filename, line, spectrum_file_column, scan_column, peptide_column, protein_column, charge_column, MQ_score_column, p_value_column, record_number_column, DB_file_pos_column, spec_file_pos_column, number_of_columns);
@@ -1131,7 +1149,7 @@ namespace OpenMS
 
     if ((spectrum_file_column == -1) || (scan_column == -1) || (peptide_column == -1) || (protein_column == -1) || (charge_column == -1) || (MQ_score_column == -1) || (p_value_column == -1) || (record_number_column == -1) || (DB_file_pos_column == -1) || (spec_file_pos_column == -1))
     {
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "at least one of the columns '#SpectrumFile', 'Scan#', 'Annotation', 'Protein', 'Charge', 'MQScore', 'p-value', 'RecordNumber', 'DBFilePos' or 'SpecFilePos' is missing!", filename);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "at least one of the columns '#SpectrumFile', 'Scan#', 'Annotation', 'Protein', 'Charge', 'MQScore', 'p-value', 'RecordNumber', 'DBFilePos' or 'SpecFilePos' is missing!", filename);
     }
     number_of_columns = substrings.size();
   }
@@ -1146,3 +1164,4 @@ namespace OpenMS
 } //namespace OpenMS
 
 #pragma clang diagnostic pop
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,12 +38,13 @@
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
-
+#include <OpenMS/CHEMISTRY/Enzyme.h>
 #include <set>
 
 namespace OpenMS
 {
   class PeptideIdentification;
+
   /**
     @brief Representation of a protein identification run
 
@@ -72,12 +73,21 @@ public:
     {
       /// Probability of this group
       double probability;
+
       /// Accessions of (indistinguishable) proteins that belong to the same group
-      StringList accessions;
+      std::vector<String> accessions;
 
       ProteinGroup();
 
-      bool operator==(const ProteinGroup rhs) const;
+      /// Equality operator
+      bool operator==(const ProteinGroup& rhs) const;
+
+      /*
+        @brief Comparison operator (for sorting)
+
+        This operator is intended for sorting protein groups in a "best first" manner. That means higher probabilities are "less" than lower probabilities (!); smaller groups are "less" than larger groups; everything else being equal, accessions are compared lexicographically.
+      */
+      bool operator<(const ProteinGroup& rhs) const;
     };
 
     /// Peak mass type
@@ -90,36 +100,24 @@ public:
     /// Names corresponding to peak mass types
     static const std::string NamesOfPeakMassType[SIZE_OF_PEAKMASSTYPE];
 
-
-    enum DigestionEnzyme
-    {
-      TRYPSIN,
-      PEPSIN_A,
-      PROTEASE_K,
-      CHYMOTRYPSIN,
-      NO_ENZYME,
-      UNKNOWN_ENZYME,
-      SIZE_OF_DIGESTIONENZYME
-    };
-    /// Names corresponding to digestion enzymes
-    static const std::string NamesOfDigestionEnzyme[SIZE_OF_DIGESTIONENZYME];
-
     /// Search parameters of the DB search
     struct OPENMS_DLLAPI SearchParameters :
       public MetaInfoInterface
     {
-      String db;           ///< The used database
-      String db_version;           ///< The database version
-      String taxonomy;           ///< The taxonomy restriction
-      String charges;           ///< The allowed charges for the search
-      PeakMassType mass_type;           ///< Mass type of the peaks
-      std::vector<String> fixed_modifications;           ///< Used fixed modifications
-      std::vector<String> variable_modifications;           ///< Allowed variable modifications
-      DigestionEnzyme enzyme;           ///< The enzyme used for cleavage
-      UInt missed_cleavages;           ///< The number of allowed missed cleavages
-      double peak_mass_tolerance;           ///< Mass tolerance of fragment ions (Dalton)
-      double precursor_tolerance;           ///< Mass tolerance of precursor ions (Dalton)
-
+      String db; ///< The used database
+      String db_version; ///< The database version
+      String taxonomy; ///< The taxonomy restriction
+      String charges; ///< The allowed charges for the search
+      PeakMassType mass_type; ///< Mass type of the peaks
+      std::vector<String> fixed_modifications; ///< Used fixed modifications
+      std::vector<String> variable_modifications; ///< Allowed variable modifications
+      UInt missed_cleavages; ///< The number of allowed missed cleavages
+      double fragment_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton or ppm)
+      bool fragment_mass_tolerance_ppm; ///< Mass tolerance unit of fragment ions (true: ppm, false: Dalton)
+      double precursor_mass_tolerance; ///< Mass tolerance of precursor ions (Dalton or ppm)
+      bool precursor_mass_tolerance_ppm; ///< Mass tolerance unit of precursor ions (true: ppm, false: Dalton)
+      Enzyme digestion_enzyme; ///< The cleavage site information in details (from EnzymesDB)
+      
       SearchParameters();
 
       bool operator==(const SearchParameters & rhs) const;
@@ -153,8 +151,14 @@ public:
     std::vector<ProteinHit> & getHits();
     /// Appends a protein hit
     void insertHit(const ProteinHit & input);
-    /// Sets the protein hits
+
+    /** 
+        @brief Sets the protein hits
+        
+        @note This may invalidate (indistinguishable) protein groups! If necessary, use e.g. @p IDFilter::updateProteinGroups to update the groupings.
+     */
     void setHits(const std::vector<ProteinHit> & hits);
+
     /// Finds a protein hit by accession (returns past-the-end iterator if not found)
     std::vector<ProteinHit>::iterator findHit(const String & accession);
 
@@ -189,13 +193,13 @@ public:
     /// Sorts the protein hits by score and assigns ranks (best score has rank 1)
     void assignRanks();
     /**
-               @brief Compute the coverage (in percent) of all ProteinHits given PeptideHits
+       @brief Compute the coverage (in percent) of all ProteinHits given PeptideHits
 
-               @throws Exception::MissingInformation if ProteinsHits do not have sequence information
+       @throws Exception::MissingInformation if ProteinsHits do not have sequence information
 
-               @return The number of Proteins referenced by the @p pep_ids that are not contained in this ProteinIdentification set (should be 0)
-          */
-    Size computeCoverage(const std::vector<PeptideIdentification> & pep_ids);
+       Does not return anything but stores the coverage inside the ProteinHit objects
+    */
+    void computeCoverage(const std::vector<PeptideIdentification> & pep_ids);
     //@}
 
     ///@name General information
@@ -220,6 +224,10 @@ public:
     const String & getIdentifier() const;
     /// Sets the identifier
     void setIdentifier(const String & id);
+    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+    void setPrimaryMSRunPath(const StringList& s);
+    /// get the file path to the first MS run
+    void getPrimaryMSRunPath(StringList& toFill) const;
     //@}
 
 protected:

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -36,19 +36,28 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
+
+#include <iomanip>
+
 using namespace std;
 
 namespace OpenMS
 {
   TransformationDescription::TransformationDescription() :
-    data_(TransformationDescription::DataPoints()), model_type_("none"),
+    data_(TransformationDescription::DataPoints()),
+    model_type_("none"),
     model_(new TransformationModel())
   {
   }
 
   TransformationDescription::TransformationDescription(
-    const TransformationDescription::DataPoints & data) :
-    data_(data), model_type_("none"), model_(new TransformationModel())
+    const TransformationDescription::DataPoints& data) :
+    data_(data), model_type_("none"),
+    model_(new TransformationModel())
   {
   }
 
@@ -58,17 +67,17 @@ namespace OpenMS
   }
 
   TransformationDescription::TransformationDescription(
-    const TransformationDescription & rhs)
+    const TransformationDescription& rhs)
   {
     data_ = rhs.data_;
     model_type_ = "none";
-    model_ = 0;     // initialize this before the "delete" call in "fitModel"!
+    model_ = 0; // initialize this before the "delete" call in "fitModel"!
     Param params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
   }
 
-  TransformationDescription & TransformationDescription::operator=(
-    const TransformationDescription & rhs)
+  TransformationDescription& TransformationDescription::operator=(
+    const TransformationDescription& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -81,15 +90,14 @@ namespace OpenMS
     return *this;
   }
 
-  void TransformationDescription::fitModel(const String & model_type,
-                                           const Param & params)
+  void TransformationDescription::fitModel(const String& model_type,
+                                           const Param& params)
   {
-    // if the transformation is the identity, don't fit another model:
-    if (model_type_ == "identity")
-      return;
+    // if (previous) transformation is the identity, don't fit another model:
+    if (model_type_ == "identity") return;
 
     delete model_;
-    model_ = 0;     // avoid segmentation fault in case of exception
+    model_ = 0; // avoid segmentation fault in case of exception
     if ((model_type == "none") || (model_type == "identity"))
     {
       model_ = new TransformationModel();
@@ -103,13 +111,21 @@ namespace OpenMS
       // lm->getParameters(slope, intercept);
       // cout << "slope: " << slope << ", intercept: " << intercept << endl;
     }
+    else if (model_type == "b_spline")
+    {
+      model_ = new TransformationModelBSpline(data_, params);
+    }
+    else if (model_type == "lowess")
+    {
+      model_ = new TransformationModelLowess(data_, params);
+    }
     else if (model_type == "interpolated")
     {
       model_ = new TransformationModelInterpolated(data_, params);
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unknown model type '" + model_type + "'");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "unknown model type '" + model_type + "'");
     }
     model_type_ = model_type;
   }
@@ -119,26 +135,38 @@ namespace OpenMS
     return model_->evaluate(value);
   }
 
-  const String & TransformationDescription::getModelType() const
+  const String& TransformationDescription::getModelType() const
   {
     return model_type_;
   }
 
-  void TransformationDescription::getModelTypes(StringList & result)
+  void TransformationDescription::getModelTypes(StringList& result)
   {
-    result = ListUtils::create<String>("linear,b_spline,interpolated");
+    result = ListUtils::create<String>("linear,b_spline,interpolated,lowess");
     // "none" and "identity" don't count
   }
 
-  void TransformationDescription::setDataPoints(const DataPoints & data)
+  void TransformationDescription::setDataPoints(const DataPoints& data)
   {
     data_ = data;
-    model_type_ = "none";     // reset the model even if it was "identity"
+    model_type_ = "none"; // reset the model even if it was "identity"
     delete model_;
     model_ = new TransformationModel();
   }
 
-  const TransformationDescription::DataPoints &
+  void TransformationDescription::setDataPoints(const vector<pair<double, double> >& data)
+  {
+    data_.resize(data.size());
+    for (Size i = 0; i < data.size(); ++i)
+    {
+      data_[i] = data[i];
+    }
+    model_type_ = "none"; // reset the model even if it was "identity"
+    delete model_;
+    model_ = new TransformationModel();
+  }
+
+  const TransformationDescription::DataPoints&
   TransformationDescription::getDataPoints() const
   {
     return data_;
@@ -154,13 +182,14 @@ namespace OpenMS
     for (TransformationDescription::DataPoints::iterator it = data_.begin();
          it != data_.end(); ++it)
     {
-      *it = make_pair(it->second, it->first);
+      *it = TransformationDescription::DataPoint(it->second, it->first,
+                                                 it->note);
     }
     // ugly hack for linear model with explicit slope/intercept parameters:
     if ((model_type_ == "linear") && data_.empty())
     {
-      TransformationModelLinear * lm =
-        dynamic_cast<TransformationModelLinear *>(model_);
+      TransformationModelLinear* lm =
+        dynamic_cast<TransformationModelLinear*>(model_);
       lm->invert();
     }
     else
@@ -168,6 +197,70 @@ namespace OpenMS
       Param params = getModelParameters();
       fitModel(model_type_, params);
     }
+  }
+
+  void TransformationDescription::getDeviations(vector<double>& diffs, 
+                                                bool do_apply,
+                                                bool do_sort) const
+  {
+    diffs.clear();
+    diffs.reserve(data_.size());
+    for (DataPoints::const_iterator it = data_.begin(); it != data_.end(); ++it)
+    {
+      double x = it->first;
+      if (do_apply) x = apply(x);
+      diffs.push_back(abs(x - it->second));
+    }
+    if (do_sort) sort(diffs.begin(), diffs.end());
+  }
+
+  void TransformationDescription::printSummary(ostream& os) const
+  {
+    os << "Number of data points (x/y pairs): " << data_.size() << "\n";
+    if (data_.empty()) return;
+    // x/y data ranges:
+    double xmin, xmax, ymin, ymax;
+    xmin = xmax = data_[0].first;
+    ymin = ymax = data_[0].second;
+    for (DataPoints::const_iterator it = ++data_.begin(); it != data_.end();
+         ++it)
+    {
+      if (xmin > it->first) xmin = it->first;
+      if (xmax < it->first) xmax = it->first;
+      if (ymin > it->second) ymin = it->second;
+      if (ymax < it->second) ymax = it->second;
+    }
+    os << "Data range (x): " << xmin << " to " << xmax
+       << "\nData range (y): " << ymin << " to " << ymax << "\n";
+    // deviations:
+    vector<double> diffs;
+    getDeviations(diffs);
+    bool no_model = (model_type_ == "none") || (model_type_ == "identity");
+    os << String("Summary of x/y deviations") +
+      (no_model ? "" : " before transformation") + ":\n";
+    Size percents[] = {100, 99, 95, 90, 75, 50, 25};
+    for (Size i = 0; i < 7; ++i)
+    {
+      Size index = percents[i] / 100.0 * diffs.size() - 1;
+      os << "- " << setw(3) << percents[i] << "% of data points within (+/-)"
+         << diffs[index] << "\n";
+    }
+    if (no_model)
+    {
+      os << endl;
+      return;
+    }
+    // else:
+    getDeviations(diffs, true);
+    os << "Summary of x/y deviations after applying '" << model_type_
+       << "' transformation:\n";
+    for (Size i = 0; i < 7; ++i)
+    {
+      Size index = percents[i] / 100.0 * diffs.size() - 1;
+      os << "- " << setw(3) << percents[i] << "% of data points within (+/-)"
+         << diffs[index] << "\n";
+    }
+    os << endl;
   }
 
 } // end of namespace OpenMS

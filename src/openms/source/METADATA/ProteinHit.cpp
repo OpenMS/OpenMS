@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -38,6 +38,8 @@ using namespace std;
 
 namespace OpenMS
 {
+  const double ProteinHit::COVERAGE_UNKNOWN = -1;
+  
   // default constructor
   ProteinHit::ProteinHit() :
     MetaInfoInterface(),
@@ -45,7 +47,7 @@ namespace OpenMS
     rank_(0),
     accession_(""),
     sequence_(""),
-    coverage_(-1)
+    coverage_(COVERAGE_UNKNOWN)
   {
   }
 
@@ -56,7 +58,7 @@ namespace OpenMS
     rank_(rank),
     accession_(accession.trim()),
     sequence_(sequence.trim()),
-    coverage_(-1)
+    coverage_(COVERAGE_UNKNOWN)
   {
   }
 
@@ -142,6 +144,12 @@ namespace OpenMS
     return accession_;
   }
 
+  // returns the description of the protein
+  String ProteinHit::getDescription() const
+  {
+    return getMetaValue("Description").toString();
+  }
+
   // returns the coverage (in percent) of the protein hit based upon matched peptides
   double ProteinHit::getCoverage() const
   {
@@ -165,6 +173,12 @@ namespace OpenMS
   {
     sequence_ = sequence;
     sequence_.trim();
+  }
+
+  // sets the description of the protein
+  void ProteinHit::setDescription(const String & description)
+  {
+    setMetaValue("Description", description);
   }
 
   // sets the accession of the protein

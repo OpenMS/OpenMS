@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,14 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/DECHARGING/ILPDCWrapper.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
+#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
 #include <iostream>
 #include <ctime>
 #include <cmath>
@@ -41,15 +49,6 @@
 #include <vector>
 #include <algorithm>
 #include <utility>
-
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
-
-
 
 namespace OpenMS
 {
@@ -62,7 +61,7 @@ namespace OpenMS
   {
   }
 
-  double ILPDCWrapper::compute(const FeatureMap<> fm, PairsType& pairs, Size verbose_level) const
+  double ILPDCWrapper::compute(const FeatureMap fm, PairsType& pairs, Size verbose_level) const
   {
     if (fm.empty())
     {
@@ -131,7 +130,7 @@ namespace OpenMS
 
       if (g2pairs.size() != g2f.size())
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Clique construction failed! Unequal number of groups produced!", String(g2pairs.size()) + "!=" + String(g2f.size()));
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Clique construction failed! Unequal number of groups produced!", String(g2pairs.size()) + "!=" + String(g2f.size()));
       }
 
       Map<Size, Size> hist_component_sum;
@@ -194,7 +193,7 @@ namespace OpenMS
 
     if (pairs_clique_ordered.size() != pairs.size())
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, pairs_clique_ordered.size() - pairs.size());
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, pairs_clique_ordered.size() - pairs.size());
     }
     /* swap pairs, such that edges are order by cliques (so we can make clean cuts) */
     pairs.swap(pairs_clique_ordered);
@@ -209,7 +208,7 @@ namespace OpenMS
 //#ifdef _OPENMP
 //#pragma omp parallel for schedule(dynamic, 1), reduction(+: score)
 //#endif
-    for (SignedSize i = 0; i < (SignedSize)bins.size(); ++i)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(bins.size()); ++i)
     {
       score = computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
     }
@@ -226,7 +225,7 @@ namespace OpenMS
     f_set[rota_l].insert(v);
   }
 
-  double ILPDCWrapper::computeSlice_(const FeatureMap<> fm,
+  double ILPDCWrapper::computeSlice_(const FeatureMap fm,
                                      PairsType& pairs,
                                      const PairsIndex margin_left,
                                      const PairsIndex margin_right,
@@ -238,7 +237,7 @@ namespace OpenMS
 
 
     LPWrapper build;
-    //build.setSolver(LPWrapper::SOLVER_GLPK);
+    build.setSolver(LPWrapper::SOLVER_COINOR);
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
     // add ALL edges first. Their result is what is interesting to us later
@@ -328,14 +327,14 @@ namespace OpenMS
 
   // old version, slower, as ILP has different layout (i.e, the same as described in paper)
 
-  double ILPDCWrapper::computeSliceOld_(const FeatureMap<> fm,
-                                            PairsType& pairs,
-                                            const PairsIndex margin_left,
-                                            const PairsIndex margin_right,
-                                            const Size verbose_level) const
+  double ILPDCWrapper::computeSliceOld_(const FeatureMap fm,
+                                        PairsType& pairs,
+                                        const PairsIndex margin_left,
+                                        const PairsIndex margin_right,
+                                        const Size verbose_level) const
   {
     LPWrapper build;
-    //build.setSolver(LPWrapper::SOLVER_GLPK);
+    build.setSolver(LPWrapper::SOLVER_COINOR);
     build.setObjectiveSense(LPWrapper::MAX); // maximize
 
     //------------------------------------objective function-----------------------------------------------
@@ -365,7 +364,7 @@ namespace OpenMS
         score_max = score;
 
       // DEBUG:
-      //std::cerr << "MIP: egde#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
+      //std::cerr << "MIP: edge#"<< i << " score: " << pairs[i].getEdgeScore() << " adduct:" << pairs[i].getCompomer().getAdductsAsString() << "\n";
     }
     if (verbose_level > 2)
       LOG_INFO << "score_min: " << score_min << " score_max: " << score_max << "\n";
@@ -515,7 +514,7 @@ namespace OpenMS
     return opt_value;
   } // !compute_slice
 
-  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm) const
+  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const
   {
     double score;
     String e;
@@ -543,9 +542,9 @@ namespace OpenMS
       double rt_diff =  fabs(fm[pair.getElementIndex(0)].getRT() - fm[pair.getElementIndex(1)].getRT());
       // enhance correct charge
       double charge_enhance = ((pair.getCharge(0) == fm[pair.getElementIndex(0)].getCharge())
-                                  &&
-                                   (pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()))
-                                  ? 100 : 1;
+                              &&
+                               (pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()))
+                              ? 100 : 1;
       score = charge_enhance * (1 / (pair.getMassDiff() + 1) + 1 / (rt_diff + 1));
     }
 

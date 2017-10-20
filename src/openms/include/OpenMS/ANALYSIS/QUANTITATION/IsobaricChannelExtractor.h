@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,24 +28,42 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche $
+// $Maintainer: Chris Bielow $
 // $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICCHANNELEXTRACTOR_H
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICCHANNELEXTRACTOR_H
 
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
-
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
+#include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
+  class IsobaricQuantitationMethod;
+  class ConsensusMap;
+  class ConsensusFeature;
+
   /**
     @brief Extracts individual channels from MS/MS spectra for isobaric labeling experiments.
+
+    In addition to extracting the channel information this class can also filter the extracted channel
+    information according to several parameters, i.e., discard channel information if certain criteria
+    are not met.
+
+    @li %Precursor activation method (e.g., select only HCD scans).
+    @li Minimum precursor intensity.
+    @li Minimum reporter intensity (i.e., remove reporter channels below a certain intensity)
+    @li %Precursor purity (i.e., fraction of TIC in the precursor window that can be assigned to the precursor)
+
+    The precursor purity computation uses the interpolation approach described in:
+    Savitski MM, Sweetman G, Askenazi M, et al. (2011). Delayed fragmentation and optimized isolation width settings
+    for improvement of protein identification and accuracy of isobaric mass tag quantification on Orbitrap-type mass
+    spectrometers. Analytical chemistry 83: 8959-67. http://www.ncbi.nlm.nih.gov/pubmed/22017476
+
+    @note Centroided MS and MS/MS data is required.
 
     @htmlinclude OpenMS_IsobaricChannelExtractor.parameters
   */
@@ -72,9 +90,50 @@ public:
       @param ms_exp_data Raw data to search for isobaric quantitation channels.
       @param consensus_map Output map containing the identified channels and the corresponding intensities.
     */
-    void extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map);
+    void extractChannels(const PeakMap& ms_exp_data, ConsensusMap& consensus_map);
 
 private:
+    /**
+      @brief Small struct to capture the current state of the purity computation.
+
+      It basically contains two iterators pointing to the current potential
+      MS1 precursor scan of an MS2 scan and the MS1 scan immediately
+      following the current MS2 scan.
+    */
+    struct PuritySate_
+    {
+      /// Iterator pointing to the potential MS1 precursor scan
+      PeakMap::ConstIterator precursorScan;
+      /// Iterator pointing to the potential follow up MS1 scan
+      PeakMap::ConstIterator followUpScan;
+
+      /// Indicates if a follow up scan was found
+      bool hasFollowUpScan;
+      /// reference to the experiment to analyze
+      const PeakMap& baseExperiment;
+
+      /**
+        @brief C'tor taking the experiment that will be analyzed.
+
+        @param targetExp The experiment that will be analyzed.
+      */
+      PuritySate_(const PeakMap& targetExp);
+
+      /**
+        @brief Searches the experiment for the next MS1 spectrum with a retention time bigger then @p rt.
+
+        @param rt The next follow up scan should have a retention bigger then this value.
+      */
+      void advanceFollowUp(const double rt);
+
+      /**
+        @brief Check if the currently selected follow up scan has a retention time bigger then the given value.
+
+        @param rt The retention time to check.
+      */
+      bool followUpValid(const double rt);
+    };
+
     /// The used quantitation method (itraq4plex, tmt6plex,..).
     const IsobaricQuantitationMethod* quant_method_;
 
@@ -102,6 +161,9 @@ private:
     /// Max. allowed deviation between theoretical and observed isotopic peaks of the precursor peak in the isolation window to be counted as part of the precursor.
     double max_precursor_isotope_deviation_;
 
+    /// Flag if precursor purity will solely be computed based on the precursor scan (false), or interpolated between the precursor- and the following MS1 scan.
+    bool interpolate_precursor_purity_;
+
     /// add channel information to the map after it has been filled
     void registerChannelsInOutputMap_(ConsensusMap& consensus_map);
 
@@ -124,22 +186,36 @@ private:
     /**
       @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and one to the precursor spectrum.
 
-      @param ms2_spec Iterator pointing to the ms2 spectrum.
+      @param ms2_spec Iterator pointing to the MS2 spectrum.
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    double computePrecursorPurity_(const MSExperiment<>::ConstIterator& ms2_spec, const MSExperiment<>::ConstIterator& precursor) const;
+    double computePrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PuritySate_& pState) const;
 
     /**
-      @brief Computes the sum of all isotopic peak intensities in the window defined by (lower|upper)_mz_bound beginning from theoretical_isotope_mz.
+      @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and a reference to the potential precursor spectrum.
 
-      @param precursor Iterator pointing to the precursor spectrum used for extracting the peaks.
-      @param lower_mz_bound Lower bound of the isolation window to analyze.
-      @param upper_mz_bound Upper bound of the isolation window to analyze.
-      @param theoretical_mz The start position for the search. Note that the intensity at this position will not included in the sum.
-      @param isotope_offset The offset with which the isolation window should be searched (i.e., +/- NEUTRON_MASS/precursor_charge, +/- determines if it scans from left or right from the theoretical_isotope_mz).
+      @param ms2_spec Iterator pointing to the MS2 spectrum.
+      @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
+      @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    double sumPotentialIsotopePeaks_(const MSExperiment<Peak1D>::ConstIterator& precursor, const Peak1D::CoordinateType& lower_mz_bound, const Peak1D::CoordinateType& upper_mz_bound, Peak1D::CoordinateType theoretical_mz, const Peak1D::CoordinateType isotope_offset) const;
+    double computeSingleScanPrecursorPurity_(const PeakMap::ConstIterator& ms2_spec, const PeakMap::SpectrumType& precursor_spec) const;
+
+    /**
+      @brief Get the first (of potentially many) activation methods (HCD,CID,...) of this spectrum.
+
+      @param s The spectrum
+      @return Entry from Precursor::NamesOfActivationMethod or empty string.
+    */
+    String getActivationMethod_(const PeakMap::SpectrumType& s) const
+    {
+      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      {
+        if (!it->getActivationMethods().empty()) return Precursor::NamesOfActivationMethod[*(it->getActivationMethods().begin())];
+      }
+      return "";
+    }
+
 
 protected:
     /// implemented for DefaultParamHandler

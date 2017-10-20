@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS version="1.6.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_6_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="info" description="">
+    <ITEM name="version" value="2.2.0" type="string" description="" required="false" advanced="false" />
+    <ITEM name="num_vertices" value="10" type="int" description="" required="false" advanced="false" />
+    <ITEM name="num_edges" value="7" type="int" description="" required="false" advanced="false" />
+    <ITEM name="description" value="&lt;![CDATA[]]&gt;" type="string" description="" required="false" advanced="false" />
+  </NODE>
+  <NODE name="vertices" description="">
+    <NODE name="0" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+      </ITEMLIST>
+      <ITEM name="x_pos" value="-280" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="60" type="double" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="6" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="160" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="60" type="double" description="" required="false" advanced="false" />
+      <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="1" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+      </ITEMLIST>
+      <ITEM name="x_pos" value="-280" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="220" type="double" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="7" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="160" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="220" type="double" description="" required="false" advanced="false" />
+      <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="2" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="FileInfo" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-40" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="220" type="double" description="" required="false" advanced="false" />
+      <NODE name="parameters" description="">
+        <ITEM name="in" value="" type="input-file" description="input file " required="true" advanced="false" supported_formats="*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.idXML,*.pepXML,*.fid,*.mzid,*.trafoXML" />
+        <ITEM name="in_type" value="" type="string" description="input file type -- default: determined from file extension or content" required="false" advanced="false" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML" />
+        <ITEM name="out" value="" type="output-file" description="Optional output file. If left out, the output is written to the command line." required="false" advanced="false" supported_formats="*.txt" />
+        <ITEM name="out_tsv" value="" type="output-file" description="Second optional output file. Tab separated flat text file." required="false" advanced="true" supported_formats="*.csv" />
+        <ITEM name="m" value="false" type="string" description="Show meta information about the whole experiment" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="p" value="false" type="string" description="Shows data processing information" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="s" value="false" type="string" description="Computes a five-number statistics of intensities, qualities, and widths" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="d" value="false" type="string" description="Show detailed listing of all spectra and chromatograms (peak files only)" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="c" value="false" type="string" description="Check for corrupt data in the file (peak files only)" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="v" value="false" type="string" description="Validate the file only (for mzML, mzData, mzXML, featureXML, idXML, consensusXML, pepXML)" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="i" value="false" type="string" description="Check whether a given mzML file contains valid indices (conforming to the indexedmzML standard)" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+        <ITEM name="no_progress" value="true" type="string" description="Disables progress logging to command line" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="force" value="false" type="string" description="Overwrite tool specific checks." required="false" advanced="true" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" restrictions="true,false" />
+      </NODE>
+    </NODE>
+    <NODE name="3" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="FileInfo" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-40" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="60" type="double" description="" required="false" advanced="false" />
+      <NODE name="parameters" description="">
+        <ITEM name="in" value="" type="input-file" description="input file " required="true" advanced="false" supported_formats="*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.idXML,*.pepXML,*.fid,*.mzid,*.trafoXML" />
+        <ITEM name="in_type" value="" type="string" description="input file type -- default: determined from file extension or content" required="false" advanced="false" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML" />
+        <ITEM name="out" value="" type="output-file" description="Optional output file. If left out, the output is written to the command line." required="false" advanced="false" supported_formats="*.txt" />
+        <ITEM name="out_tsv" value="" type="output-file" description="Second optional output file. Tab separated flat text file." required="false" advanced="true" supported_formats="*.csv" />
+        <ITEM name="m" value="false" type="string" description="Show meta information about the whole experiment" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="p" value="false" type="string" description="Shows data processing information" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="s" value="false" type="string" description="Computes a five-number statistics of intensities, qualities, and widths" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="d" value="false" type="string" description="Show detailed listing of all spectra and chromatograms (peak files only)" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="c" value="false" type="string" description="Check for corrupt data in the file (peak files only)" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="v" value="false" type="string" description="Validate the file only (for mzML, mzData, mzXML, featureXML, idXML, consensusXML, pepXML)" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="i" value="false" type="string" description="Check whether a given mzML file contains valid indices (conforming to the indexedmzML standard)" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+        <ITEM name="no_progress" value="true" type="string" description="Disables progress logging to command line" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="force" value="false" type="string" description="Overwrite tool specific checks." required="false" advanced="true" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" restrictions="true,false" />
+      </NODE>
+    </NODE>
+    <NODE name="8" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="FileMerger" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-40" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="380" type="double" description="" required="false" advanced="false" />
+      <NODE name="parameters" description="">
+        <ITEMLIST name="in" type="input-file" description="Input files separated by blank" required="true" advanced="false" supported_formats="*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.fid,*.traML">
+        </ITEMLIST>
+        <ITEM name="in_type" value="" type="string" description="Input file type (default: determined from file extension or content)" required="false" advanced="false" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML" />
+        <ITEM name="out" value="" type="output-file" description="Output file" required="true" advanced="false" supported_formats="*.mzML,*.featureXML,*.consensusXML,*.traML" />
+        <ITEM name="annotate_file_origin" value="false" type="string" description="Store the original filename in each feature using meta value &quot;file_origin&quot; (for featureXML and consensusXML only)." required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+        <ITEM name="no_progress" value="true" type="string" description="Disables progress logging to command line" required="false" advanced="false" restrictions="true,false" />
+        <ITEM name="force" value="false" type="string" description="Overwrite tool specific checks." required="false" advanced="true" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" restrictions="true,false" />
+        <NODE name="rt_concat" description="Options for concatenating files in the retention time (RT) dimension. The RT ranges of inputs are adjusted so they don&apos;t overlap in the merged file (traML input not supported)">
+          <ITEM name="gap" value="0" type="double" description="The amount of gap (in seconds) to insert between the RT ranges of different input files. RT concatenation is enabled if a value &gt; 0 is set." required="false" advanced="false" />
+          <ITEMLIST name="trafo_out" type="output-file" description="Output of retention time transformations that were applied to the input files to produce non-overlapping RT ranges. If used, one output file per input file is required." required="false" advanced="false" supported_formats="*.trafoXML">
+          </ITEMLIST>
+        </NODE>
+        <NODE name="raw" description="Options for raw data input/output (primarily for DTA files)">
+          <ITEM name="rt_auto" value="false" type="string" description="Assign retention times automatically (integers starting at 1)" required="false" advanced="false" restrictions="true,false" />
+          <ITEMLIST name="rt_custom" type="double" description="List of custom retention times that are assigned to the files. The number of given retention times must be equal to the number of input files." required="false" advanced="false">
+          </ITEMLIST>
+          <ITEM name="rt_filename" value="false" type="string" description="Try to guess the retention time of a file based on the filename. This option is useful for merging DTA files, where filenames should contain the string &apos;rt&apos; directly followed by a floating point number, e.g. &apos;my_spectrum_rt2795.15.dta&apos;" required="false" advanced="false" restrictions="true,false" />
+          <ITEM name="ms_level" value="0" type="int" description="If 1 or higher, this number is assigned to spectra as the MS level. This option is useful for DTA files which do not contain MS level information." required="false" advanced="false" />
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="4" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+      </ITEMLIST>
+      <ITEM name="x_pos" value="-280" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="380" type="double" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="9" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="160" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="380" type="double" description="" required="false" advanced="false" />
+      <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="5" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="merger" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="-160" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="520" type="double" description="" required="false" advanced="false" />
+      <ITEM name="round_based" value="false" type="string" description="" required="false" advanced="false" />
+    </NODE>
+  </NODE>
+  <NODE name="edges" description="">
+    <NODE name="0" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="1/2" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="in" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="1" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="2/7" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="out_tsv" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="2" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="0/3" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="in" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="3" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="3/6" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="out_tsv" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="4" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="8/9" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="out" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="5" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="4/5" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="6" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="5/8" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="in" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>

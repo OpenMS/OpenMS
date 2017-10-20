@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,9 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <map>
 
@@ -54,6 +57,8 @@ using namespace std;
 
     @brief This application is used to digest a protein database to get all peptides given a cleavage enzyme. It will also produce peptide statistics given the mass
     accuracy of the instrument. You can extract peptides with specific motifs,e.g. onyl cysteine containing peptides for ICAT experiments. At the moment only trypsin is supported.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_DigestorMotif.cli
@@ -86,7 +91,10 @@ protected:
     registerIntOption_("mass_accuracy", "<number>", 1000, "give your mass accuracy in ppb", false);
     registerIntOption_("min_length", "<number>", 6, "minimum length of peptide", false);
     registerIntOption_("out_option", "<number>", 1, "indicate 1 (peptide table only), 2 (statistics only) or (both peptide table + statistics)", false);
-    registerStringOption_("enzyme", "<string>", "Trypsin", "the digestion enzyme", false);
+    vector<String> all_enzymes;
+    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    setValidStrings_("enzyme", all_enzymes);
     registerStringOption_("motif", "<string>", "M", "the motif for the restricted peptidome", false);
     setMinInt_("missed_cleavages", 0);
   }
@@ -137,19 +145,19 @@ protected:
     //-------------------------------------------------------------
 
     // This should be updated if more cleavage enzymes are available
-    digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
-    search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+    String enzyme_name = getStringOption_("enzyme");
+    digestor.setEnzyme(enzyme_name);
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
     digestor.setMissedCleavages(missed_cleavages);
 
-    protein_accessions.resize(1, String(""));
     for (UInt i = 0; i < protein_data.size(); ++i)
     {
-      protein_accessions[0] = protein_data[i].identifier;
+      PeptideEvidence pe;
       temp_protein_hit.setSequence(protein_data[i].sequence);
-      temp_protein_hit.setAccession(protein_accessions[0]);
-
+      temp_protein_hit.setAccession(protein_data[i].identifier);
+      pe.setProteinAccession(protein_data[i].identifier);
       digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
-      temp_peptide_hit.setProteinAccessions(protein_accessions);
+      temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, pe));
       for (UInt j = 0; j < temp_peptides.size(); ++j)
       {
         if (temp_peptides[j].size() >= min_size)
@@ -199,10 +207,11 @@ protected:
 
       for (UInt i = 0; i < protein_data.size(); ++i)
       {
-        protein_accessions[0] = protein_data[i].identifier;
-        temp_protein_hit.setAccession(protein_accessions[0]);
+        PeptideEvidence pe;
+        pe.setProteinAccession(protein_data[i].identifier);
+        temp_protein_hit.setAccession(protein_data[i].identifier);
         digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
-        temp_peptide_hit.setProteinAccessions(protein_accessions);
+        temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, pe));
         for (UInt j = 0; j < temp_peptides.size(); ++j)
         {
           //vector<double> B_peptide, Y_peptide;
@@ -255,9 +264,16 @@ protected:
                 const Size nG = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'G');
                 const Size nL = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'L');
 
+                const ElementDB* db = ElementDB::getInstance();
+                const Element* C = db->getElement("C");
+                const Element* H = db->getElement("H");
+                const Element* N = db->getElement("N");
+                const Element* O = db->getElement("O");
+                const Element* S = db->getElement("S");
+
                 fp_out << counter << SEP << ">" << protein_accessions[0] << SEP << j << SEP << temp_peptides[j] << SEP
-                       << EF.getNumberOf("C") << SEP << EF.getNumberOf("H") << SEP << EF.getNumberOf("N") << SEP << EF.getNumberOf("O") << SEP
-                       << EF.getNumberOf("S") << SEP << temp_peptides[j].size() << SEP << precisionWrapper(temp_peptides[j].getMonoWeight()) << SEP
+                       << EF.getNumberOf(C) << SEP << EF.getNumberOf(H) << SEP << EF.getNumberOf(N) << SEP << EF.getNumberOf(O) << SEP
+                       << EF.getNumberOf(S) << SEP << temp_peptides[j].size() << SEP << precisionWrapper(temp_peptides[j].getMonoWeight()) << SEP
                        << precisionWrapper(min_mass) << SEP << precisionWrapper(max_mass) << SEP << temp_peptides[j].getFormula() << SEP
                        << nD << SEP << nE << SEP << nK << SEP << nR << SEP << nH << SEP << nY << SEP << nW << SEP << nF << SEP << nC << SEP
                        << nM << SEP << nS << SEP << nT << SEP << nN << SEP << nQ << SEP << nG << SEP << nA << SEP << nV << SEP << nL << SEP

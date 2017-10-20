@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
@@ -41,7 +41,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
+
+#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,7 +54,7 @@ namespace OpenMS
 	 : public FeatureGroupingAlgorithm
 	{
 		public:
-			void group(const vector< FeatureMap<> >&, ConsensusMap& map)
+			void group(const vector< FeatureMap >&, ConsensusMap& map)
 			{
 			  map.getFileDescriptions()[0].filename = "bla";
 				map.getFileDescriptions()[0].size = 5;
@@ -76,9 +78,9 @@ START_SECTION((virtual ~FeatureGroupingAlgorithm()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((virtual void group(const vector< FeatureMap<> > &maps, ConsensusMap &out)=0))
+START_SECTION((virtual void group(const vector< FeatureMap > &maps, ConsensusMap &out)=0))
 	FGA fga;
-	vector< FeatureMap<> > in;
+	vector< FeatureMap > in;
 	ConsensusMap map;
 	fga.group(in,map);
 	TEST_EQUAL(map.getFileDescriptions()[0].filename, "bla")
@@ -88,7 +90,7 @@ START_SECTION((static void registerChildren()))
 {
 	TEST_STRING_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts()[0],FeatureGroupingAlgorithmLabeled::getProductName());
 	TEST_STRING_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts()[1],FeatureGroupingAlgorithmUnlabeled::getProductName());
-	TEST_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts().size(), 3)
+  TEST_EQUAL(Factory<FeatureGroupingAlgorithm>::registeredProducts().size(), 4)
 }
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -75,27 +75,39 @@ START_SECTION((MascotXMLFile()))
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data)))
+START_SECTION((static void initializeLookup(SpectrumMetaDataLookup& lookup, PeakMap& experiment, const String& scan_regex = "")))
 {
+  PeakMap exp;
+  exp.getSpectra().resize(1);
+  SpectrumMetaDataLookup lookup;
+  xml_file.initializeLookup(lookup, exp);
+  TEST_EQUAL(lookup.empty(), false);
+}
+END_SECTION
+
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, SpectrumMetaDataLookup& lookup)))
+{
+  SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
-              protein_identification,
-              peptide_identifications);
+                protein_identification, peptide_identifications, lookup);
 
   {
     ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
     TEST_EQUAL(search_parameters.missed_cleavages, 1);
     TEST_EQUAL(search_parameters.taxonomy, ". . Eukaryota (eucaryotes)");
     TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::AVERAGE);
-    TEST_EQUAL(search_parameters.enzyme, ProteinIdentification::TRYPSIN);
     TEST_EQUAL(search_parameters.db, "MSDB_chordata");
     TEST_EQUAL(search_parameters.db_version, "MSDB_chordata_20070910.fasta");
-    TEST_EQUAL(search_parameters.peak_mass_tolerance, 0.2);
-    TEST_EQUAL(search_parameters.precursor_tolerance, 1.4);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.2);
+    TEST_EQUAL(search_parameters.precursor_mass_tolerance, 1.4);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance_ppm, false);
+    TEST_EQUAL(search_parameters.precursor_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.charges, "1+, 2+ and 3+");
-    TEST_EQUAL(search_parameters.fixed_modifications.size(), 3);
+    TEST_EQUAL(search_parameters.fixed_modifications.size(), 4);
     TEST_EQUAL(search_parameters.fixed_modifications[0], "Carboxymethyl (C)");
-    TEST_EQUAL(search_parameters.fixed_modifications[1], "Deamidated (NQ)");
-    TEST_EQUAL(search_parameters.fixed_modifications[2], "Guanidinyl (K)");
+    TEST_EQUAL(search_parameters.fixed_modifications[1], "Deamidated (N)");
+    TEST_EQUAL(search_parameters.fixed_modifications[2], "Deamidated (Q)");
+    TEST_EQUAL(search_parameters.fixed_modifications[3], "Guanidinyl (K)");
     TEST_EQUAL(search_parameters.variable_modifications.size(), 3);
     TEST_EQUAL(search_parameters.variable_modifications[0], "Acetyl (Protein N-term)");
     TEST_EQUAL(search_parameters.variable_modifications[1], "Biotin (K)");
@@ -118,16 +130,19 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
     TEST_EQUAL(peptide_identifications[0].getHits().size(), 2);
 
     peptide_hit = peptide_identifications[0].getHits()[0];
-    references = peptide_hit.getProteinAccessions();
+    set<String> ref_set = peptide_hit.extractProteinAccessionsSet();
+    vector<String> references(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 2);
     TEST_EQUAL(references[0], "AAN17824");
     TEST_EQUAL(references[1], "GN1736");
     peptide_hit = peptide_identifications[0].getHits()[1];
-    references = peptide_hit.getProteinAccessions();
+    ref_set = peptide_hit.extractProteinAccessionsSet();
+    references = vector<String>(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 1);
     TEST_EQUAL(references[0], "AAN17824");
     peptide_hit = peptide_identifications[1].getHits()[0];
-    references = peptide_hit.getProteinAccessions();
+    ref_set = peptide_hit.extractProteinAccessionsSet();
+    references = vector<String>(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 1);
     TEST_EQUAL(references[0], "GN1736");
 
@@ -153,18 +168,18 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 
   /// for new MascotXML 2.1 as used by Mascot Server 2.3
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_2.mascotXML"),
-              protein_identification,
-              peptide_identifications);
+                protein_identification, peptide_identifications, lookup);
   {
     ProteinIdentification::SearchParameters search_parameters = protein_identification.getSearchParameters();
     TEST_EQUAL(search_parameters.missed_cleavages, 7);
     TEST_EQUAL(search_parameters.taxonomy, "All entries");
     TEST_EQUAL(search_parameters.mass_type, ProteinIdentification::MONOISOTOPIC);
-    TEST_EQUAL(search_parameters.enzyme, ProteinIdentification::TRYPSIN);
     TEST_EQUAL(search_parameters.db, "IPI_human");
     TEST_EQUAL(search_parameters.db_version, "ipi.HUMAN.v3.61.fasta");
-    TEST_EQUAL(search_parameters.peak_mass_tolerance, 0.3);
-    TEST_EQUAL(search_parameters.precursor_tolerance, 3);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance, 0.3);
+    TEST_EQUAL(search_parameters.precursor_mass_tolerance, 3);
+    TEST_EQUAL(search_parameters.fragment_mass_tolerance_ppm, false);
+    TEST_EQUAL(search_parameters.precursor_mass_tolerance_ppm, false);
     TEST_EQUAL(search_parameters.charges, "");
     TEST_EQUAL(search_parameters.fixed_modifications.size(), 1);
     TEST_EQUAL(search_parameters.fixed_modifications[0], "Carbamidomethyl (C)");
@@ -192,11 +207,17 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
     TEST_EQUAL(peptide_identifications[0].getHits().size(), 1);
 
     peptide_hit = peptide_identifications[0].getHits()[0];
-    TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions().size(), 0);
-    references = peptide_identifications[34].getHits()[0].getProteinAccessions(); // corresponds to <peptide query="35" ...>
+    vector<PeptideEvidence> pes = peptide_hit.getPeptideEvidences();
+    TEST_EQUAL(pes.size(), 0);
+    pes = peptide_identifications[34].getHits()[0].getPeptideEvidences();
+    set<String> accessions = peptide_identifications[34].getHits()[0].extractProteinAccessionsSet();
+    references = vector<String>(accessions.begin(), accessions.end()); // corresponds to <peptide query="35" ...>
     ABORT_IF(references.size() != 5);
-    TEST_EQUAL(references[0], "IPI00745872");
-    TEST_EQUAL(references[4], "IPI00878517");
+    TEST_EQUAL(references[0], "IPI00022434");
+    TEST_EQUAL(references[1], "IPI00384697");
+    TEST_EQUAL(references[2], "IPI00745872");
+    TEST_EQUAL(references[3], "IPI00878517");
+    TEST_EQUAL(references[4], "IPI00908876");
 
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 5.34);
     TEST_REAL_SIMILAR(peptide_identifications[49].getHits()[0].getScore(), 14.83);
@@ -220,8 +241,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   }
 
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_3.mascotXML"),
-    protein_identification,
-    peptide_identifications);
+                protein_identification, peptide_identifications, lookup);
   {
     std::vector<ProteinIdentification> pids;
     pids.push_back(protein_identification);
@@ -237,7 +257,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
 }
 END_SECTION
 
-START_SECTION((void load(const String &filename, ProteinIdentification &protein_identification, std::vector< PeptideIdentification > &id_data, std::map< String, std::vector< AASequence > > &peptides)))
+START_SECTION((void load(const String& filename, ProteinIdentification& protein_identification, std::vector<PeptideIdentification>& id_data, std::map<String, std::vector<AASequence> >& peptides, SpectrumMetaDataLookup& lookup)))
   std::map<String, vector<AASequence> > modified_peptides;
   AASequence aa_sequence_1;
   AASequence aa_sequence_2;
@@ -257,10 +277,10 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   temp.push_back(aa_sequence_3);
   modified_peptides.insert(make_pair("135.29", temp));
 
+  SpectrumMetaDataLookup lookup;
   xml_file.load(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_1.mascotXML"),
-                protein_identification,
-                peptide_identifications,
-                modified_peptides);
+                protein_identification, peptide_identifications, 
+                modified_peptides, lookup);
 
   TEST_EQUAL(peptide_identifications.size(), 3)
   TOLERANCE_ABSOLUTE(0.0001)
@@ -279,17 +299,20 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 31.8621)
   TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 
-  peptide_hit = peptide_identifications[0].getHits()[0];
-  references = peptide_hit.getProteinAccessions();
+  peptide_hit = peptide_identifications[0].getHits()[0];  
+  set<String> accessions = peptide_hit.extractProteinAccessionsSet();
+  references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 2)
   TEST_EQUAL(references[0], "AAN17824")
-  TEST_EQUAL(references[1], "GN1736")
+  TEST_EQUAL(references[1], "GN1736")  
   peptide_hit = peptide_identifications[0].getHits()[1];
-  references = peptide_hit.getProteinAccessions();
+  accessions = peptide_hit.extractProteinAccessionsSet();
+  references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 1)
   TEST_EQUAL(references[0], "AAN17824")
   peptide_hit = peptide_identifications[1].getHits()[0];
-  references = peptide_hit.getProteinAccessions();
+  accessions = peptide_hit.extractProteinAccessionsSet();
+  references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 1)
   TEST_EQUAL(references[0], "GN1736")
 

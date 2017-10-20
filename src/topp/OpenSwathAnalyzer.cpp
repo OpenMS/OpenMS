@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,9 +80,10 @@ using namespace std;
         </table>
     </CENTER>
 
- The idea of the MRM peak-picker is to analyze a series of chromatograms
+ The idea of the OpenSwath Analyzer is to analyze a series of chromatograms
  together with the associated meta information (stored in TraML format) in
- order to determine likely places of elution of a peptide in MRM/SRM.
+ order to determine likely places of elution of a peptide in targeted
+ proteomics data (derived from SWATH-MS or MRM/SRM).
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathAnalyzer.cli
@@ -101,13 +102,13 @@ public:
 
   TOPPOpenSwathAnalyzer() :
   TOPPBase("OpenSwathAnalyzer",
-           "Picks peaks and finds features in an SRM experiment.", true)
+           "Picks peaks and finds features in an SWATH-MS or SRM experiment.", true)
   {
   }
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
 
   void registerModelOptions_(const String &default_model)
   {
@@ -195,7 +196,7 @@ protected:
 
     // Create the output map, load the input TraML file and the chromatograms
     boost::shared_ptr<MapType> exp (new MapType());
-    FeatureMap<> out_featureFile;
+    FeatureMap out_featureFile;
     OpenSwath::LightTargetedExperiment transition_exp;
 
     std::cout << "Loading TraML file" << std::endl;
@@ -219,14 +220,14 @@ protected:
     if (file_list.size() == 0)
     {
       MRMFeatureFinderScoring featureFinder;
-      boost::shared_ptr<MapType> empty_swath_map (new MapType());
       featureFinder.setParameters(feature_finder_param);
       featureFinder.setLogType(log_type_);
       featureFinder.setStrictFlag(!nostrict);
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-      OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(empty_swath_map);
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-      featureFinder.pickExperiment(chromatogram_ptr, out_featureFile, transition_exp, trafo, empty_swath_ptr, transition_group_map);
+      std::vector< OpenSwath::SwathMap > empty_maps;
+      featureFinder.pickExperiment(chromatogram_ptr, out_featureFile,
+                                   transition_exp, trafo, empty_maps, transition_group_map);
       out_featureFile.ensureUniqueId();
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
       FeatureXMLFile().store(out, out_featureFile);
@@ -243,7 +244,7 @@ protected:
       MRMFeatureFinderScoring featureFinder;
       MzMLFile swath_file;
       boost::shared_ptr<MapType> swath_map (new MapType());
-      FeatureMap<> featureFile;
+      FeatureMap featureFile;
       cout << "Loading file " << file_list[i] << endl;
 
 ////#ifndef _OPENMP
@@ -277,14 +278,17 @@ protected:
         OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
         OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
         OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-        featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, trafo, swath_ptr, transition_group_map);
+        std::vector< OpenSwath::SwathMap > swath_maps(1);
+        swath_maps[0].sptr = swath_ptr;
+        featureFinder.pickExperiment(chromatogram_ptr, featureFile,
+                                     transition_exp_used, trafo, swath_maps, transition_group_map);
 
         // write all features and the protein identifications from tmp_featureFile into featureFile
 #ifdef _OPENMP
 #pragma omp critical (featureFinder)
 #endif
         {
-          for (FeatureMap<Feature>::iterator feature_it = featureFile.begin();
+          for (FeatureMap::iterator feature_it = featureFile.begin();
                feature_it != featureFile.end(); ++feature_it)
           {
             out_featureFile.push_back(*feature_it);

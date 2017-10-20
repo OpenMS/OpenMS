@@ -11,6 +11,17 @@
     </Protein>
   </ProteinList>
   <CompoundList>
+    <Peptide id="PEPTIDEA_Extra" sequence="PEPTIDEAAAA">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <userParam name="full_peptide_name" type="xsd:string" value="PEPTIDEAAAA"/>
+      <ProteinRef ref="ProteinA"/>
+      <RetentionTimeList>
+        <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="0.9"/>
+        </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
     <Peptide id="PEPTIDEA" sequence="PEPTIDEA">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
       <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>

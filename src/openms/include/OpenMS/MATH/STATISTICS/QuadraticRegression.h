@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Christian Ehrlich $
-// $Authors: Christian Ehrlich $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Christian Ehrlich, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_MATH_STATISTICS_QUADRATICREGRESSION_H
@@ -49,131 +49,138 @@ namespace OpenMS
 {
   namespace Math
   {
+    /*
+      @brief Estimates model parameters for a quadratic equation
+
+      The quadratic equation is of the form 
+       y = a + b*x + c*x^2
+
+      Weighted inputs are supported. 
+
+    */
     class OPENMS_DLLAPI QuadraticRegression
     {
-    public:
+public:
       QuadraticRegression();
 
       /** compute the quadratic regression over 2D points */
       template <typename Iterator>
-      void computeRegression(Iterator x_begin, Iterator x_end,
-          Iterator y_begin);
+      void computeRegression(Iterator x_begin, Iterator x_end, Iterator y_begin);
 
       /** compute the weighted quadratic regression over 2D points */
       template <typename Iterator>
-      void computeRegressionWeighted(
-          Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin);
+      void computeRegressionWeighted(Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin);
 
       /** evaluate the quadratic function */
       double eval(double x) const;
 
-      double getA() const;
-      double getB() const;
-      double getC() const;
+      /** evaluate using external coefficients */
+      static double eval(double A, double B, double C, double x);
+
+      double getA() const; /// A = the intercept
+      double getB() const; /// B*X
+      double getC() const; /// C*X^2
       double getChiSquared() const;
 
-    protected:
+protected:
       double a_;
       double b_;
       double c_;
       double chi_squared_;
-    };//class
+    }; //class
 
-    namespace {
+    namespace
+    {
       //x, y must be of same size
       template <typename Iterator>
-      double computeChiSquareWeighted(
-          Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin,
-          double a, double b, double c)
+      double computeChiSquareWeighted_(
+        Iterator x_begin, const Iterator& x_end, Iterator y_begin, Iterator w_begin,
+        const double a, const double b, const double c)
       {
-        double chi_squared = 0.0;
-        Iterator xIter = x_begin;
-        Iterator yIter = y_begin;
-        Iterator wIter = w_begin;
-        for(; xIter!=x_end; ++xIter, ++yIter, ++wIter)
+        double chi_squared(0.0);
+        for (; x_begin != x_end; ++x_begin, ++y_begin, ++w_begin)
         {
-          double x = *xIter;
-          double y = *yIter;
-          double weigth = *wIter;
-          chi_squared += weigth * std::pow(y - a - b*x - c*x*x, 2);
+          const double& x = *x_begin;
+          const double& y = *y_begin;
+          const double& weight = *w_begin;
+          chi_squared += weight * std::pow(y - a - b * x - c * x * x, 2);
         }
 
         return chi_squared;
       }
-    }
+
+    } // anonymous namespace
 
     template <typename Iterator>
     void QuadraticRegression::computeRegression(Iterator x_begin, Iterator x_end, Iterator y_begin)
     {
-      std::vector<double> weights (std::distance(x_begin, x_end), 1);
+      std::vector<double> weights(std::distance(x_begin, x_end), 1);
       computeRegressionWeighted<Iterator>(x_begin, x_end, y_begin, weights.begin());
     }
 
-
     template <typename Iterator>
     void QuadraticRegression::computeRegressionWeighted(
-        Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)
+      Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)
     {
       // Compute the linear fit of a quadratic function.
       // Get the coefficients for y = w_1*a +w_2*b*x + w_3*c*x^2.
       std::vector<Wm5::Vector2d> points = iteratorRange2Wm5Vectors(x_begin, x_end, y_begin);
       // Compute sums for linear system. copy&paste from GeometricTools Wm5ApprLineFit2.cpp
       // and modified to allow quadratic functions
-      int numPoints = points.size();
-      double sumX=0, sumXX=0, sumXXX=0, sumXXXX=0;
-      double sumY=0, sumXY=0, sumXXY=0;
-      double sumW=0;
+      int numPoints = static_cast<Int>(points.size());
+      double sumX = 0, sumXX = 0, sumXXX = 0, sumXXXX = 0;
+      double sumY = 0, sumXY = 0, sumXXY = 0;
+      double sumW = 0;
 
       Iterator wIter = w_begin;
-      for (int i=0; i<numPoints; ++i, ++wIter)
+      for (int i = 0; i < numPoints; ++i, ++wIter)
       {
 
-          double x = points[i].X();
-          double y = points[i].Y();
-          double weight = *wIter;
+        double x = points[i].X();
+        double y = points[i].Y();
+        double weight = *wIter;
 
-          sumX += weight*x;
-          sumXX += weight*x*x;
-          sumXXX += weight*x*x*x;
-          sumXXXX += weight*x*x*x*x;
+        sumX += weight * x;
+        sumXX += weight * x * x;
+        sumXXX += weight * x * x * x;
+        sumXXXX += weight * x * x * x * x;
 
-          sumY += weight*y;
-          sumXY += weight*x*y;
-          sumXXY += weight*x*x*y;
+        sumY += weight * y;
+        sumXY += weight * x * y;
+        sumXXY += weight * x * x * y;
 
-          sumW += weight;
+        sumW += weight;
       }
       //create matrices to solve Ax = B
       double A[3][3] =
       {
-          {sumW, sumX, sumXX},
-          {sumX, sumXX, sumXXX},
-          {sumXX, sumXXX, sumXXXX}
+        {sumW, sumX, sumXX},
+        {sumX, sumXX, sumXXX},
+        {sumXX, sumXXX, sumXXXX}
       };
       double B[3] =
       {
-          sumY,
-          sumXY,
-          sumXXY
+        sumY,
+        sumXY,
+        sumXXY
       };
       double X[3] = {0, 0, 0};
 
       bool nonsingular = Wm5::LinearSystem<double>().Solve3(A, B, X);
       if (nonsingular)
       {
-          a_ = X[0];
-          b_ = X[1];
-          c_ = X[2];
-          chi_squared_ = computeChiSquareWeighted(x_begin, x_end, y_begin, w_begin, a_, b_, c_);
+        a_ = X[0];
+        b_ = X[1];
+        c_ = X[2];
+        chi_squared_ = computeChiSquareWeighted_(x_begin, x_end, y_begin, w_begin, a_, b_, c_);
       }
       else
       {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-QuadraticRegression", "Could not fit a linear model to the data");
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-QuadraticRegression", "Could not fit a linear model to the data");
       }
     }
 
-
-  }//namespace
-}//namespace
+  } //namespace
+} //namespace
 
 #endif // OPENMS_MATH_STATISTICS_QUADRATICREGRESSION_H

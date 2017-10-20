@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -54,12 +54,12 @@ namespace OpenMS
   {
   }
 
-  void FeatureGroupingAlgorithmUnlabeled::group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out)
+  void FeatureGroupingAlgorithmUnlabeled::group(const std::vector<FeatureMap> & maps, ConsensusMap & out)
   {
     // check that the number of maps is ok
     if (maps.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "At least two maps must be given!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "At least two maps must be given!");
     }
 
     // define reference map (the one with most peaks)
@@ -103,7 +103,7 @@ namespace OpenMS
 
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later)
-    for (std::vector<FeatureMap<> >::const_iterator map_it = maps.begin();
+    for (std::vector<FeatureMap>::const_iterator map_it = maps.begin();
          map_it != maps.end(); ++map_it)
     {
       // add protein identifications to result map
@@ -131,7 +131,7 @@ namespace OpenMS
     return;
   }
 
-  void FeatureGroupingAlgorithmUnlabeled::addToGroup(int map_id, const FeatureMap<> & feature_map)
+  void FeatureGroupingAlgorithmUnlabeled::addToGroup(int map_id, const FeatureMap& feature_map)
   {
     // create new PairFinder
     StablePairFinder pair_finder;

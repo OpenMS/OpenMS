@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
@@ -52,17 +53,9 @@ namespace OpenMS
     XMLHandler("", "1.2"),
     XMLFile("/SCHEMAS/protXML_v6.xsd", "6.0")
   {
-    cv_terms_.resize(1);
-    // Enzymes
-    std::vector<String> enzyme_names(ProteinIdentification::SIZE_OF_DIGESTIONENZYME);
-    for (Size i = 0; i < ProteinIdentification::SIZE_OF_DIGESTIONENZYME; ++i)
-    {
-      enzyme_names[i] = String(ProteinIdentification::NamesOfDigestionEnzyme[i]).toUpper();
-    }
-    cv_terms_[0] = enzyme_names;
   }
 
-  void ProtXMLFile::load(const String & filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids)
+  void ProtXMLFile::load(const String& filename, ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -80,9 +73,9 @@ namespace OpenMS
     parse_(filename, this);
   }
 
-  void ProtXMLFile::store(const String & /*filename*/, const ProteinIdentification & /*protein_ids*/, const PeptideIdentification & /*peptide_ids*/, const String & /*document_id*/)
+  void ProtXMLFile::store(const String& /*filename*/, const ProteinIdentification& /*protein_ids*/, const PeptideIdentification& /*peptide_ids*/, const String& /*document_id*/)
   {
-    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     // resetMembers_();
   }
 
@@ -95,7 +88,7 @@ namespace OpenMS
     protein_group_ = ProteinGroup();
   }
 
-  void ProtXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
     String tag = sm_.convert(qname);
 
@@ -106,7 +99,7 @@ namespace OpenMS
       ProteinIdentification::SearchParameters sp = prot_id_->getSearchParameters();
       sp.db = db;
       // find a matching enzyme name
-      sp.enzyme =  (ProteinIdentification::DigestionEnzyme) cvStringToEnum_(0, enzyme.toUpper(), "sample_enzyme", ProteinIdentification::UNKNOWN_ENZYME);
+      sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
       prot_id_->setSearchParameters(sp);
       prot_id_->setScoreType("ProteinProphet probability");
       prot_id_->setHigherScoreBetter(true);
@@ -150,7 +143,7 @@ namespace OpenMS
       String protein_name = attributeAsString_(attributes, "protein_name");
       // open new "indistinguishable" group:
       prot_id_->insertIndistinguishableProteins(ProteinGroup());
-      registerProtein_(protein_name);       // create new protein
+      registerProtein_(protein_name); // create new protein
 
       // fill protein with life
       double pc_coverage;
@@ -168,10 +161,13 @@ namespace OpenMS
     else if (tag == "indistinguishable_protein")
     {
       String protein_name = attributeAsString_(attributes, "protein_name");
+      // current last protein is from the same "indistinguishable" group:
+      double score = prot_id_->getHits().back().getScore();
       registerProtein_(protein_name);
-      // score of group leader might not be transferrable (due to protein length
-      // etc.), so we set it to -1
-      prot_id_->getHits().back().setScore(-1);
+      // score of group leader might technically not be transferable (due to
+      // protein length etc.), but we still transfer it to allow filtering of
+      // proteins by score without disrupting the groups:
+      prot_id_->getHits().back().setScore(score);
     }
     else if (tag == "peptide")
     {
@@ -193,8 +189,13 @@ namespace OpenMS
       }
 
       // add accessions of all indistinguishable proteins the peptide belongs to
-      ProteinIdentification::ProteinGroup & indist = prot_id_->getIndistinguishableProteins().back();
-      pep_hit_->setProteinAccessions(indist.accessions);
+      ProteinIdentification::ProteinGroup& indist = prot_id_->getIndistinguishableProteins().back();
+      for (StringList::const_iterator accession = indist.accessions.begin(); accession != indist.accessions.end(); ++accession)
+      {
+        PeptideEvidence pe;
+        pe.setProteinAccession(*accession);
+        pep_hit_->addPeptideEvidence(pe);
+      }
       pep_hit_->setMetaValue("is_unique", String(attributeAsString_(attributes, "is_nondegenerate_evidence")) == "Y" ? 1 : 0);
       pep_hit_->setMetaValue("is_contributing", String(attributeAsString_(attributes, "is_contributing_evidence")) == "Y" ? 1 : 0);
     }
@@ -246,7 +247,7 @@ namespace OpenMS
     }
   }
 
-  void ProtXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void ProtXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
 
@@ -262,7 +263,7 @@ namespace OpenMS
     }
   }
 
-  void ProtXMLFile::registerProtein_(const String & protein_name)
+  void ProtXMLFile::registerProtein_(const String& protein_name)
   {
     ProteinHit hit;
     hit.setAccession(protein_name);
@@ -273,11 +274,11 @@ namespace OpenMS
       protein_name);
   }
 
-  void ProtXMLFile::matchModification_(const double mass, const String & origin, String & modification_description)
+  void ProtXMLFile::matchModification_(const double mass, const String& origin, String& modification_description)
   {
     double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
     vector<String> mods;
-    ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, 0.001);
+    ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, mod_mass, 0.001, origin);
 
     if (mods.size() == 1)
     {

@@ -7,6 +7,7 @@ BaseModel.cpp
 BiGaussFitter1D.cpp
 BiGaussModel.cpp
 EGHTraceFitter.cpp
+ElutionModelFitter.cpp
 EmgFitter1D.cpp
 EmgModel.cpp
 EmgScoring.cpp
@@ -19,8 +20,6 @@ FeatureFinderAlgorithmIsotopeWavelet.cpp
 FeatureFinderAlgorithmMRM.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
-FeatureFinderAlgorithmSimple.cpp
-FeatureFinderAlgorithmSimplest.cpp
 Fitter1D.cpp
 GaussFitter1D.cpp
 GaussModel.cpp
@@ -33,19 +32,20 @@ IsotopeWaveletTransform.cpp
 LevMarqFitter1D.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
-ModelFitter.cpp
 MultiplexClustering.cpp
+MultiplexDeltaMasses.cpp
+MultiplexDeltaMassesGenerator.cpp
 MultiplexFiltering.cpp
+MultiplexFilteringCentroided.cpp
+MultiplexFilteringProfile.cpp
 MultiplexFilterResult.cpp
 MultiplexFilterResultPeak.cpp
 MultiplexFilterResultRaw.cpp
-MultiplexPeakPattern.cpp
+MultiplexIsotopicPeakPattern.cpp
 PeakWidthEstimator.cpp
 ProductModel.cpp
 SeedListGenerator.cpp
-SimpleExtender.cpp
-SimpleSeeder.cpp
-
+TraceFitter.cpp
 )
 
 ### add path to the filenames

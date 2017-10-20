@@ -14,8 +14,8 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
 
         MzMLFile() nogil except +
 
-        void load(String, MSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
-        void store(String, MSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
+        void load(String, MSExperiment &) nogil except+
+        void store(String, MSExperiment &) nogil except+
 
         void transform(String, IMSDataConsumer[Peak1D, ChromatogramPeak] *) nogil except + # wrap-ignore
 

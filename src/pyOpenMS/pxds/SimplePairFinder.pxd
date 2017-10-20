@@ -10,8 +10,10 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>" namespace "O
     cdef cppclass SimplePairFinder(BaseGroupFinder) :
         # wrap-inherits:
         #  BaseGroupFinder
+
         SimplePairFinder() nogil except +
         SimplePairFinder(SimplePairFinder) nogil except + #wrap-ignore
+
         void run(libcpp_vector[ ConsensusMap ] & input_maps, ConsensusMap & result_map) nogil except +
         # POINTER # BaseGroupFinder * create() nogil except +
         String getProductName() nogil except +

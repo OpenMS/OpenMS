@@ -9,10 +9,12 @@ set(sources_list
 	MascotXMLHandler.cpp
 	MzDataHandler.cpp
 	MzIdentMLHandler.cpp
+	MzIdentMLDOMHandler.cpp
 	MzQuantMLHandler.cpp
 	MzMLHandler.cpp
   MzMLHandlerHelper.cpp
   MzMLSpectrumDecoder.cpp
+  MzMLSqliteHandler.cpp
 	MzXMLHandler.cpp
 	PTMXMLHandler.cpp
 	ParamXMLHandler.cpp
@@ -20,7 +22,7 @@ set(sources_list
 	TraMLHandler.cpp
 	UnimodXMLHandler.cpp
 	XMLHandler.cpp
-	XTandemInfileXMLHandler.cpp
+	XQuestResultXMLHandler.cpp
 )
 
 ### add path to the filenames

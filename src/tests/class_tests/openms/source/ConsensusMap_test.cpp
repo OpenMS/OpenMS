@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
 
@@ -40,6 +40,10 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 ///////////////////////////
+
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -64,35 +68,35 @@ START_SECTION((~ConsensusMap()))
 END_SECTION
 
 START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentifications() const))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),0)
 END_SECTION
 
 START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.getProteinIdentifications().resize(1);
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),1)
 END_SECTION
 
 START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.setProteinIdentifications(std::vector<ProteinIdentification>(2));
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),2)
 END_SECTION
 
 START_SECTION((const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),0)
 END_SECTION
 
 START_SECTION((std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.getUnassignedPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),1)
 END_SECTION
 
 START_SECTION((void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.setUnassignedPeptideIdentifications(std::vector<PeptideIdentification>(2));
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),2)
 END_SECTION
@@ -503,6 +507,12 @@ END_SECTION
 START_SECTION((void sortByMaps()))
 {
   NOT_TESTABLE; // tested within TOPP TextExporter
+}
+END_SECTION
+
+START_SECTION((void sortPeptideIdentificationsByMapIndex()))
+{
+  NOT_TESTABLE; // tested within TOPP IDMapper
 }
 END_SECTION
 

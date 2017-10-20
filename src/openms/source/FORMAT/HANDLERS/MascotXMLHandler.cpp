@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,15 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Nico Pfeifer $
-// $Authors: Nico Pfeifer, Chris Bielow, Hendrik Weisser $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Nico Pfeifer, Chris Bielow, Hendrik Weisser, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
+#include <xercesc/sax2/DefaultHandler.hpp>
+#include <xercesc/sax/Locator.hpp>
 #include <xercesc/sax2/Attributes.hpp>
 
 using namespace std;
@@ -43,59 +46,12 @@ namespace OpenMS
 {
   namespace Internal
   {
-    const String MascotXMLHandler::primary_scan_regex =
-      "scan( number)?s?[=:]? *(?<SCAN>\\d+)";
-
-    MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
-                                       vector<PeptideIdentification>& id_data,
-                                       const String& filename,
-                                       map<String, vector<AASequence> >& modified_peptides,
-                                       const RTMapping& rt_mapping,
-                                       const String& scan_regex) :
-      XMLHandler(filename, ""),
-      protein_identification_(protein_identification),
-      id_data_(id_data),
-      actual_protein_hit_(),
-      actual_peptide_hit_(),
-      peptide_identification_index_(0),
-      tag_(),
-      date_(),
-      actual_title_(""),
-      modified_peptides_(modified_peptides),
-      rt_mapping_(rt_mapping),
-      scan_regex_(),
+    MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification, vector<PeptideIdentification>& id_data, const String& filename, map<String, vector<AASequence> >& modified_peptides, const SpectrumMetaDataLookup& lookup):
+      XMLHandler(filename, ""), protein_identification_(protein_identification),
+      id_data_(id_data), peptide_identification_index_(0), actual_title_(""),
+      modified_peptides_(modified_peptides), lookup_(lookup),
       no_rt_error_(false)
     {
-      // user-supplied regex -> use only this one
-      if (!scan_regex.empty()) scan_regex_.push_back(boost::regex(scan_regex));
-      else // try different default regexes (more probable ones first)
-      {
-        boost::regex re;
-        // if we have a mapping, we can look for the scan number:
-        if (!rt_mapping_.empty())
-        {
-          // possible formats and resulting scan numbers (1-based!):
-          // - Mascot 2.3 (?):
-          // <pep_scan_title>scan=818</pep_scan_title> -> 818
-          // - ProteomeDiscoverer/Mascot 2.3 or 2.4:
-          // <pep_scan_title>Spectrum136 scans:712,</pep_scan_title> -> 712
-          // - other variants:
-          // <pep_scan_title>Spectrum3411 scans: 2975,</pep_scan_title> -> 2975
-          // <...>File773 Spectrum198145 scans: 6094</...> -> 6094
-          // <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
-          // <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
-          re.assign(primary_scan_regex, boost::regex::perl|boost::regex::icase);
-          scan_regex_.push_back(re);
-          // - with .dta input to Mascot:
-          // <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
-          re.assign("\\.(?<SCAN>\\d+)\\.\\d+.\\d+.dta");
-          scan_regex_.push_back(re);
-        }
-        // title containing RT and MZ instead of scan number:
-        // <...>575.848571777344_5018.0811_controllerType=0 controllerNumber=1 scan=11515_EcoliMS2small</...>
-        re.assign("^(?<MZ>\\d+(\\.\\d+)?)_(?<RT>\\d+(\\.\\d+)?)");
-        scan_regex_.push_back(re);
-      }
     }
 
     MascotXMLHandler::~MascotXMLHandler()
@@ -135,7 +91,7 @@ namespace OpenMS
 
         if (peptide_identification_index_ > id_data_.size())
         {
-          fatalError(LOAD, "No or conflicting header information present (make sure to use the show_header=1 option in the ./export_dat.pl script)");
+          fatalError(LOAD, "No or conflicting header information present (make sure to use the 'show_header=1' option in the ./export_dat.pl script)");
         }
       }
     }
@@ -156,59 +112,38 @@ namespace OpenMS
       {
         id_data_.resize(character_buffer_.trim().toInt());
       }
-
       else if (tag_ == "prot_score")
       {
         actual_protein_hit_.setScore(character_buffer_.trim().toInt());
       }
-
       else if (tag_ == "pep_exp_mz")
       {
-        id_data_[peptide_identification_index_].setMZ(character_buffer_.trim().toDouble());
+        id_data_[peptide_identification_index_].setMZ(
+          character_buffer_.trim().toDouble());
       }
-
       else if (tag_ == "pep_scan_title")
       {
         // extract RT (and possibly m/z, if not already set) from title:
         String title = character_buffer_.trim();
-
-        vector<boost::regex>::const_iterator re_it = scan_regex_.begin();
+        SpectrumMetaDataLookup::SpectrumMetaData meta;
+        SpectrumMetaDataLookup::MetaDataFlags flags = SpectrumMetaDataLookup::MDF_RT;
+        if (!id_data_[peptide_identification_index_].hasMZ())
+        {
+          flags |= SpectrumMetaDataLookup::MDF_PRECURSORMZ;
+        }
         try
         {
-          for (; re_it != scan_regex_.end(); ++re_it)
+          lookup_.getSpectrumMetaData(title, meta, flags);
+          id_data_[peptide_identification_index_].setRT(meta.rt);
+          // have we looked up the m/z value?
+          if ((flags & SpectrumMetaDataLookup::MDF_PRECURSORMZ) == SpectrumMetaDataLookup::MDF_PRECURSORMZ)
           {
-            boost::smatch match;
-            bool found = boost::regex_search(title, match, *re_it);
-            if (found)
-            {
-              if (match["RT"].matched)
-              {
-                double rt = String(match["RT"].str()).toDouble();
-                id_data_[peptide_identification_index_].setRT(rt);
-              }
-              else if (match["SCAN"].matched)
-              {
-                Size scan_no = String(match["SCAN"].str()).toInt();
-                if (scan_no && rt_mapping_.has(scan_no))
-                {
-                  id_data_[peptide_identification_index_].setRT(rt_mapping_[scan_no]);
-                }
-              }
-              if (match["MZ"].matched && 
-                  !id_data_[peptide_identification_index_].hasMZ())
-              {
-                double mz = String(match["MZ"].str()).toDouble();
-                id_data_[peptide_identification_index_].setMZ(mz);
-              }
-              break;
-            }
+            id_data_[peptide_identification_index_].setMZ(meta.precursor_mz);
           }
         }
-        catch (Exception::ConversionError&)
+        catch (...)
         {
-          String msg = "<pep_scan_title> element has unexpected format '" +
-            title + "'. The regular expression '" + re_it->str() + "' matched, "
-            "but the extracted information could not be converted to a number.";
+          String msg = "<pep_scan_title> element has unexpected format '" + title + "'. Could not extract spectrum meta data.";
           error(LOAD, msg);
         }
         // did it work?
@@ -217,36 +152,31 @@ namespace OpenMS
           if (!no_rt_error_) // report the error only the first time
           {
             String msg = "Could not extract RT value ";
-            if (!rt_mapping_.empty()) msg += "or a matching scan number ";
-            msg += "from <pep_scan_title> element with format '" + title +
-              "'. Try adjusting the 'scan_regex' parameter.";
+            if (!lookup_.empty()) msg += "or a matching spectrum reference ";
+            msg += "from <pep_scan_title> element with format '" + title + "'. Try adjusting the 'scan_regex' parameter.";
             error(LOAD, msg);
           }
           no_rt_error_ = true;
         }
       }
-
       else if (tag_ == "pep_exp_z")
       {
         actual_peptide_hit_.setCharge(character_buffer_.trim().toInt());
       }
-
       else if (tag_ == "pep_score")
       {
         actual_peptide_hit_.setScore(character_buffer_.trim().toDouble());
       }
-
       else if (tag_ == "pep_expect")
       {
-        actual_peptide_hit_.metaRegistry().registerName("EValue", "E-value of e.g. Mascot searches", ""); // @todo what E-value flag? (andreas)
+        // @todo what E-value flag? (andreas)
+        actual_peptide_hit_.metaRegistry().registerName("EValue", "E-value of e.g. Mascot searches", "");
         actual_peptide_hit_.setMetaValue("EValue", character_buffer_.trim().toDouble());
       }
-
       else if (tag_ == "pep_homol")
       {
         id_data_[peptide_identification_index_].setSignificanceThreshold(character_buffer_.trim().toDouble());
       }
-
       else if (tag_ == "pep_ident")
       {
         double temp_homology = 0;
@@ -254,8 +184,7 @@ namespace OpenMS
 
         // According to Matrix Science the homology threshold is only used if it
         // exists and is smaller than the identity threshold.
-        temp_homology =
-          id_data_[peptide_identification_index_].getSignificanceThreshold();
+        temp_homology = id_data_[peptide_identification_index_].getSignificanceThreshold();
         temp_identity = character_buffer_.trim().toDouble();
         actual_peptide_hit_.setMetaValue("homology_threshold", temp_homology);
         actual_peptide_hit_.setMetaValue("identity_threshold", temp_identity);
@@ -264,85 +193,93 @@ namespace OpenMS
           id_data_[peptide_identification_index_].setSignificanceThreshold(temp_identity);
         }
       }
-
       else if (tag_ == "pep_seq")
       {
         AASequence temp_aa_sequence = AASequence::fromString(character_buffer_.trim());
-
+        
         // if everything is just read from the MascotXML file
         if (modified_peptides_.empty())
         {
           // fixed modifications
           for (vector<String>::const_iterator it = search_parameters_.fixed_modifications.begin(); it != search_parameters_.fixed_modifications.end(); ++it)
           {
-            // e.g. Carboxymethyl (C)
             vector<String> mod_split;
             it->split(' ', mod_split);
-            if (mod_split.size() >= 2)
+            if (mod_split.size() < 2 || mod_split.size() > 3)
             {
-              // could be "(C-term)" or "(C-term X)" etc.
-              if (mod_split[1].hasPrefix("(C-term") ||
-                  mod_split[1].hasPrefix("(Protein C-term"))
-              {
-                temp_aa_sequence.setCTerminalModification(mod_split[0]);
-              }
-              else
-              {
-                // could be "(N-term)" or "(N-term X)" etc.
-                if (mod_split[1].hasPrefix("(N-term") ||
-                    mod_split[1].hasPrefix("(Protein N-term"))
-                {
-                  temp_aa_sequence.setNTerminalModification(mod_split[0]);
-                }
-                else
-                {
-                  String origin = mod_split[1];
-                  origin.remove(')');
-                  origin.remove('(');
-                  for (Size i = 0; i != temp_aa_sequence.size(); ++i)
-                  {
-                    // best way we can check; because origin can be e.g. (STY)
-                    if (origin.hasSubstring(temp_aa_sequence[i].getOneLetterCode()))
-                    {
-                      temp_aa_sequence.setModification(i, mod_split[0]);
-                    }
-                  }
-                }
-              }
+              error(LOAD, String("Cannot parse fixed modification '") + *it + "'");
             }
             else
             {
-              error(LOAD, String("Cannot parse fixed modification '") + *it  + "'");
+              // C-term modification without specification or protein terminus
+              if (mod_split[1] == "(C-term)" || (mod_split[1] == "(Protein" && mod_split[2] == "C-term)"))
+              {
+                temp_aa_sequence.setCTerminalModification(mod_split[0]);
+              }
+              // N-term modification without specification or protein terminus
+              else if (mod_split[1] == "(N-term)" || (mod_split[1] == "(Protein" && mod_split[2] == "N-term)"))
+              {
+                temp_aa_sequence.setNTerminalModification(mod_split[0]);
+              }
+              // C-term modification for specific amino acid; e.g. <Modification> (N-term C)
+              else if ((mod_split[1] == "(C-term") && (mod_split.size() == 3))
+              {
+                if ((temp_aa_sequence.end() - 1)->getOneLetterCode() == mod_split[2].remove(')'))
+                {
+                  temp_aa_sequence.setCTerminalModification(mod_split[0]);
+                }
+              }
+              // N-term modification for specific amino acid; e.g. <Modification> (N-term C)
+              else if ((mod_split[1] == "(N-term") && (mod_split.size() == 3))
+              {
+                if (temp_aa_sequence.begin()->getOneLetterCode() == mod_split[2].remove(')'))
+                {
+                  temp_aa_sequence.setNTerminalModification(mod_split[0]);
+                }
+              }
+              else 
+              { // e.g. Carboxymethyl (C)
+                String AA = mod_split[1];
+                AA.remove(')');
+                AA.remove('(');
+                for (Size i = 0; i != temp_aa_sequence.size(); ++i)
+                {
+                  if (AA == temp_aa_sequence[i].getOneLetterCode())
+                  {
+                    temp_aa_sequence.setModification(i, mod_split[0]);
+                  }
+                }
+              }
             }
           }
         }
         actual_peptide_hit_.setSequence(temp_aa_sequence);
       }
-
       else if (tag_ == "pep_res_before")
       {
         String temp_string = character_buffer_.trim();
         if (temp_string != "")
         {
-          actual_peptide_hit_.setAABefore(temp_string[0]);
+          actual_peptide_evidence_.setAABefore(temp_string[0]);
         }
       }
-
       else if (tag_ == "pep_res_after")
       {
         String temp_string = character_buffer_.trim();
         if (temp_string != "")
         {
-          actual_peptide_hit_.setAAAfter(temp_string[0]);
+          actual_peptide_evidence_.setAAAfter(temp_string[0]);
         }
       }
-
       else if (tag_ == "pep_var_mod_pos")
       {
         AASequence temp_aa_sequence = actual_peptide_hit_.getSequence();
         String temp_string = character_buffer_.trim();
         vector<String> parts;
-
+        
+        // E.g. seq: QKAAGSK, pos: 4.0000000.0 -> mod at position 4 in var_mods vector is n-terminal
+        // therefore it is not possible to split Phospho (ST) to Phospho (S), Phospho (T) before this,
+        // because the original order is required
         temp_string.split('.', parts);
         if (parts.size() == 3)
         {
@@ -410,7 +347,6 @@ namespace OpenMS
           actual_peptide_hit_.setSequence(temp_aa_sequence);
         }
       }
-
       else if (tag_ == "Date")
       {
         vector<String> parts;
@@ -424,7 +360,6 @@ namespace OpenMS
         }
         protein_identification_.setDateTime(date_);
       }
-
       else if (tag_ == "StringTitle")
       {
         String title = character_buffer_.trim();
@@ -433,7 +368,7 @@ namespace OpenMS
         actual_title_ = title;
         if (modified_peptides_.find(title) != modified_peptides_.end())
         {
-          vector<AASequence> & temp_hits = modified_peptides_[title];
+          vector<AASequence>& temp_hits = modified_peptides_[title];
           vector<PeptideHit> temp_peptide_hits = id_data_[actual_query_ - 1].getHits();
 
           if (temp_hits.size() != temp_peptide_hits.size())
@@ -442,7 +377,7 @@ namespace OpenMS
           }
 
           // pepXML can contain more hits than MascotXML; hence we try to match all of them...
-          // run-time is O(n^2) in the number of petide hits; should be a very small number
+          // run-time is O(n^2) in the number of peptide hits; should be a very small number
 
           for (Size i = 0; i < temp_peptide_hits.size(); ++i)
           {
@@ -466,42 +401,34 @@ namespace OpenMS
           }
         }
       }
-
       else if (tag_ == "RTINSECONDS")
       {
         id_data_[actual_query_ - 1].setRT(character_buffer_.trim().toDouble());
       }
-
       else if (tag_ == "MascotVer")
       {
         protein_identification_.setSearchEngineVersion(character_buffer_.trim());
       }
-
       else if (tag_ == "DB")
       {
         search_parameters_.db = (character_buffer_.trim());
       }
-
       else if (tag_ == "FastaVer")
       {
         search_parameters_.db_version = (character_buffer_.trim());
       }
-
       else if (tag_ == "TAXONOMY")
       {
         search_parameters_.taxonomy = (character_buffer_.trim());
       }
-
       else if (tag_ == "CHARGE")
       {
         search_parameters_.charges = (character_buffer_.trim());
       }
-
       else if (tag_ == "PFA")
       {
         search_parameters_.missed_cleavages = character_buffer_.trim().toInt();
       }
-
       else if (tag_ == "MASS")
       {
         String temp_string = (character_buffer_.trim());
@@ -514,7 +441,6 @@ namespace OpenMS
           search_parameters_.mass_type = ProteinIdentification::AVERAGE;
         }
       }
-
       else if (tag_ == "MODS")
       {
         // if the modifications are listed in the "fixed_mods" section,
@@ -522,10 +448,21 @@ namespace OpenMS
         if (search_parameters_.fixed_modifications.empty())
         {
           String temp_string = (character_buffer_.trim());
-          temp_string.split(',', search_parameters_.fixed_modifications);
+          vector<String> tmp_mods;
+          temp_string.split(',', tmp_mods);
+          
+          for (vector<String>::const_iterator it = tmp_mods.begin(); it != tmp_mods.end(); ++it)
+          {
+            // check if modification is not on the remove list
+            if (std::find(remove_fixed_mods_.begin(), remove_fixed_mods_.end(), *it) == remove_fixed_mods_.end())
+            {
+              // split because e.g. Phospho (ST)
+              vector<String> mods_split = splitModificationBySpecifiedAA(*it);
+              search_parameters_.fixed_modifications.insert(search_parameters_.fixed_modifications.end(), mods_split.begin(), mods_split.end());
+            }
+          }
         }
       }
-
       else if (tag_ == "IT_MODS")
       {
         // if the modifications are listed in the "variable_mods" section,
@@ -535,76 +472,98 @@ namespace OpenMS
         if (search_parameters_.variable_modifications.empty())
         {
           String temp_string = (character_buffer_.trim());
-          temp_string.split(',', search_parameters_.variable_modifications);
+          vector<String> tmp_mods;
+          temp_string.split(',', tmp_mods);
+          
+          for (vector<String>::const_iterator it = tmp_mods.begin(); it != tmp_mods.end(); ++it)
+          {
+            // split because e.g. Phospho (ST)
+            vector<String> mods_split = splitModificationBySpecifiedAA(*it);
+            search_parameters_.variable_modifications.insert(search_parameters_.variable_modifications.end(), mods_split.begin(), mods_split.end());
+          }
         }
       }
-
       else if (tag_ == "CLE")
       {
         String temp_string = (character_buffer_.trim());
-        if (temp_string == "Trypsin")
+        if (EnzymesDB::getInstance()->hasEnzyme(temp_string))
         {
-          search_parameters_.enzyme = ProteinIdentification::TRYPSIN;
-        }
-        else if (temp_string == "PepsinA")
-        {
-          search_parameters_.enzyme = ProteinIdentification::PEPSIN_A;
-        }
-        else if (temp_string == "Chymotrypsin")
-        {
-          search_parameters_.enzyme = ProteinIdentification::CHYMOTRYPSIN;
-        }
-        else if (temp_string == "None")
-        {
-          search_parameters_.enzyme = ProteinIdentification::NO_ENZYME;
-        }
-        else
-        {
-          search_parameters_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+          search_parameters_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(temp_string);
         }
       }
-
       else if (tag_ == "TOL")
       {
-        search_parameters_.precursor_tolerance = (character_buffer_.trim()).toDouble();
+        search_parameters_.precursor_mass_tolerance = (character_buffer_.trim()).toDouble();
       }
-
       else if (tag_ == "ITOL")
       {
-        search_parameters_.peak_mass_tolerance = (character_buffer_.trim()).toDouble();
+        search_parameters_.fragment_mass_tolerance = (character_buffer_.trim()).toDouble();
       }
-
+      else if (tag_ == "TOLU")
+      {
+        search_parameters_.precursor_mass_tolerance_ppm = (character_buffer_.trim()) == "ppm";
+      }
+      else if (tag_ == "ITOLU")
+      {
+        search_parameters_.fragment_mass_tolerance_ppm = (character_buffer_.trim()) == "ppm";
+      }
       else if (tag_ == "name")
       {
         // cerr << "name tag: " << character_buffer_.trim() << "\n";
         if ((major_version_ == "1")
             // new since Mascot XML version 2.1 (at least): <fixed_mods> also have a subtag called <name>, thus we need to ensure we are in <variable_mods>
-            || (tags_open_.size() >= 2 &&
-                tags_open_[tags_open_.size() - 2] == "variable_mods"))
+           || (tags_open_.size() >= 2 &&
+               tags_open_[tags_open_.size() - 2] == "variable_mods"))
         {
+          // e.g. Phospho (ST) cannot be split for variable modifications at this point, because the order of
+          // variable modifications needs to be preserved. Split before search parameters are set.
           search_parameters_.variable_modifications.push_back(character_buffer_.trim());
           // cerr << "var. mod. added: " << search_parameters_.variable_modifications.back() << "\n";
         }
         else if (tags_open_.size() >= 2 &&
                  tags_open_[tags_open_.size() - 2] == "fixed_mods")
         {
-          search_parameters_.fixed_modifications.push_back(character_buffer_.trim());
-          // cerr << "fixed mod. added: " << search_parameters_.fixed_modifications.back() << "\n";
+          // check if modification is not on the remove list
+          String fixed_mod = character_buffer_.trim();
+          if (std::find(remove_fixed_mods_.begin(), remove_fixed_mods_.end(), fixed_mod) == remove_fixed_mods_.end())
+          {
+            // split because e.g. Phospho (ST)
+            vector<String> mods_split = splitModificationBySpecifiedAA(character_buffer_.trim());
+            search_parameters_.fixed_modifications.insert(search_parameters_.fixed_modifications.end(), mods_split.begin(), mods_split.end());
+            // cerr << "fixed mod. added: " << search_parameters_.fixed_modifications.back() << "\n";
+          }
+          else
+          {
+            warning(LOAD, String("Modification removed as fixed modification: '") + character_buffer_.trim() + String("'"));
+          }
         }
       }
-
       else if (tag_ == "warning")
       {
         warning(LOAD, String("Warnings were present: '") + character_buffer_ + String("'"));
+        
+        // check if fixed modification can only be used as variable modification
+        if (character_buffer_.trim().hasSubstring("can only be used as a variable modification"))
+        {
+          vector<String> warn_split;
+          character_buffer_.trim().split(';', warn_split);
+          if (warn_split[0].hasPrefix("'"))
+          {
+            Size end_pos = warn_split[0].find("'", 1);
+            if (end_pos < warn_split[0].size())
+            {
+              warn_split[0] = warn_split[0].substr(1, end_pos - 1);
+              remove_fixed_mods_.push_back(warn_split[0]);
+            }
+          }
+        }
       }
-
       else if (tag_ == "protein")
       {
         protein_identification_.setScoreType("Mascot");
         protein_identification_.insertHit(actual_protein_hit_);
         actual_protein_hit_ = ProteinHit();
       }
-
       else if (tag_ == "peptide")
       {
         bool already_stored(false);
@@ -621,41 +580,54 @@ namespace OpenMS
           }
           ++it;
         }
+
         if (!already_stored)
         {
           id_data_[peptide_identification_index_].setIdentifier(identifier_);
           id_data_[peptide_identification_index_].setScoreType("Mascot");
-          actual_peptide_hit_.addProteinAccession(actual_protein_hit_.getAccession());
+          actual_peptide_evidence_.setProteinAccession(actual_protein_hit_.getAccession());
+          actual_peptide_hit_.addPeptideEvidence(actual_peptide_evidence_);
           id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_);
         }
         else
         {
-          it->addProteinAccession(actual_protein_hit_.getAccession());
+          actual_peptide_evidence_.setProteinAccession(actual_protein_hit_.getAccession());
+          it->addPeptideEvidence(actual_peptide_evidence_);
           id_data_[peptide_identification_index_].setHits(temp_peptide_hits);
         }
+        actual_peptide_evidence_ = PeptideEvidence();
         actual_peptide_hit_ = PeptideHit();
       }
-
       else if (tag_ == "u_peptide" || tag_ == "q_peptide")
       {
         id_data_[peptide_identification_index_].setIdentifier(identifier_);
         id_data_[peptide_identification_index_].setScoreType("Mascot");
         id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_);
+        actual_peptide_evidence_ = PeptideEvidence();
         actual_peptide_hit_ = PeptideHit();
       }
-
       else if (tag_ == "mascot_search_results")
       {
         protein_identification_.setSearchEngine("Mascot");
         protein_identification_.setIdentifier(identifier_);
-        protein_identification_.setSearchParameters(search_parameters_);
+        
+        // split variable modifications e.g. Phospho (ST)
+        //vector<String> var_mods;
+        vector<String> var_mods;
+        for (vector<String>::iterator it = search_parameters_.variable_modifications.begin(); it != search_parameters_.variable_modifications.end(); ++it)
+        {
+          vector<String> mods_split = splitModificationBySpecifiedAA(*it);
+          var_mods.insert(var_mods.end(), mods_split.begin(), mods_split.end());
+        }
+        search_parameters_.variable_modifications = var_mods;
+        protein_identification_.setSearchParameters(search_parameters_);        
       }
 
       tag_ = ""; // reset tag, for the following characters() call (due to line break) of the parent tag
       character_buffer_.clear();
     }
 
-    void MascotXMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void MascotXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
       // do not care about chars after internal tags, e.g.
       // <header>
@@ -666,7 +638,45 @@ namespace OpenMS
 
       character_buffer_ += String(sm_.convert(chars));
     }
+    
+    vector<String> MascotXMLHandler::splitModificationBySpecifiedAA(String mod)
+    {
+      vector<String> mods;
+      vector<String> parts;
+      mod.split(' ', parts);
+      
+      // either format "Modification (Protein C-term)" or "Modification (C-term X)"
+      if (parts.size() != 2)
+      {
+        mods.push_back(mod);
+        return mods;
+      }
+      
+      if (parts[1].hasPrefix("(N-term") || parts[1].hasPrefix("(C-term"))
+      {
+        mods.push_back(mod);
+        return mods;
+      }
+      
+      // format e.g. Phospho (ST)
+      ModificationsDB* mod_db = ModificationsDB::getInstance();
+      String AAs = parts[1];
+      AAs.remove(')');
+      AAs.remove('(');
+      for (String::const_iterator it = AAs.begin(); it != AAs.end(); ++it)
+      {
+        String tmp_mod = parts[0] + " (" + *it + ")";
+        if (mod_db->has(tmp_mod))
+        {
+          mods.push_back(tmp_mod);
+        }
+        else
+        {
+          throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tmp_mod);
+        }
+      }
+      return mods;
+    }
 
-
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

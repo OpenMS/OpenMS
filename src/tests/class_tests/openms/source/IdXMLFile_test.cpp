@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -87,11 +87,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
-  TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,ProteinIdentification::TRYPSIN)
   TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"+1, +2")
   TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,ProteinIdentification::AVERAGE)
-  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().peak_mass_tolerance,0.3)
-  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_tolerance,1.0)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0.3)
+  TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,1.0)
   TEST_EQUAL((String)(protein_ids[0].getMetaValue("name")),"ProteinIdentification")
 
   TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 1);
@@ -125,27 +124,26 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),675.9)
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),1234.5)
-  TEST_EQUAL((UInt)(peptide_ids[0].getMetaValue("spectrum_reference")),17)
+  TEST_EQUAL((peptide_ids[0].getMetaValue("spectrum_reference")),"17")
   TEST_EQUAL((String)(peptide_ids[0].getMetaValue("name")),"PeptideIdentification")
   TEST_EQUAL(peptide_ids[0].getHits().size(),2)
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),0.9)
   TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(), AASequence::fromString("PEPTIDER"))
   TEST_EQUAL(peptide_ids[0].getHits()[0].getCharge(),1)
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getAABefore(),'A')
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getAAAfter(),'B')
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions().size(),2)
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions()[0],"PROT1")
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions()[1],"PROT2")
+  vector<PeptideEvidence> pes0 = peptide_ids[0].getHits()[0].getPeptideEvidences();
+  TEST_EQUAL(pes0.size(),2)
+  TEST_EQUAL(pes0[0].getProteinAccession(),"PROT1")
+  TEST_EQUAL(pes0[1].getProteinAccession(),"PROT2")
+  TEST_EQUAL(pes0[0].getAABefore(),'A')
+  TEST_EQUAL(pes0[0].getAAAfter(),'B')
   TEST_EQUAL((String)(peptide_ids[0].getHits()[0].getMetaValue("name")),"PeptideHit")
   //peptide hit 2
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[1].getScore(),1.4)
+  vector<PeptideEvidence> pes1 = peptide_ids[0].getHits()[1].getPeptideEvidences();
   TEST_EQUAL(peptide_ids[0].getHits()[1].getSequence(), AASequence::fromString("PEPTIDERR"))
   TEST_EQUAL(peptide_ids[0].getHits()[1].getCharge(),1)
-  TEST_EQUAL(peptide_ids[0].getHits()[1].getProteinAccessions().size(),0)
-  TEST_EQUAL(peptide_ids[0].getHits()[1].getAABefore(),' ')
-  TEST_EQUAL(peptide_ids[0].getHits()[1].getAAAfter(),' ')
-
+  TEST_EQUAL(pes1.size(),0)
   //peptide id 2
   TEST_EQUAL(peptide_ids[1].getScoreType(),"MOWSE")
   TEST_EQUAL(peptide_ids[1].isHigherScoreBetter(),true)
@@ -155,17 +153,14 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),44.4)
   TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence(), AASequence::fromString("PEPTIDERRR"))
   TEST_EQUAL(peptide_ids[1].getHits()[0].getCharge(),2)
-  TEST_EQUAL(peptide_ids[1].getHits()[0].getProteinAccessions().size(),0)
-  TEST_EQUAL(peptide_ids[1].getHits()[0].getAABefore(),' ')
-  TEST_EQUAL(peptide_ids[1].getHits()[0].getAAAfter(),' ')
-
+  vector<PeptideEvidence> pes2 = peptide_ids[1].getHits()[0].getPeptideEvidences();
+  TEST_EQUAL(pes2.size(),0)
   //peptide hit 2
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[1].getScore(),33.3)
   TEST_EQUAL(peptide_ids[1].getHits()[1].getSequence(), AASequence::fromString("PEPTIDERRRR"))
   TEST_EQUAL(peptide_ids[1].getHits()[1].getCharge(),2)
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getProteinAccessions().size(),0)
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getAABefore(),' ')
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getAAAfter(),' ')
+  vector<PeptideEvidence> pes3 = peptide_ids[1].getHits()[1].getPeptideEvidences();
+  TEST_EQUAL(pes3.size(),0)
 
   /////////////// protein id 2 //////////////////
   TEST_EQUAL(protein_ids[1].getScoreType(),"MOWSE")
@@ -177,11 +172,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[1].getIdentifier(),"Mascot_2007-01-12T12:13:14")
   TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
-  TEST_EQUAL(protein_ids[1].getSearchParameters().enzyme,ProteinIdentification::UNKNOWN_ENZYME)
   TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"+1, +2, +3")
   TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,ProteinIdentification::MONOISOTOPIC)
-  TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().peak_mass_tolerance,0.3)
-  TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().precursor_tolerance,1.0)
+  TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().fragment_mass_tolerance,0.3)
+  TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().precursor_mass_tolerance,1.0)
   TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications.size(),2)
   TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications[0],"Fixed")
   TEST_EQUAL(protein_ids[1].getSearchParameters().fixed_modifications[1],"Fixed2")
@@ -202,10 +196,11 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),1.4)
   TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence(), AASequence::fromString("PEPTIDERRRRR"))
   TEST_EQUAL(peptide_ids[2].getHits()[0].getCharge(),1)
-  TEST_EQUAL(peptide_ids[2].getHits()[0].getProteinAccessions().size(),1)
-  TEST_EQUAL(peptide_ids[2].getHits()[0].getProteinAccessions()[0],"PROT3")
-  TEST_EQUAL(peptide_ids[2].getHits()[0].getAABefore(),' ')
-  TEST_EQUAL(peptide_ids[2].getHits()[0].getAAAfter(),' ')
+  vector<PeptideEvidence> pes4 = peptide_ids[2].getHits()[0].getPeptideEvidences();
+  TEST_EQUAL(pes4.size(),1)
+  TEST_EQUAL(pes4[0].getProteinAccession(),"PROT3")
+  TEST_EQUAL(pes4[0].getAABefore(), PeptideEvidence::UNKNOWN_AA)
+  TEST_EQUAL(pes4[0].getAAAfter(), PeptideEvidence::UNKNOWN_AA)
 END_SECTION
 
 START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id="") )
@@ -277,6 +272,22 @@ START_SECTION(([EXTRA] No protein identification bug))
 
 END_SECTION
 
+START_SECTION(([EXTRA] XLMS data labeled cross-linker))
+  vector<ProteinIdentification> protein_ids;
+  vector<PeptideIdentification> peptide_ids;
+
+  String input_file= OPENMS_GET_TEST_DATA_PATH("IdXML_XLMS_labelled.idXML");
+  IdXMLFile().load(input_file, protein_ids, peptide_ids);
+
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[0].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[0].charge, 1)
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[1].annotation, "[alpha|ci$b2]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[8].annotation, "[alpha|xi$b8]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[20].annotation, "[alpha|xi$b9]")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[25].charge, 3)
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[25].annotation, "[alpha|xi$y8]")
+
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

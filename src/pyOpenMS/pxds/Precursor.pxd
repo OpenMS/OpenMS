@@ -1,6 +1,4 @@
-from libcpp.string cimport string as libcpp_string
-from libcpp.set cimport set as libcpp_set
-#from InstrumentSettings cimport *
+from Types cimport *
 from CVTermList cimport *
 from Peak1D cimport *
 from Map cimport *
@@ -8,9 +6,42 @@ from Map cimport *
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
     cdef cppclass Precursor(Peak1D):
-
         # wrap-inherits:
         #    Peak1D
+
+        Precursor() nogil except +
+        Precursor(Precursor) nogil except +
+
+        # returns a mutable reference to the activation methods
+        libcpp_set[ActivationMethod] getActivationMethods() nogil except +
+        # sets the activation methods
+        void setActivationMethods(libcpp_set[ActivationMethod] activation_methods) nogil except +
+
+        double getActivationEnergy() nogil except +
+        void setActivationEnergy(double activation_energy) nogil except +
+
+        double getIsolationWindowLowerOffset() nogil except +
+        void setIsolationWindowLowerOffset(double bound) nogil except +
+
+        double getDriftTime() nogil except +
+        void setDriftTime(double drift_time) nogil except +
+
+        double getIsolationWindowUpperOffset() nogil except +
+        void setIsolationWindowUpperOffset(double bound) nogil except +
+
+        int getCharge() nogil except +
+        void setCharge(int charge) nogil except +
+
+        #Non-mutable access to possible charge states
+        libcpp_vector[int] getPossibleChargeStates() nogil except +
+        #Sets the possible charge states
+        void setPossibleChargeStates(libcpp_vector[int] possible_charge_states) nogil except +
+
+        # Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
+        double getUnchargedMass() nogil except +
+
+        bool operator==(Precursor)  nogil except +
+        bool operator!=(Precursor)  nogil except +
 
         #####################################################################
         # we do not declare inheritance from CVTermList, because cython
@@ -51,41 +82,6 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         bool metaValueExists(unsigned int) nogil except +
         void removeMetaValue(String) nogil except +
         void removeMetaValue(unsigned int) nogil except +
-
-
-        #####################################################################
-
-        Precursor()           nogil except +
-        Precursor(Precursor)           nogil except +
-
-        # returns a mutable reference to the activation methods
-        libcpp_set[ActivationMethod] getActivationMethods() nogil except +
-        # sets the activation methods
-        void setActivationMethods(libcpp_set[ActivationMethod] activation_methods) nogil except +
-
-        double getActivationEnergy() nogil except +
-        void setActivationEnergy(double activation_energy) nogil except +
-
-        double getIsolationWindowLowerOffset() nogil except +
-        void setIsolationWindowLowerOffset(double bound) nogil except +
-
-        double getIsolationWindowUpperOffset() nogil except +
-        void setIsolationWindowUpperOffset(double bound) nogil except +
-
-        int getCharge() nogil except +
-        void setCharge(int charge) nogil except +
-
-        #Non-mutable access to possible charge states
-        libcpp_vector[int] getPossibleChargeStates() nogil except +
-        #Sets the possible charge states
-        void setPossibleChargeStates(libcpp_vector[int] possible_charge_states) nogil except +
-
-        # Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
-        double getUnchargedMass() nogil except +
-
-        bool operator==(Precursor)  nogil except +
-        bool operator!=(Precursor)  nogil except +
-
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS::Precursor":
     cdef enum ActivationMethod:

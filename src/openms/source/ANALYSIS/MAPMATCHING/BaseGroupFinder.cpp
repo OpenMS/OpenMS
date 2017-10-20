@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
@@ -37,6 +37,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+
+#include <OpenMS/CONCEPT/Factory.h>
 
 #include <set>
 
@@ -64,17 +66,17 @@ namespace OpenMS
       QTClusterFinder::getProductName(), &QTClusterFinder::create);
   }
 
-  void BaseGroupFinder::checkIds_(const std::vector<ConsensusMap> & maps) const
+  void BaseGroupFinder::checkIds_(const std::vector<ConsensusMap>& maps) const
   {
     std::set<Size> used_ids;
     for (Size i = 0; i < maps.size(); ++i)
     {
-      const ConsensusMap & map = maps[i];
+      const ConsensusMap& map = maps[i];
       for (ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().begin(); it != map.getFileDescriptions().end(); ++it)
       {
         if (used_ids.find(it->first) != used_ids.end())
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "file ids have to be unique");
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "file ids have to be unique");
         }
         else
         {

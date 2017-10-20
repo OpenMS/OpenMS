@@ -4,7 +4,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -60,10 +60,12 @@ def debug(message)
 end
 
 ###############################################################################
-def fixable(path)
-  if path.match(/^\./)
+def fixable(name, path)
+  if File.directory?(path + name)
     return false
-  elsif path.match(/\.app$/)
+  elsif name.match(/^\./)
+    return false
+  elsif name.match(/\.app$/)
     return false
   else
     return true
@@ -81,12 +83,14 @@ def cleanOtoolEntry(otool_line)
 end
 
 ###############################################################################
-def getId(otool_output)
-  id = otool_output.delete_at(0).strip
+def extractInstallName(otool_output)
+  # Skip file basename
+  otool_output.delete_at(0).strip
+  # Save install name (id)
   id = otool_output.delete_at(0).strip
   # clean id
   id = cleanOtoolEntry(id)
-#  debug "Found ID: #{id}"  
+  # return id and remaining otool output = dependencies
   return id, otool_output
 end
 
@@ -201,13 +205,14 @@ def handleFramework(frameworkPath, targetPath)
   if not $handledLibraries.include?(libname)
     # run otool
     otool_out=`otool -L #{frameworkPath}`.strip.split(/\n/)
-    id, otool_out = getId(otool_out)
-    debug "Handle FW #{frameworkPath} -> #{id}"
-  
-    # update the id
+    # strips first two lines
+    id, otool_out = extractInstallName(otool_out)
+    
+    # update the install_name (-id)
     fixId(newFrameWorkPath,libname)
+    debug "Handle FW #{frameworkPath} -> #{id}"
 
-    # check the actual dependencies
+    # check the actual dependencies (lines 3++)
     handleDependencies(otool_out, targetPath, newFrameWorkPath)
   
     # mark as processed
@@ -226,19 +231,22 @@ end
 def handleDyLib(dylibPath, targetPath)
   $currentIndent+=1
 
+  
+
   # copy if necessary
   newDyLibPath,libname=copyLib(dylibPath, targetPath)
   
   if not $handledLibraries.include?(libname)
     # run otool
     otool_out=`otool -L #{dylibPath}`.strip.split(/\n/)
-    id, otool_out = getId(otool_out)
-    debug "Handle DYLIB #{dylibPath} -> #{id}"
+    # strips first two lines
+    id, otool_out = extractInstallName(otool_out)
   
-    # fixId
+    # update install_name (-id) of current DyLib
     fixId(newDyLibPath,libname)
-  
-    # check the actual dependencies
+    debug "Handle DYLIB #{dylibPath} --> #{id}"
+
+    # check the actual dependencies (lines 3++)
     handleDependencies(otool_out, targetPath, newDyLibPath)
   
     # mark as processed
@@ -257,7 +265,7 @@ end
 def handleBinary(binaryPath, targetPath)
   $currentIndent+=1
   
-  debug "Fixing #{binaryPath}"
+  debug "Fixing binary #{binaryPath}"
   
   # no copy, no id change; juts run otool
   otool_out=`otool -L #{binaryPath}`.strip.split(/\n/)
@@ -310,7 +318,7 @@ opts.each do |opt, arg|
       lib = Pathname.new(arg).realpath
     when '--bin-path'
       bin = Pathname.new(arg).realpath
-    when '-v'
+    when '--verbose'
       $DEBUG = true
   end
 end
@@ -323,7 +331,7 @@ end
 
 # fix libraries contained in lib-path
 for content in Dir.entries(lib) 
-  if fixable(content)
+  if fixable(content, lib)
     if isFramework(content)
 #      handleFramework(lib + content, lib)
     else
@@ -334,7 +342,8 @@ end
 
 # fix binary references
 for content in Dir.entries(bin)
-  if fixable(content)
+  if fixable(content, bin)
+    debug "Handle binary #{bin + content}"
     handleBinary(bin + content, lib)
   end
 end

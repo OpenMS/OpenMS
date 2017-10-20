@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -476,7 +476,7 @@ namespace OpenMS
       hit.setScore(cid_score + etd_score);
 
       hit.setSequence(getModifiedAASequence_(*it));
-      hit.setCharge((Int)charge);   //TODO unifiy charge interface: int or size?
+      hit.setCharge((Int)charge);   //TODO unify charge interface: int or size?
       hits.push_back(hit);
       //cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << etd_score << " " << cid_score + etd_score << endl;
     }
@@ -512,22 +512,6 @@ namespace OpenMS
       String mod_string = getModifiedStringFromAASequence_(it->getSequence());
       getETDSpectrum_(ETD_sim_spec, mod_string, charge);
       getCIDSpectrum_(CID_sim_spec, mod_string, charge);
-
-
-      /*RichPeakSpectrum CID_sim_pilis_spec;
-      cerr << "PILIS Model disabled: " << endl;
-      exit(1);
-      //pilis_model_.getSpectrum (CID_sim_pilis_spec, it->getSequence(), charge);
-      CID_sim_pilis_spec.sortByPosition();
-
-      for (RichPeakSpectrum::ConstIterator pit = CID_sim_pilis_spec.begin(); pit != CID_sim_pilis_spec.end(); ++pit)
-      {
-          Peak1D p;
-          p.setPosition(pit->getPosition()[0]);
-          p.setIntensity(pit->getIntensity());
-          CID_sim_spec.push_back(p);
-      }
-      */
 
       normalizer.filterSpectrum(ETD_sim_spec);
       normalizer.filterSpectrum(CID_sim_spec);
@@ -574,7 +558,7 @@ namespace OpenMS
     double z_pos(3.0 + suffix);
     //double b_pos(0.0 + prefix);
     //double y_pos(18.0 + suffix);
-    // sometimes alsa b and y ions are in this spectrum
+    // sometimes also b and y ions are in this spectrum
 
 #ifdef ETD_SPECTRUM_DEBUG
     cerr << "ETDSpectrum for " << sequence << " " << prefix << " " << suffix << endl;

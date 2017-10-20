@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,18 +28,19 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: Marc Sturm, Clemens Groepl $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Marc Sturm, Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 
 using namespace OpenMS;
 using namespace std;
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
@@ -79,15 +80,18 @@ using namespace std;
 
     @see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
 
-		Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version.
-		For some applications this behaviour is desired, while for others its not, but you can always remove all modifications from the input files if you want to ignore modifications.
-		
-    Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested mostly with the "interpolated" model. The different available models are:
+		Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version. This behavior is generally desired since (some) modifications can cause retention time shifts.
+
+    Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested mostly with the "b_spline" model. The different available models are:
     - @ref OpenMS::TransformationModelLinear "linear": Linear model.
-    - @ref OpenMS::TransformationModelInterpolated "interpolated": Smoothing spline (non-linear).
+    - @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
+    - @ref OpenMS::TransformationModelLowess "lowess": Local regression (non-linear).
+    - @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
 
     The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
     @htmlinclude OpenMS_MapAlignerIdentificationModel.parameters @n
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B> @n
     @verbinclude TOPP_MapAlignerIdentification.cli
@@ -110,64 +114,139 @@ public:
   }
 
 private:
-  template <typename TMapType, typename TFileType>
-  void loadInitialMaps(std::vector<TMapType> & maps, StringList & ins, TFileType & inputPutFile)
+  template <typename MapType, typename FileType>
+  void loadInitialMaps_(vector<MapType>& maps, StringList& ins, 
+                        FileType& input_file)
   {
-    // custom progresslogger for this task
+    // custom progress logger for this task:
     ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
+    progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
     progresslogger.startProgress(0, ins.size(), "loading input files");
-
     for (Size i = 0; i < ins.size(); ++i)
     {
       progresslogger.setProgress(i);
-      inputPutFile.load(ins[i], maps[i]);
+      input_file.load(ins[i], maps[i]);
     }
-
     progresslogger.endProgress();
   }
 
-  /// helper function to avoid code duplication between consensus and featureXML storage operations
-  template <typename TMapType, typename TFileType>
-  void storeTransformedMaps(std::vector<TMapType> & maps, StringList & outs, TFileType & outPutFile)
+  // helper function to avoid code duplication between consensusXML and
+  // featureXML storage operations:
+  template <typename MapType, typename FileType>
+  void storeTransformedMaps_(vector<MapType>& maps, StringList& outs, 
+                             FileType& output_file)
   {
-    // custom progresslogger for this task
+    // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, outs.size(), "writing output files");
-
     for (Size i = 0; i < outs.size(); ++i)
     {
       progresslogger.setProgress(i);
-
-      //annotate output with data processing info
-      addDataProcessing_(maps[i], getProcessingInfo_(DataProcessing::ALIGNMENT));
-
-      outPutFile.store(outs[i], maps[i]);
+      // annotate output with data processing info:
+      addDataProcessing_(maps[i], 
+                         getProcessingInfo_(DataProcessing::ALIGNMENT));
+      output_file.store(outs[i], maps[i]);
     }
     progresslogger.endProgress();
   }
 
-  void saveTransformationDescriotions(const std::vector<TransformationDescription> & transformations,
-                                      StringList & trafos)
+  template <typename DataType>
+  void performAlignment_(MapAlignmentAlgorithmIdentification& algorithm,
+                         vector<DataType>& data,
+                         vector<TransformationDescription>& transformations,
+                         Int reference_index)
   {
-    // custom progresslogger for this task
+    algorithm.align(data, transformations, reference_index);
+
+    // find model parameters:
+    Param model_params = getParam_().copy("model:", true);
+    String model_type = model_params.getValue("type");
+    if (model_type != "none")
+    {
+      model_params = model_params.copy(model_type + ":", true);
+      for (vector<TransformationDescription>::iterator it =
+             transformations.begin(); it != transformations.end(); ++it)
+      {
+        it->fitModel(model_type, model_params);
+      }
+    }
+  }
+
+  template <typename DataType>
+  void applyTransformations_(vector<DataType>& data,
+    const vector<TransformationDescription>& transformations)
+  {
+    for (Size i = 0; i < data.size(); ++i)
+    {
+      MapAlignmentTransformer::transformRetentionTimes(data[i],
+        transformations[i]);
+    }
+  }
+
+  void storeTransformationDescriptions_(const vector<TransformationDescription>&
+                                        transformations, StringList& trafos)
+  {
+    // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, trafos.size(), "writing transformation files");
-
+    progresslogger.startProgress(0, trafos.size(), 
+                                 "writing transformation files");
     for (Size i = 0; i < transformations.size(); ++i)
     {
       TransformationXMLFile().store(trafos[i], transformations[i]);
     }
-
     progresslogger.endProgress();
+  }
+
+  Int getReference_(MapAlignmentAlgorithmIdentification& algorithm)
+  {
+    // consistency of reference parameters has already been checked via
+    // "TOPPMapAlignerBase::checkParameters_"
+
+    Size reference_index = getIntOption_("reference:index");
+    String reference_file = getStringOption_("reference:file");
+
+    if (!reference_file.empty())
+    {
+      FileTypes::Type filetype = FileHandler::getType(reference_file);
+      if (filetype == FileTypes::MZML)
+      {
+        PeakMap experiment;
+        MzMLFile().load(reference_file, experiment);
+        algorithm.setReference(experiment);
+      }
+      else if (filetype == FileTypes::FEATUREXML)
+      {
+        FeatureMap features;
+        FeatureXMLFile().load(reference_file, features);
+        algorithm.setReference(features);
+      }
+      else if (filetype == FileTypes::CONSENSUSXML)
+      {
+        ConsensusMap consensus;
+        ConsensusXMLFile().load(reference_file, consensus);
+        algorithm.setReference(consensus);
+      }
+      else if (filetype == FileTypes::IDXML)
+      {
+        vector<ProteinIdentification> proteins;
+        vector<PeptideIdentification> peptides;
+        IdXMLFile().load(reference_file, proteins, peptides);
+        algorithm.setReference(peptides);
+      }
+    }
+
+    return Int(reference_index) - 1; // internally, we count from zero
   }
 
   void registerOptionsAndFlags_()
   {
     String formats = "featureXML,consensusXML,idXML";
-    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, true);
+    TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
+    // TODO: potentially move to base class so every aligner has to support design
+    registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
+    setValidFormats_("design", ListUtils::create<String>("tsv"));
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
@@ -181,135 +260,179 @@ private:
     }
     if (section == "model")
     {
-      return getModelDefaults("interpolated");
+      return TOPPMapAlignerBase::getModelDefaults("b_spline");
     }
 
-    // shouldn't happen
-    return Param();
+    return Param(); // this shouldn't happen
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
+    ExitCodes return_code = TOPPMapAlignerBase::checkParameters_();
+    if (return_code != EXECUTION_OK) return return_code;
+
+    // set up alignment algorithm:
     MapAlignmentAlgorithmIdentification algorithm;
-    handleReference_(&algorithm);
+    Param algo_params = getParam_().copy("algorithm:", true);
+    algorithm.setParameters(algo_params);
+    algorithm.setLogType(log_type_);
 
-    ExitCodes returnCode = initialize_(&algorithm);
-    if (returnCode != EXECUTION_OK) return returnCode;
+    Int reference_index = getReference_(algorithm);
 
-    // handle in- and output files
-    StringList inputFiles = getStringList_("in");
-    StringList outputFiles = getStringList_("out");
-    StringList trafoFiles = getStringList_("trafo_out");
-    FileTypes::Type in_type = FileHandler::getType(inputFiles[0]);
+    // handle in- and output files:
+    StringList input_files = getStringList_("in");
+    StringList output_files = getStringList_("out");
+    StringList trafo_files = getStringList_("trafo_out");
+    FileTypes::Type in_type = FileHandler::getType(input_files[0]);
 
-    // find model parameters
-    Param modelParams = getParam_().copy("model:", true);
-    String modelType = modelParams.getValue("type");
-    modelParams = modelParams.copy(modelType + ":", true);
+    vector<TransformationDescription> transformations;
 
-    // create transformations vector
-    std::vector<TransformationDescription> transformations;
-
+    //-------------------------------------------------------------
+    // perform feature alignment
+    //-------------------------------------------------------------
     if (in_type == FileTypes::FEATUREXML)
     {
-      // load input
-      std::vector<FeatureMap<> > featureMaps(inputFiles.size());
-      FeatureXMLFile fxmlFile;
-
-      // no need to store featureXML, thus we can load only minimum required information
-      if (outputFiles.size() == 0)
+      vector<FeatureMap> feature_maps(input_files.size());
+      FeatureXMLFile fxml_file;
+      if (output_files.empty())
       {
-        fxmlFile.getOptions().setLoadConvexHull(false);
-        fxmlFile.getOptions().setLoadSubordinates(false);
+        // store only transformation descriptions, not transformed data =>
+        // we can load only minimum required information:
+        fxml_file.getOptions().setLoadConvexHull(false);
+        fxml_file.getOptions().setLoadSubordinates(false);
+      }
+      loadInitialMaps_(feature_maps, input_files, fxml_file);
+
+      //-------------------------------------------------------------
+      // Extract (optional) fraction identifiers and associate with featureXMLs
+      //-------------------------------------------------------------
+      String design_file = getStringOption_("design");
+
+      // determine map of fractions to runs
+      map<unsigned, set<unsigned> > frac2run;
+
+      // TODO: check if can be put in common helper function
+      if (!design_file.empty())
+      {
+        // parse design file and determine fractions
+        ExperimentalDesign ed;
+        ExperimentalDesign().load(design_file, ed);
+
+        // determine if design defines more than one fraction (note: fraction and run IDs are one-based)
+        frac2run = ed.getFractionToRunsMapping();
+
+        // check if all fractions have the same number of MS runs associated
+        if (!ed.sameNrOfRunsPerFraction())
+        {
+          writeLog_("Error: Number of runs must match for every fraction!");
+          return ILLEGAL_PARAMETERS;
+        }
+      }
+      else // no design file given
+      {
+        for (Size i = 0; i != input_files.size(); ++i)
+        {
+          frac2run[1].insert(i + 1); // associate each run with fraction 1
+        }
       }
 
-      // load maps
-      loadInitialMaps(featureMaps, inputFiles, fxmlFile);
+      // TODO: check and handle if featureXML order differs from run order
 
-      algorithm.alignFeatureMaps(featureMaps, transformations);
-
-      if (modelType != "none")
+      // perform fraction-based alignment
+      if (frac2run.size() == 1) // group one fraction
       {
-        algorithm.fitModel(modelType, modelParams, transformations);
+        performAlignment_(algorithm, feature_maps, transformations,
+          reference_index);
+        applyTransformations_(feature_maps, transformations);
+      }
+      else // group multiple fractions
+      {
+        for (Size i = 1; i <= frac2run.size(); ++i)
+        {
+          vector<FeatureMap> fraction_maps;
+          vector<TransformationDescription> fraction_transformations;
+          for (set<unsigned>::const_iterator sit = frac2run[i].begin(); sit != frac2run[i].end(); ++sit)
+          {
+            fraction_maps.push_back(feature_maps[*sit - 1]); // TODO: *sit is currently the run identifier but we need to know the corresponding feature index in ins
+          }
+          performAlignment_(algorithm, fraction_maps, fraction_transformations,
+            reference_index);
+          applyTransformations_(fraction_maps, fraction_transformations);
+
+          // copy into transformations and feature maps
+          transformations.insert(transformations.end(), fraction_transformations.begin(), fraction_transformations.end());
+          Size f = 0;
+          for (set<unsigned>::const_iterator sit = frac2run[i].begin(); sit != frac2run[i].end(); ++sit, ++f)
+          {
+            feature_maps[*sit - 1].swap(fraction_maps[f]); // TODO: *sit is currently the run identifier but we need to know the corresponding feature index in ins
+          }
+        }
       }
 
-      MapAlignmentTransformer::transformFeatureMaps(featureMaps, transformations);
-
-      storeTransformedMaps(featureMaps, outputFiles, fxmlFile);
+      if (!output_files.empty())
+      {
+        storeTransformedMaps_(feature_maps, output_files, fxml_file);
+      }
     }
+
     //-------------------------------------------------------------
     // perform consensus alignment
     //-------------------------------------------------------------
     else if (in_type == FileTypes::CONSENSUSXML)
     {
-      // load input
-      std::vector<ConsensusMap> cons_maps(inputFiles.size());
-      ConsensusXMLFile f;
+      std::vector<ConsensusMap> consensus_maps(input_files.size());
+      ConsensusXMLFile cxml_file;
+      loadInitialMaps_(consensus_maps, input_files, cxml_file);
 
-      // load maps
-      loadInitialMaps(cons_maps, inputFiles, f);
+      performAlignment_(algorithm, consensus_maps, transformations,
+                        reference_index);
+      applyTransformations_(consensus_maps, transformations);
 
-      algorithm.alignConsensusMaps(cons_maps, transformations);
-
-      if (modelType != "none")
+      if (!output_files.empty())
       {
-        algorithm.fitModel(modelType, modelParams, transformations);
+        storeTransformedMaps_(consensus_maps, output_files, cxml_file);
       }
-      MapAlignmentTransformer::transformConsensusMaps(cons_maps, transformations);
-
-      storeTransformedMaps(cons_maps, outputFiles, f);
     }
+
     //-------------------------------------------------------------
     // perform peptide alignment
     //-------------------------------------------------------------
     else if (in_type == FileTypes::IDXML)
     {
+      vector<vector<ProteinIdentification> > protein_ids(input_files.size());
+      vector<vector<PeptideIdentification> > peptide_ids(input_files.size());
+      IdXMLFile idxml_file;
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
-
-      // load input
-      std::vector<std::vector<ProteinIdentification> > protein_ids_vec(inputFiles.size());
-      std::vector<std::vector<PeptideIdentification> > peptide_ids_vec(inputFiles.size());
-
-      IdXMLFile f;
-
-      progresslogger.startProgress(0, inputFiles.size(), "loading input files");
-      for (Size i = 0; i < inputFiles.size(); ++i)
+      progresslogger.startProgress(0, input_files.size(),
+                                   "loading input files");
+      for (Size i = 0; i < input_files.size(); ++i)
       {
         progresslogger.setProgress(i);
-        f.load(inputFiles[i], protein_ids_vec[i], peptide_ids_vec[i]);
+        idxml_file.load(input_files[i], protein_ids[i], peptide_ids[i]);
       }
       progresslogger.endProgress();
 
-      algorithm.alignPeptideIdentifications(peptide_ids_vec, transformations);
+      performAlignment_(algorithm, peptide_ids, transformations,
+                        reference_index);
+      applyTransformations_(peptide_ids, transformations);
 
-      if (modelType != "none")
+      if (!output_files.empty())
       {
-        algorithm.fitModel(modelType, modelParams, transformations);
+        progresslogger.startProgress(0, output_files.size(), 
+                                     "writing output files");
+        for (Size i = 0; i < output_files.size(); ++i)
+        {
+          progresslogger.setProgress(i);
+          idxml_file.store(output_files[i], protein_ids[i], peptide_ids[i]);
+        }
+        progresslogger.endProgress();
       }
-
-      MapAlignmentTransformer::transformPeptideIdentifications(peptide_ids_vec,
-                                                               transformations);
-
-      // write output
-      progresslogger.startProgress(0, outputFiles.size(), "writing output files");
-      for (Size i = 0; i < outputFiles.size(); ++i)
-      {
-        progresslogger.setProgress(i);
-        f.store(outputFiles[i], protein_ids_vec[i], peptide_ids_vec[i]);
-      }
-      progresslogger.endProgress();
-    }
-    else
-    {
-      // TODO can this really happen? I think it is tested above. Otherwise
-      // throw an appropriate exception?
-      return ILLEGAL_PARAMETERS;
     }
 
-    if (!trafoFiles.empty())
+    if (!trafo_files.empty())
     {
-      saveTransformationDescriotions(transformations, trafoFiles);
+      storeTransformationDescriptions_(transformations, trafo_files);
     }
 
     return EXECUTION_OK;
@@ -317,7 +440,7 @@ private:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapAlignerIdentification tool;
   return tool.main(argc, argv);

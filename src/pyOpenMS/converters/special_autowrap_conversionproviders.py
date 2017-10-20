@@ -169,27 +169,27 @@ class OpenMSStringConverter(TypeConverterBase):
         return  not cpp_type.is_ptr
 
     def matching_python_type(self, cpp_type):
-        return "String" if cpp_type.is_ref else "bytes"
+        # We allow bytes, unicode, str and String
+        return ""
 
     def type_check_expression(self, cpp_type, argument_var):
-        if cpp_type.is_ref:
-            return "isinstance(%s, String)" % (argument_var,)
-        return "isinstance(%s, bytes)" % (argument_var,)
+        # Allow conversion from unicode str, bytes and OpenMS::String
+        return "(isinstance(%s, str) or isinstance(%s, unicode) or isinstance(%s, bytes) or isinstance(%s, String))" % (
+            argument_var,argument_var,argument_var, argument_var)
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
-        # here we inject special behavoir for testing if this converter
-        # was called !
-        if cpp_type.is_ref:
-            call_as = "deref(%s.inst.get())" % argument_var
-        else:
-            call_as = "(_String(<char *>%s))" % argument_var
-        code = cleanup = ""
+
+        # Assume that convString is declared in String.pyx
+        call_as = "deref((convString(%s)).get())" % argument_var
+        cleanup = ""
+        code = ""
+        if cpp_type.is_ptr:
+            call_as = "(convString(%s)).get()" % argument_var
         return code, call_as, cleanup
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
         return "%s = _cast_const_away(<char*>%s.c_str())" % (output_py_var,
                                                              input_cpp_var)
-
 
 class AbstractOpenMSListConverter(TypeConverterBase):
 
@@ -562,7 +562,7 @@ class CVTermMapConverter(TypeConverterBase):
         return "Map",
 
     def matches(self, cpp_type):
-        print(str(cpp_type), "Map[String,libcpp_vector[CVTerm]]")
+        # print(str(cpp_type), "Map[String,libcpp_vector[CVTerm]]")
         return str(cpp_type) == "Map[String,libcpp_vector[CVTerm]]" \
            or  str(cpp_type) == "Map[String,libcpp_vector[CVTerm]] &"
 

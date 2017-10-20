@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Stephan Aiche$
-// $Authors: Stephan Aiche$
+// $Maintainer: Chris Bielow $
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -99,11 +99,11 @@ START_SECTION((IsobaricChannelExtractor& operator=(const IsobaricChannelExtracto
 
 END_SECTION
 
-START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, ConsensusMap & consensus_map)))
+START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & consensus_map)))
 {
   {
     // load test data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
@@ -161,7 +161,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_EQUAL(cm_out[0].size(), 4)
     TEST_EQUAL(cm_out[0].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=2")
     TEST_REAL_SIMILAR(cm_out[0].getMetaValue("precursor_intensity"), 5251952.5)
-    TEST_REAL_SIMILAR(cm_out[0].getMetaValue("precursor_charge"), 2)
+    TEST_EQUAL(cm_out[0].getCharge(), 2)
     TEST_REAL_SIMILAR(cm_out[0].getIntensity(), 1490501.21)
     cf_it = cm_out[0].begin();
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 643005.56)
@@ -178,14 +178,14 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_EQUAL(cm_out[1].size(), 4)
     TEST_EQUAL(cm_out[1].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=4")
     TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_intensity"), 7365030)
-    TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_charge"), 3)
-    TEST_REAL_SIMILAR(cm_out[1].getIntensity(), 2358063.25)
+    TEST_EQUAL(cm_out[1].getCharge(), 3)
+    TEST_REAL_SIMILAR(cm_out[1].getIntensity(), 2329603)
     cf_it = cm_out[1].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 851248.38)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 847251)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 875994.77)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 861806)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 322173.1)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 311899)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 308647)
     ++cf_it;
@@ -194,14 +194,14 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_EQUAL(cm_out[2].size(), 4)
     TEST_EQUAL(cm_out[2].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=6")
     TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_intensity"), 6835636)
-    TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_charge"), 3)
-    TEST_REAL_SIMILAR(cm_out[2].getIntensity(), 2623415.33)
+    TEST_EQUAL(cm_out[2].getCharge(), 3)
+    TEST_REAL_SIMILAR(cm_out[2].getIntensity(), 2520967)
     cf_it = cm_out[2].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 898583.7)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 894414)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 977466.23)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 958965)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 406220.4)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 326443)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 341145)
     ++cf_it;
@@ -210,14 +210,14 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_EQUAL(cm_out[3].size(), 4)
     TEST_EQUAL(cm_out[3].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=8")
     TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_intensity"), 6762358)
-    TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_charge"), 3)
-    TEST_REAL_SIMILAR(cm_out[3].getIntensity(), 1692679.37)
+    TEST_EQUAL(cm_out[3].getCharge(), 3)
+    TEST_REAL_SIMILAR(cm_out[3].getIntensity(), 1585286)
     cf_it = cm_out[3].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 593009)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 581601)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 661448.27)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 623851)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 249740.1)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 191352)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 188482)
     ++cf_it;
@@ -226,7 +226,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_EQUAL(cm_out[4].size(), 4)
     TEST_EQUAL(cm_out[4].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=10")
     TEST_REAL_SIMILAR(cm_out[4].getMetaValue("precursor_intensity"), 5464634.5)
-    TEST_REAL_SIMILAR(cm_out[4].getMetaValue("precursor_charge"), 2)
+    TEST_EQUAL(cm_out[4].getCharge(), 2)
     TEST_REAL_SIMILAR(cm_out[4].getIntensity(), 1746368)
     cf_it = cm_out[4].begin();
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 648863)
@@ -241,7 +241,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
   }
   { // test -> keep_unannotated_precursor
     // load test data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_7.mzML"), exp);
 
@@ -280,7 +280,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
   }
   {
     // load test data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
@@ -314,7 +314,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
   }
   {
     // load test data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
@@ -354,33 +354,33 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     ABORT_IF(cf_it != cm_out[0].end())
 
     cf_it = cm_out[1].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 851248.38)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 847251)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 875994.77)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 861806)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 322173.1)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 311899)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 308647)
     ++cf_it;
     ABORT_IF(cf_it != cm_out[1].end())
 
     cf_it = cm_out[2].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 898583.7)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 894414)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 977466.23)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 958965)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 406220.4)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 326443)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 341145)
     ++cf_it;
     ABORT_IF(cf_it != cm_out[2].end())
 
     cf_it = cm_out[3].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 593009)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 581601)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 661448.27)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 623851)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 249740.1)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0) // is 191352 < 200.000
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0) // is 188482 < 200.000
     ++cf_it;
@@ -399,7 +399,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
   }
   {
     // load test data
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
@@ -428,22 +428,22 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     ABORT_IF(cm_out.size() != 3)
 
     cf_it = cm_out[0].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 851248.38)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 847251)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 875994.77)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 861806)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 322173.1)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 311899)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 308647)
     ++cf_it;
     ABORT_IF(cf_it != cm_out[0].end())
 
     cf_it = cm_out[1].begin();
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 898583.7)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 894414)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 977466.23)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 958965)
     ++cf_it;
-    TEST_REAL_SIMILAR(cf_it->getIntensity(), 406220.4)
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 326443)
     ++cf_it;
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 341145)
     ++cf_it;
@@ -466,7 +466,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     // - dataset contains 2 ms1 and 5 ms2 spectra
     //   with the purity values listed below
 
-    MSExperiment<Peak1D> exp_purity;
+    PeakMap exp_purity;
     MzMLFile mzmlfile;
     mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp_purity);
 
@@ -492,9 +492,9 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
 
     // check results
     TEST_REAL_SIMILAR(cm_out[0].getMetaValue("precursor_purity"), 1.0)
-    TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_purity"), 0.65472)
-    TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_purity"), 0.775739)
-    TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_purity"), 0.72009)
+    TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_purity"), 0.692434)
+    TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_purity"), 0.824561)
+    TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_purity"), 0.731295)
     TEST_REAL_SIMILAR(cm_out[4].getMetaValue("precursor_purity"), 1.0)
 
     // now filter by purity
@@ -509,16 +509,73 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
 
     // check results
     TEST_REAL_SIMILAR(cm_filtered[0].getMetaValue("precursor_purity"), 1.0)
-    TEST_REAL_SIMILAR(cm_filtered[1].getMetaValue("precursor_purity"), 0.775739)
+    TEST_REAL_SIMILAR(cm_filtered[1].getMetaValue("precursor_purity"), 0.824561)
     TEST_REAL_SIMILAR(cm_filtered[2].getMetaValue("precursor_purity"), 1.0)
   }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] purity computation without interpolation))
+{
+  // check precursor purity computation
+  // - tested purities were validated manually
+  // - dataset contains 2 ms1 and 5 ms2 spectra
+  //   with the purity values listed below
+
+  PeakMap exp_purity;
+  MzMLFile mzmlfile;
+  mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp_purity);
+
+  Param pItraq = q_method->getParameters();
+  pItraq.setValue("channel_114_description", "ref");
+  pItraq.setValue("channel_115_description", "something");
+  pItraq.setValue("channel_116_description", "else");
+  q_method->setParameters(pItraq);
+
+  IsobaricChannelExtractor ice(q_method);
+
+  // disable activation filtering
+  Param p = ice.getParameters();
+  p.setValue("select_activation", "");
+  p.setValue("purity_interpolation", "false");
+
+  ice.setParameters(p);
+
+  // extract channels
+  ConsensusMap cm_out;
+  ice.extractChannels(exp_purity, cm_out);
+
+  TEST_EQUAL(cm_out.size(), 5)
+  ABORT_IF(cm_out.size() != 5)
+
+  // check results
+  TEST_REAL_SIMILAR(cm_out[0].getMetaValue("precursor_purity"), 1.0)
+  TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_purity"), 0.65472)
+  TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_purity"), 0.775739)
+  TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_purity"), 0.72009)
+  TEST_REAL_SIMILAR(cm_out[4].getMetaValue("precursor_purity"), 1.0)
+
+  // now filter by purity
+  p.setValue("min_precursor_purity", 0.75);
+  ice.setParameters(p);
+
+  ConsensusMap cm_filtered;
+  ice.extractChannels(exp_purity, cm_filtered);
+
+  TEST_EQUAL(cm_filtered.size(), 3)
+  ABORT_IF(cm_filtered.size() != 3)
+
+  // check results
+  TEST_REAL_SIMILAR(cm_filtered[0].getMetaValue("precursor_purity"), 1.0)
+  TEST_REAL_SIMILAR(cm_filtered[1].getMetaValue("precursor_purity"), 0.775739)
+  TEST_REAL_SIMILAR(cm_filtered[2].getMetaValue("precursor_purity"), 1.0)
 }
 END_SECTION
 
 // extra test for tmt10plex to ensure high-res extraction works
 START_SECTION(([EXTRA] TMT 10plex support))
 {
-  MSExperiment<Peak1D> tmt10plex_exp;
+  PeakMap tmt10plex_exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_8.mzML"), tmt10plex_exp);
 
   TMTTenPlexQuantitationMethod tmt10plex;
@@ -526,7 +583,7 @@ START_SECTION(([EXTRA] TMT 10plex support))
 
   // disable activation filtering
   Param p = ice.getParameters();
-  p.setValue("reporter_mass_shift", 0.005);
+  p.setValue("reporter_mass_shift", 0.003);
   ice.setParameters(p);
 
   // extract channels

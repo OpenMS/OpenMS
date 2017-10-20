@@ -4,15 +4,16 @@ from MSSpectrum cimport *
 # from SparseVector cimport *
 
 cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenMS":
-    
-    cdef cppclass BinnedSpectrum(MetaInfoInterface):
+
+    cdef cppclass BinnedSpectrum:
+
         BinnedSpectrum() nogil except +
         BinnedSpectrum(BinnedSpectrum) nogil except +
-        BinnedSpectrum(float size, UInt spread, MSSpectrum[Peak1D] ps) nogil except +
+        BinnedSpectrum(float size, UInt spread, MSSpectrum ps) nogil except +
         bool operator==(BinnedSpectrum & rhs) nogil except +
         bool operator!=(BinnedSpectrum & rhs) nogil except +
-        bool operator==(MSSpectrum[Peak1D] & rhs) nogil except +
-        bool operator!=(MSSpectrum[Peak1D] & rhs) nogil except +
+        bool operator==(MSSpectrum & rhs) nogil except +
+        bool operator!=(MSSpectrum & rhs) nogil except +
         double getBinSize() nogil except +
         UInt getBinSpread() nogil except +
         UInt getBinNumber() nogil except +
@@ -27,10 +28,5 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenM
         void setBinSpread(UInt s) nogil except +
         void setBinning() nogil except +
         bool checkCompliance(BinnedSpectrum & bs) nogil except +
+        MSSpectrum getRawSpectrum() nogil except +
 
-        double getRT() nogil except +
-        void   setRT(double) nogil except +
-        unsigned int getMSLevel() nogil except +
-        void setMSLevel(unsigned int) nogil except +
-
-        libcpp_string getName() nogil except +

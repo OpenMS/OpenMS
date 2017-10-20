@@ -7,28 +7,19 @@ from DefaultParamHandler cimport *
 from FASTAFile cimport *
 from MetaInfoInterface cimport *
 
-cdef extern from "<OpenMS/SIMULATION/SimTypes.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/SIMULATION/SimTypes.h>" namespace "OpenMS::SimTypes":
 
     cdef cppclass SimRandomNumberGenerator:
 
         SimRandomNumberGenerator() nogil except +
         SimRandomNumberGeneratorSimTypes(SimRandomNumberGeneratorSimTypes) nogil except + # wrap-ignore
         void initialize(bool biological_random, bool technical_random) nogil except +
-        
 
-    # /// Container for FASTAEntry & abundance information
-    # class OPENMS_DLLAPI SampleProteins : public std::vector<std::pair<FASTAFile::FASTAEntry, MetaInfoInterface> > { }; 
-    cdef cppclass SampleProteins:
+    cdef cppclass SimProtein:
+        SimProtein(FASTAEntry entry, MetaInfoInterface meta)
+        # TODO does this work? 
+        # FASTAFile::FASTAEntry entry
+        # MetaInfoInterface meta
 
-        SampleProteins() nogil except +
-        SampleProteins(SampleProteins) nogil except + # wrap-ignore
-        void push_back(libcpp_pair[FASTAEntry, MetaInfoInterface]) nogil except +
-
-    # /// Container for multiple channels of SampleProteins
-    # class OPENMS_DLLAPI SampleChannels : public std::vector<SampleProteins> { }; 
-    cdef cppclass SampleChannels:
-
-        SampleChannels() nogil except +
-        SampleChannels(SampleChannels) nogil except + # wrap-ignore
-        void push_back(SampleProteins p) nogil except +
-
+    ctypedef libcpp_vector[SimProtein] SampleProteins
+    ctypedef libcpp_vector[libcpp_vector[SimProtein]] SampleChannels

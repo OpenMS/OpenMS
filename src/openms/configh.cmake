@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -113,6 +113,22 @@ else()
 	endif()
 endif()
 
+
+CHECK_TYPE_SIZE("uint32_t" SIZE_UINT32)
+if (HAVE_SIZE_UINT32)
+	set(CF_OPENMS_UINT32_TYPE uint32_t)
+else()
+	## search for another UInt32 type
+	if (SIZE_UINT MATCHES "4")
+		set(CF_OPENMS_UINT32_TYPE "unsigned int")
+	elseif (SIZE_USHORT MATCHES "4")
+		set(CF_OPENMS_UINT32_TYPE "unsigned short")
+	elseif (SIZE_ULONG MATCHES "4")
+		set(CF_OPENMS_UINT32_TYPE "unsigned long")
+	else()
+		Message(FATAL_ERROR "Cannot find unsigned 32bit integer type. Please contact the developers!")
+	endif()
+endif()
 
 CHECK_TYPE_SIZE("uint64_t" SIZE_UINT64)
 if (HAVE_SIZE_UINT64)

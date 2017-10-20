@@ -5,23 +5,27 @@ from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace "OpenMS":
 
+    cdef cppclass TM_DataPoint "OpenMS::TransformationModel::DataPoint":
+        TM_DataPoint() nogil except +
+        TM_DataPoint(double, double) nogil except +
+        TM_DataPoint(double, double, String&) nogil except +
+        TM_DataPoint(TM_DataPoint) nogil except + #wrap-ignore
+        bool operator<(TM_DataPoint&) nogil except +
+        bool operator==(TM_DataPoint&) nogil except +
+
+        double first
+        double second
+        String note
+
 
     cdef cppclass TransformationModel:
         # wrap-ignore
+        # no-pxd-import
 
         TransformationModel()  nogil except +
         TransformationModel(TransformationModel, Param) nogil except + # wrap-ignore
+
         Param getParameters() nogil except +
 
-    cdef cppclass TransformationModelLinear(TransformationModel):
-        # wrap-inherits:
-        #   TransformationModel
-        pass
-        # static method getParameters() in separate file
-
-    cdef cppclass TransformationModelInterpolated(TransformationModel):
-        # wrap-inherits:
-        #   TransformationModel
-        pass
-        # static method getParameters() in separate file
-
+        # double evaluate(double value) nogil except +
+        # void getDefaultParameters(Param & params) nogil except +

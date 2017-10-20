@@ -2,6 +2,7 @@ from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from Types cimport *
 from DRange cimport *
+from MSNumpressCoder cimport *
 
 cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
 
@@ -40,4 +41,30 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         void setIntensityRange(DRange1 & range_) nogil except +
         bool hasIntensityRange() nogil except +
         DRange1 getIntensityRange() nogil except +
+
+        Size getMaxDataPoolSize() nogil except +
+        void setMaxDataPoolSize(Size s) nogil except +
+
+        void setSortSpectraByMZ(bool doSort) nogil except +
+        bool getSortSpectraByMZ() nogil except +
+        void setSortChromatogramsByRT(bool doSort) nogil except +
+        bool getSortChromatogramsByRT() nogil except +
+
+        void setSizeOnly(bool only) nogil except +
+        bool getSizeOnly() nogil except +
+
+        void setFillData(bool only) nogil except +
+        bool getFillData() nogil except +
+
+        void setSkipXMLChecks(bool only) nogil except +
+        bool getSkipXMLChecks() nogil except +
+
+        bool getWriteIndex() nogil except +
+        void setWriteIndex(bool write_index) nogil except +
+
+        NumpressConfig getNumpressConfigurationMassTime() nogil except +
+        void setNumpressConfigurationMassTime(NumpressConfig config) nogil except +
+
+        NumpressConfig getNumpressConfigurationIntensity() nogil except +
+        void setNumpressConfigurationIntensity(NumpressConfig config) nogil except +
 

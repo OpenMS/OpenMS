@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,14 +28,16 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/CrossLinksDB.h>
+#include <OpenMS/CONCEPT/Macros.h>
+
 #include <cstdlib>
 #include <iostream>
 
@@ -48,8 +50,7 @@ namespace OpenMS
     name_("unknown"),
     average_weight_(0.0f),
     mono_weight_(0.0f),
-    is_modified_(false),
-    modification_(""),
+    modification_(0),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
     pka_(0.0),
@@ -58,18 +59,17 @@ namespace OpenMS
   {
   }
 
-  Residue::Residue(const String & name,
-                   const String & three_letter_code,
-                   const String & one_letter_code,
-                   const EmpiricalFormula & formula) :
+  Residue::Residue(const String& name,
+                   const String& three_letter_code,
+                   const String& one_letter_code,
+                   const EmpiricalFormula& formula) :
     name_(name),
     three_letter_code_(three_letter_code),
     one_letter_code_(one_letter_code),
     formula_(formula),
     average_weight_(0),
     mono_weight_(0),
-    is_modified_(false),
-    modification_(""),
+    modification_(0),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
     pka_(0.0),
@@ -79,13 +79,13 @@ namespace OpenMS
     gb_bb_l_(0.0),
     gb_bb_r_(0.0)
   {
-    if (formula_ != "")
+    if (!formula_.isEmpty())
     {
       internal_formula_ = formula_ - getInternalToFull();
     }
   }
 
-  Residue::Residue(const Residue & residue) :
+  Residue::Residue(const Residue& residue) :
     name_(residue.name_),
     short_name_(residue.short_name_),
     synonyms_(residue.synonyms_),
@@ -95,8 +95,6 @@ namespace OpenMS
     internal_formula_(residue.internal_formula_),
     average_weight_(residue.average_weight_),
     mono_weight_(residue.mono_weight_),
-    is_modified_(residue.is_modified_),
-    pre_mod_name_(residue.pre_mod_name_),
     modification_(residue.modification_),
     loss_names_(residue.loss_names_),
     loss_formulas_(residue.loss_formulas_),
@@ -119,7 +117,7 @@ namespace OpenMS
   {
   }
 
-  Residue & Residue::operator=(const Residue & residue)
+  Residue& Residue::operator=(const Residue& residue)
   {
     if (this != &residue)
     {
@@ -132,8 +130,6 @@ namespace OpenMS
       internal_formula_ = residue.internal_formula_;
       average_weight_ = residue.average_weight_;
       mono_weight_ = residue.mono_weight_;
-      is_modified_ = residue.is_modified_;
-      pre_mod_name_ = residue.pre_mod_name_;
       modification_ = residue.modification_;
       loss_names_ = residue.loss_names_;
       loss_formulas_ = residue.loss_formulas_;
@@ -153,12 +149,12 @@ namespace OpenMS
     return *this;
   }
 
-  void Residue::setName(const String & name)
+  void Residue::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & Residue::getName() const
+  const String& Residue::getName() const
   {
     return name_;
   }
@@ -189,15 +185,6 @@ namespace OpenMS
     case Residue::CIon:
       return "c" + ion;
 
-    case Residue::CIonMinusOne:
-      return "c-1" + ion;
-
-    case Residue::CIonPlusOne:
-      return "c+1" + ion;
-
-    case Residue::CIonPlusTwo:
-      return "c+2" + ion;
-
     case Residue::XIon:
       return "x" + ion;
 
@@ -207,63 +194,58 @@ namespace OpenMS
     case Residue::ZIon:
       return "z" + ion;
 
-    case Residue::ZIonMinusOne:
-      return "z-1" + ion;
-
-    case Residue::ZIonPlusOne:
-      return "z+1" + ion;
-
-    case Residue::ZIonPlusTwo:
-      return "z+2" + ion;
-
     default:
       cerr << "Residue::getResidueTypeName: residue type has no name" << endl;
     }
     return "";
   }
 
-  void Residue::setShortName(const String & short_name)
+  void Residue::setShortName(const String& short_name)
   {
     short_name_ = short_name;
   }
 
-  const String & Residue::getShortName() const
+  const String& Residue::getShortName() const
   {
     return short_name_;
   }
 
-  void Residue::setSynonyms(const set<String> & synonyms)
+  void Residue::setSynonyms(const set<String>& synonyms)
   {
     synonyms_ = synonyms;
   }
 
-  void Residue::addSynonym(const String & synonym)
+  void Residue::addSynonym(const String& synonym)
   {
     synonyms_.insert(synonym);
   }
 
-  const set<String> & Residue::getSynonyms() const
+  const set<String>& Residue::getSynonyms() const
   {
     return synonyms_;
   }
 
-  void Residue::setThreeLetterCode(const String & three_letter_code)
+  void Residue::setThreeLetterCode(const String& three_letter_code)
   {
+    OPENMS_PRECONDITION(three_letter_code.empty() || three_letter_code.size() == 3, "Three letter code needs to be a String of size 3")
     three_letter_code_ = three_letter_code;
   }
 
-  const String & Residue::getThreeLetterCode() const
+  const String& Residue::getThreeLetterCode() const
   {
+    OPENMS_POSTCONDITION(three_letter_code_.empty() || three_letter_code_.size() == 3, "Three letter code needs to be a String of size 3")
     return three_letter_code_;
   }
 
-  void Residue::setOneLetterCode(const String & one_letter_code)
+  void Residue::setOneLetterCode(const String& one_letter_code)
   {
+    OPENMS_PRECONDITION(one_letter_code.empty() || one_letter_code.size() == 1, "One letter code needs to be a String of size 1")
     one_letter_code_ = one_letter_code;
   }
 
-  const String & Residue::getOneLetterCode() const
+  const String& Residue::getOneLetterCode() const
   {
+    OPENMS_POSTCONDITION(one_letter_code_.empty() || one_letter_code_.size() == 1, "One letter code needs to be a String of size 1")
     return one_letter_code_;
   }
 
@@ -320,42 +302,42 @@ namespace OpenMS
     pkc_ = value;
   }
 
-  void Residue::setLossFormulas(const vector<EmpiricalFormula> & loss_formulas)
+  void Residue::setLossFormulas(const vector<EmpiricalFormula>& loss_formulas)
   {
     loss_formulas_ = loss_formulas;
   }
 
-  void Residue::addLossFormula(const EmpiricalFormula & loss_formula)
+  void Residue::addLossFormula(const EmpiricalFormula& loss_formula)
   {
     loss_formulas_.push_back(loss_formula);
   }
 
-  const vector<EmpiricalFormula> & Residue::getLossFormulas() const
+  const vector<EmpiricalFormula>& Residue::getLossFormulas() const
   {
     return loss_formulas_;
   }
 
-  void Residue::addLossName(const String & name)
+  void Residue::addLossName(const String& name)
   {
     loss_names_.push_back(name);
   }
 
-  void Residue::setLossNames(const vector<String> & names)
+  void Residue::setLossNames(const vector<String>& names)
   {
     loss_names_ = names;
   }
 
-  const vector<String> & Residue::getLossNames() const
+  const vector<String>& Residue::getLossNames() const
   {
     return loss_names_;
   }
 
-  void Residue::setNTermLossFormulas(const vector<EmpiricalFormula> & NTerm_loss_formulas)
+  void Residue::setNTermLossFormulas(const vector<EmpiricalFormula>& NTerm_loss_formulas)
   {
     NTerm_loss_formulas_ = NTerm_loss_formulas;
   }
 
-  void Residue::addNTermLossFormula(const EmpiricalFormula & NTerm_loss_formula)
+  void Residue::addNTermLossFormula(const EmpiricalFormula& NTerm_loss_formula)
   {
     NTerm_loss_formulas_.push_back(NTerm_loss_formula);
   }
@@ -365,22 +347,22 @@ namespace OpenMS
     return NTerm_loss_formulas_;
   }
 
-  void Residue::addNTermLossName(const String & name)
+  void Residue::addNTermLossName(const String& name)
   {
     NTerm_loss_names_.push_back(name);
   }
 
-  void Residue::setNTermLossNames(const vector<String> & names)
+  void Residue::setNTermLossNames(const vector<String>& names)
   {
     NTerm_loss_names_ = names;
   }
 
-  const vector<String> & Residue::getNTermLossNames() const
+  const vector<String>& Residue::getNTermLossNames() const
   {
     return NTerm_loss_names_;
   }
 
-  void Residue::setFormula(const EmpiricalFormula & formula)
+  void Residue::setFormula(const EmpiricalFormula& formula)
   {
     formula_ = formula;
     internal_formula_ = formula_ - getInternalToFull();
@@ -397,40 +379,28 @@ namespace OpenMS
       return internal_formula_;
 
     case NTerminal:
-      return formula_ - getNTerminalToFull();
+      return internal_formula_ + getInternalToNTerm();
 
     case CTerminal:
-      return formula_ - getCTerminalToFull();
+      return internal_formula_ + getInternalToCTerm();
 
     case BIon:
-      return formula_ - getBIonToFull();
+      return internal_formula_ + getInternalToBIon();
 
     case AIon:
-      return formula_ - getAIonToFull();
-
-    case CIonMinusOne:
-      return formula_ - getCIonMinusOneToFull();
+      return internal_formula_ + getInternalToAIon();
 
     case CIon:
-      return formula_ - EmpiricalFormula("OH") + EmpiricalFormula("NH");
+      return internal_formula_ + getInternalToCIon();
 
     case XIon:
-      return formula_ + getXIonToFull();
+      return internal_formula_ + getInternalToXIon();
 
     case YIon:
-      return formula_ + getYIonToFull();
-
-    case ZIonMinusOne:
-      return formula_ - getZIonMinusOneToFull();
+      return internal_formula_ + getInternalToYIon();
 
     case ZIon:
-      return formula_ - getZIonToFull();
-
-    case ZIonPlusOne:
-      return formula_ - getZIonPlusOneToFull();
-
-    case ZIonPlusTwo:
-      return formula_ - getZIonPlusTwoToFull();
+      return internal_formula_ + getInternalToZIon();
 
     default:
       cerr << "Residue::getFormula: unknown ResidueType" << endl;
@@ -446,55 +416,38 @@ namespace OpenMS
 
   double Residue::getAverageWeight(ResidueType res_type) const
   {
+
     switch (res_type)
     {
     case Full:
       return average_weight_;
 
     case Internal:
-      return average_weight_ - getInternalToFullAverageWeight();
+      return average_weight_ - getInternalToFull().getAverageWeight();
 
     case NTerminal:
-      return average_weight_ - getNTerminalToFullAverageWeight();
+      return average_weight_ + (getInternalToNTerm() - getInternalToFull()).getAverageWeight();
 
     case CTerminal:
-      return average_weight_ - getCTerminalToFullAverageWeight();
+      return average_weight_ + (getInternalToCTerm() - getInternalToFull()).getAverageWeight();
 
     case BIon:
-      return average_weight_ - getBIonToFullAverageWeight();
+      return average_weight_ + (getInternalToBIon() - getInternalToFull()).getAverageWeight();
 
     case AIon:
-      return average_weight_ - getAIonToFullAverageWeight();
-
-    case CIonMinusOne:
-      return average_weight_ - getCIonMinusOneToFullAverageWeight();
+      return average_weight_ + (getInternalToAIon() - getInternalToFull()).getAverageWeight();
 
     case CIon:
-      return average_weight_ - EmpiricalFormula("OH").getAverageWeight() + EmpiricalFormula("NH").getAverageWeight();
-
-    case CIonPlusOne:
-      return average_weight_ - getCIonPlusOneToFullAverageWeight();
-
-    case CIonPlusTwo:
-      return average_weight_ - getCIonPlusTwoToFullAverageWeight();
+      return average_weight_ + (getInternalToCIon() - getInternalToFull()).getAverageWeight();
 
     case XIon:
-      return average_weight_ + getXIonToFullAverageWeight();
+      return average_weight_ + (getInternalToXIon() - getInternalToFull()).getAverageWeight();
 
     case YIon:
-      return average_weight_ + getYIonToFullAverageWeight();
-
-    case ZIonMinusOne:
-      return average_weight_ - getZIonMinusOneToFullAverageWeight();
+      return average_weight_ + (getInternalToYIon() - getInternalToFull()).getAverageWeight();
 
     case ZIon:
-      return average_weight_ - getZIonToFullAverageWeight();
-
-    case ZIonPlusOne:
-      return average_weight_ - getZIonPlusOneToFullAverageWeight();
-
-    case ZIonPlusTwo:
-      return average_weight_ - getZIonPlusTwoToFullAverageWeight();
+      return average_weight_ + (getInternalToZIon() - getInternalToFull()).getAverageWeight();
 
     default:
       cerr << "Residue::getAverageWeight: unknown ResidueType" << endl;
@@ -516,49 +469,31 @@ namespace OpenMS
       return mono_weight_;
 
     case Internal:
-      return mono_weight_ - getInternalToFullMonoWeight();
+      return mono_weight_ - getInternalToFull().getMonoWeight();
 
     case NTerminal:
-      return mono_weight_ - getNTerminalToFullMonoWeight();
+      return mono_weight_ + (getInternalToNTerm() - getInternalToFull()).getMonoWeight();
 
     case CTerminal:
-      return mono_weight_ - getCTerminalToFullMonoWeight();
+      return mono_weight_ + (getInternalToCTerm() - getInternalToFull()).getMonoWeight();
 
     case BIon:
-      return mono_weight_ - getBIonToFullMonoWeight();
+      return mono_weight_ + (getInternalToBIon() - getInternalToFull()).getMonoWeight();
 
     case AIon:
-      return mono_weight_ - getAIonToFullMonoWeight();
-
-    case CIonMinusOne:
-      return mono_weight_ - getCIonMinusOneToFullMonoWeight();
+      return mono_weight_ + (getInternalToAIon() - getInternalToFull()).getMonoWeight();
 
     case CIon:
-      return mono_weight_ - EmpiricalFormula("OH").getMonoWeight() + EmpiricalFormula("NH").getMonoWeight();
-
-    case CIonPlusOne:
-      return mono_weight_ - getCIonPlusOneToFullMonoWeight();
-
-    case CIonPlusTwo:
-      return mono_weight_ - getCIonPlusTwoToFullMonoWeight();
+      return mono_weight_ + (getInternalToCIon() - getInternalToFull()).getMonoWeight();
 
     case XIon:
-      return mono_weight_ + getXIonToFullMonoWeight();
+      return mono_weight_ + (getInternalToXIon() - getInternalToFull()).getMonoWeight();
 
     case YIon:
-      return mono_weight_ + getYIonToFullMonoWeight();
-
-    case ZIonMinusOne:
-      return mono_weight_ - getZIonMinusOneToFullMonoWeight();
+      return mono_weight_ + (getInternalToYIon() - getInternalToFull()).getMonoWeight();
 
     case ZIon:
-      return mono_weight_ - getZIonToFullMonoWeight();
-
-    case ZIonPlusOne:
-      return mono_weight_ - getZIonPlusOneToFullMonoWeight();
-
-    case ZIonPlusTwo:
-      return mono_weight_ - getZIonPlusTwoToFullMonoWeight();
+      return mono_weight_ + (getInternalToZIon() - getInternalToFull()).getMonoWeight();
 
     default:
       cerr << "Residue::getMonoWeight: unknown ResidueType" << endl;
@@ -566,14 +501,10 @@ namespace OpenMS
     }
   }
 
-  void Residue::setModification(const String & modification)
+  void Residue::setModification_(const ResidueModification& mod)
   {
-    //modification_ = modification;
+    modification_ = &mod;
 
-    ModificationsDB * mod_db = ModificationsDB::getInstance();
-    ResidueModification mod = mod_db->getModification(one_letter_code_, modification, ResidueModification::ANYWHERE);
-
-    modification_ = mod.getId();
     // update all the members
     if (mod.getAverageMass() != 0)
     {
@@ -583,9 +514,15 @@ namespace OpenMS
     {
       mono_weight_ = mod.getMonoMass();
     }
+    // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
+    // as in the case of XLMOD.obo modifications
+    if ( (mod.getMonoMass() == 0) && (mod.getDiffMonoMass() != 0) )
+    {
+      mono_weight_ += mod.getDiffMonoMass();
+    }
 
     bool updated_formula(false);
-    if (mod.getDiffFormula() != "")
+    if (!mod.getDiffFormula().isEmpty())
     {
       updated_formula = true;
       setFormula(getFormula() + mod.getDiffFormula());
@@ -595,7 +532,7 @@ namespace OpenMS
       updated_formula = true;
       String formula = mod.getFormula();
       formula.removeWhitespaces();
-      formula_ = formula;
+      formula_ = EmpiricalFormula(formula);
     }
 
     if (updated_formula)
@@ -623,21 +560,32 @@ namespace OpenMS
       loss_formulas_.push_back(mod.getNeutralLossDiffFormula());
       loss_names_.push_back(mod.getNeutralLossDiffFormula().toString());
     }
-
-    is_modified_ = true;
   }
 
-  const String & Residue::getModification() const
+  const ResidueModification* Residue::getModification() const
   {
     return modification_;
   }
 
-  void Residue::setLowMassIons(const vector<EmpiricalFormula> & low_mass_ions)
+  void Residue::setModification(const String& name)
+  {
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    const ResidueModification& mod = mod_db->getModification(name, one_letter_code_, ResidueModification::ANYWHERE);
+    setModification_(mod);
+  }
+
+  const String& Residue::getModificationName() const
+  {
+    if (modification_ == 0) return String::EMPTY;
+    return modification_->getId();
+  }
+
+  void Residue::setLowMassIons(const vector<EmpiricalFormula>& low_mass_ions)
   {
     low_mass_ions_ = low_mass_ions;
   }
 
-  const vector<EmpiricalFormula> & Residue::getLowMassIons() const
+  const vector<EmpiricalFormula>& Residue::getLowMassIons() const
   {
     return low_mass_ions_;
   }
@@ -672,7 +620,7 @@ namespace OpenMS
     gb_sc_ = gb_sc;
   }
 
-  void Residue::setResidueSets(const set<String> & residue_sets)
+  void Residue::setResidueSets(const set<String>& residue_sets)
   {
     residue_sets_ = residue_sets;
   }
@@ -682,14 +630,14 @@ namespace OpenMS
     return residue_sets_;
   }
 
-  void Residue::addResidueSet(const String & residue_set)
+  void Residue::addResidueSet(const String& residue_set)
   {
     residue_sets_.insert(residue_set);
   }
 
   bool Residue::isModified() const
   {
-    return is_modified_;
+    return modification_ != 0;
   }
 
   bool Residue::hasNeutralLoss() const
@@ -702,7 +650,7 @@ namespace OpenMS
     return !NTerm_loss_formulas_.empty();
   }
 
-  bool Residue::operator==(const Residue & residue) const
+  bool Residue::operator==(const Residue& residue) const
   {
     return name_ == residue.name_ &&
            short_name_ == residue.short_name_ &&
@@ -712,8 +660,6 @@ namespace OpenMS
            formula_ == residue.formula_ &&
            average_weight_ == residue.average_weight_ &&
            mono_weight_ == residue.mono_weight_ &&
-           is_modified_ == residue.is_modified_ &&
-           pre_mod_name_ == residue.pre_mod_name_ &&
            modification_ == residue.modification_ &&
            loss_names_ == residue.loss_names_ &&
            loss_formulas_ == residue.loss_formulas_ &&
@@ -741,17 +687,17 @@ namespace OpenMS
     return one_letter_code_[0] != one_letter_code;
   }
 
-  bool Residue::operator!=(const Residue & residue) const
+  bool Residue::operator!=(const Residue& residue) const
   {
     return !(*this == residue);
   }
 
-  bool Residue::isInResidueSet(const String & residue_set)
+  bool Residue::isInResidueSet(const String& residue_set)
   {
     return residue_sets_.find(residue_set) != residue_sets_.end();
   }
 
-  ostream & operator<<(ostream & os, const Residue & residue)
+  ostream& operator<<(ostream& os, const Residue& residue)
   {
     os << residue.name_ << " "
     << residue.three_letter_code_ << " "

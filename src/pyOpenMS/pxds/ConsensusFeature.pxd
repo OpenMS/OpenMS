@@ -2,10 +2,10 @@ from libcpp cimport bool
 from Types cimport *
 from BaseFeature cimport *
 from Peak2D cimport *
-from RichPeak2D cimport *
 from UniqueIdInterface cimport *
 from FeatureMap cimport *
 from BaseFeature cimport *
+from FeatureHandle cimport *
 from PeptideIdentification cimport *
 
 cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
 
         void computeConsensus()    nogil except +
         void computeMonoisotopicConsensus()    nogil except +
-        void computeDechargeConsensus(FeatureMap[Feature], bool)    nogil except +
+        void computeDechargeConsensus(FeatureMap, bool)    nogil except +
 
         void insert(UInt64, Peak2D, UInt64) nogil except +
         void insert(UInt64, BaseFeature) nogil except +
@@ -40,6 +40,8 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
 
         Int getCharge() nogil except +
         void setCharge(Int q) nogil except +
+
+        libcpp_vector[FeatureHandle] getFeatureList() nogil except +
 
         Size size() nogil except +
 
@@ -67,6 +69,9 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         void setRatios(libcpp_vector[Ratio] rs) nogil except +
         libcpp_vector[Ratio] getRatios() nogil except +
 
+        void clear() nogil except +
+        bool empty() nogil except +
+
         # # Returns the position range of the contained elements
         # DRange2 getPositionRange() nogil except +
         # # Returns the intensity range of the contained elements
@@ -84,5 +89,3 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS::Consens
       String denominator_ref_
       String numerator_ref_
       libcpp_vector[String] description_
-
-

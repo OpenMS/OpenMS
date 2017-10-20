@@ -1,19 +1,17 @@
-from smart_ptr cimport shared_ptr
-from libcpp.vector cimport vector as libcpp_vector
+from Types cimport *
+from String cimport *
 from OpenSwathDataStructures cimport *
-from MSExperiment cimport *
+from ISpectrumAccess cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>" namespace "OpenMS":
 
   # TODO missing functions
-  cdef cppclass SpectrumAccessOpenMSCached:
+  cdef cppclass SpectrumAccessOpenMSCached(ISpectrumAccess):
+        # wrap-inherits:
+        #  ISpectrumAccess
+
+        SpectrumAccessOpenMSCached() # wrap-pass-constructor
+
         SpectrumAccessOpenMSCached(String filename) nogil except +
+        SpectrumAccessOpenMSCached(SpectrumAccessOpenMSCached q) nogil except + # wrap-ignore
 
-        shared_ptr[OSSpectrum] getSpectrumById(int id) nogil except + # wrap-ignore
-        libcpp_vector[size_t] getSpectraByRT(double RT, double deltaRT) nogil except +
-        size_t getNrSpectra() nogil except +
-
-        shared_ptr[OSChromatogram] getChromatogramById(int id) nogil except + # wrap-ignore
-        size_t getNrChromatograms() nogil except +
-
-        libcpp_string getChromatogramNativeID(int id_) nogil except +

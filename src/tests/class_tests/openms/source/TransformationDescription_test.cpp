@@ -1,34 +1,34 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -38,8 +38,10 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <vector>
+#include <sstream>
 
 ///////////////////////////
 
@@ -69,6 +71,11 @@ data.push_back(make_pair(0.25, 1.5));
 data.push_back(make_pair(0.5, 2.0));
 data.push_back(make_pair(1.0, 3.0));
 
+TransformationDescription::DataPoints data_nonlinear;
+data_nonlinear.push_back(make_pair(0.0, 1.0));
+data_nonlinear.push_back(make_pair(0.25, 1.0625));
+data_nonlinear.push_back(make_pair(0.5, 1.25));
+data_nonlinear.push_back(make_pair(1.0, 2.0));
 
 
 START_SECTION((TransformationDescription(const DataPoints& data)))
@@ -101,7 +108,29 @@ START_SECTION((void setDataPoints(const DataPoints& data)))
 	TransformationDescription::DataPoints empty;
   empty.clear();
 	td.setDataPoints(empty);
-	TEST_EQUAL(td.getDataPoints().empty(), true)
+	TEST_EQUAL(td.getDataPoints().empty(), true);
+}
+END_SECTION
+
+START_SECTION((void setDataPoints(const vector<pair<double, double> >& data)))
+{
+	TransformationDescription td;
+	td.fitModel("identity", Param());
+	TEST_EQUAL(td.getModelType(), "identity");
+  vector<pair<double, double> > pairs;
+  pairs.push_back(make_pair(0.0, 1.0));
+  pairs.push_back(make_pair(0.25, 1.5));
+  pairs.push_back(make_pair(0.5, 2.0));
+  pairs.push_back(make_pair(1.0, 3.0));
+	td.setDataPoints(pairs);
+	// setting data points clears the model:
+	TEST_EQUAL(td.getModelType(), "none");
+	TEST_EQUAL(td.getDataPoints().size(), 4)
+	TEST_EQUAL(td.getDataPoints() == data, true);
+
+  pairs.clear();
+	td.setDataPoints(pairs);
+	TEST_EQUAL(td.getDataPoints().empty(), true);
 }
 END_SECTION
 
@@ -125,13 +154,13 @@ START_SECTION((static void getModelTypes(StringList& result)))
 {
 	StringList result;
 	TransformationDescription::getModelTypes(result);
-	TEST_EQUAL(result.size(), 3);
+	TEST_EQUAL(result.size(), 4);
 	TEST_EQUAL(result.at(0), "linear");
 	TEST_EQUAL(result.at(1), "b_spline");
 	TEST_EQUAL(result.at(2), "interpolated");
+	TEST_EQUAL(result.at(3), "lowess");
 }
 END_SECTION
-
 
 START_SECTION((void fitModel(const String& model_type, const Param& params=Param())))
 {
@@ -142,16 +171,83 @@ START_SECTION((void fitModel(const String& model_type, const Param& params=Param
 	TEST_REAL_SIMILAR(td.apply(0.0), 1.0);
 	TEST_REAL_SIMILAR(td.apply(0.5), 2.0);
 	TEST_REAL_SIMILAR(td.apply(1.0), 3.0);
-	
+
+  // non-linear model (b spline)
+	td.fitModel("b_spline", params);
+	TEST_EQUAL(td.getModelType(), "b_spline");
+	TEST_REAL_SIMILAR(td.apply(0.0), 1.064201730);
+	TEST_REAL_SIMILAR(td.apply(0.5), 1.957836652);
+	TEST_REAL_SIMILAR(td.apply(1.0), 2.927541901);
+
+  // non-linear model (lowess)
+	td.fitModel("lowess", params);
+	TEST_EQUAL(td.getModelType(), "lowess");
+	TEST_REAL_SIMILAR(td.apply(0.0), 1.0);
+	TEST_REAL_SIMILAR(td.apply(0.5), 2.0);
+	TEST_REAL_SIMILAR(td.apply(1.0), 3.0);
+
   // special model type for reference files:
 	td.fitModel("identity", Param());
 	TEST_EQUAL(td.getModelType(), "identity");
 	TEST_REAL_SIMILAR(td.apply(0.0), 0.0);
 	TEST_REAL_SIMILAR(td.apply(0.5), 0.5);
 	TEST_REAL_SIMILAR(td.apply(1.0), 1.0);
+
 	// can't fit a different model to an "identity" transformation:
 	td.fitModel("linear", params);
 	TEST_EQUAL(td.getModelType(), "identity");
+
+  {
+    // non-linear model (b spline)
+    TransformationDescription td_nl(data_nonlinear);
+    td_nl.fitModel("b_spline", params);
+    TEST_EQUAL(td_nl.getModelType(), "b_spline");
+    TEST_REAL_SIMILAR(td_nl.apply(0.0), 1.01084556836969);
+    TEST_REAL_SIMILAR(td_nl.apply(0.5), 1.26289804387079);
+    TEST_REAL_SIMILAR(td_nl.apply(0.75), 1.53463130131214);
+    TEST_REAL_SIMILAR(td_nl.apply(1.0), 1.94984504419826);
+
+    // non-linear model (lowess)
+    td_nl.fitModel("lowess", params);
+    TEST_EQUAL(td_nl.getModelType(), "lowess");
+    TEST_REAL_SIMILAR(td_nl.apply(0.0), 1.0);
+    TEST_REAL_SIMILAR(td_nl.apply(0.5), 1.25);
+    TEST_REAL_SIMILAR(td_nl.apply(0.75), 1.58423913043478);
+    TEST_REAL_SIMILAR(td_nl.apply(1.0), 2.0);
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA]void fitModel(const String& model_type, const Param& params=Param())))
+{
+  // Check whether we can change the parameters and get different behavior
+	TransformationDescription td(data);
+	Param params;
+
+  // for lowess
+  params.setValue("interpolation_type", "linear");
+
+  // for b spline
+  params.setValue("extrapolate", "b_spline");
+
+  // non-linear model (b spline)
+  TransformationDescription td_nl(data_nonlinear);
+  td_nl.fitModel("b_spline", params);
+  TEST_EQUAL(td_nl.getModelType(), "b_spline");
+  TEST_REAL_SIMILAR(td_nl.apply(0.0), 1.01084556836969);
+  TEST_REAL_SIMILAR(td_nl.apply(0.5), 1.26289804387079);
+  TEST_REAL_SIMILAR(td_nl.apply(0.75), 1.53463130131214);
+  TEST_REAL_SIMILAR(td_nl.apply(1.0), 1.94984504419826);
+  TEST_REAL_SIMILAR(td_nl.apply(2.0), 1.328125); // b-spline extrapolation
+
+  // non-linear model (lowess)
+  td_nl.fitModel("lowess", params);
+  TEST_EQUAL(td_nl.getModelType(), "lowess");
+  TEST_REAL_SIMILAR(td_nl.apply(0.0), 1.0);
+  TEST_REAL_SIMILAR(td_nl.apply(0.5), 1.25);
+  TEST_REAL_SIMILAR(td_nl.apply(0.75), 1.625); // linear interpolation between points
+  TEST_REAL_SIMILAR(td_nl.apply(1.0), 2.0);
+  TEST_REAL_SIMILAR(td_nl.apply(2.0), 3.5);
 }
 END_SECTION
 
@@ -198,7 +294,6 @@ END_SECTION
 
 START_SECTION((void invert()))
 {
-
 	// test null transformation:
 	TransformationDescription td;
 	td.fitModel("none", Param());
@@ -211,7 +306,6 @@ START_SECTION((void invert()))
   td1.invert();
   td1.invert();
   TEST_EQUAL(td1.getDataPoints() == data, true);
-
 
 	// test linear transformation:
   TransformationDescription td2;
@@ -235,8 +329,6 @@ START_SECTION((void invert()))
 	TEST_REAL_SIMILAR(td3.apply(4.0), 1.5);//control interpolation values
 	TEST_REAL_SIMILAR(td3.apply(5.0), 2.0);//control interpolation values
 
-
-
 	// test interpolated-linear transformation:
 	TransformationDescription td4;
 	td4.setDataPoints(data);
@@ -253,6 +345,72 @@ START_SECTION((void invert()))
 }
 END_SECTION
 
+START_SECTION((void getDeviations(std::vector<double>& diffs, bool do_apply = false, bool do_sort = true) const))
+{
+  vector<double> diffs;
+	TransformationDescription td(data_nonlinear);
+  td.fitModel("linear");
+  td.getDeviations(diffs);
+  TEST_EQUAL(diffs.size(), 4);
+  TEST_REAL_SIMILAR(diffs[0], 0.75);
+  TEST_REAL_SIMILAR(diffs[1], 0.8125);
+  TEST_REAL_SIMILAR(diffs[2], 1.0);
+  TEST_REAL_SIMILAR(diffs[3], 1.0);
+
+  td.getDeviations(diffs, true, false);
+  TEST_EQUAL(diffs.size(), 4);
+  TEST_REAL_SIMILAR(diffs[0], 0.125);
+  TEST_REAL_SIMILAR(diffs[1], 0.0714286);
+  TEST_REAL_SIMILAR(diffs[2], 0.142857);
+  TEST_REAL_SIMILAR(diffs[3], 0.0892857);
+}
+END_SECTION
+
+START_SECTION((void printSummary(std::ostream& os = std::cout) const))
+{
+  stringstream ss;
+	TransformationDescription td(data_nonlinear);
+  td.printSummary(ss);
+  string expected =
+    "Number of data points (x/y pairs): 4\n"
+    "Data range (x): 0 to 1\n"
+    "Data range (y): 1 to 2\n"
+    "Summary of x/y deviations:\n"
+    "- 100% of data points within (+/-)1\n"
+    "-  99% of data points within (+/-)1\n"
+    "-  95% of data points within (+/-)1\n"
+    "-  90% of data points within (+/-)1\n"
+    "-  75% of data points within (+/-)1\n"
+    "-  50% of data points within (+/-)0.8125\n"
+    "-  25% of data points within (+/-)0.75\n\n";
+  TEST_STRING_EQUAL(ss.str(), expected);
+
+  ss.str("");
+	td.fitModel("linear");
+  td.printSummary(ss);
+  expected =
+    "Number of data points (x/y pairs): 4\n"
+    "Data range (x): 0 to 1\n"
+    "Data range (y): 1 to 2\n"
+    "Summary of x/y deviations before transformation:\n"
+    "- 100% of data points within (+/-)1\n"
+    "-  99% of data points within (+/-)1\n"
+    "-  95% of data points within (+/-)1\n"
+    "-  90% of data points within (+/-)1\n"
+    "-  75% of data points within (+/-)1\n"
+    "-  50% of data points within (+/-)0.8125\n"
+    "-  25% of data points within (+/-)0.75\n"
+    "Summary of x/y deviations after applying 'linear' transformation:\n"
+    "- 100% of data points within (+/-)0.142857\n"
+    "-  99% of data points within (+/-)0.125\n"
+    "-  95% of data points within (+/-)0.125\n"
+    "-  90% of data points within (+/-)0.125\n"
+    "-  75% of data points within (+/-)0.125\n"
+    "-  50% of data points within (+/-)0.0892857\n"
+    "-  25% of data points within (+/-)0.0714286\n\n";
+  TEST_STRING_EQUAL(ss.str(), expected);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
