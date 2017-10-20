@@ -220,7 +220,7 @@ namespace OpenMS
       Size l = fragment_positions[i] - fragment_positions[i - 1];
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(sequence.substr(pep_positions[i - 1], l));
+        output.push_back(sequence.substr(fragment_positions[i - 1], l));
       }
     }
 
@@ -228,7 +228,7 @@ namespace OpenMS
     Size l = sequence.size() - fragment_positions[count - 1];
     if (l >= min_length && l <= max_length)
     {
-      output.push_back(sequence.substr(pep_positions[count - 1], l));
+      output.push_back(sequence.substr(fragment_positions[count - 1], l));
     }
 
     // generate fragments with missed cleavages
@@ -239,7 +239,7 @@ namespace OpenMS
         Size l = fragment_positions[j + i] - fragment_positions[j - 1];
         if (l >= min_length && l <= max_length)
         {
-          output.push_back(sequence.substr(pep_positions[j - 1], l));
+          output.push_back(sequence.substr(fragment_positions[j - 1], l));
         }
       }
 
@@ -247,7 +247,7 @@ namespace OpenMS
       Size l = sequence.size() - fragment_positions[count - i - 1];
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(sequence.substr(pep_positions[count - i - 1], l));
+        output.push_back(sequence.substr(fragment_positions[count - i - 1], l));
       }
     }
   }
