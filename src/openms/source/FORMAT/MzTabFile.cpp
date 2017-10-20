@@ -2060,7 +2060,7 @@ namespace OpenMS
     return ListUtils::concatenate(header, "\t");
   }
 
-  String MzTabFile::generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const vector<String>& optional_columns) const
+  String MzTabFile::generateMzTabSectionRow_(const MzTabProteinSectionRow& row, const vector<String>& optional_columns) const
   {
     StringList s;
     s.push_back("PRT");
@@ -2130,8 +2130,7 @@ namespace OpenMS
     std::map<Size, MzTabDouble>::const_iterator sv_stdev_it = row.protein_abundance_stdev_study_variable.begin();
     std::map<Size, MzTabDouble>::const_iterator sv_error_it = row.protein_abundance_std_error_study_variable.begin();
 
-    for (;
-         sv_it != row.protein_abundance_study_variable.end()
+    for (; sv_it != row.protein_abundance_study_variable.end()
            && sv_stdev_it != row.protein_abundance_stdev_study_variable.end()
            && sv_error_it != row.protein_abundance_std_error_study_variable.end();
          ++sv_it, ++sv_stdev_it, ++sv_error_it)
@@ -2141,52 +2140,9 @@ namespace OpenMS
       s.push_back(sv_error_it->second.toCellString());
     }
 
-    // print optional columns
-    for (vector<String>::const_iterator it = optional_columns.begin(); it != optional_columns.end(); ++it)
-    {
-      bool found = false;
-      for (Size i = 0; i != row.opt_.size(); ++i)
-      {
-        if (row.opt_[i].first == *it)
-        {
-          s.push_back(row.opt_[i].second.toCellString());
-          found = true;
-          break;
-        }
-      }
-      if (!found)
-      {
-        s.push_back(MzTabString("null").toCellString());
-      }
-    }
+    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
 
     return ListUtils::concatenate(s, "\t");
-  }
-
-  void MzTabFile::generateMzTabProteinSection_(const MzTabProteinSectionRows& rows, StringList& sl, const vector<String>& optional_columns) const
-  {
-    for (MzTabProteinSectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
-    {
-      sl.push_back(generateMzTabProteinSectionRow_(*it, optional_columns));
-    }
-    sl.push_back(String("\n"));
-  }
-
-  void MzTabFile::generateMzTabPeptideSection_(const MzTabPeptideSectionRows& rows, StringList& sl, const vector<String>& optional_columns) const
-  {
-    for (MzTabPeptideSectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
-    {
-      sl.push_back(generateMzTabPeptideSectionRow_(*it, optional_columns));
-    }
-    sl.push_back(String("\n"));
-  }
-
-  void MzTabFile::generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionRows& rows, StringList& sl, const std::vector<String>& optional_columns) const
-  {
-    for (MzTabSmallMoleculeSectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
-    {
-      sl.push_back(generateMzTabSmallMoleculeSectionRow_(*it, optional_columns));
-    }
   }
 
   String MzTabFile::generateMzTabPeptideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_scores, Size assays, Size study_variables, const vector<String>& optional_columns) const
@@ -2292,7 +2248,7 @@ namespace OpenMS
     return ListUtils::concatenate(header, "\t");
   }
 
-  String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row, const vector<String>& optional_columns) const
+  String MzTabFile::generateMzTabSectionRow_(const MzTabPeptideSectionRow& row, const vector<String>& optional_columns) const
   {
     StringList s;
     s.push_back("PEP");
@@ -2355,38 +2311,12 @@ namespace OpenMS
       s.push_back(sv_error_it->second.toCellString());
     }
 
-    // print optional columns
-    for (vector<String>::const_iterator it = optional_columns.begin(); it != optional_columns.end(); ++it)
-    {
-      bool found = false;
-      for (Size i = 0; i != row.opt_.size(); ++i)
-      {
-        if (row.opt_[i].first == *it)
-        {
-          s.push_back(row.opt_[i].second.toCellString());
-          found = true;
-          break;
-        }
-      }
-      if (!found)
-      {
-        s.push_back(MzTabString("null").toCellString());
-      }
-    }
+    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
 
     return ListUtils::concatenate(s, "\t");
   }
 
-  void MzTabFile::generateMzTabPSMSection_(const MzTabPSMSectionRows& rows, StringList& sl, const vector<String>& optional_columns) const
-  {
-    for (MzTabPSMSectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
-    {
-      sl.push_back(generateMzTabPSMSectionRow_(*it, optional_columns));
-    }
-    sl.push_back(String("\n"));
-  }
-
-  String MzTabFile::generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns) const
+  String MzTabFile::generateMzTabSectionRow_(const MzTabPSMSectionRow& row, const vector<String>& optional_columns) const
   {
     StringList s;
     s.push_back("PSM");
@@ -2425,24 +2355,7 @@ namespace OpenMS
     s.push_back(row.start.toCellString());
     s.push_back(row.end.toCellString());
 
-    // print optional columns
-    for (vector<String>::const_iterator it = optional_columns.begin(); it != optional_columns.end(); ++it)
-    {
-      bool found = false;
-      for (Size i = 0; i != row.opt_.size(); ++i)
-      {
-        if (row.opt_[i].first == *it)
-        {
-          s.push_back(row.opt_[i].second.toCellString());
-          found = true;
-          break;
-        }
-      }
-      if (!found)
-      {
-        s.push_back(MzTabString("null").toCellString());
-      }
-    }
+    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
 
     return ListUtils::concatenate(s, "\t");
   }
@@ -2511,7 +2424,7 @@ namespace OpenMS
     return ListUtils::concatenate(header, "\t");
   }
 
-  String MzTabFile::generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns) const
+  String MzTabFile::generateMzTabSectionRow_(const MzTabSmallMoleculeSectionRow& row, const std::vector<String>& optional_columns) const
   {
     StringList s;
     s.push_back("SML");
@@ -2573,26 +2486,317 @@ namespace OpenMS
       s.push_back(sv_error_it->second.toCellString());
     }
 
-    // print optional columns
-    for (vector<String>::const_iterator it = optional_columns.begin(); it != optional_columns.end(); ++it)
+    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+
+    return ListUtils::concatenate(s, "\t");
+  }
+
+  String MzTabFile::generateMzTabNucleicAcidHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_scores, const std::vector<String>& optional_columns) const
+  {
+    StringList header;
+    header.push_back("NUH");
+    header.push_back("accession");
+    header.push_back("description");
+    header.push_back("taxid");
+    header.push_back("species");
+    header.push_back("database");
+    header.push_back("database_version");
+    header.push_back("search_engine");
+
+    for (Size i = 0; i != n_best_search_engine_scores; ++i)
+    {
+      header.push_back(String("best_search_engine_score[") + String(i + 1) + String("]"));
+    }
+
+    for (Size i = 0; i != search_ms_runs; ++i)
+    {
+      for (Size j = 0; j != n_search_engine_scores; ++j)
+      {
+        header.push_back(String("search_engine_score[" + String(j + 1) + "]_ms_run[") + String(i + 1) + String("]"));
+      }
+    }
+
+    if (store_nucleic_acid_reliability_)
+    {
+      header.push_back("reliability");
+    }
+
+    for (Size i = 0; i != search_ms_runs; ++i)
+    {
+      header.push_back(String("num_osms_ms_run[") + String(i) + String("]"));
+    }
+
+    for (Size i = 0; i != search_ms_runs; ++i)
+    {
+      header.push_back(String("num_oligos_distinct_ms_run[") + String(i) + String("]"));
+    }
+
+    for (Size i = 0; i != search_ms_runs; ++i)
+    {
+      header.push_back(String("num_oligos_unique_ms_run[") + String(i) + String("]"));
+    }
+
+    header.push_back("ambiguity_members");
+    header.push_back("modifications");
+
+    if (store_nucleic_acid_uri_)
+    {
+      header.push_back("uri");
+    }
+
+    if (store_nucleic_acid_goterms_)
+    {
+      header.push_back("go_terms");
+    }
+
+    header.push_back("sequence_coverage");
+
+    std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
+
+    return ListUtils::concatenate(header, "\t");
+  }
+
+  String MzTabFile::generateMzTabSectionRow_(const MzTabNucleicAcidSectionRow& row, const vector<String>& optional_columns) const
+  {
+    StringList s;
+    s.push_back("NUC");
+    s.push_back(row.accession.toCellString());
+    s.push_back(row.description.toCellString());
+    s.push_back(row.taxid.toCellString());
+    s.push_back(row.species.toCellString());
+    s.push_back(row.database.toCellString());
+    s.push_back(row.database_version.toCellString());
+    s.push_back(row.search_engine.toCellString());
+
+    for (map<Size, MzTabDouble>::const_iterator it = row.best_search_engine_score.begin(); it != row.best_search_engine_score.end(); ++it)
+    {
+      s.push_back(it->second.toCellString());
+    }
+
+    for (std::map<Size, std::map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+    {
+      for (std::map<Size, MzTabDouble>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+      {
+        s.push_back(sit->second.toCellString());
+      }
+    }
+
+    if (store_nucleic_acid_reliability_)
+    {
+      s.push_back(row.reliability.toCellString());
+    }
+
+    for (std::map<Size, MzTabInteger>::const_iterator it = row.num_osms_ms_run.begin(); it != row.num_osms_ms_run.end(); ++it)
+    {
+      s.push_back(it->second.toCellString());
+    }
+
+    for (std::map<Size, MzTabInteger>::const_iterator it = row.num_oligos_distinct_ms_run.begin(); it != row.num_oligos_distinct_ms_run.end(); ++it)
+    {
+      s.push_back(it->second.toCellString());
+    }
+
+    for (std::map<Size, MzTabInteger>::const_iterator it = row.num_oligos_unique_ms_run.begin(); it != row.num_oligos_unique_ms_run.end(); ++it)
+    {
+      s.push_back(it->second.toCellString());
+    }
+
+    s.push_back(row.ambiguity_members.toCellString());
+    s.push_back(row.modifications.toCellString());
+
+    if (store_nucleic_acid_uri_)
+    {
+      s.push_back(row.uri.toCellString());
+    }
+
+    if (store_nucleic_acid_goterms_)
+    {
+      s.push_back(row.go_terms.toCellString());
+    }
+
+    s.push_back(row.sequence_coverage.toCellString());
+
+    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+
+    return ListUtils::concatenate(s, "\t");
+  }
+
+  String MzTabFile::generateMzTabOligonucleotideHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_scores, const vector<String>& optional_columns) const
+  {
+    StringList header;
+    header.push_back("OLH");
+    header.push_back("sequence");
+    header.push_back("accession");
+    header.push_back("unique");
+    header.push_back("search_engine");
+
+    for (Size i = 0; i != n_best_search_engine_scores; ++i)
+    {
+      header.push_back(String("best_search_engine_score[") + String(i + 1) + String("]"));
+    }
+
+    for (Size i = 0; i != search_ms_runs; ++i)
+    {
+      for (Size j = 0; j != n_search_engine_scores; ++j)
+      {
+        header.push_back(String("search_engine_score[" + String(j + 1) + "]_ms_run[") + String(i + 1) + String("]"));
+      }
+    }
+
+    if (store_oligonucleotide_reliability_)
+    {
+      header.push_back("reliability");
+    }
+
+    header.push_back("modifications");
+    header.push_back("retention_time");
+    header.push_back("retention_time_window");
+
+    if (store_oligonucleotide_uri_)
+    {
+      header.push_back("uri");
+    }
+
+    header.push_back("pre");
+    header.push_back("post");
+    header.push_back("start");
+    header.push_back("end");
+
+    std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
+
+    return ListUtils::concatenate(header, "\t");
+  }
+
+  String MzTabFile::generateMzTabSectionRow_(const MzTabOligonucleotideSectionRow& row, const vector<String>& optional_columns) const
+  {
+    StringList s;
+    s.push_back("OLI");
+    s.push_back(row.sequence.toCellString());
+    s.push_back(row.accession.toCellString());
+    s.push_back(row.unique.toCellString());
+    s.push_back(row.search_engine.toCellString());
+
+    for (map<Size, MzTabDouble>::const_iterator it = row.best_search_engine_score.begin(); it != row.best_search_engine_score.end(); ++it)
+    {
+      s.push_back(it->second.toCellString());
+    }
+
+    for (map<Size, map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+    {
+      for (map<Size, MzTabDouble>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+      {
+        s.push_back(sit->second.toCellString());
+      }
+    }
+
+    if (store_oligonucleotide_reliability_)
+    {
+      s.push_back(row.reliability.toCellString());
+    }
+
+    s.push_back(row.modifications.toCellString());
+    s.push_back(row.retention_time.toCellString());
+    s.push_back(row.retention_time_window.toCellString());
+
+    if (store_oligonucleotide_uri_)
+    {
+      s.push_back(row.uri.toCellString());
+    }
+
+    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+
+    return ListUtils::concatenate(s, "\t");
+  }
+
+  String MzTabFile::generateMzTabOSMHeader_(Size n_search_engine_scores, const vector<String>& optional_columns) const
+  {
+    StringList header;
+    header.push_back("OSH");
+    header.push_back("sequence");
+    header.push_back("search_engine");
+
+    for (Size i = 0; i != n_search_engine_scores; ++i)
+    {
+      header.push_back("search_engine_score[" + String(i + 1) + "]");
+    }
+
+    if (store_osm_reliability_)
+    {
+      header.push_back("reliability");
+    }
+
+    header.push_back("modifications");
+    header.push_back("retention_time");
+    header.push_back("charge");
+    header.push_back("exp_mass_to_charge");
+    header.push_back("calc_mass_to_charge");
+
+    if (store_osm_uri_)
+    {
+      header.push_back("uri");
+    }
+
+    header.push_back("spectra_ref");
+
+    std::copy(optional_columns.begin(), optional_columns.end(), std::back_inserter(header));
+
+    return ListUtils::concatenate(header, "\t");
+  }
+
+  String MzTabFile::generateMzTabSectionRow_(const MzTabOSMSectionRow& row, const vector<String>& optional_columns) const
+  {
+    StringList s;
+    s.push_back("OSM");
+    s.push_back(row.sequence.toCellString());
+    s.push_back(row.search_engine.toCellString());
+
+    for (map<Size, MzTabDouble>::const_iterator it = row.search_engine_score.begin(); it != row.search_engine_score.end(); ++it)
+    {
+      s.push_back(it->second.toCellString());
+    }
+
+    if (store_osm_reliability_)
+    {
+      s.push_back(row.reliability.toCellString());
+    }
+
+    s.push_back(row.modifications.toCellString());
+    s.push_back(row.retention_time.toCellString());
+    s.push_back(row.charge.toCellString());
+    s.push_back(row.exp_mass_to_charge.toCellString());
+    s.push_back(row.calc_mass_to_charge.toCellString());
+
+    if (store_osm_uri_)
+    {
+      s.push_back(row.uri.toCellString());
+    }
+
+    s.push_back(row.spectra_ref.toCellString());
+
+    addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
+
+    return ListUtils::concatenate(s, "\t");
+  }
+
+  void MzTabFile::addOptionalColumnsToSectionRow_(const vector<String>& column_names, const vector<MzTabOptionalColumnEntry>& column_entries, StringList& output)
+  {
+    for (vector<String>::const_iterator it = column_names.begin(); it != column_names.end(); ++it)
     {
       bool found = false;
-      for (Size i = 0; i != row.opt_.size(); ++i)
+      for (Size i = 0; i != column_entries.size(); ++i)
       {
-        if (row.opt_[i].first == *it)
+        if (column_entries[i].first == *it)
         {
-          s.push_back(row.opt_[i].second.toCellString());
+          output.push_back(column_entries[i].second.toCellString());
           found = true;
           break;
         }
       }
       if (!found)
       {
-        s.push_back(MzTabString("null").toCellString());
+        output.push_back(MzTabString("null").toCellString());
       }
     }
-
-    return ListUtils::concatenate(s, "\t");
   }
 
   void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
@@ -2621,7 +2825,7 @@ namespace OpenMS
       out.push_back(generateMzTabProteinHeader_(protein_section[0], n_best_search_engine_score, mz_tab.getProteinOptionalColumnNames()));
 
       // add section
-      generateMzTabProteinSection_(protein_section, out, mz_tab.getProteinOptionalColumnNames());
+      generateMzTabSection_(protein_section, mz_tab.getProteinOptionalColumnNames(), out);
     }
 
     if (!peptide_section.empty())
@@ -2633,7 +2837,8 @@ namespace OpenMS
       {
         // all ms_runs mandatory
         search_ms_runs = ms_runs;
-      } else // only report all scores if user provided at least one
+      }
+      else // only report all scores if user provided at least one
       {
         const MzTabPeptideSectionRows psr = mz_tab.getPeptideSectionRows();
         bool has_ms_run_level_scores = false;
@@ -2653,7 +2858,7 @@ namespace OpenMS
       Size n_search_engine_score = peptide_section[0].search_engine_score_ms_run.size();
       Size n_best_search_engine_score = mz_tab.getMetaData().peptide_search_engine_score.size();
       out.push_back(generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getPeptideOptionalColumnNames()));
-      generateMzTabPeptideSection_(mz_tab.getPeptideSectionRows(), out, mz_tab.getPeptideOptionalColumnNames());
+      generateMzTabSection_(mz_tab.getPeptideSectionRows(), mz_tab.getPeptideOptionalColumnNames(), out);
     }
 
     if (!psm_section.empty())
@@ -2665,7 +2870,7 @@ namespace OpenMS
         // TODO warn
       }
       out.push_back(generateMzTabPSMHeader_(n_search_engine_scores, mz_tab.getPSMOptionalColumnNames()));
-      generateMzTabPSMSection_(mz_tab.getPSMSectionRows(), out, mz_tab.getPSMOptionalColumnNames());
+      generateMzTabSection_(mz_tab.getPSMSectionRows(), mz_tab.getPSMOptionalColumnNames(), out);
     }
 
     if (!smallmolecule_section.empty())
@@ -2675,10 +2880,90 @@ namespace OpenMS
       Size n_search_engine_score = smallmolecule_section[0].search_engine_score_ms_run.size();
       Size n_best_search_engine_score = mz_tab.getMetaData().smallmolecule_search_engine_score.size();
       out.push_back(generateMzTabSmallMoleculeHeader_(ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getSmallMoleculeOptionalColumnNames()));
-      generateMzTabSmallMoleculeSection_(smallmolecule_section, out, mz_tab.getSmallMoleculeOptionalColumnNames());
+      generateMzTabSection_(smallmolecule_section, mz_tab.getSmallMoleculeOptionalColumnNames(), out);
     }
 
-    // insert comment (might provide critical cues for human reader) and empty lines
+    const MzTabNucleicAcidSectionRows& nucleic_acid_section = mz_tab.getNucleicAcidSectionRows();
+    const MzTabOligonucleotideSectionRows& oligonucleotide_section = mz_tab.getOligonucleotideSectionRows();
+    const MzTabOSMSectionRows& osm_section = mz_tab.getOSMSectionRows();
+
+    if (!nucleic_acid_section.empty())
+    {
+      Size search_ms_runs = 0;
+      if (complete)
+      {
+        // all ms_runs mandatory
+        search_ms_runs = ms_runs;
+      }
+      else // only report all scores if user provided at least one
+      {
+        bool has_ms_run_level_scores = false;
+        for (Size i = 0; i != nucleic_acid_section.size(); ++i)
+        {
+          if (!nucleic_acid_section[i].search_engine_score_ms_run.empty())
+          {
+            has_ms_run_level_scores = true;
+          }
+        }
+
+        if (has_ms_run_level_scores)
+        {
+          search_ms_runs = ms_runs;
+        }
+      }
+      Size n_search_engine_score = nucleic_acid_section[0].search_engine_score_ms_run.size();
+      Size n_best_search_engine_score = mz_tab.getMetaData().nucleic_acid_search_engine_score.size();
+
+      // add header
+      out.push_back(generateMzTabNucleicAcidHeader_(search_ms_runs, n_search_engine_score, n_best_search_engine_score, mz_tab.getNucleicAcidOptionalColumnNames()));
+
+      // add section
+      generateMzTabSection_(nucleic_acid_section, mz_tab.getNucleicAcidOptionalColumnNames(), out);
+    }
+
+    if (!oligonucleotide_section.empty())
+    {
+      Size search_ms_runs = 0;
+      if (complete)
+      {
+        // all ms_runs mandatory
+        search_ms_runs = ms_runs;
+      }
+      else // only report all scores if user provided at least one
+      {
+        bool has_ms_run_level_scores = false;
+        for (Size i = 0; i != oligonucleotide_section.size(); ++i)
+        {
+          if (!oligonucleotide_section[i].search_engine_score_ms_run.empty())
+          {
+            has_ms_run_level_scores = true;
+          }
+        }
+
+        if (has_ms_run_level_scores)
+        {
+          search_ms_runs = ms_runs;
+        }
+      }
+      Size n_search_engine_score = oligonucleotide_section[0].search_engine_score_ms_run.size();
+      Size n_best_search_engine_score = mz_tab.getMetaData().oligonucleotide_search_engine_score.size();
+      out.push_back(generateMzTabOligonucleotideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, mz_tab.getOligonucleotideOptionalColumnNames()));
+      generateMzTabSection_(mz_tab.getOligonucleotideSectionRows(), mz_tab.getOligonucleotideOptionalColumnNames(), out);
+    }
+
+    if (!osm_section.empty())
+    {
+      Size n_search_engine_scores = mz_tab.getMetaData().osm_search_engine_score.size();
+
+      if (n_search_engine_scores == 0)
+      {
+        // TODO warn
+      }
+      out.push_back(generateMzTabOSMHeader_(n_search_engine_scores, mz_tab.getOSMOptionalColumnNames()));
+      generateMzTabSection_(mz_tab.getOSMSectionRows(), mz_tab.getOSMOptionalColumnNames(), out);
+    }
+
+    // insert comments (might provide critical cues for human reader) and empty lines
     Size line = 0;
     vector<Size> empty_rows = mz_tab.getEmptyRows();
     map<Size, String> comment_rows = mz_tab.getCommentRows();
