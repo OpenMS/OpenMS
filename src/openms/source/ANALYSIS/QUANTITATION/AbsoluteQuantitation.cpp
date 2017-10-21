@@ -149,6 +149,12 @@ namespace OpenMS
     calculated_concentration = aqm.evaluateTransformationModel(
       transformation_model, ratio, transformation_model_params);
 
+    // check for less than zero
+    if (calculated_concentration < 0.0)
+    {
+      calculated_concentration = 0.0;
+    }
+
     return calculated_concentration;
   }
 

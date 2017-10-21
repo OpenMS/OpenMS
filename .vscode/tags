@@ -824,6 +824,7 @@ TMTSixPlexQuantitationMethod	src/pyOpenMS/pxds/TMTSixPlexQuantitationMethod.pxd	
 TMTSixPlexQuantitationMethod.pxd	src/pyOpenMS/pxds/TMTSixPlexQuantitationMethod.pxd	1;"	kind:file	line:1
 TMTTenPlexQuantitationMethod	src/pyOpenMS/pxds/TMTTenPlexQuantitationMethod.pxd	/^    cdef cppclass TMTTenPlexQuantitationMethod(IsobaricQuantitationMethod) :$/;"	kind:function	line:6
 TMTTenPlexQuantitationMethod.pxd	src/pyOpenMS/pxds/TMTTenPlexQuantitationMethod.pxd	1;"	kind:file	line:1
+TM_DataPoint	src/pyOpenMS/pxds/TransformationDescription.pxd	/^from TransformationModel cimport TM_DataPoint$/;"	kind:namespace	line:6
 TOFCalibration	src/pyOpenMS/pxds/TOFCalibration.pxd	/^    cdef cppclass TOFCalibration(DefaultParamHandler, ProgressLogger):$/;"	kind:function	line:11
 TOFCalibration.pxd	src/pyOpenMS/pxds/TOFCalibration.pxd	1;"	kind:file	line:1
 Tagging.pxd	src/pyOpenMS/pxds/Tagging.pxd	1;"	kind:file	line:1
@@ -872,7 +873,7 @@ TransformationModelBSpline	src/pyOpenMS/pxds/TransformationModelBSpline.pxd	/^  
 TransformationModelBSpline.pxd	src/pyOpenMS/pxds/TransformationModelBSpline.pxd	1;"	kind:file	line:1
 TransformationModelInterpolated	src/pyOpenMS/pxds/TransformationModelInterpolated.pxd	/^    cdef cppclass TransformationModelInterpolated(TransformationModel):$/;"	kind:function	line:8
 TransformationModelInterpolated.pxd	src/pyOpenMS/pxds/TransformationModelInterpolated.pxd	1;"	kind:file	line:1
-TransformationModelLinear	src/pyOpenMS/pxds/TransformationModelLinear.pxd	/^    cdef cppclass TransformationModelLinear(TransformationModel):$/;"	kind:function	line:13
+TransformationModelLinear	src/pyOpenMS/pxds/TransformationModelLinear.pxd	/^    cdef cppclass TransformationModelLinear(TransformationModel):$/;"	kind:function	line:11
 TransformationModelLinear.pxd	src/pyOpenMS/pxds/TransformationModelLinear.pxd	1;"	kind:file	line:1
 TransformationModelLowess	src/pyOpenMS/pxds/TransformationModelLowess.pxd	/^    cdef cppclass TransformationModelLowess(TransformationModel) :$/;"	kind:function	line:7
 TransformationModelLowess.pxd	src/pyOpenMS/pxds/TransformationModelLowess.pxd	1;"	kind:file	line:1
@@ -2114,7 +2115,7 @@ testAScore	src/pyOpenMS/tests/unittests/test000.py	/^def testAScore():$/;"	kind:
 testAdduct	src/pyOpenMS/tests/unittests/test000.py	/^def testAdduct():$/;"	kind:function	line:994
 testAll	src/pyOpenMS/tests/memoryleaktests/testAll.py	/^        def testAll(self):$/;"	kind:member	line:58
 testAll.py	src/pyOpenMS/tests/memoryleaktests/testAll.py	1;"	kind:file	line:1
-testAttachment	src/pyOpenMS/tests/unittests/test000.py	/^def testAttachment():$/;"	kind:function	line:4140
+testAttachment	src/pyOpenMS/tests/unittests/test000.py	/^def testAttachment():$/;"	kind:function	line:4142
 testCVMappingFile	src/pyOpenMS/tests/unittests/test000.py	/^def testCVMappingFile():$/;"	kind:function	line:1045
 testCVMappings	src/pyOpenMS/tests/unittests/test000.py	/^def testCVMappings():$/;"	kind:function	line:1037
 testCVTermList	src/pyOpenMS/tests/unittests/testCVTermList.py	/^def testCVTermList():$/;"	kind:function	line:3
@@ -2128,14 +2129,14 @@ testCompNovoIdentificationCID	src/pyOpenMS/tests/unittests/test000.py	/^def test
 testCompomer	src/pyOpenMS/tests/unittests/test000.py	/^def testCompomer():$/;"	kind:function	line:1029
 testConfidenceScoring	src/pyOpenMS/tests/unittests/test000.py	/^def testConfidenceScoring():$/;"	kind:function	line:3038
 testConsensusFeature	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusFeature():$/;"	kind:function	line:590
-testConsensusIDAlgorithmAverage	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmAverage():$/;"	kind:function	line:4326
-testConsensusIDAlgorithmBest	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmBest():$/;"	kind:function	line:4331
-testConsensusIDAlgorithmIdentity	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmIdentity():$/;"	kind:function	line:4336
-testConsensusIDAlgorithmPEPIons	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmPEPIons():$/;"	kind:function	line:4341
-testConsensusIDAlgorithmPEPMatrix	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmPEPMatrix():$/;"	kind:function	line:4346
-testConsensusIDAlgorithmRanks	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmRanks():$/;"	kind:function	line:4351
-testConsensusIDAlgorithmSimilarity	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmSimilarity():$/;"	kind:function	line:4356
-testConsensusIDAlgorithmWorst	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmWorst():$/;"	kind:function	line:4361
+testConsensusIDAlgorithmAverage	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmAverage():$/;"	kind:function	line:4328
+testConsensusIDAlgorithmBest	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmBest():$/;"	kind:function	line:4333
+testConsensusIDAlgorithmIdentity	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmIdentity():$/;"	kind:function	line:4338
+testConsensusIDAlgorithmPEPIons	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmPEPIons():$/;"	kind:function	line:4343
+testConsensusIDAlgorithmPEPMatrix	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmPEPMatrix():$/;"	kind:function	line:4348
+testConsensusIDAlgorithmRanks	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmRanks():$/;"	kind:function	line:4353
+testConsensusIDAlgorithmSimilarity	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmSimilarity():$/;"	kind:function	line:4358
+testConsensusIDAlgorithmWorst	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusIDAlgorithmWorst():$/;"	kind:function	line:4363
 testConsensusMap	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusMap():$/;"	kind:function	line:662
 testConsensusMapNormalizerAlgorithmMedian	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusMapNormalizerAlgorithmMedian():$/;"	kind:function	line:1660
 testConsensusMapNormalizerAlgorithmQuantile	src/pyOpenMS/tests/unittests/test000.py	/^def testConsensusMapNormalizerAlgorithmQuantile():$/;"	kind:function	line:1670
@@ -2155,13 +2156,13 @@ testDateTime	src/pyOpenMS/tests/unittests/test000.py	/^def testDateTime():$/;"	k
 testDocumentIdentifier	src/pyOpenMS/tests/unittests/test000.py	/^def testDocumentIdentifier():$/;"	kind:function	line:2289
 testEDTAFile	src/pyOpenMS/tests/unittests/test000.py	/^def testEDTAFile():$/;"	kind:function	line:2153
 testElement	src/pyOpenMS/tests/unittests/test000.py	/^def testElement():$/;"	kind:function	line:208
-testElementDB	src/pyOpenMS/tests/unittests/test000.py	/^def testElementDB():$/;"	kind:function	line:4487
-testElutionPeakDetection	src/pyOpenMS/tests/unittests/test000.py	/^def testElutionPeakDetection():$/;"	kind:function	line:4245
+testElementDB	src/pyOpenMS/tests/unittests/test000.py	/^def testElementDB():$/;"	kind:function	line:4489
+testElutionPeakDetection	src/pyOpenMS/tests/unittests/test000.py	/^def testElutionPeakDetection():$/;"	kind:function	line:4247
 testEmpiricalFormula	src/pyOpenMS/tests/unittests/test000.py	/^def testEmpiricalFormula():$/;"	kind:function	line:317
 testEnzymaticDigestion	src/pyOpenMS/tests/unittests/test000.py	/^def testEnzymaticDigestion():$/;"	kind:function	line:1801
 testEnzymaticDigestion	src/pyOpenMS/tests/unittests/test000.py	/^def testEnzymaticDigestion():$/;"	kind:function	line:1834
-testEnzymes	src/pyOpenMS/tests/unittests/test000.py	/^def testEnzymes():$/;"	kind:function	line:4366
-testEnzymesDB	src/pyOpenMS/tests/unittests/test000.py	/^def testEnzymesDB():$/;"	kind:function	line:4447
+testEnzymes	src/pyOpenMS/tests/unittests/test000.py	/^def testEnzymes():$/;"	kind:function	line:4368
+testEnzymesDB	src/pyOpenMS/tests/unittests/test000.py	/^def testEnzymesDB():$/;"	kind:function	line:4449
 testExperimentalSettings	src/pyOpenMS/tests/unittests/test000.py	/^def testExperimentalSettings():$/;"	kind:function	line:1446
 testFASTAEntry	src/pyOpenMS/tests/unittests/test000.py	/^def testFASTAEntry():$/;"	kind:function	line:1765
 testFASTAFile	src/pyOpenMS/tests/unittests/test000.py	/^def testFASTAFile():$/;"	kind:function	line:1751
@@ -2187,10 +2188,10 @@ testFunction	src/pyOpenMS/tests/unittests/test_Isobaric_Quantitation.py	/^    de
 testGaussFitResult	src/pyOpenMS/tests/unittests/test000.py	/^def testGaussFitResult():$/;"	kind:function	line:1010
 testGaussFitter	src/pyOpenMS/tests/unittests/test000.py	/^def testGaussFitter():$/;"	kind:function	line:1002
 testGradient	src/pyOpenMS/tests/unittests/test000.py	/^def testGradient():$/;"	kind:function	line:2310
-testHMMState	src/pyOpenMS/tests/unittests/test000.py	/^def testHMMState():$/;"	kind:function	line:4425
+testHMMState	src/pyOpenMS/tests/unittests/test000.py	/^def testHMMState():$/;"	kind:function	line:4427
 testHPLC	src/pyOpenMS/tests/unittests/test000.py	/^def testHPLC():$/;"	kind:function	line:2344
-testHiddenMarkovModel	src/pyOpenMS/tests/unittests/test000.py	/^def testHiddenMarkovModel():$/;"	kind:function	line:4406
-testIBSpectraFile	src/pyOpenMS/tests/unittests/test000.py	/^def testIBSpectraFile():$/;"	kind:function	line:3980
+testHiddenMarkovModel	src/pyOpenMS/tests/unittests/test000.py	/^def testHiddenMarkovModel():$/;"	kind:function	line:4408
+testIBSpectraFile	src/pyOpenMS/tests/unittests/test000.py	/^def testIBSpectraFile():$/;"	kind:function	line:3982
 testIDDecoyProbability	src/pyOpenMS/tests/unittests/test000.py	/^def testIDDecoyProbability():$/;"	kind:function	line:1844
 testIDFilter	src/pyOpenMS/tests/unittests/test000.py	/^def testIDFilter():$/;"	kind:function	line:1572
 testIDMapper	src/pyOpenMS/tests/unittests/test000.py	/^def testIDMapper():$/;"	kind:function	line:2071
@@ -2198,10 +2199,10 @@ testIDRipper	src/pyOpenMS/tests/unittests/test000.py	/^def testIDRipper():$/;"	k
 testIdXMLFile	src/pyOpenMS/tests/unittests/test000.py	/^def testIdXMLFile():$/;"	kind:function	line:2090
 testIdentification	src/pyOpenMS/tests/unittests/test000.py	/^def testIdentification():$/;"	kind:function	line:421
 testIdentificationHit	src/pyOpenMS/tests/unittests/test000.py	/^def testIdentificationHit():$/;"	kind:function	line:349
-testIndexedMzMLDecoder	src/pyOpenMS/tests/unittests/test000.py	/^def testIndexedMzMLDecoder():$/;"	kind:function	line:4260
+testIndexedMzMLDecoder	src/pyOpenMS/tests/unittests/test000.py	/^def testIndexedMzMLDecoder():$/;"	kind:function	line:4262
 testInit	src/pyOpenMS/tests/unittests/test_Isobaric_Quantitation.py	/^    def testInit(self):$/;"	kind:member	line:42
 testInit	src/pyOpenMS/tests/unittests/test_Isobaric_Quantitation.py	/^    def testInit(self):$/;"	kind:member	line:62
-testInspectInfile	src/pyOpenMS/tests/unittests/test000.py	/^def testInspectInfile():$/;"	kind:function	line:4112
+testInspectInfile	src/pyOpenMS/tests/unittests/test000.py	/^def testInspectInfile():$/;"	kind:function	line:4114
 testInstrument	src/pyOpenMS/tests/unittests/test000.py	/^def testInstrument():$/;"	kind:function	line:2383
 testInstrumentSettings	src/pyOpenMS/tests/unittests/test000.py	/^def testInstrumentSettings():$/;"	kind:function	line:2221
 testIntegerDataArray	src/pyOpenMS/tests/unittests/test000.py	/^def testIntegerDataArray():$/;"	kind:function	line:2925
@@ -2210,17 +2211,17 @@ testInternalCalibration	src/pyOpenMS/tests/unittests/test000.py	/^def testIntern
 testIonDetector	src/pyOpenMS/tests/unittests/test000.py	/^def testIonDetector():$/;"	kind:function	line:2430
 testIonSource	src/pyOpenMS/tests/unittests/test000.py	/^def testIonSource():$/;"	kind:function	line:2459
 testIsotopeDistribution	src/pyOpenMS/tests/unittests/test000.py	/^def testIsotopeDistribution():$/;"	kind:function	line:298
-testIsotopeMarker	src/pyOpenMS/tests/unittests/test000.py	/^def testIsotopeMarker():$/;"	kind:function	line:4125
+testIsotopeMarker	src/pyOpenMS/tests/unittests/test000.py	/^def testIsotopeMarker():$/;"	kind:function	line:4127
 testItraqConstants	src/pyOpenMS/tests/unittests/test000.py	/^def testItraqConstants():$/;"	kind:function	line:1479
-testKernelMassTrace	src/pyOpenMS/tests/unittests/test000.py	/^def testKernelMassTrace():$/;"	kind:function	line:4202
+testKernelMassTrace	src/pyOpenMS/tests/unittests/test000.py	/^def testKernelMassTrace():$/;"	kind:function	line:4204
 testKroenikFile	src/pyOpenMS/tests/unittests/test000.py	/^def testKroenikFile():$/;"	kind:function	line:2166
 testLightTargetedExperiment.py	src/pyOpenMS/tests/unittests/testLightTargetedExperiment.py	1;"	kind:file	line:1
 testLinearResampler	src/pyOpenMS/tests/unittests/test000.py	/^def testLinearResampler():$/;"	kind:function	line:1495
 testLogType	src/pyOpenMS/tests/unittests/test000.py	/^def testLogType():$/;"	kind:function	line:2629
-testMRMAssay	src/pyOpenMS/tests/unittests/test000.py	/^def testMRMAssay():$/;"	kind:function	line:4379
+testMRMAssay	src/pyOpenMS/tests/unittests/test000.py	/^def testMRMAssay():$/;"	kind:function	line:4381
 testMRMDecoy	src/pyOpenMS/tests/unittests/test000.py	/^def testMRMDecoy():$/;"	kind:function	line:3046
 testMRMFeature	src/pyOpenMS/tests/unittests/test000.py	/^def testMRMFeature():$/;"	kind:function	line:3023
-testMRMIonSeries	src/pyOpenMS/tests/unittests/test000.py	/^def testMRMIonSeries():$/;"	kind:function	line:4384
+testMRMIonSeries	src/pyOpenMS/tests/unittests/test000.py	/^def testMRMIonSeries():$/;"	kind:function	line:4386
 testMRMTransitionGroup	src/pyOpenMS/tests/unittests/test000.py	/^def testMRMTransitionGroup():$/;"	kind:function	line:3057
 testMSChromatogram	src/pyOpenMS/tests/unittests/test000.py	/^def testMSChromatogram():$/;"	kind:function	line:2973
 testMSExperiment	src/pyOpenMS/tests/unittests/test000.py	/^def testMSExperiment():$/;"	kind:function	line:2642
@@ -2233,12 +2234,12 @@ testMapAlignmentIdentification	src/pyOpenMS/tests/unittests/test000.py	/^def tes
 testMapAlignmentTransformer	src/pyOpenMS/tests/unittests/test000.py	/^def testMapAlignmentTransformer():$/;"	kind:function	line:3158
 testMassAnalyzer	src/pyOpenMS/tests/unittests/test000.py	/^def testMassAnalyzer():$/;"	kind:function	line:2490
 testModificationDefinitionsSet	src/pyOpenMS/tests/unittests/test000.py	/^def testModificationDefinitionsSet():$/;"	kind:function	line:443
-testModificationsDB	src/pyOpenMS/tests/unittests/test000.py	/^def testModificationsDB():$/;"	kind:function	line:4542
+testModificationsDB	src/pyOpenMS/tests/unittests/test000.py	/^def testModificationsDB():$/;"	kind:function	line:4544
 testMxxxFile	src/pyOpenMS/tests/unittests/test000.py	/^def testMxxxFile():$/;"	kind:function	line:3169
 testMzIdentMLFile	src/pyOpenMS/tests/unittests/test000.py	/^def testMzIdentMLFile():$/;"	kind:function	line:2190
 testMzTab	src/pyOpenMS/tests/unittests/test000.py	/^def testMzTab():$/;"	kind:function	line:2213
 testMzTabFile	src/pyOpenMS/tests/unittests/test000.py	/^def testMzTabFile():$/;"	kind:function	line:2203
-testOptimizePeakDeconvolution	src/pyOpenMS/tests/unittests/test000.py	/^def testOptimizePeakDeconvolution():$/;"	kind:function	line:4175
+testOptimizePeakDeconvolution	src/pyOpenMS/tests/unittests/test000.py	/^def testOptimizePeakDeconvolution():$/;"	kind:function	line:4177
 testParamEntry	src/pyOpenMS/tests/unittests/testSpecialCases.py	/^def testParamEntry():$/;"	kind:function	line:34
 testParamXMLFile	src/pyOpenMS/tests/unittests/test000.py	/^def testParamXMLFile():$/;"	kind:function	line:3239
 testPeak	src/pyOpenMS/tests/unittests/test000.py	/^def testPeak():$/;"	kind:function	line:3256
@@ -2250,9 +2251,9 @@ testPeptideAndProteinQuant	src/pyOpenMS/tests/unittests/test000.py	/^def testPep
 testPeptideEvidence	src/pyOpenMS/tests/unittests/test000.py	/^def testPeptideEvidence():$/;"	kind:function	line:3438
 testPeptideHit	src/pyOpenMS/tests/unittests/test000.py	/^def testPeptideHit():$/;"	kind:function	line:3370
 testPeptideIdentification	src/pyOpenMS/tests/unittests/test000.py	/^def testPeptideIdentification():$/;"	kind:function	line:3465
-testPeptideIndexing	src/pyOpenMS/tests/unittests/test000.py	/^def testPeptideIndexing():$/;"	kind:function	line:4389
-testPeptideProteinResolution	src/pyOpenMS/tests/unittests/test000.py	/^def testPeptideProteinResolution():$/;"	kind:function	line:4394
-testPercolatorOutfile	src/pyOpenMS/tests/unittests/test000.py	/^def testPercolatorOutfile():$/;"	kind:function	line:4399
+testPeptideIndexing	src/pyOpenMS/tests/unittests/test000.py	/^def testPeptideIndexing():$/;"	kind:function	line:4391
+testPeptideProteinResolution	src/pyOpenMS/tests/unittests/test000.py	/^def testPeptideProteinResolution():$/;"	kind:function	line:4396
+testPercolatorOutfile	src/pyOpenMS/tests/unittests/test000.py	/^def testPercolatorOutfile():$/;"	kind:function	line:4401
 testPolarity	src/pyOpenMS/tests/unittests/test000.py	/^def testPolarity():$/;"	kind:function	line:3536
 testPosteriorErrorProbabilityModel	src/pyOpenMS/tests/unittests/test000.py	/^def testPosteriorErrorProbabilityModel():$/;"	kind:function	line:1606
 testPrecursor	src/pyOpenMS/tests/unittests/test000.py	/^def testPrecursor():$/;"	kind:function	line:3550
@@ -2264,7 +2265,7 @@ testProteinIdentification	src/pyOpenMS/tests/unittests/test000.py	/^def testProt
 testProteinResolver	src/pyOpenMS/tests/unittests/test000.py	/^def testProteinResolver():$/;"	kind:function	line:1582
 testReactionMonitoringTransition	src/pyOpenMS/tests/unittests/test000.py	/^def testReactionMonitoringTransition():$/;"	kind:function	line:3072
 testResidue	src/pyOpenMS/tests/unittests/test000.py	/^def testResidue():$/;"	kind:function	line:278
-testResidueDB	src/pyOpenMS/tests/unittests/test000.py	/^def testResidueDB():$/;"	kind:function	line:4519
+testResidueDB	src/pyOpenMS/tests/unittests/test000.py	/^def testResidueDB():$/;"	kind:function	line:4521
 testRichPeak	src/pyOpenMS/tests/unittests/test000.py	/^def testRichPeak():$/;"	kind:function	line:3758
 testSample	src/pyOpenMS/tests/unittests/test000.py	/^def testSample():$/;"	kind:function	line:2571
 testSeedListGenerator	src/pyOpenMS/tests/unittests/test000.py	/^def testSeedListGenerator():$/;"	kind:function	line:1521
@@ -2278,23 +2279,23 @@ testSpecialCases.py	src/pyOpenMS/tests/unittests/testSpecialCases.py	1;"	kind:fi
 testSpectrumAlignment	src/pyOpenMS/tests/unittests/test000.py	/^def testSpectrumAlignment():$/;"	kind:function	line:120
 testSpectrumIdentification	src/pyOpenMS/tests/unittests/test000.py	/^def testSpectrumIdentification():$/;"	kind:function	line:397
 testSpectrumSetting	src/pyOpenMS/tests/unittests/test000.py	/^def testSpectrumSetting(s=pyopenms.SpectrumSettings()):$/;"	kind:function	line:3873
-testString	src/pyOpenMS/tests/unittests/test000.py	/^def testString():$/;"	kind:function	line:4631
+testString	src/pyOpenMS/tests/unittests/test000.py	/^def testString():$/;"	kind:function	line:4633
 testStringDataArray	src/pyOpenMS/tests/unittests/test000.py	/^def testStringDataArray():$/;"	kind:function	line:2901
 testSvmTheoreticalSpectrumGeneratorTrainer	src/pyOpenMS/tests/unittests/test000.py	/^def testSvmTheoreticalSpectrumGeneratorTrainer():$/;"	kind:function	line:1595
-testSwathFile	src/pyOpenMS/tests/unittests/test000.py	/^def testSwathFile():$/;"	kind:function	line:3998
+testSwathFile	src/pyOpenMS/tests/unittests/test000.py	/^def testSwathFile():$/;"	kind:function	line:4000
 testTOFCalibration	src/pyOpenMS/tests/unittests/test000.py	/^def testTOFCalibration():$/;"	kind:function	line:1534
 testTargetedExperiment	src/pyOpenMS/tests/unittests/test000.py	/^def testTargetedExperiment():$/;"	kind:function	line:3079
 testTransformationDescription	src/pyOpenMS/tests/unittests/test000.py	/^def testTransformationDescription():$/;"	kind:function	line:3927
 testTransformationModels	src/pyOpenMS/tests/unittests/test000.py	/^def testTransformationModels():$/;"	kind:function	line:3948
-testTransformationXMLFile	src/pyOpenMS/tests/unittests/test000.py	/^def testTransformationXMLFile():$/;"	kind:function	line:3966
+testTransformationXMLFile	src/pyOpenMS/tests/unittests/test000.py	/^def testTransformationXMLFile():$/;"	kind:function	line:3968
 testTransitionTSVReader	src/pyOpenMS/tests/unittests/test000.py	/^def testTransitionTSVReader():$/;"	kind:function	line:1787
-testType	src/pyOpenMS/tests/unittests/test000.py	/^def testType():$/;"	kind:function	line:4007
-testVersion	src/pyOpenMS/tests/unittests/test000.py	/^def testVersion():$/;"	kind:function	line:4077
+testType	src/pyOpenMS/tests/unittests/test000.py	/^def testType():$/;"	kind:function	line:4009
+testVersion	src/pyOpenMS/tests/unittests/test000.py	/^def testVersion():$/;"	kind:function	line:4079
 testXTandemInfile	src/pyOpenMS/tests/unittests/test000.py	/^def testXTandemInfile():$/;"	kind:function	line:773
 testXTandemXMLFile	src/pyOpenMS/tests/unittests/test000.py	/^def testXTandemXMLFile():$/;"	kind:function	line:762
 test_AcquisitionInfo	src/pyOpenMS/tests/unittests/test000.py	/^def test_AcquisitionInfo():$/;"	kind:function	line:454
 test_AnnotationState	src/pyOpenMS/tests/unittests/test000.py	/^def test_AnnotationState():$/;"	kind:function	line:520
-test_BSpline2d	src/pyOpenMS/tests/unittests/test000.py	/^def test_BSpline2d():$/;"	kind:function	line:4308
+test_BSpline2d	src/pyOpenMS/tests/unittests/test000.py	/^def test_BSpline2d():$/;"	kind:function	line:4310
 test_BaseFeature	src/pyOpenMS/tests/unittests/test000.py	/^def test_BaseFeature():$/;"	kind:function	line:477
 test_BaselineFiltering.py	src/pyOpenMS/tests/unittests/test_BaselineFiltering.py	1;"	kind:file	line:1
 test_BilinearInterpolation	src/pyOpenMS/tests/unittests/test_BilinearInterpolation.py	/^    def test_BilinearInterpolation(self):$/;"	kind:member	line:10
@@ -2310,7 +2311,7 @@ test_MRMFeatureFinderScoring.py	src/pyOpenMS/tests/unittests/test_MRMFeatureFind
 test_MRMRTNormalizer.py	src/pyOpenMS/tests/integration_tests/test_MRMRTNormalizer.py	1;"	kind:file	line:1
 test_MSNumpressCoder.py	src/pyOpenMS/tests/unittests/test_MSNumpressCoder.py	1;"	kind:file	line:1
 test_MSSpectrumAndRichSpectrum.py	src/pyOpenMS/tests/unittests/test_MSSpectrumAndRichSpectrum.py	1;"	kind:file	line:1
-test_MapConversion	src/pyOpenMS/tests/unittests/test000.py	/^def test_MapConversion():$/;"	kind:function	line:4273
+test_MapConversion	src/pyOpenMS/tests/unittests/test000.py	/^def test_MapConversion():$/;"	kind:function	line:4275
 test_MzMLConsumer.py	src/pyOpenMS/tests/unittests/test_MzMLConsumer.py	1;"	kind:file	line:1
 test_MzXMLConsumer.py	src/pyOpenMS/tests/unittests/test_MzXMLConsumer.py	1;"	kind:file	line:1
 test_OpenSwathDataStructures.py	src/pyOpenMS/tests/unittests/test_OpenSwathDataStructures.py	1;"	kind:file	line:1
@@ -2397,7 +2398,7 @@ test_spectrum_Scaler	src/pyOpenMS/tests/unittests/test_SpectraFilter.py	/^    de
 test_spectrum_SqrtMower	src/pyOpenMS/tests/unittests/test_SpectraFilter.py	/^    def test_spectrum_SqrtMower(self):$/;"	kind:member	line:203
 test_spectrum_ThresholdMower	src/pyOpenMS/tests/unittests/test_SpectraFilter.py	/^    def test_spectrum_ThresholdMower(self):$/;"	kind:member	line:229
 test_spectrum_WindowMower	src/pyOpenMS/tests/unittests/test_SpectraFilter.py	/^    def test_spectrum_WindowMower(self):$/;"	kind:member	line:255
-test_streampos	src/pyOpenMS/tests/unittests/test000.py	/^def test_streampos():$/;"	kind:function	line:4269
+test_streampos	src/pyOpenMS/tests/unittests/test000.py	/^def test_streampos():$/;"	kind:function	line:4271
 test_supportMax_0	src/pyOpenMS/tests/unittests/test_BilinearInterpolation.py	/^    def test_supportMax_0(self):$/;"	kind:member	line:106
 test_supportMax_1	src/pyOpenMS/tests/unittests/test_BilinearInterpolation.py	/^    def test_supportMax_1(self):$/;"	kind:member	line:172
 test_swathmap_openms	src/pyOpenMS/tests/unittests/test_ISpectrumAccess.py	/^    def test_swathmap_openms(self):$/;"	kind:member	line:54
