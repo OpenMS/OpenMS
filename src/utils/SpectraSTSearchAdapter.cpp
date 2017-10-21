@@ -40,6 +40,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QProcess>
 #include <QDir>
+#include <sstream> 
 
 using namespace OpenMS;
 using namespace std;
@@ -197,7 +198,7 @@ protected:
          arguments << sequence_database_file.toQString().prepend("-sD");
      }
 
-     // Set the number of threads in spectraST
+     // Set the number of threads in SpectraST
      Int threads = getIntOption_("threads");
      arguments << (threads > 1 ?  QString::number(threads).prepend("-sP") : "-sP!");
 
@@ -269,7 +270,7 @@ protected:
 
      String temp_dir = File::getTempDirectory();
      arguments << outputFormat.toQString().prepend("-sE");
-     arguments <<  temp_dir.toQString().prepend("-sO");
+     arguments << temp_dir.toQString().prepend("-sO");
 
      // Check whether input files agree in format
      String first_input_file = spectra_files[0];
@@ -305,15 +306,16 @@ protected:
       arguments << input_file.toQString();
      }
 
-     // Writing the final spectrast command to the DEBUG LOG
-     LOG_DEBUG << "COMMAND: " << executable;
+     // Writing the final SpectraST command to the DEBUG LOG
+     std::stringstream ss;
+     ss << "COMMAND: " << executable;
      for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
      {
-         LOG_DEBUG << " " << it->toStdString();
+         ss << " " << it->toStdString();
      }
-     LOG_DEBUG << endl;
+     LOG_DEBUG << ss.str() << endl;
 
-     // Run spectrast
+     // Run SpectraST
      QProcess spectrast_process;
      spectrast_process.start(executable.toQString(), arguments);
 
@@ -338,6 +340,7 @@ protected:
     // Exit the tool
     return EXECUTION_OK;
   }
+
 };
 // End of Tool definition
 
@@ -358,11 +361,10 @@ const String TOPPSpectraSTSearchAdapter::param_user_mod_file = "user_mod_file";
 const StringList TOPPSpectraSTSearchAdapter::param_output_file_formats = ListUtils::create<String>("txt,xls,pep.xml,xml,pepXML,html");
 const StringList TOPPSpectraSTSearchAdapter::param_input_file_formats = ListUtils::create<String>("mzML,mzXML,mzData,mgf,dta,msp");
 
-
-
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
 {
   TOPPSpectraSTSearchAdapter tool;
   return tool.main(argc, argv);
 }
+
