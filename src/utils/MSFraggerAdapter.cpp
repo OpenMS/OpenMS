@@ -364,7 +364,7 @@ protected:
   }
 
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) final override
   {
     try
     {
@@ -580,20 +580,20 @@ protected:
 
       // Write all the parameters into the file
       os << "database_name = " << String(database_path)
-			      << "\nnum_threads = " << this->getIntOption_("threads")
-			      << "\n\nprecursor_mass_tolerance = " << arg_precursor_mass_tolerance
-			      << "\nprecursor_mass_units = " << (arg_precursor_mass_unit == "Da" ? 0 : 1)
-			      << "\nprecursor_true_tolerance = " << arg_precursor_true_tolerance
-			      << "\nprecursor_true_units = " << (arg_precursor_true_unit == "Da" ? 0 : 1)
-			      << "\nfragment_mass_tolerance = " << arg_fragment_mass_tolerance
-			      << "\nfragment_mass_units = " << (arg_fragment_mass_unit == "Da" ? 0 : 1)
-			      << "\n\nisotope_error = " << arg_isotope_error
-			      << "\n\nsearch_enzyme_name = " << arg_search_enzyme_name
-			      << "\nsearch_enzyme_cutafter = " << arg_search_enzyme_cutafter
-			      << "\nsearch_enzyme_butnotafter = " << arg_search_enzyme_nocutbefore
-			      << "\n\nnum_enzyme_termini = " << arg_num_enzyme_termini
-			      << "\nallowed_missed_cleavage = " << arg_allowed_missed_cleavage
-			      << "\n\nclip_nTerm_M = " << arg_clip_nterm_m << '\n';
+                               << "\nnum_threads = " << this->getIntOption_("threads")
+                               << "\n\nprecursor_mass_tolerance = " << arg_precursor_mass_tolerance
+                               << "\nprecursor_mass_units = " << (arg_precursor_mass_unit == "Da" ? 0 : 1)
+                               << "\nprecursor_true_tolerance = " << arg_precursor_true_tolerance
+                               << "\nprecursor_true_units = " << (arg_precursor_true_unit == "Da" ? 0 : 1)
+                               << "\nfragment_mass_tolerance = " << arg_fragment_mass_tolerance
+                               << "\nfragment_mass_units = " << (arg_fragment_mass_unit == "Da" ? 0 : 1)
+                               << "\n\nisotope_error = " << arg_isotope_error
+                               << "\n\nsearch_enzyme_name = " << arg_search_enzyme_name
+                               << "\nsearch_enzyme_cutafter = " << arg_search_enzyme_cutafter
+                               << "\nsearch_enzyme_butnotafter = " << arg_search_enzyme_nocutbefore
+                               << "\n\nnum_enzyme_termini = " << arg_num_enzyme_termini
+                               << "\nallowed_missed_cleavage = " << arg_allowed_missed_cleavage
+                               << "\n\nclip_nTerm_M = " << arg_clip_nterm_m << '\n';
 
       // Write variable modifications (and also write to log)
       writeLog_("Variable Modifications set to:");
@@ -708,8 +708,8 @@ private:
   // Adds variable modification if not already present
   void _addVarMod(std::vector< double > & masses, std::vector< String > & syntaxes, const double mass, const String & syntax) const
   {
-    const auto it1 = std::find(masses.begin(), masses.end(), mass);
-    const auto it2 = std::find(syntaxes.begin(), syntaxes.end(), syntax);
+    const std::vector< double >::iterator it1 = std::find(masses.begin(), masses.end(), mass);
+    const std::vector< String >::iterator it2 = std::find(syntaxes.begin(), syntaxes.end(), syntax);
 
     // add the provided variable modification if not already present
     if (   it1 == masses.end()
