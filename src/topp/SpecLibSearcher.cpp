@@ -117,7 +117,7 @@ protected:
     // setValidStrings_("fragment_error_units", valid_strings);
     // registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
     // registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
-    registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparisson", false);
+    registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparison", false);
     PeakSpectrumCompareFunctor::registerChildren();
     setValidStrings_("compare_function", Factory<PeakSpectrumCompareFunctor>::registeredProducts());
     registerIntOption_("top_hits", "<number>", 10, "save the first <number> top hits. For all type -1", false);
@@ -125,7 +125,7 @@ protected:
     addEmptyLine_();
     registerTOPPSubsection_("filter", "Filtering options. Most are especially useful when the query spectra are raw.");
     registerDoubleOption_("filter:remove_peaks_below_threshold", "<threshold>", 2.01, "All peaks of a query spectrum with intensities below <threshold> will be zeroed.", false);
-    registerIntOption_("filter:min_peaks", "<number>", 5, "required mininum number of peaks for a query spectrum", false);
+    registerIntOption_("filter:min_peaks", "<number>", 5, "required minimum number of peaks for a query spectrum", false);
     registerIntOption_("filter:max_peaks", "<number>", 150, "Use only the top <number> of peaks.", false);
     registerIntOption_("filter:cut_peaks_below", "<number>", 1000, "Remove all peaks which are lower than 1/<number> of the highest peaks. Default equals all peaks which are lower than 0.001 of the maximum intensity peak", false);
 
@@ -306,7 +306,7 @@ protected:
       vector<ProteinIdentification> protein_ids;
       // Write parameters to ProteinIdentifcation
       ProteinIdentification prot_id;
-      //Parameters of identificaion
+      //Parameters of identification
       prot_id.setIdentifier("test");
       prot_id.setSearchEngineVersion("SpecLibSearcher");
       prot_id.setDateTime(DateTime::now());
@@ -479,7 +479,7 @@ protected:
       cout << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
     }
     time_t end_time = time(NULL);
-    cout << "Total time: " << difftime(end_time, prog_time) << " secconds\n";
+    cout << "Total time: " << difftime(end_time, prog_time) << " seconds\n";
     return EXECUTION_OK;
   }
 
