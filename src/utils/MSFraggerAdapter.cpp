@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,10 +28,9 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Leon Bichmann $
-// $Authors: Leon Bichmann, Lukas Zimmermann $
+// $Maintainer: Lukas Zimmermann $
+// $Authors: Lukas Zimmermann, Leon Bichmann $
 // --------------------------------------------------------------------------
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CHEMISTRY/EnzymesDB.h>
@@ -76,7 +75,6 @@ using namespace std;
 	MSFragger can process multiple input files (mzML, mzXML) one after another. The number of output files specified must match
 	the number of input spectra files. The output file is then matched to the input file by index. The default parameters of the
 	adapter are the same as given by the official MSFragger manual.
-
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_MSFraggerAdapter.cli
@@ -714,7 +712,7 @@ private:
     const auto it2 = std::find(syntaxes.begin(), syntaxes.end(), syntax);
 
     // add the provided variable modification if not already present
-    if (      it1 == masses.end()
+    if (   it1 == masses.end()
         || it2 == syntaxes.end()
         || std::distance(masses.begin(), it1) != std::distance(syntaxes.begin(), it2))
     {
