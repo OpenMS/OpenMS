@@ -224,29 +224,29 @@ protected:
     setValidFormats_(TOPPMSFraggerAdapter::param_out, ListUtils::create<String>("pep.xml,pepXML,tsv"), true);
 
     // Path to database to search
-    registerInputFile_(TOPPMSFraggerAdapter::param_database, "<path_to_fasta>", "", "FASTA database file", true, false);
+    registerInputFile_(TOPPMSFraggerAdapter::param_database, "<path_to_fasta>", "", "Protein FASTA database file path", true, false);
     setValidFormats_(TOPPMSFraggerAdapter::param_database, ListUtils::create<String>("FASTA,fasta,fa,fas"), false);
 
     // TOPP tolerance
     registerTOPPSubsection_("tolerance", "Search Tolerances");
 
     // Precursor mass tolerance and unit
-    _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_precursor_mass_tolerance, "<precursor_mass_tolerance>", 20.0, "Precursor mass tolerance", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_precursor_mass_tolerance, "<precursor_mass_tolerance>", 20.0, "Precursor mass tolerance (window is +/- this value)", false, false);
     registerStringOption_(TOPPMSFraggerAdapter::param_precursor_mass_unit, "<precursor_mass_unit>", "ppm", "Unit of precursor mass tolerance", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::param_precursor_mass_unit, validUnits);
 
     // Precursor true tolerance
-    _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_precursor_true_tolerance, "<precursor_true_tolerance>", 0.0, "Precursor true tolerance. It is strongly recommended to set this feature!", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_precursor_true_tolerance, "<precursor_true_tolerance>", 0.0, "True precursor mass tolerance (window is +/- this value). Used for tie breaker of results (in spectrally ambiguous cases) and zero bin boosting in open searches (0 disables these features). This option is STRONGLY recommended for open searches.", false, false);
     registerStringOption_(TOPPMSFraggerAdapter::param_precursor_true_unit, "<precursor_true_unit>", "ppm", "Unit of precursor true tolerance", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::param_precursor_true_unit, validUnits);
 
     // Fragment mass tolerance
-    _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_fragment_mass_tolerance, "<fragment_mass_tolerance>", 20.0, "Fragment mass tolerance", false, false);
-    registerStringOption_(TOPPMSFraggerAdapter::param_fragment_mass_unit, "<fragment_mass_unit>", "ppm", "Fragment mass unit", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_fragment_mass_tolerance, "<fragment_mass_tolerance>", 20.0, "Fragment mass tolerance (window is +/- this value)", false, false);
+    registerStringOption_(TOPPMSFraggerAdapter::param_fragment_mass_unit, "<fragment_mass_unit>", "ppm", "Unit of fragment mass tolerance", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::param_fragment_mass_unit, validUnits);
 
     // Isotope error
-    registerStringOption_(TOPPMSFraggerAdapter::param_isotope_error, "<isotope_error>", "0", "Isotope correction for MS/MS events triggered on isotopic peaks. Should be set to 0 for open search or 0/1/2 for correction of narrow window searches", false, false);
+    registerStringOption_(TOPPMSFraggerAdapter::param_isotope_error, "<isotope_error>", "0", "Isotope correction for MS/MS events triggered on isotopic peaks. Should be set to 0 (disabled) for open search or 0/1/2 for correction of narrow window searches. Shifts the precursor mass window to multiples of this value multiplied by the mass of C13-C12.", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::param_isotope_error, isotope_error_and_enzyme_termini);
 
     // TOPP digest
@@ -259,7 +259,7 @@ protected:
     setValidStrings_(TOPPMSFraggerAdapter::param_search_enzyme_name, enzyme_names);
 
     // Cut after
-    registerStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_cutafter, "<search_enzyme_cutafter>", "KR", "Residues after which the enzyme cuts", false , false);
+    registerStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_cutafter, "<search_enzyme_cutafter>", "KR", "Residues after which the enzyme cuts (specified as a string of amino acids)", false , false);
 
     // No cut before
     registerStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_nocutbefore, "<search_enzyme_nocutbefore>", "P", "Residues that the enzyme will not cut before", false, false);
@@ -296,14 +296,14 @@ protected:
     registerFlag_(TOPPMSFraggerAdapter::param_varmod_enable_common, "Enable common variable modifications (15.9949 M and 42.0106 [*)", false);
 
     // allow_multiple_variable_mods_on_residue
-    registerFlag_(TOPPMSFraggerAdapter::param_not_allow_multiple_variable_mods_on_residue, "Do not allow each amino acid to be modified by multiple variable modifications", false);
+    registerFlag_(TOPPMSFraggerAdapter::param_not_allow_multiple_variable_mods_on_residue, "Do not allow any one amino acid to be modified by multiple variable modifications", false);
 
     // Max variable mods per mod
     registerStringOption_(TOPPMSFraggerAdapter::param_max_variable_mods_per_mod, "<max_variable_mods_per_mod>", "2", "Maximum number of residues that can be occupied by each variable modification", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::param_max_variable_mods_per_mod, zero_to_five);
 
     // Max variable mods combinations
-    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_max_variable_mods_combinations, "<max_variable_mods_combinations>", 5000, "Maximum allowed number of modified variably modified peptides from each peptide sequence, (maximum of 65534). If a greater number than the maximum is generated, only the unmodified peptide is considered.", false, false);
+    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_max_variable_mods_combinations, "<max_variable_mods_combinations>", 5000, "Maximum allowed number of modified variably modified peptides from each peptide sequence, (maximum of 65534). If a greater number than the maximum is generated, only the unmodified peptide is considered", false, false);
     setMaxInt_(TOPPMSFraggerAdapter::param_max_variable_mods_combinations, 65534);
 
     // TOPP spectrum
@@ -313,24 +313,24 @@ protected:
     _registerNonNegativeInt(TOPPMSFraggerAdapter::param_use_topn_peaks, "<use_topN_peaks>", 50, "Pre-process experimental spectrum to only use top N peaks", false, false);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_minimum_ratio, "<minimum_ratio>", 0.0, "Filters out all peaks in experimental spectrum less intense than this multiple of the base peak intensity", false, false);
     setMaxFloat_(TOPPMSFraggerAdapter::param_minimum_ratio, 1.0);
-    _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_clear_mz_range_min, "<clear_mz_range_min>", 0.0, "Removes peaks in this m/z range prior to matching. Useful for iTRAQ/TMT experiments (i.e. 0.0 150.0)", false, false);
-    _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_clear_mz_range_max, "<clear_mz_range_max>", 0.0, "Removes peaks in this m/z range prior to matching. Useful for iTRAQ/TMT experiments (i.e. 0.0 150.0)", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_clear_mz_range_min, "<clear_mz_range_min>", 0.0, "Removes peaks in this m/z range prior to matching (minimum value). Useful for iTRAQ/TMT experiments (i.e. 0.0 150.0)", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_clear_mz_range_max, "<clear_mz_range_max>", 0.0, "Removes peaks in this m/z range prior to matching (maximum value). Useful for iTRAQ/TMT experiments (i.e. 0.0 150.0)", false, false);
 
     registerStringOption_(TOPPMSFraggerAdapter::param_max_fragment_charge, "<max_fragment_charge>", "2", "Maximum charge state for theoretical fragments to match", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::param_max_fragment_charge, ListUtils::create<String>("1,2,3,4"));
 
-    registerFlag_(TOPPMSFraggerAdapter::param_override_charge, "Ignores precursor charge and uses charge state specified in precursor_charge range" , false);
-    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_precursor_charge_min, "<precursor_charge_min>", 1, "Min charge of precursor charge range to consider" , false, false);
-    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_precursor_charge_max, "<precursor_charge_max>", 4, "Max charge of precursor charge range to consider" , false, false);
+    registerFlag_(TOPPMSFraggerAdapter::param_override_charge, "Ignores precursor charge and uses charge state specified in precursor_charge range (parameters: spectrum:precursor_charge_min and spectrum:precursor_charge_max)" , false);
+    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_precursor_charge_min, "<precursor_charge_min>", 1, "Min charge of precursor charge range to consider. If specified, also spectrum:override_charge must be set)" , false, false);
+    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_precursor_charge_max, "<precursor_charge_max>", 4, "Max charge of precursor charge range to consider. If specified, also spectrum:override_charge must be set)" , false, false);
 
     registerTOPPSubsection_("search", "Open Search Features");
 
-    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_track_zero_topn, "<track_zero_topn>", 0, "Track top N unmodified peptide results separately from main results internally for boosting features. Should be set to a number greater than output_report_topN if zero bin boosting is desired.", false, false);
+    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_track_zero_topn, "<track_zero_topn>", 0, "Track top N unmodified peptide results separately from main results internally for boosting features. Should be set to a number greater than search:output_report_topN if zero bin boosting is desired", false, false);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_zero_bin_accept_expect, "<zero_bin_accept_expect>", 0.0, "Ranks a zero-bin hit above all non-zero-bin hit if it has expectation less than this value", false, false);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_zero_bin_mult_expect, "<zero_bin_mult_expect>", 1.0, "Multiplies expect value of PSMs in the zero-bin during results ordering (set to less than 1 for boosting)", false, false);
-    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_add_topn_complementary, "<add_topn_complementary>", 0, "Inserts complementary ions corresponding to the top N most intense fragments in each experimental spectra. 0 disables this option.", false, false);
-    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_min_fragments_modeling, "<min_fragments_modeling>", 3, "Minimum number of matched peaks in PSM for inclusion in statistical modeling.", false, false);
-    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_min_matched_fragments, "<min_matched_fragments>", 4, "Minimum number of matched peaks to be reported", false, false);
+    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_add_topn_complementary, "<add_topn_complementary>", 0, "Inserts complementary ions corresponding to the top N most intense fragments in each experimental spectrum. Useful for recovery of modified peptides near C-terminus in open search. 0 disables this option", false, false);
+    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_min_fragments_modeling, "<min_fragments_modeling>", 3, "Minimum number of matched peaks in PSM for inclusion in statistical modeling", false, false);
+    _registerNonNegativeInt(TOPPMSFraggerAdapter::param_min_matched_fragments, "<min_matched_fragments>", 4, "Minimum number of matched peaks for PSM to be reported. MSFragger recommends a minimum of 4 for narrow window searching and 6 for open searches", false, false);
     _registerNonNegativeInt(TOPPMSFraggerAdapter::param_output_report_topn, "<output_report_topn>", 1, "Reports top N PSMs per input spectrum", false, false);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::param_output_max_expect, "<output_max_expect>", 50.0, "Suppresses reporting of PSM if top hit has expectation greater than this threshold", false, false);
 
