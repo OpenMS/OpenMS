@@ -680,13 +680,13 @@ protected:
 
     if (this->debug_level_ >= TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE)
     {
-    	writeDebug_("COMMAND LINE CALL IS:", 1);
-    	String command_line = this->java_executable;
-    	for (const String & process_param : process_params)
-    	{
-    		command_line += (" " + process_param);
-    	}
-    	writeDebug_(command_line, TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
+      writeDebug_("COMMAND LINE CALL IS:", 1);
+      String command_line = this->java_executable;
+      for (const String & process_param : process_params)
+      {
+        command_line += (" " + process_param);
+      }
+      writeDebug_(command_line, TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
     }
 
     process_msfragger.start(this->java_executable.toQString(), process_params);
