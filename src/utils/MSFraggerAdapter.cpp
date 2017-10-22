@@ -265,8 +265,8 @@ protected:
     registerStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_nocutbefore, "<search_enzyme_nocutbefore>", "P", "Residues that the enzyme will not cut before", false, false);
 
     // Number of enzyme termini
-    registerStringOption_(TOPPMSFraggerAdapter::param_num_enzyme_termini, "<num_enzyme_termini>", "2", "Number of enzyme termini (0, 1, or 2 for non-enzymatic, semi-enzymatic, fully-enzymatic)", false, false);
-    setValidStrings_(TOPPMSFraggerAdapter::param_num_enzyme_termini, isotope_error_and_enzyme_termini);
+    registerStringOption_(TOPPMSFraggerAdapter::param_num_enzyme_termini, "<num_enzyme_termini>", "fully", "Number of enzyme termini (non-enzymatic (0), semi (1), fully (2)", false, false);
+    setValidStrings_(TOPPMSFraggerAdapter::param_num_enzyme_termini, ListUtils::create<String>("non-enzymatic,semi,fully"));
 
     // Allowed missed cleavages
     registerStringOption_(TOPPMSFraggerAdapter::param_allowed_missed_cleavage, "<allowed_missed_cleavage>", "2", "Allowed number of missed cleavages", false, false);
@@ -448,7 +448,13 @@ protected:
       const String & arg_search_enzyme_name = this->getStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_name);
       const String & arg_search_enzyme_cutafter = this->getStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_cutafter);
       const String & arg_search_enzyme_nocutbefore = this->getStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_nocutbefore);
-      const String & arg_num_enzyme_termini = this->getStringOption_(TOPPMSFraggerAdapter::param_num_enzyme_termini);
+
+      std::map< String,int > num_enzyme_termini;
+      num_enzyme_termini["non-enzymatic"] = 0;
+      num_enzyme_termini["semi"] = 1;
+      num_enzyme_termini["fully"] = 2;
+      const int arg_num_enzyme_termini = num_enzyme_termini[this->getStringOption_(TOPPMSFraggerAdapter::param_num_enzyme_termini)];
+
       const String & arg_allowed_missed_cleavage = this->getStringOption_(TOPPMSFraggerAdapter::param_allowed_missed_cleavage);
       const int arg_digest_min_length = this->getIntOption_(TOPPMSFraggerAdapter::param_digest_min_length);
       const int arg_digest_max_length = this->getIntOption_(TOPPMSFraggerAdapter::param_digest_max_length);
