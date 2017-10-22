@@ -174,6 +174,9 @@ public:
   static const String param_add_Y_tyrosine;
   static const String param_add_W_tryptophan;
 
+  // Log level for verbose output
+  static const int LOG_LEVEL_VERBOSE;
+
 
   TOPPMSFraggerAdapter() :
     TOPPBase("MSFraggerAdapter", "Peptide Identification with MSFragger", false),
@@ -549,9 +552,6 @@ protected:
       const double arg_add_Y_tyrosine     = this->getDoubleOption_(TOPPMSFraggerAdapter::param_add_Y_tyrosine);
       const double arg_add_W_tryptophan     = this->getDoubleOption_(TOPPMSFraggerAdapter::param_add_W_tryptophan);
 
-      // Log Levels. Write more verbose output with 1
-      const UInt verbose_level = 1;
-
       // Parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
       this->working_directory = this->makeTempDirectory_().toQString();
       const QFileInfo tmp_param_file(this->working_directory, "fragger.params");
@@ -579,8 +579,8 @@ protected:
         this->input_files.push_back(link_name);
       }
 
-      writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", verbose_level);
-      writeDebug_("Working Directory: '" + String(this->working_directory) + "'", verbose_level);
+      writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
+      writeDebug_("Working Directory: '" + String(this->working_directory) + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
       writeDebug_("If you want to keep the working directory and the parameter file, set the -debug to 2", 1);
       ofstream os(this->parameter_file_path.c_str());
 
@@ -677,6 +677,18 @@ protected:
 
     QProcess process_msfragger;
     process_msfragger.setWorkingDirectory(this->working_directory);
+
+    if (this->debug_level_ >= TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE)
+    {
+    	writeDebug_("COMMAND LINE CALL IS:", 1);
+    	String command_line = this->java_executable;
+    	for (const String & process_param : process_params)
+    	{
+    		command_line += (" " + process_param);
+    	}
+    	writeDebug_(command_line, TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
+    }
+
     process_msfragger.start(this->java_executable.toQString(), process_params);
 
     if (process_msfragger.waitForFinished(-1) == false || process_msfragger.exitCode() != 0)
@@ -854,6 +866,7 @@ const String TOPPMSFraggerAdapter::param_add_R_arginine = "statmod:add_R_arginin
 const String TOPPMSFraggerAdapter::param_add_Y_tyrosine = "statmod:add_Y_tyrosine";
 const String TOPPMSFraggerAdapter::param_add_W_tryptophan = "statmod:add_W_tryptophan";
 
+const int TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE = 1;
 
 int main(int argc, const char** argv)
 {
