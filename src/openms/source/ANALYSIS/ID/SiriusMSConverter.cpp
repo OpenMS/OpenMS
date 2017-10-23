@@ -32,20 +32,9 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-#include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
-#include <ostream>
-#include <OpenMS/KERNEL/MSExperiment.h>
-
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
+
+#include <fstream>
 
 #include <QDir>
 

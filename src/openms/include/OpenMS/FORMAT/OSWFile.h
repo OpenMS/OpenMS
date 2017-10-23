@@ -28,37 +28,64 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Alka $
-// $Authors: Oliver Alka $
+// $Maintainer: George Rosenberger $
+// $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
-#define OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
+#ifndef OPENMS_FORMAT_OSWFILE_H
+#define OPENMS_FORMAT_OSWFILE_H
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <sqlite3.h>
 
 namespace OpenMS
 {
+  /**
+    @brief This class serves for reading in and writing OpenSWATH OSW files.
 
-  class OPENMS_DLLAPI SiriusMSFile
+    The reader and writer returns data in a format suitable for PercolatorAdapter.
+    OSW files have a flexible data structure. They contain all peptide query
+    parameters of TraML/PQP files with the detected and quantified features of
+    OpenSwathWorkflow (feature, feature_ms1, feature_ms2 & feature_transition).
+
+    The OSWFile reader extracts the feature information from the OSW file for
+    each level (MS1, MS2 & transition) separately and generates Percolator input
+    files. For each of the three Percolator reports, OSWFile writer adds a table
+    (score_ms1, score_ms2, score_transition) with the respective confidence metrics.
+    These tables can be mapped to the corresponding feature tables, are very similar
+    to PyProphet results and can thus be used interchangeably.
+    
+  */
+  class OPENMS_DLLAPI OSWFile
   {
 public:
+    /// Default constructor
+    OSWFile();
 
-  /**
-    @brief Internal structure used in @ref SiriusAdapter that is used
-    for the conversion of a MzMlFile to an internal format.
+    /// Destructor
+    virtual ~OSWFile();
 
-    @ingroup ID
+    /**
+      @brief Reads an OSW SQLite file and returns the data on MS1-, MS2- or transition-level
+      as stringstream TXT input for PercolatorAdapter.
     */
+    void read(const std::string& in_osw, const std::string& osw_level, std::stringstream& pin_output, const double& ipf_max_peakgroup_pep, const double& ipf_max_transition_isotope_overlap, const double& ipf_min_transition_sn);
 
-    /// store MS file
-    /// @return string (full path to file)
-    static void store(const PeakMap & spectra, const OpenMS::String & msfile);
+    /**
+    @brief Updates an OpenSWATH OSW SQLite files with the MS1-, MS2- or transition-level results of Percolator.
+    */
+    void write(const std::string& in_osw, const std::string& osw_level, const std::map< std::string, std::vector<double> >& features);
+
+private:
+    /**
+    @brief Helper function for writing OSW SQLite files
+    */
+    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName);
 
   };
 
-}
+} // namespace OpenMS
 
-#endif //OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
+#endif // OPENMS_FORMAT_OSWFILE_H
