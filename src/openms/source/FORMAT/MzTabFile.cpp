@@ -974,7 +974,7 @@ namespace OpenMS
           row.go_terms.fromCellString(cells[protein_go_terms_index]);
         }
 
-        row.protein_coverage.fromCellString(cells[protein_coverage_index]);
+        row.coverage.fromCellString(cells[protein_coverage_index]);
 
         // quantification data
         for (map<Size, Size>::const_iterator it = protein_abundance_assay_indices.begin(); it != protein_abundance_assay_indices.end(); ++it)
@@ -2118,7 +2118,7 @@ namespace OpenMS
       s.push_back(row.go_terms.toCellString());
     }
 
-    s.push_back(row.protein_coverage.toCellString());
+    s.push_back(row.coverage.toCellString());
 
     // quantification columns
     for (std::map<Size, MzTabDouble>::const_iterator it = row.protein_abundance_assay.begin(); it != row.protein_abundance_assay.end(); ++it)
@@ -2614,7 +2614,7 @@ namespace OpenMS
       s.push_back(row.go_terms.toCellString());
     }
 
-    s.push_back(row.sequence_coverage.toCellString());
+    s.push_back(row.coverage.toCellString());
 
     addOptionalColumnsToSectionRow_(optional_columns, row.opt_, s);
 

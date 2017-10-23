@@ -599,7 +599,7 @@ public:
     MzTabModificationList modifications; // Modifications identified in the protein.
     MzTabString uri; // Location of the protein’s source entry.
     MzTabStringList go_terms; // List of GO terms for the protein.
-    MzTabDouble protein_coverage; // (0-1) Amount of protein sequence identified.
+    MzTabDouble coverage; // (0-1) Amount of protein sequence identified.
     std::map<Size, MzTabDouble> protein_abundance_assay;
     std::map<Size, MzTabDouble> protein_abundance_study_variable;
     std::map<Size, MzTabDouble> protein_abundance_stdev_study_variable;
@@ -710,7 +710,7 @@ public:
     MzTabString uri; //< Location of the nucleic acid’s source entry.
     // do GO terms make sense for nucleic acid sequences?
     MzTabStringList go_terms; //< List of GO terms for the nucleic acid.
-    MzTabDouble sequence_coverage; //< (0-1) Fraction of nucleic acid sequence identified.
+    MzTabDouble coverage; //< (0-1) Fraction of nucleic acid sequence identified.
     std::vector<MzTabOptionalColumnEntry> opt_; //< Optional Columns must start with “opt_”
   };
 
