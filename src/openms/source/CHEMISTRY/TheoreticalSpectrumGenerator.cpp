@@ -450,7 +450,7 @@ namespace OpenMS
   }
 
 
-  char TheoreticalSpectrumGenerator::ribonucleotideTypeToIonLetter_(Ribonucleotide::RiboNucleotideFragmentType res_type) const //TODO fix duplicated code
+  char TheoreticalSpectrumGenerator::ribonucleotideTypeToIonLetter_(Ribonucleotide::RibonucleotideFragmentType res_type) const //TODO fix duplicated code
   {
     switch (res_type)
     {
@@ -495,7 +495,7 @@ namespace OpenMS
   }
 
 
-  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum, const NASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RiboNucleotideFragmentType res_type, Int charge, double intensity) const
+  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum, const NASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RibonucleotideFragmentType res_type, Int charge, double intensity) const
   {
     char charge_sign = '+';
     double charge_unit = 1.0; //double equivalent of sign
@@ -605,7 +605,7 @@ namespace OpenMS
   }
 
 
-  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum& spectrum, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RiboNucleotideFragmentType res_type, Int charge) const
+  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum& spectrum, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RibonucleotideFragmentType res_type, Int charge) const
   {
     spectrum.reserve(nucleotide.size());
 

@@ -57,7 +57,7 @@ namespace OpenMS
     origin_ = '.';
     mono_mass_ = 0.0;
     avg_mass_ = 0.0;
-    isModifiable_ = false;
+    is_modifiable_ = false;
   }
 
   Ribonucleotide::Ribonucleotide(const Ribonucleotide &ribo)
@@ -65,16 +65,15 @@ namespace OpenMS
     name_ = ribo.getName();
     code_ = ribo.getCode();
     new_code_ = ribo.getNewCode();
-    html_code_ = ribo.getHtmlCode();
+    html_code_ = ribo.getHTMLCode();
     formula_ = ribo.getFormula();
     origin_ = ribo.getOrigin();
     mono_mass_ = ribo.getMonoMass();
     avg_mass_ = ribo.getAvgMass();
-    isModifiable_ = ribo.getIsModifiable();
-
+    is_modifiable_ = ribo.getIsModifiable();
   }
 
-  Ribonucleotide::Ribonucleotide(const String &name, const String &code, const String &new_code, const String &html_code, const EmpiricalFormula &formula, const char &origin, const double &mono_mass, const double &avg_mass, const bool isModifiable)
+  Ribonucleotide::Ribonucleotide(const String& name, const String& code, const String& new_code, const String& html_code, const EmpiricalFormula& formula, const char& origin, const double& mono_mass, const double& avg_mass, const bool is_modifiable)
   {
     name_ = name;
     code_ = code;
@@ -84,26 +83,26 @@ namespace OpenMS
     origin_ = origin;
     mono_mass_ = mono_mass;
     avg_mass_ = avg_mass;
-    isModifiable_ = isModifiable;
+    is_modifiable_ = is_modifiable;
   }
 
   Ribonucleotide::~Ribonucleotide()
   {
   }
 
-  Ribonucleotide& Ribonucleotide::operator=(const Ribonucleotide &ribo)
+  Ribonucleotide& Ribonucleotide::operator=(const Ribonucleotide& ribo)
   {
     if (this != &ribo)
     {
       name_ = ribo.getName();
       code_ = ribo.getCode();
       new_code_ = ribo.getNewCode();
-      html_code_ = ribo.getHtmlCode();
+      html_code_ = ribo.getHTMLCode();
       formula_ = ribo.getFormula();
       origin_ = ribo.getOrigin();
       mono_mass_ = ribo.getMonoMass();
       avg_mass_ = ribo.getAvgMass();
-      isModifiable_ = ribo.getIsModifiable();
+      is_modifiable_ = ribo.getIsModifiable();
     }
     return *this;
   }
@@ -122,42 +121,42 @@ namespace OpenMS
 
   const String Ribonucleotide::getCode() const
   {
-      return code_;
+    return code_;
   }
-  
+
   void Ribonucleotide::setCode(const String &code)
   {
-      code_ = code;
+    code_ = code;
   }
-  
+
   const String Ribonucleotide::getName() const
   {
-      return name_;
+    return name_;
   }
-  
+
   void Ribonucleotide::setName(const String &name)
   {
-      name_ = name;
+    name_ = name;
   }
-  
+
   double Ribonucleotide::getMonoMass() const
   {
       return mono_mass_;
   }
-  
+
   void Ribonucleotide::setMonoMass(double mono_mass)
   {
-      mono_mass_ = mono_mass;
+    mono_mass_ = mono_mass;
   }
-  
+
   double Ribonucleotide::getAvgMass() const
   {
-      return avg_mass_;
+    return avg_mass_;
   }
-  
+
   void Ribonucleotide::setAvgMass(double avg_mass)
   {
-      avg_mass_ = avg_mass;
+    avg_mass_ = avg_mass;
   }
 
   const String Ribonucleotide::getNewCode() const
@@ -180,21 +179,21 @@ namespace OpenMS
     origin_ = origin;
   }
 
-  String Ribonucleotide::getHtmlCode() const
+  String Ribonucleotide::getHTMLCode() const
   {
     return html_code_;
   }
 
-  void Ribonucleotide::setHtmlCode(const String &html_code)
+  void Ribonucleotide::setHTMLCode(const String& html_code)
   {
     html_code_ = html_code;
   }
-  
+
   const EmpiricalFormula Ribonucleotide::getFormula() const
   {
     return formula_;
   }
-  
+
   void Ribonucleotide::setFormula(const EmpiricalFormula &formula)
   {
     formula_ = formula;
@@ -202,18 +201,17 @@ namespace OpenMS
 
   bool Ribonucleotide::isModified() const
   {
-    if (code_.length() == 1 && code_[0] == origin_) { return false; }
-    return true;
+    return (code_.length() != 1) || (code_[0] != origin_);
   }
 
   bool Ribonucleotide::getIsModifiable() const
   {
-    return isModifiable_;
+    return is_modifiable_;
   }
 
-  void Ribonucleotide::setIsModifiable(bool isModifiable)
+  void Ribonucleotide::setIsModifiable(bool is_modifiable)
   {
-    isModifiable_ = isModifiable;
+    is_modifiable_ = is_modifiable;
   }
-  
+
 }

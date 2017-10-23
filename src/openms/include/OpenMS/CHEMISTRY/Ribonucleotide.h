@@ -55,7 +55,7 @@ namespace OpenMS
     friend class RibonucleotideDB;
   public:
 
-    enum RiboNucleotideFragmentType
+    enum RibonucleotideFragmentType
     {                 // NB: Not all fragments types are valid for all residue types, this class should probably get split
       Full = 0,       // with N-terminus and C-terminus
       Internal,       // internal, without any termini
@@ -74,19 +74,19 @@ namespace OpenMS
       YIonMinusNH3,   // MS:1001233 y ion without ammonia
       NonIdentified,  // MS:1001240 Non-identified ion
       Unannotated,    // no stored annotation
-      WIon,           //W ion, added for nucleic acid support
-      AminusB,        //A ion with base loss, added for nucleic acid support
-      DIon,           // D-ion for nucleic acid support
-      SizeOfResidueType
+      WIon,           // W ion, added for nucleic acid support
+      AminusB,        // A ion with base loss, added for nucleic acid support
+      DIon,           // D ion for nucleic acid support
+      SizeOfRibonucleotideFragmentType
     };
 
     enum NucleicAcidType
     {
-        DNA = 0,
-        RNA,
-        FIVE_PRIME_MODIFICATION,
-        THREE_PRIME_MODIFICATION,
-        Undefined
+      DNA = 0,
+      RNA,
+      FIVE_PRIME_MODIFICATION,
+      THREE_PRIME_MODIFICATION,
+      Undefined
     };
 
     /** @name Constructors
@@ -107,7 +107,7 @@ namespace OpenMS
                    const char& origin,
                    const double& mono_mass,
                    const double& avg_mass,
-                   const bool isModifiable);
+                   const bool is_modifiable);
 
     /// Destructor
     virtual ~Ribonucleotide();
@@ -135,19 +135,19 @@ namespace OpenMS
     const String getCode() const;
 
     /// Set the short name
-    void setCode(const String &code);
+    void setCode(const String& code);
 
     /// Get the name of the Ribonucleotide
     const String getName() const;
 
     /// Set the name of the Ribonucleotide
-    void setName(const String &name);
+    void setName(const String& name);
 
     /// Get formula for the RiboNucleotide
     const EmpiricalFormula getFormula() const;
 
     /// Set the empirical formula for the Ribonucleotide
-    void setFormula(const EmpiricalFormula &formula);
+    void setFormula(const EmpiricalFormula& formula);
 
     /// Get the monoisotopic mass of the Ribonucleotide
     double getMonoMass() const;
@@ -176,13 +176,13 @@ namespace OpenMS
     /// Set the code of the unmodified base (e.g., "A", "C", ...)
     void setOrigin(char origin);
 
-    String getHtmlCode() const;
+    String getHTMLCode() const;
 
-    void setHtmlCode(const String &html_code);
+    void setHTMLCode(const String& html_code);
 
     bool getIsModifiable() const;
 
-    void setIsModifiable(bool isModifiable);
+    void setIsModifiable(bool is_modifiable);
 
     //@}
 
@@ -199,7 +199,7 @@ namespace OpenMS
     char origin_;  // character of unmodified version of Ribonucleotide
     double mono_mass_;
     double avg_mass_;
-    bool isModifiable_;
+    bool is_modifiable_;
   };
 
 

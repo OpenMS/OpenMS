@@ -49,9 +49,13 @@ namespace OpenMS
     readFromFile_("CHEMISTRY/Modomics.tsv");
   }
 
+
   RibonucleotideDB::~RibonucleotideDB()
   {
-    for (auto & r : ribonucleotides_) { delete(r); }
+    for (auto& r : ribonucleotides_)
+    {
+      delete(r);
+    }
   }
 
 
@@ -103,8 +107,8 @@ namespace OpenMS
   }
 
 
-  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::parseRow_(const std::string& row,
-                                             Size line_count)
+  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::parseRow_(
+    const std::string& row, Size line_count)
   {
     vector<String> parts;
     String(row).split('\t', parts);
@@ -115,9 +119,9 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                   row, msg);
     }
-    Ribonucleotide * ribo = new Ribonucleotide();
-    ribo->setName( parts[0] );
-    ribo->setCode( parts[1] );
+    Ribonucleotide* ribo = new Ribonucleotide();
+    ribo->setName(parts[0]);
+    ribo->setCode(parts[1]);
     ribo->setNewCode(parts[2]);
     if (parts[3] == "preQ0base")
     {
@@ -128,8 +132,8 @@ namespace OpenMS
       ribo->setOrigin( parts[3][0] );
     }
     // "parts[4]" is the Unicode equivalent to "parts[5]", so we can skip it
-    ribo->setHtmlCode( parts[5] );
-    ribo->setFormula(  EmpiricalFormula(parts[6]) );// Convert the string to an Empirical formula
+    ribo->setHTMLCode(parts[5]);
+    ribo->setFormula(EmpiricalFormula(parts[6]));
     if (!parts[7].empty() && (parts[7] != "None"))
     {
       ribo->setMonoMass(parts[7].toDouble());
@@ -143,7 +147,8 @@ namespace OpenMS
   }
 
 
-  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotide(const std::string& code)
+  RibonucleotideDB::ConstRibonucleotidePtr
+  RibonucleotideDB::getRibonucleotide(const std::string& code)
   {
     std::unordered_map<std::string, Size>::const_iterator pos =
       code_map_.find(code);
@@ -156,7 +161,8 @@ namespace OpenMS
   }
 
 
-  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotidePrefix(const std::string& seq)
+  RibonucleotideDB::ConstRibonucleotidePtr
+  RibonucleotideDB::getRibonucleotidePrefix(const std::string& seq)
   {
     std::string prefix = seq.substr(0, max_code_length_);
     while (!prefix.empty())
@@ -168,7 +174,8 @@ namespace OpenMS
       }
       prefix = prefix.substr(0, prefix.size() - 1);
     }
-    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, seq);
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                     seq);
   }
 }
 
