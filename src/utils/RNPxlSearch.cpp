@@ -49,6 +49,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
+#include <OpenMS/ANALYSIS/RNPXL/MorpheusScore.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlFragmentAnnotationHelper.h>
 
@@ -253,6 +254,16 @@ protected:
 
     // main score
     float score = 0;
+
+    // total loss morpheus related subscores
+    float MIC = 0;
+    float err = 0;
+    float Morph = 0;
+
+    // partial loss morpheus related subscores
+    float pl_MIC = 0;
+    float pl_err = 0;
+    float pl_Morph = 0;
 
     // subscores
     float immonium_score = 0;
@@ -1592,6 +1603,14 @@ protected:
           ph.setMetaValue(String("RNPxl:shifted_marker_ions_score"), a_it->shifted_marker_ions_score);
           ph.setMetaValue(String("RNPxl:partial_loss_score"), a_it->partial_loss_score);
 
+          // total loss and partial loss (pl) related subscores (matched ion current, avg. fragment error, morpheus score)
+          ph.setMetaValue(String("RNPxl:MIC"), a_it->MIC);
+          ph.setMetaValue(String("RNPxl:err"), a_it->err);
+          ph.setMetaValue(String("RNPxl:Morph"), a_it->Morph);
+          ph.setMetaValue(String("RNPxl:pl_MIC"), a_it->pl_MIC);
+          ph.setMetaValue(String("RNPxl:pl_err"), a_it->pl_err);
+          ph.setMetaValue(String("RNPxl:pl_Morph"), a_it->pl_Morph);
+
           ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
           ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // RNA uncharged mass via empirical formula
 
@@ -2131,11 +2150,11 @@ protected:
 
               // small hack to make sub scores compatible with hyperscore. Let ion names begin with y
               immonium_ion_sub_score_spectrum_generator.getSpectrum(immonium_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
-              for (auto& n : immonium_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }              
+              //for (auto& n : immonium_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }              
               precursor_ion_sub_score_spectrum_generator.getSpectrum(precursor_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
-              for (auto& n : precursor_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }              
+              //for (auto& n : precursor_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }              
               a_ion_sub_score_spectrum_generator.getSpectrum(a_ion_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
-              for (auto& n : a_ion_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }
+              //for (auto& n : a_ion_sub_score_spectrum.getStringDataArrays()[0]) { n[0] = 'y'; }
             }
 
             PeakSpectrum partial_loss_spectrum_z1, partial_loss_spectrum_z2;
@@ -2215,6 +2234,15 @@ protected:
               const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
               double total_loss_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
 
+              const auto& tl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
+                                       fragment_mass_tolerance_unit_ppm,
+                                       exp_spectrum,
+                                       complete_loss_spectrum);
+
+              double tlss_MIC = tl_sub_scores.TIC != 0 ? tl_sub_scores.MIC / tl_sub_scores.TIC : 0;
+              double tlss_err = tl_sub_scores.err;
+              double tlss_Morph = tl_sub_scores.score;
+
               // determine sub scores
               double immonium_sub_score(0), 
                 precursor_sub_score(0), 
@@ -2227,21 +2255,45 @@ protected:
 */
               if (!immonium_sub_score_spectrum.empty())
               {
-                immonium_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, immonium_sub_score_spectrum);           
+                const auto& r = MorpheusScore::compute(fragment_mass_tolerance,
+                                       fragment_mass_tolerance_unit_ppm,
+                                       exp_spectrum,
+                                       immonium_sub_score_spectrum);
+                immonium_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
               } 
               if (!marker_ions_sub_score_spectrum.empty())
               {
-                marker_ions_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, marker_ions_sub_score_spectrum);           
+                const auto& r = MorpheusScore::compute(fragment_mass_tolerance,
+                                       fragment_mass_tolerance_unit_ppm,
+                                       exp_spectrum,
+                                       marker_ions_sub_score_spectrum);
+                marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
               }
               if (!precursor_sub_score_spectrum.empty())
               {
-                precursor_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, precursor_sub_score_spectrum);           
+                const auto& r = MorpheusScore::compute(fragment_mass_tolerance,
+                                       fragment_mass_tolerance_unit_ppm,
+                                       exp_spectrum,
+                                       precursor_sub_score_spectrum);
+                precursor_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
               }
               if (!a_ion_sub_score_spectrum.empty())
               {
-                a_ion_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, a_ion_sub_score_spectrum);           
+                const auto& r = MorpheusScore::compute(fragment_mass_tolerance,
+                                       fragment_mass_tolerance_unit_ppm,
+                                       exp_spectrum,
+                                       a_ion_sub_score_spectrum);
+                a_ion_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
               }
 
+              if (!shifted_marker_ions_sub_score_spectrum_z1.empty())
+              {
+                const auto& r = MorpheusScore::compute(fragment_mass_tolerance,
+                                       fragment_mass_tolerance_unit_ppm,
+                                       exp_spectrum,
+                                       shifted_marker_ions_sub_score_spectrum_z1);
+                shifted_marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0; 
+              }
               //TODO: these are currently empty
 /*
               if (!shifted_immonium_ions_sub_score_spectrum.empty())
@@ -2249,20 +2301,35 @@ protected:
                 shifted_immonium_ions_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, shifted_immonium_ions_sub_score_spectrum);           
               }
 */
-              if (!shifted_marker_ions_sub_score_spectrum_z1.empty())
-              {
-                shifted_marker_ions_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, shifted_marker_ions_sub_score_spectrum_z1);           
-              }
 
+              float plss_MIC = 0;
+              float plss_err = 0;          
+              float plss_Morph = 0;  
               if (!partial_loss_spectrum_z1.empty()) // check if we generated partial loss spectra
               {
-                if (exp_pc_charge == 1)
+                if (exp_pc_charge < 3)
                 {
                   partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, partial_loss_spectrum_z1);
+                  const auto& pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
+                                       fragment_mass_tolerance_unit_ppm,
+                                       exp_spectrum,
+                                       partial_loss_spectrum_z1);
+
+                  plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
+                  plss_err = pl_sub_scores.err;
+                  plss_Morph = pl_sub_scores.score;
                 }
-                else if (exp_pc_charge >= 2)
+                else if (exp_pc_charge >= 3)
                 {
                   partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, partial_loss_spectrum_z2);
+                  const auto& pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
+                                       fragment_mass_tolerance_unit_ppm,
+                                       exp_spectrum,
+                                       partial_loss_spectrum_z2);
+
+                  plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
+                  plss_err = pl_sub_scores.err;
+                  plss_Morph = pl_sub_scores.score;
                 }
               }
               #ifdef DEBUG_RNPXLSEARCH
@@ -2282,6 +2349,13 @@ protected:
               ah.sequence = *cit; // copy StringView
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = score;
+              ah.MIC = tlss_MIC;
+              ah.err = tlss_err;
+              ah.Morph = tlss_Morph;
+              ah.pl_MIC = plss_MIC;
+              ah.pl_err = plss_err;
+              ah.pl_Morph = plss_Morph;
+
               ah.immonium_score = immonium_sub_score;
               ah.precursor_score = precursor_sub_score;
               ah.a_ion_score = a_ion_sub_score;
