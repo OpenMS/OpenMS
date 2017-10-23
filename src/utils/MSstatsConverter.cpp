@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,7 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPMSstatsConverter :
+class TOPPMSstatsConverter final :
     public TOPPBase
 {
 public:
@@ -83,20 +83,19 @@ public:
 
   static const String na_string;
 
-  // The meta value of the peptide identification which is gonna used for the exp design association
+  // The meta value of the peptide identification which is going to be used for the experimental design mapping
   static const String meta_value_exp_design_key;
 
   TOPPMSstatsConverter() :
     TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
   {
-
   }
 
 protected:
 
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_() override
+  void registerOptionsAndFlags_() final override
   {
     // Input consensusXML
     this->registerInputFile_(TOPPMSstatsConverter::param_in_consensusxml, "<in_consensusxml>", "", "Input consensusXML with peptide intensities", true, false);
@@ -116,16 +115,16 @@ protected:
   }
 
   // the main_ function is called after all parameters are read
-  ExitCodes main_(int, const char **) override
+  ExitCodes main_(int, const char **) final override
   {
     // Read the experimental design file and validate the format
     CsvFile file_experimental_design;
     file_experimental_design.fload(this->getStringOption_(TOPPMSstatsConverter::param_in_experimental_design));
 
-    // Read the experimental design file, validate the format, and map the exp_design_key (edkey) to the index where it can
-    // be fond in the CSVfile (the edkey normally is the filename with the raw data of the experiment)
-    std::map< String, std::set< Size > > edkey_to_rowindex;
-    std::map< String, Size > columnname_to_columnindex;
+    // Read the experimental design file, validate the format, and map the exp_design_key to the index where it can
+    // be found in the CSVfile (the experimental_design_key normally is the filename with the raw data of the experiment)
+    std::map< String, std::set< Size > > experimental_design_key_to_rowindex; //
+    std::map< String, Size > columnname_to_columnindex; // Maps the name of the column in the CSV file (FileName, BioReplicate, Run, Condition) to the index of the column
 
     {
       const Size n_lines = file_experimental_design.rowCount();
@@ -139,7 +138,7 @@ protected:
 
       // Go to the header line in the read file
       Size i = 0;
-      for(; i < n_lines; ++i)
+      for (; i < n_lines; ++i)
       {
         std::vector< String > line;
         file_experimental_design.getRow(i, line);
@@ -164,7 +163,7 @@ protected:
                               std::inserter(diff, diff.begin()));
           if (diff.size() != 0)
           {
-            LOG_ERROR << "ERROR: Columns in experimental design file are missing. The following columns could not be found:";
+            LOG_FATAL_ERROR << "FATAL: Columns in experimental design file are missing. The following columns could not be found:";
           }
           else
           {
@@ -178,7 +177,7 @@ protected:
           std::set_difference(col_set.begin(), col_set.end(), headers.begin(), headers.end(),
                               std::inserter(diff, diff.begin()));
           assert(diff.size() > 0);
-          LOG_ERROR << "ERROR: Too many columns in experimental design input file. The following columns are unrecognized:";
+          LOG_FATAL_ERROR << "FATAL: Too many columns in experimental design input file. The following columns are unrecognized:";
         }
 
         if (headers_valid)
@@ -194,9 +193,9 @@ protected:
         {
           for (const auto & entry: diff)
           {
-            LOG_ERROR << " " << entry;
+            LOG_FATAL_ERROR << " " << entry;
           }
-          LOG_ERROR << std::endl;
+          LOG_FATAL_ERROR << std::endl;
           return ILLEGAL_PARAMETERS;
         }
       }
@@ -215,12 +214,12 @@ protected:
         // Check whether the number of entries in this line is as expected
         if (line.size() != headers_size)
         {
-          LOG_ERROR << "ERROR: Wrong number of entries in line "
+        	LOG_FATAL_ERROR << "FATAL: Wrong number of entries in line "
               << (i + 1) << ". Have: "  << line.size() << ". Expected: " << headers_size << std::endl;
           return ILLEGAL_PARAMETERS;
         }
         const String & filename = line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_filename]];
-        edkey_to_rowindex[filename].insert(i);
+        experimental_design_key_to_rowindex[filename].insert(i);
       }
     }
 
@@ -254,7 +253,7 @@ protected:
 
       if (protein_identification.metaValueExists(TOPPMSstatsConverter::meta_value_exp_design_key) == false)
       {
-        LOG_ERROR << "ERROR: ProteinIdentification does not have meta value for original file. Cannot continue!" << std::endl;
+    	LOG_FATAL_ERROR << "FATAL: ProteinIdentification does not have meta value for original file. Cannot continue!" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
       const StringList & exp_design_key = protein_identification.getMetaValue(TOPPMSstatsConverter::meta_value_exp_design_key).toStringList();
@@ -299,12 +298,12 @@ protected:
         for (const auto & filename : protid_to_filenames[pep_id.getIdentifier()])
         {
           // Test whether the experimental design specifies the encountered filename
-          if (edkey_to_rowindex.find(filename) == edkey_to_rowindex.end())
+          if (experimental_design_key_to_rowindex.find(filename) == experimental_design_key_to_rowindex.end())
           {
-            LOG_ERROR << "ERROR: Experimental design does not contain information on file " << filename << ". Cannot continue!" << std::endl;
+        	LOG_FATAL_ERROR << "FATAL: Experimental design does not contain information on file " << filename << ". Cannot continue!" << std::endl;
             return ILLEGAL_PARAMETERS;
           }
-          const std::set< Size > & indices = edkey_to_rowindex[filename];
+          const std::set< Size > & indices = experimental_design_key_to_rowindex[filename];
           runs.insert(indices.begin(), indices.end());
         }
 
