@@ -123,7 +123,7 @@ protected:
 
     // Read the experimental design file, validate the format, and map the exp_design_key to the index where it can
     // be found in the CSVfile (the experimental_design_key normally is the filename with the raw data of the experiment)
-    std::map< String, std::set< Size > > experimental_design_key_to_rowindex; //
+    std::map< String, std::set< Size > > experimental_design_key_to_rowindex; // Maps the experimental design key (FileName) to the row indices where it occurs
     std::map< String, Size > columnname_to_columnindex; // Maps the name of the column in the CSV file (FileName, BioReplicate, Run, Condition) to the index of the column
 
     {
@@ -136,7 +136,7 @@ protected:
       };
       const Size headers_size = headers.size();
 
-      // Go to the header line in the read file
+      // Advance to the header line in the input experimental design CSV
       Size i = 0;
       for (; i < n_lines; ++i)
       {
@@ -149,6 +149,20 @@ protected:
           continue;
         }
 
+        // Header line must have four entries
+        if (line.size() != headers_size)
+        {
+        	LOG_FATAL_ERROR << "FATAL: Header line of experimental design CSV file does not consist of exactly four entries!" << std::endl;
+        	return ILLEGAL_PARAMETERS;
+        }
+
+        // Trim all entries of the header line
+        for (Size j = 0; j < line.size(); ++j)
+        {
+        	line[j] = line[j].trim();
+        }
+
+        // Put the encountered column names in a set
         std::set< String > col_set;
         col_set.insert(line.begin(), line.end());
         const Size n_cols = col_set.size();
@@ -163,7 +177,7 @@ protected:
                               std::inserter(diff, diff.begin()));
           if (diff.size() != 0)
           {
-            LOG_FATAL_ERROR << "FATAL: Columns in experimental design file are missing. The following columns could not be found:";
+            LOG_ERROR << "FATAL: Columns in experimental design file are missing. The following columns could not be found:";
           }
           else
           {
@@ -177,7 +191,7 @@ protected:
           std::set_difference(col_set.begin(), col_set.end(), headers.begin(), headers.end(),
                               std::inserter(diff, diff.begin()));
           assert(diff.size() > 0);
-          LOG_FATAL_ERROR << "FATAL: Too many columns in experimental design input file. The following columns are unrecognized:";
+          LOG_ERROR << "FATAL: Too many columns in experimental design input file. The following columns are unrecognized:";
         }
 
         if (headers_valid)
@@ -187,18 +201,23 @@ protected:
           {
             columnname_to_columnindex[line[j]] = j;
           }
+
+          // Do not continue reading the file here
           break;
         }
         else
         {
+          // The header has not been valid, print the problematic column names (either missing or too
           for (const auto & entry: diff)
           {
-            LOG_FATAL_ERROR << " " << entry;
+            LOG_ERROR << " " << entry;
           }
-          LOG_FATAL_ERROR << std::endl;
+          LOG_ERROR << std::endl;
           return ILLEGAL_PARAMETERS;
         }
       }
+
+      // End of reading the CSV header
 
       // Iterate all remaining lines in the experimental design file
       for (++i; i < n_lines; ++i)
