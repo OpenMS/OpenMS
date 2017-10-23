@@ -56,7 +56,7 @@ namespace OpenMS
       }
 
     };
-    xerces_init xinit;
+    const xerces_init xinit;
 
   }
 }
