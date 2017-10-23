@@ -83,7 +83,7 @@ public:
 
   static const String na_string;
 
-  // The meta value of the peptide identification which is going to be used for the experimental design mapping
+  // The meta value of the peptide identification which is going to be used for the experimental design link
   static const String meta_value_exp_design_key;
 
   TOPPMSstatsConverter() :
@@ -216,10 +216,11 @@ protected:
           return ILLEGAL_PARAMETERS;
         }
       }
-
       // End of reading the CSV header
 
       // Iterate all remaining lines in the experimental design file
+      std::set< String > filenames;
+      Int expected_run = 0;
       for (++i; i < n_lines; ++i)
       {
         std::vector< String > line;
@@ -237,10 +238,33 @@ protected:
               << (i + 1) << ". Have: "  << line.size() << ". Expected: " << headers_size << std::endl;
           return ILLEGAL_PARAMETERS;
         }
+
+        // Trim all entries of this line
+        for (Size j = 0; j < line.size(); ++j)
+        {
+          line[j] = line[j].trim();
+        }
+
+        // Check that the run has the expected value
+        Int current_run = line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_run]].toInt();
+        if (current_run != ++expected_run)
+        {
+        	LOG_FATAL_ERROR  << "FATAL: Run number unexpected! Got " << current_run << ". Expected: " << expected_run << "." << std::endl;
+        	return ILLEGAL_PARAMETERS;
+        }
         const String & filename = line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_filename]];
+        if (filenames.find(filename) != filenames.end())
+        {
+          LOG_FATAL_ERROR << "FATAL: File name " << filename << " appears multiple times in experimental design CSV input!" << std::endl;
+          return ILLEGAL_PARAMETERS;
+        }
+        filenames.insert(filename);
+
+        // Remember the row in the experimental design file for this file name
         experimental_design_key_to_rowindex[filename].insert(i);
       }
     }
+    // End of reading the experimental design file
 
     // Print column name to index mapping
     if (this->debug_level_ > 0)
@@ -296,12 +320,12 @@ protected:
     std::vector< PeptideEvidence > placeholder_peptide_evidences = {new_pep_ev};
 
     // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
-    String isotope_label_type = this->getFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides) ? "H" : "L";
+    const String isotope_label_type = this->getFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides) ? "H" : "L";
 
-    // Keeps track of precursor charges and accessions of a peptide sequence to avoid duplicate lines in output
-    String previous_sequence = "";
-    std::set< Int > previous_precursor_charges;
-    std::set< String > previous_prot_accs;
+    // Keeps track of precursor charges and accessions of a peptide sequence to avoid duplicate lines in output (logic currently not used)
+    //String previous_sequence = "";
+    //std::set< Int > previous_precursor_charges;
+    //std::set< String > previous_prot_accs;
 
     for (const auto & consensus_feature : consensus_map)
     {
@@ -363,7 +387,6 @@ protected:
 
             for (const auto & pep_ev : peptide_evidences)
             {
-              // Try to extract the FragmentIon value from the fragment annotation
               // Write new line for each protein accession and for each run
               for (const auto & index : runs)
               {
@@ -374,18 +397,18 @@ protected:
                 const String & sequence = pep_hit.getSequence().toUnmodifiedString();
 
                 // The peptide sequence has changed, the charges and accessions of the previous peptide can be removed
-                if (sequence != previous_sequence)
-                {
-                  previous_precursor_charges.clear();
-                  previous_prot_accs.clear();
-                  previous_sequence = sequence;
-                }
+                //if (sequence != previous_sequence)
+                //{
+                //  previous_precursor_charges.clear();
+                //  previous_prot_accs.clear();
+                //  previous_sequence = sequence;
+                //}
 
                 // Determine whether we need to write the current protein hit (precursor charge or accession changes)
-                if (   previous_prot_accs.find(accession) == previous_prot_accs.end()
-                    || previous_precursor_charges.find(precursor_charge) == previous_precursor_charges.end())
-                {
-                  csv_out.addLine(  accession
+                //if (   previous_prot_accs.find(accession) == previous_prot_accs.end()
+                //    || previous_precursor_charges.find(precursor_charge) == previous_precursor_charges.end())
+                //{
+                csv_out.addLine(  accession
                                     + ',' + sequence
                                     + ',' + precursor_charge
                                     + ',' + fragment_ion
@@ -395,9 +418,9 @@ protected:
                                     + ',' + line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_bioreplicate]]
                                     + ',' + line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_run]]
                                     + ',' + intensity);
-                  previous_prot_accs.insert(accession);
-                  previous_precursor_charges.insert(precursor_charge);
-                }
+                //previous_prot_accs.insert(accession);
+                //previous_precursor_charges.insert(precursor_charge);
+                //}
               }
             }
           }
