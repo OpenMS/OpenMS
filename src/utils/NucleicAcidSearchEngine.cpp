@@ -44,7 +44,7 @@
 #include <OpenMS/METADATA/IdentificationData.h>
 
 // file types
-// #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 
@@ -116,7 +116,7 @@ protected:
     registerInputFile_("database", "<file>", "", "input file ");
     setValidFormats_("database", ListUtils::create<String>("fasta"));
 
-    registerOutputFile_("out", "<file>", "", "output file ");
+    registerOutputFile_("out", "<file>", "", "output file (mzTab)");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
@@ -506,7 +506,7 @@ protected:
     progresslogger.setLogType(log_type_);
     String in_mzml = getStringOption_("in");
     String in_db = getStringOption_("database");
-    String out_idxml = getStringOption_("out");
+    String out = getStringOption_("out");
 
     IdentificationData::DBSearchParameters search_params;
     search_params.molecule_type = IdentificationData::MT_RNA;
@@ -774,7 +774,7 @@ protected:
     // TODO: reindex oligo to undigested sequence
 
     // store results
-    // IdXMLFile().store(out_idxml, protein_ids, oligo_ids);
+    MzTabFile().store(out, id_data.exportMzTab());
 
     return EXECUTION_OK;
   }
