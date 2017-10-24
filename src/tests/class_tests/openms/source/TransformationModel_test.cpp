@@ -364,7 +364,7 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
   test1.clear();
   point.first = 0.0;
   point.second = std::exp(1.0);
-  test1.push_back(point;
+  test1.push_back(point);
   point.first = 1.0;
   point.second = std::exp(2.0);
   test1.push_back(point);
