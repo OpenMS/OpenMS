@@ -41,7 +41,6 @@
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 

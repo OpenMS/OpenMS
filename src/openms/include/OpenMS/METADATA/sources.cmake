@@ -20,6 +20,7 @@ ExperimentalSettings.h
 Gradient.h
 HPLC.h
 Identification.h
+IdentificationData.h
 IdentificationHit.h
 Instrument.h
 InstrumentSettings.h

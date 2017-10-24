@@ -33,8 +33,8 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_ENZYME_H
-#define OPENMS_CHEMISTRY_ENZYME_H
+#ifndef OPENMS_CHEMISTRY_DIGESTIONENZYME_H
+#define OPENMS_CHEMISTRY_DIGESTIONENZYME_H
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -45,46 +45,36 @@
 
 namespace OpenMS
 {
-
   /**
-      @ingroup Chemistry
+     @ingroup Chemistry
 
-      @brief Representation of an enzyme
-
-      This class represents enzymes.
+     @brief Abstract base class for digestion enzymes
   */
-  class OPENMS_DLLAPI Enzyme
+  class OPENMS_DLLAPI DigestionEnzyme
   {
-public:
+  public:
 
     /** @name Constructors
     */
     //@{
     /// copy constructor
-    Enzyme(const Enzyme& enzyme);
+    DigestionEnzyme(const DigestionEnzyme& enzyme);
 
     /// detailed constructor
-    explicit Enzyme(const String& name,
-                    const String& cleavage_regex,
-                    const std::set<String>& synonyms = std::set<String>(),
-                    String regex_description = "",
-                    EmpiricalFormula n_term_gain = EmpiricalFormula("H"),
-                    EmpiricalFormula c_term_gain = EmpiricalFormula("OH"),
-                    String psi_id = "",
-                    String xtandem_id = "",
-                    UInt comet_id = 0,
-                    Int msgf_id = -1,
-                    UInt omssa_id = 0);
+    explicit DigestionEnzyme(const String& name,
+                             const String& cleavage_regex,
+                             const std::set<String>& synonyms = std::set<String>(),
+                             String regex_description = "");
 
     /// destructor
-    virtual ~Enzyme();
+    virtual ~DigestionEnzyme();
     //@}
 
     /** @name Assignment
      */
     //@{
     /// assignment operator
-    Enzyme& operator=(const Enzyme& enzyme);
+    DigestionEnzyme& operator=(const DigestionEnzyme& enzyme);
     //@}
 
     /** Accessors
@@ -94,7 +84,7 @@ public:
     void setName(const String& name);
 
     /// returns the name of the enzyme
-    const String& getName() const;
+    String getName() const;
 
     /// sets the synonyms
     void setSynonyms(const std::set<String>& synonyms);
@@ -105,87 +95,51 @@ public:
     /// returns the synonyms
     const std::set<String>& getSynonyms() const;
 
-    /// sets the name as regex
+    /// sets the cleavage regex
     void setRegEx(const String& cleavage_regex);
 
-    /// returns the name as regex
-    const String& getRegEx() const;
+    /// returns the cleavage regex
+    String getRegEx() const;
 
     /// sets the regex description
-    void setRegExDescription(String value);
+    void setRegExDescription(const String& value);
 
     /// returns the regex description
     String getRegExDescription() const;
-
-    /// sets the N-terminal gain
-    void setNTermGain(EmpiricalFormula value);
-
-    /// returns N-terminal gain
-    EmpiricalFormula getNTermGain() const;
-
-    /// sets the C-terminal gain
-    void setCTermGain(EmpiricalFormula value);
-
-    /// returns C-terminal gain
-    EmpiricalFormula getCTermGain() const;
-
-    /// sets the PSI ID
-    void setPSIID(String value);
-
-    /// returns the PSI ID
-    String getPSIID() const;
-
-    /// sets the X! Tandem enzyme ID
-    void setXTandemID(String value);
-
-    /// returns the X! Tandem enzyme ID
-    String getXTandemID() const;
-
-    /// returns the Comet enzyme ID
-    UInt getCometID() const;
-    
-    /// sets the Comet enzyme ID
-    void setCometID(UInt value);
-
-    /// sets the MSGFPlus enzyme id
-    void setMSGFID(Int value);
-
-    /// returns the MSGFPlus enzyme id
-    Int getMSGFID() const;
-
-    /// sets the OMSSA enzyme ID
-    void setOMSSAID(UInt value);
-
-    /// returns the OMSSA enzyme ID
-    UInt getOMSSAID() const;
-    
     //@}
 
     /** @name Predicates
     */
     //@{
     /// equality operator
-    bool operator==(const Enzyme& enzyme) const;
+    bool operator==(const DigestionEnzyme& enzyme) const;
 
     /// inequality operator
-    bool operator!=(const Enzyme& enzyme) const;
+    bool operator!=(const DigestionEnzyme& enzyme) const;
 
     /// equality operator for regex
-    bool operator==(String cleavage_regex) const;
+    bool operator==(const String& cleavage_regex) const;
 
     /// equality operator for regex
-    bool operator!=(String cleavage_regex) const;
+    bool operator!=(const String& cleavage_regex) const;
 
     /// order operator
-    bool operator<(const Enzyme& enzyme) const;
+    bool operator<(const DigestionEnzyme& enzyme) const;
     //@}
 
-    /// ostream iterator to write the enzyme to a stream
-    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream& os, const Enzyme& enzyme);
+    /**
+       @brief Set the value of a member variable based on an entry from an input file
 
-protected:
+       Returns whether the key was recognized and the value set successfully.
+    */
+    virtual bool setValueFromFile(const String& key, const String& value);
+
+    /// ostream iterator to write the enzyme to a stream
+    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzyme& enzyme);
+
+  protected:
     /// default constructor
-    Enzyme();
+    DigestionEnzyme();
 
     // basic
     String name_;
@@ -195,25 +149,9 @@ protected:
     std::set<String> synonyms_;
 
     String regex_description_;
-
-    EmpiricalFormula n_term_gain_;
-
-    EmpiricalFormula c_term_gain_;
-
-    String psi_id_;
-
-    String xtandem_id_;
-
-    UInt comet_id_;
-
-    Int msgf_id_;
-    
-    UInt omssa_id_;
-
   };
 
-  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Enzyme& enzyme);
-
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzyme& enzyme);
 }
 
 #endif

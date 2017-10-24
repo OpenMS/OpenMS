@@ -42,7 +42,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
@@ -54,7 +54,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
@@ -505,7 +505,7 @@ protected:
     registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
 
     StringList all_enzymes;
-    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("peptide:enzyme", all_enzymes);
 
@@ -2110,7 +2110,7 @@ protected:
     progresslogger.endProgress();
 
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
-    EnzymaticDigestion digestor;
+    ProteaseDigestion digestor;
     digestor.setEnzyme(getStringOption_("peptide:enzyme"));
     digestor.setMissedCleavages(missed_cleavages);
 
@@ -2141,7 +2141,7 @@ protected:
       }
 
       vector<StringView> current_digest;
-      digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
+      digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
       for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {

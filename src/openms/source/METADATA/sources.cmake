@@ -20,6 +20,7 @@ ExperimentalSettings.cpp
 Gradient.cpp
 HPLC.cpp
 Identification.cpp
+IdentificationData.cpp
 IdentificationHit.cpp
 Instrument.cpp
 InstrumentSettings.cpp
