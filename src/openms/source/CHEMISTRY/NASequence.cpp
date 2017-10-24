@@ -46,19 +46,19 @@
 namespace OpenMS
 {
 
-  NASequence::NASequence(std::vector<const Ribonucleotide*> s,
+  NASequence::NASequence(std::vector<const Ribonucleotide*> seq,
                          const RibonucleotideChainEnd* five_prime,
                          const RibonucleotideChainEnd* three_prime)
   {
-    s_ = s;
+    seq_ = seq;
     five_prime_ = five_prime;
     three_prime_ = three_prime;
   }
 
   bool NASequence::operator==(const NASequence& rhs) const
   {
-    return (std::tie(s_, five_prime_, three_prime_) ==
-            std::tie(rhs.s_, rhs.five_prime_, rhs.three_prime_));
+    return (std::tie(seq_, five_prime_, three_prime_) ==
+            std::tie(rhs.seq_, rhs.five_prime_, rhs.three_prime_));
   }
 
   bool NASequence::operator!=(const NASequence& rhs) const
@@ -74,14 +74,14 @@ namespace OpenMS
     if (five_prime_ != rhs.five_prime_) return (five_prime_ < rhs.five_prime_);
 
     // compare sequence length
-    if (s_.size() != rhs.size()) return (s_.size() < rhs.s_.size());
+    if (seq_.size() != rhs.seq_.size()) return (seq_.size() < rhs.seq_.size());
 
     // compare pointers. If different, we compare the more expensive code (string)
-    for (size_t i = 0; i != s_.size(); ++i)
+    for (size_t i = 0; i != seq_.size(); ++i)
     {
-      if (s_[i] != rhs.s_[i])
+      if (seq_[i] != rhs.seq_[i])
       {
-        return (s_[i]->getCode() < rhs.s_[i]->getCode());
+        return (seq_[i]->getCode() < rhs.seq_[i]->getCode());
       }
     }
 
@@ -95,26 +95,34 @@ namespace OpenMS
     return false;
   }
 
-  void NASequence::setSequence(const std::vector<const Ribonucleotide*>& s)
+  void NASequence::setSequence(const std::vector<const Ribonucleotide*>& seq)
   {
-    s_ = s;
+    seq_ = seq;
   }
 
   bool NASequence::empty() const
   {
-    return s_.empty();
+    return seq_.empty();
   }
 
-  NASequence NASequence::getPrefix(Size index) const
+  NASequence NASequence::getPrefix(Size length) const
   {
-    OPENMS_PRECONDITION(index < s_.size(), "IndexOverflow!");
-    return NASequence({s_.begin(), s_.begin() + index}, five_prime_, nullptr);
+    if (length >= seq_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                     length, seq_.size() - 1);
+    }
+    return NASequence({seq_.begin(), seq_.begin() + length}, five_prime_, nullptr);
   }
 
-  NASequence NASequence::getSuffix(Size index) const
+  NASequence NASequence::getSuffix(Size length) const
   {
-    OPENMS_PRECONDITION(index < s_.size(), "IndexOverflow!");
-    return NASequence({s_.end() - index, s_.end()}, nullptr, three_prime_);
+    if (length >= seq_.size())
+    {
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                     length, seq_.size() - 1);
+    }
+    return NASequence({seq_.end() - length, seq_.end()}, nullptr, three_prime_);
   }
 
   EmpiricalFormula NASequence::getFormula(Ribonucleotide::RibonucleotideFragmentType type, Int charge) const
@@ -139,12 +147,12 @@ namespace OpenMS
 
     EmpiricalFormula our_form;
     // Add all the ribonucleotide masses
-    for (auto i : s_)
+    for (auto i : seq_)
     {
       our_form += i->getFormula();
     }
-    our_form += phosphate_form * s_.size(); // add the phosphates in between each ribo
-    our_form -= internal_to_full * s_.size();
+    our_form += phosphate_form * seq_.size(); // add the phosphates in between each ribo
+    our_form -= internal_to_full * seq_.size();
     EmpiricalFormula local_three_prime("H"); //If there is nothing there we default to H
     EmpiricalFormula local_five_prime("H");
 
@@ -191,7 +199,7 @@ namespace OpenMS
       return our_form - z_ion_to_full + OH_weight + (H_weight * charge) + local_three_prime;
 
     case Ribonucleotide::AminusB:
-      return our_form - a_ion_to_full - EmpiricalFormula("O") + (H_weight * charge) + local_five_prime - s_[0]->getFormula() + abasicform_RNA - EmpiricalFormula("P");// - base_to_formula[s_[s_.size()-1]]; //FIXME
+      return our_form - a_ion_to_full - EmpiricalFormula("O") + (H_weight * charge) + local_five_prime - seq_[0]->getFormula() + abasicform_RNA - EmpiricalFormula("P");// - base_to_formula[seq_[seq_.size()-1]]; //FIXME
       // THIS WILL HAVE PROBLEMS WITH modded sugar
     default:
       LOG_ERROR << "NASequence::getMonoWeight: unknown RibonucleotideType" << std::endl;
@@ -224,21 +232,21 @@ namespace OpenMS
 
     // double mono_weight(Constants::PROTON_MASS_U * charge*-1); //the original assumed positive mode
 
-    /*   if (s_.size() > 0)
+    /*   if (seq_.size() > 0)
          {
-         if (s_.size() == 0) //FIXME
+         if (seq_.size() == 0) //FIXME
          {
-         mono_formula += base_to_formula[s_[0]] + abasicform;
+         mono_formula += base_to_formula[seq_[0]] + abasicform;
          return mono_formula + (H_weight * charge) + internal_to_full; //FIXME add switch for other terminals (phosphates etc.)
          }
          else
          {
-         for (size_t i = 0; i < s_.size(); i++)
+         for (size_t i = 0; i < seq_.size(); i++)
          {
-         if (s_[i] == 'p')
-         mono_formula += base_to_formula[s_[i]]; //special case to handle terminal phosphates
+         if (seq_[i] == 'p')
+         mono_formula += base_to_formula[seq_[i]]; //special case to handle terminal phosphates
          else
-         mono_formula += base_to_formula[s_[i]] + abasicform;
+         mono_formula += base_to_formula[seq_[i]] + abasicform;
          }
 
          switch (type)
@@ -274,7 +282,7 @@ namespace OpenMS
          return mono_formula + internal_to_full - z_ion_to_full + (H_weight * charge);
 
          case Ribonucleotide::AminusB:
-         return mono_formula + internal_to_full - a_ion_to_full - H_weight * 2 + (H_weight * charge) - base_to_formula[s_[s_.size()-1]];
+         return mono_formula + internal_to_full - a_ion_to_full - H_weight * 2 + (H_weight * charge) - base_to_formula[seq_[seq_.size()-1]];
 
          default:
          LOG_ERROR << "NASequence::getMonoWeight: unknown RibonucleotideType" << std::endl;
@@ -287,7 +295,7 @@ namespace OpenMS
 
   void NASequence::set(size_t index, const Ribonucleotide* r)
   {
-    s_[index] = r;
+    seq_[index] = r;
   }
 
   bool NASequence::hasFivePrimeModification() const
@@ -328,21 +336,21 @@ namespace OpenMS
 
   size_t NASequence::size() const
   {
-    return s_.size();
+    return seq_.size();
   }
 
   NASequence NASequence::fromString(const char* s, Ribonucleotide::NucleicAcidType type)
   {
-    NASequence aas;
-    parseString_(String(s), aas, type);
-    return aas;
+    NASequence nas;
+    parseString_(String(s), nas, type);
+    return nas;
   }
 
   NASequence NASequence::fromString(const String& s, Ribonucleotide::NucleicAcidType type)
   {
-    NASequence aas;
-    parseString_(s, aas, type);
-    return aas;
+    NASequence nas;
+    parseString_(s, nas, type);
+    return nas;
   }
 
   std::string NASequence::toString() const
@@ -350,7 +358,7 @@ namespace OpenMS
     std::string s;
     if (five_prime_) s += five_prime_->getCode();
 
-    for (const auto& r : s_)
+    for (const auto& r : seq_)
     {
       const String& code = r->getCode();
       const String& origin = r->getOrigin();
@@ -363,14 +371,14 @@ namespace OpenMS
 
   void NASequence::clear()
   {
-    s_.clear();
+    seq_.clear();
     three_prime_ = nullptr;
     five_prime_ = nullptr;
   }
 
-  void NASequence::parseString_(const String& s, NASequence& nss, Ribonucleotide::NucleicAcidType type)
+  void NASequence::parseString_(const String& s, NASequence& nas, Ribonucleotide::NucleicAcidType type)
   {
-    nss.clear();
+    nas.clear();
 
     if (s.empty()) return;
 
@@ -385,11 +393,11 @@ namespace OpenMS
       if (*str_it != '[')
       {
         ConstRibonucleotidePtr r = rdb->getRibonucleotide(std::string(1, *str_it));
-        nss.s_.push_back(r);
+        nas.seq_.push_back(r);
       }
       else // if (*str_it == '['). Non-standard ribo
       {
-        str_it = parseModSquareBrackets_(str_it, s, nss, type); // parse modified ribonucleotide and add it to nss
+        str_it = parseModSquareBrackets_(str_it, s, nas, type); // parse modified ribonucleotide and add it to nas
       }
     }
   }
@@ -397,7 +405,7 @@ namespace OpenMS
   String::ConstIterator NASequence::parseModSquareBrackets_(
     const String::ConstIterator str_it,
     const String& str,
-    NASequence& nss,
+    NASequence& nas,
     Ribonucleotide::NucleicAcidType type)
   {
     static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
@@ -412,7 +420,7 @@ namespace OpenMS
                                   "Cannot convert string to peptide modification: missing ']'");
     }
     ConstRibonucleotidePtr r = rdb->getRibonucleotide(mod);
-    nss.s_.push_back(r);
+    nas.seq_.push_back(r);
     return mod_end;
   }
 

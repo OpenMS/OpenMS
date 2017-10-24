@@ -337,16 +337,16 @@ namespace OpenMS
     bool operator<(const NASequence& rhs) const; // less operator
 
     // getter / setter for sequence
-    void setSequence(const std::vector<const Ribonucleotide*>& s);
+    void setSequence(const std::vector<const Ribonucleotide*>& seq);
 
     const std::vector<const Ribonucleotide*>& getSequence() const
     {
-      return s_;
+      return seq_;
     }
 
     std::vector<const Ribonucleotide*>& getSequence()
     {
-      return s_;
+      return seq_;
     }
 
     // getter / setter for ribonucleotide elements (easy wrapped using pyOpenMS)
@@ -354,18 +354,18 @@ namespace OpenMS
 
     const Ribonucleotide* get(size_t index)
     {
-      return s_[index];
+      return seq_[index];
     }
 
     // getter / setter for sequence elements (C++ container style)
     inline const Ribonucleotide*& operator[](size_t index)
     {
-      return s_[index];
+      return seq_[index];
     }
 
     inline const Ribonucleotide* const& operator[](size_t index) const
     {
-      return s_[index];
+      return seq_[index];
     }
 
     bool empty() const;
@@ -383,32 +383,32 @@ namespace OpenMS
     // iterators
     inline Iterator begin()
     {
-      return Iterator(&s_, 0);
+      return Iterator(&seq_, 0);
     }
 
     inline ConstIterator begin() const
     {
-      return ConstIterator(&s_, 0);
+      return ConstIterator(&seq_, 0);
     }
 
     inline Iterator end()
     {
-      return Iterator(&s_, (Int) s_.size());
+      return Iterator(&seq_, (Int) seq_.size());
     }
 
     inline ConstIterator end() const
     {
-      return ConstIterator(&s_, (Int) s_.size());
+      return ConstIterator(&seq_, (Int) seq_.size());
     }
 
     inline ConstIterator cbegin() const
     {
-      return ConstIterator(&s_, 0);
+      return ConstIterator(&seq_, 0);
     }
 
     inline ConstIterator cend() const
     {
-      return ConstIterator(&s_, (Int) s_.size());
+      return ConstIterator(&seq_, (Int) seq_.size());
     }
 
     // utility functions
@@ -418,8 +418,8 @@ namespace OpenMS
     EmpiricalFormula getFormula(
       Ribonucleotide::RibonucleotideFragmentType type = Ribonucleotide::Full,
       Int charge = 0) const;
-    NASequence getPrefix(Size index) const;
-    NASequence getSuffix(Size index) const;
+    NASequence getPrefix(Size length) const;
+    NASequence getSuffix(Size length) const;
 
     /**
        @brief create NASequence object by parsing an OpenMS string
@@ -451,7 +451,7 @@ namespace OpenMS
 
   private:
     //TODO: query RNA / DNA depending on type
-    static void parseString_(const String& s, NASequence& nss,
+    static void parseString_(const String& s, NASequence& nas,
                              Ribonucleotide::NucleicAcidType type);
 
     /**
@@ -465,10 +465,10 @@ namespace OpenMS
     */
     //TODO: query RNA / DNA depending on type
     static String::ConstIterator parseModSquareBrackets_(
-      const String::ConstIterator str_it, const String& str, NASequence& nss,
+      const String::ConstIterator str_it, const String& str, NASequence& nas,
       Ribonucleotide::NucleicAcidType type);
 
-    std::vector<const Ribonucleotide*> s_;
+    std::vector<const Ribonucleotide*> seq_;
 
     const RibonucleotideChainEnd* five_prime_ = nullptr;
     const RibonucleotideChainEnd* three_prime_ = nullptr;
