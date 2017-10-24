@@ -1,18 +1,18 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry
+//           OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
+//  notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
+//  notice, this list of conditions and the following disclaimer in the
+//  documentation and/or other materials provided with the distribution.
 //  * Neither the name of any author or any participating institution
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
+//  may be used to endorse or promote products derived from this software
+//  without specific prior written permission.
 // For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -51,11 +51,11 @@ namespace OpenMS
   typedef seqan::RecordReader<std::fstream, seqan::SinglePass<> > FASTARecordReader;
 
   FASTAFile::FASTAFile()
-    : reader_(std::nullptr_t()), // point to nothing
-      entries_read_(0)
+  : reader_(std::nullptr_t()), // point to nothing
+    entries_read_(0)
   {
   }
-
+  
   FASTAFile::~FASTAFile()
   {
     // infile_ and outfile_ will close automatically when going out of scope. No need to do it explicitly here.
@@ -76,12 +76,12 @@ namespace OpenMS
     if (infile_.is_open()) infile_.close(); // precaution
 
     infile_.open(filename.c_str(), std::ios::binary | std::ios::in);
-    
+  
     // automatically deletes old handles
     reader_ = std::unique_ptr<void, std::function<void(void*) > >(new FASTARecordReader(infile_),
       [](void* ptr)
       { // lambda with custom cast
-        delete static_cast<FASTARecordReader*>(ptr);
+      delete static_cast<FASTARecordReader*>(ptr);
       });
 
     entries_read_ = 0;
@@ -89,26 +89,24 @@ namespace OpenMS
 
   bool FASTAFile::readNext(FASTAEntry& protein)
   {
-    String id;
-    if (atEnd(*static_cast<FASTARecordReader*>(reader_.get())))
+    if (seqan::atEnd(*static_cast<FASTARecordReader*>(reader_.get())))
     { 
-      infile_.close();
+      // do NOT close(), since we still might want to seek to certain positions
       return false;
     }
-    
-    if (readRecord(id, protein.sequence, *static_cast<FASTARecordReader*>(reader_.get()), seqan::Fasta()) != 0)
+    String id, s;
+    if (readRecord(id, s, *static_cast<FASTARecordReader*>(reader_.get()), seqan::Fasta()) != 0)
     {
-      String msg;
-      if (entries_read_ == 0) msg = "The first entry could not be read!";
-      else msg = "Only " + String(entries_read_) + " proteins could be read. The record after failed.";
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTA file! " + msg + " Please check the file!");
+      if (entries_read_ == 0) s = "The first entry could not be read!";
+      else s = "Only " + String(entries_read_) + " proteins could be read. The record after failed.";
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTA file! " + s + " Please check the file!");
     }
     ++entries_read_;
-
-    protein.sequence.removeWhitespaces();
+    s.removeWhitespaces();
+    protein.sequence = s; // assign here, since 's' might have higher capacity, thus wasting memory (usually 10-15%)
 
     // handle id
-    id = id.trim();
+    id.trim();
     String::size_type position = id.find_first_of(" \v\t");
     if (position == String::npos)
     {
@@ -122,6 +120,21 @@ namespace OpenMS
     }
 
     return true;
+  }
+
+  std::streampos FASTAFile::position() const
+  {
+    return seqan::position(*static_cast<FASTARecordReader*>(reader_.get()));
+  }
+
+  bool FASTAFile::setPosition(const std::streampos& pos)
+  {
+    return (seqan::setPosition(*static_cast<FASTARecordReader*>(reader_.get()), pos) == 0);
+  }
+
+  bool FASTAFile::atEnd() const
+  {
+    return seqan::atEnd(*static_cast<FASTARecordReader*>(reader_.get()));
   }
 
   void FASTAFile::load(const String& filename, vector<FASTAEntry>& data)
@@ -139,7 +152,6 @@ namespace OpenMS
 
   void FASTAFile::writeStart(const String& filename)
   {
-
     if (!FileHandler::hasValidExtension(filename, FileTypes::FASTA))
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension; expected '" + FileTypes::typeToName(FileTypes::FASTA) + "'");

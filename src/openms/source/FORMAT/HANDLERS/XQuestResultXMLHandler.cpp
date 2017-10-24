@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -88,7 +88,7 @@ namespace OpenMS
       this->prot_ids_.push_back(prot_id);
 
       // Fetch the enzymes database
-      this->enzymes_db_ = EnzymesDB::getInstance();
+      this->enzymes_db_ = ProteaseDB::getInstance();
 
       // Produce some warnings that are associated with the reading of xQuest result files
       LOG_WARN << "WARNING: Fixed modifications are not available in the xQuest input file and will thus be not present in the loaded data!\n" << std::endl;
@@ -277,11 +277,11 @@ namespace OpenMS
         // General
         if (this->is_openproxl_) // Enzyme via name
         {
-          search_params.digestion_enzyme = *this->enzymes_db_->getEnzyme(this->attributeAsString_(attributes, "enzyme_name"));
+          search_params.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*this->enzymes_db_->getEnzyme(this->attributeAsString_(attributes, "enzyme_name")));
         }
         else // Enzyme via enzyme number in xQuest
         {
-          search_params.digestion_enzyme = *this->enzymes_db_->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]);
+          search_params.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*this->enzymes_db_->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]));
         }
 
         search_params.missed_cleavages = this->attributeAsInt_(attributes, "missed_cleavages");
