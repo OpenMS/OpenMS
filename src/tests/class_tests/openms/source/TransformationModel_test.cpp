@@ -52,14 +52,10 @@ using namespace std;
 TransformationModel* ptr = 0;
 TransformationModel* nullPointer = 0;
 
-<<<<<<< HEAD
 TransformationModel::DataPoints data, empty;
 data.push_back(make_pair(0.0, 1.0));
 data.push_back(make_pair(1.0, 2.0));
 data.push_back(make_pair(1.0, 4.0));
-
-=======
->>>>>>> develop
 START_SECTION((TransformationModel()))
 {
   ptr = new TransformationModel();
@@ -108,6 +104,9 @@ START_SECTION(([EXTRA] static void getDefaultParameters(Param& params)))
 END_SECTION
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fc49f7cd5c764e96831ddcb6394002e74f5f409a
 START_SECTION((bool checkValidWeight(const string& weight, const vector<string>& valid_weights) const))
 {
   Param param;
@@ -335,7 +334,11 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
     TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
     TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
   }
+<<<<<<< HEAD
 =======
+=======
+
+>>>>>>> fc49f7cd5c764e96831ddcb6394002e74f5f409a
 START_SECTION(([EXTRA] DataPoint::DataPoint(double, double, const String&)))
 {
   NOT_TESTABLE // tested below
@@ -370,7 +373,10 @@ START_SECTION(([EXTRA] bool DataPoint::operator==(const DataPoint& other) const)
   TEST_EQUAL(p1 == p2, false);
   p2.note = "abc";
   TEST_EQUAL(p1 == p2, true);
+<<<<<<< HEAD
 >>>>>>> develop
+=======
+>>>>>>> fc49f7cd5c764e96831ddcb6394002e74f5f409a
 }
 END_SECTION
 

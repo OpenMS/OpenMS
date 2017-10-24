@@ -38,4 +38,3 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
         double unWeightDatum(double& datum, libcpp_string& weight) nogil except +
         # libcpp_string getValidXWeights() nogil except +
         # libcpp_string getValidYWeights() nogil except +
-
