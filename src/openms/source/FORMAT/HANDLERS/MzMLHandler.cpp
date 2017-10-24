@@ -3456,7 +3456,10 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       //isolation window (optional)
       //--------------------------------------------------------------------------------------------
-      if (precursor.getMZ() > 0.0)
+
+      // Note that TPP parsers break when the isolation window is written out
+      // in mzML files and the precursorMZ gets set to zero.
+      if (precursor.getMZ() > 0.0 && !options_.getForceTPPCompatability() )
       {
         os << "\t\t\t\t\t\t<isolationWindow>\n";
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precursor.getMZ() << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
