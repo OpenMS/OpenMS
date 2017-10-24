@@ -176,11 +176,11 @@ private:
       @param spectrum The spectrum (MS1 or MS2)
       @param mono_mz The m/z value where a monoisotopic is expected
       @param mono_int The intensity of the monoisotopic peak (peak at mono_mz)
-      @param nr_occurences Will contain the count of how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
-      @param nr_occurences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
+      @param nr_occurrences Will contain the count of how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
+      @param nr_occurrences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
 
     */
-    void largePeaksBeforeFirstIsotope_(SpectrumPtrType spectrum, double mono_mz, double mono_int, int& nr_occurences, double& max_ratio);
+    void largePeaksBeforeFirstIsotope_(SpectrumPtrType spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio);
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
@@ -201,6 +201,7 @@ private:
     double dia_nr_isotopes_;
     double dia_nr_charges_;
     double peak_before_mono_max_ppm_diff_;
+    bool dia_extraction_ppm_;
   };
 }
 

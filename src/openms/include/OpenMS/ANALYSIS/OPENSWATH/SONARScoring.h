@@ -88,6 +88,7 @@ private:
 
     double dia_extract_window_;
     bool dia_centroided_;
+    bool dia_extraction_ppm_;
 
   };
 }
