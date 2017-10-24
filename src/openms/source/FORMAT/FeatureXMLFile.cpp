@@ -39,7 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <fstream>
@@ -572,9 +572,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+        search_param_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
       }
       last_meta_ = &search_param_;
     }
