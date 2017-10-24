@@ -387,6 +387,8 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
     TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
     TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
   }
+}
+END_SECTION
 
 START_SECTION(([EXTRA] DataPoint::DataPoint(double, double, const String&)))
 {
