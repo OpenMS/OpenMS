@@ -54,9 +54,15 @@ TransformationModel* nullPointer = 0;
 
 TransformationModel::DataPoints data, empty;
 TransformationModel::DataPoint point;
-data.push_back(point(0.0, 1.0));
-data.push_back(point(1.0, 2.0));
-data.push_back(point(1.0, 4.0));
+point.first = 0.0;
+point.second = 1.0;
+data.push_back(point);
+point.first = 1.0;
+point.second = 2.0;
+data.push_back(point);
+point.first = 1.0;
+point.second = 4.0;
+data.push_back(point);
 START_SECTION((TransformationModel()))
 {
   ptr = new TransformationModel();
