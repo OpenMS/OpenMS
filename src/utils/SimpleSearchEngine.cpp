@@ -229,7 +229,12 @@ class SimpleSearchEngine :
         exp[exp_index].sortByPosition();
 
         // deisotope
-        Deisotoper::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 10, true);
+        Deisotoper::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 
+          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
+          1, 3,   // min / max charge 
+          false,  // keep only deisotoped
+          3, 10,  // min / max isopeaks 
+          true);  // convert fragment m/z to mono-charge
 
         // remove noise
         window_mower_filter.filterPeakSpectrum(exp[exp_index]);
@@ -374,7 +379,7 @@ class SimpleSearchEngine :
       vector<ResidueModification> variable_modifications = getModifications_(varModNames);
       Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
 
-      Int report_top_hits = getIntOption_("report:top_hits");
+      size_t report_top_hits = static_cast<size_t>(getIntOption_("report:top_hits"));
 
       // load MS2 map
       PeakMap spectra;
@@ -431,7 +436,9 @@ class SimpleSearchEngine :
       param.setValue("add_metainfo", "true");
       spectrum_generator.setParameters(param);
 
+      // preallocate storage for PSMs
       vector<vector<AnnotatedHit> > annotated_hits(spectra.size(), vector<AnnotatedHit>());
+      for (auto & a : annotated_hits) { a.reserve(2 * top_hits); }
 
       progresslogger.startProgress(0, 1, "Load database from FASTA file...");
       FASTAFile fastaFile;
@@ -567,11 +574,19 @@ class SimpleSearchEngine :
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = score;
 
+// TODO: introduce index level locking
 #ifdef _OPENMP
 #pragma omp critical (peptide_hits_access)
 #endif
               {
                 annotated_hits[scan_index].push_back(ah);
+
+                // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
+                if (annotated_hits[scan_index].size() >= 2 * report_top_hits)
+                {
+                  std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + report_top_hits, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
+                  annotated_hits[scan_index].resize(report_top_hits); 
+                }
               }
             }
           }
