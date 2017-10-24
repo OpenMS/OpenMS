@@ -36,6 +36,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
@@ -118,7 +119,7 @@ namespace OpenMS
     /**
     @brief Check for a valid wighting function string
     */
-    bool checkValidWeight(const std::string& weight, const std::vector<std::string>& valid_weights) const;
+    bool checkValidWeight(const String& weight, const std::vector<String>& valid_weights) const;
 
     /**
     @brief Check that the datum is within the valid min and max bounds.
@@ -132,21 +133,21 @@ namespace OpenMS
     /**
     @brief Weight the data according to the weighting function
     */
-    double weightDatum(const double& datum, const std::string& weight) const;
+    double weightDatum(const double& datum, const String& weight) const;
 
     /**
     @brief Apply the reverse of the weighting function to the data
     */
-    double unWeightDatum(const double& datum, const std::string& weight) const;
+    double unWeightDatum(const double& datum, const String& weight) const;
 
     /// Gets the (actual) parameters
     const Param& getParameters() const;
 
     /// Returns a list of valid x weight function strings
-    std::vector<std::string> getValidXWeights() const;
+    std::vector<String> getValidXWeights() const;
 
     /// Returns a list of valid y weight function strings
-    std::vector<std::string> getValidYWeights() const;
+    std::vector<String> getValidYWeights() const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param& params);
@@ -155,11 +156,11 @@ namespace OpenMS
     /// Parameters
     Param params_;
     /// x weighting
-    std::string x_weight_;
+    String x_weight_;
     double x_datum_min_;
     double x_datum_max_;
     /// y weighting
-    std::string y_weight_;
+    String y_weight_;
     double y_datum_min_;
     double y_datum_max_;
 
