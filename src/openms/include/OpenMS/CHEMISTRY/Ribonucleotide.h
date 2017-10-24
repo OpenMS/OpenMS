@@ -55,59 +55,30 @@ namespace OpenMS
     friend class RibonucleotideDB;
   public:
 
-    enum RibonucleotideFragmentType
-    {                 // NB: Not all fragments types are valid for all residue types, this class should probably get split
-      Full = 0,       // with N-terminus and C-terminus
-      Internal,       // internal, without any termini
-      FivePrime,      // only N-terminus
-      ThreePrime,     // only C-terminus
-      AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
-      BIon,           // MS:1001224 N-terminus up to the peptide bond
-      CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
-      XIon,           // MS:1001228 amide/C-alpha bond up to the C-terminus
-      YIon,           // MS:1001220 peptide bond up to the C-terminus
-      ZIon,           // MS:1001230 C-alpha/carbonyl carbon bond
-      Precursor,      // MS:1001523 Precursor ion
-      BIonMinusH20,   // MS:1001222 b ion without water
-      YIonMinusH20,   // MS:1001223 y ion without water
-      BIonMinusNH3,   // MS:1001232 b ion without ammonia
-      YIonMinusNH3,   // MS:1001233 y ion without ammonia
-      NonIdentified,  // MS:1001240 Non-identified ion
-      Unannotated,    // no stored annotation
-      WIon,           // W ion, added for nucleic acid support
-      AminusB,        // A ion with base loss, added for nucleic acid support
-      DIon,           // D ion for nucleic acid support
-      SizeOfRibonucleotideFragmentType
-    };
-
-    enum NucleicAcidType
+    enum TermSpecificity
     {
-      DNA = 0,
-      RNA,
-      FIVE_PRIME_MODIFICATION,
-      THREE_PRIME_MODIFICATION,
-      Undefined
+      ANYWHERE,
+      FIVE_PRIME,
+      THREE_PRIME,
+      NUMBER_OF_TERM_SPECIFICITY
     };
 
     /** @name Constructors
     */
     //@{
-    /// Default constructor
-    Ribonucleotide();
+    /// Constructor
+    Ribonucleotide(const String& name = "unknown ribonucleotide",
+                   const String& code = ".",
+                   const String& new_code = "",
+                   const String& html_code = ".",
+                   const EmpiricalFormula& formula = EmpiricalFormula(),
+                   char origin = '.',
+                   double mono_mass = 0.0,
+                   double avg_mass = 0.0,
+                   enum TermSpecificity term_spec = ANYWHERE);
 
     /// Copy constructor
-    Ribonucleotide(const Ribonucleotide& ribo);
-
-    /// Detailed constructor
-    Ribonucleotide(const String& name,
-                   const String& code,
-                   const String& new_code,
-                   const String& html_code,
-                   const EmpiricalFormula& formula,
-                   const char& origin,
-                   const double& mono_mass,
-                   const double& avg_mass,
-                   const bool is_modifiable);
+    Ribonucleotide(const Ribonucleotide& ribo) = default;
 
     /// Destructor
     virtual ~Ribonucleotide();
@@ -124,12 +95,6 @@ namespace OpenMS
     /** Accessors
      */
     //@{
-    //
-    // The nucleic acid type. Influences mass calculations.
-    NucleicAcidType getType() const;
-
-    // The nucleic acid type. Influences mass calculations.
-    void setType(NucleicAcidType type);
 
     /// Return the short name
     const String getCode() const;
@@ -180,9 +145,9 @@ namespace OpenMS
 
     void setHTMLCode(const String& html_code);
 
-    bool getIsModifiable() const;
+    enum TermSpecificity getTermSpecificity() const;
 
-    void setIsModifiable(bool is_modifiable);
+    void setTermSpecificity(enum TermSpecificity term_spec);
 
     //@}
 
@@ -190,7 +155,6 @@ namespace OpenMS
     bool isModified() const;
 
   protected:
-    NucleicAcidType type_;
     String name_;
     String code_; // short name
     String new_code_;
@@ -199,9 +163,8 @@ namespace OpenMS
     char origin_;  // character of unmodified version of Ribonucleotide
     double mono_mass_;
     double avg_mass_;
-    bool is_modifiable_;
+    enum TermSpecificity term_spec_;
   };
-
 
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Ribonucleotide& ribo);

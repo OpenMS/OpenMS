@@ -486,7 +486,7 @@ namespace OpenMS
       else if (id_meta.molecule_type == MT_RNA)
       {
         const NASequence& seq = identified_oligos.left.at(molecule_key);
-        double calc_mz = seq.getMonoWeight(Ribonucleotide::Full, match.charge);
+        double calc_mz = seq.getMonoWeight(NASequence::Full, match.charge);
         exportQueryMatchToMzTab_(seq.toString(), match, query_key,
                                  calc_mz, osms, osm_scores, file_map);
       }

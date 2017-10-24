@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 using namespace std;
 
@@ -47,43 +48,14 @@ namespace OpenMS
     return os;
   }
 
-  Ribonucleotide::Ribonucleotide()
+  Ribonucleotide::Ribonucleotide(
+    const String& name, const String& code, const String& new_code,
+    const String& html_code, const EmpiricalFormula& formula, char origin,
+    double mono_mass, double avg_mass, enum TermSpecificity term_spec):
+    name_(name), code_(code), new_code_(new_code), html_code_(html_code),
+    formula_(formula), origin_(origin), mono_mass_(mono_mass),
+    avg_mass_(avg_mass), term_spec_(term_spec)
   {
-    name_ = "unknown nucleotide residue";
-    code_ = ".";
-    new_code_ = "";
-    html_code_ = ".";
-    formula_ = EmpiricalFormula();
-    origin_ = '.';
-    mono_mass_ = 0.0;
-    avg_mass_ = 0.0;
-    is_modifiable_ = false;
-  }
-
-  Ribonucleotide::Ribonucleotide(const Ribonucleotide &ribo)
-  {
-    name_ = ribo.getName();
-    code_ = ribo.getCode();
-    new_code_ = ribo.getNewCode();
-    html_code_ = ribo.getHTMLCode();
-    formula_ = ribo.getFormula();
-    origin_ = ribo.getOrigin();
-    mono_mass_ = ribo.getMonoMass();
-    avg_mass_ = ribo.getAvgMass();
-    is_modifiable_ = ribo.getIsModifiable();
-  }
-
-  Ribonucleotide::Ribonucleotide(const String& name, const String& code, const String& new_code, const String& html_code, const EmpiricalFormula& formula, const char& origin, const double& mono_mass, const double& avg_mass, const bool is_modifiable)
-  {
-    name_ = name;
-    code_ = code;
-    new_code_ = new_code;
-    html_code_ = html_code;
-    formula_ = formula;
-    origin_ = origin;
-    mono_mass_ = mono_mass;
-    avg_mass_ = avg_mass;
-    is_modifiable_ = is_modifiable;
   }
 
   Ribonucleotide::~Ribonucleotide()
@@ -92,31 +64,15 @@ namespace OpenMS
 
   Ribonucleotide& Ribonucleotide::operator=(const Ribonucleotide& ribo)
   {
-    if (this != &ribo)
-    {
-      name_ = ribo.getName();
-      code_ = ribo.getCode();
-      new_code_ = ribo.getNewCode();
-      html_code_ = ribo.getHTMLCode();
-      formula_ = ribo.getFormula();
-      origin_ = ribo.getOrigin();
-      mono_mass_ = ribo.getMonoMass();
-      avg_mass_ = ribo.getAvgMass();
-      is_modifiable_ = ribo.getIsModifiable();
-    }
+    name_ = ribo.name_;
+    code_ = ribo.code_;
+    new_code_ = ribo.new_code_;
+    html_code_ = ribo.html_code_;
+    formula_ = ribo.formula_;
+    origin_ = ribo.origin_;
+    mono_mass_ = ribo.mono_mass_;
+    avg_mass_ = ribo.avg_mass_;
     return *this;
-  }
-
-  // The nucleic acid type. Influences mass calculations.
-  Ribonucleotide::NucleicAcidType Ribonucleotide::getType() const
-  {
-    return type_;
-  }
-
-  // The nucleic acid type. Influences mass calculations.
-  void Ribonucleotide::setType(Ribonucleotide::NucleicAcidType type)
-  {
-    type_ = type;
   }
 
   const String Ribonucleotide::getCode() const
@@ -124,7 +80,7 @@ namespace OpenMS
     return code_;
   }
 
-  void Ribonucleotide::setCode(const String &code)
+  void Ribonucleotide::setCode(const String& code)
   {
     code_ = code;
   }
@@ -134,7 +90,7 @@ namespace OpenMS
     return name_;
   }
 
-  void Ribonucleotide::setName(const String &name)
+  void Ribonucleotide::setName(const String& name)
   {
     name_ = name;
   }
@@ -164,7 +120,7 @@ namespace OpenMS
     return new_code_;
   }
 
-  void Ribonucleotide::setNewCode(const String &new_code)
+  void Ribonucleotide::setNewCode(const String& new_code)
   {
     new_code_ = new_code;
   }
@@ -194,24 +150,30 @@ namespace OpenMS
     return formula_;
   }
 
-  void Ribonucleotide::setFormula(const EmpiricalFormula &formula)
+  void Ribonucleotide::setFormula(const EmpiricalFormula& formula)
   {
     formula_ = formula;
+  }
+
+  enum Ribonucleotide::TermSpecificity Ribonucleotide::getTermSpecificity() const
+  {
+    return term_spec_;
+  }
+
+  void Ribonucleotide::setTermSpecificity(enum TermSpecificity term_spec)
+  {
+    if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
+    {
+      String msg = "invalid terminal specificity";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    msg, "NUMBER_OF_TERM_SPECIFICITY");
+    }
+    term_spec_ = term_spec;
   }
 
   bool Ribonucleotide::isModified() const
   {
     return (code_.length() != 1) || (code_[0] != origin_);
-  }
-
-  bool Ribonucleotide::getIsModifiable() const
-  {
-    return is_modifiable_;
-  }
-
-  void Ribonucleotide::setIsModifiable(bool is_modifiable)
-  {
-    is_modifiable_ = is_modifiable;
   }
 
 }

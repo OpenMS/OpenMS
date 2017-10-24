@@ -462,7 +462,7 @@ protected:
           ph.setCharge(charge);
 
           // get unmodified string
-          NASequence seq = NASequence::fromString(hit.sequence.getString(), Ribonucleotide::RNA);
+          NASequence seq = NASequence::fromString(hit.sequence.getString());
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<NASequence> all_modified_oligos;
@@ -671,7 +671,7 @@ protected:
         // no critial section is needed despite ResidueDB not beeing thread sage.
         // It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
         {
-          NASequence ns = NASequence::fromString(cit->getString(), Ribonucleotide::RNA);
+          NASequence ns = NASequence::fromString(cit->getString());
           ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications.begin(),
                                                                fixed_modifications.end(),
                                                                ns);

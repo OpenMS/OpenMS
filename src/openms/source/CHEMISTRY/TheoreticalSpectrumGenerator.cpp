@@ -199,15 +199,15 @@ namespace OpenMS
 
     for (uint z = (uint)abs(min_charge); z <= (uint)abs(max_charge) && z < (uint)nucleotide.size(); ++z)
     {
-      if (add_b_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, Ribonucleotide::BIon, z*sign);
-      if (add_y_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, Ribonucleotide::YIon, z*sign);
-      if (add_a_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, Ribonucleotide::AIon, z*sign);
-      if (add_c_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, Ribonucleotide::CIon, z*sign);
-      if (add_x_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, Ribonucleotide::XIon, z*sign);
-      if (add_z_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, Ribonucleotide::ZIon, z*sign);
-      if (add_d_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, Ribonucleotide::DIon, z*sign);
-      if (add_w_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, Ribonucleotide::WIon, z*sign);
-      if (add_aB_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, Ribonucleotide::AminusB, z*sign);
+      if (add_b_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::BIon, z*sign);
+      if (add_y_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::YIon, z*sign);
+      if (add_a_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::AIon, z*sign);
+      if (add_c_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::CIon, z*sign);
+      if (add_x_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::XIon, z*sign);
+      if (add_z_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::ZIon, z*sign);
+      if (add_d_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::DIon, z*sign);
+      if (add_w_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::WIon, z*sign);
+      if (add_aB_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::AminusB, z*sign);
     }
 
     if (add_precursor_peaks_)
@@ -450,19 +450,19 @@ namespace OpenMS
   }
 
 
-  char TheoreticalSpectrumGenerator::ribonucleotideTypeToIonLetter_(Ribonucleotide::RibonucleotideFragmentType res_type) const //TODO fix duplicated code
+  char TheoreticalSpectrumGenerator::ribonucleotideTypeToIonLetter_(NASequence::NASFragmentType res_type) const //TODO fix duplicated code
   {
     switch (res_type)
     {
-      case Ribonucleotide::AIon: return 'a';
-      case Ribonucleotide::BIon: return 'b';
-      case Ribonucleotide::CIon: return 'c';
-      case Ribonucleotide::XIon: return 'x';
-      case Ribonucleotide::YIon: return 'y';
-      case Ribonucleotide::ZIon: return 'z';
-      case Ribonucleotide::DIon: return 'd';
-      case Ribonucleotide::WIon: return 'w';
-      case Ribonucleotide::AminusB: return 'l'; // l for loss
+      case NASequence::AIon: return 'a';
+      case NASequence::BIon: return 'b';
+      case NASequence::CIon: return 'c';
+      case NASequence::XIon: return 'x';
+      case NASequence::YIon: return 'y';
+      case NASequence::ZIon: return 'z';
+      case NASequence::DIon: return 'd';
+      case NASequence::WIon: return 'w';
+      case NASequence::AminusB: return 'l'; // l for loss
 
       default:
        cerr << "Unknown ribonucleotide type encountered. Can't map to ion letter." << endl;
@@ -495,7 +495,7 @@ namespace OpenMS
   }
 
 
-  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum, const NASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RibonucleotideFragmentType res_type, Int charge, double intensity) const
+  void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum, const NASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, NASequence::NASFragmentType res_type, Int charge, double intensity) const
   {
     char charge_sign = '+';
     double charge_unit = 1.0; //double equivalent of sign
@@ -605,7 +605,7 @@ namespace OpenMS
   }
 
 
-  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum& spectrum, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Ribonucleotide::RibonucleotideFragmentType res_type, Int charge) const
+  void TheoreticalSpectrumGenerator::addPeaks_(PeakSpectrum& spectrum, const NASequence& nucleotide, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, NASequence::NASFragmentType res_type, Int charge) const
   {
     spectrum.reserve(nucleotide.size());
 
@@ -621,21 +621,21 @@ namespace OpenMS
 
     switch (res_type)
     {
-      case Ribonucleotide::AIon: intensity = a_intensity_; break;
-      case Ribonucleotide::BIon: intensity = b_intensity_; break;
-      case Ribonucleotide::CIon: intensity = c_intensity_; break;
-      case Ribonucleotide::XIon: intensity = x_intensity_; break;
-      case Ribonucleotide::YIon: intensity = y_intensity_; break;
-      case Ribonucleotide::ZIon: intensity = z_intensity_; break;
-      case Ribonucleotide::DIon: intensity = d_intensity_; break;
-      case Ribonucleotide::WIon: intensity = w_intensity_; break;
-      case Ribonucleotide::AminusB: intensity = aB_intensity_; break;
+      case NASequence::AIon: intensity = a_intensity_; break;
+      case NASequence::BIon: intensity = b_intensity_; break;
+      case NASequence::CIon: intensity = c_intensity_; break;
+      case NASequence::XIon: intensity = x_intensity_; break;
+      case NASequence::YIon: intensity = y_intensity_; break;
+      case NASequence::ZIon: intensity = z_intensity_; break;
+      case NASequence::DIon: intensity = d_intensity_; break;
+      case NASequence::WIon: intensity = w_intensity_; break;
+      case NASequence::AminusB: intensity = aB_intensity_; break;
       default: break;
     }
 
     //double mono_weight(Constants::PROTON_MASS_U * charge);
 
-    if (res_type == Ribonucleotide::AIon || res_type == Ribonucleotide::BIon || res_type == Ribonucleotide::CIon || res_type == Ribonucleotide::AminusB || res_type == Ribonucleotide::DIon)
+    if (res_type == NASequence::AIon || res_type == NASequence::BIon || res_type == NASequence::CIon || res_type == NASequence::AminusB || res_type == NASequence::DIon)
     {
         //Nucleotides do not currently have support for n term mods
       //if (nucleotide.hasNTerminalModification())
@@ -654,11 +654,11 @@ namespace OpenMS
           double pos(0.0);
           switch (res_type)
           { //the a-B ions make computing the internalToAminusB untenable, since you need to know the base
-          case Ribonucleotide::AIon: {pos = ion.getMonoWeight(Ribonucleotide::AIon, charge) / abs((double)charge); break;}
-          case Ribonucleotide::AminusB: {pos = ion.getMonoWeight(Ribonucleotide::AminusB, charge) / abs((double)charge); break;}
-          case Ribonucleotide::BIon: {pos = ion.getMonoWeight(Ribonucleotide::BIon, charge) / abs((double)charge); break;}
-          case Ribonucleotide::CIon: {pos = ion.getMonoWeight(Ribonucleotide::CIon, charge) / abs((double)charge); break;}
-          case Ribonucleotide::DIon: {pos = ion.getMonoWeight(Ribonucleotide::DIon, charge) / abs((double)charge); break;}
+          case NASequence::AIon: {pos = ion.getMonoWeight(NASequence::AIon, charge) / abs((double)charge); break;}
+          case NASequence::AminusB: {pos = ion.getMonoWeight(NASequence::AminusB, charge) / abs((double)charge); break;}
+          case NASequence::BIon: {pos = ion.getMonoWeight(NASequence::BIon, charge) / abs((double)charge); break;}
+          case NASequence::CIon: {pos = ion.getMonoWeight(NASequence::CIon, charge) / abs((double)charge); break;}
+          case NASequence::DIon: {pos = ion.getMonoWeight(NASequence::DIon, charge) / abs((double)charge); break;}
           default: break;
           }
           Peak1D p;
@@ -711,10 +711,10 @@ namespace OpenMS
           double pos(0.0);//(mono_weight);
           switch (res_type)
           {
-          case Ribonucleotide::WIon: {pos = ion.getMonoWeight(Ribonucleotide::WIon, charge) / abs((double)charge); break;}
-          case Ribonucleotide::XIon: {pos = ion.getMonoWeight(Ribonucleotide::XIon, charge) / abs((double)charge); break;}
-          case Ribonucleotide::YIon: {pos = ion.getMonoWeight(Ribonucleotide::YIon, charge) / abs((double)charge); break;}
-          case Ribonucleotide::ZIon: {pos = ion.getMonoWeight(Ribonucleotide::ZIon, charge) / abs((double)charge); break;}
+          case NASequence::WIon: {pos = ion.getMonoWeight(NASequence::WIon, charge) / abs((double)charge); break;}
+          case NASequence::XIon: {pos = ion.getMonoWeight(NASequence::XIon, charge) / abs((double)charge); break;}
+          case NASequence::YIon: {pos = ion.getMonoWeight(NASequence::YIon, charge) / abs((double)charge); break;}
+          case NASequence::ZIon: {pos = ion.getMonoWeight(NASequence::ZIon, charge) / abs((double)charge); break;}
           default: break;
           }
           Peak1D p;
@@ -1008,11 +1008,11 @@ namespace OpenMS
     String ion_name("[M"+ String(charge_sign)+"H]" + String((Size)abs(charge), charge_sign));
 
     // precursor peak
-    double mono_pos = nucleotide.getMonoWeight(Ribonucleotide::Full, charge);
+    double mono_pos = nucleotide.getMonoWeight(NASequence::Full, charge);
 
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = nucleotide.getFormula(Ribonucleotide::Full, charge).getIsotopeDistribution(max_isotope_);
+      IsotopeDistribution dist = nucleotide.getFormula(NASequence::Full, charge).getIsotopeDistribution(max_isotope_);
       double j(0.0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
@@ -1040,7 +1040,7 @@ namespace OpenMS
     // loss peaks of the precursor
 
     //loss of water
-    EmpiricalFormula ion = nucleotide.getFormula(Ribonucleotide::Full, charge) - EmpiricalFormula("H2O");
+    EmpiricalFormula ion = nucleotide.getFormula(NASequence::Full, charge) - EmpiricalFormula("H2O");
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
@@ -1073,7 +1073,7 @@ namespace OpenMS
     }
 
     //loss of ammonia
-    ion = nucleotide.getFormula(Ribonucleotide::Full, charge) - EmpiricalFormula("NH3");
+    ion = nucleotide.getFormula(NASequence::Full, charge) - EmpiricalFormula("NH3");
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {

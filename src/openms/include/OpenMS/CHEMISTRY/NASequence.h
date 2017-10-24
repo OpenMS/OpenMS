@@ -51,6 +51,31 @@ namespace OpenMS
   {
 
   public:
+    enum NASFragmentType
+    {                 // NB: Not all fragments types are valid for all residue types, this class should probably get split
+      Full = 0,       // with N-terminus and C-terminus
+      Internal,       // internal, without any termini
+      FivePrime,      // only 5' terminus
+      ThreePrime,     // only 3' terminus
+      AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+      BIon,           // MS:1001224 N-terminus up to the peptide bond
+      CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
+      XIon,           // MS:1001228 amide/C-alpha bond up to the C-terminus
+      YIon,           // MS:1001220 peptide bond up to the C-terminus
+      ZIon,           // MS:1001230 C-alpha/carbonyl carbon bond
+      Precursor,      // MS:1001523 Precursor ion
+      BIonMinusH20,   // MS:1001222 b ion without water
+      YIonMinusH20,   // MS:1001223 y ion without water
+      BIonMinusNH3,   // MS:1001232 b ion without ammonia
+      YIonMinusNH3,   // MS:1001233 y ion without ammonia
+      NonIdentified,  // MS:1001240 Non-identified ion
+      Unannotated,    // no stored annotation
+      WIon,           // W ion, added for nucleic acid support
+      AminusB,        // A ion with base loss, added for nucleic acid support
+      DIon,           // D ion, added for nucleic acid support
+      SizeOfNASFragmentType
+    };
+
     using ConstRibonucleotidePtr = const Ribonucleotide*;
 
     class Iterator;
@@ -349,7 +374,7 @@ namespace OpenMS
       return seq_;
     }
 
-    // getter / setter for ribonucleotide elements (easy wrapped using pyOpenMS)
+    // getter / setter for ribonucleotide elements (easily wrapped using pyOpenMS)
     void set(size_t index, const Ribonucleotide* r);
 
     const Ribonucleotide* get(size_t index)
@@ -373,12 +398,12 @@ namespace OpenMS
     void clear();
 
     // 5' and 3' modifications
-    bool hasFivePrimeModification() const;
-    void setFivePrimeModification(const RibonucleotideChainEnd* r);
-    const RibonucleotideChainEnd* getFivePrimeModification() const;
-    bool hasThreePrimeModification() const;
-    void setThreePrimeModification(const RibonucleotideChainEnd* r);
-    const RibonucleotideChainEnd* getThreePrimeModification() const;
+    bool hasFivePrimeMod() const;
+    void setFivePrimeMod(const RibonucleotideChainEnd* r);
+    const RibonucleotideChainEnd* getFivePrimeMod() const;
+    bool hasThreePrimeMod() const;
+    void setThreePrimeMod(const RibonucleotideChainEnd* r);
+    const RibonucleotideChainEnd* getThreePrimeMod() const;
 
     // iterators
     inline Iterator begin()
@@ -412,12 +437,8 @@ namespace OpenMS
     }
 
     // utility functions
-    double getMonoWeight(
-      Ribonucleotide::RibonucleotideFragmentType type = Ribonucleotide::Full,
-      Int charge = 0) const;
-    EmpiricalFormula getFormula(
-      Ribonucleotide::RibonucleotideFragmentType type = Ribonucleotide::Full,
-      Int charge = 0) const;
+    double getMonoWeight(NASFragmentType type = Full, Int charge = 0) const;
+    EmpiricalFormula getFormula(NASFragmentType type = Full, Int charge = 0) const;
     NASequence getPrefix(Size length) const;
     NASequence getSuffix(Size length) const;
 
@@ -428,8 +449,7 @@ namespace OpenMS
 
        @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static NASequence fromString(const String& s,
-                                 Ribonucleotide::NucleicAcidType type);
+    static NASequence fromString(const String& s);
 
     /** @name Stream operators
         writes a NASequence to an output stream
@@ -444,15 +464,13 @@ namespace OpenMS
 
        @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static NASequence fromString(const char* s,
-                                 Ribonucleotide::NucleicAcidType type);
+    static NASequence fromString(const char* s);
 
     std::string toString() const ;
 
   private:
     //TODO: query RNA / DNA depending on type
-    static void parseString_(const String& s, NASequence& nas,
-                             Ribonucleotide::NucleicAcidType type);
+    static void parseString_(const String& s, NASequence& nas);
 
     /**
        @brief Parses modifications in square brackets
@@ -464,9 +482,8 @@ namespace OpenMS
        @return Position at which to continue parsing
     */
     //TODO: query RNA / DNA depending on type
-    static String::ConstIterator parseModSquareBrackets_(
-      const String::ConstIterator str_it, const String& str, NASequence& nas,
-      Ribonucleotide::NucleicAcidType type);
+    static String::ConstIterator parseMod_(const String::ConstIterator str_it,
+                                           const String& str, NASequence& nas);
 
     std::vector<const Ribonucleotide*> seq_;
 

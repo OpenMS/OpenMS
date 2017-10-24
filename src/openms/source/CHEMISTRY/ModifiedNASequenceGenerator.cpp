@@ -51,15 +51,15 @@ namespace OpenMS
     NASequence& seq)
   {
     // apply modifications at chain ends
-    std::for_each (fixed_mods_begin, fixed_mods_end, [&seq] (ConstRibonucleotidePtr const & f)
+    std::for_each(fixed_mods_begin, fixed_mods_end, [&seq] (const ConstRibonucleotidePtr& f)
       {
-        if (f->getType() == Ribonucleotide::FIVE_PRIME_MODIFICATION)
+        if (f->getTermSpecificity() == Ribonucleotide::FIVE_PRIME)
         {
-          if (!seq.hasFivePrimeModification()) { seq.setFivePrimeModification(f); }
+          if (!seq.hasFivePrimeMod()) { seq.setFivePrimeMod(f); }
         }
-        else if (f->getType() == Ribonucleotide::THREE_PRIME_MODIFICATION)
+        else if (f->getTermSpecificity() == Ribonucleotide::THREE_PRIME)
         {
-          if (!seq.hasThreePrimeModification()) { seq.setThreePrimeModification(f); }
+          if (!seq.hasThreePrimeMod()) { seq.setThreePrimeMod(f); }
         }
       }
     );
@@ -78,9 +78,8 @@ namespace OpenMS
           const String& code = r.getCode();
           if (code.size() == 1 && code[0] == f->getOrigin())
           {
-            // replace the nucleoside with the modified version (skip five/three prime modifications)
-            if (f->getType() != Ribonucleotide::FIVE_PRIME_MODIFICATION
-                && f->getType() != Ribonucleotide::THREE_PRIME_MODIFICATION)
+            // replace the nucleoside with the modified version (skip 5'/3' modifications)
+            if (f->getTermSpecificity() == Ribonucleotide::ANYWHERE)
             {
               seq.set(residue_index, f);
             }
@@ -135,13 +134,13 @@ namespace OpenMS
     // set terminal modifications for modifications without amino acid preference
     std::for_each(var_mods_begin, var_mods_end, [&seq, &map_compatibility] (ConstRibonucleotidePtr const & v)
       {
-        if (v->getType() == Ribonucleotide::FIVE_PRIME_MODIFICATION)
+        if (v->getTermSpecificity() == Ribonucleotide::FIVE_PRIME)
         {
-          if (!seq.hasFivePrimeModification()) { map_compatibility[FIVE_PRIME_MODIFICATION_INDEX].push_back(v); }
+          if (!seq.hasFivePrimeMod()) { map_compatibility[FIVE_PRIME_MODIFICATION_INDEX].push_back(v); }
         }
-        else if (v->getType() == Ribonucleotide::THREE_PRIME_MODIFICATION)
+        else if (v->getTermSpecificity() == Ribonucleotide::THREE_PRIME)
         {
-          if (!seq.hasThreePrimeModification()) { map_compatibility[THREE_PRIME_MODIFICATION_INDEX].push_back(v); }
+          if (!seq.hasThreePrimeMod()) { map_compatibility[THREE_PRIME_MODIFICATION_INDEX].push_back(v); }
         }
       });
 
@@ -158,8 +157,7 @@ namespace OpenMS
         const String& code = r.getCode();
         if (code.size() == 1 && code[0] == v->getOrigin())
         {
-          if (v->getType() != Ribonucleotide::FIVE_PRIME_MODIFICATION
-              || v->getType() != Ribonucleotide::THREE_PRIME_MODIFICATION)
+          if (v->getTermSpecificity() == Ribonucleotide::ANYWHERE)
           {
             map_compatibility[static_cast<int>(residue_index)].push_back(v);
           }
@@ -250,11 +248,11 @@ namespace OpenMS
       NASequence new_seq = current_seq;
       if (current_index == THREE_PRIME_MODIFICATION_INDEX)
       {
-        new_seq.setThreePrimeModification(m);
+        new_seq.setThreePrimeMod(m);
       }
       else if (current_index == FIVE_PRIME_MODIFICATION_INDEX)
       {
-        new_seq.setFivePrimeModification(m);
+        new_seq.setFivePrimeMod(m);
       }
       else
       {

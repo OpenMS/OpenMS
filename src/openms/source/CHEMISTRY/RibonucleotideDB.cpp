@@ -47,6 +47,22 @@ namespace OpenMS
     max_code_length_(0)
   {
     readFromFile_("CHEMISTRY/Modomics.tsv");
+    // add more convenient representations for terminal phosphates:
+    EmpiricalFormula phosphate("H2PO3");
+    Ribonucleotide* p3 = new Ribonucleotide("3' terminal phosphate", "3'-p");
+    p3->setFormula(phosphate);
+    p3->setMonoMass(phosphate.getMonoWeight());
+    p3->setAvgMass(phosphate.getAverageWeight());
+    p3->setTermSpecificity(Ribonucleotide::THREE_PRIME);
+    code_map_[p3->getCode()] = ribonucleotides_.size();
+    ribonucleotides_.push_back(p3);
+    Ribonucleotide* p5 = new Ribonucleotide("5' terminal phosphate", "5'-p");
+    p5->setFormula(phosphate);
+    p5->setMonoMass(p3->getMonoMass());
+    p5->setAvgMass(p3->getAvgMass());
+    p5->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
+    code_map_[p5->getCode()] = ribonucleotides_.size();
+    ribonucleotides_.push_back(p5);
   }
 
 
@@ -125,7 +141,7 @@ namespace OpenMS
     ribo->setNewCode(parts[2]);
     if (parts[3] == "preQ0base")
     {
-      ribo->setOrigin( '0' );
+      ribo->setOrigin('0');
     }
     else if (parts[3].size() == 1) // A, C, G, U
     {
@@ -142,7 +158,17 @@ namespace OpenMS
     {
       ribo->setAvgMass(parts[8].toDouble());
     }
-    ribo->setIsModifiable(true); // This is superfluous for the database
+    // Modomics' "new code" contains information on terminal specificity:
+    if (parts[2].hasSubstring("55") || (parts[2] == "N"))
+    {
+      ribo->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
+    }
+    else if (parts[2].hasSubstring("33"))
+    {
+      ribo->setTermSpecificity(Ribonucleotide::THREE_PRIME);
+    }
+    // default specificity is "ANYWHERE"
+
     return ribo;
   }
 
