@@ -116,10 +116,17 @@ namespace OpenMS
 
   double TransformationModelLinear::evaluate(double value) const
   {
-    double weighted_value;
-    weighted_value = weightDatum(value, x_weight_);
-    double eval;
-    eval = unWeightDatum(slope_ * weighted_value + intercept_, y_weight_);
+    double weighted_value = value;
+    if (x_weight_ != "")
+    {
+      weighted_value = weightDatum(value, x_weight_);
+    }
+    double eval = slope_ * weighted_value + intercept_;
+    if (y_weight_ != "")
+    {
+      eval = unWeightDatum(eval, y_weight_);
+    }
+    
     return eval;
     // return slope_ * value + intercept_;
   }
