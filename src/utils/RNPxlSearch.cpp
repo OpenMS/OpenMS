@@ -1798,6 +1798,9 @@ protected:
 
   ExitCodes main_(int, const char**)
   {
+    // force initialization of residue db
+    AASequence::fromString("GPAVLIMCFYWHKRQNEDST");
+
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     String in_mzml = getStringOption_("in");
