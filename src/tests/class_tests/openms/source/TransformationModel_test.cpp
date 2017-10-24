@@ -231,13 +231,25 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   param.setValue("x_weight", "ln(x)");
   param.setValue("y_weight", "");
   test1.clear();
-  test1.push_back(point(std::log(xmin), 1.0));
-  test1.push_back(point(std::log(1.0), 2.0));
-  test1.push_back(point(std::log(2.0), 4.0)); 
+  point.first = std::log(xmin);
+  point.second = 1.0;
+  test1.push_back(point;
+  point.first = std::log(1.0);
+  point.second = 2.0;
+  test1.push_back(point);
+  point.first = std::log(2.0);
+  point.second = 4.0;
+  test1.push_back(point); 
   data1.clear();
-  data1.push_back(point(dw.checkDatumRange(0.0, xmin, xmax), dw.checkDatumRange(1.0, ymin, ymax)));
-  data1.push_back(point(dw.checkDatumRange(1.0, xmin, xmax), dw.checkDatumRange(2.0, ymin, ymax)));
-  data1.push_back(point(dw.checkDatumRange(2.0, xmin, xmax), dw.checkDatumRange(4.0, ymin, ymax)));
+  point.first = dw.checkDatumRange(0.0, xmin, xmax);
+  point.second = dw.checkDatumRange(1.0, ymin, ymax);
+  data1.push_back(point);
+  point.first = dw.checkDatumRange(1.0, xmin, xmax);
+  point.second = dw.checkDatumRange(2.0, ymin, ymax);
+  data1.push_back();
+  point.first = dw.checkDatumRange(2.0, xmin, xmax);
+  point.second = dw.checkDatumRange(4.0, ymin, ymax);
+  data1.push_back(point);
   dw.weightData(data1,param);
   for (size_t i = 0; i < data1.size(); ++i)
   {
@@ -248,13 +260,25 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   param.setValue("x_weight", "");
   param.setValue("y_weight", "ln(y)");
   test1.clear();
-  test1.push_back(point(0.0, std::log(1.0)));
-  test1.push_back(point(1.0, std::log(2.0)));
-  test1.push_back(point(2.0, std::log(4.0)));  
+  point.first = 0.0;
+  point.second = std::log(1.0);
+  test1.push_back(point);
+  point.first = 1.0;
+  point.second = std::log(2.0);
+  test1.push_back(point);
+  point.first = 2.0;
+  point.second = std::log(4.0);
+  test1.push_back(point);  
   data1.clear();
-  data1.push_back(point(0.0, 1.0));
-  data1.push_back(point(1.0, 2.0));
-  data1.push_back(point(2.0, 4.0));
+  point.first = 0.0;
+  point.second = 1.0;
+  data1.push_back(point);
+  point.first = 1.0;
+  point.second = 2.0;
+  data1.push_back(point);
+  point.first = 2.0;
+  point.second = 4.0;
+  data1.push_back(point);
   dw.weightData(data1,param);
   for (size_t i = 0; i < data1.size(); ++i)
   {
@@ -309,13 +333,25 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
   param.setValue("x_weight", "ln(x)");
   param.setValue("y_weight", "");
   test1.clear();
-  test1.push_back(point(std::exp(0.0), 1.0));
-  test1.push_back(point(std::exp(1.0), 2.0));
-  test1.push_back(point(std::exp(2.0), 4.0));  
+  point.first = std::exp(0.0);
+  point.second = 1.0;
+  test1.push_back(point);
+  point.first = std::exp(1.0);
+  point.second = 2.0;
+  test1.push_back(point);
+  point.first = std::exp(2.0);
+  point.second = 4.0;
+  test1.push_back(point);   
   data1.clear();
-  data1.push_back(point(0.0, 1.0));
-  data1.push_back(point(1.0, 2.0));
-  data1.push_back(point(2.0, 4.0));
+  point.first = 0.0;
+  point.second = 1.0;
+  data1.push_back(point);
+  point.first = 1.0;
+  point.second = 2.0;
+  data1.push_back(point);
+  point.first = 2.0;
+  point.second = 4.0;
+  data1.push_back(point);
   dw.unWeightData(data1,param);
   for (size_t i = 0; i < data1.size(); ++i)
   {
@@ -326,13 +362,25 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
   param.setValue("x_weight", "");
   param.setValue("y_weight", "ln(y)");
   test1.clear();
-  test1.push_back(point(0.0, std::exp(1.0)));
-  test1.push_back(point(1.0, std::exp(2.0)));
-  test1.push_back(point(2.0, std::exp(4.0)));  
+  point.first = 0.0,;
+  point.second = std::exp(1.0);
+  test1.push_back(point( ));
+  point.first = 1.0;
+  point.second = std::exp(2.0);
+  test1.push_back(point);
+  point.first = 2.0;
+  point.second = std::exp(4.0);
+  test1.push_back(point);   
   data1.clear();
-  data1.push_back(point(0.0, 1.0));
-  data1.push_back(point(1.0, 2.0));
-  data1.push_back(point(2.0, 4.0));
+  point.first = 0.0;
+  point.second = 1.0;
+  data1.push_back(point);
+  point.first = 1.0;
+  point.second = 2.0;
+  data1.push_back(point);
+  point.first = 2.0;
+  point.second = 4.0;
+  data1.push_back(point);
   dw.unWeightData(data1,param);
   for (size_t i = 0; i < data1.size(); ++i)
   {
