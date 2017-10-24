@@ -145,7 +145,6 @@ protected:
       registerInputFile_(TOPPSpectraSTSearchAdapter::param_user_mod_file, "<user_mod_file>", "", "Specify name of user-defined modifications file. Default is \"spectrast.usermods\".", false, true);
   }
 
-
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char **)
   {
@@ -250,16 +249,10 @@ protected:
          LOG_ERROR << "ERROR: Unrecognized output format from file: " << first_output_file << endl;
          return ILLEGAL_PARAMETERS;
      }
-     // Output files must agree on format and are not allowed to exist already
-     for (StringList::const_iterator it = output_files.begin();
-         it != output_files.end(); ++it)
+     // Output files must agree on format
+     for (StringList::const_iterator it = output_files.begin(); it != output_files.end(); ++it)
      {
          String output_file = *it;
-         if (File::exists(output_file))
-         {
-             LOG_ERROR << "ERROR: Output file already exists: " << output_file << endl;
-             return ILLEGAL_PARAMETERS;
-         }
          if (! output_file.hasSuffix(outputFormat))
          {
              LOG_ERROR << "ERROR: Output filename does not agree in format: "
