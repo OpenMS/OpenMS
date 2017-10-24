@@ -54,9 +54,16 @@ TransformationModelLinear* ptr = 0;
 TransformationModelLinear* nullPointer = 0;
 
 TransformationModel::DataPoints data, empty;
-data.push_back(make_pair(0.0, 1.0));
-data.push_back(make_pair(1.0, 2.0));
-data.push_back(make_pair(1.0, 4.0));
+TransformationModel::DataPoint point;
+point.first = 0.0;
+point.second = 1.0;
+data.push_back(point);
+point.first = 1.0;
+point.second = 2.0;
+data.push_back(point);
+point.first = 1.0;
+point.second = 4.0;
+data.push_back(point);
 
 START_SECTION((TransformationModelLinear(const DataPoints &, const Param &)))
 {
@@ -89,7 +96,10 @@ END_SECTION
 START_SECTION((void getParameters(Param & params) const))
 {  
 
-  data.push_back(make_pair(2.0, 2.0));
+  TransformationModel::DataPoint point;
+  point.first = 2.0;
+  point.second = 2.0;
+  data.push_back(point);
   Param p_in;
   //test weightings
   p_in.setValue("symmetric_regression", "true");
@@ -180,9 +190,16 @@ START_SECTION((TransformationModelLinear(const DataPoints &, const Param &)))
   // set-up the data and test
   TransformationModel::DataPoints data1;
   data1.clear();
-  data1.push_back(make_pair(1, 2));
-  data1.push_back(make_pair(2, 4));
-  data1.push_back(make_pair(4, 8)); 
+  TransformationModel::DataPoint point;
+  point.first = 1.0;
+  point.second = 2.0;
+  data1.push_back(point);
+  point.first = 2.0;
+  point.second = 4.0;
+  data1.push_back(point);
+  point.first = 4.0;
+  point.second = 8.0;
+  data1.push_back(point);
 
   // test evaluate
   TransformationModelLinear lm(data1, param);
