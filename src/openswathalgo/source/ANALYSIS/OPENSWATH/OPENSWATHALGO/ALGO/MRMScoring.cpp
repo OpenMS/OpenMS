@@ -354,7 +354,7 @@ namespace OpenSwath
       {
         intensity = 0.0;
       }
-      experimental_intensity.push_back(mrmfeature->getFeature(native_id)->getIntensity());
+      experimental_intensity.push_back(static_cast<double>(mrmfeature->getFeature(native_id)->getIntensity()));
       library_intensity.push_back(intensity);
     }
 

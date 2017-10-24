@@ -68,7 +68,7 @@ namespace OpenMS
     grid_->setRowStretch(1, 3);
 
     SpectrumCanvas::ExperimentSharedPtrType shr_ptr = SpectrumCanvas::ExperimentSharedPtrType(new SpectrumCanvas::ExperimentType());
-    MSSpectrum<> dummy_spec;
+    MSSpectrum dummy_spec;
     dummy_spec.push_back(Peak1D());
     shr_ptr->addSpectrum(dummy_spec);
 

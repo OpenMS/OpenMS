@@ -80,9 +80,10 @@ using namespace std;
         </table>
     </CENTER>
 
- The idea of the MRM peak-picker is to analyze a series of chromatograms
+ The idea of the OpenSwath Analyzer is to analyze a series of chromatograms
  together with the associated meta information (stored in TraML format) in
- order to determine likely places of elution of a peptide in MRM/SRM.
+ order to determine likely places of elution of a peptide in targeted
+ proteomics data (derived from SWATH-MS or MRM/SRM).
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathAnalyzer.cli
@@ -101,7 +102,7 @@ public:
 
   TOPPOpenSwathAnalyzer() :
   TOPPBase("OpenSwathAnalyzer",
-           "Picks peaks and finds features in an SRM experiment.", true)
+           "Picks peaks and finds features in an SWATH-MS or SRM experiment.", true)
   {
   }
 

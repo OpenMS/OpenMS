@@ -101,6 +101,9 @@ public:
     /// Removes the selected items
     void removeSelectedItems();
 
+    /// Returns the selected items
+    std::vector<Annotation1DItem*> getSelectedItems();
+
     /// Sets the pen_
     void setPen(const QPen & pen);
 

@@ -41,7 +41,6 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
@@ -357,7 +356,7 @@ namespace OpenMS
         if (cv_ref == "UNIMOD")
         {
           set<const ResidueModification*> mods;
-          Int loc = numeric_limits<Size>::max();
+          Int loc = numeric_limits<Int>::max();
           if (optionalAttributeAsInt_(loc, attributes, "location"))
           {
             String uni_mod_id = accession.suffix(':');
@@ -1208,9 +1207,9 @@ namespace OpenMS
             sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/>\n";
           }
 
-          if (! jt->getFragmentAnnotations().empty())
+          if (! jt->getPeakAnnotations().empty())
           {
-            writeFragmentAnnotations_(sii_tmp, jt->getFragmentAnnotations(), 5, is_ppxl);
+            writeFragmentAnnotations_(sii_tmp, jt->getPeakAnnotations(), 5, is_ppxl);
           }
 
           std::set<String> peptide_result_details;
@@ -1584,7 +1583,7 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const
+    void MzIdentMLHandler::writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">\n";
@@ -1655,10 +1654,10 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::FragmentAnnotation>& annotations, UInt indent, bool is_ppxl) const
+    void MzIdentMLHandler::writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const
     {
       std::map<UInt,std::map<String,std::vector<StringList> > > annotation_map;
-      for (std::vector<PeptideHit::FragmentAnnotation>::const_iterator kt = annotations.begin();
+      for (std::vector<PeptideHit::PeakAnnotation>::const_iterator kt = annotations.begin();
              kt != annotations.end(); ++kt)
       {// string coding example: [alpha|ci$y3-H2O-NH3]5+
         // static const boost::regex frag_regex("\\[(?:([\\|\\w]+)\\$)*([abcxyz])(\\d+)((?:[\\+\\-\\w])*)\\](\\d+)\\+"); // this will fetch the complete loss/gain part as one

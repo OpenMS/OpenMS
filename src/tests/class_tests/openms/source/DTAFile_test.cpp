@@ -62,7 +62,7 @@ END_SECTION
 
 START_SECTION(template<typename SpectrumType> void load(const String& filename, SpectrumType& spectrum) )
 	TOLERANCE_ABSOLUTE(0.01)
-	MSSpectrum<> s;
+	MSSpectrum s;
 	DTAFile f1;
 	
 	TEST_EXCEPTION(Exception::FileNotFound, f1.load("data_Idontexist",s);)
@@ -75,7 +75,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	TEST_EQUAL(s.getPrecursors()[0].getCharge(), 3)
 
 	ABORT_IF(s.size() != 25)
-	MSSpectrum<>::ConstIterator it(s.begin());
+	MSSpectrum::ConstIterator it(s.begin());
 	
 	TEST_REAL_SIMILAR(it->getPosition()[0], 139.42)
 	TEST_REAL_SIMILAR(it->getIntensity(), 318.52)
@@ -180,7 +180,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 
 	//TEST WITH Peak1D
 
-	MSSpectrum<> s2;
+	MSSpectrum s2;
 	f1.load(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"),s2);
 	
 	TEST_EQUAL(s2.size(), 25);
@@ -189,7 +189,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	TEST_EQUAL(s2.getPrecursors()[0].getCharge(), 3)
 
 	ABORT_IF(s2.size() != 25)
-	MSSpectrum<>::ConstIterator it2(s2.begin());
+	MSSpectrum::ConstIterator it2(s2.begin());
 	
 	TEST_REAL_SIMILAR(it2->getPosition()[0], 139.42)
 	TEST_REAL_SIMILAR(it2->getIntensity(), 318.52)
@@ -297,8 +297,8 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 	NEW_TMP_FILE(filename);
 	
 	DTAFile dta;
-	MSSpectrum<> spec, spec2;
-	MSSpectrum<>::PeakType peak;
+	MSSpectrum spec, spec2;
+	MSSpectrum::PeakType peak;
 	spec.getPrecursors().resize(1);
 	spec.getPrecursors()[0].setMZ(582.40666);
 	spec.getPrecursors()[0].setCharge(3);
@@ -326,7 +326,7 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 	
 	ABORT_IF(spec2.size() != 3)
 	
-	MSSpectrum<>::ConstIterator it = spec2.begin();
+	MSSpectrum::ConstIterator it = spec2.begin();
 
 	TEST_REAL_SIMILAR(it->getPosition()[0], 11.4)
 	TEST_REAL_SIMILAR(it->getIntensity(), 11.5)
@@ -342,8 +342,8 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 
 	//TEST WITH std::vector and Peak1D
 	
-	MSSpectrum<> raw_spec, raw_spec2;
-	MSSpectrum<>::PeakType raw_peak;
+	MSSpectrum raw_spec, raw_spec2;
+	MSSpectrum::PeakType raw_peak;
 	
 	raw_peak.getPosition()[0] = 11.4;
 	raw_peak.setIntensity(11.5);
@@ -364,7 +364,7 @@ START_SECTION(template<typename SpectrumType> void store(const String& filename,
 	
 	ABORT_IF(raw_spec2.size() != 3)
 	
-	MSSpectrum<>::ConstIterator it2 = raw_spec2.begin();
+	MSSpectrum::ConstIterator it2 = raw_spec2.begin();
 
 	TEST_REAL_SIMILAR(it2->getPosition()[0], 11.4)
 	TEST_REAL_SIMILAR(it2->getIntensity(), 11.5)

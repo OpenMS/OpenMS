@@ -58,7 +58,7 @@ namespace OpenMS
         {
           coeff = boost::math::binomial_coefficient<double>(static_cast<unsigned int>(n), static_cast<unsigned int>(j));
         }
-        catch (std::overflow_error const& e)
+        catch (std::overflow_error const& /*e*/)
         {
           std::cout << "Warning: Binomial coefficient for match-odds score has overflowed! Setting value to the maximal double value." << std::endl;
           std::cout << "binomial_coefficient was called with N = " << n << " and k = " << j << std::endl;

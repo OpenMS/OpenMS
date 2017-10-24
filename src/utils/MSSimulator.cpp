@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Ole Schulz-Trieglaff, Stephan Aiche, Chris Bielow $
+// $Maintainer: Chris Bielow $
+// $Authors: Stephan Aiche, Chris Bielow, Ole Schulz-Trieglaff $
 // --------------------------------------------------------------------------
 
 #include <iostream>
@@ -78,7 +78,7 @@ using namespace std;
   Look at the INI file (via "MSSimulator -write_ini myini.ini") to see the available parameters and more functionality.
 
   <h3>Input: FASTA files</h3>
-  Protein sequences can be provided as FASTA file.
+  Protein sequences (including amino acid modifications) can be provided as FASTA file.
   We allow a special tag in the description of each entry to specify protein abundance.
   If you want to create a complex FASTA file with a Gaussian protein abundance model in log space,
   see our Python script shipping with your OpenMS installation (e.g., <OpenMS-dir>/share/OpenMS/examples/simulation/FASTAProteinAbundanceSampling.py).
@@ -101,12 +101,16 @@ using namespace std;
     <li> RT (used as is without local error)
   </ul>
 
+  For amino acid modifications, insert their name at the respective amino acid residues. The modifications are fixed. If you need variable modifications,
+  you have to add the desired combinatorial variants (presence/absence of one or all modifications) to the FASTA file.
+  Valid modification names are listed in many TOPP/UTILS, e.g @ref TOPP_MSGFPlusAdapter 's @em -fixed_modifications parameter.
+
 e.g.
 @code
 >seq1 optional comment [# intensity=567.4 #]
-ASQYLATARHGFLPRHRDTGILP
+(Acetyl).M(Oxidation)ASQYLATARHGC(Carbamidomethyl)FLPRHRDTGILP
 >seq2 optional comment [# intensity=117.4, RT=405.3 #]
-QKRPSQRHGLATARHGTGGGDRA
+QKRPSQRHGLATAC(Carbamidomethyl)RHGTGGGDRAT.(Dehydrated)
 @endcode
 
     <B>The command line parameters of this tool are:</B>

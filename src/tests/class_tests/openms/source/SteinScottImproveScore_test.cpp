@@ -82,7 +82,7 @@ END_SECTION
 
 START_SECTION(double operator () (const PeakSpectrum& spec) const)
 	
-	MSSpectrum<> spectrum;
+	MSSpectrum spectrum;
 	spectrum.setRT(1);
 	
 		spectrum.setMSLevel(1);
@@ -101,7 +101,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec) const)
 END_SECTION
 
 START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum& spec2) const)
-	MSSpectrum<> spectrum1,spectrum2;
+	MSSpectrum spectrum1,spectrum2;
 	spectrum1.setRT(1);
 	spectrum2.setRT(1);
 	spectrum1.setMSLevel(1);

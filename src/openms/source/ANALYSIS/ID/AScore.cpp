@@ -201,7 +201,7 @@ namespace OpenMS
       {
         coeff = boost::math::binomial_coefficient<double>((unsigned int)N, (unsigned int)k);
       }
-      catch (std::overflow_error const& e)
+      catch (std::overflow_error const& /*e*/)
       {
         // not sure if a warning is appropriate here, since if it happens, it will happen very often for the same spectrum and flood the stdout
 //        std::cout << "Warning: Binomial coefficient for AScore has overflowed! Setting value to the maximal double value." << std::endl;

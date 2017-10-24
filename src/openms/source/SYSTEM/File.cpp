@@ -136,6 +136,33 @@ namespace OpenMS
     return true;
   }
 
+  bool File::removeDir(const QString& dir_name)
+  {
+    bool result = true;
+    QDir dir(dir_name);
+
+    if (dir.exists(dir_name))
+    {
+      Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
+        {
+          if (info.isDir())
+          {
+            result = removeDir(info.absoluteFilePath());
+          }
+          else
+          {
+            result = QFile::remove(info.absoluteFilePath());
+          }
+          if (!result)
+          {
+            return result;
+          }
+        }
+      result = dir.rmdir(dir_name);
+    }
+    return result;
+  }
+
   bool File::removeDirRecursively(const String& dir_name)
   {
     bool fail = false;
@@ -307,7 +334,7 @@ namespace OpenMS
     return File::find(filename, search_dirs);
   }
 
-  String File::getUniqueName()
+  String File::getUniqueName(bool include_hostname)
   {
     DateTime now = DateTime::now();
     String pid;
@@ -317,7 +344,7 @@ namespace OpenMS
     pid = (String)getpid();
 #endif
     static int number = 0;
-    return now.getDate() + "_" + now.getTime().remove(':') + "_" + String(QHostInfo::localHostName()) + "_" + pid + "_" + (++number);
+    return now.getDate().remove('-') + "_" + now.getTime().remove(':') + "_" + (include_hostname ? String(QHostInfo::localHostName()) + "_" : "")  + pid + "_" + (++number);
   }
 
   String File::getOpenMSDataPath()
@@ -549,12 +576,16 @@ namespace OpenMS
     if (File::exists(exec)) return exec;
 
 #if defined(__APPLE__)
-    // check if we are in one of the bundles
+    // check if we are in one of the bundles (only built, not installed) 
     exec = File::getExecutablePath() + "../../../" + toolName;
     if (File::exists(exec)) return exec;
 
-    // check if we are in one of the bundles in an installed bundle
+    // check if we are in one of the bundles in an installed bundle (old bundles)
     exec = File::getExecutablePath() + "../../../TOPP/" + toolName;
+    if (File::exists(exec)) return exec;
+    
+    // check if we are in one of the bundles in an installed bundle (new bundles)
+    exec = File::getExecutablePath() + "../../../bin/" + toolName;
     if (File::exists(exec)) return exec;
 #endif
     // TODO(aiche): probe in PATH

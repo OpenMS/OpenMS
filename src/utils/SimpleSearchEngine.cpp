@@ -42,8 +42,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
@@ -132,6 +132,10 @@ class SimpleSearchEngine :
       registerIntOption_("precursor:min_charge", "<num>", 2, "Minimum precursor charge to be considered.", false, true);
       registerIntOption_("precursor:max_charge", "<num>", 5, "Maximum precursor charge to be considered.", false, true);
 
+      // consider one before annotated monoisotopic peak and the annotated one
+      IntList isotopes = {0, 1};
+      registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
+
       registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
       registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
 
@@ -152,7 +156,7 @@ class SimpleSearchEngine :
       registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
 
       vector<String> all_enzymes;
-      EnzymesDB::getInstance()->getAllNames(all_enzymes);
+      ProteaseDB::getInstance()->getAllNames(all_enzymes);
       registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
       setValidStrings_("enzyme", all_enzymes);
 
@@ -394,7 +398,7 @@ class SimpleSearchEngine :
       search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
       search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
       search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+      search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
       protein_ids[0].setSearchParameters(search_parameters);
     }
 
@@ -410,6 +414,7 @@ class SimpleSearchEngine :
       Int max_precursor_charge = getIntOption_("precursor:max_charge");
       double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
       bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
+      IntList precursor_isotopes = getIntList_("precursor:isotopes");
 
       double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
       bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
@@ -473,8 +478,17 @@ class SimpleSearchEngine :
           }
 
           double precursor_mz = precursor[0].getMZ();
-          double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
-          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
+
+          // calculate precursor mass (optionally corrected for misassignment) and map it to MS scan index
+          for (int isotope_number : precursor_isotopes)
+          {
+            double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
+
+            // correct for monoisotopic misassignments of the precursor annotation
+            if (isotope_number != 0) { precursor_mass -= isotope_number * Constants::C13C12_MASSDIFF_U; }
+
+            multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
+          }
         }
       }
 
@@ -494,7 +508,7 @@ class SimpleSearchEngine :
       progresslogger.endProgress();
 
       const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
-      EnzymaticDigestion digestor;
+      ProteaseDigestion digestor;
       digestor.setEnzyme(getStringOption_("enzyme"));
       digestor.setMissedCleavages(missed_cleavages);
 
@@ -518,12 +532,12 @@ class SimpleSearchEngine :
         }
 
         vector<StringView> current_digest;
-        digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
+        digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
 
         for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
         {
           if (cit->getString().has('X')) continue;
-        
+
           bool already_processed = false;
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)
@@ -628,8 +642,9 @@ class SimpleSearchEngine :
       progresslogger.startProgress(0, 1, "Post-processing PSMs...");
       postProcessHits_(spectra, peptide_hits, protein_ids, peptide_ids, report_top_hits);
       progresslogger.endProgress();
-
-      protein_ids[0].setPrimaryMSRunPath(spectra.getPrimaryMSRunPath());
+      StringList ms_runs;
+      spectra.getPrimaryMSRunPath(ms_runs);
+      protein_ids[0].setPrimaryMSRunPath(ms_runs);
 
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);

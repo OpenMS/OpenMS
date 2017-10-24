@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Nico Pfeiffer, Chris Bielow $
+// $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -37,8 +37,8 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 #include <map>
 
@@ -68,9 +68,9 @@ using namespace std;
 </CENTER>
 
     This application is used to digest a protein database to get all
-    peptides given a cleavage enzyme. At the moment only trypsin is supported.
+    peptides given a cleavage enzyme.
 
-    The output can be used as a blacklist filter input to @ref TOPP_IDFilter, to remove certain peptides.
+    The output can be used e.g. as a blacklist filter input to @ref TOPP_IDFilter, to remove certain peptides.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -108,7 +108,7 @@ protected:
     registerIntOption_("min_length", "<number>", 6, "Minimum length of peptide", false);
     registerIntOption_("max_length", "<number>", 40, "Maximum length of peptide", false);
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<string>", "Trypsin", "The type of digestion enzyme", false);
     setValidStrings_("enzyme", all_enzymes);
   }
@@ -132,7 +132,7 @@ protected:
     String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
 
-    //input file type
+    // output file type
     FileHandler fh;
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
@@ -167,10 +167,10 @@ protected:
     // This should be updated if more cleavage enzymes are available
     ProteinIdentification::SearchParameters search_parameters;
     String enzyme = getStringOption_("enzyme");
-    EnzymaticDigestion digestor;
+    ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme);
     digestor.setMissedCleavages(missed_cleavages);
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+    search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(enzyme);
 
     PeptideHit temp_peptide_hit;
     PeptideEvidence temp_pe;
@@ -203,30 +203,37 @@ protected:
       }
       else
       {
-        digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
+        vector<AASequence> current_digest;
+        digestor.digest(AASequence::fromString(protein_data[i].sequence), current_digest);
+
+        // keep peptides that match length restrictions (and count those that don't match)
+        std::copy_if(current_digest.begin(), current_digest.end(), std::back_inserter(temp_peptides), 
+          [&dropped_bylength, &min_size, &max_size](const AASequence& s) -> bool
+          {
+            bool valid_length = (s.size() >= min_size && s.size() <= max_size);
+            if (!valid_length)
+            {
+              ++dropped_bylength;
+              return false;
+            }
+            
+            return true;
+          });
       }
 
-      for (Size j = 0; j < temp_peptides.size(); ++j)
+      for (auto s : temp_peptides)
       {
-        if ((temp_peptides[j].size() >= min_size) &&
-            (temp_peptides[j].size() <= max_size))
+        if (!has_FASTA_output)
         {
-          if (!has_FASTA_output)
-          {
-            temp_peptide_hit.setSequence(temp_peptides[j]);
-            peptide_identification.insertHit(temp_peptide_hit);
-            identifications.push_back(peptide_identification);
-            peptide_identification.setHits(std::vector<PeptideHit>()); // clear
-          }
-          else // for FASTA file output
-          {
-            FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, temp_peptides[j].toString());
-            all_peptides.push_back(pep);
-          }
+          temp_peptide_hit.setSequence(s);
+          peptide_identification.insertHit(temp_peptide_hit);
+          identifications.push_back(peptide_identification);
+          peptide_identification.setHits(std::vector<PeptideHit>()); // clear
         }
-        else
+        else // for FASTA file output
         {
-          ++dropped_bylength;
+          FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, s.toString());
+          all_peptides.push_back(pep);
         }
       }
     }

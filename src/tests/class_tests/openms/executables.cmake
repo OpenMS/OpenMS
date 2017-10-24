@@ -38,6 +38,7 @@ set(datastructures_executables_list
   Date_test
   DefaultParamHandler_test
   DistanceMatrix_test
+  FASTAContainer_test
   GridBasedCluster_test
   GridBasedClustering_test
   GridFeature_test
@@ -127,7 +128,6 @@ set(kernel_executables_list
   ConversionHelper_test
   ConstRefVector_test
   DPeak_test
-  DRichPeak_test
   FeatureMap_test
   Feature_test
   MassTrace_test
@@ -141,7 +141,6 @@ set(kernel_executables_list
   Peak2D_test
   PeakIndex_test
   RangeUtils_test
-  RichPeak1D_test
   RichPeak2D_test
   StandardTypes_test
   SpectrumHelper_test
@@ -269,7 +268,6 @@ set(math_executables_list
   RANSACModelQuadratic_test
   ROCCurve_test
   StatisticFunctions_test
-  #Spline2d_test
 )
 
 set(filtering_executables_list
@@ -356,13 +354,12 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
+  DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
   EmpiricalFormula_test
   EnzymaticDigestionLogModel_test
   EnzymaticDigestion_test
-  Enzyme_test
-  EnzymesDB_test
   FastaIteratorIntern_test
   FastaIterator_test
   IsotopeDistribution_test
@@ -372,6 +369,8 @@ set(chemistry_executables_list
   CrossLinksDB_test
   ModifierRep_test
   PepIterator_test
+  ProteaseDB_test
+  ProteaseDigestion_test
   ResidueDB_test
   ResidueModification_test
   Residue_test
@@ -492,6 +491,7 @@ set(analysis_executables_list
   SimpleSVM_test
   StablePairFinder_test
   #TargetedExperimentHelper_test
+  PercolatorFeatureSetHelper_test
   TransformationDescription_test
   TransformationModel_test
   TransformationModelBSpline_test

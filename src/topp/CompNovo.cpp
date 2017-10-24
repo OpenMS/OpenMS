@@ -37,7 +37,7 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
@@ -176,17 +176,19 @@ protected:
     ProteinIdentification prot_id;
     prot_id.setIdentifier(identifier);
     prot_id.setDateTime(now);
-    prot_id.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
+    prot_id.setPrimaryMSRunPath(ms_runs);
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.charges = "+2-+3";
     if (algorithm_param.getValue("tryptic_only").toBool())
     {
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("Trypsin");
+      search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme("Trypsin"));
     }
     else
     {
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme("no cleavage");
+      search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme("no cleavage"));
     }
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
     search_parameters.fixed_modifications = algorithm_param.getValue("fixed_modifications");

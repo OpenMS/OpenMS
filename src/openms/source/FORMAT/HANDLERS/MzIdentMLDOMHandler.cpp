@@ -39,7 +39,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <set>
 #include <string>
 #include <iostream>
@@ -1054,9 +1054,9 @@ namespace OpenMS
                   }
                   sub = sub->getNextElementSibling();
                 }
-                if (EnzymesDB::getInstance()->hasEnzyme(enzymename))
+                if (ProteaseDB::getInstance()->hasEnzyme(enzymename))
                 {
-                  sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzymename);
+                  sp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzymename));
                 }
                 enzyme = enzyme->getNextElementSibling();
               }
@@ -1370,7 +1370,7 @@ namespace OpenMS
       std::vector<double> RTs;
       int rank = 0;
       int charge = 0;
-      vector<PeptideHit::FragmentAnnotation> frag_annotations;
+      vector<PeptideHit::PeakAnnotation> frag_annotations;
 
       double xcorrx = 0;
       double xcorrc = 0;
@@ -1609,7 +1609,7 @@ namespace OpenMS
               {
                 String annotation= "[" + chains[s] + "|" + categories[s]  + "$" + frag_type + indices[s] + loss + "]";
 
-                PeptideHit::FragmentAnnotation frag_anno;
+                PeptideHit::PeakAnnotation frag_anno;
                 frag_anno.charge = ion_charge;
                 frag_anno.mz = positions[s].toDouble();
                 frag_anno.intensity = intensities[s].toDouble();
@@ -1658,7 +1658,7 @@ namespace OpenMS
           String donor_pep = xl_id_donor_map_.at(peptides[i]);      // map::at throws an out-of-range
           alpha.push_back(i);
         }
-        catch (const std::out_of_range& oor)
+        catch (const std::out_of_range& /*oor*/)
         {
           beta.push_back(i);
         }
@@ -1684,7 +1684,7 @@ namespace OpenMS
             xl_type = "loop-link";
           }
         }
-        catch (const std::out_of_range& oor)
+        catch (const std::out_of_range& /*oor*/)
         {
             // do nothing. Must be a mono-link, which is already set
         }
@@ -1737,7 +1737,7 @@ namespace OpenMS
         }
       }
 
-      ph_alpha.setFragmentAnnotations(frag_annotations);
+      ph_alpha.setPeakAnnotations(frag_annotations);
 
       if (xl_type == "loop-link")
       {
@@ -2059,7 +2059,7 @@ namespace OpenMS
           hit.setMetaValue(up->first, up->second);
         }
         hit.setMetaValue("calcMZ", calculatedMassToCharge);
-        spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
+        spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths for next PSI meeting: why is this not in SpectrumIdentificationResult in the schema? exp. m/z for one spec should not change from one id for it to the next!
         hit.setMetaValue("pass_threshold", pass); //TODO @ mths do not write metavalue pass_threshold
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)

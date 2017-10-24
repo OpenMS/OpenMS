@@ -39,6 +39,8 @@
 
 #include <string>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -179,6 +181,71 @@ START_SECTION((static void extractPeptideSequences(const vector<PeptideIdentific
   }
 }
 END_SECTION
+
+START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
+{
+  ProteaseDigestion digestion;
+  digestion.setEnzyme("Trypsin");
+  
+  IDFilter::PeptideDigestionFilter filter(digestion, 0, 1);
+  vector<PeptideHit>hits, test_hits;
+
+  
+  // No cleavage
+  hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("(MOD:00051)DFPIANGER")));
+  hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("DFPIANGER")));
+  hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("DFPIAN(Deamidated)GER")));
+
+  // 1 - missed cleavage exception K before P
+  hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("DFKPIARN(Deamidated)GER")));
+  
+  
+  // 2 missed cleavages
+  hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("(MOD:00051)DFPKIARNGER")));
+  hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("DFPKIARNGER")));
+
+  test_hits = hits;
+
+  filter.filterPeptideSequences(test_hits);
+  
+  TEST_EQUAL(test_hits.size(), 4);
+  for (UInt i = 0; i < test_hits.size(); i++)
+  {
+    TEST_EQUAL(test_hits[i].getSequence(), hits[i].getSequence());
+  }
+
+  IDFilter::PeptideDigestionFilter filter2(digestion, 0, 2);
+  
+  test_hits = hits;
+  filter2.filterPeptideSequences(test_hits);
+  
+  TEST_EQUAL(test_hits.size(), hits.size());
+  for (UInt i = 0; i < test_hits.size(); i++)
+  {
+    TEST_EQUAL(test_hits[i].getSequence(), hits[i].getSequence());
+  }
+
+
+  // Removing sequences
+  hits.clear();
+  hits.push_back(PeptideHit(0, 0, 0, AASequence::fromString("K(Dimethyl)FPIAUGR")));
+
+  test_hits = hits;
+  digestion.setEnzyme("Asp-N_ambic");
+  
+  //Should have exactly zero missed cleavages
+  IDFilter::PeptideDigestionFilter filter3(digestion, 0, 0);
+
+  filter3.filterPeptideSequences(test_hits);
+  TEST_EQUAL(test_hits.size(), hits.size());
+  for (UInt i = 0; i < test_hits.size(); i++)
+  {
+    TEST_EQUAL(test_hits[i].getSequence(), hits[i].getSequence());
+  }
+
+}
+END_SECTION
+
 
 START_SECTION((template <class IdentificationType> static void updateHitRanks(vector<IdentificationType>& ids)))
 {
@@ -865,7 +932,7 @@ START_SECTION((template <class PeakT> static void filterHitsByScore(MSExperiment
 
   for (Size i = 0; i < 5; ++i)
   {
-    experiment.addSpectrum(MSSpectrum<>());
+    experiment.addSpectrum(MSSpectrum());
   }
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(ids);
@@ -908,7 +975,7 @@ START_SECTION((template <class PeakT> static void filterHitsBySignificance(MSExp
 
   for (Size i = 0; i < 5; ++i)
   {
-    experiment.addSpectrum(MSSpectrum<>());
+    experiment.addSpectrum(MSSpectrum());
   }
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(ids);
@@ -951,7 +1018,7 @@ START_SECTION((template <class PeakT> static void keepNBestHits(MSExperiment<Pea
 
   for (Size i = 0; i < 5; ++i)
   {
-    experiment.addSpectrum(MSSpectrum<>());
+    experiment.addSpectrum(MSSpectrum());
   }
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(ids);
@@ -990,7 +1057,7 @@ START_SECTION((template<class PeakT> static void keepHitsMatchingProteins(MSExpe
 
   for (Size i = 0; i < 5; ++i)
   {
-    experiment.addSpectrum(MSSpectrum<>());
+    experiment.addSpectrum(MSSpectrum());
   }
   experiment[3].setMSLevel(2);
   experiment[3].setPeptideIdentifications(peptides);

@@ -37,7 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 using Eigen::VectorXd;
 

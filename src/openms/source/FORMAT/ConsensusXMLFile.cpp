@@ -40,7 +40,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <fstream>
 
 using namespace std;
@@ -48,11 +48,11 @@ using namespace std;
 namespace OpenMS
 {
   ConsensusXMLFile::ConsensusXMLFile() :
-    XMLHandler("", "1.7"), 
-    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"), 
-    ProgressLogger(), 
-    consensus_map_(0), 
-    act_cons_element_(), 
+    XMLHandler("", "1.7"),
+    XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"),
+    ProgressLogger(),
+    consensus_map_(0),
+    act_cons_element_(),
     last_meta_(0)
   {
   }
@@ -392,9 +392,9 @@ namespace OpenMS
       //enzyme
       String enzyme;
       optionalAttributeAsString_(enzyme, attributes, "enzyme");
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme))
       {
-        search_param_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme);
+        search_param_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme));
       }
       last_meta_ = &search_param_;
     }
@@ -508,7 +508,7 @@ namespace OpenMS
       pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
+      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
       if (refs != 0)
       {
         String accession_string = sm_.convert(refs);
@@ -638,8 +638,7 @@ namespace OpenMS
   {
     if (!FileHandler::hasValidExtension(filename, FileTypes::CONSENSUSXML))
     {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-       "While storing '" + filename  + "'. Invalid file extension. Should be: '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::CONSENSUSXML) + "'");
     }
 
     if (!consensus_map.isMapConsistent(&LOG_WARN))

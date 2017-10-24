@@ -105,7 +105,7 @@ namespace OpenMS
 
   map<Size, PeakSpectrum > PScore::calculatePeakLevelSpectra(const PeakSpectrum& spec, const vector<Size>& ranks, Size min_level, Size max_level)
   {
-    map<Size, MSSpectrum<Peak1D> > peak_level_spectra;
+    map<Size, MSSpectrum > peak_level_spectra;
 
     if (spec.empty()) return peak_level_spectra;
 

@@ -592,18 +592,18 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("operator[", "operator<")
         cpp_def = cpp_def.replace("operator__[]", "operator[]")
         cpp_def = cpp_def.replace("const ", "")
+
+        # Note that template arguments cannot be typedefs but need to be basic types
         cpp_def = cpp_def.replace("[ DoubleReal ]", "[ double ]")
         cpp_def = cpp_def.replace("[ Size ]", "[ size_t ]")
+        cpp_def = cpp_def.replace("[Size,Size]", "[size_t,size_t]")
         cpp_def = cpp_def.replace("[ Int ]", "[ int ]")
-        cpp_def = cpp_def.replace("RichPeakSpectrum", "MSSpectrum[RichPeak1D]")
-        cpp_def = cpp_def.replace("RichPeakMap", "MSExperiment[RichPeak1D, ChromatogramPeak]")
+
         cpp_def = cpp_def.replace("FeatureMap[]", "FeatureMap[Feature]")
         cpp_def = cpp_def.replace("MSSpectrum[]", "MSSpectrum[Peak1D]")
-        cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment[Peak1D, ChromatogramPeak]")
-        # cpp_def = cpp_def.replace("Chromatogram", "MSChromatogram[ChromatogramPeak]")
-        #
+        cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment")
         cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum[Peak1D]")
-        cpp_def = cpp_def.replace("PeakMap", "MSExperiment[Peak1D, ChromatogramPeak]")
+        cpp_def = cpp_def.replace("PeakMap", "MSExperiment")
 
         # Alert the user to potential problems and comment out potential
         # dangerous things (raw pointers, iterators)
@@ -762,12 +762,18 @@ class TestResultHandler:
 
     def to_cdash_xml(self, template_path, output_path):
 
+        if template_path.endswith("Test.xml"):
+            body_start = "<Testing>"
+        elif template_path.endswith("Build.xml"):
+            body_start = "<Build>"
+        else:
+            raise Exception("Unsupported template name %s" % template_path)
         xml_output = []
         # load template head (everything up to "<Testing>")
         # -> this assumes a specific format of the xml
         with open(template_path) as f:
             for line in f:
-                if line.strip() == "<Testing>":
+                if line.strip() == body_start:
                     break
                 xml_output.append(line)
 
@@ -928,7 +934,11 @@ def writeOutput(testresults, output_format, cnt, bin_path):
             raise Exception("Missing nightly test information at %s" % (tag_file) )
 
         template_path = os.path.join(ctestReportingPath, "Test.xml" )
-        testresults.to_cdash_xml(template_path, template_path)
+        output_path = template_path # output is always Test.xml
+        if not os.path.isfile(template_path):
+            template_path = os.path.join(ctestReportingPath, "Build.xml" ) #Build.xml an be used as alternative template
+
+        testresults.to_cdash_xml(template_path, output_path)
 
     else:
         raise Exception("Unknown output format %s" % output_format)

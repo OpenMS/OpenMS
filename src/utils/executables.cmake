@@ -34,6 +34,7 @@ OpenMSInfo
 OpenPepXL
 OpenPepXLLF
 PeakPickerIterative
+PSMFeatureExtractor
 QCCalculator
 QCEmbedder
 QCExporter
@@ -41,6 +42,7 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
+RNADigestor
 RNPxl
 RNPxlXICFilter
 RNPxlSearch
@@ -48,11 +50,11 @@ RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
+SiriusAdapter
 SpecLibCreator
 SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
-TopPerc
 TransformationEvaluation
 XFDR
 XMLValidator

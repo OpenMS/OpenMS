@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -166,11 +166,11 @@ protected:
     setValidStrings_("fixed_modifications", all_mods);
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
-    
+
     registerDoubleOption_("minimum_fragment_mz", "<number>", 150.0, "Minimum fragment mz", false);
 
     vector<String> all_enzymes;
-    EnzymesDB::getInstance()->getAllXTandemNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllXTandemNames(all_enzymes);
     registerStringOption_("enzyme", "<choice>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("enzyme", all_enzymes);
     registerIntOption_("missed_cleavages", "<number>", 1, "Number of possible cleavage sites missed by the enzyme", false);
@@ -255,7 +255,7 @@ protected:
     tax_out << "\t</taxon>" << "\n";
     tax_out << "</bioml>" << "\n";
     tax_out.close();
-    
+
     //
     //  Prepare the XML configuration file
     //
@@ -295,7 +295,7 @@ protected:
     double max_evalue = getDoubleOption_("max_valid_expect");
     infile.setMaxValidEValue(max_evalue);
     String enzyme_name = getStringOption_("enzyme");
-    infile.setCleavageSite(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getXTANDEMid());
+    infile.setCleavageSite(ProteaseDB::getInstance()->getEnzyme(enzyme_name)->getXTandemID());
     infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
     infile.setSemiCleavage(getFlag_("semi_cleavage"));
     infile.setAllowIsotopeError(!getFlag_("no_isotope_error"));
@@ -327,7 +327,9 @@ protected:
 
     vector<ProteinIdentification> protein_ids;
     ProteinIdentification protein_id;
-    protein_id.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
+    protein_id.setPrimaryMSRunPath(ms_runs);
     vector<PeptideIdentification> peptide_ids;
 
     // read the output of X! Tandem and write it to idXML
@@ -400,7 +402,7 @@ protected:
       search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
       search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_error_units") == "ppm" ? true : false;
       search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_error_units") == "ppm" ? true : false;
-      search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+      search_parameters.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_name));
       protein_id.setSearchParameters(search_parameters);
       protein_id.setSearchEngineVersion("");
       protein_id.setSearchEngine("XTandem");

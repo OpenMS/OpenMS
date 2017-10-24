@@ -42,15 +42,9 @@
 	</instrumentConfigurationList>
 	<dataProcessingList count="1">
 		<dataProcessing id="dp_sp_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_0">
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_0">
 				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements"/>
+				<userParam name="default_processing" type="xsd:string" value="just a default processing here"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
 				<cvParam cvRef="MS" accession="MS:1000592" name="smoothing" />
@@ -216,13 +210,13 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tr1">4006</offset>
-		<offset idRef="tr3">6553</offset>
-		<offset idRef="tr2">9100</offset>
-		<offset idRef="tr4">11647</offset>
-		<offset idRef="tr5">14194</offset>
+		<offset idRef="tr1">3650</offset>
+		<offset idRef="tr3">6197</offset>
+		<offset idRef="tr2">8744</offset>
+		<offset idRef="tr4">11291</offset>
+		<offset idRef="tr5">13838</offset>
 	</index>
 </indexList>
-<indexListOffset>16771</indexListOffset>
+<indexListOffset>16418</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

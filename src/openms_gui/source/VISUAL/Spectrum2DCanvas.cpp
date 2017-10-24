@@ -150,7 +150,7 @@ namespace OpenMS
       const ExperimentSharedPtrType exp = layer.getPeakData();
 
       // create iterator on chromatogram spectrum passed by PeakIndex
-      vector<MSChromatogram<> >::const_iterator chrom_it = exp->getChromatograms().begin();
+      vector<MSChromatogram >::const_iterator chrom_it = exp->getChromatograms().begin();
       chrom_it += peak.spectrum;
       dataToWidget_(chrom_it->getPrecursor().getMZ(), chrom_it->front().getRT(), pos);
     }
@@ -168,7 +168,7 @@ namespace OpenMS
       const LayerData & layer = getCurrentLayer();
       const ExperimentSharedPtrType exp = layer.getPeakData();
 
-      vector<MSChromatogram<> >::const_iterator iter = exp->getChromatograms().begin();
+      vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin();
       iter += peak.spectrum;
 
       painter.drawRect(pos.x() - 5, pos.y() - 5, (int((iter->back().getRT() - iter->front().getRT()) / visible_area_.height() * width())) + 10, 10);
@@ -259,12 +259,12 @@ namespace OpenMS
       exp = *layer.getPeakData();
       float mz_origin = 0.0;
 
-      for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+      for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
         if (iter->empty()) {continue;} // ensure that empty chromatograms are not examined (iter->front = segfault)
-        MSChromatogram<>::ConstIterator cit = iter->begin();
+        MSChromatogram::ConstIterator cit = iter->begin();
 
-        // for (MSChromatogram<>::ConstIterator cit = iter->begin(); cit != iter->end(); ++cit)
+        // for (MSChromatogram::ConstIterator cit = iter->begin(); cit != iter->end(); ++cit)
         // {
         //   cout << "Chrom Values RT/INT: " << cit->getRT() << "/" << " " << cit->getIntensity() << endl;
         //  }
@@ -486,7 +486,7 @@ namespace OpenMS
       float min_rt = 0;
       float max_rt = 0;
 
-      for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+      for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
         if (mz_origin != iter->getPrecursor().getMZ())
         {
@@ -1763,7 +1763,7 @@ namespace OpenMS
     case LayerData::DT_PEAK:
     {
       const Peak1D & p = peak.getPeak(*getCurrentLayer().getPeakData());
-      const MSSpectrum<> & s = peak.getSpectrum(*getCurrentLayer().getPeakData());
+      const MSSpectrum & s = peak.getSpectrum(*getCurrentLayer().getPeakData());
       mz = p.getMZ();
       rt = s.getRT();
       it = p.getIntensity();
@@ -1791,7 +1791,7 @@ namespace OpenMS
       PeakMap exp;
       exp = *layer.getPeakData();
 
-      vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin();
+      vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin();
       iter += peak.spectrum;
 
       mz = iter->getPrecursor().getMZ();
@@ -2290,7 +2290,10 @@ namespace OpenMS
         }
       }
 
-      //add surrounding fragment scans
+      // add surrounding fragment scans
+      // - We first attempt to look at the position where the user clicked
+      // - Next we look within the +/- 5 scans around that position
+      // - Next we look within the whole visible area
       QMenu * msn_scans = new QMenu("fragment scan in 1D");
       QMenu * msn_meta = new QMenu("fragment scan meta data");
       DPosition<2> p1 = widgetToData_(e->pos() + QPoint(10, 10));
@@ -2299,22 +2302,29 @@ namespace OpenMS
       double rt_max = max(p1[1], p2[1]);
       double mz_min = min(p1[0], p2[0]);
       double mz_max = max(p1[0], p2[0]);
-      bool item_added = false;
-      for (ExperimentType::ConstIterator it = getCurrentLayer().getPeakData()->RTBegin(rt_min); it != getCurrentLayer().getPeakData()->RTEnd(rt_max); ++it)
+      bool item_added = collectFragmentScansInArea(rt_min, rt_max, mz_min, mz_max, a, msn_scans, msn_meta);
+      if (!item_added)
       {
-        double mz = 0.0;
-        if (!it->getPrecursors().empty())
-        {
-          mz = it->getPrecursors()[0].getMZ();
-        }
+        // Now simply go for the 5 closest points in RT and check whether there
+        // are any scans.
+        // NOTE: that if we go for the visible area, we run the
+        // risk of iterating through *all* the scans.
 
-        if (it->getMSLevel() > 1 && mz >= mz_min && mz <= mz_max)
+        const AreaType & area = getVisibleArea();
+        double mz_min_vis = area.minPosition()[0]; 
+        double mz_max_vis = area.maxPosition()[0];
+
+        double rt5s_min = getCurrentLayer().getPeakData()->getSpectra()[ indices[indices.size()-1] ].getRT();
+        double rt5s_max = getCurrentLayer().getPeakData()->getSpectra()[ indices[0] ].getRT();
+
+        item_added = collectFragmentScansInArea(rt5s_min, rt5s_max, mz_min_vis, mz_max_vis, a, msn_scans, msn_meta);
+
+        if (!item_added)
         {
-          a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
-          a->setData((int)(it - getCurrentLayer().getPeakData()->begin()));
-          a = msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
-          a->setData((int)(it - getCurrentLayer().getPeakData()->begin()));
-          item_added = true;
+          // ok, now lets search the whole visible area (may be large!)
+          double rt_min_vis = area.minPosition()[1]; 
+          double rt_max_vis = area.maxPosition()[1];
+          item_added = collectFragmentScansInArea(rt_min_vis, rt_max_vis, mz_min_vis, mz_max_vis, a, msn_scans, msn_meta);
         }
       }
       if (item_added)
@@ -2451,7 +2461,7 @@ namespace OpenMS
       // collect all precursor that fall into the mz rt window
       typedef std::set<Precursor, Precursor::MZLess> PCSetType;
       PCSetType precursor_in_rt_mz_window;
-      for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+      for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
         if (mz + CHROMATOGRAM_SHOW_MZ_RANGE >= iter->getPrecursor().getMZ() &&
             mz - CHROMATOGRAM_SHOW_MZ_RANGE <= iter->getPrecursor().getMZ() &&
@@ -2466,7 +2476,7 @@ namespace OpenMS
       map<Precursor, vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
       for (PCSetType::const_iterator pit = precursor_in_rt_mz_window.begin(); pit != precursor_in_rt_mz_window.end(); ++pit)
       {
-        for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+        for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
         {
           if (iter->getPrecursor() == *pit)
           {
@@ -3072,5 +3082,29 @@ namespace OpenMS
     recalculateRanges_(0, 1, 2);
     resetZoom(true);
   }
+
+    bool Spectrum2DCanvas::collectFragmentScansInArea(double rt_min, double rt_max, double mz_min, double mz_max, QAction* a, QMenu * msn_scans, QMenu * msn_meta)
+    {
+
+      bool item_added = false;
+      for (ExperimentType::ConstIterator it = getCurrentLayer().getPeakData()->RTBegin(rt_min); it != getCurrentLayer().getPeakData()->RTEnd(rt_max); ++it)
+      {
+        double mz = 0.0;
+        if (!it->getPrecursors().empty())
+        {
+          mz = it->getPrecursors()[0].getMZ();
+        }
+
+        if (it->getMSLevel() > 1 && mz >= mz_min && mz <= mz_max)
+        {
+          a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
+          a->setData((int)(it - getCurrentLayer().getPeakData()->begin()));
+          a = msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
+          a->setData((int)(it - getCurrentLayer().getPeakData()->begin()));
+          item_added = true;
+        }
+      }
+      return item_added;
+    }
 
 } //namespace OpenMS
