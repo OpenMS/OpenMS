@@ -105,6 +105,7 @@ protected:
     setValidFormats_("lib", ListUtils::create<String>("msp"));
     registerOutputFileList_("out", "<files>", ListUtils::create<String>(""), "Output files. Have to be as many as input files");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
+<<<<<<< HEAD
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false);
@@ -134,6 +135,21 @@ protected:
 //    setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
     registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparisson", false);
+=======
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 3, "Precursor mass tolerance, (Th)", false);
+    registerIntOption_("round_precursor_to_integer", "<number>", 10, "many precursor m/z multipling number lead to the same number; are packed in the same vector for faster search.Should be higher for high-resolution data", false, true);
+    // registerDoubleOption_("fragment_mass_tolerance","<tolerance>",0.3,"Fragment mass error",false);
+
+    // registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
+    // registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
+    // vector<String> valid_strings;
+    // valid_strings.push_back("Da");
+    // setValidStrings_("precursor_error_units", valid_strings);
+    // setValidStrings_("fragment_error_units", valid_strings);
+    // registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
+    // registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
+    registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparison", false);
+>>>>>>> hroest/feature/speclib
     PeakSpectrumCompareFunctor::registerChildren();
     setValidStrings_("compare_function", Factory<PeakSpectrumCompareFunctor>::registeredProducts());
 
@@ -144,7 +160,7 @@ protected:
 
     registerTOPPSubsection_("filter", "Filtering options. Most are especially useful when the query spectra are raw.");
     registerDoubleOption_("filter:remove_peaks_below_threshold", "<threshold>", 2.01, "All peaks of a query spectrum with intensities below <threshold> will be zeroed.", false);
-    registerIntOption_("filter:min_peaks", "<number>", 5, "required mininum number of peaks for a query spectrum", false);
+    registerIntOption_("filter:min_peaks", "<number>", 5, "required minimum number of peaks for a query spectrum", false);
     registerIntOption_("filter:max_peaks", "<number>", 150, "Use only the top <number> of peaks.", false);
     registerIntOption_("filter:cut_peaks_below", "<number>", 1000, "Remove all peaks which are lower than 1/<number> of the highest peaks. Default equals all peaks which are lower than 0.001 of the maximum intensity peak", false);
 
@@ -351,8 +367,8 @@ protected:
       vector<PeptideIdentification> peptide_ids;
       vector<ProteinIdentification> protein_ids;
       ProteinIdentification prot_id;
-
-      //Parameters of identificaion
+ 
+      //Parameters of identification
       prot_id.setIdentifier("test");
       prot_id.setSearchEngineVersion("SpecLibSearcher");
       prot_id.setDateTime(DateTime::now());
@@ -565,7 +581,7 @@ protected:
       LOG_INFO << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
     }
     time_t end_time = time(NULL);
-    LOG_INFO << "Total time: " << difftime(end_time, prog_time) << " secconds\n";
+    LOG_INFO << "Total time: " << difftime(end_time, prog_time) << " seconds\n";
     return EXECUTION_OK;
   }
 
