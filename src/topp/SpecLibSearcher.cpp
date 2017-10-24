@@ -105,7 +105,6 @@ protected:
     setValidFormats_("lib", ListUtils::create<String>("msp"));
     registerOutputFileList_("out", "<files>", ListUtils::create<String>(""), "Output files. Have to be as many as input files");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-<<<<<<< HEAD
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false);
@@ -134,22 +133,7 @@ protected:
 //    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment m", false, false);
 //    setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
-    registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparisson", false);
-=======
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 3, "Precursor mass tolerance, (Th)", false);
-    registerIntOption_("round_precursor_to_integer", "<number>", 10, "many precursor m/z multipling number lead to the same number; are packed in the same vector for faster search.Should be higher for high-resolution data", false, true);
-    // registerDoubleOption_("fragment_mass_tolerance","<tolerance>",0.3,"Fragment mass error",false);
-
-    // registerStringOption_("precursor_error_units", "<unit>", "Da", "parent monoisotopic mass error units", false);
-    // registerStringOption_("fragment_error_units", "<unit>", "Da", "fragment monoisotopic mass error units", false);
-    // vector<String> valid_strings;
-    // valid_strings.push_back("Da");
-    // setValidStrings_("precursor_error_units", valid_strings);
-    // setValidStrings_("fragment_error_units", valid_strings);
-    // registerIntOption_("min_precursor_charge", "<charge>", 1, "minimum precursor ion charge", false);
-    // registerIntOption_("max_precursor_charge", "<charge>", 3, "maximum precursor ion charge", false);
     registerStringOption_("compare_function", "<string>", "ZhangSimilarityScore", "function for similarity comparison", false);
->>>>>>> hroest/feature/speclib
     PeakSpectrumCompareFunctor::registerChildren();
     setValidStrings_("compare_function", Factory<PeakSpectrumCompareFunctor>::registeredProducts());
 
