@@ -233,7 +233,7 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   test1.clear();
   point.first = std::log(xmin);
   point.second = 1.0;
-  test1.push_back(point;
+  test1.push_back(point);
   point.first = std::log(1.0);
   point.second = 2.0;
   test1.push_back(point);
@@ -246,7 +246,7 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   data1.push_back(point);
   point.first = dw.checkDatumRange(1.0, xmin, xmax);
   point.second = dw.checkDatumRange(2.0, ymin, ymax);
-  data1.push_back();
+  data1.push_back(point);
   point.first = dw.checkDatumRange(2.0, xmin, xmax);
   point.second = dw.checkDatumRange(4.0, ymin, ymax);
   data1.push_back(point);
