@@ -101,13 +101,6 @@ public:
     virtual ~DIAScoring() {}
     //@}
 
-    ///@name Accessors
-    //@{
-    /// set parameters for the algorithm
-    void set_dia_parameters(double dia_extract_window, double dia_centroided,
-                            double dia_byseries_intensity_min, double dia_byseries_ppm_diff, double dia_nr_isotopes, double dia_nr_charges);
-    //@}
-
     ///////////////////////////////////////////////////////////////////////////
     // DIA / SWATH scoring
 
