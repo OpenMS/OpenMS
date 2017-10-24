@@ -175,7 +175,7 @@ namespace OpenMS
     peak_apex_int = -1;
     double peak_apex_dist = std::fabs(chromatogram.begin()->getMZ() - peak_apex_rt);
     // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
-    for (MSChromatogram::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
+    for (MSChromatogram::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
     {
       if (it->getMZ() > best_left && it->getMZ() < best_right)
       {
@@ -205,10 +205,10 @@ namespace OpenMS
     double delta_rt, delta_int, height_5, height_10, height_50;
     
     // pass 1
-    for (MSChromatogram::const_iterator it = chromatogram.begin() + 1; it != chromatogram.end(); it++)
+    for (MSChromatogram::const_iterator it = chromatogram.begin() + 1; it != chromatogram.end(); ++it)
     {
       MSChromatogram::const_iterator it_prev = it;
-      it_prev--; //previous point
+      --it_prev; //previous point
       intensity = std::max(it->getIntensity()-avg_noise_level, 0.0); //background-subtracted intensity
       intensity_prev = std::max(it_prev->getIntensity()-avg_noise_level, 0.0); //background-subtracted intensity of the previous point
       retention_time = it->getMZ();

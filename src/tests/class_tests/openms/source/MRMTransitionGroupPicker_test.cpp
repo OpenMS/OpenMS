@@ -543,7 +543,6 @@ START_SECTION(( void calculatePeakShapeMetrics_(const MSChromatogram& chromatogr
   double best_right = 3.01895;
   double peak_height = 965356;
   double peak_apex = 2.7045;
-  double peak_intensity = 966489;
   double avg_noise_level = 723.5;
 
   // Calculate the QCs
