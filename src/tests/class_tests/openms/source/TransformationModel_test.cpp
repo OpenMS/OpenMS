@@ -53,9 +53,10 @@ TransformationModel* ptr = 0;
 TransformationModel* nullPointer = 0;
 
 TransformationModel::DataPoints data, empty;
-data.push_back(make_pair(0.0, 1.0));
-data.push_back(make_pair(1.0, 2.0));
-data.push_back(make_pair(1.0, 4.0));
+TransformationModel::DataPoint d
+data.push_back(d(0.0, 1.0));
+data.push_back(d(1.0, 2.0));
+data.push_back(d(1.0, 4.0));
 START_SECTION((TransformationModel()))
 {
   ptr = new TransformationModel();
@@ -212,6 +213,7 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
 {
   TransformationModel::DataPoints data1;
   TransformationModel::DataPoints test1;
+  TransformationModel::DataPoint point;
   Param param;
   TransformationModel::getDefaultParameters(param);
   TransformationModel dw(data, param);
@@ -223,13 +225,13 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   param.setValue("x_weight", "ln(x)");
   param.setValue("y_weight", "");
   test1.clear();
-  test1.push_back(make_pair(std::log(xmin), 1.0));
-  test1.push_back(make_pair(std::log(1.0), 2.0));
-  test1.push_back(make_pair(std::log(2.0), 4.0)); 
+  test1.push_back(point(std::log(xmin), 1.0));
+  test1.push_back(point(std::log(1.0), 2.0));
+  test1.push_back(point(std::log(2.0), 4.0)); 
   data1.clear();
-  data1.push_back(make_pair(dw.checkDatumRange(0.0, xmin, xmax), dw.checkDatumRange(1.0, ymin, ymax)));
-  data1.push_back(make_pair(dw.checkDatumRange(1.0, xmin, xmax), dw.checkDatumRange(2.0, ymin, ymax)));
-  data1.push_back(make_pair(dw.checkDatumRange(2.0, xmin, xmax), dw.checkDatumRange(4.0, ymin, ymax)));
+  data1.push_back(point(dw.checkDatumRange(0.0, xmin, xmax), dw.checkDatumRange(1.0, ymin, ymax)));
+  data1.push_back(point(dw.checkDatumRange(1.0, xmin, xmax), dw.checkDatumRange(2.0, ymin, ymax)));
+  data1.push_back(point(dw.checkDatumRange(2.0, xmin, xmax), dw.checkDatumRange(4.0, ymin, ymax)));
   dw.weightData(data1,param);
   for (size_t i = 0; i < data1.size(); ++i)
   {
@@ -240,13 +242,13 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   param.setValue("x_weight", "");
   param.setValue("y_weight", "ln(y)");
   test1.clear();
-  test1.push_back(make_pair(0.0, std::log(1.0)));
-  test1.push_back(make_pair(1.0, std::log(2.0)));
-  test1.push_back(make_pair(2.0, std::log(4.0)));  
+  test1.push_back(point(0.0, std::log(1.0)));
+  test1.push_back(point(1.0, std::log(2.0)));
+  test1.push_back(point(2.0, std::log(4.0)));  
   data1.clear();
-  data1.push_back(make_pair(0.0, 1.0));
-  data1.push_back(make_pair(1.0, 2.0));
-  data1.push_back(make_pair(2.0, 4.0));
+  data1.push_back(point(0.0, 1.0));
+  data1.push_back(point(1.0, 2.0));
+  data1.push_back(point(2.0, 4.0));
   dw.weightData(data1,param);
   for (size_t i = 0; i < data1.size(); ++i)
   {
@@ -293,6 +295,7 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
 
   TransformationModel::DataPoints data1;
   TransformationModel::DataPoints test1;
+  TransformationModel::DataPoint point;
   Param param;
   TransformationModel::getDefaultParameters(param);
   TransformationModel dw(data, param);
@@ -300,13 +303,13 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
   param.setValue("x_weight", "ln(x)");
   param.setValue("y_weight", "");
   test1.clear();
-  test1.push_back(make_pair(std::exp(0.0), 1.0));
-  test1.push_back(make_pair(std::exp(1.0), 2.0));
-  test1.push_back(make_pair(std::exp(2.0), 4.0));  
+  test1.push_back(point(std::exp(0.0), 1.0));
+  test1.push_back(point(std::exp(1.0), 2.0));
+  test1.push_back(point(std::exp(2.0), 4.0));  
   data1.clear();
-  data1.push_back(make_pair(0.0, 1.0));
-  data1.push_back(make_pair(1.0, 2.0));
-  data1.push_back(make_pair(2.0, 4.0));
+  data1.push_back(point(0.0, 1.0));
+  data1.push_back(point(1.0, 2.0));
+  data1.push_back(point(2.0, 4.0));
   dw.unWeightData(data1,param);
   for (size_t i = 0; i < data1.size(); ++i)
   {
@@ -317,13 +320,13 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
   param.setValue("x_weight", "");
   param.setValue("y_weight", "ln(y)");
   test1.clear();
-  test1.push_back(make_pair(0.0, std::exp(1.0)));
-  test1.push_back(make_pair(1.0, std::exp(2.0)));
-  test1.push_back(make_pair(2.0, std::exp(4.0)));  
+  test1.push_back(point(0.0, std::exp(1.0)));
+  test1.push_back(point(1.0, std::exp(2.0)));
+  test1.push_back(point(2.0, std::exp(4.0)));  
   data1.clear();
-  data1.push_back(make_pair(0.0, 1.0));
-  data1.push_back(make_pair(1.0, 2.0));
-  data1.push_back(make_pair(2.0, 4.0));
+  data1.push_back(point(0.0, 1.0));
+  data1.push_back(point(1.0, 2.0));
+  data1.push_back(point(2.0, 4.0));
   dw.unWeightData(data1,param);
   for (size_t i = 0; i < data1.size(); ++i)
   {

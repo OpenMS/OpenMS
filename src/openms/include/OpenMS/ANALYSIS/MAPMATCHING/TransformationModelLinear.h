@@ -38,6 +38,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 namespace OpenMS
 {
@@ -75,7 +76,7 @@ public:
     using TransformationModel::getParameters;
 
     /// Gets the "real" parameters
-    void getParameters(double& slope, double& intercept, std::string& x_weight, std::string& y_weight, double& x_datum_min, double& x_datum_max, double& y_datum_min, double& y_datum_max) const;
+    void getParameters(double& slope, double& intercept, String& x_weight, String& y_weight, double& x_datum_min, double& x_datum_max, double& y_datum_min, double& y_datum_max) const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param& params);

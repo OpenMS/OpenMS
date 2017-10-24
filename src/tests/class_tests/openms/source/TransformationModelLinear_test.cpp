@@ -133,12 +133,12 @@ START_SECTION((void getParameters(Param & params) const))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] void getParameters(double&, double&, std::string&, std::string&, double&, double&, double&, double&)))
+START_SECTION(([EXTRA] void getParameters(double&, double&, String&, String&, double&, double&, double&, double&)))
 {
   Param param;
   param.setValue("slope", 12.3);
   param.setValue("intercept", -45.6);  
-  std::string x_weight_test, y_weight_test;
+  String x_weight_test, y_weight_test;
   x_weight_test = "";
   y_weight_test = "ln(y)";
   param.setValue("x_weight", x_weight_test);
@@ -149,7 +149,7 @@ START_SECTION(([EXTRA] void getParameters(double&, double&, std::string&, std::s
   param.setValue("y_datum_max", 1e15);
   TransformationModelLinear lm(empty, param);
   double slope, intercept, x_datum_min, x_datum_max, y_datum_min, y_datum_max;
-  std::string x_weight, y_weight;
+  String x_weight, y_weight;
   lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
   TEST_REAL_SIMILAR(param.getValue("slope"), slope);
   TEST_REAL_SIMILAR(param.getValue("intercept"), intercept);
@@ -167,7 +167,7 @@ START_SECTION((TransformationModelLinear(const DataPoints &, const Param &)))
   // weighting/unweighting test 1
   // set-up the parameters
   Param param; 
-  std::string x_weight_test, y_weight_test;
+  String x_weight_test, y_weight_test;
   x_weight_test = "ln(x)";
   y_weight_test = "ln(y)";
   param.setValue("x_weight", x_weight_test);

@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>     // std::cout
 #include <algorithm>    // std::find
 #include <math.h>    // std::log
@@ -71,9 +72,9 @@ namespace OpenMS
     x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15;
     x_datum_max_ = params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15;
     // weight x values 
-    std::vector<std::string> valid_weights;
+    std::vector<String> valid_weights;
     valid_weights = getValidXWeights();
-    x_weight_ = params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "";
+    x_weight_ = params.exists("x_weight") ? (String)params.getValue("x_weight") : "";
     if (!x_weight_.empty() && checkValidWeight(x_weight_, valid_weights) && !data.empty())
     {
       for (size_t i = 0; i < data.size(); ++i)
@@ -89,7 +90,7 @@ namespace OpenMS
     y_datum_max_ = params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15;
     // weight y values
     valid_weights = getValidYWeights();
-    y_weight_ = params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "";
+    y_weight_ = params.exists("y_weight") ? (String)params.getValue("y_weight") : "";
     if (!y_weight_.empty() && checkValidWeight(y_weight_, valid_weights) && !data.empty())
     {
       for (size_t i = 0; i < data.size(); ++i)
@@ -105,9 +106,9 @@ namespace OpenMS
   void TransformationModel::unWeightData(TransformationModel::DataPoints& data, const Param& params)
   {
     // unweight x values 
-    std::vector<std::string> valid_weights;
+    std::vector<String> valid_weights;
     valid_weights = getValidXWeights();
-    x_weight_ = params.exists("x_weight") ? (std::string)params.getValue("x_weight") : "";
+    x_weight_ = params.exists("x_weight") ? (String)params.getValue("x_weight") : "";
     if (!x_weight_.empty() && checkValidWeight(x_weight_, valid_weights) && !data.empty())
     {
       for (size_t i = 0; i < data.size(); ++i)
@@ -117,7 +118,7 @@ namespace OpenMS
     }
     // unweight y values
     valid_weights = getValidYWeights();
-    y_weight_ = params.exists("y_weight") ? (std::string)params.getValue("y_weight") : "";
+    y_weight_ = params.exists("y_weight") ? (String)params.getValue("y_weight") : "";
     if (!y_weight_.empty() && checkValidWeight(y_weight_, valid_weights) && !data.empty())
     {
       for (size_t i = 0; i < data.size(); ++i)
@@ -127,7 +128,7 @@ namespace OpenMS
     }  
   }
 
-  bool TransformationModel::checkValidWeight(const std::string& weight, const std::vector<std::string>& valid_weights) const
+  bool TransformationModel::checkValidWeight(const String& weight, const std::vector<String>& valid_weights) const
   {    
     bool valid = false;
     if (std::find(valid_weights.begin(), valid_weights.end(), weight) != valid_weights.end())
@@ -159,10 +160,10 @@ namespace OpenMS
     return datum_checked;
   }
   
-  std::vector<std::string> TransformationModel::getValidXWeights() const
+  std::vector<String> TransformationModel::getValidXWeights() const
   {
-    //std::vector<std::string> valid_weights{"1/x","1/x2","ln(x)",""}; C++ 11
-    std::vector<std::string> valid_weights;
+    //std::vector<String> valid_weights{"1/x","1/x2","ln(x)",""}; C++ 11
+    std::vector<String> valid_weights;
     valid_weights.push_back("1/x");
     valid_weights.push_back("1/x2");
     valid_weights.push_back("ln(x)");
@@ -170,10 +171,10 @@ namespace OpenMS
     return valid_weights;
   }
   
-  std::vector<std::string> TransformationModel::getValidYWeights() const
+  std::vector<String> TransformationModel::getValidYWeights() const
   {
-    // std::vector<std::string> valid_weights{"1/y","1/y2","ln(y)",""}; C++ 11
-    std::vector<std::string> valid_weights;
+    // std::vector<String> valid_weights{"1/y","1/y2","ln(y)",""}; C++ 11
+    std::vector<String> valid_weights;
     valid_weights.push_back("1/y");
     valid_weights.push_back("1/y2");
     valid_weights.push_back("ln(y)");
@@ -181,7 +182,7 @@ namespace OpenMS
     return valid_weights;
   }
 
-  double TransformationModel::weightDatum(const double& datum, const std::string& weight) const
+  double TransformationModel::weightDatum(const double& datum, const String& weight) const
   { 
     double datum_weighted = 0;   
     if (weight == "ln(x)")
@@ -221,7 +222,7 @@ namespace OpenMS
     return datum_weighted;
   } 
 
-  double TransformationModel::unWeightDatum(const double& datum, const std::string& weight) const
+  double TransformationModel::unWeightDatum(const double& datum, const String& weight) const
   { 
     double datum_weighted = 0;   
     if (weight == "ln(x)")
