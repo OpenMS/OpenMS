@@ -159,7 +159,7 @@ protected:
     registerIntOption_("modifications:variable_max_per_oligo", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate oligo", false, false);
 
     registerTOPPSubsection_("oligo", "Oligonucleotide Options");
-    registerIntOption_("oligo:min_size", "<num>", 6, "Minimum size an oligonucleotide must have after digestion to be considered in the search.", false, true);
+    registerIntOption_("oligo:min_size", "<num>", 5, "Minimum size an oligonucleotide must have after digestion to be considered in the search.", false);
     registerIntOption_("oligo:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
 
     StringList all_enzymes;
@@ -551,8 +551,8 @@ protected:
     progresslogger.startProgress(0, 1, "Filtering spectra...");
     preprocessSpectra_(spectra, search_params.fragment_mass_tolerance, search_params.fragment_tolerance_ppm, true);
     progresslogger.endProgress();
+    LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
 
-    // build multimap of precursor mass to scan index
     // build multimap of precursor mass to scan index
     multimap<double, Size> multimap_mass_2_scan_index;
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
@@ -610,7 +610,7 @@ protected:
     progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring oligo models against spectra...");
 
     // lookup for processed oligos. must be defined outside of omp section and synchronized
-    set<StringView> processed_oligos;
+    set<String> processed_oligos;
 
     // set minimum size of oligo after digestion
     Size min_oligo_length = getIntOption_("oligo:min_size");
@@ -633,10 +633,10 @@ protected:
         progresslogger.setProgress((int)fasta_index * NUMBER_OF_THREADS);
       }
 
-      vector<StringView> current_digest;
-      digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_oligo_length);
+      vector<String> current_digest;
+      digestor.digest(fasta_db[fasta_index].sequence, current_digest, min_oligo_length);
 
-      for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+      for (vector<String>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
         bool already_processed = false;
 #ifdef _OPENMP
@@ -665,24 +665,17 @@ protected:
         ++count_oligos;
         vector<NASequence> all_modified_oligos;
 
-        // no critial section is needed despite ResidueDB not beeing thread sage.
-        // It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
-        {
-          NASequence ns = NASequence::fromString(cit->getString());
-          ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications.begin(),
-                                                               fixed_modifications.end(),
-                                                               ns);
-          ModifiedNASequenceGenerator::applyVariableModifications(variable_modifications.begin(),
-                                                                  variable_modifications.end(),
-                                                                  ns,
-                                                                  max_variable_mods_per_oligo,
-                                                                  all_modified_oligos,
-                                                                  true);
-        }
+        NASequence ns = NASequence::fromString(*cit);
+        ModifiedNASequenceGenerator::applyFixedModifications(
+          fixed_modifications.begin(), fixed_modifications.end(), ns);
+          ModifiedNASequenceGenerator::applyVariableModifications(
+            variable_modifications.begin(), variable_modifications.end(), ns,
+            max_variable_mods_per_oligo, all_modified_oligos, true);
 
         for (SignedSize mod_idx = 0; mod_idx < (SignedSize)all_modified_oligos.size(); ++mod_idx)
         {
           const NASequence& candidate = all_modified_oligos[mod_idx];
+          LOG_DEBUG << "candidate sequence: " << candidate.toString() << endl;
           double candidate_mass = candidate.getMonoWeight();
 
           // determine MS2 precursors that match to the current mass
