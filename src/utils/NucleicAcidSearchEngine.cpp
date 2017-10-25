@@ -417,7 +417,7 @@ protected:
 
 
   void postProcessHits_(const PeakMap& exp,
-                        vector<vector<AnnotatedHit> >& annotated_hits,
+                        vector<vector<AnnotatedHit>>& annotated_hits,
                         IdentificationData& id_data,
                         IdentificationData::InputFileKey file_key,
                         Size top_hits,
@@ -455,13 +455,10 @@ protected:
         IdentificationData::DataQueryKey query_key = id_data.registerDataQuery(query).first;
 
         // create full oligo hit structure from annotated hits
-        vector<PeptideHit> phs;
         for (const AnnotatedHit& hit : annotated_hits[scan_index])
         {
-          PeptideHit ph;
-          ph.setCharge(charge);
-
           // get unmodified string
+          LOG_DEBUG << "Hit sequence: " << hit.sequence.getString() << endl;
           NASequence seq = NASequence::fromString(hit.sequence.getString());
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
@@ -756,8 +753,8 @@ protected:
     }
     progresslogger.endProgress();
 
-    LOG_INFO << "Undigested Oligos: " << count_undigested << std::endl;
-    LOG_INFO << "Oligos: " << count_oligos << std::endl;
+    LOG_INFO << "Undigested nucleic acids: " << count_undigested << std::endl;
+    LOG_INFO << "Oligonucleotides: " << count_oligos << std::endl;
     LOG_INFO << "Processed oligos: " << processed_oligos.size() << std::endl;
 
     IdentificationData id_data;
@@ -774,7 +771,15 @@ protected:
     // TODO: reindex oligo to undigested sequence
 
     // store results
-    MzTabFile().store(out, id_data.exportMzTab());
+    MzTab results = id_data.exportMzTab();
+    LOG_DEBUG << "Nucleic acid rows: "
+              << results.getNucleicAcidSectionRows().size()
+              << "\nOligonucleotide rows: "
+              << results.getOligonucleotideSectionRows().size()
+              << "\nOligo-spectrum match rows: "
+              << results.getOSMSectionRows().size() << endl;
+
+    MzTabFile().store(out, results);
 
     return EXECUTION_OK;
   }
