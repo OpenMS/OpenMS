@@ -130,6 +130,9 @@ p_dia.setValue("dia_byseries_ppm_diff", 50.0);
 p_dia.setValue("dia_nr_isotopes", 4);
 p_dia.setValue("dia_nr_charges", 4);
 
+Param p_dia_large = p_dia;
+p_dia_large.setValue("dia_extraction_window", 0.5);
+
 DIAScoring* ptr = 0;
 DIAScoring* nullPointer = 0;
 
@@ -358,7 +361,7 @@ START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &tra
   transitions.push_back(mock_tr2);
 
   DIAScoring diascoring;
-  diascoring.setParameters(p_dia);
+  diascoring.setParameters(p_dia_large);
   double ppm_score = 0, ppm_score_weighted = 0;
   std::vector<double> normalized_library_intensity;
   normalized_library_intensity.push_back(0.7);
@@ -374,7 +377,7 @@ START_SECTION ( bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, tra
 { 
   OpenSwath::SpectrumPtr sptr = prepareShiftedSpectrum();
   DIAScoring diascoring;
-  diascoring.setParameters(p_dia);
+  diascoring.setParameters(p_dia_large);
   double ppm_score = 0;
 
   TEST_EQUAL(diascoring.dia_ms1_massdiff_score(500.0, sptr, ppm_score), true);

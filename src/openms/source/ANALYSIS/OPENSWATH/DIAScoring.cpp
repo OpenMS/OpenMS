@@ -57,7 +57,7 @@ const double C13C12_MASSDIFF_U = 1.0033548;
 namespace OpenMS
 {
 
-  void adjustExtractionWindow(double& right, double& left, double dia_extract_window_, bool dia_extraction_ppm_)
+  void adjustExtractionWindow(double& right, double& left, const double& dia_extract_window_, const bool& dia_extraction_ppm_)
   {
     if (dia_extraction_ppm_)
     {
