@@ -147,10 +147,10 @@ namespace OpenMS
     double intensity_left = 0.0;
     double rt_apex = 0.0;
     double intensity_right = 0.0;
-    for (MSChromatogram::const_iterator it = chromatogram.begin() + 1; it != chromatogram.end(); it++)
+    for (MSChromatogram::const_iterator it = chromatogram.begin() + 1; it != chromatogram.end(); ++it)
     {
       MSChromatogram::const_iterator it_prev = it;
-      it_prev--; //previous point
+      --it_prev; //previous point
 
       if (it->getMZ() >= best_left && it_prev->getMZ() < best_left)
       {
