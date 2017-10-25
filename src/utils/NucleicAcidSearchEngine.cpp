@@ -125,8 +125,8 @@ protected:
     registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
     setValidStrings_("precursor:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
-    registerIntOption_("precursor:min_charge", "<num>", 2, "Minimum precursor charge to be considered.", false, false);
-    registerIntOption_("precursor:max_charge", "<num>", 5, "Maximum precursor charge to be considered.", false, false);
+    registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered.", false, false);
+    registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered.", false, false);
 
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1};
@@ -510,9 +510,26 @@ protected:
     search_params.database = in_db;
     Int min_charge = getIntOption_("precursor:min_charge");
     Int max_charge = getIntOption_("precursor:max_charge");
-    // avoid possible confusion with negative charges:
-    if (max_charge < min_charge) swap(min_charge, max_charge);
-    for (Int charge = min_charge; charge <= max_charge; ++charge)
+    // @TODO: allow zero to mean "any charge state in the data"?
+    if ((min_charge == 0) || (max_charge == 0))
+    {
+      LOG_ERROR << "Error: invalid charge state 0" << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    // charges can be positive or negative, depending on data acquisition mode:
+    if (((min_charge < 0) && (max_charge > 0)) ||
+        ((min_charge > 0) && (max_charge < 0)))
+    {
+      LOG_ERROR << "Error: mixing positive and negative charges is not allowed"
+                << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+    // min./max. are based on absolute value:
+    if (abs(max_charge) < abs(min_charge)) swap(min_charge, max_charge);
+    bool negative_mode = (max_charge < 0);
+    Int step = negative_mode ? -1 : 1;
+    for (Int charge = min_charge; abs(charge) <= abs(max_charge);
+         charge += step)
     {
       search_params.charges.insert(charge);
     }
@@ -564,8 +581,14 @@ protected:
       if (precursor.size() == 1 && s_it->size() >= search_params.min_length)
       {
         int precursor_charge = precursor[0].getCharge();
-
-        if (precursor_charge < *search_params.charges.begin() || precursor_charge > *(--search_params.charges.end()))
+        // the charge value in mzML seems to be always positive, so compare by
+        // absolute value in negative mode:
+        if ((negative_mode &&
+             ((precursor_charge > abs(*search_params.charges.begin())) ||
+              (precursor_charge < abs(*(--search_params.charges.end()))))) ||
+            (!negative_mode &&
+             ((precursor_charge < *search_params.charges.begin()) ||
+              (precursor_charge > *(--search_params.charges.end())))))
         {
           continue;
         }
@@ -575,7 +598,15 @@ protected:
         // calculate precursor mass (optionally corrected for misassignment) and map it to MS scan index
         for (int isotope_number : precursor_isotopes)
         {
-          double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
+          double precursor_mass = precursor_mz * precursor_charge;
+          if (negative_mode)
+          {
+            precursor_mass += Constants::PROTON_MASS_U * precursor_charge;
+          }
+          else
+          {
+            precursor_mass -= Constants::PROTON_MASS_U * precursor_charge;
+          }
 
           // correct for monoisotopic misassignments of the precursor annotation
           if (isotope_number != 0) { precursor_mass -= isotope_number * Constants::C13C12_MASSDIFF_U; }
@@ -668,15 +699,16 @@ protected:
         NASequence ns = NASequence::fromString(*cit);
         ModifiedNASequenceGenerator::applyFixedModifications(
           fixed_modifications.begin(), fixed_modifications.end(), ns);
-          ModifiedNASequenceGenerator::applyVariableModifications(
-            variable_modifications.begin(), variable_modifications.end(), ns,
-            max_variable_mods_per_oligo, all_modified_oligos, true);
+        ModifiedNASequenceGenerator::applyVariableModifications(
+          variable_modifications.begin(), variable_modifications.end(), ns,
+          max_variable_mods_per_oligo, all_modified_oligos, true);
 
         for (SignedSize mod_idx = 0; mod_idx < (SignedSize)all_modified_oligos.size(); ++mod_idx)
         {
           const NASequence& candidate = all_modified_oligos[mod_idx];
-          LOG_DEBUG << "candidate sequence: " << candidate.toString() << endl;
           double candidate_mass = candidate.getMonoWeight();
+          LOG_DEBUG << "candidate: " << candidate.toString() << " ("
+                    << float(candidate_mass) << " Da)" << endl;
 
           // determine MS2 precursors that match to the current mass
           multimap<double, Size>::const_iterator low_it;
@@ -709,6 +741,9 @@ protected:
 
           for (; low_it != up_it; ++low_it)
           {
+            LOG_DEBUG << "matching precursor mass: " << float(low_it->first)
+                      << endl;
+
             const Size& scan_index = low_it->second;
             const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
