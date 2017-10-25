@@ -477,8 +477,8 @@ namespace OpenMS
       if (id_meta.molecule_type == MT_PROTEIN)
       {
         const AASequence& seq = identified_peptides.left.at(molecule_key);
-        double calc_mz = seq.getMonoWeight(Residue::Full, match.charge);
-        exportQueryMatchToMzTab_(seq.toString(), match, query_key, calc_mz,
+        double calc_mass = seq.getMonoWeight(Residue::Full, match.charge);
+        exportQueryMatchToMzTab_(seq.toString(), match, query_key, calc_mass,
                                  psms, psm_scores, file_map);
         psms.back().PSM_ID.set(counter);
         ++counter;
@@ -486,9 +486,9 @@ namespace OpenMS
       else if (id_meta.molecule_type == MT_RNA)
       {
         const NASequence& seq = identified_oligos.left.at(molecule_key);
-        double calc_mz = seq.getMonoWeight(NASequence::Full, match.charge);
+        double calc_mass = seq.getMonoWeight(NASequence::Full, match.charge);
         exportQueryMatchToMzTab_(seq.toString(), match, query_key,
-                                 calc_mz, osms, osm_scores, file_map);
+                                 calc_mass, osms, osm_scores, file_map);
       }
     }
 

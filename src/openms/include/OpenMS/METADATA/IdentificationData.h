@@ -749,7 +749,7 @@ namespace OpenMS
     template <typename MzTabSectionRow>
     void exportQueryMatchToMzTab_(const String& sequence,
                                   const MoleculeQueryMatch& match,
-                                  DataQueryKey query_key, double calc_mz,
+                                  DataQueryKey query_key, double calc_mass,
                                   std::vector<MzTabSectionRow>& output,
                                   std::map<ScoreTypeKey, Size>& score_map,
                                   std::map<InputFileKey, Size>& file_map)
@@ -766,7 +766,7 @@ namespace OpenMS
       xsm.retention_time.set(rts);
       xsm.charge.set(match.charge);
       xsm.exp_mass_to_charge.set(query.mz);
-      xsm.calc_mass_to_charge.set(calc_mz);
+      xsm.calc_mass_to_charge.set(calc_mass / match.charge);
       xsm.spectra_ref.setMSFile(file_map[query.input_file_key]);
       xsm.spectra_ref.setSpecRef(query.data_id);
       // don't repeat data from the peptide section (e.g. accessions)
