@@ -4,6 +4,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from OpenSwathDataStructures cimport *
 from LightTargetedExperiment cimport *
 from AASequence cimport *
+from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>" namespace "OpenMS":
 
