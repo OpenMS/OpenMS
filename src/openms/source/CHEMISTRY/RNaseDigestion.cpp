@@ -122,7 +122,8 @@ namespace OpenMS
         fragment += three_prime_gain;
       }
 
-      if ((actual_length >= min_length) && (actual_length <= max_length))
+      if (((min_length == 0) || (actual_length >= min_length)) &&
+          ((max_length == 0) || (actual_length <= max_length)))
       {
         output.push_back(fragment);
       }

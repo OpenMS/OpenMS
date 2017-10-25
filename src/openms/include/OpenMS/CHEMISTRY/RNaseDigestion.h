@@ -61,7 +61,7 @@ namespace OpenMS
        1. The original RNA may have terminal phosphates ("p"), which we want to ignore, but not remove.
        2. The enzyme may add modifications (e.g. "p") on the 5' or 3' ends of cleavage products, but NOT on the original 5' or 3' ends of the RNA.
     */
-    void digest(const String& rna, std::vector<String>& output, Size min_length, Size max_length) const;
+    void digest(const String& rna, std::vector<String>& output, Size min_length = 0, Size max_length = 0) const;
   };
 
 } // namespace OpenMS
