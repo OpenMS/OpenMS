@@ -213,15 +213,13 @@ START_SECTION((size_t size() const ))
   TEST_EQUAL(seq.size(), 0);
   seq = NASequence::fromString("UGG");
   TEST_EQUAL(seq.size(), 3);
-  /* TODO reenable
   // don't count terminal phosphate in sequence length:
-  seq.setSequence("pUGG");
+  seq = NASequence::fromString("pUGG");
   TEST_EQUAL(seq.size(), 3);
-  seq.setSequence("UGGp");
+  seq = NASequence::fromString("UGGp");
   TEST_EQUAL(seq.size(), 3);
-  seq.setSequence("pUGGp");
+  seq = NASequence::fromString("pUGGp");
   TEST_EQUAL(seq.size(), 3);
-   */
 }
 END_SECTION
 
@@ -247,7 +245,7 @@ START_SECTION((void setFivePrimeMod(const RibonucleotideChainEnd *r)))
   aaa.setFivePrimeMod(db->getRibonucleotide("(pN)"));  // 5' phosphate
   TEST_EQUAL(aaa.hasFivePrimeMod(), true);
   TEST_EQUAL(aaa.getFivePrimeMod()->getCode(), "(pN)");
-  TEST_STRING_EQUAL(aaa.toString(), "(pN)AAA");
+  TEST_STRING_EQUAL(aaa.toString(), "[(pN)]AAA");
 }
 END_SECTION
 
@@ -265,7 +263,7 @@ START_SECTION((void setThreePrimeMod(const RibonucleotideChainEnd* r)))
   aaa.setThreePrimeMod(db->getRibonucleotide("(pN)"));
   TEST_EQUAL(aaa.hasThreePrimeMod(), true);
   TEST_EQUAL(aaa.getThreePrimeMod()->getCode(), "(pN)");
-  TEST_STRING_EQUAL(aaa.toString(), "AAA(pN)");
+  TEST_STRING_EQUAL(aaa.toString(), "AAA[(pN)]");
 }
 END_SECTION
 
