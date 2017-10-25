@@ -7,7 +7,10 @@ from AASequence cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>" namespace "OpenMS":
 
-    cdef cppclass DIAScoring:
+    cdef cppclass DIAScoring(DefaultParamHandler):
+        # wrap-inherits:
+        #    DefaultParamHandler
+
         DIAScoring() nogil except +
         # DIAScoring(DIAScoring) nogil except + #private
 
