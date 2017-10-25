@@ -185,6 +185,14 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
+# Enable fingerid_test
+#------------------------------------------------------------------------------
+option(ENABLE_FINGERID_TEST "Enable test for fingerid (SiriusAdapter)" OFF)
+if(ENABLE_FINGERID_TEST)
+   set(enable_fingerid = true)
+endif() 
+
+#------------------------------------------------------------------------------
 # Enable Coverage
 #------------------------------------------------------------------------------
 option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage testing with gcov/lcov. Requires the Debug build type,
