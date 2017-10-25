@@ -61,7 +61,14 @@ namespace OpenMS
     store_peptide_uri_(false),
     store_psm_uri_(false),
     store_smallmolecule_uri_(false),
-    store_protein_goterms_(false)
+    store_protein_goterms_(false),
+    store_nucleic_acid_reliability_(false),
+    store_oligonucleotide_reliability_(false),
+    store_osm_reliability_(false),
+    store_nucleic_acid_uri_(false),
+    store_oligonucleotide_uri_(false),
+    store_osm_uri_(false),
+    store_nucleic_acid_goterms_(false)
   {
   }
 
