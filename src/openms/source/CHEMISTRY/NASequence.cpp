@@ -356,16 +356,44 @@ namespace OpenMS
   std::string NASequence::toString() const
   {
     std::string s;
-    if (five_prime_) s += five_prime_->getCode();
+    if (five_prime_)
+    {
+      const String& code = five_prime_->getCode();
+      if (code == "5'-p")
+      {
+        s = "p";
+      }
+      else
+      {
+        s = "[" + code + "]";
+      }
+    }
 
     for (const auto& r : seq_)
     {
       const String& code = r->getCode();
-      const String& origin = r->getOrigin();
-      s += (code ==  origin ? code : String('[') + code + ']'); // add brackets around non-standard ribos
+      if (code.size() == 1)
+      {
+        s += code;
+      }
+      else
+      {
+        s += "[" + code + "]"; // add brackets around non-standard ribos
+      }
     }
 
-    if (three_prime_) s += three_prime_->getCode();
+    if (three_prime_)
+    {
+      const String& code = three_prime_->getCode();
+      if (code == "3'-p")
+      {
+        s += "p";
+      }
+      else
+      {
+        s += "[" + code + "]";
+      }
+    }
     return s;
   }
 
