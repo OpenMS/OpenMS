@@ -290,12 +290,17 @@ START_SECTION((double getMonoWeight(NASequence::NASFragmentType type = NASequenc
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::DIon, -1), 1034.133);
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::AminusB, -2), 802.117);
 
+  // these masses were checked against external tools:
   seq = NASequence::fromString("pAAUCCAUGp");
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::Full, 0), 2652.312);
   seq = NASequence::fromString("ACCAAAGp");
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::Full, 0), 2289.348);
   seq = NASequence::fromString("AUUCACCC");
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::Full, 0), 2428.362);
+
+  // with charge (negative!):
+  seq = NASequence::fromString("AAU[m5C]Gp");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::Full, -2), 1644.228);
 }
 END_SECTION
 
