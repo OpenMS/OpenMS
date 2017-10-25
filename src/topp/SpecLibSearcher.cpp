@@ -366,7 +366,7 @@ protected:
       search_parameters.mass_type = mass_type;
       search_parameters.fixed_modifications = getStringList_("modifications:fixed");
       search_parameters.variable_modifications = getStringList_("modifications:variable");
-      search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
+      // search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
       search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
       search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
 //      search_parameters.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
@@ -432,7 +432,7 @@ protected:
         const double& query_rt = query[j].getRT();
         const int& query_charge = query[j].getPrecursors()[0].getCharge();
         
-        if (query_charge < pc_min_charge || query_charge > pc_max_charge) { continue; } 
+        if (query_charge > 0 && (query_charge < pc_min_charge || query_charge > pc_max_charge)) { continue; } 
 
         for (auto const & iso : isotopes)
         {
@@ -483,7 +483,7 @@ protected:
               const int& lib_charge = hit.getCharge();  
 
               // check if charge state between library and experimental spectrum match
-              if (lib_charge != query_charge) { continue; }              
+              if (query_charge > 0 && lib_charge != query_charge) { continue; }
 
               // Special treatment for SpectraST score as it computes a score based on the whole library
               if (compare_function == "SpectraSTSimilarityScore")
