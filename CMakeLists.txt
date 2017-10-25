@@ -188,9 +188,6 @@ endif()
 # Enable fingerid_test
 #------------------------------------------------------------------------------
 option(ENABLE_FINGERID_TEST "Enable test for fingerid (SiriusAdapter)" OFF)
-if(ENABLE_FINGERID_TEST)
-   set(enable_fingerid = true)
-endif() 
 
 #------------------------------------------------------------------------------
 # Enable Coverage
