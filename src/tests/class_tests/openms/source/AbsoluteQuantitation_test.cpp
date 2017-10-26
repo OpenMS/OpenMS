@@ -222,6 +222,15 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   TEST_STRING_EQUAL(unknown_feature_map[2].getSubordinates()[0].getMetaValue("concentration_units"),"uM");
 END_SECTION
 
+START_SECTION((void optimizeCalibrationCurveBruteForce(
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+  String & feature_name,
+  String & transformation_model,
+  Param & transformation_model_params)))
+
+  //TODO
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
