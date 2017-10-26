@@ -283,7 +283,7 @@ protected:
 
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = getIntList_("precursor:isotopes");
-    
+   
 //    float fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
 //    bool fragment_mass_tolerance_unit_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
 
@@ -427,20 +427,29 @@ protected:
           filtered_query.sortByPosition();
         }
 
-        bool peak_ok = filtered_query.size() >= min_peaks ? true : false;
+        if (filtered_query.size() < min_peaks) { continue; }
 
         const double& query_rt = query[j].getRT();
         const int& query_charge = query[j].getPrecursors()[0].getCharge();
+        const double query_mz = query[j].getPrecursors()[0].getMZ();
         
         if (query_charge > 0 && (query_charge < pc_min_charge || query_charge > pc_max_charge)) { continue; } 
 
         for (auto const & iso : isotopes)
         {
-          // correct for isotopic misassignments
-          double query_mz = query[j].getPrecursors()[0].getMZ() - iso * Constants::C13C12_MASSDIFF_U;
+          // isotopic misassignment corrected query
+          const double ic_query_mz = query_mz - iso * Constants::C13C12_MASSDIFF_U;
 
-          if (peak_ok)
-          {
+          // if tolerance unit is ppm convert to m/z
+          const double precursor_mass_tolerance_mz = precursor_mass_tolerance_unit_ppm ? ic_query_mz * precursor_mass_tolerance * 1e-6 : precursor_mass_tolerance;
+
+          // skip matching of isotopic misassignments if charge not annotated
+          if (iso != 0 && query_charge == 0) { continue; }
+
+          // skip matching of isotopic misassignments if search windows around isotopic peaks would overlap (resulting in more than one report of the same hit)
+          const double isotopic_peak_distance_mz = Constants::C13C12_MASSDIFF_U / query_charge;
+          if (iso != 0 && precursor_mass_tolerance_mz >= 0.5 * isotopic_peak_distance_mz) { continue; }
+
           /* TODO: remove old code for charge estimation?
           bool charge_one = false;
           Int percent = (Int) Math::round((query[j].size() / 100.0) * 3.0);
@@ -459,58 +468,49 @@ protected:
           */
 
 
-            // determine MS2 precursors that match to the current peptide mass
-            MapLibraryPrecursorToLibrarySpectrum::const_iterator low_it, up_it;
-          
-            if (precursor_mass_tolerance_unit_ppm) // ppm
-            {
-              low_it = mslib.lower_bound(query_mz - 0.5 * query_mz * precursor_mass_tolerance * 1e-6);
-              up_it = mslib.upper_bound(query_mz + 0.5 * query_mz * precursor_mass_tolerance * 1e-6);
-            }
-            else // Dalton
-            {
-              low_it = mslib.lower_bound(query_mz - 0.5 * precursor_mass_tolerance);
-              up_it = mslib.upper_bound(query_mz + 0.5 * precursor_mass_tolerance);
-            }
-          
-            // no matching precursor in data
-            if (low_it == up_it) { continue; }
-         
-            for (; low_it != up_it; ++low_it)
-            {
-              const PeakSpectrum& lib_spec = low_it->second;;
-              PeptideHit hit = lib_spec.getPeptideIdentifications()[0].getHits()[0];
-              const int& lib_charge = hit.getCharge();  
+          // determine MS2 precursors that match to the current peptide mass
+          MapLibraryPrecursorToLibrarySpectrum::const_iterator low_it, up_it;
+        
+          low_it = mslib.lower_bound(ic_query_mz - 0.5 * precursor_mass_tolerance_mz);
+          up_it = mslib.upper_bound(ic_query_mz + 0.5 * precursor_mass_tolerance_mz);
+        
+          // no matching precursor in data
+          if (low_it == up_it) { continue; }
+       
+          for (; low_it != up_it; ++low_it)
+          {
+            const PeakSpectrum& lib_spec = low_it->second;;
+            PeptideHit hit = lib_spec.getPeptideIdentifications()[0].getHits()[0];
+            const int& lib_charge = hit.getCharge();  
 
-              // check if charge state between library and experimental spectrum match
-              if (query_charge > 0 && lib_charge != query_charge) { continue; }
+            // check if charge state between library and experimental spectrum match
+            if (query_charge > 0 && lib_charge != query_charge) { continue; }
 
-              // Special treatment for SpectraST score as it computes a score based on the whole library
-              if (compare_function == "SpectraSTSimilarityScore")
-              {
-                SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
-                BinnedSpectrum quer_bin_spec = sp->transform(filtered_query);
-                BinnedSpectrum lib_bin_spec = sp->transform(lib_spec);
-                score = (*sp)(filtered_query, lib_spec); //(*sp)(quer_bin,librar_bin);
-                double dot_bias = sp->dot_bias(quer_bin_spec, lib_bin_spec, score);
-                hit.setMetaValue("DOTBIAS", dot_bias);
-              }
-              else
-              {
-                score = (*comparor)(filtered_query, lib_spec);
-              }
-
-              DataValue RT(lib_spec.getRT());
-              DataValue MZ(lib_spec.getPrecursors()[0].getMZ());
-              hit.setMetaValue("lib:RT", RT);
-              hit.setMetaValue("lib:MZ", MZ);
-              hit.setMetaValue("isotope_error", iso);
-              hit.setScore(score);
-              PeptideEvidence pe;
-              pe.setProteinAccession(pr_hit.getAccession());
-              hit.addPeptideEvidence(pe);
-              pid.insertHit(hit);
+            // Special treatment for SpectraST score as it computes a score based on the whole library
+            if (compare_function == "SpectraSTSimilarityScore")
+            {
+              SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
+              BinnedSpectrum quer_bin_spec = sp->transform(filtered_query);
+              BinnedSpectrum lib_bin_spec = sp->transform(lib_spec);
+              score = (*sp)(filtered_query, lib_spec); //(*sp)(quer_bin,librar_bin);
+              double dot_bias = sp->dot_bias(quer_bin_spec, lib_bin_spec, score);
+              hit.setMetaValue("DOTBIAS", dot_bias);
             }
+            else
+            {
+              score = (*comparor)(filtered_query, lib_spec);
+            }
+
+            DataValue RT(lib_spec.getRT());
+            DataValue MZ(lib_spec.getPrecursors()[0].getMZ());
+            hit.setMetaValue("lib:RT", RT);
+            hit.setMetaValue("lib:MZ", MZ);
+            hit.setMetaValue("isotope_error", iso);
+            hit.setScore(score);
+            PeptideEvidence pe;
+            pe.setProteinAccession(pr_hit.getAccession());
+            hit.addPeptideEvidence(pe);
+            pid.insertHit(hit);
           }
         }
 
