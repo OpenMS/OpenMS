@@ -110,7 +110,7 @@ namespace OpenMS
     }
 
     // Smooth the chromatogram
-    MSChromatogram smoothed_chrom = chromatogram;
+    smoothed_chrom = chromatogram;
     if (!use_gauss_)
     {
       SavitzkyGolayFilter sgolay;

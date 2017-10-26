@@ -264,11 +264,12 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 }
 END_SECTION
 
-START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group, std::vector<SpectrumT>& picked_chroms, int& chr_idx, int& peak_idx)))
+START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group, std::vector<SpectrumT>& picked_chroms, std::vector<SpectrumT>& smoothed_chroms, int& chr_idx, int& peak_idx)))
 {
   MRMTransitionGroupType transition_group;
   setup_transition_group(transition_group);
   std::vector< RichPeakChromatogram > picked_chroms;
+  std::vector< RichPeakChromatogram > smoothed_chroms;
 
   double left_start = 1481.840;
   double right_end = 1512.290;
@@ -304,7 +305,7 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
   picker_param.setValue("PeakPickerMRM::peak_width", 40.0); // old parameters
   picker.setParameters(picker_param);
 
-  MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, chr_idx, peak_idx);
+  MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
   TEST_REAL_SIMILAR(mrmfeature.getRT(), 1490.0)
 
   // test the number of hull points (should be equal)
