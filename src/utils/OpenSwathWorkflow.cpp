@@ -399,7 +399,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,sqMass"));
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv','pqp')");
     setValidFormats_("tr", ListUtils::create<String>("traML,tsv,pqp"));
@@ -586,6 +586,10 @@ protected:
       {
         swath_maps = swath_file.loadMzXML(file_list[0], tmp, exp_meta, readoptions);
       }
+      else if (in_file_type == FileTypes::SQMASS || file_list[0].suffix(6).toLower() == "sqmass")
+      {
+        swath_maps = swath_file.loadSqMass(file_list[0], exp_meta);
+      }
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -619,7 +623,7 @@ protected:
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
     std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
     const Param& feature_finder_param, const ChromExtractParams& cp_irt,
-    const Param& irt_detection_param, const String & mz_correction_function, Size debug_level, bool sonar)
+    const Param& irt_detection_param, const String & mz_correction_function, Size debug_level, bool sonar, bool load_into_memory)
   {
     TransformationDescription trafo_rtnorm;
     if (!trafo_in.empty())
@@ -646,7 +650,7 @@ protected:
       OpenSwathRetentionTimeNormalization wf;
       wf.setLogType(log_type_);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar);
+          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar, load_into_memory);
     }
     return trafo_rtnorm;
   }
@@ -716,6 +720,7 @@ protected:
     ///////////////////////////////////
 
     bool load_into_memory = false;
+    bool is_sqmass_input  = (file_list[0].suffix(6).toLower() == "sqmass");
     if (readoptions == "cacheWorkingInMemory")
     {
       readoptions = "cache";
@@ -725,6 +730,11 @@ protected:
     {
       readoptions = "normal";
       load_into_memory = true;
+    }
+
+    if (is_sqmass_input && !load_into_memory)
+    {
+      std::cout << "When using sqMass input files, it is highly recommended to use the workingInMemory option as otherwise data access will be very slow." << std::endl;
     }
 
     if (trafo_in.empty() && irt_tr_file.empty())
@@ -911,7 +921,7 @@ protected:
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in,
         irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
         cp_irt, irt_detection_param, mz_correction_function, debug_level,
-        sonar);
+        sonar, load_into_memory);
 
     ///////////////////////////////////
     // Set up chromatogram output
@@ -922,7 +932,9 @@ protected:
     {
       if (out_chrom.hasSuffix(".sqMass"))
       {
-        chromatogramConsumer = new MSDataSqlConsumer(out_chrom);
+        bool full_meta = false; // can lead to very large files in memory
+        bool lossy_compression = true;
+        chromatogramConsumer = new MSDataSqlConsumer(out_chrom, 500, full_meta, lossy_compression);
       }
       else
       {
