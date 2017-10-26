@@ -82,6 +82,16 @@ public:
       This function will return a picked chromatogram
     */
     void pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom);
+    
+
+    /**
+      @brief Finds peaks in a single chromatogram and annotates left/right borders
+
+      It uses a modified algorithm of the PeakPickerHiRes
+
+      This function will return a picked chromatogram and a smoothed chromatogram
+    */
+    void pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom, MSChromatogram& smoothed_chrom);
 
 protected:
 

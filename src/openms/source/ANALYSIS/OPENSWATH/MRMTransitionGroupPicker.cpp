@@ -50,7 +50,7 @@ namespace OpenMS
     defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,smoothed,original_average,original_exact"));
+    defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,smoothed_average,smoothed_exact,original_average,original_exact"));
 
     defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if theof variation within the picked peaks is too large.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("recalculate_peaks", ListUtils::create<String>("true,false"));

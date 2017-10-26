@@ -116,6 +116,7 @@ public:
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
       std::vector<MSChromatogram > picked_chroms_;
+      std::vector<MSChromatogram > smoothed_chroms_;
       PeakPickerMRM picker;
       picker.setParameters(param_.copy("PeakPickerMRM:", true));
 
@@ -138,10 +139,11 @@ public:
           chromatogram.sortByPosition();
         }
 
-        MSChromatogram picked_chrom;
-        picker.pickChromatogram(chromatogram, picked_chrom);
+        MSChromatogram picked_chrom, smoothed_chrom;
+        picker.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
         picked_chrom.sortByIntensity(); // we could do without that
         picked_chroms_.push_back(picked_chrom);
+        smoothed_chroms_.push_back(smoothed_chrom);
       }
 
       // Pick precursor chromatograms
@@ -153,9 +155,10 @@ public:
           SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
           String native_id = chromatogram.getNativeID();
 
-          picker.pickChromatogram(chromatogram, picked_chrom);
+          picker.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
           picked_chrom.sortByIntensity(); // we could do without that
           picked_chroms_.push_back(picked_chrom);
+          smoothed_chroms_.push_back(smoothed_chrom);
         }
       }
 
@@ -315,21 +318,18 @@ public:
         double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
         {
-          if (background_subtraction_ == "smoothed")
+          if ((background_subtraction_ == "smoothed_average" || background_subtraction_ == "smoothed_average") && smoothed_chroms_.size() <= k)
           {
-            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-            /*
-             * Currently we do not have access to the smoothed chromatogram any more
-            if (smoothed_chroms_.size() <= k)
-            {
-              std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
-              background =  0;
-            }
-            else
-            {
-              background = calculateBgEstimation_(smoothed_chroms_[k], best_left, best_right);
-            }
-            */
+            std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
+            background =  0;
+          }
+          else if (background_subtraction_ == "smoothed_average")
+          {
+            calculateBgEstimationAverage_(smoothed_chroms_[k], best_left, best_right, background, avg_noise_level);
+          }
+          else if (background_subtraction_ == "smoothed_exact")
+          {
+            calculateBgEstimationExact_(smoothed_chroms_[k], best_left, best_right, peak_apex_int, background, avg_noise_level);
           }
           else if (background_subtraction_ == "original_average")
           {
