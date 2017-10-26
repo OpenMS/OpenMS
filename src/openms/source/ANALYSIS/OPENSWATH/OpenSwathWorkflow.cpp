@@ -465,13 +465,6 @@ namespace OpenMS
     {
       if (!swath_maps[i].ms1) // skip MS1
       {
-        OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
-
-        if (load_into_memory)
-        {
-          // This creates an InMemory object that keeps all data in memory
-          current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
-        }
 
         // Step 1: select which transitions to extract (proceed in batches)
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
@@ -479,6 +472,13 @@ namespace OpenMS
             cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
         if (transition_exp_used_all.getTransitions().size() > 0) // skip if no transitions found
         {
+
+          OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
+          if (load_into_memory)
+          {
+            // This creates an InMemory object that keeps all data in memory
+            current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
+          }
 
           int batch_size;
           if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getCompounds().size())
