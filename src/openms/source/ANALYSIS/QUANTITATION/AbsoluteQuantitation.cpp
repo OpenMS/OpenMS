@@ -396,7 +396,7 @@ namespace OpenMS
     }
 
     // calculate the R2 
-    const double r_value = StatisticFunctions::pearsonCorrelationCoefficient(
+    const double r_value = Math::pearsonCorrelationCoefficient(
       concentration_ratios.begin(), concentration_ratios.begin() + concentration_ratios.size(),
       feature_amounts_ratios.begin(), feature_amounts_ratios.begin() + feature_amounts_ratios.size()
     );
