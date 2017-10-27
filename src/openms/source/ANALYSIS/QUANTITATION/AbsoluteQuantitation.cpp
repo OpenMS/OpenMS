@@ -294,7 +294,7 @@ namespace OpenMS
     Param & optimized_params)
   {
     
-    double biases;
+    std::vector<double> biases;
     double r2;
     bool bias_check;
 
@@ -305,7 +305,6 @@ namespace OpenMS
     size_t max_outliers = 1;  
 
     size_t n_loops;
-    std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub;
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_start_it;
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_end_it;
 
@@ -325,7 +324,7 @@ namespace OpenMS
           // extract out components
           component_start_it = component_concentrations.begin() + component_it;
           component_end_it = component_concentrations.begin() + component_it + n_points;
-          component_concentrations_sub(component_start_it, component_end_it);
+          const std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub(component_start_it, component_end_it);
 
           // fit the model
           optimized_params = fitCalibration(component_concentrations_sub,
@@ -335,12 +334,12 @@ namespace OpenMS
 
           // calculate the R2 and bias
           calculateBiasAndR2(
-            const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+            component_concentrations,
             feature_name,
             transformation_model,
             transformation_model_params,
-            std::vector<double> biases,
-            double r2);
+            biases,
+            r2);
           
           // check R2 and biases
           bias_check = true;
