@@ -291,7 +291,7 @@ START_SECTION((void calculateBiasAndR2(
   std::vector<double> biases;
   double r2;
 
-  calculateBiasAndR2(component_concentrations,
+  absquant.calculateBiasAndR2(component_concentrations,
     feature_name, transformation_model, param,
     biases, r2);
   
