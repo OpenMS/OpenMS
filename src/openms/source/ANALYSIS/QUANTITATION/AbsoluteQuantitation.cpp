@@ -295,7 +295,7 @@ namespace OpenMS
   {
     
     std::vector<double> biases;
-    double r2;
+    double r2 = 0.0;
     bool bias_check;
 
     //TODO use internal params
@@ -371,8 +371,8 @@ namespace OpenMS
     
     // extract out the calibration points
     std::vector<double> concentration_ratios, feature_amounts_ratios;
-    double calculated_concentration_ratio, actual_concentration_ratio, feature_amount_ratio, bias, r_value;
-    for (size_t i = 0; i < component_concentrations.size(); i++){
+    double calculated_concentration_ratio, actual_concentration_ratio, feature_amount_ratio, bias;
+    for (size_t i = 0; i < component_concentrations.size(); ++i){
 
       // calculate the actual and calculated concentration ratios
       calculated_concentration_ratio = applyCalibration(component_concentrations[i].feature,
@@ -397,11 +397,13 @@ namespace OpenMS
       std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << " ." << std::endl;
       std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << " ." << std::endl;
       std::cout << "bias = " << bias << " ." << std::endl;
+      std::cout << "feature_amount = " << (String)component_concentrations[i].feature.getMetaValue(feature_name) << " ." << std::endl;
+      std::cout << "IS_feature_amount = " << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << " ." << std::endl;
       std::cout << "feature_amount_ratio = " << bias << " ." << std::endl;
     }
 
     // calculate the R2 (R2 = Pearson_R^2)
-    r_value = Math::pearsonCorrelationCoefficient(
+    double r_value = Math::pearsonCorrelationCoefficient(
       concentration_ratios.begin(), concentration_ratios.begin() + concentration_ratios.size(),
       feature_amounts_ratios.begin(), feature_amounts_ratios.begin() + feature_amounts_ratios.size()
     ); 
