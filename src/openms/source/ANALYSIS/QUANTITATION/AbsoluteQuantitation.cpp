@@ -296,14 +296,13 @@ namespace OpenMS
     
     double biases;
     double r2;
-    int n_points;
     bool bias_check;
 
     //TODO use internal params
-    int min_points = 4;
+    size_t min_points = 4;
     double max_bias = 30.0;
     double min_r2 = 0.9; 
-    int max_outliers = 1;  
+    size_t max_outliers = 1;  
 
     size_t n_loops;
     std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub;
