@@ -167,8 +167,8 @@ public:
     void AbsoluteQuantitation::calculateBiasAndR2(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       const String & feature_name,
-      String & transformation_model,
-      Param & transformation_model_params,,
+      const String & transformation_model,
+      const Param & transformation_model_params,
       std::vector<double> biases,
       double r2)
       
@@ -180,6 +180,7 @@ public:
       @param feature_name name of the feature to calculate the absolute concentration.
       @param transformation_model model used to fit the calibration points
       @param transformation_model_params parameters used by the transformation_model
+      @param optimized_params optimized parameters
 
       @exception Exception::UnableToFit
     */ 
@@ -187,7 +188,8 @@ public:
       std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       String & feature_name,
       String & transformation_model,
-      Param & transformation_model_params);
+      Param & transformation_model_params,
+      Param & optimized_params);
         
     /**
       @brief This function optimizes the parameters of the calibration for a 
