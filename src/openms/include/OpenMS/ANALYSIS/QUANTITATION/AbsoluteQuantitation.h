@@ -183,7 +183,7 @@ public:
     @exception None
     */ 
     bool AbsoluteQuantitation::sortByConcentration(const AbsoluteQuantitationStandards::featureConcentration &lhs, 
-      const AbsoluteQuantitationStandards::featureConcentration &rhs)
+      const AbsoluteQuantitationStandards::featureConcentration &rhs);
       
     /**
       @brief This function optimizes the parameters of the calibration for a 
