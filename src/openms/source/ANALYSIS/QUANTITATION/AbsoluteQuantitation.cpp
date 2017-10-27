@@ -370,35 +370,36 @@ namespace OpenMS
   {
     
     // extract out the calibration points
-    const std::vector<double> concentration_ratios, feature_amounts_ratios;
+    std::vector<double> concentration_ratios, feature_amounts_ratios;
+    double calculated_concentration_ratio, actual_concentration_ratio, feature_amount_ratio, bias, r_value;
     for (size_t i = 0; i < component_concentrations.size(); i++){
 
       // calculate the actual and calculated concentration ratios
-      const double calculated_concentration_ratio = applyCalibration(component_concentrations[i].feature,
+      calculated_concentration_ratio = applyCalibration(component_concentrations[i].feature,
         component_concentrations[i].IS_feature,
         feature_name,
         transformation_model,
         transformation_model_params);
 
-      const double actual_concentration_ratio = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
+      actual_concentration_ratio = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
       concentration_ratios.push_back(component_concentrations[i].actual_concentration);
 
       // calculate the bias
-      const double bias = calculateBias(actual_concentration_ratio, calculated_concentration_ratio);
+      bias = calculateBias(actual_concentration_ratio, calculated_concentration_ratio);
       biases.push_back(bias);
 
       // extract out the feature amount ratios
-      const double feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
+      feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
         component_concentrations[i].IS_feature,
         feature_name);
       feature_amounts_ratios.push_back(feature_amount_ratio);
     }
 
-    // calculate the R2 
-    const double r_value = Math::pearsonCorrelationCoefficient(
+    // calculate the R2 (R2 = Pearson_R^2)
+    r_value = Math::pearsonCorrelationCoefficient(
       concentration_ratios.begin(), concentration_ratios.begin() + concentration_ratios.size(),
       feature_amounts_ratios.begin(), feature_amounts_ratios.begin() + feature_amounts_ratios.size()
-    );
+    ); 
     r2 = r_value*r_value;
 
   }
