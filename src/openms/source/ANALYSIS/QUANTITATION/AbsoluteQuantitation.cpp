@@ -51,7 +51,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 
 //Math classes
-#include <OpenMS/MATH/STATISTICS/StatisticsFunctions.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 //Standard library
 #include <cstddef> // for size_t & ptrdiff_t
@@ -318,39 +318,45 @@ namespace OpenMS
       n_loops = component_concentrations.size() - n_points;
       for (size_t  component_it = 0; component_it < n_loops; ++component_it)
       {
-        // extract out components
-        component_start_it = component_concentrations.begin() + component_it;
-        component_end_it = component_concentrations.begin() + component_it + n_points;
-        component_concentrations_sub(component_start_it, component_end_it);
+        // TODO: support for outliers
+        // // loop through max_outliers
+        // for (size_t n_outliers = 0; n_outliers <= max_outliers; ++n_outliers)
+        // {
 
-        // fit the model
-        optimized_params = fitCalibration(component_concentrations_sub,
-          feature_name,
-          transformation_model,
-          transformation_model_params)
+          // extract out components
+          component_start_it = component_concentrations.begin() + component_it;
+          component_end_it = component_concentrations.begin() + component_it + n_points;
+          component_concentrations_sub(component_start_it, component_end_it);
 
-        // calculate the R2 and bias
-        calculateBiasAndR2(
-          const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-          feature_name,
-          transformation_model,
-          transformation_model_params,
-          std::vector<double> biases,
-          double r2);
-        
-        // check R2 and biases
-        bias_check = true;
-        for (size_t bias_it = 0; bias_it != biases.size(); --bias_it){
-          if (biases[bias_it] > max_bias)
-          {
-            bias_check = false;
+          // fit the model
+          optimized_params = fitCalibration(component_concentrations_sub,
+            feature_name,
+            transformation_model,
+            transformation_model_params)
+
+          // calculate the R2 and bias
+          calculateBiasAndR2(
+            const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+            feature_name,
+            transformation_model,
+            transformation_model_params,
+            std::vector<double> biases,
+            double r2);
+          
+          // check R2 and biases
+          bias_check = true;
+          for (size_t bias_it = 0; bias_it != biases.size(); --bias_it){
+            if (biases[bias_it] > max_bias)
+            {
+              bias_check = false;
+            }
           }
-        }
-        if (bias_check && r2 > min_r2)
-        {
-          break;
-        }      
-
+          if (bias_check && r2 > min_r2)
+          {
+            LOG_INFO << "Valid calibration found for " << component_concentrations[0].feature.getPeptideRef() << " .";
+            return;
+          }   
+        // }   
       }
     }
     LOG_INFO << "Valid calibration not found for " << component_concentrations[0].feature.getPeptideRef() << " .";
@@ -393,7 +399,7 @@ namespace OpenMS
     }
 
     // calculate the R2 
-    const double r_value = Statistics::pearsonCorrelationCoefficient(
+    const double r_value = StatisticFunctions::pearsonCorrelationCoefficient(
       concentration_ratios.begin(), concentration_ratios.begin() + concentration_ratios.size(),
       feature_amounts_ratios.begin(), feature_amounts_ratios.begin() + feature_amounts_ratios.size()
     );
