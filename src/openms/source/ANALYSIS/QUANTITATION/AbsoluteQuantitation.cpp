@@ -312,6 +312,8 @@ namespace OpenMS
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_end_it;
 
     // sort from min to max concentration
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sorted = component_concentrations;
+    std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(), sortByConcentration)
 
     // loop from all points to min_points
     for (size_t n_points = component_concentrations.size(); n_points >= min_points; --n_points)
@@ -398,12 +400,13 @@ namespace OpenMS
         feature_name);
       feature_amounts_ratios.push_back(feature_amount_ratio);
       
-      std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << "." << std::endl;
-      std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << "." << std::endl;
-      std::cout << "bias = " << bias << "." << std::endl;
-      std::cout << "feature_amount = " << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "." << std::endl;
-      std::cout << "IS_feature_amount = " << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "." << std::endl;
-      std::cout << "feature_amount_ratio = " << bias << "." << std::endl;
+      //DEBUG
+      // std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << "." << std::endl;
+      // std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << "." << std::endl;
+      // std::cout << "bias = " << bias << "." << std::endl;
+      // std::cout << "feature_amount = " << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "." << std::endl;
+      // std::cout << "IS_feature_amount = " << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "." << std::endl;
+      // std::cout << "feature_amount_ratio = " << bias << "." << std::endl;
     }
 
     // calculate the R2 (R2 = Pearson_R^2)
@@ -413,10 +416,17 @@ namespace OpenMS
     ); 
     r2_value = r_value*r_value;
 
-    std::cout << "r_value = " << r_value << "." << std::endl;
-    std::cout << "r2_value = " << r2_value << "." << std::endl;
+    //DEBUG
+    // std::cout << "r_value = " << r_value << "." << std::endl;
+    // std::cout << "r2_value = " << r2_value << "." << std::endl;
 
   }
+
+  bool AbsoluteQuantitation::sortByConcentration(const AbsoluteQuantitationStandards::featureConcentration &lhs, 
+    const AbsoluteQuantitationStandards::featureConcentration &rhs)
+    { 
+      return lhs.actual_concentration < rhs.actual_concentration; 
+    }
 
 } // namespace
 
