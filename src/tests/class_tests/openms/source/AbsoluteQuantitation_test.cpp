@@ -291,9 +291,13 @@ START_SECTION((void calculateBiasAndR2(
   std::vector<double> biases;
   double r2;
 
-  absquant.calculateBiasAndR2(component_concentrations,
-    feature_name, transformation_model, param,
-    biases, r2);
+  absquant.calculateBiasAndR2(
+    component_concentrations,
+    feature_name, 
+    transformation_model, 
+    param,
+    biases, 
+    r2);
   
   TEST_REAL_SIMILAR(biases[0],0.0);  
   TEST_REAL_SIMILAR(r2,1.0);  

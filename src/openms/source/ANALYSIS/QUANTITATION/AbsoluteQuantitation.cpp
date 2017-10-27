@@ -95,12 +95,14 @@ namespace OpenMS
     else if (component_1.metaValueExists(feature_name))
     {
       LOG_INFO << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
+      std::cout <<  "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
       double feature_1 = component_1.getMetaValue(feature_name);
       ratio = feature_1;
     } 
     else
     {
       LOG_INFO << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
+      std::cout << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << "." << std::endl;
     }
 
     return ratio;
@@ -408,6 +410,8 @@ namespace OpenMS
       feature_amounts_ratios.begin(), feature_amounts_ratios.begin() + feature_amounts_ratios.size()
     ); 
     r2 = r_value*r_value;
+
+    std::cout << "r_value = " << r_value << " ." << std::endl;
 
   }
 
