@@ -169,8 +169,8 @@ public:
       const String & feature_name,
       const String & transformation_model,
       const Param & transformation_model_params,
-      std::vector<double> biases,
-      double r2_value);
+      std::vector<double> & biases,
+      double & r2_value);
       
     /**
       @brief This function optimizes the parameters of the calibration for a 

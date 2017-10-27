@@ -90,20 +90,20 @@ namespace OpenMS
     {
       double feature_1 = component_1.getMetaValue(feature_name);
       double feature_2 = component_2.getMetaValue(feature_name);
-      std::cout <<  "ratio = " << ratio << "." << std::endl;
+      // std::cout <<  "ratio = " << ratio << "." << std::endl;
       ratio = feature_1/feature_2;
     } 
     else if (component_1.metaValueExists(feature_name))
     {
       LOG_INFO << "Warning: no IS found for component " << component_1.getMetaValue("native_id") << ".";
-      std::cout <<  "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
+      // std::cout <<  "Warning: no IS found for component " << component_1.getMetaValue("native_id") << "." << std::endl;
       double feature_1 = component_1.getMetaValue(feature_name);
       ratio = feature_1;
     } 
     else
     {
       LOG_INFO << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
-      std::cout << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << "." << std::endl;
+      // std::cout << "Feature metaValue " << feature_name << " not found for components " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << "." << std::endl;
     }
 
     return ratio;
@@ -368,8 +368,8 @@ namespace OpenMS
     const String & feature_name,
     const String & transformation_model,
     const Param & transformation_model_params,
-    std::vector<double> biases,
-    double r2_value)
+    std::vector<double> & biases,
+    double & r2_value)
   {
     
     // extract out the calibration points

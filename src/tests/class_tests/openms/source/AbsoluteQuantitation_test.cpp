@@ -238,8 +238,8 @@ START_SECTION((void calculateBiasAndR2(
   const String & feature_name,
   const String & transformation_model,
   const Param & transformation_model_params,
-  std::vector<double> biases,
-  double r2)))
+  std::vector<double> & biases,
+  double & r2)))
   
   AbsoluteQuantitation absquant;
 
