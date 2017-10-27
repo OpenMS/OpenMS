@@ -313,7 +313,7 @@ namespace OpenMS
 
     // sort from min to max concentration
     std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sorted = component_concentrations;
-    std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(), sortByConcentration)
+    std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(), sortByConcentration);
 
     // loop from all points to min_points
     for (size_t n_points = component_concentrations.size(); n_points >= min_points; --n_points)
@@ -348,7 +348,8 @@ namespace OpenMS
           
           // check R2 and biases
           bias_check = true;
-          for (size_t bias_it = 0; bias_it != biases.size(); --bias_it){
+          for (size_t bias_it = 0; bias_it != biases.size(); --bias_it)
+          {
             if (biases[bias_it] > max_bias)
             {
               bias_check = false;
@@ -424,9 +425,9 @@ namespace OpenMS
 
   bool AbsoluteQuantitation::sortByConcentration(const AbsoluteQuantitationStandards::featureConcentration &lhs, 
     const AbsoluteQuantitationStandards::featureConcentration &rhs)
-    { 
-      return lhs.actual_concentration < rhs.actual_concentration; 
-    }
+  { 
+    return lhs.actual_concentration < rhs.actual_concentration; 
+  }
 
 } // namespace
 
