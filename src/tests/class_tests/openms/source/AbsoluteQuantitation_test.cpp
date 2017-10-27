@@ -231,15 +231,71 @@ START_SECTION((void optimizeCalibrationCurveBruteForce(
   //TODO
 END_SECTION
 
-START_SECTION(calculateBiasAndR2(
+START_SECTION(void calculateBiasAndR2(
   const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
   const String & feature_name,
   String & transformation_model,
   Param & transformation_model_params,
   std::vector<double> biases,
   double r2)))
+  
+  AbsoluteQuantitation absquant;
 
-  //TODO
+  // set-up the features
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
+  AbsoluteQuantitationStandards::featureConcentration component_concentration;
+  Feature component, IS_component;
+  // point #1
+  component.setMetaValue("native_id","component");
+  component.setMetaValue("peak_apex_int",1.0);
+  IS_component.setMetaValue("native_id","IS");
+  IS_component.setMetaValue("peak_apex_int",1.0);
+  component_concentration.feature = component;
+  component_concentration.IS_feature = IS_component;
+  component_concentration.actual_concentration = 1.0;
+  component_concentration.IS_actual_concentration = 1.0;
+  component_concentrations.push_back(component_concentration);  
+  // point #2
+  component.setMetaValue("native_id","component");
+  component.setMetaValue("peak_apex_int",2.0);
+  IS_component.setMetaValue("native_id","IS");
+  IS_component.setMetaValue("peak_apex_int",1.0);
+  component_concentration.feature = component;
+  component_concentration.IS_feature = IS_component;
+  component_concentration.actual_concentration = 2.0;
+  component_concentration.IS_actual_concentration = 1.0;
+  component_concentrations.push_back(component_concentration);  
+  // point #3
+  component.setMetaValue("native_id","component");
+  component.setMetaValue("peak_apex_int",3.0);
+  IS_component.setMetaValue("native_id","IS");
+  IS_component.setMetaValue("peak_apex_int",1.0);
+  component_concentration.feature = component;
+  component_concentration.IS_feature = IS_component;
+  component_concentration.actual_concentration = 3.0;
+  component_concentration.IS_actual_concentration = 1.0;
+  component_concentrations.push_back(component_concentration);  
+
+  String feature_name = "peak_apex_int";
+
+  // set-up the model and params
+  // y = m*x + b
+  // x = (y - b)/m
+  String transformation_model;
+  Param param;
+  transformation_model = "TransformationModelLinear"; 
+  param.setValue("slope",1.0);
+  param.setValue("intercept",0.0);
+  std::vector<double> biases;
+  double r2;
+
+  calculateBiasAndR2(component_concentrations,
+    feature_name, transformation_model, transformation_model_params,
+    biases, r2);
+  
+  TEST_REAL_SIMILAR(biases[0],0.0);  
+  TEST_REAL_SIMILAR(r2,1.0);  
+  
 END_SECTION
 
 /////////////////////////////////////////////////////////////

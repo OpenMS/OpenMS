@@ -164,13 +164,13 @@ public:
 
     @exception None
     */ 
-    void AbsoluteQuantitation::calculateBiasAndR2(
+    void calculateBiasAndR2(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       const String & feature_name,
       const String & transformation_model,
       const Param & transformation_model_params,
       std::vector<double> biases,
-      double r2)
+      double r2);
       
     /**
       @brief This function optimizes the parameters of the calibration for a 

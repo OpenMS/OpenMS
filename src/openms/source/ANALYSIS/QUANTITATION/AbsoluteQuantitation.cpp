@@ -332,7 +332,7 @@ namespace OpenMS
           optimized_params = fitCalibration(component_concentrations_sub,
             feature_name,
             transformation_model,
-            transformation_model_params)
+            transformation_model_params);
 
           // calculate the R2 and bias
           calculateBiasAndR2(
@@ -353,13 +353,13 @@ namespace OpenMS
           }
           if (bias_check && r2 > min_r2)
           {
-            LOG_INFO << "Valid calibration found for " << component_concentrations[0].feature.getPeptideRef() << " .";
+            LOG_INFO << "Valid calibration found for " << component_concentrations[0].feature.getMetaValue("native_id") << " .";
             return;
           }   
         // }   
       }
     }
-    LOG_INFO << "Valid calibration not found for " << component_concentrations[0].feature.getPeptideRef() << " .";
+    LOG_INFO << "Valid calibration not found for " << component_concentrations[0].feature.getMetaValue("native_id") << " .";
   }
   
   void AbsoluteQuantitation::calculateBiasAndR2(
@@ -374,8 +374,6 @@ namespace OpenMS
     // extract out the calibration points
     const std::vector<double> concentration_ratios, feature_amounts_ratios;
     for (size_t i = 0; i < component_concentrations.size(); i++){
-      concentrations.push_back(component_concentrations[i].actual_concentration);
-      feature_amount.push_back(component_concentrations[i].feature.getMetaValue(feature_name));
 
       // calculate the actual and calculated concentration ratios
       const double calculated_concentration_ratio = applyCalibration(component_concentrations[i].feature,
