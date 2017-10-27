@@ -100,6 +100,8 @@ namespace OpenMS
     min_qual_ = (double)param_.getValue("minimal_quality");
     min_peak_width_ = (double)param_.getValue("min_peak_width");
     resample_boundary_ = (double)param_.getValue("resample_boundary");
+
+    picker_.setParameters(param_.copy("PeakPickerMRM:", true));
   }
 
   void MRMTransitionGroupPicker::calculateBgEstimation_(const MSChromatogram& chromatogram,
