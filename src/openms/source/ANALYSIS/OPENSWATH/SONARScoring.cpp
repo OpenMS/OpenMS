@@ -73,7 +73,7 @@ namespace OpenMS
                      double& xcorr_coelution_score, double& xcorr_shape_score)
   {
     /// Cross Correlation array
-    typedef std::map<int, double> XCorrArrayType;
+    typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
     /// Cross Correlation matrix
     typedef std::vector<std::vector<XCorrArrayType> > XCorrMatrixType;
 

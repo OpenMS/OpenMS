@@ -571,7 +571,7 @@ protected:
         for (Size i = 0; i < all_ints.size(); i++)
         {
           if (i == k) {continue;}
-          std::map<int, double> res = OpenSwath::Scoring::normalizedCrossCorrelation(
+          OpenSwath::Scoring::XCorrArrayType res = OpenSwath::Scoring::normalizedCrossCorrelation(
               all_ints[k], all_ints[i], boost::numeric_cast<int>(all_ints[i].size()), 1);
 
           // the first value is the x-axis (retention time) and should be an int -> it show the lag between the two
