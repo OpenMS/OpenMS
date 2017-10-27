@@ -153,6 +153,26 @@ public:
       const Param & transformation_model_params);
       
     /**
+    @brief This function calculates the biases and R2 value of the calibration points.
+
+    @param component_concentrations list of structures with features and concentrations
+    @param feature_name name of the feature to calculate the absolute concentration.
+    @param transformation_model model used to fit the calibration points
+    @param transformation_model_params parameters used by the transformation_model
+    @param biases Vector of point biases
+    @param r2 R2-value
+
+    @exception None
+    */ 
+    void AbsoluteQuantitation::calculateBiasAndR2(
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+      const String & feature_name,
+      String & transformation_model,
+      Param & transformation_model_params,,
+      std::vector<double> biases,
+      double r2)
+      
+    /**
       @brief This function optimizes the parameters of the calibration for a 
         given component.
 

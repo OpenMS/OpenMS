@@ -50,6 +50,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationStandards.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 
+//Math classes
+#include <OpenMS/MATH/StatisticsFunctions.h>
 
 //Standard library
 #include <cstddef> // for size_t & ptrdiff_t
@@ -290,10 +292,12 @@ namespace OpenMS
     String & transformation_model,
     Param & transformation_model_params)
   {
-    //TODO use internal params
-    double bias;
+    
+    double biases;
     double r2;
     int n_points;
+
+    //TODO use internal params
     double min_points;
 
     Param = params;
@@ -305,10 +309,10 @@ namespace OpenMS
     // sort from min to max concentration
 
     // loop from all points to min_points
-    for (size_t n_points = component_concentrations.size(); n_points >= min_points; n_points--)
+    for (size_t n_points = component_concentrations.size(); n_points >= min_points; --n_points)
     {
       n_loops = component_concentrations.size() - n_points;
-      for (size_t  component_it = 0; component_it < n_loops; component_it++)
+      for (size_t  component_it = 0; component_it < n_loops; ++component_it)
       {
         // extract out components
         component_start_it = component_concentrations.begin() + component_it;
@@ -322,12 +326,54 @@ namespace OpenMS
           transformation_model_params)
 
         // calculate the R2 and bias
-        for (size_t fit_it = 0; fit_it < component_concentrations_sub.size(); fit_it++)
-        {
-          bias = calculateBias(double & actual_concentration, double & calculated_concentration)
-        }
+
       }
     }
+  }
+  
+  void AbsoluteQuantitation::calculateBiasAndR2(
+    const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+    const String & feature_name,
+    String & transformation_model,
+    Param & transformation_model_params,
+    std::vector<double> biases,
+    double r2)
+  {
+    
+    // extract out the calibration points
+    const std::vector<double> concentration_ratios, feature_amounts_ratios;
+    for (size_t i = 0; i < component_concentrations.size(); i++){
+      concentrations.push_back(component_concentrations[i].actual_concentration);
+      feature_amount.push_back(component_concentrations[i].feature.getMetaValue(feature_name));
+
+      // calculate the actual and calculated concentration ratios
+      const double calculated_concentration_ratio = applyCalibration(component_concentrations[i].feature,
+        component_concentrations[i].IS_feature,
+        feature_name,
+        transformation_model,
+        transformation_model_params);
+
+      const double actual_concentration_ratio = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
+      concentration_ratios.push_back(component_concentrations[i].actual_concentration);
+
+      // calculate the bias
+      const double bias = calculateBias(actual_concentration_ratio, calculated_concentration_ratio);
+      biases.push_back(bias);
+
+      // extract out the feature amount ratios
+      const double feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
+        component_concentrations[i].IS_feature,
+        feature_name);
+      feature_amounts_ratios.push_back(feature_amount_ratio);
+    }
+
+    // calculate the R2 
+    const double r_value = Statistics::pearsonCorrelationCoefficient(
+      concentration_ratios.begin(), concentration_ratios.begin() + concentration_ratios.size(),
+      feature_amounts_ratios.begin(), feature_amounts_ratios.begin() + feature_amounts_ratios.size()
+    );
+    r2 = r_value*r_value;
+
   }
 
 } // namespace

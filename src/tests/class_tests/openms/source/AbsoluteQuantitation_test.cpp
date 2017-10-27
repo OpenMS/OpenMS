@@ -231,6 +231,17 @@ START_SECTION((void optimizeCalibrationCurveBruteForce(
   //TODO
 END_SECTION
 
+START_SECTION(calculateBiasAndR2(
+  const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+  const String & feature_name,
+  String & transformation_model,
+  Param & transformation_model_params,
+  std::vector<double> biases,
+  double r2)))
+
+  //TODO
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

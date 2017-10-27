@@ -76,7 +76,9 @@ public:
     {
       String run_id;
       String component_id;
+      String IS_component_id;
       double actual_concentration;
+      double IS_actual_concentration;
       String concentration_units;
     };
 
@@ -87,7 +89,9 @@ public:
     struct featureConcentration
     {
       Feature feature;
+      Feature IS_feature;
       double actual_concentration;
+      double IS_actual_concentration;
       String concentration_units;
     };
     
