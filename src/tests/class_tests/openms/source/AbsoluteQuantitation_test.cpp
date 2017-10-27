@@ -227,11 +227,13 @@ START_SECTION((void optimizeCalibrationCurveBruteForce(
   const String & feature_name,
   const String & transformation_model,
   const Param & transformation_model_params)))
+  
+  AbsoluteQuantitation absquant;
 
   //TODO
 END_SECTION
 
-START_SECTION(void calculateBiasAndR2(
+START_SECTION((void calculateBiasAndR2(
   const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
   const String & feature_name,
   const String & transformation_model,
@@ -290,7 +292,7 @@ START_SECTION(void calculateBiasAndR2(
   double r2;
 
   calculateBiasAndR2(component_concentrations,
-    feature_name, transformation_model, transformation_model_params,
+    feature_name, transformation_model, param,
     biases, r2);
   
   TEST_REAL_SIMILAR(biases[0],0.0);  
