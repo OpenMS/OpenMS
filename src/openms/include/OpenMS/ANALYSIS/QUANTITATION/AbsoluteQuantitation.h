@@ -182,7 +182,7 @@ public:
 
     @exception None
     */ 
-    bool AbsoluteQuantitation::sortByConcentration(const AbsoluteQuantitationStandards::featureConcentration &lhs, 
+    bool sortByConcentration(const AbsoluteQuantitationStandards::featureConcentration &lhs, 
       const AbsoluteQuantitationStandards::featureConcentration &rhs);
       
     /**
