@@ -394,10 +394,10 @@ namespace OpenMS
         feature_name);
       feature_amounts_ratios.push_back(feature_amount_ratio);
       
-      std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << << " ." << std::endl;
-      std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << << " ." << std::endl;
+      std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << " ." << std::endl;
+      std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << " ." << std::endl;
       std::cout << "bias = " << bias << << " ." << std::endl;
-      std::cout << "feature_amount_ratio = " << bias << << " ." << std::endl;
+      std::cout << "feature_amount_ratio = " << bias << " ." << std::endl;
     }
 
     // calculate the R2 (R2 = Pearson_R^2)
