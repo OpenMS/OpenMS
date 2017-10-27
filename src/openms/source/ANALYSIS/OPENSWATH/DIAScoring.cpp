@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
@@ -45,6 +46,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
+
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 #include <numeric>
 #include <algorithm>
@@ -96,6 +99,27 @@ namespace OpenMS
 
     // write defaults into Param object param_
     defaultsToParam_();
+
+    // for void getBYSeries
+    {
+      generator = new TheoreticalSpectrumGenerator();
+      Param p;
+      p.setValue("add_metainfo", "true",
+          "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+      generator->setParameters(p);
+    }
+
+    // for simulateSpectrumFromAASequence
+    //  Param p;
+    //  p.setValue("add_metainfo", "false",
+    //      "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+    //  p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+    //  generator->setParameters(p);
+  }
+
+  DIAScoring::~DIAScoring() 
+  {
+    delete generator;
   }
 
   void DIAScoring::updateMembers_()
@@ -217,7 +241,7 @@ namespace OpenMS
 
     double mz, intensity, left, right;
     std::vector<double> yseries, bseries;
-    OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, charge);
+    OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, generator, charge);
     for (Size it = 0; it < bseries.size(); it++)
     {
       left = bseries[it];

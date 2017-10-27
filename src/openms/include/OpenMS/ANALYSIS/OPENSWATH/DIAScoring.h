@@ -46,6 +46,8 @@
 
 namespace OpenMS
 {
+  class TheoreticalSpectrumGenerator;
+
   /**
     @brief Scoring of an spectrum at the peak apex of an chromatographic elution peak.
 
@@ -98,7 +100,7 @@ public:
     DIAScoring();
 
     /// Destructor
-    virtual ~DIAScoring() {}
+    virtual ~DIAScoring();
     //@}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -202,6 +204,8 @@ private:
     double dia_nr_charges_;
     double peak_before_mono_max_ppm_diff_;
     bool dia_extraction_ppm_;
+
+    TheoreticalSpectrumGenerator * generator;
   };
 }
 
