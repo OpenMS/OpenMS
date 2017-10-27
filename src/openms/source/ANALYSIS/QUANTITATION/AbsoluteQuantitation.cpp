@@ -90,6 +90,7 @@ namespace OpenMS
     {
       double feature_1 = component_1.getMetaValue(feature_name);
       double feature_2 = component_2.getMetaValue(feature_name);
+      std::cout <<  "ratio = " << ratio << "." << std::endl;
       ratio = feature_1/feature_2;
     } 
     else if (component_1.metaValueExists(feature_name))
@@ -368,13 +369,14 @@ namespace OpenMS
     const String & transformation_model,
     const Param & transformation_model_params,
     std::vector<double> biases,
-    double r2)
+    double r2_value)
   {
     
     // extract out the calibration points
     std::vector<double> concentration_ratios, feature_amounts_ratios;
     double calculated_concentration_ratio, actual_concentration_ratio, feature_amount_ratio, bias;
-    for (size_t i = 0; i < component_concentrations.size(); ++i){
+    for (size_t i = 0; i < component_concentrations.size(); ++i)
+    {
 
       // calculate the actual and calculated concentration ratios
       calculated_concentration_ratio = applyCalibration(component_concentrations[i].feature,
@@ -396,12 +398,12 @@ namespace OpenMS
         feature_name);
       feature_amounts_ratios.push_back(feature_amount_ratio);
       
-      std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << " ." << std::endl;
-      std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << " ." << std::endl;
-      std::cout << "bias = " << bias << " ." << std::endl;
-      std::cout << "feature_amount = " << (String)component_concentrations[i].feature.getMetaValue(feature_name) << " ." << std::endl;
-      std::cout << "IS_feature_amount = " << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << " ." << std::endl;
-      std::cout << "feature_amount_ratio = " << bias << " ." << std::endl;
+      std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << "." << std::endl;
+      std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << "." << std::endl;
+      std::cout << "bias = " << bias << "." << std::endl;
+      std::cout << "feature_amount = " << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "." << std::endl;
+      std::cout << "IS_feature_amount = " << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "." << std::endl;
+      std::cout << "feature_amount_ratio = " << bias << "." << std::endl;
     }
 
     // calculate the R2 (R2 = Pearson_R^2)
@@ -409,9 +411,10 @@ namespace OpenMS
       concentration_ratios.begin(), concentration_ratios.begin() + concentration_ratios.size(),
       feature_amounts_ratios.begin(), feature_amounts_ratios.begin() + feature_amounts_ratios.size()
     ); 
-    r2 = r_value*r_value;
+    r2_value = r_value*r_value;
 
-    std::cout << "r_value = " << r_value << " ." << std::endl;
+    std::cout << "r_value = " << r_value << "." << std::endl;
+    std::cout << "r2_value = " << r2_value << "." << std::endl;
 
   }
 

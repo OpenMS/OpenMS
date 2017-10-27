@@ -160,7 +160,7 @@ public:
     @param transformation_model model used to fit the calibration points
     @param transformation_model_params parameters used by the transformation_model
     @param biases Vector of point biases
-    @param r2 R2-value
+    @param r2_value R2-value
 
     @exception None
     */ 
@@ -170,7 +170,7 @@ public:
       const String & transformation_model,
       const Param & transformation_model_params,
       std::vector<double> biases,
-      double r2);
+      double r2_value);
       
     /**
       @brief This function optimizes the parameters of the calibration for a 
