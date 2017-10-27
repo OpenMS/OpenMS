@@ -83,7 +83,7 @@ namespace OpenMS
     }
   }
 
-  double AbsoluteQuantitation::calculateRatio(Feature & component_1, Feature & component_2, String & feature_name)
+  double AbsoluteQuantitation::calculateRatio(const Feature & component_1, const Feature & component_2, const String & feature_name)
   {
     double ratio = 0.0;
     if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
@@ -106,7 +106,7 @@ namespace OpenMS
     return ratio;
   }
   
-  double AbsoluteQuantitation::calculateBias(double & actual_concentration, double & calculated_concentration)
+  double AbsoluteQuantitation::calculateBias(const double & actual_concentration, const double & calculated_concentration)
   {
     double bias = 0.0;
     bias = fabs(actual_concentration - calculated_concentration)/actual_concentration*100;
@@ -136,11 +136,11 @@ namespace OpenMS
     return params;
   }
   
-  double AbsoluteQuantitation::applyCalibration(Feature & component,
-    Feature & IS_component,
-    String & feature_name,
-    String & transformation_model,
-    Param & transformation_model_params)
+  double AbsoluteQuantitation::applyCalibration(const Feature & component,
+    const Feature & IS_component,
+    const String & feature_name,
+    const String & transformation_model,
+    const Param & transformation_model_params)
   {
     // calculate the ratio
     double ratio = calculateRatio(component, IS_component, feature_name);
@@ -287,10 +287,10 @@ namespace OpenMS
   }
 
   void AbsoluteQuantitation::optimizeCalibrationCurveBruteForce(
-    std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-    String & feature_name,
-    String & transformation_model,
-    Param & transformation_model_params,
+    const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+    const String & feature_name,
+    const String & transformation_model,
+    const Param & transformation_model_params,
     Param & optimized_params)
   {
     

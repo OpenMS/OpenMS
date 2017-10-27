@@ -61,7 +61,7 @@ START_SECTION((~AbsoluteQuantitation()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((double calculateRatio(Feature & component_1, Feature & component_2, String feature_name)))
+START_SECTION((double calculateRatio(const Feature & component_1, const Feature & component_2, const String feature_name)))
   AbsoluteQuantitation absquant;
   String feature_name = "peak_apex_int";
   double inf = 1.0/0.0;
@@ -85,7 +85,7 @@ START_SECTION((double calculateRatio(Feature & component_1, Feature & component_
   TEST_REAL_SIMILAR(absquant.calculateRatio(component_3,component_4,feature_name),0.0);
 END_SECTION
 
-START_SECTION((double calculateBias(double & actual_concentration, double & calculated_concentration)))
+START_SECTION((double calculateBias(const double & actual_concentration, const double & calculated_concentration)))
   AbsoluteQuantitation absquant;
   double actual_concentration = 5.0;
   double calculated_concentration = 5.0;
@@ -94,11 +94,11 @@ START_SECTION((double calculateBias(double & actual_concentration, double & calc
   TEST_REAL_SIMILAR(absquant.calculateBias(actual_concentration,calculated_concentration),20.0);
 END_SECTION
 
-START_SECTION((double applyCalibration(Feature & component,
-  Feature & IS_component,
-  String & feature_name,
-  String & transformation_model,
-  Param & transformation_model_params)))
+START_SECTION((double applyCalibration(const Feature & component,
+  const Feature & IS_component,
+  const String & feature_name,
+  const String & transformation_model,
+  const Param & transformation_model_params)))
 
   AbsoluteQuantitation absquant;
 
@@ -223,10 +223,10 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
 END_SECTION
 
 START_SECTION((void optimizeCalibrationCurveBruteForce(
-  std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-  String & feature_name,
-  String & transformation_model,
-  Param & transformation_model_params)))
+  const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+  const String & feature_name,
+  const String & transformation_model,
+  const Param & transformation_model_params)))
 
   //TODO
 END_SECTION
@@ -234,8 +234,8 @@ END_SECTION
 START_SECTION(void calculateBiasAndR2(
   const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
   const String & feature_name,
-  String & transformation_model,
-  Param & transformation_model_params,
+  const String & transformation_model,
+  const Param & transformation_model_params,
   std::vector<double> biases,
   double r2)))
   

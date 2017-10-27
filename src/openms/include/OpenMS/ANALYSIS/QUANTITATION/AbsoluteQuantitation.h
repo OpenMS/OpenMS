@@ -115,7 +115,7 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    double calculateRatio(Feature & component_1, Feature & component_2, String & feature_name);
+    double calculateRatio(const Feature & component_1, const Feature & component_2, const String & feature_name);
                    
     /**
       @brief This function calculates the bias of the calibration.
@@ -133,7 +133,7 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    double calculateBias(double & actual_concentration, double & calculated_concentration);
+    double calculateBias(const double & actual_concentration, const double & calculated_concentration);
             
     /**
       @brief This function fits the calibration points to the model.
@@ -185,10 +185,10 @@ public:
       @exception Exception::UnableToFit
     */ 
     void optimizeCalibrationCurveBruteForce(
-      std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-      String & feature_name,
-      String & transformation_model,
-      Param & transformation_model_params,
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params,
       Param & optimized_params);
         
     /**
@@ -212,11 +212,11 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    double applyCalibration(Feature & component,
-      Feature & IS_component,
-      String & feature_name,
-      String & transformation_model,
-      Param & transformation_model_params);     
+    double applyCalibration(const Feature & component,
+      const Feature & IS_component,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params);     
       
     /**
       @brief This function applies the calibration curve to all components.
