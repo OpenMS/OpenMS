@@ -218,7 +218,7 @@ class TOPPCorrelateMasstraces
 
     // cache the m/z of each MS1 feature
     std::vector< double > mz_cache_ms1;
-    for(Size i = 0; i < MS1_feature_map.size(); ++i)
+    for (Size i = 0; i < MS1_feature_map.size(); ++i)
     {
       mz_cache_ms1.push_back(MS1_feature_map[i].getMZ());
     }
@@ -260,7 +260,7 @@ class TOPPCorrelateMasstraces
         if (ms2feature_used[j]) continue;
 
 #ifdef DEBUG_MASSTRACES
-        for(Size kk=0; kk<f1_points.size(); kk++)
+        for (Size kk=0; kk<f1_points.size(); kk++)
         { 
           cout << f1_points[kk].first << " f/s " << f1_points[kk].second << endl; 
         }
@@ -382,7 +382,7 @@ class TOPPCorrelateMasstraces
       spectrum.getFloatDataArrays()[3].setName("pearson_score");
       spectrum.getFloatDataArrays()[4].setName("lag_intensity");
       int j = 0;
-      for (std::vector<int>::iterator it = ms1_assignment_map[i].begin(); it != ms1_assignment_map[i].end(); it++)
+      for (std::vector<int>::iterator it = ms1_assignment_map[i].begin(); it != ms1_assignment_map[i].end(); ++it)
       {
         ConsensusFeature f1 = MS2_feature_map[*it];
         Peak1D peak;

@@ -248,7 +248,7 @@ START_SECTION((virtual void scoreHullpoints()))
   }
 
   std::map<int, double> result = OpenSwath::Scoring::calculateCrossCorrelation(data1, data2, 2, 1);
-  for(std::map<int, double>::iterator it = result.begin(); it != result.end(); it++)
+  for(std::map<int, double>::iterator it = result.begin(); it != result.end(); ++it)
   {
     it->second = it->second / 6.0;
   }

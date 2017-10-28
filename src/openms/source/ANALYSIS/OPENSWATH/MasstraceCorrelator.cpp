@@ -184,7 +184,7 @@ namespace OpenMS
   {
 
     startProgress(0, map.size(), "create consensus map cache");
-    for(Size i = 0; i < map.size(); ++i)
+    for (Size i = 0; i < map.size(); ++i)
     {
       setProgress(i);
 
@@ -192,7 +192,7 @@ namespace OpenMS
 
       // get the points into a vector of pairs (RT, intensity)
       masstracePointsType f1_points; 
-      for(ConsensusFeature::HandleSetType::iterator it = f1_features->begin(); it != f1_features->end(); ++it)
+      for (ConsensusFeature::HandleSetType::iterator it = f1_features->begin(); it != f1_features->end(); ++it)
       {
         f1_points.push_back(std::make_pair(it->getRT(), it->getIntensity())); 
       }
@@ -236,7 +236,7 @@ namespace OpenMS
 #endif
 
     Size j;
-    double firstpoint, lastpoint, current_rt ;
+    double firstpoint, lastpoint, current_rt;
     double* rt_cache_ptr;
 
     int lag; double lag_intensity; double pearson_score;
@@ -250,7 +250,7 @@ namespace OpenMS
     std::map<int, int> used_already;
     // go through all consensus features in the map and use 
     startProgress(0, map.size(), "correlating masstraces ");
-    for(Size i = 0; i < map.size(); ++i)
+    for (Size i = 0; i < map.size(); ++i)
     {
       setProgress(i);
 
