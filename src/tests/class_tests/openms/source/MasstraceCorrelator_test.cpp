@@ -33,13 +33,14 @@
 // --------------------------------------------------------------------------
 
 ///////////////////////////
-#define private public
+// #define private public
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
 ///////////////////////////
 
 #include <OpenMS/test_config.h>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -296,7 +297,7 @@ START_SECTION((virtual void createPseudoSpectra()))
   ConsensusMap masstraces;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("Masstraces_Testdata.consensusXML"), masstraces);
 
-  MSExperiment< Peak1D > pseudo_spectra;
+  MSExperiment pseudo_spectra;
   masstraces.sortByIntensity(true);
   OpenMS::MasstraceCorrelator mtcorr;
   mtcorr.createPseudoSpectra(masstraces, pseudo_spectra, 0, 0.7, 1, 3);

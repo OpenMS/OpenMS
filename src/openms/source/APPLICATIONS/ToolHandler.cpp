@@ -184,6 +184,8 @@ namespace OpenMS
 
     util_map["AccurateMassSearch"] = Internal::ToolDescription("AccurateMassSearch", util_category);
     util_map["CVInspector"] = Internal::ToolDescription("CVInspector", util_category);
+    util_map["ClusterMassTraces"] = Internal::ToolDescription("ClusterMassTraces", util_category);
+    util_map["ClusterMassTracesByPrecursor"] = Internal::ToolDescription("ClusterMassTracesByPrecursor", util_category);
     util_map["DecoyDatabase"] = Internal::ToolDescription("DecoyDatabase", util_category);
     util_map["DatabaseFilter"]= Internal::ToolDescription("DatabaseFilter", util_category);
     util_map["DeMeanderize"] = Internal::ToolDescription("DeMeanderize", util_category);

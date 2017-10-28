@@ -128,7 +128,7 @@ namespace OpenMS
         std::vector<std::pair<double, double> >& max_intensities,
         std::vector<double>& rt_cache);
 
-  private:
+  // private:
 
     /** @brief Match up two mass traces with potentially missing values
      *
