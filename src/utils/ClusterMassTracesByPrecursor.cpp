@@ -156,7 +156,7 @@ class TOPPCorrelateMasstraces
 #endif
 
     MzMLFile f;
-    MSExperiment< Peak1D > pseudo_spectra_ms1centric;
+    MSExperiment pseudo_spectra_ms1centric;
     MS1CentricClustering(MS1_feature_map, MS2_feature_map, 
         swath_lower, swath_upper, pseudo_spectra_ms1centric);
     f.store(out,pseudo_spectra_ms1centric);
@@ -181,7 +181,7 @@ class TOPPCorrelateMasstraces
   */
   void MS1CentricClustering(ConsensusMap& MS1_feature_map, ConsensusMap& MS2_feature_map, 
       double swath_lower, double swath_upper, 
-      MSExperiment< Peak1D >& pseudo_spectra_precursors1)
+      MSExperiment& pseudo_spectra_precursors1)
   {
     // -----------------------------------
     // Parameters 
@@ -363,7 +363,7 @@ class TOPPCorrelateMasstraces
       setProgress(i);
       if (mz_cache_ms1[i] < swath_lower || mz_cache_ms1[i] > swath_upper) continue;
 
-      MSSpectrum<Peak1D> spectrum;
+      MSSpectrum spectrum;
       ConsensusFeature f2 = MS1_feature_map[i];
       spectrum.setRT(f2.getRT());
       spectrum.setMSLevel(2);

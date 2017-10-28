@@ -89,8 +89,6 @@ class TOPPClusterMassTraces
 
  protected:
 
-  typedef MSExperiment<Peak1D> MapType;
-
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in","<file>","","Mass traces");
@@ -130,7 +128,7 @@ class TOPPClusterMassTraces
     ConsensusMap masstrace_map;
     consensus_f.load(infile, masstrace_map);
 
-    MSExperiment< Peak1D > pseudo_spectra;
+    MSExperiment pseudo_spectra;
 
     if (masstrace_map.empty())
     {

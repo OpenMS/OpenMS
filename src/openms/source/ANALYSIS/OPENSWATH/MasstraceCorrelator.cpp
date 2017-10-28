@@ -217,7 +217,7 @@ namespace OpenMS
   }
 
   void MasstraceCorrelator::createPseudoSpectra(ConsensusMap& map, 
-      MSExperiment< Peak1D >& pseudo_spectra, 
+      MSExperiment& pseudo_spectra,
       Size min_peak_nr, double min_correlation, 
       int max_lag, double max_rt_apex_difference)
   {
@@ -261,7 +261,7 @@ namespace OpenMS
       used_already[i] = 0;
 
       // Prepare a new pseudo spectrum
-      MSSpectrum<Peak1D> spectrum;
+      MSSpectrum spectrum;
       spectrum.getFloatDataArrays().clear();
       spectrum.getFloatDataArrays().resize(5);
       spectrum.getFloatDataArrays()[0].setName("RT_apex");

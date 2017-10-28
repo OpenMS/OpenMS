@@ -81,7 +81,7 @@ namespace OpenMS
      * This assumes that the consensus map is sorted by intensity
      *
     */
-    void createPseudoSpectra(ConsensusMap& map, MSExperiment<Peak1D>& pseudo_spectra,
+    void createPseudoSpectra(ConsensusMap& map, MSExperiment& pseudo_spectra,
         Size min_peak_nr, double min_correlation, int max_lag,
         double max_rt_apex_difference);
 
