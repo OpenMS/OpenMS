@@ -603,7 +603,7 @@ protected:
 
       // Write variable modifications (and also write to log)
       writeLog_("Variable Modifications set to:");
-      for (UInt i = 0; i < arg_varmod_masses.size(); ++i)
+      for (Size i = 0; i < arg_varmod_masses.size(); ++i)
       {
         const String varmod = "variable_mod_0" + String(i+1) + " = " + String(arg_varmod_masses[i]) + " " + String(arg_varmod_syntax[i]);
         os << "\n" << varmod;
