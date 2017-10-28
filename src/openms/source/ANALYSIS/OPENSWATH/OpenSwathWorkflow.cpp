@@ -285,7 +285,7 @@ namespace OpenMS
 
     this->startProgress(0, 1, "Extract iRT chromatograms");
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic,1)
 #endif
     for (SignedSize map_idx = 0; map_idx < boost::numeric_cast<SignedSize>(swath_maps.size()); ++map_idx)
     {
