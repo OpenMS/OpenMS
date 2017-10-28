@@ -222,68 +222,73 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   TransformationModel::DataPoint point;
   Param param;
   TransformationModel::getDefaultParameters(param);
-  TransformationModel dw(data, param);
   double xmin = 10e-5;
   double xmax = 10e12; 
   double ymin = 10e-8;
   double ymax = 10e12;
 
-  param.setValue("x_weight", "ln(x)");
-  param.setValue("y_weight", "");
-  test1.clear();
-  point.first = std::log(xmin);
-  point.second = 1.0;
-  test1.push_back(point);
-  point.first = std::log(1.0);
-  point.second = 2.0;
-  test1.push_back(point);
-  point.first = std::log(2.0);
-  point.second = 4.0;
-  test1.push_back(point); 
-  data1.clear();
-  point.first = dw.checkDatumRange(0.0, xmin, xmax);
-  point.second = dw.checkDatumRange(1.0, ymin, ymax);
-  data1.push_back(point);
-  point.first = dw.checkDatumRange(1.0, xmin, xmax);
-  point.second = dw.checkDatumRange(2.0, ymin, ymax);
-  data1.push_back(point);
-  point.first = dw.checkDatumRange(2.0, xmin, xmax);
-  point.second = dw.checkDatumRange(4.0, ymin, ymax);
-  data1.push_back(point);
-  dw.weightData(data1,param);
-  for (size_t i = 0; i < data1.size(); ++i)
   {
-    TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
-    TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
+    param.setValue("x_weight", "ln(x)");
+    param.setValue("y_weight", "");
+    TransformationModel dw(data, param);
+    test1.clear();
+    point.first = std::log(xmin);
+    point.second = 1.0;
+    test1.push_back(point);
+    point.first = std::log(1.0);
+    point.second = 2.0;
+    test1.push_back(point);
+    point.first = std::log(2.0);
+    point.second = 4.0;
+    test1.push_back(point); 
+    data1.clear();
+    point.first = dw.checkDatumRange(0.0, xmin, xmax);
+    point.second = dw.checkDatumRange(1.0, ymin, ymax);
+    data1.push_back(point);
+    point.first = dw.checkDatumRange(1.0, xmin, xmax);
+    point.second = dw.checkDatumRange(2.0, ymin, ymax);
+    data1.push_back(point);
+    point.first = dw.checkDatumRange(2.0, xmin, xmax);
+    point.second = dw.checkDatumRange(4.0, ymin, ymax);
+    data1.push_back(point);
+    dw.weightData(data1);
+    for (size_t i = 0; i < data1.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
+      TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
+    }
   }
 
-  param.setValue("x_weight", "");
-  param.setValue("y_weight", "ln(y)");
-  test1.clear();
-  point.first = 0.0;
-  point.second = std::log(1.0);
-  test1.push_back(point);
-  point.first = 1.0;
-  point.second = std::log(2.0);
-  test1.push_back(point);
-  point.first = 2.0;
-  point.second = std::log(4.0);
-  test1.push_back(point);  
-  data1.clear();
-  point.first = 0.0;
-  point.second = 1.0;
-  data1.push_back(point);
-  point.first = 1.0;
-  point.second = 2.0;
-  data1.push_back(point);
-  point.first = 2.0;
-  point.second = 4.0;
-  data1.push_back(point);
-  dw.weightData(data1,param);
-  for (size_t i = 0; i < data1.size(); ++i)
   {
-    TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
-    TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
+    param.setValue("x_weight", "");
+    param.setValue("y_weight", "ln(y)");
+    TransformationModel dw(data, param);
+    test1.clear();
+    point.first = 0.0;
+    point.second = std::log(1.0);
+    test1.push_back(point);
+    point.first = 1.0;
+    point.second = std::log(2.0);
+    test1.push_back(point);
+    point.first = 2.0;
+    point.second = std::log(4.0);
+    test1.push_back(point);  
+    data1.clear();
+    point.first = 0.0;
+    point.second = 1.0;
+    data1.push_back(point);
+    point.first = 1.0;
+    point.second = 2.0;
+    data1.push_back(point);
+    point.first = 2.0;
+    point.second = 4.0;
+    data1.push_back(point);
+    dw.weightData(data1);
+    for (size_t i = 0; i < data1.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
+      TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
+    }
   }
 }
 END_SECTION
@@ -326,66 +331,73 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
   TransformationModel::DataPoints data1;
   TransformationModel::DataPoints test1;
   TransformationModel::DataPoint point;
-  Param param;
-  TransformationModel::getDefaultParameters(param);
-  TransformationModel dw(data, param);
 
-  param.setValue("x_weight", "ln(x)");
-  param.setValue("y_weight", "");
-  test1.clear();
-  point.first = std::exp(0.0);
-  point.second = 1.0;
-  test1.push_back(point);
-  point.first = std::exp(1.0);
-  point.second = 2.0;
-  test1.push_back(point);
-  point.first = std::exp(2.0);
-  point.second = 4.0;
-  test1.push_back(point);   
-  data1.clear();
-  point.first = 0.0;
-  point.second = 1.0;
-  data1.push_back(point);
-  point.first = 1.0;
-  point.second = 2.0;
-  data1.push_back(point);
-  point.first = 2.0;
-  point.second = 4.0;
-  data1.push_back(point);
-  dw.unWeightData(data1,param);
-  for (size_t i = 0; i < data1.size(); ++i)
   {
-    TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
-    TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
+    Param param;
+    TransformationModel::getDefaultParameters(param);
+    param.setValue("x_weight", "ln(x)");
+    param.setValue("y_weight", "");
+    TransformationModel dw(data, param);
+    test1.clear();
+    point.first = std::exp(0.0);
+    point.second = 1.0;
+    test1.push_back(point);
+    point.first = std::exp(1.0);
+    point.second = 2.0;
+    test1.push_back(point);
+    point.first = std::exp(2.0);
+    point.second = 4.0;
+    test1.push_back(point);   
+    data1.clear();
+    point.first = 0.0;
+    point.second = 1.0;
+    data1.push_back(point);
+    point.first = 1.0;
+    point.second = 2.0;
+    data1.push_back(point);
+    point.first = 2.0;
+    point.second = 4.0;
+    data1.push_back(point);
+    dw.unWeightData(data1);
+    for (size_t i = 0; i < data1.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
+      TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
+    }
   }
 
-  param.setValue("x_weight", "");
-  param.setValue("y_weight", "ln(y)");
-  test1.clear();
-  point.first = 0.0;
-  point.second = std::exp(1.0);
-  test1.push_back(point);
-  point.first = 1.0;
-  point.second = std::exp(2.0);
-  test1.push_back(point);
-  point.first = 2.0;
-  point.second = std::exp(4.0);
-  test1.push_back(point);   
-  data1.clear();
-  point.first = 0.0;
-  point.second = 1.0;
-  data1.push_back(point);
-  point.first = 1.0;
-  point.second = 2.0;
-  data1.push_back(point);
-  point.first = 2.0;
-  point.second = 4.0;
-  data1.push_back(point);
-  dw.unWeightData(data1,param);
-  for (size_t i = 0; i < data1.size(); ++i)
   {
-    TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
-    TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
+    Param param;
+    TransformationModel::getDefaultParameters(param);
+    param.setValue("x_weight", "");
+    param.setValue("y_weight", "ln(y)");
+    TransformationModel dw(data, param);
+    test1.clear();
+    point.first = 0.0;
+    point.second = std::exp(1.0);
+    test1.push_back(point);
+    point.first = 1.0;
+    point.second = std::exp(2.0);
+    test1.push_back(point);
+    point.first = 2.0;
+    point.second = std::exp(4.0);
+    test1.push_back(point);   
+    data1.clear();
+    point.first = 0.0;
+    point.second = 1.0;
+    data1.push_back(point);
+    point.first = 1.0;
+    point.second = 2.0;
+    data1.push_back(point);
+    point.first = 2.0;
+    point.second = 4.0;
+    data1.push_back(point);
+    dw.unWeightData(data1);
+    for (size_t i = 0; i < data1.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(data1[i].first,test1[i].first);
+      TEST_REAL_SIMILAR(data1[i].second,test1[i].second);
+    }
   }
 }
 END_SECTION
