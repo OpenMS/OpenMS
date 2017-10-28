@@ -38,6 +38,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 
@@ -155,7 +157,14 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
-  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries, 1);
+
+  TheoreticalSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "true",
+      "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  generator.setParameters(p);
+
+  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries, &generator, 1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)
@@ -180,7 +189,7 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
   bseries.clear();
   yseries.clear();
   a.setModification(1, "Phospho" ); // modify the Y
-  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries ,1);
+  OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries, &generator, 1);
 
   TEST_EQUAL(bseries.size(), 5)
   TEST_EQUAL(yseries.size(), 6)
@@ -200,7 +209,6 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
   TEST_REAL_SIMILAR (yseries[4], 646.33133  );
   TEST_REAL_SIMILAR (yseries[5], 809.39466 + 79.9657);
   //TEST_REAL_SIMILAR (yseries[6], 896.42668  );
-
 }
 END_SECTION
 
