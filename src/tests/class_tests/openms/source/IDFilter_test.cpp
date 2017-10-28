@@ -40,7 +40,7 @@
 #include <string>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -184,7 +184,7 @@ END_SECTION
 
 START_SECTION((class PeptideDigestionFilter::operator(PeptideHit& hit)))
 {
-  EnzymaticDigestion digestion;
+  ProteaseDigestion digestion;
   digestion.setEnzyme("Trypsin");
   
   IDFilter::PeptideDigestionFilter filter(digestion, 0, 1);

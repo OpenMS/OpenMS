@@ -98,7 +98,7 @@ class TOPPQCShrinker :
 {
 public:
   TOPPQCShrinker() :
-    TOPPBase("QCShrinker", "This application is used to remove the verbose table attachments from a qcml file that are not needed anymore, e.g. for a final report.", false)
+    TOPPBase("QCShrinker", "This application is used to remove the verbose table attachments from a qcml file that are not needed anymore, e.g. for a final report.", false, {{ "Walzer M, Pernas LE, Nasso S, Bittremieux W, Nahnsen S, Kelchtermans P,  Martens, L", "qcML: An Exchange Format for Quality Control Metrics from Mass Spectrometry Experiments", "Molecular & Cellular Proteomics 2014; 13(8)" , "10.1074/mcp.M113.035907"}})
   {
   }
 

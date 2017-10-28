@@ -37,7 +37,7 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -1295,7 +1295,7 @@ namespace OpenMS
       fixed_modifications_.clear();
       variable_modifications_.clear();
       params_ = ProteinIdentification::SearchParameters();
-      params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+      params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
       String mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1354,9 +1354,9 @@ namespace OpenMS
     { // special case: search parameter that occurs *before* "search_summary"!
       enzyme_ = attributeAsString_(attributes, "name");
       if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_.toLower()))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
       }
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
@@ -1364,9 +1364,9 @@ namespace OpenMS
       //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
       enzyme_ = attributeAsString_(attributes, "enzyme");
       if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_.toLower());
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));
       }
 
       int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");

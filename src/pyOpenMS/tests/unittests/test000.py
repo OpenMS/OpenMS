@@ -1798,31 +1798,31 @@ def testTransitionTSVReader():
     assert pyopenms.TransitionTSVReader().validateTargetedExperiment is not None
 
 @report
-def testEnzymaticDigestion():
+def testProteaseDigestion():
     """
     @tests:
-     EnzymaticDigestion.__init__
-     EnzymaticDigestion.getMissedCleavages()
-     EnzymaticDigestion.setMissedCleavages()
-     EnzymaticDigestion.digest()
-     EnzymaticDigestion.peptideCount()
+     ProteaseDigestion.__init__
+     ProteaseDigestion.getMissedCleavages()
+     ProteaseDigestion.setMissedCleavages()
+     ProteaseDigestion.digest()
+     ProteaseDigestion.peptideCount()
     """
     # removed due to name clashes
-    # EnzymaticDigestion.getEnzyme()
-    # EnzymaticDigestion.setEnzyme()
-    # EnzymaticDigestion.getEnzymeByName()
+    # ProteaseDigestion.getEnzyme()
+    # ProteaseDigestion.setEnzyme()
+    # ProteaseDigestion.getEnzymeByName()
 
-    ff = pyopenms.EnzymaticDigestion()
-    #enz = pyopenms.EnzymaticDigestion().Enzyme()
+    ff = pyopenms.ProteaseDigestion()
+    #enz = pyopenms.ProteaseDigestion().Enzyme()
 
-    assert pyopenms.EnzymaticDigestion().getMissedCleavages is not None
-    assert pyopenms.EnzymaticDigestion().setMissedCleavages is not None
-    #assert pyopenms.EnzymaticDigestion().getEnzyme is not None
-    #assert pyopenms.EnzymaticDigestion().setEnzyme is not None
-    #assert pyopenms.EnzymaticDigestion().getEnzymeByName is not None
+    assert pyopenms.ProteaseDigestion().getMissedCleavages is not None
+    assert pyopenms.ProteaseDigestion().setMissedCleavages is not None
+    #assert pyopenms.ProteaseDigestion().getEnzyme is not None
+    #assert pyopenms.ProteaseDigestion().setEnzyme is not None
+    #assert pyopenms.ProteaseDigestion().getEnzymeByName is not None
 
-    assert pyopenms.EnzymaticDigestion().digest is not None
-    assert pyopenms.EnzymaticDigestion().peptideCount is not None
+    assert pyopenms.ProteaseDigestion().digest is not None
+    assert pyopenms.ProteaseDigestion().peptideCount is not None
 
     ff.setMissedCleavages(5)
     assert ff.getMissedCleavages() == 5
@@ -1831,7 +1831,7 @@ def testEnzymaticDigestion():
     #assert ff.getEnzyme() == enz.TRYPSIN
 
 @report
-def testEnzymaticDigestion():
+def testEnzymaticDigestionLogModel():
     ff = pyopenms.EnzymaticDigestionLogModel()
     assert pyopenms.EnzymaticDigestionLogModel().getLogThreshold is not None
     assert pyopenms.EnzymaticDigestionLogModel().setLogThreshold is not None
@@ -4365,7 +4365,7 @@ def testConsensusIDAlgorithmWorst():
     assert algo.apply
 
 @report
-def testEnzymes():
+def testDigestionEnzymeProtein():
     f = pyopenms.EmpiricalFormula()
 
     regex_description = b""
@@ -4373,9 +4373,8 @@ def testEnzymes():
     xtandem_id = b""
     comet_id = 0
     omssa_id = 0
-    e = pyopenms.Enzyme(b"testEnzyme", "K", set([]), regex_description,
-                        f, f, psi_id, xtandem_id,
-                        comet_id, omssa_id)
+    e = pyopenms.DigestionEnzymeProtein(b"testEnzyme", "K", set([]), regex_description,
+                                 f, f, psi_id, xtandem_id, comet_id, omssa_id)
 
 @report
 def testMRMAssay():
@@ -4446,43 +4445,19 @@ def testHMMState():
 
 
 @report
-def testEnzymesDB():
-    edb = pyopenms.EnzymesDB()
-    assert edb.setEnzymes
-    del edb
-
-    # create a second instance of EnzymesDB without anything bad happening 
-    edb = pyopenms.EnzymesDB()
+def testProteaseDB():
+    edb = pyopenms.ProteaseDB()
 
     f = pyopenms.EmpiricalFormula()
     synonyms = set([b"dummy", b"other"])
 
-    regex_description = b""
-    psi_id = b""
-    xtandem_id = b""
-    comet_id = 0
-    omssa_id = 0
-    e = pyopenms.Enzyme(b"testEnzyme", b"someregex", synonyms, regex_description,
-                        f, f, psi_id, xtandem_id, comet_id, omssa_id)
-    edb.addEnzyme(e)
-    assert edb.hasEnzyme(pyopenms.String("testEnzyme"))
-
-    edb = pyopenms.EnzymesDB(); 
     assert edb.hasEnzyme(pyopenms.String("Trypsin"))
 
     trypsin = edb.getEnzyme(pyopenms.String("Trypsin"))
-    edb.addEnzyme(trypsin)
 
     names = []
     edb.getAllNames(names)
-    assert b"testEnzyme" in names
-    assert edb.hasEnzyme(s(b"testEnzyme"))
-    assert edb.hasRegEx(s(b"someregex"))
-
-    # cannot clear a global variable and expect things to stay the same!!
-    # edb.clear()
-    # assert not edb.hasEnzyme(pyopenms.String("testEnzyme"))
-    # assert not edb.hasEnzyme(pyopenms.String("Trypsin"))
+    assert b"Trypsin" in names
 
 
 @report
@@ -4490,7 +4465,7 @@ def testElementDB():
     edb = pyopenms.ElementDB()
     del edb
 
-    # create a second instance of ElementDB without anything bad happening 
+    # create a second instance of ElementDB without anything bad happening
     edb = pyopenms.ElementDB()
 
     assert edb.hasElement(16)
@@ -4511,18 +4486,30 @@ def testElementDB():
     # assert e == e2
 
     #  not yet implemented
-    # 
+    #
     # const Map[ String, Element * ]  getNames() nogil except +
     # const Map[ String, Element * ] getSymbols() nogil except +
     # const Map[unsigned int, Element * ] getAtomicNumbers() nogil except +
 
 
 @report
+def testDPosition():
+    dp = pyopenms.DPosition1()
+    dp = pyopenms.DPosition1(1.0)
+    assert dp[0] == 1.0
+
+    dp = pyopenms.DPosition2()
+    dp = pyopenms.DPosition2(1.0, 2.0)
+
+    assert dp[0] == 1.0
+    assert dp[1] == 2.0
+
+@report
 def testResidueDB():
     rdb = pyopenms.ResidueDB()
     del rdb
 
-    # create a second instance of ResidueDB without anything bad happening 
+    # create a second instance of ResidueDB without anything bad happening
     rdb = pyopenms.ResidueDB()
 
     assert rdb.getNumberOfResidues() >= 20
@@ -4545,7 +4532,7 @@ def testModificationsDB():
     mdb = pyopenms.ModificationsDB()
     del mdb
 
-    # create a second instance of ModificationsDB without anything bad happening 
+    # create a second instance of ModificationsDB without anything bad happening
     mdb = pyopenms.ModificationsDB()
 
     assert mdb.getNumberOfModifications() > 1
@@ -4557,7 +4544,7 @@ def testModificationsDB():
 
     mods = set([])
     mdb.searchModifications(mods, s("Phosphorylation"), s("T"), pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert len(mods) == 1 
+    assert len(mods) == 1
 
     mods = set([])
     mdb.searchModifications(mods, s("NIC"), s("T"), pyopenms.ResidueModification.TermSpecificity.N_TERM)
@@ -4589,39 +4576,39 @@ def testModificationsDB():
 
     # search for specific modifications by mass
     m = mdb.getBestModificationByDiffMonoMass( 80.0, 1.0, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getId() == b"Phospho"
     assert m.getFullName() == b"Phosphorylation"
     assert m.getUniModAccession() == b"UniMod:21"
 
     m = mdb.getBestModificationByDiffMonoMass(80, 100, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getId() == b"Phospho"
     assert m.getFullName() == b"Phosphorylation"
     assert m.getUniModAccession() == b"UniMod:21"
 
     m = mdb.getBestModificationByDiffMonoMass(16, 1.0, b"M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getId() == b"Oxidation", m.getId()
     assert m.getFullName() == b"Oxidation or Hydroxylation", m.getFullName()
     assert m.getUniModAccession() == b"UniMod:35"
 
-    ### 
+    ###
 
     m = mdb.getBestModificationByMonoMass(80, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getId() == b"MOD:00439"
     assert m.getFullName() == b"O-phospho-L-threonine with neutral loss of phosphate", m.getFullName() # something crazy
     assert m.getUniModAccession() == b"" # no unimod for crazyness ...
 
     m = mdb.getBestModificationByMonoMass(147, 20, b"M", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getUniModAccession() == b"", m.getUniModAccession()
     assert m.getId() == b"MOD:00719", m.getId()
     assert m.getFullName() == b"oxidation to L-methionine sulfoxide", m.getFullName()
 
     m = mdb.getBestModificationByMonoMass( 96, 20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
-    assert m is not None 
+    assert m is not None
     assert m.getId() == b"MOD:00252", m.getId()
     assert m.getFullName() == b"keratan sulfate D-glucuronosyl-D-galactosyl-D-galactosyl-D-xylosyl-L-threonine", m.getFullName() # something crazy
     assert m.getUniModAccession() == b"", m.getUniModAccession() # no unimod for crazyness ...

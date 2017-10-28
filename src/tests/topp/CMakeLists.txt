@@ -411,7 +411,7 @@ set_tests_properties("TOPP_FileConverter_24_out" PROPERTIES DEPENDS "TOPP_FileCo
 add_test("TOPP_FileConverter_25" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_25.tmp -process_lowmemory -in_type mzML -out_type mzML -lossy_compression)
 add_test("TOPP_FileConverter_25_out" ${DIFF} -in1 FileConverter_25.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_25_output.mzML )
 set_tests_properties("TOPP_FileConverter_25_out" PROPERTIES DEPENDS "TOPP_FileConverter_25")
-# Purpose: test  mzXML conversion with MaxQuant compatibility options (should add a scan index, thermo manufacturer and other things)
+# Purpose: test mzXML conversion with MaxQuant compatibility options (should add a scan index, Thermo manufacturer and other things)
 add_test("TOPP_FileConverter_26" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_26.tmp -force_MaxQuant_compatibility -out_type mzXML)
 add_test("TOPP_FileConverter_26_out" ${DIFF} -in1 FileConverter_26.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_26_output.mzML )
 set_tests_properties("TOPP_FileConverter_26_out" PROPERTIES DEPENDS "TOPP_FileConverter_26")
@@ -1022,6 +1022,11 @@ set_tests_properties("TOPP_MascotAdapter_1_out1" PROPERTIES DEPENDS "TOPP_Mascot
 add_test("TOPP_MascotAdapter_2" ${TOPP_BIN_PATH}/MascotAdapter -test -in ${DATA_DIR_TOPP}/MascotAdapter_2_input.mascotXML -out MascotAdapter_2_output.tmp -mascot_out)
 add_test("TOPP_MascotAdapter_2_out1" ${DIFF} -in1 MascotAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MascotAdapter_2_output.idXML )
 set_tests_properties("TOPP_MascotAdapter_2_out1" PROPERTIES DEPENDS "TOPP_MascotAdapter_2")
+
+### SpecLibSearcher tests
+add_test("TOPP_SpecLibSearcher_1" ${TOPP_BIN_PATH}/SpecLibSearcher -test -ini ${DATA_DIR_TOPP}/SpecLibSearcher_1_parameters.ini -in ${DATA_DIR_TOPP}/SpecLibSearcher_1.mzML -lib ${DATA_DIR_TOPP}/SpecLibSearcher_1.MSP -out SpecLibSearcher_1.tmp)
+add_test("TOPP_SpecLibSearcher_1_out1" ${DIFF} -in1 SpecLibSearcher_1.tmp  -in2 ${DATA_DIR_TOPP}/SpecLibSearcher_1.idXML -whitelist "?xml-stylesheet" "IdentificationRun date" "db=")
+set_tests_properties("TOPP_SpecLibSearcher_1_out1" PROPERTIES DEPENDS "TOPP_SpecLibSearcher_1")
 
 if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
