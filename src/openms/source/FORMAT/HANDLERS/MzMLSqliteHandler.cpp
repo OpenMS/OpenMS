@@ -57,9 +57,10 @@ namespace OpenMS
 
     /*
      *
-     * This function populates an empty data container (MSSpectrum or
-     * MSChromatogram with data). It is used when reading sqMass files.  It
-     * parses all rows produced by an sql statement with the following columns:
+     * This function populates a set of empty data containers (MSSpectrum or
+     * MSChromatogram) with data which are read from an SQLite statement. It is
+     * used when reading sqMass files.  It parses all rows produced by an sql
+     * statement with the following columns:
      *
      * id (integer)
      * native_id (string)
@@ -72,18 +73,18 @@ namespace OpenMS
      * 
      */
     template<class ContainerT>
-    void populateContainer_sub_(sqlite3_stmt *stmt, std::vector<ContainerT >& container)
+    void populateContainer_sub_(sqlite3_stmt *stmt, std::vector<ContainerT >& containers)
     {
       // perform first step
       sqlite3_step(stmt);
 
-      std::vector<int> cont_data; cont_data.resize(container.size());
+      std::vector<int> cont_data; cont_data.resize(containers.size());
       std::map<Size,Size> sql_container_map;
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
       {
         Size id_orig = sqlite3_column_int( stmt, 0 );
 
-        // map the sql table id to the index in the "container" vector
+        // map the sql table id to the index in the "containers" vector
         if (sql_container_map.find(id_orig) == sql_container_map.end()) 
         {
           Size tmp = sql_container_map.size();
@@ -94,12 +95,12 @@ namespace OpenMS
         const unsigned char * native_id_ = sqlite3_column_text(stmt, 1);
         std::string native_id(reinterpret_cast<const char*>(native_id_), sqlite3_column_bytes(stmt, 1));
 
-        if (curr_id >= container.size())
+        if (curr_id >= containers.size())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Data for non-existent spectrum / chromatogram found");
         }
-        if (native_id != container[curr_id].getNativeID())
+        if (native_id != containers[curr_id].getNativeID())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
               "Native id for spectrum / chromatogram doesnt match");
@@ -155,9 +156,9 @@ namespace OpenMS
         if (data_type == 1)
         {
           // intensity
-          if (container[curr_id].empty()) container[curr_id].resize(data.size());
+          if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (typename ContainerT::iterator it = container[curr_id].begin(); it != container[curr_id].end(); ++it, ++data_it)
+          for (typename ContainerT::iterator it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
             it->setIntensity(*data_it);
           }
@@ -165,16 +166,16 @@ namespace OpenMS
         }
         else if (data_type == 0)
         {
-          // mz (should only occur in container)
+          // mz (should only occur in spectra)
           if (boost::is_same<ContainerT, MSChromatogram>::value) 
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                 "Found m/z data type for spectra (instead of retention time)");
           }
 
-          if (container[curr_id].empty()) container[curr_id].resize(data.size());
+          if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (typename ContainerT::iterator it = container[curr_id].begin(); it != container[curr_id].end(); ++it, ++data_it)
+          for (typename ContainerT::iterator it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
             it->setMZ(*data_it);
           }
@@ -188,9 +189,9 @@ namespace OpenMS
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
                 "Found retention time data type for spectra (instead of m/z)");
           }
-          if (container[curr_id].empty()) container[curr_id].resize(data.size());
+          if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();
-          for (typename ContainerT::iterator it = container[curr_id].begin(); it != container[curr_id].end(); ++it, ++data_it)
+          for (typename ContainerT::iterator it = containers[curr_id].begin(); it != containers[curr_id].end(); ++it, ++data_it)
           {
             it->setMZ(*data_it);
           }
