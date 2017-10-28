@@ -67,374 +67,330 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPMSstatsConverter final :
-    public TOPPBase
+public TOPPBase
 {
 public:
 
-  static const String param_in_consensusxml;
-  static const String param_in_experimental_design;
-  static const String param_out;
-  static const String param_labeled_reference_peptides;
+	static const String param_in_consensusxml;
+	static const String param_in_design_run;
+	static const String param_in_design_condition;
 
-  static const String msstats_header_filename;
-  static const String msstats_header_bioreplicate;
-  static const String msstats_header_run;
-  static const String msstats_header_condition;
+	static const String param_out;
+	static const String param_labeled_reference_peptides;
 
-  static const String na_string;
+	static const String msstats_header_filename;
+	static const String msstats_header_bioreplicate;
+	static const String msstats_header_run;
+	static const String msstats_header_condition;
 
-  // The meta value of the peptide identification which is going to be used for the experimental design link
-  static const String meta_value_exp_design_key;
+	static const String na_string;
 
-  TOPPMSstatsConverter() :
-    TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
-  {
-  }
+	// The meta value of the peptide identification which is going to be used for the experimental design link
+	static const String meta_value_exp_design_key;
+
+	TOPPMSstatsConverter() :
+		TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
+	{
+	}
 
 protected:
 
-  // this function will be used to register the tool parameters
-  // it gets automatically called on tool execution
-  void registerOptionsAndFlags_() final override
-  {
-    // Input consensusXML
-    this->registerInputFile_(TOPPMSstatsConverter::param_in_consensusxml, "<in_consensusxml>", "", "Input consensusXML with peptide intensities", true, false);
-    this->setValidFormats_(TOPPMSstatsConverter::param_in_consensusxml, ListUtils::create<String>("consensusXML"));
+	// this function will be used to register the tool parameters
+	// it gets automatically called on tool execution
+	void registerOptionsAndFlags_() final override
+	{
+		// Input consensusXML
+		this->registerInputFile_(TOPPMSstatsConverter::param_in_consensusxml, "<in_consensusxml>", "", "Input consensusXML with peptide intensities", true, false);
+		this->setValidFormats_(TOPPMSstatsConverter::param_in_consensusxml, ListUtils::create<String>("consensusXML"));
 
-    // Input file for the experimental design
-    this->registerInputFile_(TOPPMSstatsConverter::param_in_experimental_design, "<in_experimental_design>", "",
-                             "Experimental design as CSV file. The required columns are FileName,Condition,BioReplicate,Run", true, false);
-    this->setValidFormats_(TOPPMSstatsConverter::param_in_experimental_design, ListUtils::create<String>("csv"));
+		this->_registerExperimentalDesignInputFile(TOPPMSstatsConverter::param_in_design_run, "<in_design_run>", "TSV file containing the run description");
+		this->_registerExperimentalDesignInputFile(TOPPMSstatsConverter::param_in_design_condition, "<in_design_condition>", "TSV file containing the condition description");
 
-    // Isotope label type
-    this->registerFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides, "If set, IsotopeLabelType is 'H', else 'L'");
+		// Isotope label type
+		this->registerFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides, "If set, IsotopeLabelType is 'H', else 'L'");
 
-    // Output CSV file
-    this->registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
-    this->setValidFormats_(TOPPMSstatsConverter::param_out, ListUtils::create<String>("csv"));
-  }
+		// Output CSV file
+		this->registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
+		this->setValidFormats_(TOPPMSstatsConverter::param_out, ListUtils::create<String>("csv"));
+	}
 
-  // the main_ function is called after all parameters are read
-  ExitCodes main_(int, const char **) final override
-  {
-    // Read the experimental design file and validate the format
-    CsvFile file_experimental_design;
-    file_experimental_design.fload(this->getStringOption_(TOPPMSstatsConverter::param_in_experimental_design));
+	// the main_ function is called after all parameters are read
+	ExitCodes main_(int, const char **) final override
+			{
 
-    // Read the experimental design file, validate the format, and map the exp_design_key to the index where it can
-    // be found in the CSVfile (the experimental_design_key normally is the filename with the raw data of the experiment)
-    std::map< String, std::set< Size > > experimental_design_key_to_rowindex; // Maps the experimental design key (FileName) to the row indices where it occurs
-    std::map< String, Size > columnname_to_columnindex; // Maps the name of the column in the CSV file (FileName, BioReplicate, Run, Condition) to the index of the column
+		DesignFile file_run(this->getStringOption_(TOPPMSstatsConverter::param_in_design_run), ListUtils::create<String>("Run,Condition"), "Spectra File");
+		DesignFile file_condition(this->getStringOption_(TOPPMSstatsConverter::param_in_design_condition), ListUtils::create<String>("Condition"), "Biological Replicate");
 
-    {
-      const Size n_lines = file_experimental_design.rowCount();
-      std::set < String > headers = {
-          TOPPMSstatsConverter::msstats_header_filename,
-          TOPPMSstatsConverter::msstats_header_bioreplicate,
-          TOPPMSstatsConverter::msstats_header_run,
-          TOPPMSstatsConverter::msstats_header_condition
-      };
-      const Size headers_size = headers.size();
+		return EXECUTION_OK;
 
-      // Advance to the header line in the input experimental design CSV
-      Size i = 0;
-      for (; i < n_lines; ++i)
-      {
-        std::vector< String > line;
-        file_experimental_design.getRow(i, line);
+		// Read the input files
+		ConsensusMap consensus_map;
+		ConsensusXMLFile().load(this->getStringOption_(TOPPMSstatsConverter::param_in_consensusxml), consensus_map);
 
-        // Skip empty lines
-        if (line.empty())
-        {
-          continue;
-        }
+		// The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
+		TextFile csv_out;
 
-        // Header line must have four entries
-        if (line.size() != headers_size)
-        {
-        	LOG_FATAL_ERROR << "FATAL: Header line of experimental design CSV file does not consist of exactly four entries!" << std::endl;
-        	return ILLEGAL_PARAMETERS;
-        }
+		// Add the header line
+		csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run,Intensity");
 
-        // Trim all entries of the header line
-        for (Size j = 0; j < line.size(); ++j)
-        {
-        	line[j] = line[j].trim();
-        }
+		// Regex definition for fragment ions
+		std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
 
-        // Put the encountered column names in a set
-        std::set< String > col_set;
-        col_set.insert(line.begin(), line.end());
-        const Size n_cols = col_set.size();
-        assert(n_cols > 0);
+		// Iterate protein identifications and collect spectra_data metavalue and ID
+		std::map< String, std::set< String> > protid_to_filenames;
+		for (const auto & protein_identification : consensus_map.getProteinIdentifications())
+		{
+			const String & identifier = protein_identification.getIdentifier();
 
-        // Compare the encountered column names with the expected ones
-        std::set< String > diff;
-        bool headers_valid = false;
-        if (n_cols <= headers_size)
-        {
-          std::set_difference(headers.begin(), headers.end(), col_set.begin(), col_set.end(),
-                              std::inserter(diff, diff.begin()));
-          if (diff.size() != 0)
-          {
-            LOG_ERROR << "FATAL: Columns in experimental design file are missing. The following columns could not be found:";
-          }
-          else
-          {
-            // All required columns are present
-            headers_valid = true;
-          }
-        }
-        else
-        {
-          // n_cols > headers_size
-          std::set_difference(col_set.begin(), col_set.end(), headers.begin(), headers.end(),
-                              std::inserter(diff, diff.begin()));
-          assert(diff.size() > 0);
-          LOG_ERROR << "FATAL: Too many columns in experimental design input file. The following columns are unrecognized:";
-        }
+			if (protein_identification.metaValueExists(TOPPMSstatsConverter::meta_value_exp_design_key) == false)
+			{
+				LOG_FATAL_ERROR << "FATAL: ProteinIdentification does not have meta value for original file. Cannot continue!" << std::endl;
+				return ILLEGAL_PARAMETERS;
+			}
+			const StringList & exp_design_key = protein_identification.getMetaValue(TOPPMSstatsConverter::meta_value_exp_design_key).toStringList();
+			for (const auto & meta_value : exp_design_key)
+			{
+				protid_to_filenames[identifier].insert(File::basename(meta_value));
+			}
+		}
 
-        if (headers_valid)
-        {
-          // Map the column name to the index
-          for (Size j = 0; j < n_cols; ++j)
-          {
-            columnname_to_columnindex[line[j]] = j;
-          }
+		// These are placeholder fragment annotations and peptide evidences in case the original ones are empty
 
-          // Do not continue reading the file here
-          break;
-        }
-        else
-        {
-          // The header has not been valid, print the problematic column names (either missing or too
-          for (const auto & entry: diff)
-          {
-            LOG_ERROR << " " << entry;
-          }
-          LOG_ERROR << std::endl;
-          return ILLEGAL_PARAMETERS;
-        }
-      }
-      // End of reading the CSV header
+		// Placeholder fragment annotation
+		PeptideHit::PeakAnnotation new_peak_ann;
+		new_peak_ann.annotation = TOPPMSstatsConverter::na_string;
+		new_peak_ann.charge = -1;
+		std::vector< PeptideHit::PeakAnnotation > placeholder_fragment_annotations = {new_peak_ann};
 
-      // Iterate all remaining lines in the experimental design file
-      std::set< String > filenames;
-      Int expected_run = 0;
-      for (++i; i < n_lines; ++i)
-      {
-        std::vector< String > line;
-        file_experimental_design.getRow(i, line);
+		// Placeholder peptide evidence
+		PeptideEvidence new_pep_ev;
+		new_pep_ev.setProteinAccession(TOPPMSstatsConverter::na_string);
+		std::vector< PeptideEvidence > placeholder_peptide_evidences = {new_pep_ev};
 
-        // Skip empty lines
-        if (line.empty())
-        {
-          continue;
-        }
-        // Check whether the number of entries in this line is as expected
-        if (line.size() != headers_size)
-        {
-        	LOG_FATAL_ERROR << "FATAL: Wrong number of entries in line "
-              << (i + 1) << ". Have: "  << line.size() << ". Expected: " << headers_size << std::endl;
-          return ILLEGAL_PARAMETERS;
-        }
+		// From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
+		const String isotope_label_type = this->getFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides) ? "H" : "L";
 
-        // Trim all entries of this line
-        for (Size j = 0; j < line.size(); ++j)
-        {
-          line[j] = line[j].trim();
-        }
+		// Keeps track of precursor charges and accessions of a peptide sequence to avoid duplicate lines in output (logic currently not used)
+		//String previous_sequence = "";
+		//std::set< Int > previous_precursor_charges;
+		//std::set< String > previous_prot_accs;
 
-        // Check that the run has the expected value
-        Int current_run = line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_run]].toInt();
-        if (current_run != ++expected_run)
-        {
-        	LOG_FATAL_ERROR  << "FATAL: Run number unexpected! Got " << current_run << ". Expected: " << expected_run << "." << std::endl;
-        	return ILLEGAL_PARAMETERS;
-        }
-        const String & filename = line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_filename]];
-        if (filenames.find(filename) != filenames.end())
-        {
-          LOG_FATAL_ERROR << "FATAL: File name " << filename << " appears multiple times in experimental design CSV input!" << std::endl;
-          return ILLEGAL_PARAMETERS;
-        }
-        filenames.insert(filename);
+		for (const auto & consensus_feature : consensus_map)
+		{
+			Peak2D::IntensityType intensity = consensus_feature.getIntensity();
+			assert(intensity > 0);
 
-        // Remember the row in the experimental design file for this file name
-        experimental_design_key_to_rowindex[filename].insert(i);
-      }
-    }
-    // End of reading the experimental design file
+			for (const auto & pep_id : consensus_feature.getPeptideIdentifications())
+			{
+				// Get runs that belong to this identifier
+				std::set< String > filenames;
+				assert(protid_to_filenames.find(pep_id.getIdentifier()) != protid_to_filenames.end());
 
-    // Print column name to index mapping
-    if (this->debug_level_ > 0)
-    {
-      this->writeDebug_("Experimental Design Columns:", 1);
-      for (const auto & columnname : columnname_to_columnindex)
-      {
-        this->writeDebug_(columnname.first + " : " + columnname.second, 1);
-      }
-    }
-    // Read the input files
-    ConsensusMap consensus_map;
-    ConsensusXMLFile().load(this->getStringOption_(TOPPMSstatsConverter::param_in_consensusxml), consensus_map);
+				for (const auto & filename : protid_to_filenames[pep_id.getIdentifier()])
+				{
+					// Test whether the experimental design specifies the encountered filename
+					if (file_run.isRowName(filename) == false)
+					{
+						LOG_FATAL_ERROR << "FATAL: Experimental design does not contain information on file " << filename << ". Cannot continue!" << std::endl;
+						return ILLEGAL_PARAMETERS;
+					}
+					filenames.insert(filename);
+				}
 
-    // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
-    TextFile csv_out;
+				for (const auto & pep_hit : pep_id.getHits())
+				{
+					const std::vector< PeptideHit::PeakAnnotation > & original_fragment_annotations = pep_hit.getPeakAnnotations();
+					const std::vector< PeptideEvidence > & original_peptide_evidences = pep_hit.getPeptideEvidences();
 
-    // Add the header line
-    csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run,Intensity");
+					// Decide whether to use original or placeholder iterator
+					const std::vector< PeptideHit::PeakAnnotation > & fragment_annotations = (original_fragment_annotations.size() == 0) ? placeholder_fragment_annotations : original_fragment_annotations;
+					const std::vector< PeptideEvidence> & peptide_evidences = (original_peptide_evidences.size() == 0) ? placeholder_peptide_evidences : original_peptide_evidences;
 
-    // Regex definition for fragment ions
-    std::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
+					// Variables of the peptide hit
+					// MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
+					const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
 
-    // Iterate protein identifications and collect spectra_data metavalue and ID
-    std::map< String, std::set< String> > protid_to_filenames;
-    for (const auto & protein_identification : consensus_map.getProteinIdentifications())
-    {
-      const String & identifier = protein_identification.getIdentifier();
+					// Have to combine all fragment annotations with all peptide evidences
+					for (const auto & frag_ann : fragment_annotations)
+					{
+						String fragment_ion = TOPPMSstatsConverter::na_string;
 
-      if (protein_identification.metaValueExists(TOPPMSstatsConverter::meta_value_exp_design_key) == false)
-      {
-    	LOG_FATAL_ERROR << "FATAL: ProteinIdentification does not have meta value for original file. Cannot continue!" << std::endl;
-        return ILLEGAL_PARAMETERS;
-      }
-      const StringList & exp_design_key = protein_identification.getMetaValue(TOPPMSstatsConverter::meta_value_exp_design_key).toStringList();
-      for (const auto & meta_value : exp_design_key)
-      {
-        protid_to_filenames[identifier].insert(File::basename(meta_value));
-      }
-    }
+						// Determine if the FragmentIon field can be assigned
+						if (frag_ann.annotation != TOPPMSstatsConverter::na_string)
+						{
+							std::set< std::string > frag_ions;
+							std::smatch sm;
+							std::regex_search(frag_ann.annotation, sm, regex_msstats_FragmentIon);
+							frag_ions.insert(sm.begin(), sm.end());
+							if (frag_ions.size() == 1)
+							{
+								for (auto frag_ions_elem : frag_ions)
+								{
+									fragment_ion = frag_ions_elem;
+								}
+							}
+						}
+						const Int frag_charge = (std::max)(frag_ann.charge, 0);
 
-    // These are placeholder fragment annotations and peptide evidences in case the original ones are empty
+						for (const auto & pep_ev : peptide_evidences)
+						{
+							// Write new line for each protein accession and for each run
+							for (const String & filename : filenames)
+							{
+								const String & accession = pep_ev.getProteinAccession();
+								const String & sequence = pep_hit.getSequence().toUnmodifiedString();
 
-    // Placeholder fragment annotation
-    PeptideHit::PeakAnnotation new_peak_ann;
-    new_peak_ann.annotation = TOPPMSstatsConverter::na_string;
-    new_peak_ann.charge = -1;
-    std::vector< PeptideHit::PeakAnnotation > placeholder_fragment_annotations = {new_peak_ann};
+								// The peptide sequence has changed, the charges and accessions of the previous peptide can be removed
+								//if (sequence != previous_sequence)
+								//{
+								//  previous_precursor_charges.clear();
+								//  previous_prot_accs.clear();
+								//  previous_sequence = sequence;
+								//}
 
-    // Placeholder peptide evidence
-    PeptideEvidence new_pep_ev;
-    new_pep_ev.setProteinAccession(TOPPMSstatsConverter::na_string);
-    std::vector< PeptideEvidence > placeholder_peptide_evidences = {new_pep_ev};
+								// Determine whether we need to write the current protein hit (precursor charge or accession changes)
+								//if (   previous_prot_accs.find(accession) == previous_prot_accs.end()
+								//    || previous_precursor_charges.find(precursor_charge) == previous_precursor_charges.end())
+								//{
+								csv_out.addLine(  accession
+										+ ',' + sequence
+										+ ',' + precursor_charge
+										+ ',' + fragment_ion
+										+ ',' + frag_charge
+										+ ',' + isotope_label_type
+										+ ',' + file_run.get(filename, "Condition")
+										+ ',' + "TODO Bioreplicate"
+										+ ',' + file_run.get(filename, "Run")
+										+ ',' + intensity);
+								//previous_prot_accs.insert(accession);
+								//previous_precursor_charges.insert(precursor_charge);
+								//}
+							}
+						}
+					}
+				}
+			}
+		}
+		// Store the final assembled CSV file
+		csv_out.store(this->getStringOption_(TOPPMSstatsConverter::param_out));
+		return EXECUTION_OK;
+			}
 
-    // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
-    const String isotope_label_type = this->getFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides) ? "H" : "L";
+private:
 
-    // Keeps track of precursor charges and accessions of a peptide sequence to avoid duplicate lines in output (logic currently not used)
-    //String previous_sequence = "";
-    //std::set< Int > previous_precursor_charges;
-    //std::set< String > previous_prot_accs;
+	static void _conditionedFatalError(const String & message, bool error_condition)
+	{
+		if (error_condition)
+		{
+			LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
+			throw 1;
+		}
+	}
 
-    for (const auto & consensus_feature : consensus_map)
-    {
-      Peak2D::IntensityType intensity = consensus_feature.getIntensity();
-      assert(intensity > 0);
+	class DesignFile final
+	{
+	public:
+		DesignFile(const String & filename, const std::vector< String > & required_headers, const String & index_column)
+			: _n_columns(0)
+	{
+			CsvFile input_file;
+			input_file.fload(filename, '\t');
 
-      for (const auto & pep_id : consensus_feature.getPeptideIdentifications())
-      {
-        // Get runs that belong to this identifier
-        std::set< Size > runs;
-        assert(protid_to_filenames.find(pep_id.getIdentifier()) != protid_to_filenames.end());
+			std::set< String > row_names;
+			for (Size index_row = 0; index_row < input_file.rowCount(); ++index_row)
+			{
+				std::vector< String > line;
+				input_file.getRow(index_row, line);
 
-        for (const auto & filename : protid_to_filenames[pep_id.getIdentifier()])
-        {
-          // Test whether the experimental design specifies the encountered filename
-          if (experimental_design_key_to_rowindex.find(filename) == experimental_design_key_to_rowindex.end())
-          {
-        	LOG_FATAL_ERROR << "FATAL: Experimental design does not contain information on file " << filename << ". Cannot continue!" << std::endl;
-            return ILLEGAL_PARAMETERS;
-          }
-          const std::set< Size > & indices = experimental_design_key_to_rowindex[filename];
-          runs.insert(indices.begin(), indices.end());
-        }
+				// Skip empty lines
+				if (line.empty())
+				{
+					continue;
+				}
+				Size n_entries(line.size());
+				// Trim all entries
+				for (Size i = 0; i < n_entries; ++i)
+				{
+					line[i] = line[i].trim();
+					_conditionedFatalError("Entry is not allowed to be empty!", line[i].empty());
+				}
 
-        for (const auto & pep_hit : pep_id.getHits())
-        {
-          const std::vector< PeptideHit::PeakAnnotation > & original_fragment_annotations = pep_hit.getPeakAnnotations();
-          const std::vector< PeptideEvidence > & original_peptide_evidences = pep_hit.getPeptideEvidences();
+				if (this->_n_columns > 0)
+				{
+					_conditionedFatalError("Conflicting number of entries: " + n_entries + " vs. " + this->_n_columns, n_entries != this->_n_columns);
+					const String & row_name = line[this->_columnname_to_columnindex[index_column]];
+					_conditionedFatalError("Row name " + row_name + " appears multiple times!", row_names.find(row_name) != row_names.end());
+					this->_entries.push_back(line);
+					row_names.insert(row_name);
+					this->_rowname_to_rowindex[row_name] = row_names.size() - 1;
+				}
+				else
+				{
+					for (Size i = 0; i < n_entries; ++i)
+					{
+						// Ensure that the header lines are unique
+						for (Size j = 0; j < i; ++j)
+						{
+							_conditionedFatalError("Header names must be unique, but " + line[i] + " appears several times!", line[i] == line[j]);
+						}
+						// Remember the index at which this header appears
+						this->_columnname_to_columnindex[line[i]] = i;
+					}
+					// Make sure that all required headers exist
+					for (const String & header : required_headers)
+					{
+						_conditionedFatalError("Header " + header + " does not exist in input design file!", std::find(line.begin(), line.end(), header) == line.end());
+					}
+					// Make sure that the index column appears in the header
+					_conditionedFatalError("Index column is not a header!", std::find(line.begin(), line.end(), index_column) == line.end());
+					this->_n_columns = n_entries;
+				}
+			}
+	}
 
-          // Decide whether to use original or placeholder iterator
-          const std::vector< PeptideHit::PeakAnnotation > & fragment_annotations = (original_fragment_annotations.size() == 0) ? placeholder_fragment_annotations : original_fragment_annotations;
-          const std::vector< PeptideEvidence> & peptide_evidences = (original_peptide_evidences.size() == 0) ? placeholder_peptide_evidences : original_peptide_evidences;
+		inline String get(const String & row_name, const String & column_name) const
+		{
+			return (this->_entries[this->_rowname_to_rowindex[row_name]])[this->_columnname_to_columnindex[column_name]];
+		}
 
-          // Variables of the peptide hit
-          // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
-          const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
+		inline bool isRowName(const String & row_name)
+		{
+			return this->_rowname_to_rowindex.find(row_name) != this->_rowname_to_rowindex.end();
+		}
 
-          // Have to combine all fragment annotations with all peptide evidences
-          for (const auto & frag_ann : fragment_annotations)
-          {
-            String fragment_ion = TOPPMSstatsConverter::na_string;
 
-            // Determine if the FragmentIon field can be assigned
-            if (frag_ann.annotation != TOPPMSstatsConverter::na_string)
-            {
-              std::set< std::string > frag_ions;
-              std::smatch sm;
-              std::regex_search(frag_ann.annotation, sm, regex_msstats_FragmentIon);
-              frag_ions.insert(sm.begin(), sm.end());
-              if (frag_ions.size() == 1)
-              {
-                for (auto frag_ions_elem : frag_ions)
-                {
-                  fragment_ion = frag_ions_elem;
-                }
-              }
-            }
-            const Int frag_charge = (std::max)(frag_ann.charge, 0);
+	private:
 
-            for (const auto & pep_ev : peptide_evidences)
-            {
-              // Write new line for each protein accession and for each run
-              for (const auto & index : runs)
-              {
-                std::vector< String > line;
-                file_experimental_design.getRow(index, line);
+		// The entries of the file
+		std::vector< std::vector < String > > _entries;
 
-                const String & accession = pep_ev.getProteinAccession();
-                const String & sequence = pep_hit.getSequence().toUnmodifiedString();
+		// Number of columns in the file
+		Size _n_columns;
 
-                // The peptide sequence has changed, the charges and accessions of the previous peptide can be removed
-                //if (sequence != previous_sequence)
-                //{
-                //  previous_precursor_charges.clear();
-                //  previous_prot_accs.clear();
-                //  previous_sequence = sequence;
-                //}
+		// Maps the column name to the index
+		std::map< String, Size > _columnname_to_columnindex;
 
-                // Determine whether we need to write the current protein hit (precursor charge or accession changes)
-                //if (   previous_prot_accs.find(accession) == previous_prot_accs.end()
-                //    || previous_precursor_charges.find(precursor_charge) == previous_precursor_charges.end())
-                //{
-                csv_out.addLine(  accession
-                                    + ',' + sequence
-                                    + ',' + precursor_charge
-                                    + ',' + fragment_ion
-                                    + ',' + frag_charge
-                                    + ',' + isotope_label_type
-                                    + ',' + line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_condition]]
-                                    + ',' + line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_bioreplicate]]
-                                    + ',' + line[columnname_to_columnindex[TOPPMSstatsConverter::msstats_header_run]]
-                                    + ',' + intensity);
-                //previous_prot_accs.insert(accession);
-                //previous_precursor_charges.insert(precursor_charge);
-                //}
-              }
-            }
-          }
-        }
-      }
-    }
-    // Store the final assembled CSV file
-    csv_out.store(this->getStringOption_(TOPPMSstatsConverter::param_out));
-    return EXECUTION_OK;
-   }
+		// Maps the row_name (column can be specified in constructor) to row index
+		std::map< String, Size > _rowname_to_rowindex;
+	};
+
+
+	// Advances
+	//this->registerInputFile_(TOPPMSstatsConverter::param_in_experimental_design, "<in_experimental_design>", "",
+	//                           "Experimental design as CSV file. The required columns are FileName,Condition,BioReplicate,Run", true, false
+
+	void _registerExperimentalDesignInputFile(const String & param_name, const String & argument, const String & description)
+	{
+		static const StringList valid_formats = ListUtils::create<String>("tsv");
+		this->registerInputFile_(param_name, argument, "", description, true, false);
+		this->setValidFormats_(param_name, valid_formats, true);
+	}
 };
 
 const String TOPPMSstatsConverter::param_in_consensusxml = "in";
-const String TOPPMSstatsConverter::param_in_experimental_design = "in_experimental_design";
+const String TOPPMSstatsConverter::param_in_design_run = "in_design_run";
+const String TOPPMSstatsConverter::param_in_design_condition = "in_design_condition";
+
 const String TOPPMSstatsConverter::param_out = "out";
 const String TOPPMSstatsConverter::na_string = "NA";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
@@ -449,7 +405,7 @@ const String TOPPMSstatsConverter::msstats_header_condition = "Condition";
 // the actual main function needed to create an executable
 int main(int argc, const char ** argv)
 {
-  TOPPMSstatsConverter tool;
-  return tool.main(argc, argv);
+	TOPPMSstatsConverter tool;
+	return tool.main(argc, argv);
 }
 /// @endcond
