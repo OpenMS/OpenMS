@@ -2328,6 +2328,16 @@
   </AnalysisProtocolCollection>
   <DataCollection>
     <Inputs>
+
+		<SpectraData location="dummy.mzML" id="14705575572540028169">
+			<FileFormat> 
+				<cvParam accession="MS:1000584" cvRef="PSI-MS" name="mzML format"/>
+			</FileFormat>
+			<SpectrumIDFormat> 
+ 				<cvParam accession="MS:1000774" cvRef="PSI-MS" name="multiple peak list nativeID format"/>
+			</SpectrumIDFormat> 
+		</SpectraData>
+
     </Inputs>
     <AnalysisData>
       <SpectrumIdentificationList id="SIL_0" numSequencesSearched="0">

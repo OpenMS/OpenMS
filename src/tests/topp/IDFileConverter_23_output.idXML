@@ -170,7 +170,7 @@
 			<ProteinHit id="PH_54" accession="YBL030C" score="0" sequence="MSSNAQVK" >
 				<UserParam type="string" name="isDecoy" value="false"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
+			<UserParam type="stringList" name="spectra_data" value="[dummy.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="SEQUEST:xcorr" higher_score_better="true" significance_threshold="0" MZ="709.069946289063" spectrum_reference="35-35" >
 			<PeptideHit score="0.241223007" sequence="IPYSPK" charge="1" start="0" end="6" protein_refs="PH_8" >
