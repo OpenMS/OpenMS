@@ -468,6 +468,7 @@ protected:
     registerSubsection_("Library", "Library parameters section");
 
     registerSubsection_("RTNormalization", "Parameters for the RTNormalization for iRT petides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
+    registerSubsection_("Debugging", "Debugging");
   }
 
   Param getSubsectionDefaults_(const String& name) const
@@ -551,6 +552,15 @@ protected:
       p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
       return p;
     }
+    else if (name == "Debugging")
+    {
+      Param p;
+      p.setValue("irt_mzml", "", "Chromatogram mzML containing the iRT peptides");
+      // p.setValidFormats_("irt_mzml", ListUtils::create<String>("mzML"));
+      p.setValue("irt_trafo", "", "Transformation file for RT transform");
+      // p.setValidFormats_("irt_trafo", ListUtils::create<String>("trafoXML"));
+      return p;
+    }
     else if (name == "Library")
     {
       return TransitionTSVReader().getDefaults();
@@ -623,7 +633,8 @@ protected:
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
     std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
     const Param& feature_finder_param, const ChromExtractParams& cp_irt,
-    const Param& irt_detection_param, const String & mz_correction_function, Size debug_level, bool sonar, bool load_into_memory)
+    const Param& irt_detection_param, const String & mz_correction_function,
+    Size debug_level, bool sonar, bool load_into_memory, const String& debug_output)
   {
     TransformationDescription trafo_rtnorm;
     if (!trafo_in.empty())
@@ -651,6 +662,12 @@ protected:
       wf.setLogType(log_type_);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
           feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar, load_into_memory);
+
+      if (!debug_output.empty())
+      {
+        TransformationXMLFile trafoxml;
+        trafoxml.store(debug_output, trafo_rtnorm);
+      }
     }
     return trafo_rtnorm;
   }
@@ -710,6 +727,8 @@ protected:
 
     double min_rsq = getDoubleOption_("min_rsq");
     double min_coverage = getDoubleOption_("min_coverage");
+
+    Param debug_params = getParam_().copy("Debugging:", true);
 
     String readoptions = getStringOption_("readOptions");
     String mz_correction_function = getStringOption_("mz_correction_function");
@@ -918,10 +937,11 @@ protected:
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
+    String debug_output = debug_params.getValue("irt_trafo");
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in,
         irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
         cp_irt, irt_detection_param, mz_correction_function, debug_level,
-        sonar, load_into_memory);
+        sonar, load_into_memory, debug_output);
 
     ///////////////////////////////////
     // Set up chromatogram output
