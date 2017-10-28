@@ -56,22 +56,39 @@ const double C13C12_MASSDIFF_U = 1.0033548;
 
 namespace OpenMS
 {
+
+  void adjustExtractionWindow(double& right, double& left, const double& dia_extract_window_, const bool& dia_extraction_ppm_)
+  {
+    if (dia_extraction_ppm_)
+    {
+      left -= left * dia_extract_window_ / 2e6;
+      right += right * dia_extract_window_ / 2e6;
+    }
+    else
+    {
+      left -= dia_extract_window_ / 2.0;
+      right += dia_extract_window_ / 2.0;
+    }
+  }
+
   DIAScoring::DIAScoring() :
     DefaultParamHandler("DIAScoring")
   {
 
-    defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th.");
+    defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th or ppm.");
     defaults_.setMinFloat("dia_extraction_window", 0.0);
-    defaults_.setValue("dia_centroided", "false", "Use centroded DIA data.");
+    defaults_.setValue("dia_extraction_unit", "Th", "DIA extraction window unit");
+    defaults_.setValidStrings("dia_extraction_unit", ListUtils::create<String>("Th,ppm"));
+    defaults_.setValue("dia_centroided", "false", "Use centroided DIA data.");
     defaults_.setValidStrings("dia_centroided", ListUtils::create<String>("true,false"));
     defaults_.setValue("dia_byseries_intensity_min", 300.0, "DIA b/y series minimum intensity to consider.");
     defaults_.setMinFloat("dia_byseries_intensity_min", 0.0);
     defaults_.setValue("dia_byseries_ppm_diff", 10.0, "DIA b/y series minimal difference in ppm to consider.");
     defaults_.setMinFloat("dia_byseries_ppm_diff", 0.0);
 
-    defaults_.setValue("dia_nr_isotopes", 4, "DIA nr of isotopes to consider.");
+    defaults_.setValue("dia_nr_isotopes", 4, "DIA number of isotopes to consider.");
     defaults_.setMinInt("dia_nr_isotopes", 0);
-    defaults_.setValue("dia_nr_charges", 4, "DIA nr of charges to consider.");
+    defaults_.setValue("dia_nr_charges", 4, "DIA number of charges to consider.");
     defaults_.setMinInt("dia_nr_charges", 0);
 
     defaults_.setValue("peak_before_mono_max_ppm_diff", 20.0, "DIA maximal difference in ppm to count a peak at lower m/z when searching for evidence that a peak might not be monoisotopic.");
@@ -84,6 +101,7 @@ namespace OpenMS
   void DIAScoring::updateMembers_()
   {
     dia_extract_window_ = (double)param_.getValue("dia_extraction_window");
+    dia_extraction_ppm_ = param_.getValue("dia_extraction_unit") == "ppm";
     dia_centroided_ = param_.getValue("dia_centroided").toBool();
     dia_byseries_intensity_min_ = (double)param_.getValue("dia_byseries_intensity_min");
     dia_byseries_ppm_diff_ = (double)param_.getValue("dia_byseries_ppm_diff");
@@ -91,18 +109,6 @@ namespace OpenMS
     dia_nr_isotopes_ = (int)param_.getValue("dia_nr_isotopes");
     dia_nr_charges_ = (int)param_.getValue("dia_nr_charges");
     peak_before_mono_max_ppm_diff_ = (double)param_.getValue("peak_before_mono_max_ppm_diff");
-  }
-
-  void DIAScoring::set_dia_parameters(double dia_extract_window, double dia_centroided,
-                                      double dia_byseries_intensity_min, double dia_byseries_ppm_diff, double dia_nr_isotopes, double dia_nr_charges)
-  {
-    dia_extract_window_ = dia_extract_window;
-    dia_centroided_ = dia_centroided;
-    dia_byseries_intensity_min_ = dia_byseries_intensity_min;
-    dia_byseries_ppm_diff_ = dia_byseries_ppm_diff;
-
-    dia_nr_isotopes_ = dia_nr_isotopes;
-    dia_nr_charges_ = dia_nr_charges;
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -130,8 +136,8 @@ namespace OpenMS
     {
       const TransitionType* transition = &transitions[k];
       // Calculate the difference of the theoretical mass and the actually measured mass
-      double left = transition->getProductMZ() - dia_extract_window_ / 2.0;
-      double right = transition->getProductMZ() + dia_extract_window_ / 2.0;
+      double left(transition->getProductMZ()), right(transition->getProductMZ());
+      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
       bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
       // Continue if no signal was found - we therefore don't make a statement
@@ -157,8 +163,8 @@ namespace OpenMS
     double mz, intensity;
     {
       // Calculate the difference of the theoretical mass and the actually measured mass
-      double left = precursor_mz - dia_extract_window_ / 2.0;
-      double right = precursor_mz + dia_extract_window_ / 2.0;
+      double left(precursor_mz), right(precursor_mz);
+      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
       bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
       // Catch if no signal was found and replace it with the most extreme
@@ -177,7 +183,7 @@ namespace OpenMS
   }
 
   /// Precursor isotope scores
-  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
+  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state,
                                           double& isotope_corr, double& isotope_overlap, std::string sum_formula)
   {
     // collect the potential isotopes of this peak
@@ -186,10 +192,9 @@ namespace OpenMS
     std::vector<double> isotopes_int;
     for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
     {
-      double left  = precursor_mz - dia_extract_window_ / 2.0 + 
-                       iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
-      double right = precursor_mz + dia_extract_window_ / 2.0 + 
-                       iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      double left  = precursor_mz + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      double right = precursor_mz + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
       double mz, intensity;
       integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       isotopes_int.push_back(intensity);
@@ -215,8 +220,10 @@ namespace OpenMS
     OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, charge);
     for (Size it = 0; it < bseries.size(); it++)
     {
-      left = bseries[it] - dia_extract_window_ / 2.0;
-      right = bseries[it] + dia_extract_window_ / 2.0;
+      left = bseries[it];
+      right = bseries[it];
+      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+
       bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       double ppmdiff = std::fabs(bseries[it] - mz) * 1000000 / bseries[it];
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
@@ -226,8 +233,10 @@ namespace OpenMS
     }
     for (Size it = 0; it < yseries.size(); it++)
     {
-      left = yseries[it] - dia_extract_window_ / 2.0;
-      right = yseries[it] + dia_extract_window_ / 2.0;
+      left = yseries[it];
+      right = yseries[it];
+      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+
       bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       double ppmdiff = std::fabs(yseries[it] - mz) * 1000000 / yseries[it];
       if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
@@ -283,10 +292,11 @@ namespace OpenMS
       // collect the potential isotopes of this peak
       for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
       {
-        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 +
+        double left = transitions[k].getProductMZ() +
                         iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
-        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + 
+        double right = transitions[k].getProductMZ() +
                         iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
+        adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
         double mz, intensity;
         integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
         isotopes_int.push_back(intensity);
@@ -309,8 +319,9 @@ namespace OpenMS
 
     for (int ch = 1; ch <= dia_nr_charges_; ++ch)
     {
-      double left = mono_mz - dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (double) ch;
-      double right = mono_mz + dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (double) ch;
+      double left = mono_mz  - C13C12_MASSDIFF_U / (double) ch;
+      double right = mono_mz - C13C12_MASSDIFF_U / (double) ch;
+      adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
       bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
       // Continue if no signal was found - we therefore don't make a statement
@@ -325,7 +336,7 @@ namespace OpenMS
       if (mono_int != 0) { ratio = intensity / mono_int; }
       else { ratio = 0; }
       if (ratio > max_ratio) {max_ratio = ratio;}
-        
+
       double ddiff_ppm = std::fabs(mz - (mono_mz - 1.0 / (double) ch)) * 1000000 / mono_mz;
 
       // FEATURE we should fit a theoretical distribution to see whether we really are a secondary peak
@@ -358,7 +369,7 @@ namespace OpenMS
       EmpiricalFormula empf(sum_formula);
       isotope_dist = empf.getIsotopeDistribution(dia_nr_isotopes_);
     }
-    else 
+    else
     {
       // create the theoretical distribution from the peptide weight
       isotope_dist.setMaxIsotope(dia_nr_isotopes_ + 1);
