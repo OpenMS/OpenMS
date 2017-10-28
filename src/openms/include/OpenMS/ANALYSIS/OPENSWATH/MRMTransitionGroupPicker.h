@@ -290,9 +290,9 @@ public:
         f.setOverallQuality(quality);
 
         ConvexHull2D::PointArrayType hull_points;
-        double intensity_sum(0.0), rt_sum(0.0);
+        double intensity_sum(0.0), intensity_integral(0), rt_sum(0.0);
         double peak_apex_int = -1;
-        calculatePeakApexInt_(used_chromatogram, best_left, best_right, hull_points, intensity_sum, rt_sum, peak_apex_int, peak_apex);
+        calculatePeakApexInt_(used_chromatogram, best_left, best_right, hull_points, intensity_sum, intensity_integral, rt_sum, peak_apex_int, peak_apex);
 
         double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
@@ -513,6 +513,7 @@ public:
     double best_left, double best_right, 
     ConvexHull2D::PointArrayType & hull_points,
     double & intensity_sum, 
+    double & intensity_integral,
     double & rt_sum,
     double & peak_apex_int,
     double & peak_apex_rt);
