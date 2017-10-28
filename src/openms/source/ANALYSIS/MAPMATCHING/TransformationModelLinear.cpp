@@ -40,29 +40,12 @@
 namespace OpenMS
 {
 
-  TransformationModelLinear::TransformationModelLinear(const TransformationModel::DataPoints& data, const Param& params)
+  TransformationModelLinear::TransformationModelLinear(const TransformationModel::DataPoints& data, const Param& params) :
+    TransformationModel(data, params) // initializes model
   {
-    params_ = params;
     data_given_ = !data.empty();
 
-    // set x_weight
-    params_.setValue("x_weight",params.exists("x_weight") ? (String)params.getValue("x_weight") : "");
-    params_.setValue("x_datum_min",params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15); //should match defaults
-    params_.setValue("x_datum_max",params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15);
-    x_weight_ = params.exists("x_weight") ? (String)params.getValue("x_weight") : "";
-    x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15;
-    x_datum_max_ = params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15;
-
-    // set y_weight
-    params_.setValue("y_weight",params.exists("y_weight") ? (String)params.getValue("y_weight") : "");
-    params_.setValue("y_datum_min",params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15); //should match defaults
-    params_.setValue("y_datum_max",params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15);
-    y_weight_ = params.exists("y_weight") ? (String)params.getValue("y_weight") : "";
-    y_datum_min_ = params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15;
-    y_datum_max_ = params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15;
-
-
-    if (!data_given_ && params.exists("slope") && (params.exists("intercept")))
+    if (!data_given_ && params.exists("slope") && params.exists("intercept"))
     {
       // don't estimate parameters, use given values
       slope_ = params.getValue("slope");
@@ -78,7 +61,7 @@ namespace OpenMS
       TransformationModel::DataPoints data_weighted = data;
       if ((params.exists("x_weight") && params.getValue("x_weight") != "") || (params.exists("y_weight") && params.getValue("y_weight") != ""))
       {
-        weightData(data_weighted, params);
+        weightData(data_weighted);
       }
 
       size_t size = data.size();
@@ -116,19 +99,16 @@ namespace OpenMS
 
   double TransformationModelLinear::evaluate(double value) const
   {
+    if (!weighting_) 
+    {
+      return slope_ * value + intercept_;
+    }
+
     double weighted_value = value;
-    if (x_weight_ != "")
-    {
-      weighted_value = weightDatum(value, x_weight_);
-    }
+    weighted_value = weightDatum(value, x_weight_);
     double eval = slope_ * weighted_value + intercept_;
-    if (y_weight_ != "")
-    {
-      eval = unWeightDatum(eval, y_weight_);
-    }
-    
+    eval = unWeightDatum(eval, y_weight_);
     return eval;
-    // return slope_ * value + intercept_;
   }
 
   void TransformationModelLinear::invert()
