@@ -404,20 +404,14 @@ namespace OpenMS
                                        "Method needs to be one of: crawdad, corrected, legacy");
     }
 
+    Param sg_filter_parameters = sgolay_.getParameters();
+    sg_filter_parameters.setValue("frame_length", sgolay_frame_length_);
+    sg_filter_parameters.setValue("polynomial_order", sgolay_polynomial_order_);
+    sgolay_.setParameters(sg_filter_parameters);
 
-		{
-			Param filter_parameters = sgolay_.getParameters();
-			filter_parameters.setValue("frame_length", sgolay_frame_length_);
-			filter_parameters.setValue("polynomial_order", sgolay_polynomial_order_);
-			sgolay_.setParameters(filter_parameters);
-		}
-
-
-		{
-			Param filter_parameters = gauss_.getParameters();
-			filter_parameters.setValue("gaussian_width", gauss_width_);
-			gauss_.setParameters(filter_parameters);
-		}
+    Param gfilter_parameters = gauss_.getParameters();
+    gfilter_parameters.setValue("gaussian_width", gauss_width_);
+    gauss_.setParameters(gfilter_parameters);
 
     Param snt_parameters = snt_.getParameters();
     snt_parameters.setValue("win_len", sn_win_len_);

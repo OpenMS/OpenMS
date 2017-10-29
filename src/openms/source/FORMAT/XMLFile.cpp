@@ -224,7 +224,7 @@ private:
 
       boost::shared_ptr< xercesc::InputSource > source;
       {
-        const auto fake_id = sm.convert("inMemory");
+        auto fake_id = sm.convert("inMemory");
         source.reset(new xercesc::MemBufInputSource(reinterpret_cast<const unsigned char *>(buffer.c_str()), buffer.size(), fake_id.c_str()));
       }
       // what if no encoding given http://xerces.apache.org/xerces-c/apiDocs-3/classInputSource.html
