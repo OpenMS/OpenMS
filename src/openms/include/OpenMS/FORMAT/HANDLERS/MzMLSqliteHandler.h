@@ -52,14 +52,27 @@ namespace OpenMS
   {
 
     /**
-        @brief Sqlite handler for storing spectra and chromatograms
+        @brief Sqlite handler for storing spectra and chromatograms in sqMass format.
 
         @note Do not use this class directly, rather use SqMassFile.
 
-        @note This class writes spectra and chromatograms from a cache to make
-        writing substantially faster. It is thus recommended to provide many
-        spectra / chromatograms together to the writing function or else
-        performance suffers.
+        @note Due to the performance characteristics of the underlying SQLite
+        database, it is highly recommended to read and write data
+        (spectra/chromatograms) in batch. This is supported in this class and
+        essential for reasonable performance. The current class does support
+        batching SQL statements which can be controlled using setConfig and it
+        is recommended to set the batch size to at least 500.
+        The underlying SQLite database only stores the most essential
+        parameters of a MS experiment, to store the complete meta-data, a
+        zipped representation of the mzML data structure can be written
+        directly into the database (and will be retrieved when converting
+        back).
+
+        This class also supports writing data using the lossy numpress
+        compression format.
+
+        This class contains the internal data structures and SQL statements for
+        communication with the SQLite database
 
     */
     class OPENMS_DLLAPI MzMLSqliteHandler
@@ -68,7 +81,7 @@ namespace OpenMS
 public:
 
       /**
-          @brief Constructor of sqmass file
+          @brief Constructor of sqMass file
 
           @param filename The sqMass filename
       */
@@ -125,7 +138,7 @@ public:
       /**
           @brief Set file configuration
 
-          @param write_full_meta Whether to write a complete mzML meta datastructure into the RUN_EXTRA field (allows complete recovery of the input file)
+          @param write_full_meta Whether to write a complete mzML meta data structure into the RUN_EXTRA field (allows complete recovery of the input file)
           @param use_lossy_compression Whether to use lossy compression (ms numpress)
           @param linear_abs_mass_acc Accepted loss in mass accuracy (absolute m/z, in Th)
           @param sql_batch_size Batch size of SQL insert statements

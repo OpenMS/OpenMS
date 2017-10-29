@@ -48,12 +48,15 @@ namespace OpenMS
     }
 
     /**
-      @brief A data consumer that inserts data into a SQL database
+      @brief A data consumer that inserts MS data into a SQLite database
 
       Consumes spectra and chromatograms and inserts them into an file-based
-      SQL database using sqlite. As sqlite is highly inefficient when inserting
+      SQL database using SQLite. As SQLite is highly inefficient when inserting
       one spectrum/chromatogram at a time, the consumer collects the data in an
       internal buffer and then flushes them all together to disk.
+
+      It uses MzMLSqliteHandler internally to write batches of data to disk.
+
     */
     class OPENMS_DLLAPI MSDataSqlConsumer :
       public Interfaces::IMSDataConsumer
@@ -67,11 +70,11 @@ namespace OpenMS
       /**
         @brief Constructor
 
-        Opens the sqlite file and writes the tables.
+        Opens the SQLite file and writes the tables.
 
-        @param filename The filename of the Sqlite database
+        @param filename The filename of the SQLite database
         @param buffer_size How large the internal buffer size should be (defaults to 500 spectra / chromatograms)
-        @param full_meta Whether to write the full meta-data in the sqlite header
+        @param full_meta Whether to write the full meta-data in the SQLite header
         @param lossy_compression Whether to use lossy compression (numpress)
         @param linear_mass_acc Desired mass accuracy for RT or m/z space (absolute value)
       */
@@ -89,7 +92,6 @@ namespace OpenMS
 
         After calling this function, no more data is held in the buffer but the
         class is still able to receive new data.
-
       */
       void flush();
 

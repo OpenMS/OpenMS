@@ -46,18 +46,18 @@ namespace OpenMS
     @brief An class that uses on-disk SQLite database to read and write spectra and chromatograms
 
     This class provides functions to read and write spectra and chromatograms
-    to disk using a SQLite database.
-
+    to disk using a SQLite database and store them in sqMass format. This
+    allows users to access, select and filter spectra and chromatograms
+    on-demand even in a large collection of data.
   */
   class OPENMS_DLLAPI SqMassFile
   {
 public:
 
-
   /**
-    @brief Configuration class for SqMassConfig
+    @brief Configuration class for SqMassFile
 
-    Contains configuration options for sqlite file
+    Contains configuration options for SQLite file
   */
     struct OPENMS_DLLAPI SqMassConfig 
     {
