@@ -189,7 +189,7 @@ namespace OpenMS
     MSChromatogram::const_iterator prev_it;
     for (MSChromatogram::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
     {
-      if (it->getMZ() > best_left && it->getMZ() < best_right)
+      if (it->getMZ() >= best_left && it->getMZ() <= best_right)
       {
         if (peak_nr == 0 && it != chromatogram.begin())
         {
