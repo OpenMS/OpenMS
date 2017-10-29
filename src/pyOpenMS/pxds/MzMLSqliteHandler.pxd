@@ -21,9 +21,9 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
 
         void readExperiment(MSExperiment & exp, bool meta_only )  nogil except +
   
-        void readSpectra(libcpp_vector[MSSpectrum[Peak1D] ] & exp, libcpp_vector[int] indices, bool meta_only ) nogil except +
+        void readSpectra(libcpp_vector[MSSpectrum] & exp, libcpp_vector[int] indices, bool meta_only ) nogil except +
 
-        # void readChromatograms(libcpp_vector[MSChromatogram] & exp, libcpp_vector[int] indices, bool meta_only ) nogil except +
+        void readChromatograms(libcpp_vector[MSChromatogram] & exp, libcpp_vector[int] indices, bool meta_only ) nogil except +
   
         Size getNrSpectra() nogil except +
   
@@ -37,9 +37,9 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>" namespace "OpenM
   
         void createTables() nogil except +
   
-        void writeSpectra(libcpp_vector[MSSpectrum[Peak1D] ] spectra) nogil except +
+        void writeSpectra(libcpp_vector[MSSpectrum] spectra) nogil except +
   
-        void writeChromatograms(libcpp_vector[MSChromatogram[ChromatogramPeak] ] chroms) nogil except +
+        void writeChromatograms(libcpp_vector[MSChromatogram] chroms) nogil except +
   
         void writeRunLevelInformation(MSExperiment exp, bool write_full_meta, int run_id) nogil except +
 
