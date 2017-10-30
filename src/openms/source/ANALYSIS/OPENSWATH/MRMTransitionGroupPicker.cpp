@@ -42,6 +42,14 @@
 namespace OpenMS
 {
 
+  // Simple linear interpolation at point x between x0 and x1
+  double lin_interpolate(double x, double x0, double x1, double y0, double y1)
+  {
+    double slope = (y1 - y0) / (x1 - x0);
+    double delta_y = (x - x0) * slope;
+    return y0 + delta_y;
+  }
+
   MRMTransitionGroupPicker::MRMTransitionGroupPicker() :
     DefaultParamHandler("MRMTransitionGroupPicker")
   {
@@ -166,19 +174,38 @@ namespace OpenMS
     double best_left, double best_right, 
     ConvexHull2D::PointArrayType & hull_points,
     double & intensity_sum, 
+    double & intensity_integral,
     double & rt_sum,
     double & peak_apex_int,
     double & peak_apex_rt)
-  {  
+  {
     intensity_sum = 0.0;
     rt_sum = 0.0;
     peak_apex_int = -1;
     double peak_apex_dist = std::fabs(chromatogram.begin()->getMZ() - peak_apex_rt);
+    int peak_nr (0);
+    bool added_right(false);
     // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
+    MSChromatogram::const_iterator prev_it;
     for (MSChromatogram::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
     {
-      if (it->getMZ() > best_left && it->getMZ() < best_right)
+      if (it->getMZ() >= best_left && it->getMZ() <= best_right)
       {
+        if (peak_nr == 0 && it != chromatogram.begin())
+        {
+          // add area between first measured peak inside the peak boundaries and start of peak to the left
+          double delta_rt = it->getRT() - best_left;
+          double interpol_intensity = lin_interpolate(best_left, prev_it->getRT(), it->getRT(), prev_it->getIntensity(), it->getIntensity());
+          intensity_integral += (interpol_intensity + it->getIntensity())/2.0 * delta_rt;
+        }
+
+        if (peak_nr > 0)
+        {
+          // add area between last peak (inside boundaries) and current peak (inside boundaries)
+          double delta_rt = it->getRT() - prev_it->getRT();
+          intensity_integral += (prev_it->getIntensity() + it->getIntensity())/2.0 * delta_rt;
+        }
+
         DPosition<2> p;
         p[0] = it->getMZ();
         p[1] = it->getIntensity();
@@ -190,10 +217,20 @@ namespace OpenMS
         }
         rt_sum += it->getMZ();
         intensity_sum += it->getIntensity();
+        peak_nr++;
       }
+      else if (peak_nr > 0 && !added_right)
+      {
+        // add area between last measured peak inside the peak boundaries and end of peak to the right
+        double delta_rt = best_right - prev_it->getRT();
+        double interpol_intensity = lin_interpolate(best_right, prev_it->getRT(), it->getRT(), prev_it->getIntensity(), it->getIntensity());
+        intensity_integral += (prev_it->getIntensity() + interpol_intensity)/2.0 * delta_rt;
+        added_right = true;
+      }
+      prev_it = it;
     }
   }
-  
+
   void MRMTransitionGroupPicker::calculatePeakShapeMetrics_(const MSChromatogram& chromatogram, 
     double best_left, double best_right, 
     double peak_height, double peak_apex_rt, double avg_noise_level,
