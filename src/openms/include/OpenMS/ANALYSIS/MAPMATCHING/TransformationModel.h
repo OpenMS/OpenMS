@@ -109,12 +109,12 @@ namespace OpenMS
     Note that the user needs to ensure valid bounds for the data by setting
     the x_datum_min/x_datum_max and y_datum_min/y_datum_max params.
     */
-    virtual void weightData(DataPoints& data, const Param& params);
+    virtual void weightData(DataPoints& data);
      
     /**
     @brief Unweight the data by the given weight function
     */
-    virtual void unWeightData(DataPoints& data, const Param& params);
+    virtual void unWeightData(DataPoints& data);
     
     /**
     @brief Check for a valid wighting function string
@@ -163,6 +163,7 @@ namespace OpenMS
     String y_weight_;
     double y_datum_min_;
     double y_datum_max_;
+    bool weighting_;
 
   private:
     /// do not allow copy

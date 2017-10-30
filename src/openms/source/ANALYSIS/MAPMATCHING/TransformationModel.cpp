@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>     // std::cout
@@ -42,9 +43,40 @@
 namespace OpenMS
 {
 
-  TransformationModel::TransformationModel(const TransformationModel::DataPoints&, const Param&) :
-    params_()
+  TransformationModel::TransformationModel(const TransformationModel::DataPoints&, const Param& p) :
+    params_(p),
+    x_weight_("")
+    x_datum_min_(0),
+    x_datum_max_(0),
+    y_weight_(""),
+    y_datum_min_(0),
+    y_datum_max_(0),
+    weighting_(false)
   {
+    // get x datum ranges
+    x_datum_min_ = params_.exists("x_datum_min") ? (double)params_.getValue("x_datum_min") : 1e-15;
+    x_datum_max_ = params_.exists("x_datum_max") ? (double)params_.getValue("x_datum_max") : 1e15;
+
+    // get y datum ranges
+    y_datum_min_ = params_.exists("y_datum_min") ? (double)params_.getValue("y_datum_min") : 1e-15;
+    y_datum_max_ = params_.exists("y_datum_max") ? (double)params_.getValue("y_datum_max") : 1e15;
+
+    y_weight_ = params_.exists("y_weight") ? (String)params_.getValue("y_weight") : "";
+    x_weight_ = params_.exists("x_weight") ? (String)params_.getValue("x_weight") : "";
+
+    std::vector<String> valid_x_weights = getValidXWeights();
+    std::vector<String> valid_y_weights = getValidYWeights();
+    if (!x_weight_.empty() && !checkValidWeight(x_weight_, valid_x_weights))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + x_weight_ + "' is not a valid weight parameter for x values.");
+    }
+    if (!y_weight_.empty() && !checkValidWeight(y_weight_, valid_y_weights))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Value '" + y_weight_ + "' is not a valid weight parameter for y values.");
+    }
+
+    // easily remember whether we do weighting or not
+    weighting_ = (x_weight_ != "" || y_weight_ != ""); 
   }
 
   TransformationModel::~TransformationModel()
@@ -66,16 +98,12 @@ namespace OpenMS
     params.clear();
   }
   
-  void TransformationModel::weightData(TransformationModel::DataPoints& data, const Param& params)
+  void TransformationModel::weightData(TransformationModel::DataPoints& data)
   {
-    // get x datum ranges
-    x_datum_min_ = params.exists("x_datum_min") ? (double)params.getValue("x_datum_min") : 1e-15;
-    x_datum_max_ = params.exists("x_datum_max") ? (double)params.getValue("x_datum_max") : 1e15;
+    if (!weighting_ ) return;
+
     // weight x values 
-    std::vector<String> valid_weights;
-    valid_weights = getValidXWeights();
-    x_weight_ = params.exists("x_weight") ? (String)params.getValue("x_weight") : "";
-    if (!x_weight_.empty() && checkValidWeight(x_weight_, valid_weights) && !data.empty())
+    if (!x_weight_.empty() && !data.empty())
     {
       for (size_t i = 0; i < data.size(); ++i)
       {
@@ -85,13 +113,9 @@ namespace OpenMS
         data[i].first = weightDatum(data[i].first,x_weight_);
       }
     }
-    // get y datum ranges
-    y_datum_min_ = params.exists("y_datum_min") ? (double)params.getValue("y_datum_min") : 1e-15;
-    y_datum_max_ = params.exists("y_datum_max") ? (double)params.getValue("y_datum_max") : 1e15;
+
     // weight y values
-    valid_weights = getValidYWeights();
-    y_weight_ = params.exists("y_weight") ? (String)params.getValue("y_weight") : "";
-    if (!y_weight_.empty() && checkValidWeight(y_weight_, valid_weights) && !data.empty())
+    if (!y_weight_.empty() && !data.empty())
     {
       for (size_t i = 0; i < data.size(); ++i)
       {
@@ -103,27 +127,24 @@ namespace OpenMS
     } 
   }
   
-  void TransformationModel::unWeightData(TransformationModel::DataPoints& data, const Param& params)
+  void TransformationModel::unWeightData(TransformationModel::DataPoints& data)
   {
+    if (!weighting_ ) return;
+
     // unweight x values 
-    std::vector<String> valid_weights;
-    valid_weights = getValidXWeights();
-    x_weight_ = params.exists("x_weight") ? (String)params.getValue("x_weight") : "";
-    if (!x_weight_.empty() && checkValidWeight(x_weight_, valid_weights) && !data.empty())
+    if (!x_weight_.empty() && !data.empty())
     {
       for (size_t i = 0; i < data.size(); ++i)
       {
-        data[i].first = unWeightDatum(data[i].first,x_weight_);
+        data[i].first = unWeightDatum(data[i].first, x_weight_);
       }
     }
     // unweight y values
-    valid_weights = getValidYWeights();
-    y_weight_ = params.exists("y_weight") ? (String)params.getValue("y_weight") : "";
-    if (!y_weight_.empty() && checkValidWeight(y_weight_, valid_weights) && !data.empty())
+    if (!y_weight_.empty() && !data.empty())
     {
       for (size_t i = 0; i < data.size(); ++i)
       {
-        data[i].second = unWeightDatum(data[i].second,y_weight_);
+        data[i].second = unWeightDatum(data[i].second, y_weight_);
       }
     }  
   }
