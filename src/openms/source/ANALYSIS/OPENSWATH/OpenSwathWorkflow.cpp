@@ -725,7 +725,7 @@ namespace OpenMS
 
       // Go through all transitions, for each transition get chromatogram and
       // the chromatogram and the assay to the MRMTransitionGroup
-      Size detection_assay_it = -1; // store index for the last detection transition
+      int detection_assay_it = -1; // store index for the last detection transition
       for (Size i = 0; i < assay_it->second.size(); i++)
       {
         const TransitionType* transition = assay_it->second[i];
@@ -793,7 +793,7 @@ namespace OpenMS
       featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
 
       // Ensure that a detection transition is used to derive features for output
-      if (detection_assay_it < 0)
+      if (detection_assay_it < 0 && output.size() > 0)
       {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Error, did not find any detection transition for feature " + id );
