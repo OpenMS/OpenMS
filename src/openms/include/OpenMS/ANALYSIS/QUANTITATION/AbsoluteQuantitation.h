@@ -32,8 +32,8 @@
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTITATION_H
-#define OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTITATION_H
+#ifndef OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATION_H
+#define OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATION_H
 
 #include <OpenMS/config.h>
 
@@ -245,7 +245,10 @@ public:
 
     */ 
     void quantifyComponents(FeatureMap& unknowns);    
-    
+
+    void findIS_();
+     
+private:  
     // members
     /// map between components and quantitation methods
     std::map<String,AbsoluteQuantitationMethod> quant_methods_;
@@ -256,5 +259,5 @@ public:
   };
 
 }
-#endif // OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTITATION_H
+#endif // OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATION_H
 

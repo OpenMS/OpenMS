@@ -32,8 +32,8 @@
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONSTANDARDS_H
-#define OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONSTANDARDS_H
+#ifndef OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONSTANDARDS_H
+#define OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONSTANDARDS_H
 
 #include <OpenMS/config.h>
 
@@ -103,12 +103,13 @@ public:
  
      */ 
      void mapConcentrationsToComponents();
-                                      
+                                     
+private:
     // members
     std::map<String,std::vector<featureConcentration>> components_to_concentrations;
 
   };
 
 }
-#endif // OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONSTANDARDS_H
+#endif // OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONSTANDARDS_H
 

@@ -32,8 +32,8 @@
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONMETHOD_H
-#define OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONMETHOD_H
+#ifndef OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONMETHOD_H
+#define OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONMETHOD_H
 
 #include <OpenMS/config.h>
 
@@ -158,7 +158,8 @@ public:
   double evaluateTransformationModel(const String & transformation_model,
     const double& datum,
     const Param& transformation_model_params);
-                                  
+           
+private:
   // members
 
   /// id of the component
@@ -202,5 +203,5 @@ public:
   };
 
 }
-#endif // OPENMS_ANALYSIS_OPENSWATH_ABSOLUTEQUANTIFICATIONMETHOD_H
+#endif // OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONMETHOD_H
 

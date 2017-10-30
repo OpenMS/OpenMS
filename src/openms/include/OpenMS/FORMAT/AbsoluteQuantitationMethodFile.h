@@ -74,6 +74,7 @@ public:
     */
     void store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list);
     
+private:
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
@@ -92,8 +93,6 @@ public:
     */
     void parseLine(StringList & line, std::map<String, int> & headers, 
         std::map<String, int> & params_headers, AbsoluteQuantitationMethod & aqm);
-
-private:
 
   };
 
