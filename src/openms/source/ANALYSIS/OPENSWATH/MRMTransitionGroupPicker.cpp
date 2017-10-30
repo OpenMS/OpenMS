@@ -147,7 +147,7 @@ namespace OpenMS
     double intensity_left = 0.0;
     double rt_apex = 0.0;
     double intensity_right = 0.0;
-    for (MSChromatogram::const_iterator it = chromatogram.begin() + 1; it != chromatogram.end(); ++it)
+    for (MSChromatogram::const_iterator it = std::next(chromatogram.begin()); it != chromatogram.end(); ++it)
     {
       MSChromatogram::const_iterator it_prev = it;
       --it_prev; //previous point

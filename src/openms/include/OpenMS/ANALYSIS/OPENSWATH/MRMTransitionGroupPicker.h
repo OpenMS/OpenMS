@@ -318,7 +318,7 @@ public:
         double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
         {
-          if ((background_subtraction_ == "smoothed_average" || background_subtraction_ == "smoothed_average") && smoothed_chroms.size() <= k)
+          if ((background_subtraction_ == "smoothed_average" || background_subtraction_ == "smoothed_exact") && smoothed_chroms.size() <= k)
           {
             std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
             background =  0;
