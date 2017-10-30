@@ -36,19 +36,22 @@
 #define OPENMS_ANALYSIS_OPENSWATH_SPECTRUMEXTRACTOR_H
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
-#include <OpenMS/KERNEL/MSSpectrum.h> // MSSpectrum
+#include <OpenMS/KERNEL/MSExperiment.h> // MSSpectrum, MSExperiment
 #include <OpenMS/DATASTRUCTURES/String.h> // String
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h> // DefaultParamHandler
 #include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h> // SavitzkyGolayFilter
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h> // GaussFilter
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h> // PeakPickerHiRes
+#include <OpenMS/FORMAT/MzMLFile.h> // MzML
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h> // TargetedExperiment
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h> // convertTSVToTargetedExperiment
 
 namespace OpenMS
 {
   /**
   @brief TODO BRIEF EXPLANATION HERE
-  
+
   TODO MULTILINE
   EXPLANATION
   HERE
@@ -98,6 +101,12 @@ public:
 
     void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum);
 
+    void annotateSpectrum(
+      const std::vector<MSSpectrum>& spectra,
+      const TargetedExperiment& targeted_exp,
+      std::vector<MSSpectrum>& annotated_spectra
+    );
+
 protected:
     /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
     void updateMembers_();
@@ -119,4 +128,3 @@ private:
 }
 
 #endif // OPENMS_ANALYSIS_OPENSWATH_SPECTRUMEXTRACTOR_H
-

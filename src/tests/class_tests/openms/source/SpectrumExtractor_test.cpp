@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2017.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
@@ -36,7 +36,6 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumExtractor.h>
 ///////////////////////////
 
@@ -274,6 +273,21 @@ it++->setIntensity(1676.35415209522f);
 it->setMZ(175.08);
 it->setIntensity(1676.35415209522f);
 
+START_SECTION(getMZ())
+{
+  TEST_EQUAL(spectrum[0].getMZ(), 61.92)
+  TEST_EQUAL(spectrum[0].getIntensity(), 6705.41660838088f)
+  TEST_EQUAL(spectrum[1].getMZ(), 68.88)
+  TEST_EQUAL(spectrum[1].getIntensity(), 1676.35415209522f)
+  TEST_EQUAL(spectrum[6].getMZ(), 84.84)
+  TEST_EQUAL(spectrum[6].getIntensity(), 8381.7707604761f)
+  TEST_EQUAL(spectrum[71].getMZ(), 174.6)
+  TEST_EQUAL(spectrum[71].getIntensity(), 1676.35415209522f)
+  TEST_EQUAL(spectrum[72].getMZ(), 175.08)
+  TEST_EQUAL(spectrum[72].getIntensity(), 1676.35415209522f)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -400,12 +414,6 @@ START_SECTION(setSignalToNoise())
 }
 END_SECTION
 
-START_SECTION(getParameters().getValue("rt_window"))
-{
-  TEST_EQUAL(ptr->getParameters().getValue("rt_window"), 50)
-}
-END_SECTION
-
 START_SECTION(getParameters().getDescription("rt_window"))
 {
   TEST_EQUAL(ptr->getParameters().getDescription("rt_window"), "Retention time window in seconds.")
@@ -424,7 +432,10 @@ START_SECTION(pickSpectrum())
   ptr->pickSpectrum(spectrum, picked);
   TEST_NOT_EQUAL(spectrum.size(), picked.size())
   ofstream outfile;
-  outfile.open("plot_output.txt", ios::out | ios::trunc);
+  outfile.open(
+    OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_plot_output.txt"),
+    ios::out | ios::trunc
+  );
   if (outfile.is_open()) {
     outfile << "Fill plotly data with this:" << std::endl << "x: [";
     for (UInt i=0; i<picked.size(); ++i) {
@@ -443,18 +454,132 @@ START_SECTION(pickSpectrum())
 }
 END_SECTION
 
-START_SECTION(getMZ())
+START_SECTION(annotateSpectrum())
 {
-  TEST_EQUAL(spectrum[0].getMZ(), 61.92)
-  TEST_EQUAL(spectrum[0].getIntensity(), 6705.41660838088f)
-  TEST_EQUAL(spectrum[1].getMZ(), 68.88)
-  TEST_EQUAL(spectrum[1].getIntensity(), 1676.35415209522f)
-  TEST_EQUAL(spectrum[6].getMZ(), 84.84)
-  TEST_EQUAL(spectrum[6].getIntensity(), 8381.7707604761f)
-  TEST_EQUAL(spectrum[71].getMZ(), 174.6)
-  TEST_EQUAL(spectrum[71].getIntensity(), 1676.35415209522f)
-  TEST_EQUAL(spectrum[72].getMZ(), 175.08)
-  TEST_EQUAL(spectrum[72].getIntensity(), 1676.35415209522f)
+  MzMLFile mzml;
+  PeakMap experiment;
+  TargetedExperiment targeted_exp;
+  TransitionTSVReader tsv_reader;
+
+  ptr->setRTWindow(30);
+  ptr->setMZTolerance(0.1);
+  ptr->setGaussWidth(0.25);
+  ptr->setUseGauss(true);
+
+  mzml.load(OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1.mzML"), experiment);
+  std::vector<MSSpectrum> spectra = experiment.getSpectra();
+  tsv_reader.convertTSVToTargetedExperiment(
+    OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13CFlux_TraML.csv"),
+    FileTypes::CSV,
+    targeted_exp
+  );
+  std::vector<MSSpectrum> annotated;
+
+  ptr->annotateSpectrum(spectra, targeted_exp, annotated);
+
+  ofstream outfile;
+  outfile.open(
+    OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_plots_output.html"),
+    ios::out | ios::trunc
+  );
+  if (outfile.is_open())
+  {
+    const string header = ""
+    "<!doctype html>"
+    "<html>"
+    "<head>"
+    "  <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>"
+    "</head>"
+    "<body>"
+    "  <div id=\"plot-here\" style=\"height: 800px\"></div>"
+    "RT window: " + to_string(ptr->getRTWindow()) + "<br>"
+    "MZ tolerance: " + to_string(ptr->getMZTolerance()) + "<br>"
+    "Gauss width: " + to_string(ptr->getGaussWidth()) + "<br>"
+    "Using Gauss filter: " + to_string(ptr->getUseGauss()) + "<br>"
+    "</body>"
+    "<script>"
+    "const data = [";
+
+    outfile << header;
+    for (UInt j=0; j<annotated.size(); ++j)
+    {
+      MSSpectrum picked;
+      ptr->pickSpectrum(annotated[j], picked);
+      TEST_NOT_EQUAL(annotated[j].size(), picked.size())
+
+      outfile << "  {" << endl <<  "    x: [";
+      for (UInt i=0; i<annotated[j].size(); ++i) {
+        outfile << annotated[j][i].getMZ() << ", ";
+      }
+      outfile << "]," << endl << "    y: [";
+      for (UInt i=0; i<annotated[j].size(); ++i) {
+        outfile << annotated[j][i].getIntensity() << ", ";
+      }
+      outfile << "]," << endl;
+
+      string annotated_trace_ending = ""
+      "    legendgroup: '" + to_string(j) + "',"
+      "    visible: 'legendonly',"
+      "    mode: 'lines+markers',"
+      "    name: '[" + to_string(j) + "] " + picked.getName() + "',"
+      "    type: 'scatter',"
+      "    line: {"
+      "      width: 1"
+      "    },"
+      "    marker: {"
+      "      color: 'green',"
+      "      size: 4"
+      "    }"
+      "  },";
+
+      outfile << annotated_trace_ending << endl << "{" << endl << "    x: [";
+      for (UInt i=0; i<picked.size(); ++i) {
+        outfile << picked[i].getMZ() << ", ";
+      }
+      outfile << "]," << std::endl << "y: [";
+      for (UInt i=0; i<picked.size(); ++i) {
+        outfile << picked[i].getIntensity() << ", ";
+      }
+      outfile << "]," << endl;
+      string picked_trace_ending = ""
+      "    legendgroup: '" + to_string(j) + "',"
+      "    visible: 'legendonly',"
+      "    showlegend: false,"
+      "    mode: 'markers',"
+      "    name: '[" + to_string(j) + "] " + picked.getName() + "',"
+      "    type: 'scatter',"
+      "    marker: {"
+      "      color: 'red',"
+      "      size: 10,"
+      "      symbol: 'square-open-dot'"
+      "    }"
+      "  },";
+      outfile << picked_trace_ending << endl;
+    }
+
+    const string footer = ""
+    "];"
+    "const layout = {"
+    "  title: 'Spectrum',"
+    "  xaxis: {"
+    "    title: 'Mass-to-charge ratio (m/z)'"
+    "  },"
+    "  yaxis: {"
+    "    title: 'Intensity'"
+    "  },"
+    "  hovermode: 'closest'"
+    "};"
+    "Plotly.plot(document.getElementById('plot-here'), data, layout);"
+    "</script>"
+    "</html>";
+
+    outfile << footer;
+    outfile.close();
+  }
+  else
+  {
+    cout << "Unable to open file to write the spectrum";
+  }
 }
 END_SECTION
 
