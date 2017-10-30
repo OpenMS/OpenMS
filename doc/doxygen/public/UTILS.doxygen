@@ -80,7 +80,6 @@
   - @subpage UTILS_SpectraSTSearchAdapter - An interface to the 'SEARCH' mode of the SpectraST program (external, beta).
   - @subpage UTILS_PSMFeatureExtractor - Creates search engine specific features for PercolatorAdapter input.
   
->>>>>>> b7361f12fd... [FIX/DOC] Added links to new tools
 
   <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.
