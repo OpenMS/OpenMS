@@ -1,9 +1,6 @@
 from Types cimport *
 from Param cimport *
 from String cimport *
-from libcpp.pair cimport pair as libcpp_pair
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.string cimport string as String
 
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace "OpenMS":
 
@@ -32,8 +29,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
         # double evaluate(double value) nogil except +
         # void getDefaultParameters(Param & params) nogil except +
         
-        void weightData(libcpp_vector[ libcpp_pair[double, double] ]& data, Param & params) nogil except +
-        void weightData(libcpp_vector[ libcpp_pair[double, double] ]& data, Param & params) nogil except +
+        void weightData(libcpp_vector[TM_DataPoint]& data) nogil except +
+        void weightData(libcpp_vector[TM_DataPoint]& data) nogil except +
         bool checkValidWeight(String& weight, libcpp_vector[String]& valid_weights) nogil except +
         double weightDatum(double& datum, String& weight) nogil except +
         double unWeightDatum(double& datum, String& weight) nogil except +
