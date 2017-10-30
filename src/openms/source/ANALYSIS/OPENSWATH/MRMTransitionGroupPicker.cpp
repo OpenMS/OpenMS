@@ -186,7 +186,7 @@ namespace OpenMS
     int peak_nr (0);
     bool added_right(false);
     // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
-    MSChromatogram::const_iterator prev_it;
+    MSChromatogram::const_iterator prev_it = chromatogram.begin();
     for (MSChromatogram::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
     {
       if (it->getMZ() >= best_left && it->getMZ() <= best_right)
@@ -237,7 +237,7 @@ namespace OpenMS
     PeakShapeMetrics_ & peakShapeMetrics)
   {
     peakShapeMetrics.points_across_baseline = 0;
-    double start_intensity, end_intensity;
+    double start_intensity(0), end_intensity(0);
     double delta_rt, delta_int, height_5, height_10, height_50;
     
     // pass 1
