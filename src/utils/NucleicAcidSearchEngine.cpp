@@ -175,7 +175,7 @@ protected:
   // slimmer structure to store basic hit information
   struct AnnotatedHit
   {
-    StringView sequence; // pointer into sequence database
+    String sequence;
     SignedSize mod_index; // enumeration index of the modification
     double score; // the score
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b) { return a.score > b.score; }
@@ -221,7 +221,7 @@ protected:
     Size max_isopeaks = 10,
     bool make_single_charged = true)
   {
-    if (in.empty()) { return; }
+    if (in.empty()) return;
 
     MSSpectrum old_spectrum = in;
 
@@ -230,11 +230,14 @@ protected:
     vector<Int> features(old_spectrum.size(), -1);
     Int feature_number = 0;
 
+    bool negative_mode = (max_charge < 0);
+    Int step = negative_mode ? -1 : 1;
+
     for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
     {
       double current_mz = old_spectrum[current_peak].getPosition()[0];
 
-      for (Int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
+      for (Int q = max_charge; abs(q) >= abs(min_charge); q -= step) // important: test charge hypothesis from high to low (in terms of absolute values)
       {
         // try to extend isotopes from mono-isotopic peak
         // if extension larger then min_isopeaks possible:
@@ -310,10 +313,18 @@ protected:
         {
           in.push_back(old_spectrum[i]);
         }
-        else
+        else // make singly charged
         {
           Peak1D p = old_spectrum[i];
-          p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+          if (negative_mode) // z < 0 in this case
+          {
+            z = abs(z);
+            p.setMZ(p.getMZ() * z + (z - 1) * Constants::PROTON_MASS_U);
+          }
+          else
+          {
+            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+          }
           in.push_back(p);
         }
       }
@@ -333,10 +344,18 @@ protected:
           {
             in.push_back(old_spectrum[i]);
           }
-          else
+          else // make singly charged
           {
             Peak1D p = old_spectrum[i];
-            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+            if (negative_mode) // z < 0 in this case
+            {
+              z = abs(z);
+              p.setMZ(p.getMZ() * z + (z - 1) * Constants::PROTON_MASS_U);
+            }
+            else
+            {
+              p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+            }
             in.push_back(p);
           }
         }
@@ -347,7 +366,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -378,18 +397,23 @@ protected:
 #endif
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
-      // sort by mz
-      exp[exp_index].sortByPosition();
+      MSSpectrum& spec = exp[exp_index];
 
+      // sort by mz
+      spec.sortByPosition();
+
+      if (spec.getPrecursors().empty()) continue; // this shouldn't happen
+      Int precursor_charge = spec.getPrecursors()[0].getCharge();
       // deisotope
-      deisotopeAndSingleChargeMSSpectrum_(exp[exp_index], 1, 20, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, true);
+      Int coef = negative_mode ? -1 : 1;
+      deisotopeAndSingleChargeMSSpectrum_(spec, coef, coef * precursor_charge, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 20, single_charge_spectra);
 
       // remove noise
-      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
-      nlargest_filter.filterPeakSpectrum(exp[exp_index]);
+      window_mower_filter.filterPeakSpectrum(spec);
+      nlargest_filter.filterPeakSpectrum(spec);
 
       // sort (nlargest changes order)
-      exp[exp_index].sortByPosition();
+      spec.sortByPosition();
     }
   }
 
@@ -458,8 +482,8 @@ protected:
         for (const AnnotatedHit& hit : annotated_hits[scan_index])
         {
           // get unmodified string
-          LOG_DEBUG << "Hit sequence: " << hit.sequence.getString() << endl;
-          NASequence seq = NASequence::fromString(hit.sequence.getString());
+          LOG_DEBUG << "Hit sequence: " << hit.sequence << endl;
+          NASequence seq = NASequence::fromString(hit.sequence);
 
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<NASequence> all_modified_oligos;
@@ -566,7 +590,8 @@ protected:
     spectra.sortSpectra(true);
 
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, search_params.fragment_mass_tolerance, search_params.fragment_tolerance_ppm, true);
+    // @TODO: move this into the loop below (run only when checks pass)
+    preprocessSpectra_(spectra, search_params.fragment_mass_tolerance, search_params.fragment_tolerance_ppm, true, negative_mode);
     progresslogger.endProgress();
     LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
 
