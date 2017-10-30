@@ -45,7 +45,7 @@ namespace OpenMS
 
   TransformationModel::TransformationModel(const TransformationModel::DataPoints&, const Param& p) :
     params_(p),
-    x_weight_("")
+    x_weight_(""),
     x_datum_min_(0),
     x_datum_max_(0),
     y_weight_(""),
