@@ -84,7 +84,7 @@ START_SECTION(void load(const String & filename, TransformationDescription & tra
   trafo_xml.load(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_2.trafoXML"), trafo);
   TEST_STRING_EQUAL(trafo.getModelType(), "linear");
   params = trafo.getModelParameters();
-  TEST_EQUAL(params.size(), 8);
+  TEST_EQUAL(params.size(), 2);
   TEST_REAL_SIMILAR(params.getValue("slope"), 3.141592653589793238);
   TEST_REAL_SIMILAR(params.getValue("intercept"), 2.718281828459045235);
 
@@ -137,7 +137,7 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
   TEST_STRING_EQUAL(trafo.getModelType(), "linear");
   params.clear();
   params = trafo2.getModelParameters();
-  TEST_EQUAL(params.size(), 8);
+  TEST_EQUAL(params.size(), 2);
   TEST_REAL_SIMILAR(params.getValue("slope"), 3.141592653589793238);
   TEST_REAL_SIMILAR(params.getValue("intercept"), 2.718281828459045235);
   {

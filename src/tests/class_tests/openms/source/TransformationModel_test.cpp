@@ -222,12 +222,13 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   TransformationModel::DataPoint point;
   Param param;
   TransformationModel::getDefaultParameters(param);
-  double xmin = 10e-5;
-  double xmax = 10e12; 
-  double ymin = 10e-8;
-  double ymax = 10e12;
 
   {
+    double xmin = 10e-5;
+    double xmax = 10e12; 
+    double ymin = 10e-8;
+    double ymax = 10e12;
+
     param.setValue("x_weight", "ln(x)");
     param.setValue("y_weight", "");
     TransformationModel dw(data, param);
