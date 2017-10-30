@@ -238,7 +238,6 @@ namespace OpenMS
   {
     peakShapeMetrics.points_across_baseline = 0;
     double start_intensity, end_intensity;
-    double intensity, intensity_prev, retention_time, retention_time_prev;
     double delta_rt, delta_int, height_5, height_10, height_50;
     
     // pass 1
@@ -246,22 +245,22 @@ namespace OpenMS
     {
       MSChromatogram::const_iterator it_prev = it;
       --it_prev; //previous point
-      intensity = std::max(it->getIntensity()-avg_noise_level, 0.0); //background-subtracted intensity
-      intensity_prev = std::max(it_prev->getIntensity()-avg_noise_level, 0.0); //background-subtracted intensity of the previous point
-      retention_time = it->getMZ();
-      retention_time_prev = it_prev->getMZ();
+      double intensity = std::max(it->getIntensity()-avg_noise_level, 0.0); //background-subtracted intensity
+      double intensity_prev = std::max(it_prev->getIntensity()-avg_noise_level, 0.0); //background-subtracted intensity of the previous point
+      double retention_time = it->getMZ();
+      double retention_time_prev = it_prev->getMZ();
 
       // start and end intensities
-      if (retention_time_prev == best_left)
+      if (retention_time_prev <= best_left && retention_time >= best_left)
       {
         start_intensity = intensity;
       }
-      else if (retention_time == best_right)
+      else if (retention_time_prev <= best_right && retention_time >= best_right)
       {
-        end_intensity = intensity_prev;
+        end_intensity = intensity;
       }
 
-      if (retention_time > best_left && retention_time < best_right)
+      if (retention_time >= best_left && retention_time <= best_right)
       {
         //start and end retention times
         if (retention_time < peak_apex_rt)
