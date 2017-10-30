@@ -104,8 +104,7 @@ namespace OpenMS
       return slope_ * value + intercept_;
     }
 
-    double weighted_value = value;
-    weighted_value = weightDatum(value, x_weight_);
+    double weighted_value = weightDatum(value, x_weight_);
     double eval = slope_ * weighted_value + intercept_;
     eval = unWeightDatum(eval, y_weight_);
     return eval;
