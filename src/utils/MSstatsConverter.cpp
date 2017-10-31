@@ -220,7 +220,7 @@ protected:
             const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
 
             // Have to combine all fragment annotations with all peptide evidences
-            for (const String & frag_ann : fragment_annotations)
+            for (const OpenMS::PeptideHit::PeakAnnotation & frag_ann : fragment_annotations)
             {
               String fragment_ion = TOPPMSstatsConverter::na_string;
 
