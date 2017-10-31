@@ -138,7 +138,7 @@ protected:
       TextFile csv_out;
 
       // Add the header line (With fraction if that has been specified in the experimental design)
-      const bool has_fraction = file_run.isColumnName("Fraction") ;
+      const bool has_fraction = file_run.isColumnName("Fraction");
 
       csv_out.addLine("ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run,Intensity" + String(has_fraction ? ",Fraction" : ""));
 
@@ -147,7 +147,7 @@ protected:
 
       // Iterate protein identifications and collect spectra_data metavalue and ID
       std::map< String, std::set< String> > protid_to_filenames;
-      for (const auto & protein_identification : consensus_map.getProteinIdentifications())
+      for (const OpenMS::ProteinIdentification & protein_identification : consensus_map.getProteinIdentifications())
       {
         const String & identifier = protein_identification.getIdentifier();
 
@@ -157,7 +157,7 @@ protected:
           return ILLEGAL_PARAMETERS;
         }
         const StringList & exp_design_key = protein_identification.getMetaValue(TOPPMSstatsConverter::meta_value_exp_design_key).toStringList();
-        for (const auto & meta_value : exp_design_key)
+        for (const String & meta_value : exp_design_key)
         {
           protid_to_filenames[identifier].insert(File::basename(meta_value));
         }
@@ -184,18 +184,18 @@ protected:
       //std::set< Int > previous_precursor_charges;
       //std::set< String > previous_prot_accs;
 
-      for (const auto & consensus_feature : consensus_map)
+      for (const OpenMS::ConsensusFeature & consensus_feature : consensus_map)
       {
         Peak2D::IntensityType intensity = consensus_feature.getIntensity();
         assert(intensity > 0);
 
-        for (const auto & pep_id : consensus_feature.getPeptideIdentifications())
+        for (const OpenMS::PeptideIdentification & pep_id : consensus_feature.getPeptideIdentifications())
         {
           // Get runs that belong to this identifier
           std::set< String > filenames;
           assert(protid_to_filenames.find(pep_id.getIdentifier()) != protid_to_filenames.end());
 
-          for (const auto & filename : protid_to_filenames[pep_id.getIdentifier()])
+          for (const String & filename : protid_to_filenames[pep_id.getIdentifier()])
           {
             // Test whether the experimental design specifies the encountered filename
             if (file_run.isRowName(filename) == false)
@@ -206,7 +206,7 @@ protected:
             filenames.insert(filename);
           }
 
-          for (const auto & pep_hit : pep_id.getHits())
+          for (const OpenMS::PeptideHit & pep_hit : pep_id.getHits())
           {
             const std::vector< PeptideHit::PeakAnnotation > & original_fragment_annotations = pep_hit.getPeakAnnotations();
             const std::vector< PeptideEvidence > & original_peptide_evidences = pep_hit.getPeptideEvidences();
@@ -220,7 +220,7 @@ protected:
             const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
 
             // Have to combine all fragment annotations with all peptide evidences
-            for (const auto & frag_ann : fragment_annotations)
+            for (const String & frag_ann : fragment_annotations)
             {
               String fragment_ion = TOPPMSstatsConverter::na_string;
 
@@ -241,7 +241,7 @@ protected:
               }
               const Int frag_charge = (std::max)(frag_ann.charge, 0);
 
-              for (const auto & pep_ev : peptide_evidences)
+              for (const OpenMS::PeptideEvidence & pep_ev : peptide_evidences)
               {
                 // Write new line for each protein accession and for each run
                 for (const String & filename : filenames)
