@@ -39,7 +39,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 namespace OpenMS
 {
@@ -114,7 +114,7 @@ namespace OpenMS
       std::set< String > accessions_;
 
       // The enzyme database for enzyme lookup
-      EnzymesDB * enzymes_db_;
+      ProteaseDB* enzymes_db_;
 
       // Keeps track of the charges of the hits
       std::set< UInt > charges_;

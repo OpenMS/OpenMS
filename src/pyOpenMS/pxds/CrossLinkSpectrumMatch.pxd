@@ -4,7 +4,7 @@ from PeptideHit cimport *
 from MSExperiment cimport *
 from ResidueModification cimport *
 from FASTAFile cimport *
-from EnzymaticDigestion cimport *
+from ProteaseDigestion cimport *
 from ProteinProteinCrossLink cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":

@@ -29,7 +29,17 @@ class TestDIAScoring(unittest.TestCase):
           spectrum.setIntensityArray(intensity)
 
           diascoring = pyopenms.DIAScoring()
-          diascoring.set_dia_parameters(0.05, False, 30, 50, 4, 4) #; // here we use a large enough window so that none of our peaks falls out
+          # diascoring.set_dia_parameters(0.05, False, 30, 50, 4, 4) // here we use a large enough window so that none of our peaks falls out
+          p_dia = diascoring.getDefaults();
+          p_dia.setValue("dia_extraction_window", 0.05);
+          p_dia.setValue("dia_extraction_unit", "Th");
+          p_dia.setValue("dia_centroided", "false");
+          p_dia.setValue("dia_byseries_intensity_min", 30.0);
+          p_dia.setValue("dia_byseries_ppm_diff", 50.0);
+          p_dia.setValue("dia_nr_isotopes", 4);
+          p_dia.setValue("dia_nr_charges", 4);
+          diascoring.setParameters(p_dia);
+
           a = pyopenms.AASequence.fromString(b"SYVAWDR", True)
 
           bseries_score = 0.0
