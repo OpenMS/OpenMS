@@ -447,7 +447,9 @@ protected:
                         Size top_hits,
                         const vector<ConstRibonucleotidePtr>& fixed_modifications,
                         const vector<ConstRibonucleotidePtr>& variable_modifications,
-                        Size max_variable_mods_per_oligo)
+                        Size max_variable_mods_per_oligo,
+                        const vector<FASTAFile::FASTAEntry>& fasta_db,
+                        const map<String, set<Size>>& oligo_map)
   {
     // remove all but top n scoring
 #ifdef _OPENMP
@@ -490,7 +492,7 @@ protected:
           ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), seq);
           ModifiedNASequenceGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), seq, max_variable_mods_per_oligo, all_modified_oligos);
 
-          // reannotate much more memory heavy NASequence object
+          // reannotate NASequence object
           NASequence modified_seq = all_modified_oligos[hit.mod_index];
 
           IdentificationData::IdentifiedMoleculeKey oligo_key = id_data.registerOligo(modified_seq).first;
@@ -500,6 +502,18 @@ protected:
           IdentificationData::MoleculeQueryMatch match(charge, scores);
 
           id_data.addMoleculeQueryMatch(oligo_key, query_key, match);
+
+          // add parent sequences:
+          for (Size index : oligo_map.at(hit.sequence))
+          {
+            FASTAFile::FASTAEntry fasta = fasta_db[index];
+            IdentificationData::ParentMetaData meta(
+              IdentificationData::MT_RNA, fasta.sequence, fasta.description);
+            IdentificationData::ParentMoleculeKey parent_key =
+              id_data.registerParentMolecule(fasta.identifier, meta).first;
+
+            id_data.addMoleculeParentMatch(oligo_key, parent_key);
+          }
         }
       }
     }
@@ -589,7 +603,7 @@ protected:
     f.load(in_mzml, spectra);
     spectra.sortSpectra(true);
 
-    progresslogger.startProgress(0, 1, "Filtering spectra...");
+    progresslogger.startProgress(0, 1, "filtering spectra...");
     // @TODO: move this into the loop below (run only when checks pass)
     preprocessSpectra_(spectra, search_params.fragment_mass_tolerance, search_params.fragment_tolerance_ppm, true, negative_mode);
     progresslogger.endProgress();
@@ -650,10 +664,9 @@ protected:
 
     vector<vector<AnnotatedHit>> annotated_hits(spectra.size());
 
-    progresslogger.startProgress(0, 1, "Load database from FASTA file...");
-    FASTAFile fastaFile;
+    progresslogger.startProgress(0, 1, "loading database from FASTA file...");
     vector<FASTAFile::FASTAEntry> fasta_db;
-    fastaFile.load(in_db, fasta_db);
+    FASTAFile().load(in_db, fasta_db);
     progresslogger.endProgress();
 
     search_params.missed_cleavages = getIntOption_("oligo:missed_cleavages");
@@ -663,27 +676,21 @@ protected:
     digestor.setEnzyme(search_params.digestion_enzyme);
     digestor.setMissedCleavages(search_params.missed_cleavages);
 
-    progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring oligo models against spectra...");
+    progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "scoring oligo models against spectra...");
 
     // lookup for processed oligos. must be defined outside of omp section and synchronized
-    set<String> processed_oligos;
+    map<String, set<Size>> processed_oligos; // map: sequence -> FASTA index
 
     // set minimum size of oligo after digestion
     Size min_oligo_length = getIntOption_("oligo:min_size");
 
-    Size count_undigested = 0;
-    Size count_oligos = 0;
+    Size hit_counter = 0;
 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (int fasta_index = 0; fasta_index < (int)fasta_db.size(); ++fasta_index)
+    for (Size fasta_index = 0; fasta_index < fasta_db.size(); ++fasta_index)
     {
-#ifdef _OPENMP
-#pragma omp atomic
-#endif
-      ++count_undigested;
-
       IF_MASTERTHREAD
       {
         progresslogger.setProgress((int)fasta_index * NUMBER_OF_THREADS);
@@ -699,26 +706,24 @@ protected:
 #pragma omp critical (processed_oligos_access)
 #endif
         {
-          // oligo (and all modified variants) already processed so skip it
-          if (processed_oligos.find(*cit) != processed_oligos.end())
+          auto pos = processed_oligos.find(*cit);
+          if (pos != processed_oligos.end())
           {
+            // oligo (and all modified variants) already processed so skip it
+            pos->second.insert(fasta_index);
             already_processed = true;
           }
         }
 
-        if (already_processed) { continue; }
+        if (already_processed) continue;
 
 #ifdef _OPENMP
 #pragma omp critical (processed_oligos_access)
 #endif
         {
-          processed_oligos.insert(*cit);
+          processed_oligos[*cit].insert(fasta_index);
         }
 
-#ifdef _OPENMP
-#pragma omp atomic
-#endif
-        ++count_oligos;
         vector<NASequence> all_modified_oligos;
 
         NASequence ns = NASequence::fromString(*cit);
@@ -750,18 +755,15 @@ protected:
             up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + 0.5 * search_params.precursor_mass_tolerance);
           }
 
-          if (low_it == up_it)
-          {
-            continue;     // no matching precursor in data
-          }
+          if (low_it == up_it) continue; // no matching precursor in data
 
-          //create theoretical spectrum
+          // create theoretical spectrum
           PeakSpectrum theo_spectrum;
 
-          //add peaks for b and y ions with charge 1
+          // add peaks for b and y ions with charge 1
           spectrum_generator.getSpectrum(theo_spectrum, candidate, 1, 1);
 
-          //sort by mz
+          // sort by mz
           theo_spectrum.sortByPosition();
 
           for (; low_it != up_it; ++low_it)
@@ -790,6 +792,11 @@ protected:
             ah.mod_index = mod_idx;
             ah.score = score;
 
+#ifdef _OPENMP
+#pragma omp atomic
+#endif
+            ++hit_counter;
+
 #ifdef DEBUG_NASEARCH
             cout << "best score in pre-score: " << score << endl;
 #endif
@@ -806,19 +813,20 @@ protected:
     }
     progresslogger.endProgress();
 
-    LOG_INFO << "Undigested nucleic acids: " << count_undigested << std::endl;
-    LOG_INFO << "Oligonucleotides: " << count_oligos << std::endl;
-    LOG_INFO << "Processed oligos: " << processed_oligos.size() << std::endl;
+    LOG_INFO << "Undigested nucleic acids: " << fasta_db.size() << endl;
+    LOG_INFO << "Oligonucleotides: " << processed_oligos.size() << endl;
+    LOG_INFO << "Search hits: " << hit_counter << endl;
 
     IdentificationData id_data;
     vector<String> primary_files;
     spectra.getPrimaryMSRunPath(primary_files);
     IdentificationData::InputFileKey file_key = registerIDMetaData_(id_data, in_mzml, primary_files, search_params);
 
-    progresslogger.startProgress(0, 1, "annotation...");
+    progresslogger.startProgress(0, 1, "post-processing search hits...");
     postProcessHits_(spectra, annotated_hits, id_data, file_key,
                      report_top_hits, fixed_modifications,
-                     variable_modifications, max_variable_mods_per_oligo);
+                     variable_modifications, max_variable_mods_per_oligo,
+                     fasta_db, processed_oligos);
     progresslogger.endProgress();
 
     // TODO: reindex oligo to undigested sequence
