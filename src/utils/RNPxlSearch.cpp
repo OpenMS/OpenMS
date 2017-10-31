@@ -629,8 +629,8 @@ protected:
     for (auto const & m : marker_ions)
     { 
       spectrum.push_back(Peak1D(m.mass + Constants::PROTON_MASS_U, 1.0));
-      spectrum_charge.push_back(1);
-      spectrum_annotation.push_back("RNA:" + m.name); // add name (e.g., RNA:U-H2O)
+      spectrum_charge.push_back(1); 
+      spectrum_annotation.push_back("RNA:" + m.name);  // add name (e.g., RNA:U-H2O)
     }
   }
 
@@ -638,22 +638,22 @@ protected:
     const String & fragment_shift_name,
     const double fragment_shift_mass, 
     PeakSpectrum & partial_loss_spectrum, 
-    PeakSpectrum::IntegerDataArray & partial_loss_spectrum_charge, 
-    PeakSpectrum::StringDataArray & partial_loss_spectrum_annotation)
+    PeakSpectrum::IntegerDataArray& partial_loss_spectrum_charge, 
+    PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation)
   {
     if (unmodified_sequence.hasSubstring("Y"))
     {
       double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass;
       partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1);
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
+      partial_loss_spectrum_charge.push_back(1); 
+      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name)); 
     }
     else if (unmodified_sequence.hasSubstring("W"))
     {
       double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass;
       partial_loss_spectrum.push_back(Peak1D(immonium_ion_mz, 1.0));
-      partial_loss_spectrum_charge.push_back(1);
-      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
+      partial_loss_spectrum_charge.push_back(1); 
+      partial_loss_spectrum_annotation.push_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name)); 
     }
     else if (unmodified_sequence.hasSubstring("F"))
     {
@@ -716,7 +716,7 @@ protected:
                                    const double& precursor_rna_weight,
                                    const int& precursor_charge,
                                    const vector<FragmentAdductDefinition_>& partial_loss_modification,
-                                   const TheoreticalSpectrumGenerator& total_loss_spectrum_generator,
+                                   const TheoreticalSpectrumGenerator& partial_loss_spectrum_generator,
                                    PeakSpectrum& partial_loss_spectrum) 
   {
     partial_loss_spectrum.getIntegerDataArrays().resize(1);
@@ -769,7 +769,7 @@ protected:
       {
         // 1. create unshifted peaks (a,b,y, MS2 precursor ions up to pc charge)
         PeakSpectrum tmp_shifted_series_peaks;
-        total_loss_spectrum_generator.getSpectrum(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, z, z);
+        partial_loss_spectrum_generator.getSpectrum(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, z, z);
 
         PeakSpectrum::StringDataArray& tmp_shifted_series_annotations = tmp_shifted_series_peaks.getStringDataArrays()[0];
         PeakSpectrum::IntegerDataArray& tmp_shifted_series_charges = tmp_shifted_series_peaks.getIntegerDataArrays()[0];
@@ -828,7 +828,7 @@ protected:
                       const vector<ResidueModification>& fixed_modifications, 
                       const vector<ResidueModification>& variable_modifications, 
                       Size max_variable_mods_per_peptide, 
-                      TheoreticalSpectrumGenerator total_loss_spectrum_generator, 
+                      const TheoreticalSpectrumGenerator& partial_loss_spectrum_generator, 
                       double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, 
                       const PrecursorsToMS2Adducts & all_feasible_adducts)
   {
@@ -837,14 +837,6 @@ protected:
     #ifdef DEBUG_RNPXLSEARCH
       LOG_DEBUG << exp.size() << " : " << annotated_hits.size() << endl;
     #endif
-
-    Param ps = total_loss_spectrum_generator.getParameters();
-    ps.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-    ps.setValue("add_first_prefix_ion", "true");
-    ps.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
-    ps.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-    ps.setValue("add_all_precursor_charges", "true", "Adds precursor peaks with all charges in the given range");
-    total_loss_spectrum_generator.setParameters(ps);
 
     SpectrumAlignment spectrum_aligner;
     Param pa = spectrum_aligner.getParameters();
@@ -923,9 +915,9 @@ protected:
           // get marker ions
           const vector<FragmentAdductDefinition_>& marker_ions = all_feasible_adducts.at(precursor_rna_adduct).marker_ions;
 
-          // generate total loss spectrum for the fixed and variable modified peptide (without RNA)
+          // generate total loss spectrum for the fixed and variable modified peptide (without RNA) (using the settings for partial loss generation)
           PeakSpectrum total_loss_spectrum;
-          total_loss_spectrum_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
+          partial_loss_spectrum_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
 
           PeakSpectrum partial_loss_spectrum;
           generatePartialLossSpectrum(unmodified_sequence,
@@ -935,7 +927,7 @@ protected:
                                       precursor_rna_weight,
                                       precursor_charge,
                                       partial_loss_modification,
-                                      total_loss_spectrum_generator,
+                                      partial_loss_spectrum_generator,
                                       partial_loss_spectrum); 
 
           // fill annotated spectrum information
@@ -1890,6 +1882,21 @@ protected:
     param.setValue("add_z_ions", "false");
     total_loss_spectrum_generator.setParameters(param);
 
+    TheoreticalSpectrumGenerator partial_loss_spectrum_generator;
+    param = partial_loss_spectrum_generator.getParameters();
+    param.setValue("add_first_prefix_ion", "true");
+    param.setValue("add_abundant_immonium_ions", "true");
+    param.setValue("add_precursor_peaks", "true");
+    param.setValue("add_all_precursor_charges", "true");
+    param.setValue("add_metainfo", "true");
+    param.setValue("add_a_ions", "true");
+    param.setValue("add_b_ions", "true");
+    param.setValue("add_c_ions", "false");
+    param.setValue("add_x_ions", "false");
+    param.setValue("add_y_ions", "true");
+    param.setValue("add_z_ions", "false");
+    partial_loss_spectrum_generator.setParameters(param);
+
     // generator for sub scores for a-ions, immonium and precursor peaks
     TheoreticalSpectrumGenerator a_ion_sub_score_spectrum_generator;
     param = a_ion_sub_score_spectrum_generator.getParameters();
@@ -2184,7 +2191,7 @@ protected:
                                                 precursor_rna_weight,
                                                 1,
                                                 partial_loss_modification,
-                                                total_loss_spectrum_generator,
+                                                partial_loss_spectrum_generator,
                                                 partial_loss_spectrum_z1);
                     for (auto& n : partial_loss_spectrum_z1.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
 
@@ -2195,7 +2202,7 @@ protected:
                                                 precursor_rna_weight,
                                                 2, // don't know the charge of the precursor at that point
                                                 partial_loss_modification,
-                                                total_loss_spectrum_generator,
+                                                partial_loss_spectrum_generator,
                                                 partial_loss_spectrum_z2);
                     for (auto& n : partial_loss_spectrum_z2.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
                   }
@@ -2396,7 +2403,7 @@ protected:
                      annotated_hits, 
                      report_top_hits, 
                      mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, 
-                     total_loss_spectrum_generator, 
+                     partial_loss_spectrum_generator, 
                      fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
                      all_feasible_fragment_adducts);
     }
