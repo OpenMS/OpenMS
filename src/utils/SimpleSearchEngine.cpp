@@ -379,7 +379,7 @@ class SimpleSearchEngine :
       vector<ResidueModification> variable_modifications = getModifications_(varModNames);
       Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
 
-      size_t report_top_hits = static_cast<size_t>(getIntOption_("report:top_hits"));
+      size_t top_hits = static_cast<size_t>(getIntOption_("report:top_hits"));
 
       // load MS2 map
       PeakMap spectra;
@@ -439,6 +439,10 @@ class SimpleSearchEngine :
       // preallocate storage for PSMs
       vector<vector<AnnotatedHit> > annotated_hits(spectra.size(), vector<AnnotatedHit>());
       for (auto & a : annotated_hits) { a.reserve(2 * top_hits); }
+
+      // we want to do locking at the spectrum level so we get good parallelisation 
+      vector<omp_lock_t> annotated_hits_lock(annotated_hits.size());
+      for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_init_lock(&(annotated_hits_lock[i])); }
 
       progresslogger.startProgress(0, 1, "Load database from FASTA file...");
       FASTAFile fastaFile;
@@ -574,20 +578,18 @@ class SimpleSearchEngine :
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = score;
 
-// TODO: introduce index level locking
-#ifdef _OPENMP
-#pragma omp critical (peptide_hits_access)
-#endif
+              omp_set_lock(&(annotated_hits_lock[scan_index]));
               {
                 annotated_hits[scan_index].push_back(ah);
 
                 // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
-                if (annotated_hits[scan_index].size() >= 2 * report_top_hits)
+                if (annotated_hits[scan_index].size() >= 2 * top_hits)
                 {
-                  std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + report_top_hits, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
-                  annotated_hits[scan_index].resize(report_top_hits); 
+                  std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + top_hits, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
+                  annotated_hits[scan_index].resize(top_hits); 
                 }
               }
+              omp_unset_lock(&(annotated_hits_lock[scan_index]));
             }
           }
         }
@@ -606,7 +608,7 @@ class SimpleSearchEngine :
         annotated_hits, 
         protein_ids, 
         peptide_ids, 
-        report_top_hits,
+        top_hits,
         fixed_modifications, 
         variable_modifications, 
         max_variable_mods_per_peptide
@@ -649,6 +651,9 @@ class SimpleSearchEngine :
 
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+
+      // free locks
+      for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_destroy_lock(&(annotated_hits_lock[i])); }
 
       return EXECUTION_OK;
     }

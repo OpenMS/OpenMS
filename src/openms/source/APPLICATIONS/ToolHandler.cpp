@@ -227,7 +227,6 @@ namespace OpenMS
     util_map["QCImporter"] = Internal::ToolDescription("QCImporter", util_category);
     util_map["QCMerger"] = Internal::ToolDescription("QCMerger", util_category);
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
-    util_map["RNPxl"] = Internal::ToolDescription("RNPxl", util_category);
     util_map["RNPxlSearch"] = Internal::ToolDescription("RNPxlSearch", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);
     util_map["RTEvaluation"] = Internal::ToolDescription("RTEvaluation", util_category);
