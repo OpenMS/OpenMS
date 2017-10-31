@@ -157,6 +157,36 @@ namespace OpenMS
     return signal_to_noise_;
   }
 
+  void SpectrumExtractor::setTICWeight(const double& tic_weight)
+  {
+    tic_weight_ = tic_weight;
+  }
+
+  double SpectrumExtractor::getTICWeight() const
+  {
+    return tic_weight_;
+  }
+
+  void SpectrumExtractor::setFWHMWeight(const double& fwhm_weight)
+  {
+    fwhm_weight_ = fwhm_weight;
+  }
+
+  double SpectrumExtractor::getFWHMWeight() const
+  {
+    return fwhm_weight_;
+  }
+
+  void SpectrumExtractor::setSNRWeight(const double& snr_weight)
+  {
+    snr_weight_ = snr_weight;
+  }
+
+  double SpectrumExtractor::getSNRWeight() const
+  {
+    return snr_weight_;
+  }
+
   void SpectrumExtractor::updateMembers_()
   {
     rt_window_ = (double)param_.getValue("rt_window");
@@ -171,6 +201,10 @@ namespace OpenMS
     gauss_width_ = (double)param_.getValue("gauss_width");
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
     signal_to_noise_ = (double)param_.getValue("signal_to_noise");
+
+    tic_weight_ = (double)param_.getValue("tic_weight");
+    fwhm_weight_ = (double)param_.getValue("fwhm_weight");
+    snr_weight_ = (double)param_.getValue("snr_weight");
   }
 
   void SpectrumExtractor::getDefaultParameters(Param& params)
@@ -203,6 +237,13 @@ namespace OpenMS
     params.setValidStrings("use_gauss", ListUtils::create<String>("false,true"));
     params.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
     params.setMinFloat("signal_to_noise", 0.0);
+
+    params.setValue("tic_weight", 1.0, "TIC weight when scoring spectra.");
+    params.setMinFloat("tic_weight", 0.0);
+    params.setValue("fwhm_weight", 1.0, "FWHM weight when scoring spectra.");
+    params.setMinFloat("fwhm_weight", 0.0);
+    params.setValue("snr_weight", 1.0, "SNR weight when scoring spectra.");
+    params.setMinFloat("snr_weight", 0.0);
   }
 
   void SpectrumExtractor::pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum)
@@ -248,6 +289,8 @@ namespace OpenMS
     // disable spacing constraints, since we're dealing with spectrum
     pepi_param.setValue("spacing_difference", 0.0);
     pepi_param.setValue("spacing_difference_gap", 0.0);
+    pepi_param.setValue("report_FWHM", "true");
+    pepi_param.setValue("report_FWHM_unit", "absolute");
     picked_spectrum.clear(true);
     PeakPickerHiRes pp;
     pp.setParameters(pepi_param);
@@ -297,5 +340,60 @@ namespace OpenMS
       }
     }
     LOG_DEBUG << "the annotated variable has " << annotated_spectra.size() << " elements instead of " << spectra.size() << std::endl;
+  }
+
+  void SpectrumExtractor::scoreSpectrum(
+    std::vector<MSSpectrum>& annotated,
+    std::vector<MSSpectrum>& picked,
+    std::vector<MSSpectrum>& scored
+  )
+  {
+    std::vector<double> scores(annotated.size());
+    for (UInt i=0; i<annotated.size(); ++i)
+    {
+      double total_tic = 0;
+      for (UInt j=0; j<annotated[i].size(); ++j)
+      {
+        total_tic += annotated[i][j].getIntensity();
+      }
+
+      double avgFWHM = 0;
+      for (UInt j=0; j<picked[i].getFloatDataArrays()[0].size(); ++j)
+      {
+        avgFWHM += picked[i].getFloatDataArrays()[0][j];
+      }
+      avgFWHM /= picked[i].getFloatDataArrays()[0].size();
+
+      SignalToNoiseEstimatorMedian<MSSpectrum> sne;
+      Param p;
+      p.setValue("win_len", 40.0);
+      p.setValue("noise_for_empty_window", 2.0);
+      p.setValue("min_required_elements", 10);
+      sne.setParameters(p);
+      MSSpectrum::const_iterator it;
+      sne.init(annotated[i].begin(),annotated[i].end());
+      double avgSNR = 0.0;
+      for (it=annotated[i].begin(); it!=annotated[i].end(); ++it)
+      {
+        avgSNR += sne.getSignalToNoise(it);
+      }
+      avgSNR /= annotated[i].size();
+
+      double log10_total_tic = log10(total_tic);
+      double inverse_avgFWHM = 1.0 / avgFWHM;
+      double score = log10_total_tic * getTICWeight() + inverse_avgFWHM * getFWHMWeight() + avgSNR * getSNRWeight();
+
+      MSSpectrum spectrum = annotated[i];
+      spectrum.getFloatDataArrays().resize(5);
+      spectrum.getFloatDataArrays()[1].setName("score");
+      spectrum.getFloatDataArrays()[1].push_back(score);
+      spectrum.getFloatDataArrays()[2].setName("log10_total_tic");
+      spectrum.getFloatDataArrays()[2].push_back(log10_total_tic);
+      spectrum.getFloatDataArrays()[3].setName("inverse_avgFWHM");
+      spectrum.getFloatDataArrays()[3].push_back(inverse_avgFWHM);
+      spectrum.getFloatDataArrays()[4].setName("avgSNR");
+      spectrum.getFloatDataArrays()[4].push_back(avgSNR);
+      scored.push_back(spectrum);
+    }
   }
 }

@@ -97,6 +97,15 @@ public:
     void setSignalToNoise(const double& signal_to_noise);
     double getSignalToNoise() const;
 
+    void setTICWeight(const double& tic_weight);
+    double getTICWeight() const;
+
+    void setFWHMWeight(const double& fwhm_weight);
+    double getFWHMWeight() const;
+
+    void setSNRWeight(const double& snr_weight);
+    double getSNRWeight() const;
+
     void getDefaultParameters(Param& params);
 
     void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum);
@@ -105,6 +114,12 @@ public:
       const std::vector<MSSpectrum>& spectra,
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& annotated_spectra
+    );
+
+    void scoreSpectrum(
+      std::vector<MSSpectrum>& annotated,
+      std::vector<MSSpectrum>& picked,
+      std::vector<MSSpectrum>& scored
     );
 
 protected:
@@ -119,11 +134,17 @@ private:
     double mz_tolerance_;
     String mz_tolerance_units_;
 
+    // filter
     UInt sgolay_frame_length_;
     UInt sgolay_polynomial_order_;
     double gauss_width_;
     bool use_gauss_;
     double signal_to_noise_;
+
+    // score
+    double tic_weight_;
+    double fwhm_weight_;
+    double snr_weight_;
   };
 }
 
