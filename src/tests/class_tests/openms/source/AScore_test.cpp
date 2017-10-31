@@ -404,9 +404,6 @@ START_SECTION(computeSiteDeterminingIonsTest_(const std::vector<PeakSpectrum>& t
   PeakSpectrum temp1, temp2;
   vector<PeakSpectrum> site_determining_ions;
   
-  PeakSpectrum& real_spectrum = tmp;
-  std::vector<PeakSpectrum> windows_top10 = ptr_test->peakPickingPerWindowsInSpectrumTest_(real_spectrum);
-  
   AASequence seq = seq_without_phospho;
   vector<PeakSpectrum> th_s = ptr_test->createTheoreticalSpectraTest_(permutations, seq);
   
