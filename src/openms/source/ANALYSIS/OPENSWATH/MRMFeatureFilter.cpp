@@ -102,7 +102,7 @@ namespace OpenMS
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
       {
-        String String component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
+        String component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
         bool qc_pass = true;
 
         // iterate through multi-feature/multi-sub-feature QCs/filters
@@ -175,25 +175,25 @@ namespace OpenMS
             double rt = features[feature_it].getSubordinates()[sub_it].getRT(); //check!
             if (rt < filter_criteria.component_qcs_[c_qc_it].retention_time_l_
               && rt > filter_criteria.component_qcs_[c_qc_it].retention_time_u_)
-              {
-                qc_pass = false;
-              }
+            {
+              qc_pass = false;
+            }
 
             // intensity check
             double intensity = features[feature_it].getSubordinates()[sub_it].getIntensity();
             if (intensity < filter_criteria.component_qcs_[c_qc_it].intensity_l_
               && intensity > filter_criteria.component_qcs_[c_qc_it].intensity_u_)
-              {
-                qc_pass = false;
-              }
+            {
+              qc_pass = false;
+            }
 
             // overall quality check getQuality
             double quality = features[feature_it].getSubordinates()[sub_it].getQuality();
             if (quality < filter_criteria.component_qcs_[c_qc_it].overall_quality_l_
               && quality > filter_criteria.component_qcs_[c_qc_it].overall_quality_u_)
-              {
-                qc_pass = false;
-              }
+            {
+              qc_pass = false;
+            }
 
             // metaValue checks
             for (auto const& kv : filter_criteria.component_qcs_[c_qc_it].meta_value_qc_)
@@ -211,17 +211,17 @@ namespace OpenMS
     }
   }
   
-  std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(Feature & component_group)
+  std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(const Feature & component_group)
   {
     //TODO
   }
   
-  double MRMFeatureFilter::calculateIonRatio(Feature & component_1, Feature & component_2, String & feature_name)
+  double MRMFeatureFilter::calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name)
   {
     //TODO
   }
   
-  bool MRMFeatureFilter::checkMetaValue(Feature & component, String & meta_value_key, String & meta_value_l, String & meta_value_u)
+  bool MRMFeatureFilter::checkMetaValue(const Feature & component, const String & meta_value_key, const double & meta_value_l, const double & meta_value_u)
   {
     //TODO
   }

@@ -102,7 +102,7 @@ public:
 
       @return The ratio.
     */ 
-    double calculateIonRatio(Feature & component_1, Feature & component_2, String & feature_name);
+    double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name);
     
     /**
       @brief Calculates the retention time difference between two features
@@ -134,7 +134,7 @@ public:
 
       @return True if the metavlue is within the bounds, and False otherwise.
     */ 
-    bool checkMetaValue(Feature & component, String & meta_value_key, String & meta_value_l, String & meta_value_u);
+    bool checkMetaValue(const Feature & component, const String & meta_value_key, const double & meta_value_l, const double & meta_value_u);
     
     /**
       @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
@@ -143,7 +143,7 @@ public:
 
       @return Map of labels/transition types and their corresponding number.
     */ 
-    std::map<String,int> countLabelsAndTransitionTypes(Feature & component_group);
+    std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group);
 
     // Members
 
