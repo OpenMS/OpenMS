@@ -115,32 +115,32 @@ namespace OpenMS
             {
               // labels and transition counts QC
               if (labels_and_transition_types["n_heavy"] < filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l_
-                || labels_and_transition_types["n_heavy"] > filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_U_)
+                || labels_and_transition_types["n_heavy"] > filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_u_)
               {
                 qc_pass = false;
               }
               if (labels_and_transition_types["n_light"] < filter_criteria.component_group_qcs_[cg_qc_it].n_light_l_
-                || labels_and_transition_types["n_light"] > filter_criteria.component_group_qcs_[cg_qc_it].n_light_U_)
+                || labels_and_transition_types["n_light"] > filter_criteria.component_group_qcs_[cg_qc_it].n_light_u_)
               {
                 qc_pass = false;
               }
               if (labels_and_transition_types["n_detecting"] < filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_l_
-                || labels_and_transition_types["n_detecting"] > filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_U_)
+                || labels_and_transition_types["n_detecting"] > filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_u_)
               {
                 qc_pass = false;
               }
               if (labels_and_transition_types["n_quantifying"] < filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_l_
-                || labels_and_transition_types["n_quantifying"] > filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_U_)
+                || labels_and_transition_types["n_quantifying"] > filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_u_)
               {
                 qc_pass = false;
               }
               if (labels_and_transition_types["n_identifying"] < filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_l_
-                || labels_and_transition_types["n_identifying"] > filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_U_)
+                || labels_and_transition_types["n_identifying"] > filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_u_)
               {
                 qc_pass = false;
               }
               if (labels_and_transition_types["n_transitions"] < filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_l_
-                || labels_and_transition_types["n_transitions"] > filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_U_)
+                || labels_and_transition_types["n_transitions"] > filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_u_)
               {
                 qc_pass = false;
               }
@@ -198,10 +198,6 @@ namespace OpenMS
             // metaValue checks
             for (auto const& kv : filter_criteria.component_qcs_[c_qc_it].meta_value_qc_)
             {
-              std::cout << x.first  // string (key)
-                        << ':' 
-                        << x.second // string's value 
-                        << std::endl ;
               if (!checkMetaValue(features[feature_it].getSubordinates()[sub_it], kv.first, kv.second.first, kv.second.second))
               {
                 qc_pass = false;
