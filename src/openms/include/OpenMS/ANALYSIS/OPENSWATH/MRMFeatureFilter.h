@@ -35,6 +35,8 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
 #define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
 
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
+
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -76,9 +78,10 @@ public:
       @brief Flags or filters features and subordinates in a FeatureMap
 
       @param features FeatureMap to flag or filter
+      @param filter_criteria MRMFeatureQC class defining QC parameters
 
     */
-    void FilterFeatureMap(FeatureMap& features);
+    void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria);
     
     /**
       @brief Converts a FeatureMap to a qcMLFile::Attachment

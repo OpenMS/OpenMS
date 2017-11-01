@@ -74,7 +74,7 @@ namespace OpenMS
     report_tic_ = param_.getValue("report_tic").toBool();
   }
 
-  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features)
+  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria)
   { 
     // initialize the new feature map
     if (flag_or_filter_ == "filter")
@@ -97,24 +97,115 @@ namespace OpenMS
     {
       component_group_name = (String)features[feature_it].getMetaValue("PeptideRef");
 
+      std::map<String,int> labels_and_transition_types = countLabelsAndTransitionTypes(features[feature_it]);
+
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
       {
         component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
-        qc_pass = false;
+        qc_pass = true;
 
         // iterate through multi-feature/multi-sub-feature QCs/filters
         // iterate through component_groups
         if (sub_it == 0)
         {
-          //TODO
+          for (size_t cg_qc_it = 0; cg_qc_it < filter_criteria.component_group_qcs_.size(); ++cg_qc_it)
+          {
+            if (filter_criteria.component_group_qcs_[cg_qc_it] == component_group_name)
+            {
+              // labels and transition counts QC
+              if (labels_and_transition_types["n_heavy"] < filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l_
+                || labels_and_transition_types["n_heavy"] > filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_U_)
+              {
+                qc_pass = false;
+              }
+              if (labels_and_transition_types["n_light"] < filter_criteria.component_group_qcs_[cg_qc_it].n_light_l_
+                || labels_and_transition_types["n_light"] > filter_criteria.component_group_qcs_[cg_qc_it].n_light_U_)
+              {
+                qc_pass = false;
+              }
+              if (labels_and_transition_types["n_detecting"] < filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_l_
+                || labels_and_transition_types["n_detecting"] > filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_U_)
+              {
+                qc_pass = false;
+              }
+              if (labels_and_transition_types["n_quantifying"] < filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_l_
+                || labels_and_transition_types["n_quantifying"] > filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_U_)
+              {
+                qc_pass = false;
+              }
+              if (labels_and_transition_types["n_identifying"] < filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_l_
+                || labels_and_transition_types["n_identifying"] > filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_U_)
+              {
+                qc_pass = false;
+              }
+              if (labels_and_transition_types["n_transitions"] < filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_l_
+                || labels_and_transition_types["n_transitions"] > filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_U_)
+              {
+                qc_pass = false;
+              }
+
+              // ion ratio QC
+              for (size_t sub_it2 = 0; sub_it2 < features[feature_it].getSubordinates().size(); ++sub_it2)
+              {
+                component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id"); 
+
+                // find the ion ratio pair
+                if (filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_1_ == component_name
+                  && filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_2_ == component_name2)
+                {
+                  double ion_ratio = calculateIonRatio(features[feature_it].getSubordinates()[sub_it], features[feature_it].getSubordinates()[sub_it2], filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_feature_name_);
+                  
+                  if (ion_ratio < filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_l_
+                  || ion_ratio > filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_u_)
+                  {
+                    qc_pass = false;
+                  }
+                }
+              }
+            }
+          }
         }
+        // iterate through feature/sub-feature QCs/filters        
+        for (size_t c_qc_it = 0; c_qc_it < filter_criteria.component_qcs_.size(); ++c_qc_it)
+        {
+          if (filter_criteria.component_qcs_[c_qc_it] == component_name)
+          {
+            // RT check
+            double rt = features[feature_it].getSubordinates()[sub_it].getRT(); //check!
+            if (rt < filter_criteria.component_qcs_[c_qc_it].retention_time_l_
+              && rt > filter_criteria.component_qcs_[c_qc_it].retention_time_u_)
+              {
+                qc_pass = false;
+              }
 
+            // intensity check
 
-        // iterate through feature/sub-feature QCs/filters
+            // overall quality check getQuality
+            double quality = features[feature_it].getSubordinates()[sub_it].getQuality(); //check!
+            if (quality < filter_criteria.component_qcs_[c_qc_it].overall_quality_l_
+              && quality > filter_criteria.component_qcs_[c_qc_it].overall_quality_u_)
+              {
+                qc_pass = false;
+              }
+            // metaValue check
 
+          }
+        }
       }
+
+
     }
+  }
+  
+  std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(Feature & component_group)
+  {
+    //TODO
+  }
+  
+  double MRMFeatureFilter::calculateIonRatio(Feature & component_1, Feature & component_2, String & feature_name)
+  {
+    //TODO
   }
   
   void MRMFeatureFilter::FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment)

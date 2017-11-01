@@ -94,6 +94,7 @@ public:
       String ion_ratio_pair_name_2_;
       double ion_ratio_l_;
       double ion_ratio_u_;
+      String ion_ratio_feature_name_;
         
     };
 

@@ -90,6 +90,7 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     header1.push_back("ion_ratio_pair_name_2");
     header1.push_back("ion_ratio_l");
     header1.push_back("ion_ratio_u");
+    header1.push_back("ion_ratio_feature_name");
     header1.push_back("retention_time_l");
     header1.push_back("retention_time_u");
     header1.push_back("intensity_l");
@@ -105,9 +106,9 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
   
     TEST_EQUAL(headers["component_name"], 0);
     TEST_EQUAL(headers["n_detecting_u"], 7);
-    TEST_EQUAL(headers["overall_quality_u"], 23);
-    TEST_EQUAL(params_headers["peak_apex_int_l"], 24);
-    TEST_EQUAL(params_headers["sn_score_u"], 27);
+    TEST_EQUAL(headers["overall_quality_u"], 24);
+    TEST_EQUAL(params_headers["peak_apex_int_l"], 25);
+    TEST_EQUAL(params_headers["sn_score_u"], 28);
   
     headers.clear();
     params_headers.clear();
@@ -132,6 +133,7 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     header2.push_back("ion_ratio_pair_name_2");
     header2.push_back("ion_ratio_l");
     header2.push_back("ion_ratio_u");
+    // header2.push_back("ion_ratio_feature_name");
     header2.push_back("retention_time_l");
     header2.push_back("retention_time_u");
     header2.push_back("intensity_l");
@@ -180,16 +182,17 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     headers["ion_ratio_pair_name_2"] = 15;
     headers["ion_ratio_l"] = 16;
     headers["ion_ratio_u"] = 17;
-    headers["retention_time_l"] = 18;
-    headers["retention_time_u"] = 19;
-    headers["intensity_l"] = 20;
-    headers["intensity_u"] = 21;
-    headers["overall_quality_l"] = 22;
-    headers["overall_quality_u"] = 23;
-    params_headers["peak_apex_int_l"] = 24;
-    params_headers["peak_apex_int_u"] = 25;
-    params_headers["sn_score_l"] = 26;
-    params_headers["sn_score_u"] = 27;
+    headers["ion_ratio_feature_name"] = 18;
+    headers["retention_time_l"] = 19;
+    headers["retention_time_u"] = 20;
+    headers["intensity_l"] = 21;
+    headers["intensity_u"] = 22;
+    headers["overall_quality_l"] = 23;
+    headers["overall_quality_u"] = 24;
+    params_headers["peak_apex_int_l"] = 25;
+    params_headers["peak_apex_int_u"] = 26;
+    params_headers["sn_score_l"] = 27;
+    params_headers["sn_score_u"] = 28;
   
     // line test 1
     StringList line1; 
@@ -211,6 +214,7 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     line1.push_back("component2");
     line1.push_back(0.5);
     line1.push_back(0.75);
+    line1.push_back("peak_apex_int");
     line1.push_back(1.0);
     line1.push_back(2.0);
     line1.push_back(1.0e3);

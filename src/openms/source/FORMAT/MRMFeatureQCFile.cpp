@@ -99,6 +99,7 @@ namespace OpenMS
     headers["ion_ratio_pair_name_2"] = -1;
     headers["ion_ratio_l"] = -1;
     headers["ion_ratio_u"] = -1;
+    headers["ion_ratio_feature_name"] = -1;
     headers["retention_time_l"] = -1;
     headers["retention_time_u"] = -1;
     headers["intensity_l"] = -1;
@@ -279,6 +280,11 @@ namespace OpenMS
     if (headers["ion_ratio_u"] != -1)
     {
       cgqcs.ion_ratio_u_ = std::stod(line[headers["ion_ratio_u"]]);
+    }
+    cgqcs.ion_ratio_feature_name_ = "";
+    if (headers["ion_ratio_feature_name"] != -1)
+    {
+      cgqcs.ion_ratio_feature_name_ = line[headers["ion_ratio_feature_name_"]];
     }
     mrmfqc.component_group_qcs_.push_back(cgqcs);
   }
