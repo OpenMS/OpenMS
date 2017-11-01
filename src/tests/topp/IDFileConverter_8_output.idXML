@@ -18,12 +18,14 @@
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="675.9" RT="1234.5" spectrum_reference="17" >
 			<PeptideHit score="0.9" sequence="PEPTIDER" charge="1" aa_before="A A" aa_after="B B" protein_refs="PH_0 PH_1" >
 				<UserParam type="float" name="MS:1002354" value="0.9"/>
+				<UserParam type="string" name="MS:1002540" value="Confident"/>
 				<UserParam type="float" name="calcMZ" value="956.468357540271"/>
 				<UserParam type="int" name="pass_threshold" value="0"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 			<PeptideHit score="1.4" sequence="PEPTIDERR" charge="1" aa_before="A A" aa_after="B B" protein_refs="PH_1 PH_0" >
 				<UserParam type="float" name="MS:1002354" value="1.4"/>
+				<UserParam type="string" name="MS:1002540" value="Confident"/>
 				<UserParam type="float" name="calcMZ" value="1112.56946892307"/>
 				<UserParam type="int" name="pass_threshold" value="0"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -31,12 +33,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="X\!Tandem:hyperscore" higher_score_better="true" significance_threshold="0" MZ="0.7" RT="1.6" spectrum_reference="45" >
 			<PeptideHit score="44.4" sequence="PEPTIDEC(Carbamidomethyl)K" charge="2" aa_before="A" aa_after="B" protein_refs="PH_1" >
+				<UserParam type="string" name="MS:1002540" value="Doubtful"/>
 				<UserParam type="float" name="calcMZ" value="634.838928386321"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="MS:1001331" value="44.4"/>
 			</PeptideHit>
 			<PeptideHit score="33.3" sequence="N[+3785.30710]PEPTIDEK" charge="2" aa_before="A" aa_after="B" protein_refs="PH_0" >
+				<UserParam type="string" name="MS:1002540" value="Doubtful"/>
 				<UserParam type="float" name="calcMZ" value="712.889484077721"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
@@ -45,12 +49,14 @@
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot:score" higher_score_better="true" significance_threshold="0" MZ="987.6" RT="5432.1" spectrum_reference="99" >
 			<PeptideHit score="99.4" sequence="PEPTIDEC(Carbamidomethyl)K" charge="2" aa_before="A" aa_after="B" protein_refs="PH_1" >
+				<UserParam type="string" name="MS:1002540" value="Not Validated"/>
 				<UserParam type="float" name="calcMZ" value="634.838928386321"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="float" name="MS:1001171" value="99.4"/>
 			</PeptideHit>
 			<PeptideHit score="33.3" sequence="N[+3785.30710]PEPTIDEK" charge="1" aa_before="A" aa_after="B" protein_refs="PH_0" >
+				<UserParam type="string" name="MS:1002540" value="Not Validated"/>
 				<UserParam type="float" name="calcMZ" value="1424.77169168867"/>
 				<UserParam type="int" name="pass_threshold" value="1"/>
 				<UserParam type="string" name="target_decoy" value="decoy"/>
