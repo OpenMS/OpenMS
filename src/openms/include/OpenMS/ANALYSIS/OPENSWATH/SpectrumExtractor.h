@@ -122,6 +122,12 @@ public:
       std::vector<MSSpectrum>& scored
     );
 
+    void extractSpectrum(
+      const PeakMap& experiment,
+      const TargetedExperiment& targeted_exp,
+      std::map<std::string,MSSpectrum>& transition_best_spec
+    );
+
 protected:
     /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
     void updateMembers_();

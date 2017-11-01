@@ -396,4 +396,46 @@ namespace OpenMS
       scored.push_back(spectrum);
     }
   }
+
+  void SpectrumExtractor::extractSpectrum(
+    const PeakMap& experiment,
+    const TargetedExperiment& targeted_exp,
+    std::map<std::string,MSSpectrum>& transition_best_spec
+  )
+  {
+    // get the spectra from the experiment
+    std::vector<MSSpectrum> spectra = experiment.getSpectra();
+
+    // annotate spectra
+    std::vector<MSSpectrum> annotated;
+    annotateSpectrum(spectra, targeted_exp, annotated);
+
+    // pick peaks from annotate spectra
+    std::vector<MSSpectrum> picked(annotated.size());
+    for (UInt i=0; i<annotated.size(); ++i)
+    {
+      pickSpectrum(annotated[i], picked[i]);
+    }
+
+    // score spectra
+    std::vector<MSSpectrum> scored;
+    scoreSpectrum(annotated, picked, scored);
+
+    // select the best spectrum for each transition of the target list
+    transition_best_spec.clear();
+    for (auto spectrum : scored)
+    {
+      String transition_name = spectrum.getName();
+      std::map<std::string,MSSpectrum>::const_iterator it = transition_best_spec.find(transition_name);
+      if (it == transition_best_spec.end())
+      {
+        transition_best_spec.insert({transition_name, spectrum});
+      }
+      else if (it->second.getFloatDataArrays()[1][0] < spectrum.getFloatDataArrays()[1][0])
+      {
+        transition_best_spec.erase(transition_name);
+        transition_best_spec.insert({transition_name, spectrum});
+      }
+    }
+  }
 }

@@ -37,7 +37,6 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumExtractor.h>
-#include <map>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -505,6 +504,8 @@ START_SECTION(annotateSpectrum())
 
   ptr->annotateSpectrum(spectra, targeted_exp, annotated);
 
+  TEST_NOT_EQUAL(annotated.size(), 0)
+
   ofstream outfile;
   outfile.open(
     OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_plots_output.html"),
@@ -533,7 +534,6 @@ START_SECTION(annotateSpectrum())
     {
       MSSpectrum picked;
       ptr->pickSpectrum(annotated[j], picked);
-      TEST_NOT_EQUAL(annotated[j].size(), picked.size())
 
       outfile << "  {" << endl <<  "    x: [";
       for (UInt i=0; i<annotated[j].size(); ++i) {
@@ -643,6 +643,8 @@ START_SECTION(scoreSpectrum())
   std::vector<MSSpectrum> scored;
   ptr->scoreSpectrum(annotated, picked, scored);
 
+  TEST_NOT_EQUAL(scored.size(), 0)
+
   // std::sort(scored.begin(), scored.end(), [](MSSpectrum a, MSSpectrum b)
   // {
   //   return a.getFloatDataArrays()[1][0] > b.getFloatDataArrays()[1][0];
@@ -660,22 +662,35 @@ START_SECTION(scoreSpectrum())
     << "\t1/fwhm: " << a.getFloatDataArrays()[3][0]
     << "\tSNR: " << a.getFloatDataArrays()[4][0] << endl;
   }
+}
+END_SECTION
+
+START_SECTION(extractSpectrum())
+{
+  const String experiment_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1.mzML");
+  const String target_list_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13CFlux_TraML.csv");
+
+  MzMLFile mzml;
+  PeakMap experiment;
+  TransitionTSVReader tsv_reader;
+  TargetedExperiment targeted_exp;
+
+  // load files into variables
+  mzml.load(experiment_path, experiment);
+  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
+
+  ptr->setRTWindow(30);
+  ptr->setMZTolerance(0.1);
+  ptr->setGaussWidth(0.25);
+  ptr->setUseGauss(true);
+  ptr->setTICWeight(1.0);
+  ptr->setFWHMWeight(1.0);
+  ptr->setSNRWeight(1.0);
 
   map<string,MSSpectrum> transition_best_spec;
-  for (auto a : scored)
-  {
-    String transition_name = a.getName();
-    map<string,MSSpectrum>::const_iterator it = transition_best_spec.find(transition_name);
-    if (it == transition_best_spec.end())
-    {
-      transition_best_spec.insert({transition_name, a});
-    }
-    else if (it->second.getFloatDataArrays()[1][0] < a.getFloatDataArrays()[1][0])
-    {
-      transition_best_spec.erase(transition_name);
-      transition_best_spec.insert({transition_name, a});
-    }
-  }
+  ptr->extractSpectrum(experiment, targeted_exp, transition_best_spec);
+
+  TEST_NOT_EQUAL(transition_best_spec.size(), 0)
 
   cout << endl << "Printing mapping of transition -> best spectrum:" << endl;
   for (auto it = transition_best_spec.cbegin(); it!=transition_best_spec.cend(); ++it)
