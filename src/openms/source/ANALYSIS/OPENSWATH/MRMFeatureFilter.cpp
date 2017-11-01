@@ -180,16 +180,33 @@ namespace OpenMS
               }
 
             // intensity check
+            double intensity = features[feature_it].getSubordinates()[sub_it].getIntensity();
+            if (intensity < filter_criteria.component_qcs_[c_qc_it].intensity_l_
+              && intensity > filter_criteria.component_qcs_[c_qc_it].intensity_u_)
+              {
+                qc_pass = false;
+              }
 
             // overall quality check getQuality
-            double quality = features[feature_it].getSubordinates()[sub_it].getQuality(); //check!
+            double quality = features[feature_it].getSubordinates()[sub_it].getQuality();
             if (quality < filter_criteria.component_qcs_[c_qc_it].overall_quality_l_
               && quality > filter_criteria.component_qcs_[c_qc_it].overall_quality_u_)
               {
                 qc_pass = false;
               }
-            // metaValue check
 
+            // metaValue checks
+            for (auto const& kv : filter_criteria.component_qcs_[c_qc_it].meta_value_qc_)
+            {
+              std::cout << x.first  // string (key)
+                        << ':' 
+                        << x.second // string's value 
+                        << std::endl ;
+              if (!checkMetaValue(features[feature_it].getSubordinates()[sub_it], kv.first, kv.second.first, kv.second.second))
+              {
+                qc_pass = false;
+              }
+            }
           }
         }
       }
@@ -204,6 +221,11 @@ namespace OpenMS
   }
   
   double MRMFeatureFilter::calculateIonRatio(Feature & component_1, Feature & component_2, String & feature_name)
+  {
+    //TODO
+  }
+  
+  bool MRMFeatureFilter::checkMetaValue(Feature & component, String & meta_value_key, String & meta_value_l, String & meta_value_u)
   {
     //TODO
   }
