@@ -95,7 +95,7 @@ namespace OpenMS
 
     for (size_t feature_it = 0; feature_it < features.size(); ++feature_it)
     {
-      component_group_name = (String)features[feature_it].getMetaValue("PeptideRef");
+      String component_group_name = (String)features[feature_it].getMetaValue("PeptideRef");
 
       std::map<String,int> labels_and_transition_types = countLabelsAndTransitionTypes(features[feature_it]);
 
@@ -187,13 +187,13 @@ namespace OpenMS
               qc_pass = false;
             }
 
-            // overall quality check getQuality
-            double quality = features[feature_it].getSubordinates()[sub_it].getQuality();
-            if (quality < filter_criteria.component_qcs_[c_qc_it].overall_quality_l_
-              && quality > filter_criteria.component_qcs_[c_qc_it].overall_quality_u_)
-            {
-              qc_pass = false;
-            }
+            // // overall quality check getQuality
+            // double quality = features[feature_it].getSubordinates()[sub_it].getQuality();
+            // if (quality < filter_criteria.component_qcs_[c_qc_it].overall_quality_l_
+            //   && quality > filter_criteria.component_qcs_[c_qc_it].overall_quality_u_)
+            // {
+            //   qc_pass = false;
+            // }
 
             // metaValue checks
             for (auto const& kv : filter_criteria.component_qcs_[c_qc_it].meta_value_qc_)
