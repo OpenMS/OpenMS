@@ -111,7 +111,7 @@ namespace OpenMS
         {
           for (size_t cg_qc_it = 0; cg_qc_it < filter_criteria.component_group_qcs_.size(); ++cg_qc_it)
           {
-            if (filter_criteria.component_group_qcs_[cg_qc_it] == component_group_name)
+            if (filter_criteria.component_group_qcs_[cg_qc_it].component_group_name_ == component_group_name)
             {
               // labels and transition counts QC
               if (labels_and_transition_types["n_heavy"] < filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l_
@@ -169,7 +169,7 @@ namespace OpenMS
         // iterate through feature/sub-feature QCs/filters        
         for (size_t c_qc_it = 0; c_qc_it < filter_criteria.component_qcs_.size(); ++c_qc_it)
         {
-          if (filter_criteria.component_qcs_[c_qc_it] == component_name)
+          if (filter_criteria.component_qcs_[c_qc_it].component_name_ == component_name)
           {
             // RT check
             double rt = features[feature_it].getSubordinates()[sub_it].getRT(); //check!
