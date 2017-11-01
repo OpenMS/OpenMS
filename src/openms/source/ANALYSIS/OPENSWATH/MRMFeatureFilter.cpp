@@ -86,11 +86,11 @@ namespace OpenMS
     std::map<String,MRMFeatureQC>::iterator feature_qc_it;
 
     // initialize variables
-    String component_name; //i.e., transition_id
+    // String component_name; //i.e., transition_id
     String IS_component_name; //i.e., internal standard transition_id
-    String component_group_name; //i.e., peptideRef
+    // String component_group_name; //i.e., peptideRef
     double calculated_concentration;
-    bool qc_pass;
+    // bool qc_pass;
     String concentration_units;// iterate through each component_group/feature     
 
     for (size_t feature_it = 0; feature_it < features.size(); ++feature_it)
@@ -102,8 +102,8 @@ namespace OpenMS
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
       {
-        component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
-        qc_pass = true;
+        String String component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
+        bool qc_pass = true;
 
         // iterate through multi-feature/multi-sub-feature QCs/filters
         // iterate through component_groups
@@ -148,7 +148,7 @@ namespace OpenMS
               // ion ratio QC
               for (size_t sub_it2 = 0; sub_it2 < features[feature_it].getSubordinates().size(); ++sub_it2)
               {
-                component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id"); 
+                String component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id"); 
 
                 // find the ion ratio pair
                 if (filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_1_ == component_name
