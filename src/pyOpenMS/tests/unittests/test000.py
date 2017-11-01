@@ -1733,7 +1733,7 @@ def testAScore():
     hit = pyopenms.PeptideHit()
     spectrum = pyopenms.MSSpectrum()
 
-    ff.compute(hit, spectrum, 5.0, 1)
+    ff.compute(hit, spectrum)
     # ff.computeCumulativeScore(1,1,0.5)
 
 @report
