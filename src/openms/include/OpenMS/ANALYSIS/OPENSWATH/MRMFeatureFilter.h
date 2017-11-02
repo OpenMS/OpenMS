@@ -79,9 +79,11 @@ public:
 
       @param features FeatureMap to flag or filter
       @param filter_criteria MRMFeatureQC class defining QC parameters
+      @param transitions transitions from a TargetedExperiment
 
     */
-    void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria);
+    void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
+      const TargetedExperiment & transitions);
     
     /**
       @brief Converts a FeatureMap to a qcMLFile::Attachment
@@ -140,10 +142,12 @@ public:
       @brief Count the number of heavy/light labels and quantifying/detecting/identifying transitions
 
       @param component component_group with subordinates
+      @param transitions transitions from a TargetedExperiment
 
       @return Map of labels/transition types and their corresponding number.
     */ 
-    std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group);
+    std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
+      const TargetedExperiment & transitions);
 
     // Members
 

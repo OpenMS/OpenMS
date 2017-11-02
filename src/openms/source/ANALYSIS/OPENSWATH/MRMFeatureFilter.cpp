@@ -77,7 +77,8 @@ namespace OpenMS
     report_tic_ = param_.getValue("report_tic").toBool();
   }
 
-  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria)
+  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
+    const TargetedExperiment & transitions)
   { 
     // initialize the new feature map
     if (flag_or_filter_ == "filter")
@@ -100,7 +101,7 @@ namespace OpenMS
     {
       String component_group_name = (String)features[feature_it].getMetaValue("PeptideRef");
 
-      std::map<String,int> labels_and_transition_types = countLabelsAndTransitionTypes(features[feature_it]);
+      std::map<String,int> labels_and_transition_types = countLabelsAndTransitionTypes(features[feature_it], transitions);
 
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
