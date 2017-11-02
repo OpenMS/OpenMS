@@ -82,10 +82,8 @@ public:
       @param transitions transitions from a TargetedExperiment
 
     */    
-    template <typename TransitionT>
-    void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group)
     void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
-      const TransitionT & transitions);
+      const OpenMS::TargetedExperiment & transitions);
     
     /**
       @brief Converts a FeatureMap to a qcMLFile::Attachment
@@ -148,9 +146,8 @@ public:
 
       @return Map of labels/transition types and their corresponding number.
     */ 
-    template <typename TransitionT>
     std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
-      const TransitionT & transitions);
+      const OpenMS::TargetedExperiment & transitions);
 
     // Members
 
