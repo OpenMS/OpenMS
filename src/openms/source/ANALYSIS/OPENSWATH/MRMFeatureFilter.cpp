@@ -34,6 +34,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
+#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -211,9 +214,60 @@ namespace OpenMS
     }
   }
   
-  std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(const Feature & component_group)
+  std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
+    const Feature & component_group,
+    const TargetedExperiment & transitions)
   {
-    //TODO
+    int n_heavy(0), n_light(0), n_quant(0), n_detect(0), n_ident(0), n_trans(0);
+    std::map<String,int> output;
+
+    for (size_t cg_it = 0; cg_it < component_group.getSubordinates(); ++cg_it)
+    {
+
+      // extract out the matching transition
+      ReactionMonitoringTransition transition;
+      for (size_t trans_it = 0; trans_it < transitions.size(); ++trans_it)
+      {
+        if (transitions[trans_it].getNativeID() == component_group[cg_it].getMetaValue("native_id"))
+        {
+          transition = transitions[trans_it][0];
+          break;
+        }
+      }
+
+      // count labels and transition types
+      String label_type = (String)component_group[cg_it].getMetaValue("LabelType");
+      if (label_type == "Heavy")
+      { 
+        ++n_heavy;
+      }
+      else if (label_type == "Light")
+      {
+        ++n_light;
+      }
+      if (transition.isQuantifyingTransition())
+      {
+        ++n_quant;
+      }
+      if (transition.isIdentifyingTransition())
+      {
+        ++n_ident;
+      }
+      if (transition.isDetectingTransition())
+      {
+        ++n_detect;
+      }
+      ++n_trans;
+    }
+
+    // record
+    output["n_heavy"] = n_heavy;
+    output["n_light"] = n_light;
+    output["n_quant"] = n_quant;
+    output["n_ident"] = n_ident;
+    output["n_detect"] = n_detect;
+
+    return output;
   }
   
   double MRMFeatureFilter::calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name)
