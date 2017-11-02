@@ -224,14 +224,14 @@ namespace OpenMS
     int n_heavy(0), n_light(0), n_quant(0), n_detect(0), n_ident(0), n_trans(0);
     std::map<String,int> output;
 
-    for (size_t cg_it = 0; cg_it < component_group.getSubordinates(); ++cg_it)
+    for (size_t cg_it = 0; cg_it < component_group.getSubordinates().size(); ++cg_it)
     {
 
       // extract out the matching transition
       ReactionMonitoringTransition transition;
       for (size_t trans_it = 0; trans_it < transitions.getTransitions().size(); ++trans_it)
       {
-        if (transitions.getTransitions()[trans_it].getNativeID() == component_group[cg_it].getMetaValue("native_id"))
+        if (transitions.getTransitions()[trans_it].getNativeID() == component_group.getSubordinates()[cg_it].getMetaValue("native_id"))
         {
           transition = transitions.getTransitions()[trans_it][0];
           break;
@@ -239,7 +239,7 @@ namespace OpenMS
       }
 
       // count labels and transition types
-      String label_type = (String)component_group[cg_it].getMetaValue("LabelType");
+      String label_type = (String)component_group.getSubordinates()[cg_it].getMetaValue("LabelType");
       if (label_type == "Heavy")
       { 
         ++n_heavy;
