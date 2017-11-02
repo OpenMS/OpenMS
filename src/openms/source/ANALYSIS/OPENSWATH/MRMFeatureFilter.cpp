@@ -78,7 +78,7 @@ namespace OpenMS
   }
 
   void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
-    const OpenMS::TargetedExperiment & transitions)
+    const TargetedExperiment & transitions)
   { 
     // initialize the new feature map
     if (flag_or_filter_ == "filter")
@@ -217,7 +217,7 @@ namespace OpenMS
   
   std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
     const Feature & component_group,
-    const OpenMS::TargetedExperiment & transitions)
+    const TargetedExperiment & transitions)
   {
     int n_heavy(0), n_light(0), n_quant(0), n_detect(0), n_ident(0), n_trans(0);
     std::map<String,int> output;

@@ -36,6 +36,7 @@
 #define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -83,7 +84,7 @@ public:
 
     */    
     void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
-      const OpenMS::TargetedExperiment & transitions);
+      const TargetedExperiment & transitions);
     
     /**
       @brief Converts a FeatureMap to a qcMLFile::Attachment
@@ -147,7 +148,7 @@ public:
       @return Map of labels/transition types and their corresponding number.
     */ 
     std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
-      const OpenMS::TargetedExperiment & transitions);
+      const TargetedExperiment & transitions);
 
     // Members
 
