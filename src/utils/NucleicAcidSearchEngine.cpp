@@ -658,6 +658,11 @@ protected:
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
     Param param(spectrum_generator.getParameters());
+    // set nucleic acid-specific fragmentation pattern:
+    param.setValue("add_b_ions", "false");
+    param.setValue("add_c_ions", "true");
+    param.setValue("add_w_ions", "true");
+    param.setValue("add_a-B_ions", "true");
     param.setValue("add_first_prefix_ion", "true");
     param.setValue("add_metainfo", "true");
     spectrum_generator.setParameters(param);
@@ -761,7 +766,8 @@ protected:
           PeakSpectrum theo_spectrum;
 
           // add peaks for b and y ions with charge 1
-          spectrum_generator.getSpectrum(theo_spectrum, candidate, 1, 1);
+          Int charge = negative_mode ? -1 : 1;
+          spectrum_generator.getSpectrum(theo_spectrum, candidate, charge, charge);
 
           // sort by mz
           theo_spectrum.sortByPosition();

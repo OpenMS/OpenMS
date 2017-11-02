@@ -154,16 +154,6 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const NASequence& nucleotide, Int min_charge, Int max_charge) const
   {
-    bool add_b_ions(param_.getValue("add_b_ions").toBool());
-    bool add_y_ions(param_.getValue("add_y_ions").toBool());
-    bool add_a_ions(param_.getValue("add_a_ions").toBool());
-    bool add_c_ions(param_.getValue("add_c_ions").toBool());
-    bool add_x_ions(param_.getValue("add_x_ions").toBool());
-    bool add_z_ions(param_.getValue("add_z_ions").toBool());
-    bool add_d_ions(param_.getValue("add_d_ions").toBool());
-    bool add_w_ions(param_.getValue("add_w_ions").toBool());
-    bool add_aB_ions(param_.getValue("add_a-B_ions").toBool());
-
     Int sign = 1;
     if (max_charge < 0 && min_charge < 0)
     {
@@ -199,15 +189,15 @@ namespace OpenMS
 
     for (uint z = (uint)abs(min_charge); z <= (uint)abs(max_charge) && z < (uint)nucleotide.size(); ++z)
     {
-      if (add_b_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::BIon, z*sign);
-      if (add_y_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::YIon, z*sign);
-      if (add_a_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::AIon, z*sign);
-      if (add_c_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::CIon, z*sign);
-      if (add_x_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::XIon, z*sign);
-      if (add_z_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::ZIon, z*sign);
-      if (add_d_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::DIon, z*sign);
-      if (add_w_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::WIon, z*sign);
-      if (add_aB_ions) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::AminusB, z*sign);
+      if (add_b_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::BIon, z * sign);
+      if (add_y_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::YIon, z * sign);
+      if (add_a_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::AIon, z * sign);
+      if (add_c_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::CIon, z * sign);
+      if (add_x_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::XIon, z * sign);
+      if (add_z_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::ZIon, z * sign);
+      if (add_d_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::DIon, z * sign);
+      if (add_w_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::WIon, z * sign);
+      if (add_aB_ions_) addPeaks_(spectrum, nucleotide, ion_names, charges, NASequence::AminusB, z * sign);
     }
 
     if (add_precursor_peaks_)
@@ -216,7 +206,7 @@ namespace OpenMS
       {
         for (uint z = (uint)abs(min_charge); z <= (uint)abs(max_charge); ++z)
         {
-          addPrecursorPeaks_(spectrum, nucleotide, ion_names, charges, z*sign);
+          addPrecursorPeaks_(spectrum, nucleotide, ion_names, charges, z * sign);
         }
       }
       else // add_all_precursor_charges_ = false, only add precursor with highest charge
