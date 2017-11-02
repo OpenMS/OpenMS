@@ -909,7 +909,7 @@ protected:
 
           if (feasible_MS2_adducts.empty()) { continue; } // should not be the case - check case of no nucleotide but base fragment ?
  
-          // TODO: score individually for every nucleotide
+          // TODO: check if we need to score individually for every nucleotide or the one that has been annotated
           const vector<FragmentAdductDefinition_>& partial_loss_modification = feasible_MS2_adducts.front().second;
 
           // get marker ions
@@ -1795,9 +1795,6 @@ protected:
     // calculate all feasible fragment adducts from all possible precursor adducts
     PrecursorsToMS2Adducts all_feasible_fragment_adducts = getAllFeasibleFragmentAdducts_(mm, nucleotide_to_fragment_adducts, can_xl);
 
-    // determine fragment adducts common to all precursor adducts (possibly none). These might be used in the pre-scoring
-    //vector<FragmentAdductDefinition_> common_fragment_adducts = getCommonFragmentAdducts_(all_feasible_fragment_adducts); 
-
     // load MS2 map
     PeakMap spectra;
     MzMLFile f;
@@ -1811,7 +1808,9 @@ protected:
     spectra.sortSpectra(true);
 
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, true, false); // single charge, no annotation
+    const bool convert_to_single_charge = false;  // whether to convert fragment peaks with isotopic patterns to single charge
+    const bool annotate_charge = false;  // whether the charge and type is annotated
+    preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, convert_to_single_charge, annotate_charge);
     progresslogger.endProgress();
 
     // build multimap of precursor mass to scan index
@@ -2033,8 +2032,8 @@ protected:
           const AASequence& fixed_and_variable_modified_peptide = all_modified_peptides[mod_pep_idx];
           double current_peptide_mass_without_RNA = fixed_and_variable_modified_peptide.getMonoWeight();
 
-          //create empty theoretical spectrum
-          PeakSpectrum complete_loss_spectrum;
+          //create empty theoretical spectrum.  total_loss_spectrum_z2 contains both charge 1 and charge 2 peaks
+          PeakSpectrum total_loss_spectrum_z1, total_loss_spectrum_z2;
 
           // spectrum containing additional peaks for sub scoring
           PeakSpectrum immonium_sub_score_spectrum, 
@@ -2069,9 +2068,10 @@ protected:
             // add peaks for b- and y- ions with charge 1 (sorted by m/z)
 
             // total / complete loss spectra are generated for fast and (slow) full scoring
-            if (complete_loss_spectrum.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
+            if (total_loss_spectrum_z1.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
             {
-              total_loss_spectrum_generator.getSpectrum(complete_loss_spectrum, fixed_and_variable_modified_peptide, 1, 1);
+              total_loss_spectrum_generator.getSpectrum(total_loss_spectrum_z1, fixed_and_variable_modified_peptide, 1, 1);
+              total_loss_spectrum_generator.getSpectrum(total_loss_spectrum_z2, fixed_and_variable_modified_peptide, 1, 2);
               immonium_ion_sub_score_spectrum_generator.getSpectrum(immonium_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
               precursor_ion_sub_score_spectrum_generator.getSpectrum(precursor_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
               a_ion_sub_score_spectrum_generator.getSpectrum(a_ion_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
@@ -2097,25 +2097,28 @@ protected:
                   const Size &scan_index = l->second.first;
                   const int &isotope_error = l->second.second;
                   const PeakSpectrum &exp_spectrum = spectra[scan_index];
+                  const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
+                  PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
 
                   float total_loss_score(0), immonium_sub_score(0), 
                         precursor_sub_score(0), a_ion_sub_score(0), tlss_MIC(0),
                         tlss_err(0), tlss_Morph(0);
 
+
                   scoreTotalLossFragments_(exp_spectrum,
-                                           complete_loss_spectrum,
-                                           fragment_mass_tolerance,
-                                           fragment_mass_tolerance_unit_ppm,
-                                           a_ion_sub_score_spectrum,
-                                           precursor_sub_score_spectrum,
-                                           immonium_sub_score_spectrum,
-                                           total_loss_score,
-                                           tlss_MIC,
-                                           tlss_err,
-                                           tlss_Morph,
-                                           immonium_sub_score,
-                                           precursor_sub_score,
-                                           a_ion_sub_score);
+                                         total_loss_spectrum,
+                                         fragment_mass_tolerance,
+                                         fragment_mass_tolerance_unit_ppm,
+                                         a_ion_sub_score_spectrum,
+                                         precursor_sub_score_spectrum,
+                                         immonium_sub_score_spectrum,
+                                         total_loss_score,
+                                         tlss_MIC,
+                                         tlss_err,
+                                         tlss_Morph,
+                                         immonium_sub_score,
+                                         precursor_sub_score,
+                                         a_ion_sub_score);
 
 
                   // no good hit
@@ -2227,8 +2230,11 @@ protected:
                       a_ion_sub_score(0), partial_loss_sub_score(0), marker_ions_sub_score(0),
                       plss_MIC(0), plss_err(0), plss_Morph(0), score;
 
+                    const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
+                    PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
+
                     scoreTotalLossFragments_(exp_spectrum,
-                                             complete_loss_spectrum,
+                                             total_loss_spectrum,
                                              fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
                                              a_ion_sub_score_spectrum,
                                              precursor_sub_score_spectrum,
@@ -2312,7 +2318,10 @@ protected:
                 float tlss_err;
                 float tlss_Morph;
 
-                scoreTotalLossFragments_(exp_spectrum, complete_loss_spectrum, fragment_mass_tolerance,
+                const int & exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
+                PeakSpectrum & total_loss_spectrum = (exp_pc_charge < 3) ? total_loss_spectrum_z1 : total_loss_spectrum_z2;
+
+                scoreTotalLossFragments_(exp_spectrum, total_loss_spectrum, fragment_mass_tolerance,
                                          fragment_mass_tolerance_unit_ppm, a_ion_sub_score_spectrum,
                                          precursor_sub_score_spectrum, 
                                          immonium_sub_score_spectrum, total_loss_score, 
@@ -2474,7 +2483,7 @@ protected:
 
   // determine main score and sub scores of peaks without shifts
   void scoreTotalLossFragments_(const PeakSpectrum &exp_spectrum,
-                                const PeakSpectrum &complete_loss_spectrum,
+                                const PeakSpectrum &total_loss_spectrum,
                                 double fragment_mass_tolerance,
                                 bool fragment_mass_tolerance_unit_ppm,
                                 const PeakSpectrum &a_ion_sub_score_spectrum,
@@ -2489,14 +2498,14 @@ protected:
                                 float &a_ion_sub_score) const
   {
     total_loss_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
-                                           exp_spectrum, complete_loss_spectrum);
+                                           exp_spectrum, total_loss_spectrum);
     immonium_sub_score = 0;
     precursor_sub_score = 0;
     a_ion_sub_score = 0;
     const auto &tl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
                                                        fragment_mass_tolerance_unit_ppm,
                                                        exp_spectrum,
-                                                       complete_loss_spectrum);
+                                                       total_loss_spectrum);
 
     tlss_MIC = tl_sub_scores.TIC != 0 ? tl_sub_scores.MIC / tl_sub_scores.TIC : 0;
     tlss_err = tl_sub_scores.err;
