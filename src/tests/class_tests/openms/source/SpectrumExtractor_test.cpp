@@ -452,38 +452,31 @@ END_SECTION
 
 START_SECTION(pickSpectrum())
 {
-  // TODO replace and improve this test
-  // at the moment the output is a text file to use
-  // as plotly input data (x and y of a scatter plot)
   MSSpectrum picked;
   spectrum.sortByPosition();
   ptr->setGaussWidth(0.2);
   ptr->setUseGauss(true);
   ptr->pickSpectrum(spectrum, picked);
   TEST_NOT_EQUAL(spectrum.size(), picked.size())
-  ofstream outfile;
-  outfile.open(
-    OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_plot_output.txt"),
-    ios::out | ios::trunc
-  );
-  if (outfile.is_open())
-  {
-    outfile << "Fill plotly data with this:" << std::endl << "x: [";
-    for (UInt i=0; i<picked.size(); ++i)
-    {
-      outfile << picked[i].getMZ() << ", ";
-    }
-    outfile << "]," << std::endl << "y: [";
-    for (UInt i=0; i<picked.size(); ++i)
-    {
-      outfile << picked[i].getIntensity() << ", ";
-    }
-    outfile << "],";
-    outfile.close();
-  }
-  else {
-    cout << "Unable to open file to write the spectrum";
-  }
+
+  MSSpectrum::Iterator it = picked.begin();
+  TEST_REAL_SIMILAR(it->getMZ(), 85.014)
+  TEST_REAL_SIMILAR(it->getIntensity(), 60774.2)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 86.0196)
+  TEST_REAL_SIMILAR(it->getIntensity(), 116084)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 112.033)
+  TEST_REAL_SIMILAR(it->getIntensity(), 21948.4)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 129.396)
+  TEST_REAL_SIMILAR(it->getIntensity(), 10570)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 130.081)
+  TEST_REAL_SIMILAR(it->getIntensity(), 31851.7)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 174.239)
+  TEST_REAL_SIMILAR(it->getIntensity(), 11734.7)
 }
 END_SECTION
 
