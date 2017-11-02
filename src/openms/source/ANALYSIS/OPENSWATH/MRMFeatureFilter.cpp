@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
+
+#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
