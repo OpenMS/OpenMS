@@ -78,7 +78,7 @@ namespace OpenMS
   }
 
   void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
-    const TargetedExperiment & transitions)
+    const TargetedExperiment::TargetedExperiment & transitions)
   { 
     // initialize the new feature map
     if (flag_or_filter_ == "filter")
@@ -217,7 +217,7 @@ namespace OpenMS
   
   std::map<String,int> MRMFeatureFilter::countLabelsAndTransitionTypes(
     const Feature & component_group,
-    const TargetedExperiment & transitions)
+    const TargetedExperiment::TargetedExperimentTargetedExperiment & transitions)
   {
     int n_heavy(0), n_light(0), n_quant(0), n_detect(0), n_ident(0), n_trans(0);
     std::map<String,int> output;
@@ -227,11 +227,11 @@ namespace OpenMS
 
       // extract out the matching transition
       ReactionMonitoringTransition transition;
-      for (size_t trans_it = 0; trans_it < transitions.size(); ++trans_it)
+      for (size_t trans_it = 0; trans_it < transitions.getTransitions().size(); ++trans_it)
       {
-        if (transitions[trans_it].getNativeID() == component_group[cg_it].getMetaValue("native_id"))
+        if (transitions.getTransitions()[trans_it].getNativeID() == component_group[cg_it].getMetaValue("native_id"))
         {
-          transition = transitions[trans_it][0];
+          transition = transitions.getTransitions()[trans_it][0];
           break;
         }
       }

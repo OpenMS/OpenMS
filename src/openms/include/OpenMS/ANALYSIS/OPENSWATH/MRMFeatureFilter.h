@@ -83,7 +83,7 @@ public:
 
     */
     void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
-      const TargetedExperiment & transitions);
+      const TargetedExperiment::TargetedExperiment & transitions);
     
     /**
       @brief Converts a FeatureMap to a qcMLFile::Attachment
@@ -147,7 +147,7 @@ public:
       @return Map of labels/transition types and their corresponding number.
     */ 
     std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
-      const TargetedExperiment & transitions);
+      const TargetedExperiment::TargetedExperimentTargetedExperiment & transitions);
 
     // Members
 
