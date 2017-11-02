@@ -293,6 +293,9 @@ END_SECTION
 
 SpectrumExtractor* ptr = 0;
 SpectrumExtractor* null_ptr = 0;
+const String experiment_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1.mzML");
+const String target_list_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13CFlux_TraML.csv");
+
 START_SECTION(SpectrumExtractor())
 {
   ptr = new SpectrumExtractor();
@@ -463,13 +466,16 @@ START_SECTION(pickSpectrum())
     OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_plot_output.txt"),
     ios::out | ios::trunc
   );
-  if (outfile.is_open()) {
+  if (outfile.is_open())
+  {
     outfile << "Fill plotly data with this:" << std::endl << "x: [";
-    for (UInt i=0; i<picked.size(); ++i) {
+    for (UInt i=0; i<picked.size(); ++i)
+    {
       outfile << picked[i].getMZ() << ", ";
     }
     outfile << "]," << std::endl << "y: [";
-    for (UInt i=0; i<picked.size(); ++i) {
+    for (UInt i=0; i<picked.size(); ++i)
+    {
       outfile << picked[i].getIntensity() << ", ";
     }
     outfile << "],";
@@ -493,16 +499,13 @@ START_SECTION(annotateSpectrum())
   ptr->setGaussWidth(0.25);
   ptr->setUseGauss(true);
 
-  mzml.load(OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1.mzML"), experiment);
+  mzml.load(experiment_path, experiment);
   std::vector<MSSpectrum> spectra = experiment.getSpectra();
-  tsv_reader.convertTSVToTargetedExperiment(
-    OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13CFlux_TraML.csv"),
-    FileTypes::CSV,
-    targeted_exp
-  );
+  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
   std::vector<MSSpectrum> annotated;
+  FeatureMap features;
 
-  ptr->annotateSpectrum(spectra, targeted_exp, annotated);
+  ptr->annotateSpectrum(spectra, targeted_exp, annotated, features);
 
   TEST_NOT_EQUAL(annotated.size(), 0)
 
@@ -536,11 +539,13 @@ START_SECTION(annotateSpectrum())
       ptr->pickSpectrum(annotated[j], picked);
 
       outfile << "  {" << endl <<  "    x: [";
-      for (UInt i=0; i<annotated[j].size(); ++i) {
+      for (UInt i=0; i<annotated[j].size(); ++i)
+      {
         outfile << annotated[j][i].getMZ() << ", ";
       }
       outfile << "]," << endl << "    y: [";
-      for (UInt i=0; i<annotated[j].size(); ++i) {
+      for (UInt i=0; i<annotated[j].size(); ++i)
+      {
         outfile << annotated[j][i].getIntensity() << ", ";
       }
       outfile << "]," << endl;
@@ -561,11 +566,13 @@ START_SECTION(annotateSpectrum())
       "  },";
 
       outfile << annotated_trace_ending << endl << "{" << endl << "    x: [";
-      for (UInt i=0; i<picked.size(); ++i) {
+      for (UInt i=0; i<picked.size(); ++i)
+      {
         outfile << picked[i].getMZ() << ", ";
       }
       outfile << "]," << std::endl << "y: [";
-      for (UInt i=0; i<picked.size(); ++i) {
+      for (UInt i=0; i<picked.size(); ++i)
+      {
         outfile << picked[i].getIntensity() << ", ";
       }
       outfile << "]," << endl;
@@ -623,14 +630,14 @@ START_SECTION(scoreSpectrum())
   ptr->setGaussWidth(0.25);
   ptr->setUseGauss(true);
 
-  mzml.load(OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1.mzML"), experiment);
+  mzml.load(experiment_path, experiment);
   std::vector<MSSpectrum> spectra = experiment.getSpectra();
-  tsv_reader.convertTSVToTargetedExperiment(OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13CFlux_TraML.csv"), FileTypes::CSV, targeted_exp);
+  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
   std::vector<MSSpectrum> annotated;
+  FeatureMap features;
 
-  ptr->annotateSpectrum(spectra, targeted_exp, annotated);
-  std::vector<MSSpectrum> picked;
-  picked.resize(annotated.size());
+  ptr->annotateSpectrum(spectra, targeted_exp, annotated, features);
+  std::vector<MSSpectrum> picked(annotated.size());
 
   for (UInt j=0; j<annotated.size(); ++j)
   {
@@ -641,7 +648,7 @@ START_SECTION(scoreSpectrum())
   ptr->setFWHMWeight(1.0);
   ptr->setSNRWeight(1.0);
   std::vector<MSSpectrum> scored;
-  ptr->scoreSpectrum(annotated, picked, scored);
+  ptr->scoreSpectrum(annotated, picked, scored, features);
 
   TEST_NOT_EQUAL(scored.size(), 0)
 
@@ -654,6 +661,7 @@ START_SECTION(scoreSpectrum())
     return a.getName().compare(b.getName()) < 0;
   });
 
+  cout << "Info from scored spectra:" << endl;
   for (auto a : scored)
   {
     cout << a.getName()
@@ -662,14 +670,22 @@ START_SECTION(scoreSpectrum())
     << "\t1/fwhm: " << a.getFloatDataArrays()[3][0]
     << "\tSNR: " << a.getFloatDataArrays()[4][0] << endl;
   }
+
+  cout << "Info from FeatureMap:" << endl;
+  for (auto a : features)
+  {
+    cout << a.getMetaValue("transition_name")
+    << "\tscore: " << a.getIntensity()
+    << "\tlog10_tic: " << a.getMetaValue("log10_total_tic")
+    << "\tfwhm: " << a.getMetaValue("avgFWHM")
+    << "\t1/fwhm: " << a.getMetaValue("inverse_avgFWHM")
+    << "\tSNR: " << a.getMetaValue("avgSNR") << endl;
+  }
 }
 END_SECTION
 
 START_SECTION(extractSpectrum())
 {
-  const String experiment_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1.mzML");
-  const String target_list_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13CFlux_TraML.csv");
-
   MzMLFile mzml;
   PeakMap experiment;
   TransitionTSVReader tsv_reader;
@@ -687,15 +703,16 @@ START_SECTION(extractSpectrum())
   ptr->setFWHMWeight(1.0);
   ptr->setSNRWeight(1.0);
 
-  map<string,MSSpectrum> transition_best_spec;
-  ptr->extractSpectrum(experiment, targeted_exp, transition_best_spec);
+  std::vector<MSSpectrum> extracted_spectra;
+  FeatureMap extracted_features;
+  ptr->extractSpectrum(experiment, targeted_exp, extracted_spectra, extracted_features);
 
-  TEST_NOT_EQUAL(transition_best_spec.size(), 0)
+  TEST_EQUAL(extracted_spectra.size(), extracted_features.size())
 
   cout << endl << "Printing mapping of transition -> best spectrum:" << endl;
-  for (auto it = transition_best_spec.cbegin(); it!=transition_best_spec.cend(); ++it)
+  for (UInt i=0; i<extracted_spectra.size(); ++i)
   {
-    cout << it->first << "\t" << it->second.getFloatDataArrays()[1][0] << endl;
+    cout << extracted_spectra[i].getName() << "\t" << extracted_features[i].getIntensity() << endl;
   }
 }
 END_SECTION

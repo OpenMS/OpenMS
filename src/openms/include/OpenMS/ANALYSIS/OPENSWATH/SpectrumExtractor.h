@@ -46,6 +46,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h> // MzML
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h> // TargetedExperiment
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h> // convertTSVToTargetedExperiment
+#include <OpenMS/KERNEL/FeatureMap.h> // FeatureMap
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -113,19 +115,34 @@ public:
     void annotateSpectrum(
       const std::vector<MSSpectrum>& spectra,
       const TargetedExperiment& targeted_exp,
-      std::vector<MSSpectrum>& annotated_spectra
+      std::vector<MSSpectrum>& annotated_spectra,
+      FeatureMap& features
     );
 
     void scoreSpectrum(
-      std::vector<MSSpectrum>& annotated,
-      std::vector<MSSpectrum>& picked,
-      std::vector<MSSpectrum>& scored
+      const std::vector<MSSpectrum>& annotated,
+      const std::vector<MSSpectrum>& picked,
+      std::vector<MSSpectrum>& scored,
+      FeatureMap& features
     );
 
     void extractSpectrum(
       const PeakMap& experiment,
       const TargetedExperiment& targeted_exp,
-      std::map<std::string,MSSpectrum>& transition_best_spec
+      std::vector<MSSpectrum>& extracted_spectra,
+      FeatureMap& extracted_features
+    );
+
+    void selectSpectra(
+      const std::vector<MSSpectrum>& scored_spectra,
+      std::vector<MSSpectrum>& selected_spectra,
+      const FeatureMap& features,
+      FeatureMap& selected_features
+    );
+
+    void selectSpectra(
+      const std::vector<MSSpectrum>& scored_spectra,
+      std::vector<MSSpectrum>& selected_spectra
     );
 
 protected:
