@@ -498,7 +498,7 @@ protected:
     progresslogger.startProgress(0, 1, "Matching spectra...");
     int pol_multiplier = -1;
     if (getStringOption_("polarity") == "positive") pol_multiplier = 1;
-    Ribonucleotide::NucleicAcidType what_type = (getStringOption_("seq_type") == "DNA") ? Ribonucleotide::DNA : Ribonucleotide::RNA;
+    //Ribonucleotide::NucleicAcidType what_type = (getStringOption_("seq_type") == "DNA") ? Ribonucleotide::DNA : Ribonucleotide::RNA;
 
     bool do_all = true;
     bool average_all = true;
@@ -577,8 +577,8 @@ protected:
           // generate theoretical spectrum for current candidate (and optionally for the reversed decoy sequence for FDR calculation later)
           StringList sequence_list = h_it->getMetaValue("description").toStringList(); // get the sequence
           // add a reversed seq for use as decoy
-          NASequence sequence = NASequence::fromString(sequence_list[0], what_type);
-          NASequence reversed = NASequence::fromString(sequence_list[0].reverse(), what_type);
+          NASequence sequence = NASequence::fromString(sequence_list[0]);//, what_type);
+          NASequence reversed = NASequence::fromString(sequence_list[0].reverse());//, what_type);
           // StringList identifier_list= h_it->getMetaValue("identifier").toStringList(); // get the identifier
           // String identifier = identifier_list[0];
           MSSpectrum spec;

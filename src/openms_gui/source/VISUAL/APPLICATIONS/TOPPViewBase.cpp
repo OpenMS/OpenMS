@@ -3230,6 +3230,7 @@ namespace OpenMS
       setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
 
       }
+  /*
       else //RNA This is gonna need to be heavily re-factored
       {
           NASequence poly_sequence;
@@ -3364,7 +3365,7 @@ namespace OpenMS
           draw_group_1d_->button(Spectrum1DCanvas::DM_PEAKS)->setChecked(true);
           setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
       }
-
+*/
     }
   }
 
