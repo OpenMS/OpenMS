@@ -63,7 +63,7 @@ START_SECTION((
   vector<string> fixed_mods_code = {"s4U"};  // 4-thiouridine
   for (auto const & f : fixed_mods_code) { fixed_mods.push_back(db->getRibonucleotide(f)); }
 
-  NASequence sequence = NASequence::fromString("AUAUAUA", Ribonucleotide::RNA);
+  NASequence sequence = NASequence::fromString("AUAUAUA");
 
   ModifiedNASequenceGenerator::applyFixedModifications(
   	fixed_mods.begin(),
@@ -73,7 +73,7 @@ START_SECTION((
 	TEST_STRING_EQUAL(sequence.toString(), "A[s4U]A[s4U]A[s4U]A");
 
 	// additional check if internal representation equal
-	NASequence sequence2 = NASequence::fromString("A[s4U]A[s4U]A[s4U]A", Ribonucleotide::RNA);
+    NASequence sequence2 = NASequence::fromString("A[s4U]A[s4U]A[s4U]A");
 	TEST_EQUAL(sequence ,sequence2);
 
 }
@@ -85,7 +85,7 @@ START_SECTION(applyVariableModifications())
 	vector<string> mods_code = {"s4U", "m3U"};  // 4-thiouridine, 3-methyluridine
 	for (auto const & f : mods_code) { var_mods.push_back(db->getRibonucleotide(f)); }
 
-	NASequence sequence = NASequence::fromString("AUAUAUA", Ribonucleotide::RNA);
+    NASequence sequence = NASequence::fromString("AUAUAUA");
   vector<NASequence> ams;
 
 	// (1) Add at most one modification. (true) return the unmodified version
@@ -98,13 +98,13 @@ START_SECTION(applyVariableModifications())
 	  true);
 
 	TEST_EQUAL(ams.size(), 7);
-	TEST_STRING_EQUAL(ams[0].toString(), NASequence::fromString("AUAUAUA", Ribonucleotide::RNA).toString());
-	TEST_STRING_EQUAL(ams[1].toString(), NASequence::fromString("AUAUA[s4U]A", Ribonucleotide::RNA).toString());
-	TEST_STRING_EQUAL(ams[2].toString(), NASequence::fromString("AUAUA[m3U]A", Ribonucleotide::RNA).toString());
-	TEST_STRING_EQUAL(ams[3].toString(), NASequence::fromString("AUA[s4U]AUA", Ribonucleotide::RNA).toString());
-	TEST_STRING_EQUAL(ams[4].toString(), NASequence::fromString("AUA[m3U]AUA", Ribonucleotide::RNA).toString())
-	TEST_STRING_EQUAL(ams[5].toString(), NASequence::fromString("A[s4U]AUAUA", Ribonucleotide::RNA).toString());
-	TEST_STRING_EQUAL(ams[6].toString(), NASequence::fromString("A[m3U]AUAUA", Ribonucleotide::RNA).toString());
+    TEST_STRING_EQUAL(ams[0].toString(), NASequence::fromString("AUAUAUA").toString());
+    TEST_STRING_EQUAL(ams[1].toString(), NASequence::fromString("AUAUA[s4U]A").toString());
+    TEST_STRING_EQUAL(ams[2].toString(), NASequence::fromString("AUAUA[m3U]A").toString());
+    TEST_STRING_EQUAL(ams[3].toString(), NASequence::fromString("AUA[s4U]AUA").toString());
+    TEST_STRING_EQUAL(ams[4].toString(), NASequence::fromString("AUA[m3U]AUA").toString())
+    TEST_STRING_EQUAL(ams[5].toString(), NASequence::fromString("A[s4U]AUAUA").toString());
+    TEST_STRING_EQUAL(ams[6].toString(), NASequence::fromString("A[m3U]AUAUA").toString());
 
 	ams.clear();
 	// (1) Add at most one modification. (false) without the unmodified version

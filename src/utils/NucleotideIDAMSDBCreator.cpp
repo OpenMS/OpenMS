@@ -102,10 +102,10 @@ protected:
   {
 
       String input_filepath(getStringOption_("in_fasta"));
-    Ribonucleotide::NucleicAcidType type = getStringOption_("NA_type") == "DNA"
+/*    Ribonucleotide::NucleicAcidType type = getStringOption_("NA_type") == "DNA"
                                             ? Ribonucleotide::DNA
                                             : Ribonucleotide::RNA;
-
+*/
 
       std::vector<FASTAFile::FASTAEntry> input_file;
       FASTAFile fasta_file;
@@ -118,8 +118,8 @@ protected:
       {
           EmpiricalFormula entryformula;
           string seq= input_file.at(i).sequence;
-          NASequence smart_seq = NASequence::fromString(seq, type);
-          entryformula=smart_seq.getFormula(Ribonucleotide::Full, 0);
+          NASequence smart_seq = NASequence::fromString(seq);//, type);
+          entryformula=smart_seq.getFormula(NASequence::Full, 0);
 
           db_mapping_file.addLine(String(entryformula.getMonoWeight()) + "\t"
                                   + entryformula.toString() + "\t"
