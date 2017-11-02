@@ -81,9 +81,11 @@ public:
       @param filter_criteria MRMFeatureQC class defining QC parameters
       @param transitions transitions from a TargetedExperiment
 
-    */
+    */    
+    template <typename TransitionT>
+    void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group)
     void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
-      const TargetedExperiment::TargetedExperiment & transitions);
+      const TransitionT & transitions);
     
     /**
       @brief Converts a FeatureMap to a qcMLFile::Attachment
@@ -146,8 +148,9 @@ public:
 
       @return Map of labels/transition types and their corresponding number.
     */ 
+    template <typename TransitionT>
     std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
-      const TargetedExperiment::TargetedExperimentTargetedExperiment & transitions);
+      const TransitionT & transitions);
 
     // Members
 
