@@ -480,7 +480,7 @@ START_SECTION(pickSpectrum())
 }
 END_SECTION
 
-START_SECTION(annotateSpectrum())
+START_SECTION(annotateSpectra())
 {
   MzMLFile mzml;
   PeakMap experiment;
@@ -498,7 +498,7 @@ START_SECTION(annotateSpectrum())
   std::vector<MSSpectrum> annotated;
   FeatureMap features;
 
-  ptr->annotateSpectrum(spectra, targeted_exp, annotated, features);
+  ptr->annotateSpectra(spectra, targeted_exp, annotated, features);
 
   TEST_NOT_EQUAL(annotated.size(), 0)
 
@@ -611,7 +611,7 @@ START_SECTION(annotateSpectrum())
 }
 END_SECTION
 
-START_SECTION(scoreSpectrum())
+START_SECTION(scoreSpectra())
 {
   MzMLFile mzml;
   PeakMap experiment;
@@ -629,7 +629,7 @@ START_SECTION(scoreSpectrum())
   std::vector<MSSpectrum> annotated;
   FeatureMap features;
 
-  ptr->annotateSpectrum(spectra, targeted_exp, annotated, features);
+  ptr->annotateSpectra(spectra, targeted_exp, annotated, features);
   std::vector<MSSpectrum> picked(annotated.size());
 
   for (UInt j=0; j<annotated.size(); ++j)
@@ -641,7 +641,7 @@ START_SECTION(scoreSpectrum())
   ptr->setFWHMWeight(1.0);
   ptr->setSNRWeight(1.0);
   std::vector<MSSpectrum> scored;
-  ptr->scoreSpectrum(annotated, picked, scored, features);
+  ptr->scoreSpectra(annotated, picked, scored, features);
 
   TEST_NOT_EQUAL(scored.size(), 0)
 
@@ -677,7 +677,7 @@ START_SECTION(scoreSpectrum())
 }
 END_SECTION
 
-START_SECTION(extractSpectrum())
+START_SECTION(extractSpectra())
 {
   MzMLFile mzml;
   PeakMap experiment;
@@ -698,7 +698,7 @@ START_SECTION(extractSpectrum())
 
   std::vector<MSSpectrum> extracted_spectra;
   FeatureMap extracted_features;
-  ptr->extractSpectrum(experiment, targeted_exp, extracted_spectra, extracted_features);
+  ptr->extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features);
 
   TEST_EQUAL(extracted_spectra.size(), extracted_features.size())
 

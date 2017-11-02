@@ -112,21 +112,21 @@ public:
 
     void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum);
 
-    void annotateSpectrum(
+    void annotateSpectra(
       const std::vector<MSSpectrum>& spectra,
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& annotated_spectra,
       FeatureMap& features
     );
 
-    void scoreSpectrum(
+    void scoreSpectra(
       const std::vector<MSSpectrum>& annotated,
       const std::vector<MSSpectrum>& picked,
       std::vector<MSSpectrum>& scored,
       FeatureMap& features
     );
 
-    void extractSpectrum(
+    void extractSpectra(
       const PeakMap& experiment,
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra,

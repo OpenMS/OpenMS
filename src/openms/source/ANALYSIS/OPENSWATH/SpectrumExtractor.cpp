@@ -298,7 +298,7 @@ namespace OpenMS
     LOG_DEBUG << "Found " << picked_spectrum.size() << " spectrum peaks." << std::endl;
   }
 
-  void SpectrumExtractor::annotateSpectrum(
+  void SpectrumExtractor::annotateSpectra(
     const std::vector<MSSpectrum>& spectra,
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& annotated_spectra,
@@ -348,7 +348,7 @@ namespace OpenMS
     LOG_DEBUG << "the annotated variable has " << annotated_spectra.size() << " elements instead of " << spectra.size() << std::endl;
   }
 
-  void SpectrumExtractor::scoreSpectrum(
+  void SpectrumExtractor::scoreSpectra(
     const std::vector<MSSpectrum>& annotated,
     const std::vector<MSSpectrum>& picked,
     std::vector<MSSpectrum>& scored,
@@ -419,7 +419,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumExtractor::extractSpectrum(
+  void SpectrumExtractor::extractSpectra(
     const PeakMap& experiment,
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& extracted_spectra,
@@ -432,7 +432,7 @@ namespace OpenMS
     // annotate spectra
     std::vector<MSSpectrum> annotated;
     FeatureMap features;
-    annotateSpectrum(spectra, targeted_exp, annotated, features);
+    annotateSpectra(spectra, targeted_exp, annotated, features);
 
     // pick peaks from annotate spectra
     std::vector<MSSpectrum> picked(annotated.size());
@@ -443,7 +443,7 @@ namespace OpenMS
 
     // score spectra
     std::vector<MSSpectrum> scored;
-    scoreSpectrum(annotated, picked, scored, features);
+    scoreSpectra(annotated, picked, scored, features);
 
     selectSpectra(scored, extracted_spectra, features, extracted_features);
   }
