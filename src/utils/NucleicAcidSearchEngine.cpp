@@ -110,14 +110,19 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "input file ");
+    registerInputFile_("in", "<file>", "", "Input file: spectra");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerInputFile_("database", "<file>", "", "input file ");
+    registerInputFile_("database", "<file>", "", "Input file: sequence database");
     setValidFormats_("database", ListUtils::create<String>("fasta"));
 
-    registerOutputFile_("out", "<file>", "", "output file (mzTab)");
+    registerOutputFile_("out", "<file>", "", "Output file: mzTab");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
+
+    registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
+    setValidFormats_("theo_ms2_out", ListUtils::create<String>("mzML"));
+    registerOutputFile_("exp_ms2_out", "<file>", "", "Output file: experimental MS2 spectra for precursor mass matches", false, true);
+    setValidFormats_("exp_ms2_out", ListUtils::create<String>("mzML"));
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around precursor m/z)", false);
@@ -542,6 +547,8 @@ protected:
     String in_mzml = getStringOption_("in");
     String in_db = getStringOption_("database");
     String out = getStringOption_("out");
+    String theo_ms2_out = getStringOption_("theo_ms2_out");
+    String exp_ms2_out = getStringOption_("exp_ms2_out");
 
     IdentificationData::DBSearchParameters search_params;
     search_params.molecule_type = IdentificationData::MT_RNA;
@@ -668,6 +675,7 @@ protected:
     spectrum_generator.setParameters(param);
 
     vector<vector<AnnotatedHit>> annotated_hits(spectra.size());
+    MSExperiment exp_ms2_spectra, theo_ms2_spectra; // debug output
 
     progresslogger.startProgress(0, 1, "loading database from FASTA file...");
     vector<FASTAFile::FASTAEntry> fasta_db;
@@ -786,6 +794,16 @@ protected:
               exp_spectrum,
               theo_spectrum);
 
+            if (!exp_ms2_out.empty())
+            {
+              exp_ms2_spectra.addSpectrum(exp_spectrum);
+            }
+            if (!theo_ms2_out.empty())
+            {
+              theo_spectrum.setName(candidate.toString());
+              theo_ms2_spectra.addSpectrum(theo_spectrum);
+            }
+
             // no hit
             if (score < 1e-16)
             {
@@ -822,6 +840,15 @@ protected:
     LOG_INFO << "Undigested nucleic acids: " << fasta_db.size() << endl;
     LOG_INFO << "Oligonucleotides: " << processed_oligos.size() << endl;
     LOG_INFO << "Search hits: " << hit_counter << endl;
+
+    if (!exp_ms2_out.empty())
+    {
+      MzMLFile().store(exp_ms2_out, exp_ms2_spectra);
+    }
+    if (!theo_ms2_out.empty())
+    {
+      MzMLFile().store(theo_ms2_out, theo_ms2_spectra);
+    }
 
     IdentificationData id_data;
     vector<String> primary_files;
