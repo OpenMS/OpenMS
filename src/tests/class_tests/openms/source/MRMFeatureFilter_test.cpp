@@ -218,25 +218,25 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",1000); //should fail
   subordinates.push_back(subordinate);
@@ -247,17 +247,17 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 2
   // transition 1
   subordinate.setMetaValue("native_id","component2.1.Heavy");
-  component_1.setRT(2.5); //should fail
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5); //should fail
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",1000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component2.1.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy"); //should fail
   subordinate.setMetaValue("peak_apex_int",1000);
   subordinates.push_back(subordinate);
@@ -438,25 +438,25 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
@@ -562,26 +562,26 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
   subordinates.push_back(subordinate);
-  component_1.setRT(6.0); // should fail
-  component_1.setIntensity(0.0);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(6.0); // should fail
+  subordinate.setIntensity(0.0);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   component_1.setMetaValue("setPeptideRef", "component_group1"); 
@@ -599,25 +599,25 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(0.0); // should fail
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(0.0); // should fail
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
@@ -636,25 +636,25 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(0.0); //should fail
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(0.0); //should fail
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
@@ -673,25 +673,25 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",500);
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",400); //should fail
   subordinates.push_back(subordinate);
@@ -710,9 +710,9 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
@@ -723,9 +723,9 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
@@ -744,25 +744,25 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
@@ -781,17 +781,17 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
@@ -810,25 +810,25 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
-  component_1.setRT(2.5);
-  component_1.setIntensity(5000);
-  component_1.setOverallQuality(100);
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",500);
   subordinates.push_back(subordinate);
