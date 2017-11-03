@@ -159,7 +159,8 @@ START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature 
   subordinate.setMetaValue("native_id","component1.2.Light");
   subordinate.setMetaValue("LabelType","Light");
   subordinates.push_back(subordinate);
-  component_1.setPeptideRef("component_group1");  
+  // component_1.setPeptideRef("component_group1"); 
+  component_1.setSubordinates(subordinates); 
   // // transition group 2
   // // transition 1
   // subordinate.setMetaValue("native_id","component2.1.Heavy")
