@@ -2512,7 +2512,6 @@ namespace OpenMS
                     const Residue& residue = aas[index-1];
                     // String residue_name = residue.getOneLetterCode() + "[" + mod + "]";
                     String residue_name = "[" + mod + "]";
-                    std::cout << " internal mod " << aas << " with residue name  " << residue_name << std::endl;
 
                     if (!mod_db->has(residue_name))
                     {
