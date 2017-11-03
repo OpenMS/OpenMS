@@ -289,6 +289,9 @@ START_SECTION((double getMonoWeight(NASequence::NASFragmentType type = NASequenc
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::YIon, -1), 972.177);
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::DIon, -1), 1034.133);
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::AminusB, -2), 802.117);
+  NASequence seq_notSym = NASequence::fromString("GAU");
+  TEST_REAL_SIMILAR(seq_notSym.getMonoWeight(NASequence::AminusB, -1), 787.122);
+
 
   // these masses were checked against external tools:
   seq = NASequence::fromString("pAAUCCAUGp");
