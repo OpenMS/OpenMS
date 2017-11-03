@@ -803,7 +803,6 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), false);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
-  TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), true);
   components.clear();
   
   // ion_ratio_pair
