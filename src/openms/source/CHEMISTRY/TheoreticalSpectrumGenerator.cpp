@@ -163,12 +163,11 @@ namespace OpenMS
              (max_charge < 0 && min_charge > 0))
     {
       //Signs don't match we need to quit and thow error here to avoid messing up for loops below
-      return; //TODO handle
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "min. and max. charge must both be either positive or negative");
     }
     else if (max_charge < min_charge)
     {
-      //Min< max quit and throw error
-      return; //TODO handle
+      swap(max_charge, min_charge);
     }
     PeakSpectrum::StringDataArray ion_names;
     PeakSpectrum::IntegerDataArray charges;
@@ -600,64 +599,74 @@ namespace OpenMS
     spectrum.reserve(nucleotide.size());
 
     // Generate the ion peaks:
-    // Does not generate peaks of full peptide (therefore "<").
+    // Does not generate peaks of full sequence (therefore "<").
     // They are added via precursor mass (and neutral losses).
     // Could be changed in the future.
 
     double intensity(1);
-    char charge_sign='+';
-    if (charge<0)
-        charge_sign='-';
+    char charge_sign = (charge > 0) ? '+' : '-';
 
     switch (res_type)
     {
-      case NASequence::AIon: intensity = a_intensity_; break;
-      case NASequence::BIon: intensity = b_intensity_; break;
-      case NASequence::CIon: intensity = c_intensity_; break;
-      case NASequence::XIon: intensity = x_intensity_; break;
-      case NASequence::YIon: intensity = y_intensity_; break;
-      case NASequence::ZIon: intensity = z_intensity_; break;
-      case NASequence::DIon: intensity = d_intensity_; break;
-      case NASequence::WIon: intensity = w_intensity_; break;
-      case NASequence::AminusB: intensity = aB_intensity_; break;
-      default: break;
+    case NASequence::AIon:
+      intensity = a_intensity_;
+      break;
+    case NASequence::BIon:
+      intensity = b_intensity_;
+      break;
+    case NASequence::CIon:
+      intensity = c_intensity_;
+      break;
+    case NASequence::XIon:
+      intensity = x_intensity_;
+      break;
+    case NASequence::YIon:
+      intensity = y_intensity_;
+      break;
+    case NASequence::ZIon:
+      intensity = z_intensity_;
+      break;
+    case NASequence::DIon:
+      intensity = d_intensity_;
+      break;
+    case NASequence::WIon:
+      intensity = w_intensity_;
+      break;
+    case NASequence::AminusB:
+      intensity = aB_intensity_;
+      break;
+    default:
+      break;
     }
-
-    //double mono_weight(Constants::PROTON_MASS_U * charge);
 
     if (res_type == NASequence::AIon || res_type == NASequence::BIon || res_type == NASequence::CIon || res_type == NASequence::AminusB || res_type == NASequence::DIon)
     {
-        //Nucleotides do not currently have support for n term mods
-      //if (nucleotide.hasNTerminalModification())
-     // {
-     //   mono_weight += nucleotide.getNTerminalModification()->getDiffMonoMass();
-     // }
+      // @TODO: special cases for a-B ions ("NASequence::AminusB")
+      // - they may not be relevant for fragments of length 1 (unless modified?)
+      // - mods on the last base (that gets lost) may be completely or partially
+      // retained/lost, depending on the mod (whether it's on the base or on the
+      // backbone or both - we don't have that information at the moment)
+
+      double mod_mass = 0.0;
+      if (nucleotide.hasFivePrimeMod())
+      {
+        mod_mass = nucleotide.getFivePrimeMod()->getMonoMass();
+      }
 
       if (!add_isotopes_) // add single peak
       {
-        Size i = add_first_prefix_ion_ ? 0 : 1;
-        //if (i == 1) mono_weight += nucleotide[0].getMonoWeight(Residue::Internal);
-        for (; i < nucleotide.size(); ++i)
+        Size length = add_first_prefix_ion_ ? 1 : 2;
+        for (; length < nucleotide.size(); ++length)
         {
-          //mono_weight += nucleotide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
-          NASequence ion= nucleotide.getPrefix(i);
-          double pos(0.0);
-          switch (res_type)
-          { //the a-B ions make computing the internalToAminusB untenable, since you need to know the base
-          case NASequence::AIon: {pos = ion.getMonoWeight(NASequence::AIon, charge) / abs((double)charge); break;}
-          case NASequence::AminusB: {pos = ion.getMonoWeight(NASequence::AminusB, charge) / abs((double)charge); break;}
-          case NASequence::BIon: {pos = ion.getMonoWeight(NASequence::BIon, charge) / abs((double)charge); break;}
-          case NASequence::CIon: {pos = ion.getMonoWeight(NASequence::CIon, charge) / abs((double)charge); break;}
-          case NASequence::DIon: {pos = ion.getMonoWeight(NASequence::DIon, charge) / abs((double)charge); break;}
-          default: break;
-          }
+          NASequence ion = nucleotide.getPrefix(length);
+          double mass = mod_mass + ion.getMonoWeight(res_type, charge);
           Peak1D p;
-          p.setMZ(pos);
+          p.setMZ(mass / abs(charge));
           p.setIntensity(intensity);
           spectrum.push_back(p);
           if (add_metainfo_)
           {
-            String ion_name = String(ribonucleotideTypeToIonLetter_(res_type)) + String(i + 1) + String ((Size)abs(charge),charge_sign);
+            String ion_name = String(ribonucleotideTypeToIonLetter_(res_type)) + String(length) + String((Size)abs(charge), charge_sign);
             ion_names.push_back(ion_name);
             charges.push_back(charge);
           }
@@ -665,10 +674,10 @@ namespace OpenMS
       }
       else // add isotope clusters (slow)
       {
-        Size i = add_first_prefix_ion_ ? 1 : 2;
-        for (; i < nucleotide.size(); ++i)
+        Size length = add_first_prefix_ion_ ? 1 : 2;
+        for (; length < nucleotide.size(); ++length)
         {
-          const NASequence ion = nucleotide.getPrefix(i);
+          const NASequence ion = nucleotide.getPrefix(length);
           addIsotopeCluster_(spectrum, ion, ion_names, charges, res_type, charge, intensity); //TODO IMPLEMENT
         }
       }
@@ -683,37 +692,27 @@ namespace OpenMS
 //        }
 //      }
     }
-    else // if (res_type == Residue::WIon || res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
+    else // WIon, XIon, YIon, ZIon
     {
-      //if (nucleotide.hasCTerminalModification())
-      //{
-      //  mono_weight += nucleotide.getCTerminalModification()->getDiffMonoMass();
-      //}
+      double mod_mass = 0.0;
+      if (nucleotide.hasThreePrimeMod())
+      {
+        mod_mass = nucleotide.getThreePrimeMod()->getMonoMass();
+      }
 
       if (!add_isotopes_) // add single peak
       {
-        Size i = nucleotide.size() - 1;
-
-        for (; i >= (uint)abs(charge); --i)
+        for (Size length = 1; length < nucleotide.size(); ++length)
         {
-          //mono_weight += nucleotide[i].getMonoWeight(Residue::Internal); // standard internal residue including named modifications
-          NASequence ion = nucleotide.getSuffix(i);
-          double pos(0.0);//(mono_weight);
-          switch (res_type)
-          {
-          case NASequence::WIon: {pos = ion.getMonoWeight(NASequence::WIon, charge) / abs((double)charge); break;}
-          case NASequence::XIon: {pos = ion.getMonoWeight(NASequence::XIon, charge) / abs((double)charge); break;}
-          case NASequence::YIon: {pos = ion.getMonoWeight(NASequence::YIon, charge) / abs((double)charge); break;}
-          case NASequence::ZIon: {pos = ion.getMonoWeight(NASequence::ZIon, charge) / abs((double)charge); break;}
-          default: break;
-          }
+          NASequence ion = nucleotide.getSuffix(length);
+          double mass = mod_mass + ion.getMonoWeight(res_type, charge);
           Peak1D p;
-          p.setMZ(pos);
+          p.setMZ(mass / abs(charge));
           p.setIntensity(intensity);
           spectrum.push_back(p);
           if (add_metainfo_)
           {
-            String ion_name = String(ribonucleotideTypeToIonLetter_(res_type)) + String(nucleotide.size() - i) + String((Size)abs(charge), charge_sign);
+            String ion_name = String(ribonucleotideTypeToIonLetter_(res_type)) + String(length) + String((Size)abs(charge), charge_sign);
             ion_names.push_back(ion_name);
             charges.push_back(charge);
           }
@@ -721,10 +720,10 @@ namespace OpenMS
       }
       else // add isotope clusters
       {
-        for (Size i = 1; i < nucleotide.size(); ++i)
+        for (Size length = 1; length < nucleotide.size(); ++length)
         {
-          const NASequence ion = nucleotide.getSuffix(i);
-          addIsotopeCluster_(spectrum, ion, ion_names, charges, res_type, charge, intensity);
+          const NASequence ion = nucleotide.getSuffix(length);
+          addIsotopeCluster_(spectrum, ion, ion_names, charges, res_type, charge, intensity); //TODO IMPLEMENT
         }
       }
 
