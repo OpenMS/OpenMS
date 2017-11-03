@@ -86,10 +86,7 @@ namespace OpenMS
   {     
     // initialize QC variables
     std::map<String,MRMFeatureQC>::iterator feature_qc_it;
-    if (flag_or_filter_ == "filter")
-    {
-      FeatureMap features_filtered;
-    }   
+    FeatureMap features_filtered;
 
     // bool qc_pass;
     String concentration_units;// iterate through each component_group/feature     
@@ -101,11 +98,8 @@ namespace OpenMS
       std::map<String,int> labels_and_transition_types = countLabelsAndTransitionTypes(features[feature_it], transitions);
 
       // initialize the new feature and subordinates
-      if (flag_or_filter_ == "filter")
-      {
-        Feature feature_filtered;
-        std::vector<Feature> subordinates_filtered;
-      }
+      Feature feature_filtered;
+      std::vector<Feature> subordinates_filtered;
 
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
