@@ -403,6 +403,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   //test flag mode
   Param params;
   params.setValue("flag_or_filter", "flag");
+  mrmff.setParameters(params);
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
 
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
@@ -414,6 +416,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   
   //test filter mode
   params.setValue("flag_or_filter", "filter");
+  mrmff.setParameters(params);
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
 
   TEST_EQUAL(components.size(), 1);
   TEST_EQUAL(components[0].getSubordinates().size(), 2);
@@ -544,6 +548,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   //test all possible comparisons
   Param params;
   params.setValue("flag_or_filter", "flag");
+  mrmff.setParameters(params);
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
 
   // control
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), true);
@@ -581,7 +587,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   component_1.setMetaValue("setPeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
-  subordinates.clear();
+  subordinates.clear();  
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
@@ -618,6 +625,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
@@ -654,6 +662,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
@@ -690,6 +699,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
@@ -723,6 +733,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), false);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
@@ -759,6 +770,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), false);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
@@ -787,6 +799,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), false);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
@@ -823,6 +836,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
+  mrmff.filterFeatureMap(components, qc_criteria, transitions);
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_pass"), false);
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
