@@ -99,13 +99,13 @@ namespace OpenMS
 
       // initialize the new feature and subordinates
       std::vector<Feature> subordinates_filtered;
+      bool cg_qc_pass = true;
 
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
       {
         String component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
         bool c_qc_pass = true;
-        bool cg_qc_pass = true;
 
         // iterate through multi-feature/multi-sub-feature QCs/filters
         // iterate through component_groups
