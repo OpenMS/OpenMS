@@ -233,7 +233,7 @@ namespace OpenMS
       {
         if (transitions.getTransitions()[trans_it].getNativeID() == component_group.getSubordinates()[cg_it].getMetaValue("native_id"))
         {
-          transition = transitions.getTransitions()[trans_it][0];
+          transition = transitions.getTransitions()[trans_it];
           break;
         }
       }
