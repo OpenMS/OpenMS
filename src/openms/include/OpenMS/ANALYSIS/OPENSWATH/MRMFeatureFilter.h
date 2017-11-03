@@ -151,8 +151,8 @@ public:
     std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
       const TargetedExperiment & transitions);
 
-    template <class T>
-    bool checkRange(T value, T value_l, T value_u);
+    template <class T&>
+    bool checkRange(T& value, T& value_l, T& value_u);
 
     // Members
 
