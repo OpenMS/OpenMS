@@ -98,7 +98,6 @@ namespace OpenMS
       std::map<String,int> labels_and_transition_types = countLabelsAndTransitionTypes(features[feature_it], transitions);
 
       // initialize the new feature and subordinates
-      Feature feature_filtered;
       std::vector<Feature> subordinates_filtered;
 
       // iterate through each component/sub-feature
@@ -230,7 +229,7 @@ namespace OpenMS
       // make the filtered Feature
       if (flag_or_filter_ == "filter" && subordinates_filtered.size() > 0)
       {
-        std::copy(features[feature_it], feature_filtered);
+        Feature feature_filtered(features[feature_it]);
         features_filtered.push_back(feature_filtered);
       }   
     }
