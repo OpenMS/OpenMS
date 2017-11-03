@@ -297,7 +297,7 @@ namespace OpenMS
     bool check = true;
     if (component.metaValueExists(meta_value_key))
     {
-      auto meta_value = component.getMetaValue(meta_value_key);
+      double meta_value = (double)component.getMetaValue(meta_value_key);
       if (meta_value < meta_value_l || meta_value > meta_value_u)
       {
         check = false;
