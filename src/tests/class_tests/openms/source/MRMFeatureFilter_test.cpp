@@ -169,11 +169,6 @@ START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature 
   // subordinate.setMetaValue("native_id","component2.1.Light")
   // subordinate.setMetaValue("LabelType","Light");
   // subordinates.push_back(subordinate);
-  // // transition 3
-  // subordinate.setMetaValue("native_id","component2.2.Light")
-  // subordinate.setMetaValue("LabelType","Light");
-  // subordinates.push_back(subordinate);
-  // component_1.setPeptideRef("component_group2");
   
   // make the targeted experiment
   TargetedExperiment transitions;
@@ -200,30 +195,23 @@ START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature 
   transition.setIdentifyingTransition(false);
   transition.setQuantifyingTransition(false);
   transitions.addTransition(transition);
-  // // transition group 2
-  // // transition 1
-  // transition.setNativeID("component2.1.Heavy");
-  // transition.setPeptideRef("component_group2");
-  // transition.setDetectingTransition(true);
-  // transition.setIdentifyingTransition(false);
-  // transition.setQuantifyingTransition(true);
-  // transitions.addTransition(transition);
-  // // transition 2
-  // transition.setNativeID("component2.1.Light");
-  // transition.setPeptideRef("component_group2");
-  // transition.setDetectingTransition(true);
-  // transition.setIdentifyingTransition(false);
-  // transition.setQuantifyingTransition(true);
-  // transitions.addTransition(transition);
-  // // transition 3
-  // transition.setNativeID("component2.2.Light");
-  // transition.setPeptideRef("component_group2");
-  // transition.setDetectingTransition(true);
-  // transition.setIdentifyingTransition(false);
-  // transition.setQuantifyingTransition(false);
-  // transitions.addTransition(transition);
+  // transition group 2
+  // transition 1
+  transition.setNativeID("component2.1.Heavy");
+  transition.setPeptideRef("component_group2");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(true);
+  transitions.addTransition(transition);
+  // transition 2
+  transition.setNativeID("component2.1.Light");
+  transition.setPeptideRef("component_group2");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(true);
+  transitions.addTransition(transition);
 
-  std::map<String,int> test1 = countLabelsAndTransitionTypes(component_1, transitions);
+  std::map<String,int> test1 = mrmff.countLabelsAndTransitionTypes(component_1, transitions);
   TEST_EQUAL(test1["n_heavy"], 1);
   TEST_EQUAL(test1["n_light"], 2);
   TEST_EQUAL(test1["n_quant"], 2);
