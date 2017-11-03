@@ -524,9 +524,9 @@ START_SECTION(( void calculatePeakApexInt_(const MSChromatogram& chromatogram,
     peak_apex_int,
     peak_apex);
 
-  TEST_REAL_SIMILAR(intensity_sum, 6768778);
+  TEST_REAL_SIMILAR(intensity_sum, 6764562);
   TEST_REAL_SIMILAR(intensity_integral, 71540.2082038256);
-  TEST_REAL_SIMILAR(rt_sum, 157.387550005);
+  TEST_REAL_SIMILAR(rt_sum, 151.890633338);
   TEST_REAL_SIMILAR(peak_apex_int, 966489);
 }
 END_SECTION
@@ -576,4 +576,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
