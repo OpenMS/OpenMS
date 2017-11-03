@@ -352,7 +352,7 @@ namespace OpenMS
     if (value < value_l
       && value > value_u)
     {
-      qc_pass = false;
+      range_check = false;
     }
     return range_check;
   }
