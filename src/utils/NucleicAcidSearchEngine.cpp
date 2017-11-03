@@ -44,9 +44,10 @@
 #include <OpenMS/METADATA/IdentificationData.h>
 
 // file types
-#include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 
 // digestion enzymes
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
@@ -118,6 +119,9 @@ protected:
 
     registerOutputFile_("out", "<file>", "", "Output file: mzTab");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
+
+    registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)");
+    setValidFormats_("id_out", ListUtils::create<String>("idXML"));
 
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
     setValidFormats_("theo_ms2_out", ListUtils::create<String>("mzML"));
@@ -547,6 +551,7 @@ protected:
     String in_mzml = getStringOption_("in");
     String in_db = getStringOption_("database");
     String out = getStringOption_("out");
+    String id_out = getStringOption_("id_out");
     String theo_ms2_out = getStringOption_("theo_ms2_out");
     String exp_ms2_out = getStringOption_("exp_ms2_out");
 
@@ -862,8 +867,6 @@ protected:
                      fasta_db, processed_oligos);
     progresslogger.endProgress();
 
-    // TODO: reindex oligo to undigested sequence
-
     // store results
     MzTab results = id_data.exportMzTab();
     LOG_DEBUG << "Nucleic acid rows: "
@@ -874,6 +877,47 @@ protected:
               << results.getOSMSectionRows().size() << endl;
 
     MzTabFile().store(out, results);
+
+    // dummy "peptide" results:
+    if (!id_out.empty())
+    {
+      vector<PeptideIdentification> peptides;
+      vector<ProteinIdentification> proteins(1);
+      proteins[0].setIdentifier("id");
+      proteins[0].setDateTime(DateTime::now());
+      proteins[0].setSearchEngine(toolName_());
+      map<IdentificationData::DataQueryKey, PeptideIdentification> id_map;
+      for (const auto& osm : id_data.query_matches)
+      {
+        IdentificationData::DataQueryKey query_key = osm.first.second;
+        IdentificationData::IdentifiedMoleculeKey oligo_key = osm.first.first;
+        const IdentificationData::MoleculeQueryMatch& match = osm.second;
+        const NASequence& seq = id_data.identified_oligos.left.at(oligo_key);
+        PeptideHit hit;
+        hit.setMetaValue("label", seq.toString());
+        hit.setScore(match.scores.back().second);
+        hit.setCharge(match.charge);
+        hit.setPeakAnnotations(match.peak_annotations); // @TODO: fill this
+        id_map[query_key].insertHit(hit);
+      }
+      // there should be only one score type:
+      const IdentificationData::ScoreType& score_type =
+        id_data.score_types.left.begin()->second;
+      for (auto& id_pair : id_map)
+      {
+        const IdentificationData::DataQuery& query =
+          id_data.data_queries.left.at(id_pair.first);
+        PeptideIdentification& peptide = id_pair.second;
+        peptide.setRT(query.rt);
+        peptide.setMZ(query.mz);
+        peptide.setMetaValue("spectrum_reference", query.data_id);
+        peptide.setScoreType(score_type.name);
+        peptide.setHigherScoreBetter(score_type.higher_better);
+        peptide.setIdentifier("id");
+        peptides.push_back(peptide);
+      }
+      IdXMLFile().store(id_out, proteins, peptides);
+    }
 
     return EXECUTION_OK;
   }
