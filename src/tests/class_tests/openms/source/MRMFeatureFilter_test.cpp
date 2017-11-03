@@ -65,6 +65,20 @@ START_SECTION(~MRMFeatureFilter())
 }
 END_SECTION
 
+START_SECTION(bool checkRange(T value, T value_l, T value_u))
+{
+  MRMFeatureFilter mrmff;
+  // tests
+  TEST_REAL_SIMILAR(mrmff.checkRange <double> (2.0 ,1.0 ,2.0), true);
+  TEST_REAL_SIMILAR(mrmff.checkRange <double> (0.0 ,1.0 ,2.0), false);
+  TEST_REAL_SIMILAR(mrmff.checkRange <double> (3.0 ,1.0 ,2.0), false);
+  TEST_EQUAL(mrmff.checkRange <int> (2 ,1 ,2), true);
+  TEST_EQUAL(mrmff.checkRange <int> (0 ,1 ,2), false);
+  TEST_EQUAL(mrmff.checkRange <int> (3 ,1 ,2), false);
+
+}
+END_SECTION
+
 START_SECTION(double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name))
 {
   MRMFeatureFilter mrmff;
@@ -247,7 +261,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 2
   // transition 1
   subordinate.setMetaValue("native_id","component2.1.Heavy");
-  subordinate.setRT(2.5); //should fail
+  subordinate.setRT(2.5);
   subordinate.setIntensity(5000);
   subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
@@ -258,7 +272,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setRT(2.5);
   subordinate.setIntensity(5000);
   subordinate.setOverallQuality(100);
-  subordinate.setMetaValue("LabelType","Heavy"); //should fail
+  subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",1000);
   subordinates.push_back(subordinate);
   component_1.setMetaValue("setPeptideRef", "component_group2"); 
@@ -364,7 +378,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.component_group_name_ =  "component_group2";    
   cgqcs.n_heavy_l_ = 1;
   cgqcs.n_heavy_u_ = 1;
-  cgqcs.n_light_l_ = 2;
+  cgqcs.n_light_l_ = 2; //should fail
   cgqcs.n_light_u_ = 2;
   cgqcs.n_detecting_l_ = 2;
   cgqcs.n_detecting_u_ = 3;
