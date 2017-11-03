@@ -209,10 +209,6 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   const TargetedExperiment & transitions))
 {
   MRMFeatureFilter mrmff;
-  
-  //make the Parameters
-  Param params;
-  params.setValue("flag_or_filter", "flag");
 
   //make the FeatureMap
   FeatureMap components;
@@ -222,14 +218,26 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
   subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
   subordinate.setMetaValue("LabelType","Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
   subordinate.setMetaValue("LabelType","Light");
+  subordinate.setRT(2.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   component_1.setMetaValue("setPeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
@@ -239,10 +247,18 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition 1
   subordinate.setMetaValue("native_id","component2.1.Heavy")
   subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setRT(3.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("peak_apex_int",10);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component2.1.Light")
   subordinate.setMetaValue("LabelType","Light");
+  subordinate.setRT(3.5);
+  subordinate.setIntensity(5000);
+  subordinate.setOverallQuality(100);
+  subordinate.setMetaValue("peak_apex_int",10);
   subordinates.push_back(subordinate);
   component_1.setMetaValue("setPeptideRef", "component_group2"); 
   component_1.setSubordinates(subordinates); 
@@ -290,7 +306,6 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   transition.setQuantifyingTransition(true);
   transitions.addTransition(transition);
 
-
   //make the QCs
   MRMFeatureQC qc_criteria;
   MRMFeatureQC::ComponentGroupQCs cgqcs;
@@ -315,7 +330,85 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.ion_ratio_u_ = 2.0;
   cgqcs.ion_ratio_feature_name_ "peak_apex_int";
   // transition 1
+  cqcs.component_name_ = "component1.1.Heavy";   
+  cqcs.retention_time_l_ = 2.0;
+  cqcs.retention_time_u_ = 3.0;
+  cqcs.intensity_l_ = 500;
+  cqcs.intensity_u_ = 4e6;
+  cqcs.overall_quality_l_ = 100;
+  cqcs.overall_quality_u_ = 500;
+  cqcs.meta_value_qc_["peak_apex_int"] = std::pair(500, 4e6);
+  // transition 2
+  cqcs.component_name_ = "component1.1.Light";   
+  cqcs.retention_time_l_ = 2.0;
+  cqcs.retention_time_u_ = 3.0;
+  cqcs.intensity_l_ = 500;
+  cqcs.intensity_u_ = 4e6;
+  cqcs.overall_quality_l_ = 100;
+  cqcs.overall_quality_u_ = 500;
+  cqcs.meta_value_qc_["peak_apex_int"] = std::pair(500, 4e6);
+  // transition 3
+  cqcs.component_name_ = "component1.2.Light";   
+  cqcs.retention_time_l_ = 2.0;
+  cqcs.retention_time_u_ = 3.0;
+  cqcs.intensity_l_ = 500;
+  cqcs.intensity_u_ = 4e6;
+  cqcs.overall_quality_l_ = 100;
+  cqcs.overall_quality_u_ = 500;
+  cqcs.meta_value_qc_["peak_apex_int"] = std::pair(500, 4e6);
+  qc_criteria.component_group_qcs_.push_back(cgqcs);
+  qc_criteria.component_qcs_.push_back(cqcs);
+  // transition group 2
+  cgqcs.component_group_name_ =  "component_group2";    
+  cgqcs.n_heavy_l_ = 1;
+  cgqcs.n_heavy_u_ = 1;
+  cgqcs.n_light_l_ = 2;
+  cgqcs.n_light_u_ = 2;
+  cgqcs.n_detecting_l_ = 2;
+  cgqcs.n_detecting_u_ = 3;
+  cgqcs.n_quantifying_l_ = 2;
+  cgqcs.n_quantifying_u_ = 2;
+  cgqcs.n_identifying_l_ = 0;
+  cgqcs.n_identifying_u_ = 3;
+  cgqcs.n_transitions_l_ = 2;
+  cgqcs.n_transitions_u_ = 3;
+  cgqcs.ion_ratio_pair_name_1_ = "component2.1.Light";
+  cgqcs.ion_ratio_pair_name_2_ = "component2.2.Light";
+  cgqcs.ion_ratio_l_ = 0.5;
+  cgqcs.ion_ratio_u_ = 2.0;
+  cgqcs.ion_ratio_feature_name_ "peak_apex_int";
+  // transition 1
+  cqcs.component_name_ = "component2.1.Heavy";   
+  cqcs.retention_time_l_ = 2.0;
+  cqcs.retention_time_u_ = 3.0;
+  cqcs.intensity_l_ = 500;
+  cqcs.intensity_u_ = 4e6;
+  cqcs.overall_quality_l_ = 100;
+  cqcs.overall_quality_u_ = 500;
+  cqcs.meta_value_qc_["peak_apex_int"] = std::pair(500, 4e6);
+  // transition 2
+  cqcs.component_name_ = "component2.1.Light";   
+  cqcs.retention_time_l_ = 2.0;
+  cqcs.retention_time_u_ = 3.0;
+  cqcs.intensity_l_ = 500;
+  cqcs.intensity_u_ = 4e6;
+  cqcs.overall_quality_l_ = 100;
+  cqcs.overall_quality_u_ = 500;
+  cqcs.meta_value_qc_["peak_apex_int"] = std::pair(500, 4e6);
+  qc_criteria.component_group_qcs_.push_back(cgqcs);
+  qc_criteria.component_qcs_.push_back(cqcs);
+  
+  //make the Parameters
+  Param params;
+  params.setValue("flag_or_filter", "flag");
 
+  //TODO
+  
+  //make the Parameters
+  Param params;
+  params.setValue("flag_or_filter", "filter");
+
+  //TODO
 
 }
 END_SECTION
