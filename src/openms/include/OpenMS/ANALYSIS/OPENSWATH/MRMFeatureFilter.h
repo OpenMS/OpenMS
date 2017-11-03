@@ -152,7 +152,7 @@ public:
       const TargetedExperiment & transitions);
 
     template <class T>
-    bool checkRange(T &value, T &value_l, T &value_u);
+    bool checkRange(T value, T value_l, T value_u);
 
     // Members
 
