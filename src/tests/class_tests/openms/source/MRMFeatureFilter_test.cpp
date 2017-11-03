@@ -245,7 +245,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinates.clear();
   // transition group 2
   // transition 1
-  subordinate.setMetaValue("native_id","component2.1.Heavy")
+  subordinate.setMetaValue("native_id","component2.1.Heavy");
   subordinate.setMetaValue("LabelType","Heavy");
   subordinate.setRT(3.5);
   subordinate.setIntensity(5000);
@@ -253,7 +253,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("peak_apex_int",10);
   subordinates.push_back(subordinate);
   // transition 2
-  subordinate.setMetaValue("native_id","component2.1.Light")
+  subordinate.setMetaValue("native_id","component2.1.Light");
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setRT(3.5);
   subordinate.setIntensity(5000);
@@ -310,6 +310,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   MRMFeatureQC qc_criteria;
   MRMFeatureQC::ComponentGroupQCs cgqcs;
   MRMFeatureQC::ComponentQCs cqcs;
+  std::pair<double,double> lbub(500, 4e6);
   // transition group 1
   cgqcs.component_group_name_ =  "component_group1";    
   cgqcs.n_heavy_l_ = 1;
@@ -337,7 +338,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.intensity_u_ = 4e6;
   cqcs.overall_quality_l_ = 100;
   cqcs.overall_quality_u_ = 500;
-  cqcs.meta_value_qc_["peak_apex_int"] = std::pair(500, 4e6);
+  cqcs.meta_value_qc_["peak_apex_int"] = lbub;
   // transition 2
   cqcs.component_name_ = "component1.1.Light";   
   cqcs.retention_time_l_ = 2.0;
@@ -346,7 +347,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.intensity_u_ = 4e6;
   cqcs.overall_quality_l_ = 100;
   cqcs.overall_quality_u_ = 500;
-  cqcs.meta_value_qc_["peak_apex_int"] = std::pair(500, 4e6);
+  cqcs.meta_value_qc_["peak_apex_int"] = lbub;
   // transition 3
   cqcs.component_name_ = "component1.2.Light";   
   cqcs.retention_time_l_ = 2.0;
@@ -355,7 +356,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.intensity_u_ = 4e6;
   cqcs.overall_quality_l_ = 100;
   cqcs.overall_quality_u_ = 500;
-  cqcs.meta_value_qc_["peak_apex_int"] = std::pair(500, 4e6);
+  std::pair<double,double> lbub(500, 4e6);
   qc_criteria.component_group_qcs_.push_back(cgqcs);
   qc_criteria.component_qcs_.push_back(cqcs);
   // transition group 2
@@ -385,7 +386,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.intensity_u_ = 4e6;
   cqcs.overall_quality_l_ = 100;
   cqcs.overall_quality_u_ = 500;
-  cqcs.meta_value_qc_["peak_apex_int"] = std::pair(500, 4e6);
+  cqcs.meta_value_qc_["peak_apex_int"] = lbub;
   // transition 2
   cqcs.component_name_ = "component2.1.Light";   
   cqcs.retention_time_l_ = 2.0;
@@ -394,18 +395,17 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.intensity_u_ = 4e6;
   cqcs.overall_quality_l_ = 100;
   cqcs.overall_quality_u_ = 500;
-  cqcs.meta_value_qc_["peak_apex_int"] = std::pair(500, 4e6);
+  cqcs.meta_value_qc_["peak_apex_int"] = lbub;
   qc_criteria.component_group_qcs_.push_back(cgqcs);
   qc_criteria.component_qcs_.push_back(cqcs);
   
-  //make the Parameters
+  //test flag mode
   Param params;
   params.setValue("flag_or_filter", "flag");
 
   //TODO
   
-  //make the Parameters
-  Param params;
+  //test filter mode
   params.setValue("flag_or_filter", "filter");
 
   //TODO

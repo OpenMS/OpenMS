@@ -115,36 +115,24 @@ namespace OpenMS
             if (filter_criteria.component_group_qcs_[cg_qc_it].component_group_name_ == component_group_name)
             {
               // labels and transition counts QC
-              if (labels_and_transition_types["n_heavy"] < filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l_
-                || labels_and_transition_types["n_heavy"] > filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_u_)
-              {
-                qc_pass = false;
-              }
-              if (labels_and_transition_types["n_light"] < filter_criteria.component_group_qcs_[cg_qc_it].n_light_l_
-                || labels_and_transition_types["n_light"] > filter_criteria.component_group_qcs_[cg_qc_it].n_light_u_)
-              {
-                qc_pass = false;
-              }
-              if (labels_and_transition_types["n_detecting"] < filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_l_
-                || labels_and_transition_types["n_detecting"] > filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_u_)
-              {
-                qc_pass = false;
-              }
-              if (labels_and_transition_types["n_quantifying"] < filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_l_
-                || labels_and_transition_types["n_quantifying"] > filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_u_)
-              {
-                qc_pass = false;
-              }
-              if (labels_and_transition_types["n_identifying"] < filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_l_
-                || labels_and_transition_types["n_identifying"] > filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_u_)
-              {
-                qc_pass = false;
-              }
-              if (labels_and_transition_types["n_transitions"] < filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_l_
-                || labels_and_transition_types["n_transitions"] > filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_u_)
-              {
-                qc_pass = false;
-              }
+              qc_pass = checkRange <int> (labels_and_transition_types["n_heavy"],
+                filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l_,
+                filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_u_);
+              qc_pass = checkRange <int> (labels_and_transition_types["n_light"],
+                filter_criteria.component_group_qcs_[cg_qc_it].n_light_l_,
+                filter_criteria.component_group_qcs_[cg_qc_it].n_light_u_);
+              qc_pass = checkRange <int> (labels_and_transition_types["n_detecting"],
+                filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_l_,
+                filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_u_);
+              qc_pass = checkRange <int> (labels_and_transition_types["n_quantifying"],
+                filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_l_,
+                filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_u_);
+              qc_pass = checkRange <int> (labels_and_transition_types["n_identifying"],
+                filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_l_,
+                filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_u_);
+              qc_pass = checkRange <int> (labels_and_transition_types["n_transitions"],
+                filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_l_,
+                filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_u_);
 
               // ion ratio QC
               for (size_t sub_it2 = 0; sub_it2 < features[feature_it].getSubordinates().size(); ++sub_it2)
@@ -157,11 +145,9 @@ namespace OpenMS
                 {
                   double ion_ratio = calculateIonRatio(features[feature_it].getSubordinates()[sub_it], features[feature_it].getSubordinates()[sub_it2], filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_feature_name_);
                   
-                  if (ion_ratio < filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_l_
-                  || ion_ratio > filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_u_)
-                  {
-                    qc_pass = false;
-                  }
+                  qc_pass = checkRange <double> (ion_ratio,
+                    filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_l_,
+                    filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_u_);
                 }
               }
             }
@@ -174,27 +160,21 @@ namespace OpenMS
           {
             // RT check
             double rt = features[feature_it].getSubordinates()[sub_it].getRT(); //check!
-            if (rt < filter_criteria.component_qcs_[c_qc_it].retention_time_l_
-              && rt > filter_criteria.component_qcs_[c_qc_it].retention_time_u_)
-            {
-              qc_pass = false;
-            }
+            qc_pass = checkRange <double> (rt,
+              filter_criteria.component_qcs_[c_qc_it].retention_time_l_,
+              filter_criteria.component_qcs_[c_qc_it].retention_time_u_);
 
             // intensity check
             double intensity = features[feature_it].getSubordinates()[sub_it].getIntensity();
-            if (intensity < filter_criteria.component_qcs_[c_qc_it].intensity_l_
-              && intensity > filter_criteria.component_qcs_[c_qc_it].intensity_u_)
-            {
-              qc_pass = false;
-            }
+            qc_pass = checkRange <double> (intensity,
+              filter_criteria.component_qcs_[c_qc_it].intensity_l_,
+              filter_criteria.component_qcs_[c_qc_it].intensity_u_);
 
             // overall quality check getQuality
             double quality = features[feature_it].getSubordinates()[sub_it].getOverallQuality();
-            if (quality < filter_criteria.component_qcs_[c_qc_it].overall_quality_l_
-              && quality > filter_criteria.component_qcs_[c_qc_it].overall_quality_u_)
-            {
-              qc_pass = false;
-            }
+            qc_pass = checkRange <double> (quality,
+              filter_criteria.component_qcs_[c_qc_it].overall_quality_l_,
+              filter_criteria.component_qcs_[c_qc_it].overall_quality_u_);
 
             // metaValue checks
             for (auto const& kv : filter_criteria.component_qcs_[c_qc_it].meta_value_qc_)
@@ -327,10 +307,9 @@ namespace OpenMS
     if (component.metaValueExists(meta_value_key))
     {
       double meta_value = (double)component.getMetaValue(meta_value_key);
-      if (meta_value < meta_value_l || meta_value > meta_value_u)
-      {
-        check = false;
-      }
+      check = checkRange <double> (meta_value,
+        meta_value_l,
+        meta_value_u);
     }
     else 
     {
@@ -350,7 +329,7 @@ namespace OpenMS
   {
     bool range_check = true;
     if (value < value_l
-      && value > value_u)
+      || value > value_u)
     {
       range_check = false;
     }
