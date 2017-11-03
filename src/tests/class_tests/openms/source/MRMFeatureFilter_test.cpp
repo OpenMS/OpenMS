@@ -208,6 +208,7 @@ END_SECTION
 START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
   const TargetedExperiment & transitions))
 {
+  // FilterFeatureMap Test 1
   MRMFeatureFilter mrmff;
 
   //make the FeatureMap
@@ -217,27 +218,27 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 1
   // transition 1
   subordinate.setMetaValue("native_id","component1.1.Heavy");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
-  subordinate.setRT(2.5);
-  subordinate.setIntensity(5000);
-  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component1.1.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
-  subordinate.setRT(2.5);
-  subordinate.setIntensity(5000);
-  subordinate.setOverallQuality(100);
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
-  subordinate.setRT(2.5);
-  subordinate.setIntensity(5000);
-  subordinate.setOverallQuality(100);
-  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinate.setMetaValue("peak_apex_int",1000); //should fail
   subordinates.push_back(subordinate);
   component_1.setMetaValue("setPeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
@@ -246,19 +247,19 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   // transition group 2
   // transition 1
   subordinate.setMetaValue("native_id","component2.1.Heavy");
+  component_1.setRT(2.5); //should fail
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Heavy");
-  subordinate.setRT(3.5);
-  subordinate.setIntensity(5000);
-  subordinate.setOverallQuality(100);
-  subordinate.setMetaValue("peak_apex_int",10);
+  subordinate.setMetaValue("peak_apex_int",1000);
   subordinates.push_back(subordinate);
   // transition 2
   subordinate.setMetaValue("native_id","component2.1.Light");
-  subordinate.setMetaValue("LabelType","Light");
-  subordinate.setRT(3.5);
-  subordinate.setIntensity(5000);
-  subordinate.setOverallQuality(100);
-  subordinate.setMetaValue("peak_apex_int",10);
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Heavy"); //should fail
+  subordinate.setMetaValue("peak_apex_int",1000);
   subordinates.push_back(subordinate);
   component_1.setMetaValue("setPeptideRef", "component_group2"); 
   component_1.setSubordinates(subordinates); 
@@ -329,7 +330,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.ion_ratio_pair_name_2_ = "component1.2.Light";
   cgqcs.ion_ratio_l_ = 0.5;
   cgqcs.ion_ratio_u_ = 2.0;
-  cgqcs.ion_ratio_feature_name_ "peak_apex_int";
+  cgqcs.ion_ratio_feature_name_ = "peak_apex_int";
   // transition 1
   cqcs.component_name_ = "component1.1.Heavy";   
   cqcs.retention_time_l_ = 2.0;
@@ -356,7 +357,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.intensity_u_ = 4e6;
   cqcs.overall_quality_l_ = 100;
   cqcs.overall_quality_u_ = 500;
-  std::pair<double,double> lbub(500, 4e6);
+  cqcs.meta_value_qc_["peak_apex_int"] = lbub;
   qc_criteria.component_group_qcs_.push_back(cgqcs);
   qc_criteria.component_qcs_.push_back(cqcs);
   // transition group 2
@@ -403,12 +404,430 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   Param params;
   params.setValue("flag_or_filter", "flag");
 
-  //TODO
+  TEST_EQUAL(components.getFeatures()[0].getMetaValue("QC_transition_group_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), false);
+  TEST_EQUAL(components.getFeatures()[1].getMetaValue("QC_transition_group_pass"), false);
+  TEST_EQUAL(components.getFeatures()[1].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[1].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
   
   //test filter mode
   params.setValue("flag_or_filter", "filter");
 
-  //TODO
+  TEST_EQUAL(components.size(), 1);
+  TEST_EQUAL(components.getFeatures()[0].size(), 2);
+
+}
+END_SECTION
+
+START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
+  const TargetedExperiment & transitions))
+{
+  // FilterFeatureMap Test 2
+  MRMFeatureFilter mrmff;
+
+  //make the FeatureMap
+  FeatureMap components;
+  OpenMS::Feature component_1, subordinate;
+  std::vector<OpenMS::Feature> subordinates;
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component1.1.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id","component1.2.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  
+  // make the targeted experiment
+  TargetedExperiment transitions;
+  ReactionMonitoringTransition transition;
+  // transition group 1
+  // transition 1
+  transition.setNativeID("component1.1.Heavy");
+  transition.setPeptideRef("component_group1");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(true);
+  transitions.addTransition(transition);
+  // transition 2
+  transition.setNativeID("component1.1.Light");
+  transition.setPeptideRef("component_group1");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(true);
+  transitions.addTransition(transition);
+  // transition 3
+  transition.setNativeID("component1.2.Light");
+  transition.setPeptideRef("component_group1");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(false);
+  transitions.addTransition(transition);
+
+  //make the QCs
+  MRMFeatureQC qc_criteria;
+  MRMFeatureQC::ComponentGroupQCs cgqcs;
+  MRMFeatureQC::ComponentQCs cqcs;
+  std::pair<double,double> lbub(500, 4e6);
+  // transition group 1
+  cgqcs.component_group_name_ =  "component_group1";    
+  cgqcs.n_heavy_l_ = 1;
+  cgqcs.n_heavy_u_ = 1;
+  cgqcs.n_light_l_ = 1;
+  cgqcs.n_light_u_ = 2;
+  cgqcs.n_detecting_l_ = 2;
+  cgqcs.n_detecting_u_ = 3;
+  cgqcs.n_quantifying_l_ = 2;
+  cgqcs.n_quantifying_u_ = 2;
+  cgqcs.n_identifying_l_ = 0;
+  cgqcs.n_identifying_u_ = 3;
+  cgqcs.n_transitions_l_ = 3;
+  cgqcs.n_transitions_u_ = 3;
+  cgqcs.ion_ratio_pair_name_1_ = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2_ = "component1.2.Light";
+  cgqcs.ion_ratio_l_ = 0.5;
+  cgqcs.ion_ratio_u_ = 2.0;
+  cgqcs.ion_ratio_feature_name_ = "peak_apex_int";
+  // transition 1
+  cqcs.component_name_ = "component1.1.Heavy";   
+  cqcs.retention_time_l_ = 2.0;
+  cqcs.retention_time_u_ = 3.0;
+  cqcs.intensity_l_ = 500;
+  cqcs.intensity_u_ = 4e6;
+  cqcs.overall_quality_l_ = 100;
+  cqcs.overall_quality_u_ = 500;
+  cqcs.meta_value_qc_["peak_apex_int"] = lbub;
+  // transition 2
+  cqcs.component_name_ = "component1.1.Light";   
+  cqcs.retention_time_l_ = 2.0;
+  cqcs.retention_time_u_ = 3.0;
+  cqcs.intensity_l_ = 500;
+  cqcs.intensity_u_ = 4e6;
+  cqcs.overall_quality_l_ = 100;
+  cqcs.overall_quality_u_ = 500;
+  cqcs.meta_value_qc_["peak_apex_int"] = lbub;
+  // transition 3
+  cqcs.component_name_ = "component1.2.Light";   
+  cqcs.retention_time_l_ = 2.0;
+  cqcs.retention_time_u_ = 3.0;
+  cqcs.intensity_l_ = 500;
+  cqcs.intensity_u_ = 4e6;
+  cqcs.overall_quality_l_ = 100;
+  cqcs.overall_quality_u_ = 500;
+  cqcs.meta_value_qc_["peak_apex_int"] = lbub;
+  qc_criteria.component_group_qcs_.push_back(cgqcs);
+  qc_criteria.component_qcs_.push_back(cqcs);
+  
+  //test all possible comparisons
+  Param params;
+  params.setValue("flag_or_filter", "flag");
+
+  // control
+  TEST_EQUAL(components.getFeatures()[0].getMetaValue("QC_transition_group_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), true);
+  components.clear();
+  
+  // RT
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component1.1.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id","component1.2.Light");
+  subordinates.push_back(subordinate);
+  component_1.setRT(6.0); // should fail
+  component_1.setIntensity(0.0);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  TEST_EQUAL(components.getFeatures()[0].getMetaValue("QC_transition_group_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), false);
+  components.clear();
+  
+  // Intensity
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component1.1.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id","component1.2.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(0.0); // should fail
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  TEST_EQUAL(components.getFeatures()[0].getMetaValue("QC_transition_group_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), false);
+  components.clear();
+  
+  // OverallQuality
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component1.1.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id","component1.2.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(0.0); //should fail
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  TEST_EQUAL(components.getFeatures()[0].getMetaValue("QC_transition_group_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), false);
+  components.clear();
+  
+  // MetaValue
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component1.1.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",500);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id","component1.2.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",400); //should fail
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  TEST_EQUAL(components.getFeatures()[0].getMetaValue("QC_transition_group_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), false);
+  components.clear();
+  
+  // n_heavy
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component1.1.Light");
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id","component1.2.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  TEST_EQUAL(components.getFeatures()[0].getMetaValue("QC_transition_group_pass"), false);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), true);
+  components.clear();
+  
+  // n_light
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component1.1.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id","component1.2.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  TEST_EQUAL(components.getFeatures()[0].getMetaValue("QC_transition_group_pass"), false);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), true);
+  components.clear();
+  
+  // n_transitions
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component1.1.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  TEST_EQUAL(components.getFeatures()[0].getMetaValue("QC_transition_group_pass"), false);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), true);
+  components.clear();
+  
+  // ion_ratio_pair
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component1.1.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id","component1.2.Light");
+  component_1.setRT(2.5);
+  component_1.setIntensity(5000);
+  component_1.setOverallQuality(100);
+  subordinate.setMetaValue("LabelType","Light");
+  subordinate.setMetaValue("peak_apex_int",500);
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  TEST_EQUAL(components.getFeatures()[0].getMetaValue("QC_transition_group_pass"), false);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
+  TEST_EQUAL(components.getFeatures()[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), true);
+  components.clear();
 
 }
 END_SECTION

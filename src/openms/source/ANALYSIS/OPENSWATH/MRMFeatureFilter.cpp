@@ -104,7 +104,8 @@ namespace OpenMS
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
       {
         String component_name = (String)features[feature_it].getSubordinates()[sub_it].getMetaValue("native_id"); 
-        bool qc_pass = true;
+        bool c_qc_pass = true;
+        bool cg_qc_pass = true;
 
         // iterate through multi-feature/multi-sub-feature QCs/filters
         // iterate through component_groups
@@ -115,22 +116,22 @@ namespace OpenMS
             if (filter_criteria.component_group_qcs_[cg_qc_it].component_group_name_ == component_group_name)
             {
               // labels and transition counts QC
-              qc_pass = checkRange <int> (labels_and_transition_types["n_heavy"],
+              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_heavy"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_u_);
-              qc_pass = checkRange <int> (labels_and_transition_types["n_light"],
+              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_light"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_light_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_light_u_);
-              qc_pass = checkRange <int> (labels_and_transition_types["n_detecting"],
+              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_detecting"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_u_);
-              qc_pass = checkRange <int> (labels_and_transition_types["n_quantifying"],
+              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_quantifying"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_u_);
-              qc_pass = checkRange <int> (labels_and_transition_types["n_identifying"],
+              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_identifying"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_u_);
-              qc_pass = checkRange <int> (labels_and_transition_types["n_transitions"],
+              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_transitions"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_u_);
 
@@ -145,7 +146,7 @@ namespace OpenMS
                 {
                   double ion_ratio = calculateIonRatio(features[feature_it].getSubordinates()[sub_it], features[feature_it].getSubordinates()[sub_it2], filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_feature_name_);
                   
-                  qc_pass = checkRange <double> (ion_ratio,
+                  cg_qc_pass = checkRange <double> (ion_ratio,
                     filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_l_,
                     filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_u_);
                 }
@@ -160,19 +161,19 @@ namespace OpenMS
           {
             // RT check
             double rt = features[feature_it].getSubordinates()[sub_it].getRT(); //check!
-            qc_pass = checkRange <double> (rt,
+            c_qc_pass = checkRange <double> (rt,
               filter_criteria.component_qcs_[c_qc_it].retention_time_l_,
               filter_criteria.component_qcs_[c_qc_it].retention_time_u_);
 
             // intensity check
             double intensity = features[feature_it].getSubordinates()[sub_it].getIntensity();
-            qc_pass = checkRange <double> (intensity,
+            c_qc_pass = checkRange <double> (intensity,
               filter_criteria.component_qcs_[c_qc_it].intensity_l_,
               filter_criteria.component_qcs_[c_qc_it].intensity_u_);
 
             // overall quality check getQuality
             double quality = features[feature_it].getSubordinates()[sub_it].getOverallQuality();
-            qc_pass = checkRange <double> (quality,
+            c_qc_pass = checkRange <double> (quality,
               filter_criteria.component_qcs_[c_qc_it].overall_quality_l_,
               filter_criteria.component_qcs_[c_qc_it].overall_quality_u_);
 
@@ -181,37 +182,53 @@ namespace OpenMS
             {
               if (!checkMetaValue(features[feature_it].getSubordinates()[sub_it], kv.first, kv.second.first, kv.second.second))
               {
-                qc_pass = false;
+                c_qc_pass = false;
               }
             }
           }
         }
 
         // Copy or Flag passing/failing subordinates
-        if (qc_pass && flag_or_filter_ == "filter")
+        if (c_qc_pass && flag_or_filter_ == "filter")
         {
           subordinates_filtered.push_back(features[feature_it].getSubordinates()[sub_it]);
         }
-        else if (qc_pass && flag_or_filter_ == "flag")
+        else if (c_qc_pass && flag_or_filter_ == "flag")
         {
-          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_pass", true);
+          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_pass", true);
         }
-        else if (!qc_pass && flag_or_filter_ == "filter")
+        else if (!c_qc_pass && flag_or_filter_ == "filter")
         {
           // do nothing
         }
-        else if (!qc_pass && flag_or_filter_ == "flag")
+        else if (!c_qc_pass && flag_or_filter_ == "flag")
         {
-          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_pass", false);
+          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_pass", false);
         }
       }
 
       // make the filtered Feature
-      if (flag_or_filter_ == "filter" && subordinates_filtered.size() > 0)
+      if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() > 0)
       {
         Feature feature_filtered(features[feature_it]);
         features_filtered.push_back(feature_filtered);
       }   
+      else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() == 0)
+      {
+        // do nothing
+      }   
+      else if (cg_qc_pass && flag_or_filter_ == "flag")
+      {
+        features[feature_it].setMetaValue("QC_transition_group_pass", true);
+      }
+      else if (!cg_qc_pass && flag_or_filter_ == "filter")
+      {
+        // do nothing
+      }   
+      else if (!cg_qc_pass && flag_or_filter_ == "flag")
+      {
+        features[feature_it].setMetaValue("QC_transition_group_pass", false);
+      }
     }
 
     // replace with the filtered featureMap
