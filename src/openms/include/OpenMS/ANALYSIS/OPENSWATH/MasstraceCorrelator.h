@@ -66,7 +66,7 @@ namespace OpenMS
     ~MasstraceCorrelator();
 
     // a mass trace is a vector of pairs in (RT, Intensity)
-    typedef std::vector<std::pair<double, double> > masstracePointsType;
+    typedef std::vector<std::pair<double, double> > MasstracePointsType;
 
     /** Compute pseudo-spectra from a set of (MS2) masstraces
      *
@@ -106,7 +106,7 @@ namespace OpenMS
      * @param mindiff Minimal differences for matching up the two mass traces
      *
     */
-    void scoreHullpoints(const masstracePointsType& hull_points1, const masstracePointsType& hull_points2,
+    void scoreHullpoints(const MasstracePointsType& hull_points1, const MasstracePointsType& hull_points2,
         int& lag, double& lag_intensity, double& pearson_score, 
         const double min_corr, const int max_lag, const double mindiff = 0.1);
 
@@ -124,7 +124,7 @@ namespace OpenMS
      * @param rt_cache The list of retention times of all features
     */
     void createConsensusMapCache(const ConsensusMap& map,
-        std::vector<masstracePointsType>& feature_points,
+        std::vector<MasstracePointsType>& feature_points,
         std::vector<std::pair<double, double> >& max_intensities,
         std::vector<double>& rt_cache);
 
@@ -151,7 +151,7 @@ namespace OpenMS
      * @param padEnds Whether to pad ends with zeros
      *
     */
-    void matchMassTraces_(const masstracePointsType& hull_points1, const masstracePointsType& hull_points2,
+    void matchMassTraces_(const MasstracePointsType& hull_points1, const MasstracePointsType& hull_points2,
         std::vector<double>& vec1, std::vector<double>& vec2, double mindiff,
         double padEnds = true);
   };

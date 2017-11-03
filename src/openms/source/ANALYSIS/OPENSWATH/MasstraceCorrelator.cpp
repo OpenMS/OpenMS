@@ -66,8 +66,8 @@ namespace OpenMS
   }
 
   void MasstraceCorrelator::matchMassTraces_(
-      const masstracePointsType& hull_points1,
-      const masstracePointsType& hull_points2,
+      const MasstracePointsType& hull_points1,
+      const MasstracePointsType& hull_points2,
       std::vector<double>& vec1, std::vector<double>& vec2, double mindiff, double padEnds)
   {
 
@@ -143,7 +143,7 @@ namespace OpenMS
 
   }
 
-  void MasstraceCorrelator::scoreHullpoints(const masstracePointsType& hull_points1, const masstracePointsType& hull_points2,
+  void MasstraceCorrelator::scoreHullpoints(const MasstracePointsType& hull_points1, const MasstracePointsType& hull_points2,
         int& lag, double& lag_intensity, double& pearson_score, 
         const double min_corr, const int /* max_lag */, const double mindiff)
   {
@@ -178,7 +178,7 @@ namespace OpenMS
   }
 
   void MasstraceCorrelator::createConsensusMapCache(const ConsensusMap& map, 
-    std::vector< masstracePointsType >& feature_points,
+    std::vector< MasstracePointsType >& feature_points,
     std::vector< std::pair<double,double> >& max_intensities, 
     std::vector< double >& rt_cache)
   {
@@ -191,7 +191,7 @@ namespace OpenMS
       const ConsensusFeature::HandleSetType* f1_features = &map[i].getFeatures();
 
       // get the points into a vector of pairs (RT, intensity)
-      masstracePointsType f1_points; 
+      MasstracePointsType f1_points; 
       for (ConsensusFeature::HandleSetType::iterator it = f1_features->begin(); it != f1_features->end(); ++it)
       {
         f1_points.push_back(std::make_pair(it->getRT(), it->getIntensity())); 
@@ -242,7 +242,7 @@ namespace OpenMS
     int lag; double lag_intensity; double pearson_score;
 
     // cache datastructures
-    std::vector< masstracePointsType > feature_points; 
+    std::vector< MasstracePointsType > feature_points; 
     std::vector< std::pair<double,double> > max_intensities; 
     std::vector< double > rt_cache;
     createConsensusMapCache(map, feature_points, max_intensities, rt_cache);

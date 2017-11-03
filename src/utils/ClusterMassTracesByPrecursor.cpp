@@ -206,12 +206,12 @@ class TOPPCorrelateMasstraces
     // Cache datastructures
     // -----------------------------------
     // We cache the RT and intensities of each feature
-    std::vector< MasstraceCorrelator::masstracePointsType > feature_points_ms2;
+    std::vector< MasstraceCorrelator::MasstracePointsType > feature_points_ms2;
     std::vector< std::pair<double,double> > max_intensities_ms2; 
     std::vector< double > rt_cache_ms2;
     mtcorr.createConsensusMapCache(MS2_feature_map, feature_points_ms2, max_intensities_ms2, rt_cache_ms2);
 
-    std::vector< MasstraceCorrelator::masstracePointsType > feature_points_ms1;
+    std::vector< MasstraceCorrelator::MasstracePointsType > feature_points_ms1;
     std::vector< std::pair<double,double> > max_intensities_ms1; 
     std::vector< double > rt_cache_ms1;
     mtcorr.createConsensusMapCache(MS1_feature_map, feature_points_ms1, max_intensities_ms1, rt_cache_ms1);
