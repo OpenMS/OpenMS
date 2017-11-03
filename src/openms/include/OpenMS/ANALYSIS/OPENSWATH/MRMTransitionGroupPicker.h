@@ -116,8 +116,6 @@ public:
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
       std::vector<MSChromatogram > picked_chroms_;
-      PeakPickerMRM picker;
-      picker.setParameters(param_.copy("PeakPickerMRM:", true));
 
       // Pick fragment ion chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
@@ -133,13 +131,8 @@ public:
           continue;
         }
 
-        if (!chromatogram.isSorted())
-        {
-          chromatogram.sortByPosition();
-        }
-
         MSChromatogram picked_chrom;
-        picker.pickChromatogram(chromatogram, picked_chrom);
+        picker_.pickChromatogram(chromatogram, picked_chrom);
         picked_chrom.sortByIntensity(); // we could do without that
         picked_chroms_.push_back(picked_chrom);
       }
@@ -153,7 +146,7 @@ public:
           SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
           String native_id = chromatogram.getNativeID();
 
-          picker.pickChromatogram(chromatogram, picked_chrom);
+          picker_.pickChromatogram(chromatogram, picked_chrom);
           picked_chrom.sortByIntensity(); // we could do without that
           picked_chroms_.push_back(picked_chrom);
         }
@@ -179,7 +172,8 @@ public:
         }
 
         cnt++;
-        if ((stop_after_feature_ > 0 && cnt > stop_after_feature_) &&
+        if (stop_after_feature_ > 0 && cnt > stop_after_feature_) {break;}
+        if (mrm_feature.getIntensity() > 0 && 
             mrm_feature.getIntensity() / (double)mrm_feature.getMetaValue("total_xic") < stop_after_intensity_ratio_)
         {
           break;
@@ -577,7 +571,7 @@ protected:
         for (Size i = 0; i < all_ints.size(); i++)
         {
           if (i == k) {continue;}
-          std::map<int, double> res = OpenSwath::Scoring::normalizedCrossCorrelation(
+          OpenSwath::Scoring::XCorrArrayType res = OpenSwath::Scoring::normalizedCrossCorrelation(
               all_ints[k], all_ints[i], boost::numeric_cast<int>(all_ints[i].size()), 1);
 
           // the first value is the x-axis (retention time) and should be an int -> it show the lag between the two
@@ -876,6 +870,8 @@ protected:
     double min_peak_width_;
     double recalculate_peaks_max_z_;
     double resample_boundary_;
+
+    PeakPickerMRM picker_;
   };
 }
 

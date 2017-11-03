@@ -35,10 +35,11 @@
 #ifndef OPENMS_FORMAT_GZIPINPUTSTREAM_H
 #define OPENMS_FORMAT_GZIPINPUTSTREAM_H
 
-#include <xercesc/util/BinInputStream.hpp>
-#include <xercesc/util/PlatformUtils.hpp>
+#include <OpenMS/config.h>
 #include <OpenMS/FORMAT/GzipIfstream.h>
 
+#include <xercesc/util/BinInputStream.hpp>
+#include <xercesc/util/PlatformUtils.hpp>
 
 namespace OpenMS
 {
@@ -81,7 +82,7 @@ public:
       * @return returns the number of bytes which were actually read
       *
     */
-    virtual XMLSize_t readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read);
+    virtual XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read);
 
     /**
       * @brief returns 0
@@ -100,7 +101,7 @@ private:
     ///pointer to an compression stream
     GzipIfstream* gzip_;
     ///current index of the actual file
-    XMLSize_t       file_current_index_;
+    XMLSize_t file_current_index_;
 
     //not implemented
     GzipInputStream();
