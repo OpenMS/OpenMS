@@ -129,12 +129,12 @@ START_SECTION(bool checkMetaValue(const Feature & component, const String & meta
 
   // test parameters
   double meta_value_l(4.0), meta_value_u(6.0);
-  TEST_REAL_SIMILAR(mrmff.checkMetaValue(component_1, feature_name, meta_value_l, meta_value_u), true); // pass case
+  TEST_EQUAL(mrmff.checkMetaValue(component_1, feature_name, meta_value_l, meta_value_u), true); // pass case
   component_1.setMetaValue(feature_name, 6.0);
-  TEST_REAL_SIMILAR(mrmff.checkMetaValue(component_1, feature_name, meta_value_l, meta_value_u), true); // edge pass case
+  TEST_EQUAL(mrmff.checkMetaValue(component_1, feature_name, meta_value_l, meta_value_u), true); // edge pass case
   component_1.setMetaValue(feature_name, 3.0);
-  TEST_REAL_SIMILAR(mrmff.checkMetaValue(component_1, feature_name, meta_value_l, meta_value_u), false); // fail case
-  TEST_REAL_SIMILAR(mrmff.checkMetaValue(component_1, "peak_area", meta_value_l, meta_value_u), true);  // not found case
+  TEST_EQUAL(mrmff.checkMetaValue(component_1, feature_name, meta_value_l, meta_value_u), false); // fail case
+  TEST_EQUAL(mrmff.checkMetaValue(component_1, "peak_area", meta_value_l, meta_value_u), true);  // not found case
 
 }
 END_SECTION
