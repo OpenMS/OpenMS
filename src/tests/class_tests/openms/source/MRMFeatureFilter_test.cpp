@@ -148,15 +148,15 @@ START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature 
   std::vector<OpenMS::Feature> subordinates;
   // transition group 1
   // transition 1
-  subordinate.setMetaValue("native_id","component1.1.Heavy")
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
   subordinate.setMetaValue("LabelType","Heavy");
   subordinates.push_back(subordinate);
   // transition 2
-  subordinate.setMetaValue("native_id","component1.1.Light")
+  subordinate.setMetaValue("native_id","component1.1.Light");
   subordinate.setMetaValue("LabelType","Light");
   subordinates.push_back(subordinate);
   // transition 3
-  subordinate.setMetaValue("native_id","component1.2.Light")
+  subordinate.setMetaValue("native_id","component1.2.Light");
   subordinate.setMetaValue("LabelType","Light");
   subordinates.push_back(subordinate);
   component_1.setPeptideRef("component_group1");  
