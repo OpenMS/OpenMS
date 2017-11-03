@@ -416,7 +416,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   params.setValue("flag_or_filter", "filter");
 
   TEST_EQUAL(components.size(), 1);
-  TEST_EQUAL(components[0].size(), 2);
+  TEST_EQUAL(components[0].getSubordinates().size(), 2);
 
 }
 END_SECTION
