@@ -83,28 +83,13 @@ namespace OpenMS
     const MRMFeatureQC& filter_criteria,
     const TargetedExperiment & transitions
   )
-  { 
-    // initialize the new feature map
-    if (flag_or_filter_ == "filter")
-    {
-      FeatureMap features_filtered;
-    }
-    FilterFeatureMap(features, 
-      filter_criteria,
-      transitions,
-      features_filtered,
-    )
-  }
-
-
-  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, 
-    const MRMFeatureQC& filter_criteria,
-    const TargetedExperiment & transitions,
-    FeatureMap& features_filtered,
-  )
   {     
     // initialize QC variables
     std::map<String,MRMFeatureQC>::iterator feature_qc_it;
+    if (flag_or_filter_ == "filter")
+    {
+      FeatureMap features_filtered;
+    }   
 
     // bool qc_pass;
     String concentration_units;// iterate through each component_group/feature     
@@ -254,6 +239,12 @@ namespace OpenMS
         std::copy(features[feature_it], feature_filtered);
         features_filtered.push_back(feature_filtered);
       }   
+    }
+
+    // replace with the filtered featureMap
+    if (flag_or_filter_ == "filter")
+    {
+      features = features_filtered;
     }
   }
   

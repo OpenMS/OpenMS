@@ -84,7 +84,7 @@ public:
       @param transitions transitions from a TargetedExperiment
 
     */    
-    void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
+    void FilterFeatureMap(FeatureMap& features, const MRMFeatureQC& filter_criteria,
       const TargetedExperiment & transitions);
     
     /**
