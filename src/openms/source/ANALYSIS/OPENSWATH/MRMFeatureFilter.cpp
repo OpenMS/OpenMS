@@ -79,15 +79,30 @@ namespace OpenMS
     report_tic_ = param_.getValue("report_tic").toBool();
   }
 
-  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
-    const TargetedExperiment & transitions)
+  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, 
+    const MRMFeatureQC& filter_criteria,
+    const TargetedExperiment & transitions
+  )
   { 
     // initialize the new feature map
     if (flag_or_filter_ == "filter")
     {
       FeatureMap features_filtered;
     }
-    
+    FilterFeatureMap(features, 
+      filter_criteria,
+      transitions,
+      features_filtered,
+    )
+  }
+
+
+  void MRMFeatureFilter::FilterFeatureMap(FeatureMap& features, 
+    const MRMFeatureQC& filter_criteria,
+    const TargetedExperiment & transitions,
+    FeatureMap& features_filtered,
+  )
+  {     
     // initialize QC variables
     std::map<String,MRMFeatureQC>::iterator feature_qc_it;
 
@@ -99,6 +114,13 @@ namespace OpenMS
       String component_group_name = (String)features[feature_it].getMetaValue("PeptideRef");
 
       std::map<String,int> labels_and_transition_types = countLabelsAndTransitionTypes(features[feature_it], transitions);
+
+      // initialize the new feature and subordinates
+      if (flag_or_filter_ == "filter")
+      {
+        Feature feature_filtered;
+        std::vector<Feature> subordinates_filtered;
+      }
 
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < features[feature_it].getSubordinates().size(); ++sub_it)
@@ -188,13 +210,13 @@ namespace OpenMS
               qc_pass = false;
             }
 
-            // // overall quality check getQuality
-            // double quality = features[feature_it].getSubordinates()[sub_it].getQuality();
-            // if (quality < filter_criteria.component_qcs_[c_qc_it].overall_quality_l_
-            //   && quality > filter_criteria.component_qcs_[c_qc_it].overall_quality_u_)
-            // {
-            //   qc_pass = false;
-            // }
+            // overall quality check getQuality
+            double quality = features[feature_it].getSubordinates()[sub_it].getOverallQuality();
+            if (quality < filter_criteria.component_qcs_[c_qc_it].overall_quality_l_
+              && quality > filter_criteria.component_qcs_[c_qc_it].overall_quality_u_)
+            {
+              qc_pass = false;
+            }
 
             // metaValue checks
             for (auto const& kv : filter_criteria.component_qcs_[c_qc_it].meta_value_qc_)
@@ -206,9 +228,32 @@ namespace OpenMS
             }
           }
         }
+
+        // Copy or Flag passing/failing subordinates
+        if (qc_pass && flag_or_filter_ == "filter")
+        {
+          subordinates_filtered.push_back(features[feature_it].getSubordinates()[sub_it]);
+        }
+        else if (qc_pass && flag_or_filter_ == "flag")
+        {
+          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_pass", true);
+        }
+        else if (!qc_pass && flag_or_filter_ == "filter")
+        {
+          // do nothing
+        }
+        else if (!qc_pass && flag_or_filter_ == "flag")
+        {
+          features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_pass", false);
+        }
       }
 
-
+      // make the filtered Feature
+      if (flag_or_filter_ == "filter" && subordinates_filtered.size() > 0)
+      {
+        std::copy(features[feature_it], feature_filtered);
+        features_filtered.push_back(feature_filtered);
+      }   
     }
   }
   
