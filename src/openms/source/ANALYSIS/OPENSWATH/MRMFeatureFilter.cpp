@@ -91,11 +91,6 @@ namespace OpenMS
     // initialize QC variables
     std::map<String,MRMFeatureQC>::iterator feature_qc_it;
 
-    // initialize variables
-    // String component_name; //i.e., transition_id
-    String IS_component_name; //i.e., internal standard transition_id
-    // String component_group_name; //i.e., peptideRef
-    double calculated_concentration;
     // bool qc_pass;
     String concentration_units;// iterate through each component_group/feature     
 
@@ -275,12 +270,45 @@ namespace OpenMS
   
   double MRMFeatureFilter::calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name)
   {
-    //TODO
+    
+    double ratio = 0.0;
+    if (component_1.metaValueExists(feature_name) && component_2.metaValueExists(feature_name))
+    {
+      double feature_1 = component_1.getMetaValue(feature_name);
+      double feature_2 = component_2.getMetaValue(feature_name);
+      ratio = feature_1/feature_2;
+    } 
+    else if (component_1.metaValueExists(feature_name))
+    {
+      LOG_INFO << "Warning: no ion pair found for transition_id " << component_1.getMetaValue("native_id") << ".";
+      double feature_1 = component_1.getMetaValue(feature_name);
+      ratio = feature_1;
+    } 
+    else
+    {
+      LOG_INFO << "Feature metaValue " << feature_name << " not found for transition_ids " << component_1.getMetaValue("native_id") << " and " << component_2.getMetaValue("native_id") << ".";
+    }
+
+    return ratio;
   }
   
   bool MRMFeatureFilter::checkMetaValue(const Feature & component, const String & meta_value_key, const double & meta_value_l, const double & meta_value_u)
   {
-    //TODO
+    bool check = true;
+    if (component.metaValueExists(meta_value_key))
+    {
+      auto meta_value = component.getMetaValue();
+      if (meta_value < meta_value_l || meta_value > meta_value_u)
+      {
+        check = false;
+      }
+    }
+    else 
+    {
+      LOG_INFO << "Warning: no metaValue found for transition_id " << component.getMetaValue("native_id") << " for metaValue key " << meta_value_key << ".";
+    }
+    
+    return check;
   }
   
   void MRMFeatureFilter::FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment)
