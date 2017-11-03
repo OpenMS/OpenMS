@@ -341,8 +341,8 @@ namespace OpenMS
     //TODO
   }
 
-  template <class T&>
-  bool MRMFeatureFilter::checkRange(T& value, T& value_l, T& value_u)
+  template <typename T>
+  bool MRMFeatureFilter::checkRange(T const& value, T const& value_l, T const& value_u)
   {
     bool range_check = true;
     if (value < value_l
