@@ -65,23 +65,6 @@ START_SECTION(~MRMFeatureFilter())
 }
 END_SECTION
 
-START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
-  const TargetedExperiment & transitions))
-{
-  MRMFeatureFilter mrmff;
-  //TODO
-
-}
-END_SECTION
-
-START_SECTION(void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment))
-{
-  MRMFeatureFilter mrmff;
-  //TODO
-
-}
-END_SECTION
-
 START_SECTION(double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name))
 {
   MRMFeatureFilter mrmff;
@@ -218,6 +201,129 @@ START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature 
   TEST_EQUAL(test1["n_quant"], 2);
   TEST_EQUAL(test1["n_ident"], 0);
   TEST_EQUAL(test1["n_detect"], 3);
+
+}
+END_SECTION
+
+START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
+  const TargetedExperiment & transitions))
+{
+  MRMFeatureFilter mrmff;
+  
+  //make the Parameters
+  Param params;
+  params.setValue("flag_or_filter", "flag");
+
+  //make the FeatureMap
+  FeatureMap components;
+  OpenMS::Feature component_1, subordinate;
+  std::vector<OpenMS::Feature> subordinates;
+  // transition group 1
+  // transition 1
+  subordinate.setMetaValue("native_id","component1.1.Heavy");
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component1.1.Light");
+  subordinate.setMetaValue("LabelType","Light");
+  subordinates.push_back(subordinate);
+  // transition 3
+  subordinate.setMetaValue("native_id","component1.2.Light");
+  subordinate.setMetaValue("LabelType","Light");
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  // transition group 2
+  // transition 1
+  subordinate.setMetaValue("native_id","component2.1.Heavy")
+  subordinate.setMetaValue("LabelType","Heavy");
+  subordinates.push_back(subordinate);
+  // transition 2
+  subordinate.setMetaValue("native_id","component2.1.Light")
+  subordinate.setMetaValue("LabelType","Light");
+  subordinates.push_back(subordinate);
+  component_1.setMetaValue("setPeptideRef", "component_group2"); 
+  component_1.setSubordinates(subordinates); 
+  components.push_back(component_1);
+  subordinates.clear();
+  
+  // make the targeted experiment
+  TargetedExperiment transitions;
+  ReactionMonitoringTransition transition;
+  // transition group 1
+  // transition 1
+  transition.setNativeID("component1.1.Heavy");
+  transition.setPeptideRef("component_group1");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(true);
+  transitions.addTransition(transition);
+  // transition 2
+  transition.setNativeID("component1.1.Light");
+  transition.setPeptideRef("component_group1");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(true);
+  transitions.addTransition(transition);
+  // transition 3
+  transition.setNativeID("component1.2.Light");
+  transition.setPeptideRef("component_group1");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(false);
+  transitions.addTransition(transition);
+  // transition group 2
+  // transition 1
+  transition.setNativeID("component2.1.Heavy");
+  transition.setPeptideRef("component_group2");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(true);
+  transitions.addTransition(transition);
+  // transition 2
+  transition.setNativeID("component2.1.Light");
+  transition.setPeptideRef("component_group2");
+  transition.setDetectingTransition(true);
+  transition.setIdentifyingTransition(false);
+  transition.setQuantifyingTransition(true);
+  transitions.addTransition(transition);
+
+
+  //make the QCs
+  MRMFeatureQC qc_criteria;
+  MRMFeatureQC::ComponentGroupQCs cgqcs;
+  MRMFeatureQC::ComponentQCs cqcs;
+  // transition group 1
+  cgqcs.component_group_name_ =  "component_group1";    
+  cgqcs.n_heavy_l_ = 1;
+  cgqcs.n_heavy_u_ = 1;
+  cgqcs.n_light_l_ = 2;
+  cgqcs.n_light_u_ = 2;
+  cgqcs.n_detecting_l_ = 2;
+  cgqcs.n_detecting_u_ = 3;
+  cgqcs.n_quantifying_l_ = 2;
+  cgqcs.n_quantifying_u_ = 2;
+  cgqcs.n_identifying_l_ = 0;
+  cgqcs.n_identifying_u_ = 3;
+  cgqcs.n_transitions_l_ = 2;
+  cgqcs.n_transitions_u_ = 3;
+  cgqcs.ion_ratio_pair_name_1_ = "component1.1.Light";
+  cgqcs.ion_ratio_pair_name_2_ = "component1.2.Light";
+  cgqcs.ion_ratio_l_ = 0.5;
+  cgqcs.ion_ratio_u_ = 2.0;
+  cgqcs.ion_ratio_feature_name_ "peak_apex_int";
+  // transition 1
+
+
+}
+END_SECTION
+
+START_SECTION(void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment))
+{
+  MRMFeatureFilter mrmff;
+  //TODO
 
 }
 END_SECTION
