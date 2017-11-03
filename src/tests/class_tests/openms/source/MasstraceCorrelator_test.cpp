@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 ///////////////////////////
-// #define private public
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
 ///////////////////////////
 
@@ -45,6 +44,18 @@
 using namespace OpenMS;
 using namespace std;
 
+class MasstraceCorrelator_facade : MasstraceCorrelator
+{
+  public:
+
+    void matchMassTraces_(const MasstracePointsType& hull_points1, const MasstracePointsType& hull_points2,
+        std::vector<double>& vec1, std::vector<double>& vec2, double mindiff,
+        double padEnds = true)
+    {
+      MasstraceCorrelator::matchMassTraces_(hull_points1, hull_points2, vec1, vec2, mindiff, padEnds);
+    }
+
+};
 START_TEST(CorrelateMasstraces, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -53,7 +64,7 @@ START_TEST(CorrelateMasstraces, "$Id$")
 START_SECTION((virtual void matchMassTraces_()))
 {
 
-  OpenMS::MasstraceCorrelator mtcorr;
+  MasstraceCorrelator_facade mtcorr;
   static const double arr1[] = {0,1,3,5,2,0};
   static const double arr2[] = {1,3,5,2,0,0};
   static const double arr3[] = {0,1,2,3,4,5};
@@ -147,7 +158,7 @@ END_SECTION
 START_SECTION((virtual void match_elution_arrays_no_padding()))
 {
 
-  OpenMS::MasstraceCorrelator mtcorr;
+  MasstraceCorrelator_facade mtcorr;
   static const double arr1[] = {0,1,3,5,2,0};
   static const double arr2[] = {1,3,5,2,0,0};
   static const double arr3[] = {0,1,2,3,4,5};
