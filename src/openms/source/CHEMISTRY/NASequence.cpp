@@ -143,7 +143,9 @@ namespace OpenMS
     static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("");
     static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO3");
     static const EmpiricalFormula abasicform_RNA = EmpiricalFormula("C5H7O6P");
-    static const EmpiricalFormula abasicform_DNA = EmpiricalFormula("C5H7O5P");
+    // static const EmpiricalFormula abasicform_DNA = EmpiricalFormula("C5H7O5P");
+
+    if (seq_.empty()) return EmpiricalFormula();
 
     EmpiricalFormula our_form;
     // Add all the ribonucleotide masses
@@ -199,7 +201,7 @@ namespace OpenMS
       return our_form - z_ion_to_full + OH_weight + (H_weight * charge) + local_three_prime;
 
     case AminusB:
-      return our_form - a_ion_to_full - EmpiricalFormula("O") + (H_weight * charge) + local_five_prime - seq_[0]->getFormula() + abasicform_RNA - EmpiricalFormula("P");// - base_to_formula[seq_[seq_.size()-1]]; //FIXME
+      return our_form - a_ion_to_full - EmpiricalFormula("O") + (H_weight * charge) + local_five_prime - seq_.back()->getFormula() + abasicform_RNA - EmpiricalFormula("P");// - base_to_formula[seq_[seq_.size()-1]]; //FIXME
       // THIS WILL HAVE PROBLEMS WITH modded sugar
     default:
       LOG_ERROR << "NASequence::getMonoWeight: unknown NASFragmentType" << std::endl;
