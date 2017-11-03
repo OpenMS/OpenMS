@@ -139,8 +139,7 @@ START_SECTION(bool checkMetaValue(const Feature & component, const String & meta
 }
 END_SECTION
 
-START_SECTION(std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
-  const TargetedExperiment & transitions))
+START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group, const TargetedExperiment & transitions)))
 {
   MRMFeatureFilter mrmff;
   //TODO
