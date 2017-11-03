@@ -439,7 +439,11 @@ namespace OpenMS
     // utility functions
     double getMonoWeight(NASFragmentType type = Full, Int charge = 0) const;
     EmpiricalFormula getFormula(NASFragmentType type = Full, Int charge = 0) const;
+
+    /// Return sequence prefix of the given length (not end index!)
     NASequence getPrefix(Size length) const;
+
+    /// Return sequence suffix of the given length (not start index!)
     NASequence getSuffix(Size length) const;
 
     /**
