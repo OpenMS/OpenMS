@@ -40,9 +40,6 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-bool SortDoubleDoublePairFirst(const std::pair<double, double>& left,
-    const std::pair<double, double>& right);
-
 namespace OpenMS
 {
 
