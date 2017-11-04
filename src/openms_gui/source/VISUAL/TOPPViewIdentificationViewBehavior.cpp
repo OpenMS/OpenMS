@@ -870,8 +870,6 @@ namespace OpenMS
     MSSpectrum & spectrum = (*current_layer.getPeakData())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
 
-    removeTemporaryAnnotations_(spectrum_index);
-
     if (ms_level == 2)
     {
       // synchronize PeptideHits with the annotations in the spectrum
@@ -886,6 +884,8 @@ namespace OpenMS
 
       removeTheoreticalSpectrumLayer_();
     }
+
+    removeTemporaryAnnotations_(spectrum_index);
 
     // reset selected id indices
     current_layer.peptide_id_index = -1;

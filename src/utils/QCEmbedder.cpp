@@ -108,7 +108,7 @@ class TOPPQCEmbedder :
 {
 public:
   TOPPQCEmbedder() :
-    TOPPBase("QCEmbedder", "Attaches a table or an image to a given qc parameter.", false)
+    TOPPBase("QCEmbedder", "Attaches a table or an image to a given qc parameter.", false, {{ "Walzer M, Pernas LE, Nasso S, Bittremieux W, Nahnsen S, Kelchtermans P,  Martens, L", "qcML: An Exchange Format for Quality Control Metrics from Mass Spectrometry Experiments", "Molecular & Cellular Proteomics 2014; 13(8)" , "10.1074/mcp.M113.035907"}})
   {
   }
 
