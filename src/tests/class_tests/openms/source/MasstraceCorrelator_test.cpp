@@ -259,17 +259,23 @@ START_SECTION((virtual void scoreHullpoints()))
     data2_2d.push_back( std::make_pair(rt1[i], data2[i]) );
   }
 
-  std::map<int, double> result = OpenSwath::Scoring::calculateCrossCorrelation(data1, data2, 2, 1);
-  for(std::map<int, double>::iterator it = result.begin(); it != result.end(); ++it)
+  OpenSwath::Scoring::XCorrArrayType result = OpenSwath::Scoring::calculateCrossCorrelation(data1, data2, 2, 1);
+  for(OpenSwath::Scoring::XCorrArrayType::iterator it = result.begin(); it != result.end(); ++it)
   {
     it->second = it->second / 6.0;
   }
 
-  TEST_REAL_SIMILAR (result.find( 2)->second, -0.7374631);
-  TEST_REAL_SIMILAR (result.find( 1)->second, -0.567846);
-  TEST_REAL_SIMILAR (result.find( 0)->second,  0.4159292);
-  TEST_REAL_SIMILAR (result.find(-1)->second,  0.8215339);
-  TEST_REAL_SIMILAR (result.find(-2)->second,  0.15634218);
+  TEST_EQUAL (result.data[0].first, -2);
+  TEST_EQUAL (result.data[1].first, -1);
+  TEST_EQUAL (result.data[2].first, 0);
+  TEST_EQUAL (result.data[3].first, 1);
+  TEST_EQUAL (result.data[4].first, 2);
+
+  TEST_REAL_SIMILAR (result.data[4].second, -0.7374631);   // .find( 2)->
+  TEST_REAL_SIMILAR (result.data[3].second, -0.567846);    // .find( 1)->
+  TEST_REAL_SIMILAR (result.data[2].second,  0.4159292);   // .find( 0)->
+  TEST_REAL_SIMILAR (result.data[1].second,  0.8215339);   // .find(-1)->
+  TEST_REAL_SIMILAR (result.data[0].second,  0.15634218);  // .find(-2)->
 
   double min_pearson_score = -1.1; int maxlag = data1_2d.size();
   int lag; double lag_intensity; double pearson_score;
