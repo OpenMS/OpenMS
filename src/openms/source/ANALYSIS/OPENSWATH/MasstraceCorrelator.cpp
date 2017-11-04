@@ -150,7 +150,6 @@ namespace OpenMS
         int& lag, double& lag_intensity, double& pearson_score, 
         const double min_corr, const int /* max_lag */, const double mindiff)
   {
-
     std::vector<double> vec1;
     std::vector<double> vec2;
     matchMassTraces_(hull_points1, hull_points2, vec1, vec2, mindiff);
@@ -163,21 +162,10 @@ namespace OpenMS
       return;
     }
 
-    OpenSwath::MRMScoring mrmscore;
-#if 0
-    MRMFeatureScoring::XCorrArrayType xcorr_array = mrmscore.calcxcorr(vec1, vec2, true);
-#else
-    // slightly faster, maybe improve when using iterators?
     Scoring::XCorrArrayType xcorr_array = Scoring::normalizedCrossCorrelation(vec1, vec2, vec1.size(), 1);
-    
-#endif
-    Scoring::XCorrArrayType::iterator pt = Scoring::xcorrArrayGetMaxPeak(xcorr_array);
+    Scoring::XCorrArrayType::const_iterator pt = Scoring::xcorrArrayGetMaxPeak(xcorr_array);
     lag = pt->first;  // the lag / RT at the maximal Xcorr value =~ coelution score
     lag_intensity = pt->second; // the intensity at the maximal Xcorr value =~ shape score
-
-    // TODO 1D emg fit score ?
-    // TODO S / N score
-
   }
 
   void MasstraceCorrelator::createConsensusMapCache(const ConsensusMap& map, 
