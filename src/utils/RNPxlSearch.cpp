@@ -201,6 +201,38 @@ protected:
                                    "U:C9H11N2O8P1;U-H2O",
                                    "U:C9H12N2O6;U-HPO3"
                                   };    
+   /* for DNA:
+      "A=C10H14N5O6P", "C=C9H14N3O7P", "G=C10H14N5O7P", "T=C10H15N2O8P"  
+      
+      Precursor losses for T:
+      "", "-H2O", "-H2O-HPO3", "-HPO3", "+HPO3", "+HPO3-H2O"
+
+      "T:C10H15N2O8P;T",
+      "T:C10H12N2O4;T-H3PO4",
+      "T:C10H13N2O7P;T-H2O",
+      "T:C5H6N2O2;T'",
+      "T:C5H4N2O1;T'-H2O",
+      "T:C10H14N2O5;T-HPO3"
+
+      Precursor losses for C:
+      "", "-H2O", "-NH3", "-H2O-HPO3", "-HPO3", "+HPO3", "+HPO3-H2O", "-NH3-HPO3", "+HPO3-NH3"
+
+      "C:C4H5N3O;C'",
+      "C:C4H2N2O;C'-NH3",
+      "C:C4H3N3;C'-H2O",
+      "C:C9H14N3O7P;C",
+      "C:C9H12N3O6P;C-H2O",
+      "C:C9H9N2O3;C-NH3-H3PO4",
+      "C:C9H11N3O3;C-H3PO4"
+
+      special case: Ribose is cross-linkable
+      Precursor losses for Rib:
+      "", "-H2O", "-H2O-HPO3", "-HPO3", "+HPO3", "+HPO3-H2O"
+
+      "rib:C5H9O6P;rib",
+      "rib:C5H7O5P;rib-H2O",
+      "rib:C5H8O3;rib-HPO3"
+   */
 
     registerStringList_("RNPxl:fragment_adducts", 
                         "", 
@@ -244,11 +276,13 @@ protected:
     float pl_err = 0;
     float pl_Morph = 0;
 
+    // complete TIC fraction of explained peaks
+    float total_MIC = 0;
+
     // subscores
     float immonium_score = 0;
     float precursor_score = 0;
     float a_ion_score = 0;
-    float shifted_immonium_ions_score = 0;
     float marker_ions_score = 0;
     float partial_loss_score = 0;
 
@@ -617,6 +651,8 @@ protected:
     return all_pc_all_feasible_adducts;
   }
 
+  // prefix used to denote marker ions in fragment  annotations
+  static constexpr const char* ANNOTATIONS_MARKER_ION_PREFIX = "MI:";
 
   // add RNA-marker ions of charge 1
   // this includes the protonated nitrogenous base and all shifts (e.g., U-H2O, U'-H20, ...)
@@ -630,7 +666,7 @@ protected:
     { 
       spectrum.push_back(Peak1D(m.mass + Constants::PROTON_MASS_U, 1.0));
       spectrum_charge.push_back(1); 
-      spectrum_annotation.push_back("RNA:" + m.name);  // add name (e.g., RNA:U-H2O)
+      spectrum_annotation.push_back(ANNOTATIONS_MARKER_ION_PREFIX + m.name);  // add name (e.g., MI:U-H2O)
     }
   }
 
@@ -852,7 +888,7 @@ protected:
   
     spectrum_aligner.setParameters(pa);
 
-  // remove all but top n scoring for localization (usually all but the first one)
+    // remove all but top n scoring for localization (usually all but the first one)
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -862,6 +898,7 @@ protected:
       Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
       std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
       annotated_hits[scan_index].resize(topn);
+      annotated_hits[scan_index].shrink_to_fit();
     }
 
 #ifdef _OPENMP
@@ -904,15 +941,20 @@ protected:
           if (precursor_rna_adduct == "none") { continue; }
 
           // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
-          // first get all possible RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
+          // 1. get all possible RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
 
           if (feasible_MS2_adducts.empty()) { continue; } // should not be the case - check case of no nucleotide but base fragment ?
  
-          // TODO: check if we need to score individually for every nucleotide or the one that has been annotated
-          const vector<FragmentAdductDefinition_>& partial_loss_modification = feasible_MS2_adducts.front().second;
+          // 2. retrieve the (nucleotide specific) fragment adducts for the cross-linked nucleotide (annotated in main search)
+          auto nt_to_adducts = std::find_if(feasible_MS2_adducts.begin(), feasible_MS2_adducts.end(),
+            [&a](NucleotideToFeasibleFragmentAdducts const & item)
+            {
+              return (item.first == a.cross_linked_nucleotide);
+            });
+          const vector<FragmentAdductDefinition_>& partial_loss_modification = nt_to_adducts->second;
 
-          // get marker ions
+          // get marker ions (these are not specific to the cross-linked nucleotide but also depend on the whole oligo bound to the precursor)
           const vector<FragmentAdductDefinition_>& marker_ions = all_feasible_adducts.at(precursor_rna_adduct).marker_ions;
 
           // generate total loss spectrum for the fixed and variable modified peptide (without RNA) (using the settings for partial loss generation)
@@ -929,6 +971,13 @@ protected:
                                       partial_loss_modification,
                                       partial_loss_spectrum_generator,
                                       partial_loss_spectrum); 
+
+           // add shifted marker ions
+           addMS2MarkerIons(
+             marker_ions,
+             partial_loss_spectrum,
+             partial_loss_spectrum.getIntegerDataArrays()[0],
+             partial_loss_spectrum.getStringDataArrays()[0]);
 
           // fill annotated spectrum information
           set<Size> peak_is_annotated;  // experimental peak index
@@ -1179,7 +1228,7 @@ protected:
               }
               #endif
             }
-            else if (ion_name.hasPrefix("RNA:"))
+            else if (ion_name.hasPrefix(ANNOTATIONS_MARKER_ION_PREFIX))
             {
               if (fragment_charge <= 1)
               {
@@ -1375,9 +1424,14 @@ protected:
           #endif
 
           // create annotation strings for shifted fragment ions
-          FragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(shifted_b_ions, shifted_y_ions, shifted_a_ions, shifted_immonium_ions,
+          FragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(shifted_b_ions, 
+                                            shifted_y_ions, 
+                                            shifted_a_ions, 
+                                            shifted_immonium_ions,
                                             annotated_marker_ions,
-                                            annotated_precursor_ions, fa_strings, fas);
+                                            annotated_precursor_ions, 
+                                            fa_strings, 
+                                            fas);
 
           // store score of best localization(s)
           a.localization_scores = localization_scores;
@@ -1453,6 +1507,7 @@ protected:
       Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
       std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
       annotated_hits[scan_index].resize(topn);
+      annotated_hits.shrink_to_fit();
     }
 
 #ifdef _OPENMP
@@ -1500,7 +1555,6 @@ protected:
           ph.setMetaValue(String("RNPxl:immonium_score"), ah.immonium_score);
           ph.setMetaValue(String("RNPxl:precursor_score"), ah.precursor_score);
           ph.setMetaValue(String("RNPxl:a_ion_score"), ah.a_ion_score);
-          ph.setMetaValue(String("RNPxl:shifted_immonium_ions_score"), ah.shifted_immonium_ions_score);
           ph.setMetaValue(String("RNPxl:marker_ions_score"), ah.marker_ions_score);
           ph.setMetaValue(String("RNPxl:partial_loss_score"), ah.partial_loss_score);
 
@@ -1511,6 +1565,7 @@ protected:
           ph.setMetaValue(String("RNPxl:pl_MIC"), ah.pl_MIC);
           ph.setMetaValue(String("RNPxl:pl_err"), ah.pl_err);
           ph.setMetaValue(String("RNPxl:pl_Morph"), ah.pl_Morph);
+          ph.setMetaValue(String("RNPxl:total_MIC"), ah.total_MIC);  // fraction of matched ion current from total + partial losses
 
           ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
           ph.setMetaValue(String("RNPxl:NT"), String(ah.cross_linked_nucleotide));  // the cross-linked nucleotide
@@ -1909,6 +1964,7 @@ protected:
     param.setValue("add_z_ions", "false");
     param.setValue("add_metainfo", "true");
     a_ion_sub_score_spectrum_generator.setParameters(param);
+
     TheoreticalSpectrumGenerator immonium_ion_sub_score_spectrum_generator;
     param = immonium_ion_sub_score_spectrum_generator.getParameters();
     param.setValue("add_abundant_immonium_ions", "true");
@@ -1921,6 +1977,7 @@ protected:
     param.setValue("add_z_ions", "false");
     param.setValue("add_metainfo", "true");
     immonium_ion_sub_score_spectrum_generator.setParameters(param);
+
     TheoreticalSpectrumGenerator precursor_ion_sub_score_spectrum_generator;
     param = precursor_ion_sub_score_spectrum_generator.getParameters();
     param.setValue("add_abundant_immonium_ions", "false");
@@ -2128,16 +2185,19 @@ protected:
                   AnnotatedHit ah;
                   ah.sequence = *cit; // copy StringView
                   ah.peptide_mod_index = mod_pep_idx;
-                  ah.score = total_loss_score;
                   ah.MIC = tlss_MIC;
                   ah.err = tlss_err;
                   ah.Morph = tlss_Morph;
                   ah.immonium_score = immonium_sub_score;
                   ah.precursor_score = precursor_sub_score;
                   ah.a_ion_score = a_ion_sub_score;
+                  ah.total_MIC = tlss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
 
                   ah.rna_mod_index = rna_mod_index;
                   ah.isotope_error = isotope_error;
+
+// TODO: currently mainly a tie-breaker!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                  ah.score = total_loss_score + ah.total_MIC; 
 
 #ifdef DEBUG_RNPXLSEARCH
                   LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -2262,7 +2322,6 @@ protected:
                     AnnotatedHit ah;
                     ah.sequence = *cit; // copy StringView
                     ah.peptide_mod_index = mod_pep_idx;
-                    ah.score = score;
                     ah.MIC = tlss_MIC;
                     ah.err = tlss_err;
                     ah.Morph = tlss_Morph;
@@ -2273,15 +2332,17 @@ protected:
                     ah.precursor_score = precursor_sub_score;
                     ah.a_ion_score = a_ion_sub_score;
                     ah.cross_linked_nucleotide = cross_linked_nucleotide;
+                    ah.total_MIC = tlss_MIC + plss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
 
                     // scores from shifted peaks
-                    // ah.shifted_immonium_ions_score = shifted_immonium_ions_sub_score;
                     ah.marker_ions_score = marker_ions_sub_score;
                     ah.partial_loss_score = partial_loss_sub_score;
 
                     ah.rna_mod_index = rna_mod_index;
                     ah.isotope_error = isotope_error;
 
+// TODO: currently mainly a tie-breaker!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    ah.score = score + ah.total_MIC; 
 #ifdef DEBUG_RNPXLSEARCH
                     LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
@@ -2339,7 +2400,6 @@ protected:
                 AnnotatedHit ah;
                 ah.sequence = *cit; // copy StringView
                 ah.peptide_mod_index = mod_pep_idx;
-                ah.score = total_loss_score;
                 ah.MIC = tlss_MIC;
                 ah.err = tlss_err;
                 ah.Morph = tlss_Morph;
@@ -2347,8 +2407,13 @@ protected:
                 ah.precursor_score = precursor_sub_score;
                 ah.a_ion_score = a_ion_sub_score;
 
+                ah.total_MIC = tlss_MIC + immonium_sub_score + a_ion_sub_score + precursor_sub_score;
+
                 ah.rna_mod_index = rna_mod_index;
                 ah.isotope_error = isotope_error;
+
+// TODO: currently mainly a tie-breaker!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                ah.score = total_loss_score + ah.total_MIC; 
 
 #ifdef DEBUG_RNPXLSEARCH
                 LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -2417,7 +2482,7 @@ protected:
                      all_feasible_fragment_adducts);
     }
 
-    progresslogger.startProgress(0, 1, "annotation...");
+    progresslogger.startProgress(0, 1, "Post-processing and annotation...");
     postProcessHits_(spectra, 
                      annotated_hits, 
                      protein_ids, peptide_ids, 
