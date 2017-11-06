@@ -66,7 +66,7 @@ namespace OpenMS
     error_on_unmapped_ = (bool)param_.getValue("error_on_unmapped").toBool();
   }
 
-  void MRMMapping::map(const OpenMS::PeakMap& chromatogram_map, 
+  void MRMMapping::mapExperiment(const OpenMS::PeakMap& chromatogram_map, 
       const OpenMS::TargetedExperiment& targeted_exp,
       OpenMS::PeakMap& output)
   {

@@ -161,7 +161,7 @@ protected:
 
     MRMMapping mrmm;
     mrmm.setParameters(param);
-    mrmm.map(chromatogram_map, targeted_exp, output);
+    mrmm.mapExperiment(chromatogram_map, targeted_exp, output);
 
     // add all data processing information to all the chromatograms
     DataProcessing dp_ = getProcessingInfo_(DataProcessing::FORMAT_CONVERSION);

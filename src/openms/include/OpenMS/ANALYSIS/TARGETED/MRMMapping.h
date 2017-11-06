@@ -83,7 +83,7 @@ public:
       same transition is used to monitor multiple analytes but may also
       indicate a problem with too wide mapping tolerances.
     */
-    void map(const OpenMS::PeakMap& input_chromatograms, 
+    void mapExperiment(const OpenMS::PeakMap& input_chromatograms,
         const OpenMS::TargetedExperiment& targeted_exp,
         OpenMS::PeakMap& output);
 

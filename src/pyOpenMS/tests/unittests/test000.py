@@ -3345,7 +3345,7 @@ def testMRMMapping():
     """
 
     p = pyopenms.MRMMapping()
-    assert p.map is not None
+    assert p.mapExperiment is not None
     e = pyopenms.MSExperiment()
     c = pyopenms.MSChromatogram()
     e.addChromatogram(c)
@@ -3353,7 +3353,7 @@ def testMRMMapping():
 
     o = pyopenms.MSExperiment()
     t = pyopenms.TargetedExperiment()
-    p.map(e, t, o)
+    p.mapExperiment(e, t, o)
     assert o.getNrChromatograms() == 0 # not so easy to test
 
 @report

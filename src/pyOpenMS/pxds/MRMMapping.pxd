@@ -11,5 +11,5 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/MRMMapping.h>" namespace "OpenMS":
         MRMMapping() nogil except +
         MRMMapping(MRMMapping) nogil except + #wrap-ignore
 
-        void map(MSExperiment input_chromatograms, TargetedExperiment targeted_exp, MSExperiment& output) nogil except +
+        void mapExperiment(MSExperiment input_chromatograms, TargetedExperiment targeted_exp, MSExperiment& output) nogil except +
 
