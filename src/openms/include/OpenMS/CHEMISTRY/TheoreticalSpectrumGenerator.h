@@ -129,8 +129,8 @@ namespace OpenMS
       /// helper for mapping residue type to letter
       char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
 
-      /// helper for mapping residue type to letter
-      char ribonucleotideTypeToIonLetter_(NASequence::NASFragmentType res_type) const;
+      /// helper for mapping nucleotide type to code
+      String ribonucleotideTypeToIonCode_(NASequence::NASFragmentType res_type) const;
 
 
       /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
