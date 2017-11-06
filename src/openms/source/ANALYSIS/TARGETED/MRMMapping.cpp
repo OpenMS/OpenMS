@@ -70,8 +70,8 @@ namespace OpenMS
       const OpenMS::TargetedExperiment& targeted_exp,
       OpenMS::PeakMap& output)
   {
-    // copy all meta data from old chromatogram
-    output = chromatogram_map;
+    // copy all meta data from old MSExperiment
+    output = (ExperimentalSettings)chromatogram_map;
     output.clear(false);
     std::vector<MSChromatogram > empty_chromats;
     output.setChromatograms(empty_chromats);
@@ -80,8 +80,7 @@ namespace OpenMS
     for (Size i = 0; i < chromatogram_map.getChromatograms().size(); i++)
     {
       // try to find the best matching transition for this chromatogram
-      bool mapped_already = false;
-      MSChromatogram chromatogram = chromatogram_map.getChromatograms()[i];
+      const MSChromatogram& chromatogram = chromatogram_map.getChromatograms()[i];
 
       bool prec_product_set = !( std::fabs(chromatogram.getPrecursor().getMZ()) < 1e-5 && 
                                  std::fabs(chromatogram.getProduct().getMZ()) < 1e-5);
@@ -100,30 +99,19 @@ namespace OpenMS
         }
       }
 
+      std::vector<MSChromatogram > mapped_chroms;
       for (Size j = 0; j < targeted_exp.getTransitions().size(); j++)
       {
-
         if (fabs(chromatogram.getPrecursor().getMZ() - targeted_exp.getTransitions()[j].getPrecursorMZ()) < precursor_tol_ &&
             fabs(chromatogram.getProduct().getMZ()   - targeted_exp.getTransitions()[j].getProductMZ())   < product_tol_)
         {
-
           LOG_DEBUG << "Mapping chromatogram " << i << " to transition " << j << " (" << targeted_exp.getTransitions()[j].getNativeID() << ")"
              " with precursor mz " << chromatogram.getPrecursor().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getPrecursorMZ() <<
              " and product mz " << chromatogram.getProduct().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getProductMZ() << std::endl;
 
-          // ensure: map every chromatogram to only one transition
-          if (mapped_already && !map_multiple_assays_)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Already mapped chromatogram " + String(i) + \
-             " with " + String(chromatogram.getPrecursor().getMZ()) + \
-              " -> " + String(chromatogram.getProduct().getMZ()) +  \
-                "! Maybe try to decrease your mapping tolerance.");
-          }
-
-          mapped_already = true;
-
           // Create precursor and set the peptide sequence
-          Precursor precursor = chromatogram.getPrecursor();
+          MSChromatogram c = chromatogram_map.getChromatograms()[i];
+          Precursor precursor = c.getPrecursor();
           String pepref = targeted_exp.getTransitions()[j].getPeptideRef();
           for (Size pep_idx = 0; pep_idx < targeted_exp.getPeptides().size(); pep_idx++)
           {
@@ -135,15 +123,20 @@ namespace OpenMS
             }
           }
           // add precursor to chromatogram
-          chromatogram.setPrecursor(precursor);
+          c.setPrecursor(precursor);
 
-          // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
-          chromatogram.setNativeID(targeted_exp.getTransitions()[j].getNativeID());
+          // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two
+          c.setNativeID(targeted_exp.getTransitions()[j].getNativeID());
+
+          mapped_chroms.push_back(c);
         }
       }
 
-      // ensure: map every chromatogram to at least one transition
-      if (!mapped_already)
+      // Check whether we have mapped this chromatogram to at least one transition:
+      //  - warn if no mapping occured
+      //  - else append all mapped chromatograms (if we allow multiple mappings)
+      //  - else append the first mapped chromatograms (if we don't allow multiple mappings)
+      if (mapped_chroms.empty())
       {
         LOG_WARN << "Did not find a mapping for chromatogram " + String(i) + " with transition " + String(chromatogram.getPrecursor().getMZ()) + \
           " -> " + String(chromatogram.getProduct().getMZ()) +  "! Maybe try to increase your mapping tolerance." << std::endl;
@@ -154,17 +147,35 @@ namespace OpenMS
               "Did not find a mapping for chromatogram " + String(i) + "! Maybe try to increase your mapping tolerance.");
         }
       }
+      else if (map_multiple_assays_)
+      {
+        for (auto & c : mapped_chroms) output.addChromatogram(c);
+      }
       else
       {
-        output.addChromatogram(chromatogram);
+        if (mapped_chroms.size() == 1) output.addChromatogram(mapped_chroms[0]);
+        else
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Chromatogram " + String(chromatogram.getNativeID()) + \
+           " with " + String(chromatogram.getPrecursor().getMZ()) + \
+            " -> " + String(chromatogram.getProduct().getMZ()) + \
+              "maps to multiple assays! Either decrease your mapping tolerance or set map_multiple_assays to true.");
+        }
       }
     }
 
     if (notmapped > 0)
     {
-      LOG_WARN << "Could not find mapping for " << notmapped  << " chromatogram(s) " << std::endl;
+      LOG_WARN << "Could not find mapping for " << notmapped  << " chromatogram(s)." << std::endl;
+      if (error_on_unmapped_)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Found " + String(notmapped) + \
+            " unmapped chromatograms, disable error_on_unmapped to continue.");
+      }
     }
+
 
   }
 
 } //namespace
+
