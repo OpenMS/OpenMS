@@ -899,7 +899,7 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="24.13"/>
       <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
       <Precursor>
-       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.880378" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.820378" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="572.340238" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -923,7 +923,7 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="20.85"/>
       <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
       <Precursor>
-       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.880378" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.830378" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="673.387916" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -947,12 +947,18 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="10.59"/>
       <cvParam cvRef="MS" accession="decoy" name="decoy" value="0"/>
       <Precursor>
-       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.880378" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+       <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.810378" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="772.45633" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Product>
     </Transition>
+
+
+
+
+
+
 
 
 
