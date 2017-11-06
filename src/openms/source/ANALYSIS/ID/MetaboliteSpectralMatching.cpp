@@ -297,8 +297,37 @@ double MetaboliteSpectralMatching::computeHyperScore(
   const MSSpectrum& db_spectrum,
   double mz_lower_bound)
 {
+  return computeHyperScore_(fragment_mass_error,
+                            fragment_mass_tolerance_unit_ppm, exp_spectrum,
+                            db_spectrum, 0, mz_lower_bound);
+}
+
+double MetaboliteSpectralMatching::computeHyperScore(
+  double fragment_mass_error,
+  bool fragment_mass_tolerance_unit_ppm,
+  const MSSpectrum& exp_spectrum,
+  const MSSpectrum& db_spectrum,
+  std::vector<PeptideHit::PeakAnnotation>& annotations,
+  double mz_lower_bound)
+{
+  return computeHyperScore_(fragment_mass_error,
+                            fragment_mass_tolerance_unit_ppm, exp_spectrum,
+                            db_spectrum, &annotations, mz_lower_bound);
+}
+
+double MetaboliteSpectralMatching::computeHyperScore_(
+  double fragment_mass_error,
+  bool fragment_mass_tolerance_unit_ppm,
+  const MSSpectrum& exp_spectrum,
+  const MSSpectrum& db_spectrum,
+  std::vector<PeptideHit::PeakAnnotation>* annotations,
+  double mz_lower_bound)
+{
   double dot_product(0.0);
   Size matched_ions_count(0);
+  bool annotate = ((annotations != 0) &&
+                   !db_spectrum.getStringDataArrays().empty() &&
+                   !db_spectrum.getIntegerDataArrays().empty());
 
   // scan for matching peaks between observed and DB stored spectra
   for (auto frag_it = exp_spectrum.MZBegin(mz_lower_bound); frag_it != exp_spectrum.end(); ++frag_it)
@@ -312,25 +341,37 @@ double MetaboliteSpectralMatching::computeHyperScore(
     auto db_mass_it = db_spectrum.MZBegin(frag_mz - mz_offset);
     auto db_mass_end = db_spectrum.MZEnd(frag_mz + mz_offset);
 
-    std::pair<double, Peak1D> nearest_peak(mz_offset + 1.0, Peak1D());
+    double nearest_peak_error = mz_offset + 1.0;
+    auto nearest_peak_it = db_spectrum.end();
 
     // linear search for peak nearest to observed fragment peak
     for (; db_mass_it != db_mass_end; ++db_mass_it)
     {
-      double db_mz(db_mass_it->getMZ());
-      double abs_mass_diff(std::abs(frag_mz - db_mz));
+      double db_mz = db_mass_it->getMZ();
+      double abs_mass_diff = std::abs(frag_mz - db_mz);
 
-      if (abs_mass_diff < nearest_peak.first) {
-        nearest_peak.first = abs_mass_diff;
-        nearest_peak.second = *db_mass_it;
+      if (abs_mass_diff < nearest_peak_error)
+      {
+        nearest_peak_error = abs_mass_diff;
+        nearest_peak_it = db_mass_it;
       }
     }
 
-    // update dot product
-    if (nearest_peak.second.getIntensity() > 0.0)
+    // update dot product, store annotations
+    if (nearest_peak_it != db_spectrum.end())
     {
       ++matched_ions_count;
-      dot_product += frag_it->getIntensity() * nearest_peak.second.getIntensity();
+      dot_product += frag_it->getIntensity() * nearest_peak_it->getIntensity();
+      if (annotate)
+      {
+        PeptideHit::PeakAnnotation ann;
+        Size index = nearest_peak_it - db_spectrum.begin();
+        ann.annotation = db_spectrum.getStringDataArrays()[0].at(index);
+        ann.charge = db_spectrum.getIntegerDataArrays()[0].at(index);
+        ann.mz = frag_mz;
+        ann.intensity = frag_it->getIntensity();
+        annotations->push_back(ann);
+      }
     }
   }
 

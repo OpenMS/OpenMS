@@ -187,7 +187,12 @@ protected:
     String sequence;
     SignedSize mod_index; // enumeration index of the modification
     double score; // the score
-    static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b) { return a.score > b.score; }
+    vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
+
+    static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
+    {
+      return a.score > b.score;
+    }
   };
 
 
@@ -509,6 +514,7 @@ protected:
           IdentificationData::ScoreList scores;
           scores.push_back(make_pair(score_key, hit.score));
           IdentificationData::MoleculeQueryMatch match(charge, scores);
+          match.peak_annotations = hit.annotations;
 
           id_data.addMoleculeQueryMatch(oligo_key, query_key, match);
 
@@ -793,11 +799,11 @@ protected:
             const Size& scan_index = low_it->second;
             const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
+            vector<PeptideHit::PeakAnnotation> annotations;
             double score = MetaboliteSpectralMatching::computeHyperScore(
               search_params.fragment_mass_tolerance,
               search_params.fragment_tolerance_ppm,
-              exp_spectrum,
-              theo_spectrum);
+              exp_spectrum, theo_spectrum, annotations);
 
             if (!exp_ms2_out.empty())
             {
@@ -820,6 +826,7 @@ protected:
             ah.sequence = *cit;
             ah.mod_index = mod_idx;
             ah.score = score;
+            ah.annotations = annotations;
 
 #ifdef _OPENMP
 #pragma omp atomic
@@ -897,7 +904,7 @@ protected:
         hit.setMetaValue("label", seq.toString());
         hit.setScore(match.scores.back().second);
         hit.setCharge(match.charge);
-        hit.setPeakAnnotations(match.peak_annotations); // @TODO: fill this
+        hit.setPeakAnnotations(match.peak_annotations);
         id_map[query_key].insertHit(hit);
       }
       // there should be only one score type:
