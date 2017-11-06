@@ -293,7 +293,7 @@ END_SECTION
 
 SpectrumExtractor* ptr = 0;
 SpectrumExtractor* null_ptr = 0;
-const String experiment_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1.mzML");
+const String experiment_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1_spectra0to100.mzML");
 const String target_list_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13CFlux_TraML.csv");
 
 START_SECTION(SpectrumExtractor())
@@ -452,14 +452,14 @@ END_SECTION
 
 START_SECTION(pickSpectrum())
 {
-  MSSpectrum picked;
+  MSSpectrum picked_spectrum;
   spectrum.sortByPosition();
   ptr->setGaussWidth(0.2);
   ptr->setUseGauss(true);
-  ptr->pickSpectrum(spectrum, picked);
-  TEST_NOT_EQUAL(spectrum.size(), picked.size())
+  ptr->pickSpectrum(spectrum, picked_spectrum);
+  TEST_NOT_EQUAL(spectrum.size(), picked_spectrum.size())
 
-  MSSpectrum::Iterator it = picked.begin();
+  MSSpectrum::Iterator it = picked_spectrum.begin();
   TEST_REAL_SIMILAR(it->getMZ(), 85.014)
   TEST_REAL_SIMILAR(it->getIntensity(), 60774.2)
   ++it;
@@ -484,8 +484,8 @@ START_SECTION(annotateSpectra())
 {
   MzMLFile mzml;
   PeakMap experiment;
-  TargetedExperiment targeted_exp;
   TransitionTSVReader tsv_reader;
+  TargetedExperiment targeted_exp;
 
   ptr->setRTWindow(30);
   ptr->setMZTolerance(0.1);
@@ -493,18 +493,20 @@ START_SECTION(annotateSpectra())
   ptr->setUseGauss(true);
 
   mzml.load(experiment_path, experiment);
-  std::vector<MSSpectrum> spectra = experiment.getSpectra();
   tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
-  std::vector<MSSpectrum> annotated;
+
+  vector<MSSpectrum> spectra = experiment.getSpectra();
+  vector<MSSpectrum> annotated_spectra;
   FeatureMap features;
 
-  ptr->annotateSpectra(spectra, targeted_exp, annotated, features);
+  ptr->annotateSpectra(spectra, targeted_exp, annotated_spectra, features);
 
-  TEST_NOT_EQUAL(annotated.size(), 0)
+  TEST_NOT_EQUAL(annotated_spectra.size(), 0)
+  TEST_EQUAL(annotated_spectra.size(), features.size())
 
   ofstream outfile;
   outfile.open(
-    OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_plots_output.html"),
+    OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_annotateSpectra_test.html"),
     ios::out | ios::trunc
   );
   if (outfile.is_open())
@@ -526,28 +528,28 @@ START_SECTION(annotateSpectra())
     "const data = [";
 
     outfile << header;
-    for (UInt j=0; j<annotated.size(); ++j)
+    for (UInt i=0; i<annotated_spectra.size(); ++i)
     {
-      MSSpectrum picked;
-      ptr->pickSpectrum(annotated[j], picked);
+      MSSpectrum picked_spectrum;
+      ptr->pickSpectrum(annotated_spectra[i], picked_spectrum);
 
       outfile << "  {" << endl <<  "    x: [";
-      for (UInt i=0; i<annotated[j].size(); ++i)
+      for (auto s : annotated_spectra[i])
       {
-        outfile << annotated[j][i].getMZ() << ", ";
+        outfile << s.getMZ() << ", ";
       }
       outfile << "]," << endl << "    y: [";
-      for (UInt i=0; i<annotated[j].size(); ++i)
+      for (auto s : annotated_spectra[i])
       {
-        outfile << annotated[j][i].getIntensity() << ", ";
+        outfile << s.getIntensity() << ", ";
       }
       outfile << "]," << endl;
 
       string annotated_trace_ending = ""
-      "    legendgroup: '" + to_string(j) + "',"
+      "    legendgroup: '" + to_string(i) + "',"
       "    visible: 'legendonly',"
       "    mode: 'lines+markers',"
-      "    name: '[" + to_string(j) + "] " + picked.getName() + "',"
+      "    name: '[" + to_string(i) + "] " + picked_spectrum.getName() + "',"
       "    type: 'scatter',"
       "    line: {"
       "      width: 1"
@@ -559,22 +561,22 @@ START_SECTION(annotateSpectra())
       "  },";
 
       outfile << annotated_trace_ending << endl << "{" << endl << "    x: [";
-      for (UInt i=0; i<picked.size(); ++i)
+      for (auto s : picked_spectrum)
       {
-        outfile << picked[i].getMZ() << ", ";
+        outfile << s.getMZ() << ", ";
       }
-      outfile << "]," << std::endl << "y: [";
-      for (UInt i=0; i<picked.size(); ++i)
+      outfile << "]," << endl << "y: [";
+      for (auto s : picked_spectrum)
       {
-        outfile << picked[i].getIntensity() << ", ";
+        outfile << s.getIntensity() << ", ";
       }
       outfile << "]," << endl;
       string picked_trace_ending = ""
-      "    legendgroup: '" + to_string(j) + "',"
+      "    legendgroup: '" + to_string(i) + "',"
       "    visible: 'legendonly',"
       "    showlegend: false,"
       "    mode: 'markers',"
-      "    name: '[" + to_string(j) + "] " + picked.getName() + "',"
+      "    name: '[" + to_string(i) + "] " + picked_spectrum.getName() + "',"
       "    type: 'scatter',"
       "    marker: {"
       "      color: 'red',"
@@ -615,64 +617,70 @@ START_SECTION(scoreSpectra())
 {
   MzMLFile mzml;
   PeakMap experiment;
-  TargetedExperiment targeted_exp;
   TransitionTSVReader tsv_reader;
+  TargetedExperiment targeted_exp;
+
+  mzml.load(experiment_path, experiment);
+  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
 
   ptr->setRTWindow(30);
   ptr->setMZTolerance(0.1);
   ptr->setGaussWidth(0.25);
   ptr->setUseGauss(true);
+  ptr->setTICWeight(1.0);
+  ptr->setFWHMWeight(1.0);
+  ptr->setSNRWeight(1.0);
 
-  mzml.load(experiment_path, experiment);
-  std::vector<MSSpectrum> spectra = experiment.getSpectra();
-  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
-  std::vector<MSSpectrum> annotated;
+  vector<MSSpectrum> annotated_spectra;
   FeatureMap features;
+  vector<MSSpectrum> spectra = experiment.getSpectra();
 
-  ptr->annotateSpectra(spectra, targeted_exp, annotated, features);
-  std::vector<MSSpectrum> picked(annotated.size());
+  ptr->annotateSpectra(spectra, targeted_exp, annotated_spectra, features);
 
-  for (UInt j=0; j<annotated.size(); ++j)
+  vector<MSSpectrum> picked_spectra(annotated_spectra.size());
+
+  for (UInt i=0; i<annotated_spectra.size(); ++i)
   {
-    ptr->pickSpectrum(annotated[j], picked[j]);
+    ptr->pickSpectrum(annotated_spectra[i], picked_spectra[i]);
   }
 
   ptr->setTICWeight(1.0);
   ptr->setFWHMWeight(1.0);
   ptr->setSNRWeight(1.0);
-  std::vector<MSSpectrum> scored;
-  ptr->scoreSpectra(annotated, picked, scored, features);
+  vector<MSSpectrum> scored_spectra;
+  ptr->scoreSpectra(annotated_spectra, picked_spectra, scored_spectra, features);
 
-  TEST_NOT_EQUAL(scored.size(), 0)
+  TEST_NOT_EQUAL(scored_spectra.size(), 0)
 
-  // std::sort(scored.begin(), scored.end(), [](MSSpectrum a, MSSpectrum b)
+  // sort(scored_spectra.begin(), scored_spectra.end(), [](MSSpectrum a, MSSpectrum b)
   // {
   //   return a.getFloatDataArrays()[1][0] > b.getFloatDataArrays()[1][0];
   // });
-  std::sort(scored.begin(), scored.end(), [](MSSpectrum a, MSSpectrum b)
+  sort(scored_spectra.begin(), scored_spectra.end(), [](MSSpectrum a, MSSpectrum b)
   {
     return a.getName().compare(b.getName()) < 0;
   });
+  cout <<  endl << "Scored spectra have been sorted by name." << endl;
 
-  cout << "Info from scored spectra:" << endl;
-  for (auto a : scored)
+  cout << endl << "Info from scored spectra:" << endl;
+  for (auto s : scored_spectra)
   {
-    cout << a.getName()
-    << "\tscore: " << a.getFloatDataArrays()[1][0]
-    << "\tlog10_tic: " << a.getFloatDataArrays()[2][0]
-    << "\t1/fwhm: " << a.getFloatDataArrays()[3][0]
-    << "\tSNR: " << a.getFloatDataArrays()[4][0] << endl;
+    cout << s.getName()
+    << "\t score: " << s.getFloatDataArrays()[1][0]
+    << "\t log10_tic: " << s.getFloatDataArrays()[2][0]
+    << "\t 1/fwhm: " << s.getFloatDataArrays()[3][0]
+    << "\t SNR: " << s.getFloatDataArrays()[4][0] << endl;
   }
 
-  cout << "Info from FeatureMap:" << endl;
-  for (auto a : features)
+  cout << endl << "Info from FeatureMap:" << endl;
+  for (auto f : features)
   {
-    cout << a.getMetaValue("transition_name")
-    << "\tscore: " << a.getIntensity()
-    << "\tlog10_tic: " << a.getMetaValue("log10_total_tic")
-    << "\tfwhm: " << a.getMetaValue("avgFWHM")
-    << "\t1/fwhm: " << a.getMetaValue("inverse_avgFWHM")
-    << "\tSNR: " << a.getMetaValue("avgSNR") << endl;
+    cout << f.getMetaValue("transition_name")
+    << "\t score: " << f.getIntensity()
+    << "\t log10_tic: " << f.getMetaValue("log10_total_tic")
+    << "\t 1/fwhm: " << f.getMetaValue("inverse_avgFWHM")
+    << "\t SNR: " << f.getMetaValue("avgSNR")
+    << "\t fwhm: " << f.getMetaValue("avgFWHM") << endl;
   }
 }
 END_SECTION
@@ -696,7 +704,7 @@ START_SECTION(extractSpectra())
   ptr->setFWHMWeight(1.0);
   ptr->setSNRWeight(1.0);
 
-  std::vector<MSSpectrum> extracted_spectra;
+  vector<MSSpectrum> extracted_spectra;
   FeatureMap extracted_features;
   ptr->extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features);
 
