@@ -187,6 +187,7 @@ protected:
     String sequence;
     SignedSize mod_index; // enumeration index of the modification
     double score; // the score
+    double precursor_error_ppm; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
 
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
@@ -515,6 +516,8 @@ protected:
           scores.push_back(make_pair(score_key, hit.score));
           IdentificationData::MoleculeQueryMatch match(charge, scores);
           match.peak_annotations = hit.annotations;
+          // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
+          match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, hit.precursor_error_ppm);
 
           id_data.addMoleculeQueryMatch(oligo_key, query_key, match);
 
@@ -826,6 +829,8 @@ protected:
             ah.sequence = *cit;
             ah.mod_index = mod_idx;
             ah.score = score;
+            // @TODO: is "observed - calculated" the right way around?
+            ah.precursor_error_ppm = (low_it->first - candidate_mass) / candidate_mass * 1.0e6;
             ah.annotations = annotations;
 
 #ifdef _OPENMP
@@ -905,6 +910,8 @@ protected:
         hit.setScore(match.scores.back().second);
         hit.setCharge(match.charge);
         hit.setPeakAnnotations(match.peak_annotations);
+        double precursor_error_ppm = match.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
+        hit.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, precursor_error_ppm);
         id_map[query_key].insertHit(hit);
       }
       // there should be only one score type:
