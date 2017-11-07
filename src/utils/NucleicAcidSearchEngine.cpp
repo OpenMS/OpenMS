@@ -773,13 +773,13 @@ protected:
 
           if (search_params.precursor_tolerance_ppm) // ppm
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - 0.5 * candidate_mass * search_params.precursor_mass_tolerance * 1e-6);
-            up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + 0.5 * candidate_mass * search_params.precursor_mass_tolerance * 1e-6);
+            low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - candidate_mass * search_params.precursor_mass_tolerance * 1e-6);
+            up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + candidate_mass * search_params.precursor_mass_tolerance * 1e-6);
           }
           else // Dalton
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - 0.5 * search_params.precursor_mass_tolerance);
-            up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + 0.5 * search_params.precursor_mass_tolerance);
+            low_it = multimap_mass_2_scan_index.lower_bound(candidate_mass - search_params.precursor_mass_tolerance);
+            up_it = multimap_mass_2_scan_index.upper_bound(candidate_mass + search_params.precursor_mass_tolerance);
           }
 
           if (low_it == up_it) continue; // no matching precursor in data
