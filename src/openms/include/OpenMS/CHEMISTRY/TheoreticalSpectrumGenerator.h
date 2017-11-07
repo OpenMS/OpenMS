@@ -127,11 +127,10 @@ namespace OpenMS
       void addIsotopeCluster_(PeakSpectrum& spectrum, const NASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, NASequence::NASFragmentType res_type, Int charge, double intensity) const;
 
       /// helper for mapping residue type to letter
-      char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
+      static char residueTypeToIonLetter_(Residue::ResidueType res_type);
 
       /// helper for mapping nucleotide type to code
-      String ribonucleotideTypeToIonCode_(NASequence::NASFragmentType res_type) const;
-
+      static String ribonucleotideTypeToIonCode_(NASequence::NASFragmentType type, Size num = 0);
 
       /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       void addLosses_(PeakSpectrum& spectrum, const AASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;

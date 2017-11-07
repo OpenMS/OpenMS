@@ -422,7 +422,7 @@ namespace OpenMS
   }
 
 
-  char TheoreticalSpectrumGenerator::residueTypeToIonLetter_(Residue::ResidueType res_type) const
+  char TheoreticalSpectrumGenerator::residueTypeToIonLetter_(Residue::ResidueType res_type)
   {
     switch (res_type)
     {
@@ -439,24 +439,26 @@ namespace OpenMS
   }
 
 
-  String TheoreticalSpectrumGenerator::ribonucleotideTypeToIonCode_(NASequence::NASFragmentType res_type) const //TODO fix duplicated code
+  String TheoreticalSpectrumGenerator::ribonucleotideTypeToIonCode_(NASequence::NASFragmentType type, Size num)
   {
-    switch (res_type)
+    String result;
+    switch (type)
     {
-      case NASequence::AIon: return "a";
-      case NASequence::BIon: return "b";
-      case NASequence::CIon: return "c";
-      case NASequence::XIon: return "x";
-      case NASequence::YIon: return "y";
-      case NASequence::ZIon: return "z";
-      case NASequence::DIon: return "d";
-      case NASequence::WIon: return "w";
-      case NASequence::AminusB: return "a-B"; // l for loss
-
-      default:
-        cerr << "Unknown ribonucleotide type encountered. Can't map to ion code." << endl;
+    case NASequence::AIon: result = "a"; break;
+    case NASequence::BIon: result = "b"; break;
+    case NASequence::CIon: result = "c"; break;
+    case NASequence::XIon: result = "x"; break;
+    case NASequence::YIon: result = "y"; break;
+    case NASequence::ZIon: result = "z"; break;
+    case NASequence::DIon: result = "d"; break;
+    case NASequence::WIon: result = "w"; break;
+    case NASequence::AminusB: return (num > 0) ? "(a" + String(num) + "-B)" : "(a-B)";
+    default:
+      cerr << "Unknown ribonucleotide type encountered. Can't map to ion code." << endl;
+      result = "?";
     }
-    return " ";
+    if (num > 0) result += String(num);
+    return result;
   }
 
 
@@ -497,7 +499,7 @@ namespace OpenMS
     Peak1D p;
     IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope_);
 
-    String ion_name = ribonucleotideTypeToIonCode_(res_type) + String(ion.size()); // + String((Size)abs(charge), charge_sign);
+    String ion_name = ribonucleotideTypeToIonCode_(res_type, ion.size()); // + String((Size)abs(charge), charge_sign);
 
     double j(0.0);
     for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
@@ -666,7 +668,7 @@ namespace OpenMS
           spectrum.push_back(p);
           if (add_metainfo_)
           {
-            String ion_name = ribonucleotideTypeToIonCode_(res_type) + String(length); // + String((Size)abs(charge), charge_sign);
+            String ion_name = ribonucleotideTypeToIonCode_(res_type, length); // + String((Size)abs(charge), charge_sign);
             ion_names.push_back(ion_name);
             charges.push_back(charge);
           }
@@ -712,7 +714,7 @@ namespace OpenMS
           spectrum.push_back(p);
           if (add_metainfo_)
           {
-            String ion_name = ribonucleotideTypeToIonCode_(res_type) + String(length); // + String((Size)abs(charge), charge_sign);
+            String ion_name = ribonucleotideTypeToIonCode_(res_type, length); // + String((Size)abs(charge), charge_sign);
             ion_names.push_back(ion_name);
             charges.push_back(charge);
           }
