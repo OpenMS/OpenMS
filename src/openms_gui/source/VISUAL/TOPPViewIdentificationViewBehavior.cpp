@@ -180,7 +180,7 @@ namespace OpenMS
       const double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
       DPosition<2> position = DPosition<2>(it->mz, peak_int);
       String annotation = it->annotation;
-      // write out positive and negative charges with the correct sign, at the end of the annotation string
+      // write out positive and negative charges with the correct sign at the end of the annotation string
       switch (it->charge)
       {
       case 0: break;
@@ -194,7 +194,6 @@ namespace OpenMS
       Annotation1DItem* item;
 
       // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
-      // for now red is the standard color of labels
       if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) && annotation.hasSubstring(String("|ci$")))
       {
         item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkGreen);
@@ -203,9 +202,10 @@ namespace OpenMS
       {
         item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkRed);
       }
-      else // use peak color as default annotation color
+      else // color red/green depending on left/right fragment
       {
-        item = new Annotation1DPeakItem(position, annotation.toQString(), QColor(current_layer.param.getValue("peak_color").toQString()));
+        QColor color = (annotation[0] < 'n') ? Qt::darkRed : Qt::darkGreen;
+        item = new Annotation1DPeakItem(position, annotation.toQString(), color);
       }
       item->setSelected(false);
       temporary_annotations_.push_back(item); // for removal (no ownership)
