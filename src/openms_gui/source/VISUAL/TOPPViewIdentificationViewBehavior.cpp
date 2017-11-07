@@ -145,6 +145,68 @@ namespace OpenMS
     // else if (layer.type == LayerData::DT_CHROMATOGRAM)
   }
 
+  void TOPPViewIdentificationViewBehavior::addFragmentAnnotations_(const PeptideHit& ph)
+  {
+    // called anew for every click on a spectrum
+    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+
+    if (current_layer.getCurrentSpectrum().empty())
+    {
+      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
+    }
+
+    if (!current_layer.getCurrentSpectrum().isSorted())
+    {
+      QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
+      return;
+    }
+
+    typedef std::vector<PeptideHit::PeakAnnotation> FragmentAnnotations;
+
+    const FragmentAnnotations& fa = ph.getPeakAnnotations();
+
+    for (FragmentAnnotations::const_iterator it = fa.begin(); it!= fa.end(); ++it)
+    {
+      // query closest peak to expected position
+      int peak_idx = current_layer.getCurrentSpectrum().findNearest(it->mz, 1e-2);
+
+      // check if m/z fits
+      if (peak_idx == -1)
+      {
+        LOG_WARN << "Annotation present for missing peak.  m/z: " << it->mz << std::endl;
+        continue;
+      }
+
+      const double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
+      DPosition<2> position = DPosition<2>(it->mz, peak_int);
+      String annotation = it->annotation;
+      // write out positive and negative charges with the correct sign, at the end of the annotation string
+      if (it->charge != 0)
+      {
+        annotation = it->charge > 0 ? annotation + "+" + String(it->charge): annotation + String(it->charge);
+      }
+
+      Annotation1DItem* item;
+
+      // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
+      // for now red is the standard color of labels
+      if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) && annotation.hasSubstring(String("|ci$")))
+      {
+        item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkGreen);
+      }
+      else if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) &&  annotation.hasSubstring(String("|xi$")))
+      {
+        item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkRed);
+      }
+      else // use peak color as default annotation color
+      {
+        item = new Annotation1DPeakItem(position, annotation.toQString(), QColor(current_layer.param.getValue("peak_color").toQString()));
+      }
+      item->setSelected(false);
+      temporary_annotations_.push_back(item); // for removal (no ownership)
+      current_layer.getCurrentAnnotations().push_front(item); // for visualization (ownership)
+    }
+  }
 
   void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const std::vector<PeptideIdentification>& ph)
   {
@@ -387,7 +449,9 @@ namespace OpenMS
               }
               else
               {
-                widget_1D->canvas()->setTextBox(ph.getSequence().toString().toQString());
+                String seq = ph.getSequence().toString();
+                if (seq.empty()) seq = ph.getMetaValue("label");
+                widget_1D->canvas()->setTextBox(seq.toQString());
               }
             }
           }
