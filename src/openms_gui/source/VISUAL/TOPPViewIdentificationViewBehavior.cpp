@@ -181,9 +181,14 @@ namespace OpenMS
       DPosition<2> position = DPosition<2>(it->mz, peak_int);
       String annotation = it->annotation;
       // write out positive and negative charges with the correct sign, at the end of the annotation string
-      if (it->charge != 0)
+      switch (it->charge)
       {
-        annotation = it->charge > 0 ? annotation + "+" + String(it->charge): annotation + String(it->charge);
+      case 0: break;
+      case 1: annotation += "+"; break;
+      case 2: annotation += "++"; break;
+      case -1: annotation += "-"; break;
+      case -2: annotation += "--"; break;
+      default: annotation += ((it->charge > 0) ? "+" : "") + String(it->charge);
       }
 
       Annotation1DItem* item;
@@ -475,7 +480,7 @@ namespace OpenMS
     return result;
   }
 
-  // Helper function, that collapses a vector of Strings into one String
+  // Helper function that collapses a vector of Strings into one String
   String TOPPViewIdentificationViewBehavior::collapseStringVector(vector<String> strings)
   {
     String result;
@@ -486,7 +491,7 @@ namespace OpenMS
     return result;
   }
 
-  // Helper function, that turns fragment annotations into coverage Strings for visuaization with the sequence
+  // Helper function that turns fragment annotations into coverage Strings for visualization with the sequence
   void TOPPViewIdentificationViewBehavior::extractCoverageStrings(vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size)
   {
     vector<String> alpha_strings(alpha_size, " ");
