@@ -76,7 +76,7 @@ namespace OpenMS
 
     //normalize bins
 
-    //magnitude of the spectral vector
+    // magnitude of the spectral vector
     float magnitude1(0);
     float magnitude2(0);
     for (SparseVector<float>::SparseVectorIterator iter1 = bin1.getBins().begin();

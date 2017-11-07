@@ -40,91 +40,73 @@ using namespace std;
 
 namespace OpenMS
 {
-  BinnedSpectrum::BinnedSpectrum() :
-    bin_spread_(1), bin_size_(2.0), bins_(), raw_spec_()
-  {
-  }
 
-  BinnedSpectrum::BinnedSpectrum(float size, UInt spread, PeakSpectrum ps) :
-    bin_spread_(spread), bin_size_(size), bins_(), raw_spec_(ps)
+  BinnedSpectrum::BinnedSpectrum(const float size, const UInt spread, const PeakSpectrum & ps) :
+    bin_spread_(spread), 
+    bin_size_(size), 
+    bins_()
   {
-    setBinning();
-  }
-
-  BinnedSpectrum::BinnedSpectrum(const BinnedSpectrum& source) :
-    bin_spread_(source.getBinSpread()), bin_size_(source.getBinSize()), bins_(source.getBins()), raw_spec_(source.raw_spec_)
-  {
+    precursors_ = ps.getPrecursors();
+    binSpectrum_(ps);
   }
 
   BinnedSpectrum::~BinnedSpectrum()
   {
   }
 
-  //accessors and operators see .h file
-
-
-  void BinnedSpectrum::setBinning()
+  const SparseVector<float>& BinnedSpectrum::getBins() const
   {
-    if (raw_spec_.empty())
+    return bins_;
+  }
+
+  SparseVector<float>& BinnedSpectrum::getBins()
+  {
+    return bins_;
+  }
+
+  const std::vector<Precursor>& BinnedSpectrum::getPrecursors() const
+  {
+    return precursors_;
+  }
+
+  std::vector<Precursor>& BinnedSpectrum::getPrecursors()
+  {
+    return precursors_;
+  }
+
+  void BinnedSpectrum::binSpectrum_(const PeakSpectrum& ps)
+  {
+    // TODO: add assertion to check if spectrum ps is sorted by position or retrieve maximum differently
+
+    const Size highest_index = floor(ps.back().getMZ() / bin_size_) + bin_spread_;
+    bins_ = SparseVector<float>((UInt)highest_index + 1, 0, 0);
+
+    // put all peaks into bins
+    for (auto const & p : ps)
     {
-      throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    }
-    bins_.clear();
+      // e.g.: bin_size_ = 1.5: first bin covers range [0, 1.5) so peak at 1.5 falls in second bin (index 1)
+      UInt idx = (UInt)floor(p.getMZ() / bin_size_);
 
-    //make all necessary bins accessible
-    raw_spec_.sortByPosition();
-    bins_ = SparseVector<float>((UInt)ceil(raw_spec_.back().getMZ() / bin_size_) + bin_spread_, 0, 0);
+      // add peak to corresponding bin
+      bins_[idx] = bins_.at(idx) + p.getIntensity();
 
-    //put all peaks into bins
-    UInt bin_number;
-    for (Size i = 0; i < raw_spec_.size(); ++i)
-    {
-      //bin_number counted form 0 -> floor
-      bin_number = (UInt)floor(raw_spec_[i].getMZ() / bin_size_);
-      //e.g. bin_size_ = 1.5: first bin covers range [0,1.5] so peak at 1.5 falls in first bin (index 0)
-
-      if (raw_spec_[i].getMZ() / bin_size_ == (double)bin_number)
-      {
-        --bin_number;
-      }
-
-      //add peak to corresponding bin
-      bins_[bin_number] = bins_.at(bin_number) + raw_spec_[i].getIntensity();
-
-      //add peak to neighboring binspread many
+      // add peak to neighboring bins
       for (Size j = 0; j < bin_spread_; ++j)
       {
-        bins_[bin_number + j + 1] = bins_.at(bin_number + j + 1) + raw_spec_[i].getIntensity();
-        // we are not in one of the first bins (0 to bin_spread)
-        //not working:  if (bin_number-j-1 >= 0)
-        if (bin_number >= j + 1)
+        bins_[idx + j + 1] = bins_.at(idx + j + 1) + p.getIntensity();
+        // prevent spreading over left boundaries
+        if (idx >= j + 1)
         {
-          bins_[bin_number - j - 1] = bins_.at(bin_number - j - 1) + raw_spec_[i].getIntensity();
+          bins_[idx - j - 1] = bins_.at(idx - j - 1) + p.getIntensity();
         }
       }
     }
-
   }
 
   //yields false if given BinnedSpectrum size or spread differs from this one (comparing those might crash)
   bool BinnedSpectrum::checkCompliance(const BinnedSpectrum& bs) const
   {
-    return (this->bin_size_ == bs.getBinSize()) &&
-           (this->bin_spread_ == bs.getBinSpread());
+    return std::tie(bin_size_, bin_spread_) == std::tie(bs.bin_size_, bs.bin_spread_);
   }
-
-  BinnedSpectrum::NoSpectrumIntegrated::NoSpectrumIntegrated(const char* file, int line, const char* function, const char* message) throw() :
-    BaseException(file, line, function, "BinnedSpectrum::NoSpectrumIntegrated", message)
-  {
-  }
-
-  BinnedSpectrum::NoSpectrumIntegrated::~NoSpectrumIntegrated() throw()
-  {
-  }
-
-  const PeakSpectrum& BinnedSpectrum::getRawSpectrum() const
-  {
-    return raw_spec_;
-  }
-
 }
+
