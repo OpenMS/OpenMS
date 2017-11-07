@@ -139,10 +139,10 @@ namespace OpenMS
     create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
     connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
 
-    QPushButton* save_IDs = new QPushButton("save IDs", this);
+    QPushButton* save_IDs = new QPushButton("Save IDs", this);
     connect(save_IDs, SIGNAL(clicked()), this, SLOT(saveIDs_()));
 
-    QPushButton* export_table = new QPushButton("export table", this);
+    QPushButton* export_table = new QPushButton("Export table", this);
     connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
     tmp_hbox_layout->addWidget(hide_no_identification_);
@@ -549,7 +549,9 @@ namespace OpenMS
             addDoubleItemToBottomRow_(ph.getCharge(), 9, c);
 
             //sequence
-            addTextItemToBottomRow_(ph.getSequence().toString().toQString(), 10, c);
+            String seq = ph.getSequence().toString();
+            if (seq.empty()) seq = ph.getMetaValue("label");
+            addTextItemToBottomRow_(seq.toQString(), 10, c);
 
             //Accession
             item = table_widget_->itemPrototype()->clone();
@@ -591,7 +593,7 @@ namespace OpenMS
               {
                 ppm_error = fabs((double)pi[pi_idx].getHits()[0].getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
               }
-              else // works for normal linear fragments with the correct modifications included in the AASequence
+              else if (!ph.getSequence().empty()) // works for normal linear fragments with the correct modifications included in the AASequence
               {
                 double exp_precursor = (*layer_->getPeakData())[i].getPrecursors()[0].getMZ();
                 int charge = (*layer_->getPeakData())[i].getPrecursors()[0].getCharge();
