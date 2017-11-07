@@ -52,6 +52,8 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 
+using namespace std;
+
 namespace OpenMS
 {
 
@@ -333,7 +335,7 @@ namespace OpenMS
     bool fragment_mass_tolerance_unit_ppm,
     const MSSpectrum& exp_spectrum,
     const MSSpectrum& db_spectrum,
-    std::vector<PeptideHit::PeakAnnotation>& annotations,
+    vector<PeptideHit::PeakAnnotation>& annotations,
     double mz_lower_bound)
   {
     return computeHyperScore_(fragment_mass_error,
@@ -347,61 +349,79 @@ namespace OpenMS
     bool fragment_mass_tolerance_unit_ppm,
     const MSSpectrum& exp_spectrum,
     const MSSpectrum& db_spectrum,
-    std::vector<PeptideHit::PeakAnnotation>* annotations,
+    vector<PeptideHit::PeakAnnotation>* annotations,
     double mz_lower_bound)
   {
-    double dot_product(0.0);
-    Size matched_ions_count(0);
-    bool annotate = ((annotations != 0) &&
-                     !db_spectrum.getStringDataArrays().empty() &&
-                     !db_spectrum.getIntegerDataArrays().empty());
+    if (exp_spectrum.empty()) return 0;
 
-    // scan for matching peaks between observed and DB stored spectra
-    for (auto frag_it = exp_spectrum.MZBegin(mz_lower_bound); frag_it != exp_spectrum.end(); ++frag_it)
+    // define m/z range to consider:
+    double min_exp_mz = exp_spectrum[0].getMZ(); // lowest experimental m/z
+    double mz_offset = fragment_mass_error;
+    if (fragment_mass_tolerance_unit_ppm)
     {
-      double frag_mz = frag_it->getMZ();
+      mz_offset = min_exp_mz * fragment_mass_error * 1e-6;
+    }
+    mz_lower_bound = max(mz_lower_bound, min_exp_mz - mz_offset);
+    double max_exp_mz = exp_spectrum.back().getMZ(); // highest experimental m/z
+    if (fragment_mass_tolerance_unit_ppm)
+    {
+      mz_offset = max_exp_mz * fragment_mass_error * 1e-6;
+    }
+    double mz_upper_bound = max_exp_mz + mz_offset;
 
-      double mz_offset = fragment_mass_error;
+    // for every DB (theoretical) peak in the valid m/z range, find the closest
+    // matching experimental (observed) peak within the allowed tolerance;
+    // in principle, multiple DB peaks can match to the same exp. peak:
+    map<Size, vector<MSSpectrum::ConstIterator>> peak_matches;
+    for (auto db_it = db_spectrum.MZBegin(mz_lower_bound);
+         db_it != db_spectrum.MZEnd(mz_upper_bound); ++db_it)
+    {
+      double db_mz = db_it->getMZ();
 
-      if (fragment_mass_tolerance_unit_ppm) { mz_offset = frag_mz * 1e-6 * fragment_mass_error; }
-
-      auto db_mass_it = db_spectrum.MZBegin(frag_mz - mz_offset);
-      auto db_mass_end = db_spectrum.MZEnd(frag_mz + mz_offset);
-
-      double nearest_peak_error = mz_offset + 1.0;
-      auto nearest_peak_it = db_spectrum.end();
-
-      // linear search for peak nearest to observed fragment peak
-      for (; db_mass_it != db_mass_end; ++db_mass_it)
+      if (fragment_mass_tolerance_unit_ppm)
       {
-        double db_mz = db_mass_it->getMZ();
-        double abs_mass_diff = std::abs(frag_mz - db_mz);
-
-        if (abs_mass_diff < nearest_peak_error)
-        {
-          nearest_peak_error = abs_mass_diff;
-          nearest_peak_it = db_mass_it;
-        }
+        mz_offset = db_mz * fragment_mass_error * 1e-6;
       }
 
-      // update dot product, store annotations
-      if (nearest_peak_it != db_spectrum.end())
+      Int index = exp_spectrum.findNearest(db_mz, mz_offset);
+      if (index >= 0) peak_matches[index].push_back(db_it);
+    }
+
+    double dot_product = 0.0;
+    for (const auto& match : peak_matches)
+    {
+      double db_intensity = 0.0;
+      for (const auto& db_it : match.second)
       {
-        ++matched_ions_count;
-        dot_product += frag_it->getIntensity() * nearest_peak_it->getIntensity();
-        if (annotate)
+        db_intensity = max(db_intensity, double(db_it->getIntensity()));
+      }
+      dot_product += db_intensity * exp_spectrum[match.first].getIntensity();
+    }
+
+    // return annotations for matching peaks?
+    if ((annotations != 0) &&
+        !db_spectrum.getStringDataArrays().empty() &&
+        !db_spectrum.getIntegerDataArrays().empty())
+    {
+      for (const auto& match : peak_matches)
+      {
+        const auto& exp_peak = exp_spectrum[match.first];
+        // potentially add several annotations for the same peak if there are
+        // multiple matches for that peak:
+        for (const auto& db_it : match.second)
         {
           PeptideHit::PeakAnnotation ann;
-          Size index = nearest_peak_it - db_spectrum.begin();
+          Size index = db_it - db_spectrum.begin();
           ann.annotation = db_spectrum.getStringDataArrays()[0].at(index);
           ann.charge = db_spectrum.getIntegerDataArrays()[0].at(index);
-          ann.mz = frag_mz;
-          ann.intensity = frag_it->getIntensity();
+          ann.mz = exp_peak.getMZ();
+          ann.intensity = exp_peak.getIntensity();
           annotations->push_back(ann);
         }
       }
     }
 
+    Size matched_ions_count = peak_matches.size(); // count obs. peaks only once
     double matched_ions_term = 0.0;
 
     // return score 0 if too few matched ions
@@ -412,14 +432,14 @@ namespace OpenMS
 
     if (matched_ions_count <= boost::math::max_factorial<double>::value)
     {
-      matched_ions_term = std::log(boost::math::factorial<double>((double)matched_ions_count));
+      matched_ions_term = log(boost::math::factorial<double>(matched_ions_count));
     }
     else
     {
-      matched_ions_term = std::log(boost::math::factorial<double>(boost::math::max_factorial<double>::value));
+      matched_ions_term = log(boost::math::factorial<double>(boost::math::max_factorial<double>::value));
     }
 
-    double hyperscore = std::log(dot_product) + matched_ions_term;
+    double hyperscore = log(dot_product) + matched_ions_term;
     if (hyperscore < 0) hyperscore = 0;
 
     return hyperscore;
@@ -428,9 +448,9 @@ namespace OpenMS
 
   void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mztab_out)
   {
-    std::sort(spec_db.begin(), spec_db.end(), PrecursorMZLess);
+    sort(spec_db.begin(), spec_db.end(), PrecursorMZLess);
 
-    std::vector<double> mz_keys;
+    vector<double> mz_keys;
 
     // copy precursor m/z values to vector for searching
     for (Size spec_idx = 0; spec_idx < spec_db.size(); ++spec_idx)
@@ -456,14 +476,14 @@ namespace OpenMS
 
 
     // container storing results
-    std::vector<SpectralMatch> matching_results;
+    vector<SpectralMatch> matching_results;
 
     bool fragment_error_unit_ppm(true);
     if (mz_error_unit_ == "Da") { fragment_error_unit_ppm = false; }
 
     for (Size spec_idx = 0; spec_idx < msexp.size(); ++spec_idx)
     {
-      // std::cout << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << std::endl;
+      // cout << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << endl;
 
       // iterate over all precursor masses
       for (Size prec_idx = 0; prec_idx < msexp[spec_idx].getPrecursors().size(); ++prec_idx)
@@ -471,7 +491,7 @@ namespace OpenMS
         // get precursor m/z
         double precursor_mz(msexp[spec_idx].getPrecursors()[prec_idx].getMZ());
 
-        // std::cout << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
+        // cout << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
 
         double prec_mz_lowerbound, prec_mz_upperbound;
 
@@ -487,23 +507,23 @@ namespace OpenMS
           prec_mz_upperbound = precursor_mz + ppm_offset;
         }
 
-        // std::cout << "lower mz: " << prec_mz_lowerbound << " ";
-        // std::cout << "upper mz: " << prec_mz_upperbound << std::endl;
+        // cout << "lower mz: " << prec_mz_lowerbound << " ";
+        // cout << "upper mz: " << prec_mz_upperbound << endl;
 
-        std::vector<double>::const_iterator lower_it = std::lower_bound(mz_keys.begin(), mz_keys.end(), prec_mz_lowerbound);
-        std::vector<double>::const_iterator upper_it = std::upper_bound(mz_keys.begin(), mz_keys.end(), prec_mz_upperbound);
+        vector<double>::const_iterator lower_it = lower_bound(mz_keys.begin(), mz_keys.end(), prec_mz_lowerbound);
+        vector<double>::const_iterator upper_it = upper_bound(mz_keys.begin(), mz_keys.end(), prec_mz_upperbound);
 
         Size start_idx(lower_it - mz_keys.begin());
         Size end_idx(upper_it - mz_keys.begin());
 
-        //std::cout << "identifying " << msexp[spec_idx].getMetaValue("Massbank_Accession_ID") << std::endl;
+        //cout << "identifying " << msexp[spec_idx].getMetaValue("Massbank_Accession_ID") << endl;
 
-        std::vector<SpectralMatch> partial_results;
+        vector<SpectralMatch> partial_results;
 
         for (Size search_idx = start_idx; search_idx < end_idx; ++search_idx)
         {
           // do spectral matching
-          // std::cout << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << std::endl;
+          // cout << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << endl;
 
           // check for charge state of precursor ions: do they match?
           if ( (ion_mode_ == "positive" && spec_db[search_idx].getPrecursors()[0].getCharge() < 0) || (ion_mode_ == "negative" && spec_db[search_idx].getPrecursors()[0].getCharge() > 0))
@@ -513,16 +533,16 @@ namespace OpenMS
 
           double hyperscore(computeHyperScore(fragment_mz_error_, fragment_error_unit_ppm, msexp[spec_idx], spec_db[search_idx], 0.0));
 
-          // std::cout << " scored with " << hyperScore << std::endl;
+          // cout << " scored with " << hyperScore << endl;
           if (hyperscore > 0)
           {
-            // std::cout << "  ** detected " << spec_db[search_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << " scored with " << hyperscore << std::endl;
+            // cout << "  ** detected " << spec_db[search_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << " scored with " << hyperscore << endl;
 
             // score result temporarily
             SpectralMatch tmp_match;
             tmp_match.setObservedPrecursorMass(precursor_mz);
             tmp_match.setFoundPrecursorMass(spec_db[search_idx].getPrecursors()[0].getMZ());
-            double obs_rt = std::floor(msexp[spec_idx].getRT() * 10)/10.0;
+            double obs_rt = floor(msexp[spec_idx].getRT() * 10)/10.0;
             tmp_match.setObservedPrecursorRT(obs_rt);
             tmp_match.setFoundPrecursorCharge(spec_db[search_idx].getPrecursors()[0].getCharge());
             tmp_match.setMatchingScore(hyperscore);
@@ -542,7 +562,7 @@ namespace OpenMS
         }
 
         // sort results by decreasing store
-        std::sort(partial_results.begin(), partial_results.end(), SpectralMatchScoreGreater);
+        sort(partial_results.begin(), partial_results.end(), SpectralMatchScoreGreater);
 
         // report mode: top3 or best?
         if (report_mode_ == "top3")
@@ -553,7 +573,7 @@ namespace OpenMS
 
           for (Size result_idx = 0; result_idx < last_result_idx; ++result_idx)
           {
-            // std::cout << "score: " << partial_results[result_idx].getMatchingScore() << " " << partial_results[result_idx].getMatchingSpectrumIndex() << std::endl;
+            // cout << "score: " << partial_results[result_idx].getMatchingScore() << " " << partial_results[result_idx].getMatchingSpectrumIndex() << endl;
             matching_results.push_back(partial_results[result_idx]);
           }
         }
@@ -589,7 +609,7 @@ namespace OpenMS
 
   /// private methods
 
-  void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& overall_results, MzTab& mztab_out)
+  void MetaboliteSpectralMatching::exportMzTab_(const vector<SpectralMatch>& overall_results, MzTab& mztab_out)
   {
     // iterate the overall results table
     MzTabSmallMoleculeSectionRows all_sm_rows;
@@ -604,7 +624,7 @@ namespace OpenMS
       String hid_temp = current_id.getPrimaryIdentifier();
       MzTabString prim_id;
       prim_id.set(hid_temp);
-      std::vector<MzTabString> id_dummy;
+      vector<MzTabString> id_dummy;
       id_dummy.push_back(prim_id);
       MzTabStringList string_dummy_list;
       string_dummy_list.set(id_dummy);
@@ -657,7 +677,7 @@ namespace OpenMS
       double rt_temp = current_id.getObservedPrecursorRT();
       MzTabDouble rt_temp2;
       rt_temp2.set(rt_temp);
-      std::vector<MzTabDouble> rt_temp3;
+      vector<MzTabDouble> rt_temp3;
       rt_temp3.push_back(rt_temp2);
       MzTabDoubleList observed_rt;
       observed_rt.set(rt_temp3);
@@ -680,7 +700,7 @@ namespace OpenMS
 
       // set smallmolecule_abundance_sub
       // check if we deal with a feature or consensus feature
-      std::vector<MzTabDouble> int_temp3;
+      vector<MzTabDouble> int_temp3;
 
       double int_temp(0.0);
       MzTabDouble int_temp2;
@@ -696,7 +716,7 @@ namespace OpenMS
       double stdev_temp(0.0);
       MzTabDouble stdev_temp2;
       stdev_temp2.set(stdev_temp);
-      std::vector<MzTabDouble> stdev_temp3;
+      vector<MzTabDouble> stdev_temp3;
 
       stdev_temp3.push_back(stdev_temp2);
 
@@ -709,7 +729,7 @@ namespace OpenMS
       double stderr_temp(0.0);
       MzTabDouble stderr_temp2;
       stderr_temp2.set(stderr_temp);
-      std::vector<MzTabDouble> stderr_temp3;
+      vector<MzTabDouble> stderr_temp3;
 
       stderr_temp3.push_back(stderr_temp2);
 
@@ -719,11 +739,11 @@ namespace OpenMS
       }
 
       // optional columns:
-      std::vector<MzTabOptionalColumnEntry> optionals;
+      vector<MzTabOptionalColumnEntry> optionals;
 
       // ppm error
       double error_ppm(((current_id.getFoundPrecursorMass() - current_id.getObservedPrecursorMass())/current_id.getFoundPrecursorMass())*1e6);
-      error_ppm = std::floor(error_ppm*100)/100;
+      error_ppm = floor(error_ppm*100)/100;
 
       MzTabString ppmerr;
       ppmerr.set(String(error_ppm));
@@ -743,7 +763,7 @@ namespace OpenMS
 
       // set isotope similarity score
       double sim_score_temp = current_id.getMatchingScore();
-      std::stringstream read_in;
+      stringstream read_in;
       read_in << sim_score_temp;
       String sim_score_temp2(read_in.str());
       MzTabString sim_score;
