@@ -568,7 +568,7 @@ START_SECTION(( void calculatePeakShapeMetrics_(const MSChromatogram& chromatogr
   TEST_REAL_SIMILAR(peakShapeMetrics.asymmetry_factor,0.864852961737272);
   TEST_REAL_SIMILAR(peakShapeMetrics.baseline_delta_2_height,0.00175997249);
   TEST_REAL_SIMILAR(peakShapeMetrics.slope_of_baseline,1699);
-  TEST_EQUAL(peakShapeMetrics.points_across_baseline,55);
+  TEST_EQUAL(peakShapeMetrics.points_across_baseline,57);
   TEST_EQUAL(peakShapeMetrics.points_across_half_height,6);
 }
 END_SECTION
