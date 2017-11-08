@@ -168,7 +168,7 @@ private:
 
 public:
   TOPPIsobaricAnalyzer() :
-    TOPPBase("IsobaricAnalyzer", "Calculates isobaric quantitative values for peptides", true, true)
+    TOPPBase("IsobaricAnalyzer", "Calculates isobaric quantitative values for peptides")
   {
     ItraqFourPlexQuantitationMethod* itraq4plex = new ItraqFourPlexQuantitationMethod();
     ItraqEightPlexQuantitationMethod* itraq8plex = new ItraqEightPlexQuantitationMethod();
@@ -296,9 +296,6 @@ protected:
     quantifier.setParameters(quant_param);
 
     quantifier.quantify(consensus_map_raw, consensus_map_quant);
-
-    // assign unique ID to output file (this might throw an exception... but that's ok, as we want the program to quit then)
-    if (getStringOption_("id_pool").trim().length() > 0) getDocumentIDTagger_().tag(consensus_map_quant);
 
     //-------------------------------------------------------------
     // writing output

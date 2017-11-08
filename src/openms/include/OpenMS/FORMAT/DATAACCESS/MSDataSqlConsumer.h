@@ -37,17 +37,26 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
-#include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
+
+    namespace Internal
+    {
+      class MzMLSqliteHandler;
+    }
+
     /**
-      @brief A data consumer that inserts data into a SQL database
+      @brief A data consumer that inserts MS data into a SQLite database
 
       Consumes spectra and chromatograms and inserts them into an file-based
-      SQL database using sqlite. As Sqlite is highly inefficient when inserting
+      SQL database using SQLite. As SQLite is highly inefficient when inserting
       one spectrum/chromatogram at a time, the consumer collects the data in an
       internal buffer and then flushes them all together to disk.
+
+      It uses MzMLSqliteHandler internally to write batches of data to disk.
+
     */
     class OPENMS_DLLAPI MSDataSqlConsumer :
       public Interfaces::IMSDataConsumer
@@ -61,13 +70,15 @@ namespace OpenMS
       /**
         @brief Constructor
 
-        Opens the sqlite file and writes the tables.
+        Opens the SQLite file and writes the tables.
 
-        @param filename The filename of the Sqlite database
-        @param clearData Whether to clear the data from memory after writing it
+        @param filename The filename of the SQLite database
         @param buffer_size How large the internal buffer size should be (defaults to 500 spectra / chromatograms)
+        @param full_meta Whether to write the full meta-data in the SQLite header
+        @param lossy_compression Whether to use lossy compression (numpress)
+        @param linear_mass_acc Desired mass accuracy for RT or m/z space (absolute value)
       */
-      MSDataSqlConsumer(String filename, bool clearData=true, int buffer_size = 500);
+      MSDataSqlConsumer(String filename, int buffer_size = 500, bool full_meta = true, bool lossy_compression=false, double linear_mass_acc=1e-4);
 
       /**
         @brief Destructor
@@ -81,7 +92,6 @@ namespace OpenMS
 
         After calling this function, no more data is held in the buffer but the
         class is still able to receive new data.
-
       */
       void flush();
 
@@ -101,11 +111,15 @@ namespace OpenMS
 
     protected:
 
-      OpenMS::Internal::MzMLSqliteHandler sql_writer_;
-      bool clearData_;
+      String filename_;
+      OpenMS::Internal::MzMLSqliteHandler * handler_;
+
       size_t flush_after_;
+      bool full_meta_;
       std::vector<SpectrumType> spectra_;
       std::vector<ChromatogramType> chromatograms_;
+
+      MSExperiment peak_meta_;
     };
 
 } //end namespace OpenMS
