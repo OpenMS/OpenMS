@@ -77,14 +77,14 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(ps.isSorted(), "Spectrum needs to be sorted by m/z.");
 
-    const Size highest_index = floor(ps.back().getMZ() / bin_size_) + bin_spread_;
-    bins_ = SparseVector<float>((UInt)highest_index + 1, 0, 0);
+    const size_t highest_index = getBinIndex(ps.back().getMZ()) + bin_spread_;
+    bins_ = SparseVector<float>(highest_index + 1, 0, 0);
 
     // put all peaks into bins
     for (auto const & p : ps)
     {
       // e.g.: bin_size_ = 1.5: first bin covers range [0, 1.5) so peak at 1.5 falls in second bin (index 1)
-      UInt idx = (UInt)floor(p.getMZ() / bin_size_);
+      const size_t idx = getBinIndex(p.getMZ());
 
       // add peak to corresponding bin
       bins_[idx] = bins_.at(idx) + p.getIntensity();

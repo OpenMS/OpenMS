@@ -111,16 +111,18 @@ public:
     /// inequality operator
     bool operator!=(const BinnedSpectrum& rhs) const;
 
-    /// get the BinSize
+    inline size_t getBinIndex(double mz) { return static_cast<size_t>(floor(mz / bin_size_)); }
+
+    /// get the bin size
     inline double getBinSize() const { return bin_size_; }
 
-    /// get the BinSpread
+    /// get the bin spread
     inline size_t getBinSpread() const { return bin_spread_; }
 
-    /// get the BinNumber, number of Bins
+    /// get the number of bins
     inline size_t getBinNumber() const { return bins_.size(); }
 
-    /// get the FilledBinNumber, number of filled Bins
+    /// get the number of filled bins
     inline size_t getFilledBinNumber() const { return bins_.nonzero_size(); }
 
     /// immutable access to the bin container
@@ -154,3 +156,4 @@ public:
 
 }
 #endif //OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUM_H
+
