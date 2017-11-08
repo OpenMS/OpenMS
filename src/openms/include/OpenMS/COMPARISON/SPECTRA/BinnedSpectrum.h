@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUM_H
@@ -66,11 +66,13 @@ namespace OpenMS
   {
 
 private:
+    /// the spread to left or right
     UInt bin_spread_;
 
+    /// the size of each bin
     float bin_size_;
 
-    /// The computed bins
+    /// bins
     SparseVector<float> bins_;
 
     void binSpectrum_(const PeakSpectrum& ps);
@@ -88,13 +90,13 @@ public:
     BinnedSpectrum(float size, UInt spread, const PeakSpectrum& ps);
 
     /// copy constructor
-    BinnedSpectrum(const BinnedSpectrum& source) = default;
+    BinnedSpectrum(const BinnedSpectrum&) = default;
 
     /// destructor
     virtual ~BinnedSpectrum();
 
     /// assignment operator
-    BinnedSpectrum& operator=(const BinnedSpectrum& source) = default;
+    BinnedSpectrum& operator=(const BinnedSpectrum&) = default;
 
     /// equality operator
     bool operator==(const BinnedSpectrum& rhs) const
@@ -107,78 +109,47 @@ public:
     }
 
     /// inequality operator
-    bool operator!=(const BinnedSpectrum& rhs) const
-    {
-      return !(operator==(rhs));
-    }
+    bool operator!=(const BinnedSpectrum& rhs) const;
 
     /// get the BinSize
-    inline double getBinSize() const
-    {
-      return bin_size_;
-    }
+    inline double getBinSize() const { return bin_size_; }
 
     /// get the BinSpread
-    inline UInt getBinSpread() const
-    {
-      return bin_spread_;
-    }
+    inline size_t getBinSpread() const { return bin_spread_; }
 
     /// get the BinNumber, number of Bins
-    inline UInt getBinNumber() const
-    {
-      return (UInt) bins_.size();
-    }
+    inline size_t getBinNumber() const { return bins_.size(); }
 
     /// get the FilledBinNumber, number of filled Bins
-    inline UInt getFilledBinNumber() const
-    {
-      return (UInt) bins_.nonzero_size();
-    }
+    inline size_t getFilledBinNumber() const { return bins_.nonzero_size(); }
 
-    /** immutable access to the Bincontainer
-        @throw NoSpectrumIntegrated is thrown if no spectrum was integrated
-    */
+    /// immutable access to the bin container
     const SparseVector<float>& getBins() const;
 
-    /** mutable access to the Bincontainer
-        @throw NoSpectrumIntegrated is thrown if no spectrum was integrated
-    */
+    /// mutable access to the bin container
     SparseVector<float>& getBins();
 
     // inmutable access to precursors
     const std::vector<Precursor>& getPrecursors() const;
 
-    // mutable access to precursors
+    /// mutable access to precursors
     std::vector<Precursor>& getPrecursors();
 
     /// returns the const begin iterator of the container
-    inline const_bin_iterator begin() const
-    {
-      return bins_.begin();
-    }
+    inline const_bin_iterator begin() const { return bins_.begin(); }
 
     /// returns the const end iterator of the container
-    inline const_bin_iterator end() const
-    {
-      return bins_.end();
-    }
+    inline const_bin_iterator end() const { return bins_.end(); }
 
     /// returns the begin iterator of the container
-    inline bin_iterator begin()
-    {
-      return bins_.begin();
-    }
+    inline bin_iterator begin() { return bins_.begin(); }
 
     /// returns the end iterator of the container
-    inline bin_iterator end()
-    {
-      return bins_.end();
-    }
+    inline bin_iterator end() { return bins_.end(); }
 
-    /// function to check comparability of two BinnedSpectrum objects, i.e. if they have equal bin size and spread
-    bool checkCompliance(const BinnedSpectrum& bs) const;
-
+    /// Function to check comparability of two BinnedSpectrum objects,
+    /// That is, if they have equal bin size and spread
+    static bool isCompatible(const BinnedSpectrum& a, const BinnedSpectrum& b);
   };
 
 }

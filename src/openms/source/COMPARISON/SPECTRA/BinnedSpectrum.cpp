@@ -29,12 +29,11 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Mathias Walzer $
-// $Authors: $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 //
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-
 
 using namespace std;
 
@@ -95,7 +94,7 @@ namespace OpenMS
       {
         bins_[idx + j + 1] = bins_.at(idx + j + 1) + p.getIntensity();
         // prevent spreading over left boundaries
-        if (idx >= j + 1)
+        if (idx >= 0)
         {
           bins_[idx - j - 1] = bins_.at(idx - j - 1) + p.getIntensity();
         }
@@ -103,10 +102,18 @@ namespace OpenMS
     }
   }
 
-  //yields false if given BinnedSpectrum size or spread differs from this one (comparing those might crash)
-  bool BinnedSpectrum::checkCompliance(const BinnedSpectrum& bs) const
+  // static
+  bool BinnedSpectrum::isCompatible(const BinnedSpectrum& a, const BinnedSpectrum& b)
   {
-    return std::tie(bin_size_, bin_spread_) == std::tie(bs.bin_size_, bs.bin_spread_);
+    // check if bin size and spread are equal
+    return std::tie(a.bin_size_, a.bin_spread_) 
+        == std::tie(b.bin_size_, b.bin_spread_);
   }
+
+  bool BinnedSpectrum::operator!=(const BinnedSpectrum& rhs) const
+  {
+    return !(operator==(rhs));
+  }
+
 }
 

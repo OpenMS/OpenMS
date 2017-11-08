@@ -182,11 +182,12 @@ START_SECTION((void setBinning()))
 }
 END_SECTION
 
-START_SECTION((bool checkCompliance(const BinnedSpectrum &bs) const ))
+// static
+START_SECTION((bool BinnedSpectrum::isCompatible(const BinnedSpectrum& a, const BinnedSpectrum& b)))
 {
   BinnedSpectrum bs2(1.234, 2, s1);
-  TEST_EQUAL(bs1->checkCompliance(bs2), false)
-  TEST_EQUAL(bs2.checkCompliance(bs2), true)
+  TEST_EQUAL(BinnedSpectrum::isCompatible(*bs1, bs2), false)
+  TEST_EQUAL(BinnedSpectrum::isCompatible(*bs1, *bs1), true)
 }
 END_SECTION
 

@@ -78,9 +78,8 @@ namespace OpenMS
 
   double BinnedSharedPeakCount::operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
   {
-    if (!spec1.checkCompliance(spec2))
+    if (!BinnedSpectrum::isCompatible(spec1, spec2))
     {
-      cout << "incompatible" << endl;
       throw BinnedSpectrumCompareFunctor::IncompatibleBinning(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "");
     }
 

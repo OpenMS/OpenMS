@@ -79,7 +79,7 @@ namespace OpenMS
   double BinnedSumAgreeingIntensities::operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
   {
     // avoid crash while comparing
-    if (!spec1.checkCompliance(spec2))
+    if (!BinnedSpectrum::isCompatible(spec1, spec2))
     {
       throw IncompatibleBinning(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "");
     }
