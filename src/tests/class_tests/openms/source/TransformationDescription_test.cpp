@@ -258,6 +258,12 @@ START_SECTION((void getModelParameters(Param& params) const))
 	TEST_EQUAL(params, Param());
 	params.setValue("slope", 2.5);
 	params.setValue("intercept", -100.0);
+  params.setValue("x_weight", "");
+  params.setValue("y_weight", "");
+  params.setValue("x_datum_min", 1e-15);
+  params.setValue("y_datum_min", 1e-15);
+  params.setValue("x_datum_max", 1e15);
+  params.setValue("y_datum_max", 1e15);
 	const Param const_params = params;
 	td.fitModel("linear", const_params);
 	params = td.getModelParameters();

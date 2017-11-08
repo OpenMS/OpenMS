@@ -43,7 +43,7 @@
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -147,7 +147,7 @@ protected:
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const;
+      void writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const;
 
       /// Helper method that writes the modification search params (fixed or variable)
       void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;

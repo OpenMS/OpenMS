@@ -1000,6 +1000,41 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
 
 END_SECTION
 
+START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const))
+{
+  MzMLFile file;
+
+  //test with full file
+  {
+    //load map
+    PeakMap exp_original;
+    file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"),exp_original);
+    //store map
+    std::string out;
+    file.storeBuffer(out,exp_original);
+    TEST_EQUAL(out.size(), 36007)
+    TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
+    TEST_EQUAL(out.substr(36007-99, 36007-1), "</indexList>\n<indexListOffset>35559</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+
+    TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
+    TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
+  }
+
+  //test with empty map
+  {
+    PeakMap empty;
+
+    //store map
+    std::string out;
+    file.storeBuffer(out,empty);
+    TEST_EQUAL(out.size(), 3167)
+    TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
+    TEST_EQUAL(out.substr(3167-98, 3167-1), "</indexList>\n<indexListOffset>2978</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+  }
+
+}
+END_SECTION
+
 START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr))
   std::string tmp_filename;
   MzMLFile file;

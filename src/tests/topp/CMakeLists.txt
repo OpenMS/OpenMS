@@ -411,7 +411,7 @@ set_tests_properties("TOPP_FileConverter_24_out" PROPERTIES DEPENDS "TOPP_FileCo
 add_test("TOPP_FileConverter_25" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_25.tmp -process_lowmemory -in_type mzML -out_type mzML -lossy_compression)
 add_test("TOPP_FileConverter_25_out" ${DIFF} -in1 FileConverter_25.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_25_output.mzML )
 set_tests_properties("TOPP_FileConverter_25_out" PROPERTIES DEPENDS "TOPP_FileConverter_25")
-# Purpose: test  mzXML conversion with MaxQuant compatibility options (should add a scan index, thermo manufacturer and other things)
+# Purpose: test mzXML conversion with MaxQuant compatibility options (should add a scan index, Thermo manufacturer and other things)
 add_test("TOPP_FileConverter_26" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_26.tmp -force_MaxQuant_compatibility -out_type mzXML)
 add_test("TOPP_FileConverter_26_out" ${DIFF} -in1 FileConverter_26.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_26_output.mzML )
 set_tests_properties("TOPP_FileConverter_26_out" PROPERTIES DEPENDS "TOPP_FileConverter_26")
@@ -809,6 +809,10 @@ set_tests_properties("TOPP_IDFileConverter_21_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_22" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.mzid -out IDFileConverter_22_output.tmp -out_type idXML -mz_file ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -add_ionmatch_annotation 0.01)
 add_test("TOPP_IDFileConverter_22_out1" ${DIFF} -in1 IDFileConverter_22_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_22_output.idXML -whitelist "IdentificationRun date" )
 set_tests_properties("TOPP_IDFileConverter_22_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_22")
+# Crux mzid
+add_test("TOPP_IDFileConverter_23" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_23_input.mzid -out IDFileConverter_23_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_23_out1" ${DIFF} -in1 IDFileConverter_23_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_23_output.idXML -whitelist "IdentificationRun date" )
+set_tests_properties("TOPP_IDFileConverter_23_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_23")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -1019,6 +1023,11 @@ add_test("TOPP_MascotAdapter_2" ${TOPP_BIN_PATH}/MascotAdapter -test -in ${DATA_
 add_test("TOPP_MascotAdapter_2_out1" ${DIFF} -in1 MascotAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MascotAdapter_2_output.idXML )
 set_tests_properties("TOPP_MascotAdapter_2_out1" PROPERTIES DEPENDS "TOPP_MascotAdapter_2")
 
+### SpecLibSearcher tests
+add_test("TOPP_SpecLibSearcher_1" ${TOPP_BIN_PATH}/SpecLibSearcher -test -ini ${DATA_DIR_TOPP}/SpecLibSearcher_1_parameters.ini -in ${DATA_DIR_TOPP}/SpecLibSearcher_1.mzML -lib ${DATA_DIR_TOPP}/SpecLibSearcher_1.MSP -out SpecLibSearcher_1.tmp)
+add_test("TOPP_SpecLibSearcher_1_out1" ${DIFF} -in1 SpecLibSearcher_1.tmp  -in2 ${DATA_DIR_TOPP}/SpecLibSearcher_1.idXML -whitelist "?xml-stylesheet" "IdentificationRun date" "db=")
+set_tests_properties("TOPP_SpecLibSearcher_1_out1" PROPERTIES DEPENDS "TOPP_SpecLibSearcher_1")
+
 if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
   # MRM / SWATH tests (from OpenSWATH)
@@ -1166,12 +1175,14 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_2_step1")
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_2_out2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_2_step2")
 
-  add_test("TOPP_OpenSwathMzMLFileCacher_test_3_step1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_1_input.mzML -out OpenSwathMzMLFileCacher_3_input.tmp.sqMass -test)
+  # Test conversion to sqMass with lossy conversion
+  add_test("TOPP_OpenSwathMzMLFileCacher_test_3_step1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_1_input.mzML -out OpenSwathMzMLFileCacher_3_input.tmp.sqMass -test -lossy_compression true -lossy_mass_accuracy 1e-4)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_3_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathMzMLFileCacher_3_input.tmp.sqMass -out OpenSwathMzMLFileCacher_3_output.tmp.mzML -test)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_3_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_3_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_3_output.mzML)
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_3_step2" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_3_step1")
   set_tests_properties("TOPP_OpenSwathMzMLFileCacher_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathMzMLFileCacher_test_3_step2")
 
+  # Test conversion to sqMass without lossy conversion
   add_test("TOPP_OpenSwathMzMLFileCacher_test_4_step1" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_2_input.chrom.mzML -out OpenSwathMzMLFileCacher_4_input.tmp.sqMass -test)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_4_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathMzMLFileCacher_4_input.tmp.sqMass -out OpenSwathMzMLFileCacher_4_output.tmp.mzML -test)
   add_test("TOPP_OpenSwathMzMLFileCacher_test_4_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 OpenSwathMzMLFileCacher_4_output.tmp.mzML -in2 ${DATA_DIR_TOPP}/OpenSwathMzMLFileCacher_4_output.mzML)
@@ -1278,7 +1289,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   # add_test("TOPP_OpenSwathWorkflow_14" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr OpenSwathWorkflow_14_input.pqp.tmp -tr_type pqp -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_14.chrom.mzML.tmp -out_osw OpenSwathWorkflow_14.osw -test -use_ms1_traces)
   add_test("TOPP_OpenSwathWorkflow_14" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr OpenSwathWorkflow_14_input.pqp.tmp -tr_type pqp -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_14.chrom.tmp.sqMass -out_osw OpenSwathWorkflow_14.osw -test -use_ms1_traces)
   # add_test("TOPP_OpenSwathWorkflow_14_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_4.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_14_output.chrom.mzML)
-  add_test("TOPP_OpenSwathWorkflow_14_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathWorkflow_14.chrom.tmp.sqMass -out OpenSwathWorkflow_14.chrom.tmp.mzML -test)
+  add_test("TOPP_OpenSwathWorkflow_14_step2" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in OpenSwathWorkflow_14.chrom.tmp.sqMass -out OpenSwathWorkflow_14.chrom.tmp.mzML -test -lossy_compression false -lossy_mass_accuracy 1e-4 -full_meta false)
   add_test("TOPP_OpenSwathWorkflow_14_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_14.chrom.tmp.mzML  -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_14_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_14" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_14_prepare")
   set_tests_properties("TOPP_OpenSwathWorkflow_14_step2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_14")
@@ -1291,6 +1302,15 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathWorkflow_15_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_15.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_15_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_15_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_15")
   set_tests_properties("TOPP_OpenSwathWorkflow_15_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_15")
+
+  # Also test with ms1 traces (precursor ion trace)
+  add_test("TOPP_OpenSwathWorkflow_16_prepare" ${TOPP_BIN_PATH}/OpenSwathMzMLFileCacher -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -out OpenSwathWorkflow_16_input.sqMass -test -lossy_compression true -lossy_mass_accuracy 1e-4 -full_meta true)
+  add_test("TOPP_OpenSwathWorkflow_16" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in OpenSwathWorkflow_16_input.sqMass -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_16.chrom.mzML.tmp -out_features OpenSwathWorkflow_16.featureXML.tmp -test -use_ms1_traces -readOptions workingInMemory)
+  add_test("TOPP_OpenSwathWorkflow_16_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_16.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_16_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_16_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_16.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_16_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_16" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_16_prepare")
+  set_tests_properties("TOPP_OpenSwathWorkflow_16_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_16")
+  set_tests_properties("TOPP_OpenSwathWorkflow_16_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_16")
 
   add_test("TOPP_OpenSwathFileSplitter_1" ${TOPP_BIN_PATH}/OpenSwathFileSplitter -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -outputDirectory "" -test)
   add_test("TOPP_OpenSwathFileSplitter_1_out1" ${DIFF} -whitelist "id=" -in1 openswath_tmpfile_ms1.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_ms1.mzML)

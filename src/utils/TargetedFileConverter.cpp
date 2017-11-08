@@ -61,16 +61,16 @@ using namespace OpenMS;
   The OpenSWATH transition TSV files need to have the following headers, all fields need to be separated by tabs:
 
         <ul>
-          <li> PrecursorMz (float) </li>
-          <li> ProductMz (float) </li>
+          <li> PrecursorMz* (float) </li>
+          <li> ProductMz* (float) </li>
           <li> Tr_recalibrated (float) (normalized retention time) </li>
-          <li> transition_name (free text, needs to be unique for each transition [in this file]) </li>
+          <li> transition_name* (free text, needs to be unique for each transition [in this file]) </li>
           <li> CollisionEnergy (float) </li>
-          <li> LibraryIntensity (float) </li>
-          <li> transition_group_id (free text, designates the transition group [e.g. peptide] to which this transition belongs) </li>
+          <li> LibraryIntensity* (float) </li>
+          <li> transition_group_id* (free text, designates the transition group [e.g. peptide] to which this transition belongs) </li>
           <li> decoy (1==decoy, 0== no decoy; determines whether the transition is a decoy transition or not) </li>
-          <li> PeptideSequence  (free text, sequence only (no modifications) ) </li>
-          <li> ProteinName (free text) </li>
+          <li> PeptideSequence** (free text, sequence only (no modifications) ) </li>
+          <li> ProteinName** (free text) </li>
           <li> Annotation (free text, e.g. y7) </li>
           <li> FullUniModPeptideName  (free text, should contain modifications<sup>1</sup>)  </li>
           <li> PrecursorCharge (integer, contains the charge of the precursor) </li>
@@ -81,6 +81,17 @@ using namespace OpenMS;
           <li> FragmentCharge (integer, contains the fragment charge) </li>
           <li> FragmentSeriesNumber (integer, e.g. for y7 use "7" here) </li>
         </ul>
+
+  For targeted metabolomics files, the following CSV fields are also supported
+
+        <ul>
+          <li> CompoundName** </li>
+          <li> SMILES </li>
+          <li> SumFormula </li>
+        </ul>
+
+  Fields indicated with * are required while fields indicated with **
+  are only required in the specific context (proteomics or metabolomics).
 
 <p>
 Remarks:
