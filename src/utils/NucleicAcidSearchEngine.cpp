@@ -264,7 +264,7 @@ protected:
           vector<Size> extensions;
           for (Size i = 0; i < max_isopeaks; ++i)
           {
-            double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
+            double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / abs(q);
             Size p = old_spectrum.findNearest(expected_mz);
             double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
             if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
@@ -292,8 +292,8 @@ protected:
                 }
               }
 
-*/
               // averagine check passed
+*/
               extensions.push_back(p);
             }
           }
