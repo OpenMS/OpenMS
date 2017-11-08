@@ -342,8 +342,8 @@ END_SECTION
 START_SECTION(setMinScore())
 {
   TEST_EQUAL(ptr->getMinScore(), 0.7)
-  ptr->setMinScore(0.5);
-  TEST_EQUAL(ptr->getMinScore(), 0.5)
+  ptr->setMinScore(2.5);
+  TEST_EQUAL(ptr->getMinScore(), 2.5)
 }
 END_SECTION
 
@@ -703,6 +703,7 @@ START_SECTION(extractSpectra())
   ptr->setTICWeight(1.0);
   ptr->setFWHMWeight(1.0);
   ptr->setSNRWeight(1.0);
+  ptr->setMinScore(15);
 
   vector<MSSpectrum> extracted_spectra;
   FeatureMap extracted_features;

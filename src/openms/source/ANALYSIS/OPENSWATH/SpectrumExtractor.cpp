@@ -213,9 +213,8 @@ namespace OpenMS
 
     params.setValue("rt_window", 30, "Retention time window in seconds.");
 
-    params.setValue("min_score", 0.7, "Minimum score.");
+    params.setValue("min_score", 0.7, "The minimum score a spectrum must have to be assignable to a transition.");
     params.setMinFloat("min_score", 0.0);
-    params.setMaxFloat("min_score", 1.0);
 
     params.setValue("min_forward_match", 0.9, "Minimum forward match.");
     params.setMinFloat("min_forward_match", 0.0);
@@ -257,8 +256,7 @@ namespace OpenMS
     LOG_DEBUG << " ====  Picking spectrum " << spectrum.getNativeID() << " with " << spectrum.size() << " peaks ";
     if (spectrum.empty())
     {
-        LOG_DEBUG << std::endl;
-        LOG_DEBUG << " - Error: spectrum is empty, abort picking."  << std::endl;
+        LOG_DEBUG << std::endl << " - Error: spectrum is empty, abort picking."  << std::endl;
         return;
     }
     LOG_DEBUG << "(start at RT " << spectrum[0].getMZ() << " to RT " << spectrum[spectrum.size() - 1].getMZ() << ") " << std::endl;
@@ -305,7 +303,9 @@ namespace OpenMS
     FeatureMap& features
   )
   {
-    std::vector<ReactionMonitoringTransition> transitions = targeted_exp.getTransitions();
+    annotated_spectra.clear();
+    features.clear(true);
+    const std::vector<ReactionMonitoringTransition> transitions = targeted_exp.getTransitions();
     for (UInt i=0; i<spectra.size(); ++i)
     {
       MSSpectrum spectrum = spectra[i];
@@ -313,7 +313,7 @@ namespace OpenMS
       const double spectrum_rt = spectrum.getRT() / 60.0;
       const double rt_left_lim = spectrum_rt - getRTWindow() / 60.0 / 2.0;
       const double rt_right_lim = spectrum_rt + getRTWindow() / 60.0 / 2.0;
-      std::vector<Precursor> precursors = spectrum.getPrecursors();
+      const std::vector<Precursor> precursors = spectrum.getPrecursors();
       if (precursors.size() < 1)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -355,6 +355,8 @@ namespace OpenMS
     FeatureMap& features
   )
   {
+    scored_spectra.clear();
+    scored_spectra.resize(annotated_spectra.size());
     for (UInt i=0; i<annotated_spectra.size(); ++i)
     {
       double total_tic = 0;
@@ -385,35 +387,32 @@ namespace OpenMS
       }
       avgSNR /= annotated_spectra[i].size();
 
-      double log10_total_tic = log10(total_tic);
-      double inverse_avgFWHM = 1.0 / avgFWHM;
-      double score = log10_total_tic * getTICWeight() + inverse_avgFWHM * getFWHMWeight() + avgSNR * getSNRWeight();
+      const double log10_total_tic = log10(total_tic);
+      const double inverse_avgFWHM = 1.0 / avgFWHM;
+      const double score = log10_total_tic * getTICWeight() + inverse_avgFWHM * getFWHMWeight() + avgSNR * getSNRWeight();
 
-      MSSpectrum spectrum = annotated_spectra[i];
-      spectrum.getFloatDataArrays().resize(5);
-      spectrum.getFloatDataArrays()[1].setName("score");
-      spectrum.getFloatDataArrays()[1].push_back(score);
+      scored_spectra[i] = annotated_spectra[i];
+      scored_spectra[i].getFloatDataArrays().resize(5);
+      scored_spectra[i].getFloatDataArrays()[1].setName("score");
+      scored_spectra[i].getFloatDataArrays()[1].push_back(score);
       features[i].setIntensity(score); // The intensity of a feature is (proportional to) its total ion count. http://ftp.mi.fu-berlin.de/pub/OpenMS/develop-documentation/html/classOpenMS_1_1Feature.html
-      spectrum.getFloatDataArrays()[2].setName("log10_total_tic");
-      spectrum.getFloatDataArrays()[2].push_back(log10_total_tic);
+      scored_spectra[i].getFloatDataArrays()[2].setName("log10_total_tic");
+      scored_spectra[i].getFloatDataArrays()[2].push_back(log10_total_tic);
       features[i].setMetaValue("log10_total_tic", log10_total_tic);
-      spectrum.getFloatDataArrays()[3].setName("inverse_avgFWHM");
-      spectrum.getFloatDataArrays()[3].push_back(inverse_avgFWHM);
+      scored_spectra[i].getFloatDataArrays()[3].setName("inverse_avgFWHM");
+      scored_spectra[i].getFloatDataArrays()[3].push_back(inverse_avgFWHM);
       features[i].setMetaValue("inverse_avgFWHM", inverse_avgFWHM);
       features[i].setMetaValue("avgFWHM", avgFWHM);
-      spectrum.getFloatDataArrays()[4].setName("avgSNR");
-      spectrum.getFloatDataArrays()[4].push_back(avgSNR);
+      scored_spectra[i].getFloatDataArrays()[4].setName("avgSNR");
+      scored_spectra[i].getFloatDataArrays()[4].push_back(avgSNR);
       features[i].setMetaValue("avgSNR", avgSNR);
-      scored_spectra.push_back(spectrum);
 
-      std::vector<Feature> subordinates;
+      std::vector<Feature> subordinates(picked_spectra[i].size());
       for (UInt j=0; j<picked_spectra[i].size(); ++j)
       {
-        Feature feature;
-        feature.setMZ(picked_spectra[i][j].getMZ());
-        feature.setIntensity(picked_spectra[i][j].getIntensity());
-        feature.setMetaValue("FWHM", picked_spectra[i].getFloatDataArrays()[0][j]);
-        subordinates.push_back(feature);
+        subordinates[j].setMZ(picked_spectra[i][j].getMZ());
+        subordinates[j].setIntensity(picked_spectra[i][j].getIntensity());
+        subordinates[j].setMetaValue("FWHM", picked_spectra[i].getFloatDataArrays()[0][j]);
       }
       features[i].setSubordinates(subordinates);
     }
@@ -427,7 +426,7 @@ namespace OpenMS
   )
   {
     // get the spectra from the experiment
-    std::vector<MSSpectrum> spectra = experiment.getSpectra();
+    const std::vector<MSSpectrum> spectra = experiment.getSpectra();
 
     // annotate spectra
     std::vector<MSSpectrum> annotated;
@@ -458,7 +457,11 @@ namespace OpenMS
     std::unordered_map<std::string,UInt> transition_best_spec;
     for (UInt i=0; i<scored_spectra.size(); ++i)
     {
-      String transition_name = scored_spectra[i].getName();
+      if (scored_spectra[i].getFloatDataArrays()[1][0] < getMinScore())
+      {
+        continue;
+      }
+      const String transition_name = scored_spectra[i].getName();
       std::unordered_map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
       if (it == transition_best_spec.end())
       {
@@ -471,10 +474,20 @@ namespace OpenMS
       }
     }
 
-    for (auto it = transition_best_spec.cbegin(); it!=transition_best_spec.cend(); ++it)
+    if (features.size())
     {
-      selected_spectra.push_back(scored_spectra[it->second]);
-      selected_features.push_back(features[it->second]);
+      for (auto it = transition_best_spec.cbegin(); it!=transition_best_spec.cend(); ++it)
+      {
+        selected_spectra.push_back(scored_spectra[it->second]);
+        selected_features.push_back(features[it->second]);
+      }
+    }
+    else
+    {
+      for (auto it = transition_best_spec.cbegin(); it!=transition_best_spec.cend(); ++it)
+      {
+        selected_spectra.push_back(scored_spectra[it->second]);
+      }
     }
   }
 
@@ -483,8 +496,8 @@ namespace OpenMS
     std::vector<MSSpectrum>& selected_spectra
   )
   {
-    FeatureMap features;
-    FeatureMap extracted_features;
-    selectSpectra(scored_spectra, selected_spectra, features, extracted_features);
+    FeatureMap dummy_features;
+    FeatureMap dummy_selected_features;
+    selectSpectra(scored_spectra, selected_spectra, dummy_features, dummy_selected_features);
   }
 }
