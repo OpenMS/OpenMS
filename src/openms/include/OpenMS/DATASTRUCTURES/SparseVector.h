@@ -196,6 +196,40 @@ public:
       operator[](size_++) = value;
     }
 
+    /// add two SparseVectors in-place
+    SparseVector& operator+=(SparseVector& rhs)
+    {
+      size_ = rhs.size_ > size_ ? rhs.size_ : size_;
+      auto it = rhs.begin();
+      while(it != rhs.end())
+      {
+        const Value& v = (Value)*it;
+        if (v != sparse_element_)
+        {
+          values_[it.position()] += v; 
+        }
+        it.hop();
+      }
+    }
+
+    // add two SparseVectors
+    SparseVector operator+(SparseVector& rhs)
+    {
+      SparseVector ret(*this);
+      ret.size_ = rhs.size_ > ret.size_ ? rhs.size_ : ret.size_;
+      auto it = rhs.begin();
+      while(it != rhs.end())
+      {
+        const Value& v = (Value)*it;
+        if (v != sparse_element_)
+        {
+          ret.values_[it.position()] += v;
+        } 
+        it.hop();
+      }
+      return ret;
+    }
+
     /** at (see stl vector docs)
 
             @param pos index at which the desired element stays

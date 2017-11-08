@@ -95,7 +95,7 @@ namespace OpenMS
         bins_[idx + j + 1] = bins_.at(idx + j + 1) + p.getIntensity();
         
         // prevent spreading over left boundaries
-        if (idx >= 0)
+        if (static_cast<int>(idx - j - 1) >= 0)
         {
           bins_[idx - j - 1] = bins_.at(idx - j - 1) + p.getIntensity();
         }
