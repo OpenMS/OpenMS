@@ -181,6 +181,7 @@ namespace OpenMS
       intensity_min = intensity_left;
       rt_min = best_left;
     }
+    // calculate the average noise level using the sin/cos rule
     double delta_int = intensity_max - intensity_min;
     double delta_rt = best_right - best_left;
     double delta_rt_apex = std::fabs(rt_min-rt_apex);
@@ -199,7 +200,11 @@ namespace OpenMS
 
       if (it->getMZ() >= best_left && it_prev->getMZ() < best_right)
       {
-        background = background + it->getIntensity();
+        // calculate the background using the formula
+        // y = mx + b where x = retention time, m = slope, b = left intensity
+        double delta_int = intensity_right - intensity_left; // sign will determine line direction
+        double background_int_apex = delta_int/delta_rt*it->getMZ() + intensity_left;
+        background = background + background_int_apex;
       }
     }
   }
