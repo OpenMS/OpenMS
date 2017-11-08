@@ -76,7 +76,7 @@ namespace OpenMS
 
   void BinnedSpectrum::binSpectrum_(const PeakSpectrum& ps)
   {
-    // TODO: add assertion to check if spectrum ps is sorted by position or retrieve maximum differently
+    OPENMS_PRECONDITION(ps.isSorted(), "Spectrum needs to be sorted by m/z.");
 
     const Size highest_index = floor(ps.back().getMZ() / bin_size_) + bin_spread_;
     bins_ = SparseVector<float>((UInt)highest_index + 1, 0, 0);
@@ -94,8 +94,9 @@ namespace OpenMS
       for (Size j = 0; j < bin_spread_; ++j)
       {
         bins_[idx + j + 1] = bins_.at(idx + j + 1) + p.getIntensity();
+        
         // prevent spreading over left boundaries
-        if (idx >= j + 1)
+        if (idx >= 0)
         {
           bins_[idx - j - 1] = bins_.at(idx - j - 1) + p.getIntensity();
         }
