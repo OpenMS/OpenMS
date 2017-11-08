@@ -147,10 +147,16 @@ namespace OpenMS
     double intensity_left = 0.0;
     double rt_apex = 0.0;
     double intensity_right = 0.0;
+    int nr_points = 0;
     for (MSChromatogram::const_iterator it = std::next(chromatogram.begin()); it != chromatogram.end(); ++it)
     {
       MSChromatogram::const_iterator it_prev = it;
       --it_prev; //previous point
+
+      if (it->getMZ() >= best_left && && it_prev->getMZ() < best_right)
+      {
+        nr_points++;
+      }
 
       if (it->getMZ() >= best_left && it_prev->getMZ() < best_left)
       {
@@ -185,7 +191,9 @@ namespace OpenMS
     double delta_int_apex = delta_int*delta_rt_apex/delta_rt;
 
     avg_noise_level = intensity_min + delta_int_apex;
-    background = intensity_min*delta_rt + 0.5*delta_int*delta_rt;
+    //NOTE: formula for calculating the background using the trapezoidal rule (future PR)
+    // background = intensity_min*delta_rt + 0.5*delta_int*delta_rt;
+    background = avg_noise_level * nr_points;
   }
 
   void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx)
