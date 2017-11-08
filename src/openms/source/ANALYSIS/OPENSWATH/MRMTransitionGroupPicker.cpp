@@ -240,7 +240,6 @@ namespace OpenMS
     double start_intensity(0), end_intensity(0);
     double delta_rt, delta_int, height_5, height_10, height_50;
     
-    // pass 1
     for (MSChromatogram::const_iterator it = chromatogram.begin() + 1; it != chromatogram.end(); ++it)
     {
       MSChromatogram::const_iterator it_prev = it;
@@ -251,11 +250,11 @@ namespace OpenMS
       double retention_time_prev = it_prev->getMZ();
 
       // start and end intensities
-      if (retention_time_prev <= best_left && retention_time >= best_left)
+      if (retention_time_prev < best_left && retention_time >= best_left)
       {
-        start_intensity = intensity;
+        start_intensity = intensity_prev;
       }
-      else if (retention_time_prev <= best_right && retention_time >= best_right)
+      else if (retention_time_prev < best_right && retention_time >= best_right)
       {
         end_intensity = intensity;
       }
