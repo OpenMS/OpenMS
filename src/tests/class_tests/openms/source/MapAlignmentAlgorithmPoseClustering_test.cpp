@@ -89,7 +89,9 @@ START_SECTION((void align(const PeakMap& map, TransformationDescription& trafo))
   TransformationModelLinear lm(trafo.getDataPoints(),
                                trafo.getModelParameters());
   double slope, intercept;
-  lm.getParameters(slope, intercept);
+  String x_weight, y_weight;
+  double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
+  lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
   TEST_REAL_SIMILAR(slope, 1.01164);
   TEST_REAL_SIMILAR(intercept, -32.0912);
 }
