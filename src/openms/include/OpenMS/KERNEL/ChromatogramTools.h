@@ -180,6 +180,7 @@ public:
                 chroms_xic[mz].getPrecursor().setMZ(mz);
                 // chroms_xic[mz].setProduct(prod); // probably no product
                 chroms_xic[mz].setInstrumentSettings(it->getInstrumentSettings());
+                chroms_xic[mz].getPrecursor().setMetaValue("description", String("XIC @ " + String(mz)));
                 chroms_xic[mz].setAcquisitionInfo(it->getAcquisitionInfo());
                 chroms_xic[mz].setSourceFile(it->getSourceFile());
               }
