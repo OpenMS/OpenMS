@@ -76,6 +76,8 @@ namespace OpenMS
   void BinnedSpectrum::binSpectrum_(const PeakSpectrum& ps)
   {
     OPENMS_PRECONDITION(ps.isSorted(), "Spectrum needs to be sorted by m/z.");
+    
+    if (ps.empty()) { return; }
 
     const size_t highest_index = getBinIndex(ps.back().getMZ()) + bin_spread_;
     bins_ = SparseVector<float>(highest_index + 1, 0, 0);

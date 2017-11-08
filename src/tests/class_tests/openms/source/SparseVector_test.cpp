@@ -187,6 +187,13 @@ START_SECTION((SparseVector operator+(const SparseVector &source)))
   TEST_EQUAL(c.at(2), 1.2);
   TEST_EQUAL(c.at(3), 1.3);
   TEST_EQUAL(c.at(4), 1.4);
+
+  c = e + a;
+  TEST_EQUAL(c.at(0), 1.0)
+  TEST_EQUAL(c.at(1), 1.1);
+  TEST_EQUAL(c.at(2), 1.2);
+  TEST_EQUAL(c.at(3), 1.3);
+  TEST_EQUAL(c.at(4), 1.4);
 }
 END_SECTION
 
