@@ -153,7 +153,7 @@ namespace OpenMS
       MSChromatogram::const_iterator it_prev = it;
       --it_prev; //previous point
 
-      if (it->getMZ() >= best_left && && it_prev->getMZ() < best_right)
+      if (it->getMZ() >= best_left && it_prev->getMZ() < best_right)
       {
         nr_points++;
       }
