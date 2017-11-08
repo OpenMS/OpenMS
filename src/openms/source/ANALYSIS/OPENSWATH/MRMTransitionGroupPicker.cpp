@@ -192,7 +192,7 @@ namespace OpenMS
     // background = intensity_min*delta_rt + 0.5*delta_int*delta_rt;
 
     // calculate the background
-    double background = 0;
+    background = 0;
     for (MSChromatogram::const_iterator it = std::next(chromatogram.begin()); it != chromatogram.end(); ++it)
     {
       MSChromatogram::const_iterator it_prev = it;
