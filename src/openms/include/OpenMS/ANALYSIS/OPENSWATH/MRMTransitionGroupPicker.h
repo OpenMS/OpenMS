@@ -502,12 +502,14 @@ public:
     void findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
     
     /**
-      @brief Will use the chromatogram to estimate the background noise 
-        using the average intensity to the left and right of the peak borders,
-        and then subtract it
+      @brief Use the peak boundaries to estimate the background noise 
 
-        The background is estimated by averaging the noise on either side of the
-        peak and then subtracting that from the total intensity.
+        Background estimation is computed as the average intensity of the left and
+        right peak borders to produce the average noise level. The background is then
+        computed by integrating (multiplying by number of points) over all data points,
+        yielding a trapezoidal area under the curve. This assumes that all points are
+        equally spaced.
+
     */
     void calculateBgEstimationAverage_(const MSChromatogram& chromatogram,
                                   double best_left, double best_right, double & background, double & avg_noise_level);
