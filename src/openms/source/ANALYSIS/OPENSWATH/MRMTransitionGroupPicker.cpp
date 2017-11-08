@@ -42,6 +42,14 @@
 namespace OpenMS
 {
 
+  // Simple linear interpolation at point x between x0 and x1
+  double lin_interpolate(double x, double x0, double x1, double y0, double y1)
+  {
+    double slope = (y1 - y0) / (x1 - x0);
+    double delta_y = (x - x0) * slope;
+    return y0 + delta_y;
+  }
+
   MRMTransitionGroupPicker::MRMTransitionGroupPicker() :
     DefaultParamHandler("MRMTransitionGroupPicker")
   {
@@ -66,6 +74,9 @@ namespace OpenMS
 
     defaults_.setValue("compute_peak_quality", "false", "Tries to compute a quality value for each peakgroup and detect outlier transitions. The resulting score is centered around zero and values above 0 are generally good and below -1 or -2 are usually bad.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("compute_peak_quality", ListUtils::create<String>("true,false"));
+    
+    defaults_.setValue("compute_peak_shape_metrics", "false", "Calulates various peak shape metrics (e.g., tailing) that can be used for downstream QC/QA.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("compute_peak_shape_metrics", ListUtils::create<String>("true,false"));
 
     defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
 
@@ -97,6 +108,7 @@ namespace OpenMS
     use_precursors_ = (bool)param_.getValue("use_precursors").toBool();
     recalculate_peaks_max_z_ = (double)param_.getValue("recalculate_peaks_max_z");
     compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
+    compute_peak_shape_metrics_ = (bool)param_.getValue("compute_peak_shape_metrics").toBool();
     min_qual_ = (double)param_.getValue("minimal_quality");
     min_peak_width_ = (double)param_.getValue("min_peak_width");
     resample_boundary_ = (double)param_.getValue("resample_boundary");
@@ -158,6 +170,184 @@ namespace OpenMS
         }
       }
     }
+  }
+  
+  void MRMTransitionGroupPicker::calculatePeakApexInt_(const MSChromatogram& chromatogram,
+    double best_left, double best_right, 
+    ConvexHull2D::PointArrayType & hull_points,
+    double & intensity_sum, 
+    double & intensity_integral,
+    double & rt_sum,
+    double & peak_apex_int,
+    double & peak_apex_rt)
+  {
+    intensity_sum = 0.0;
+    rt_sum = 0.0;
+    peak_apex_int = -1;
+    double peak_apex_dist = std::fabs(chromatogram.begin()->getMZ() - peak_apex_rt);
+    int peak_nr (0);
+    bool added_right(false);
+    // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
+    MSChromatogram::const_iterator prev_it = chromatogram.begin();
+    for (MSChromatogram::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
+    {
+      if (it->getMZ() > best_left && it->getMZ() < best_right)
+      {
+        if (peak_nr == 0 && it != chromatogram.begin())
+        {
+          // add area between first measured peak inside the peak boundaries and start of peak to the left
+          double delta_rt = it->getRT() - best_left;
+          double interpol_intensity = lin_interpolate(best_left, prev_it->getRT(), it->getRT(), prev_it->getIntensity(), it->getIntensity());
+          intensity_integral += (interpol_intensity + it->getIntensity())/2.0 * delta_rt;
+        }
+
+        if (peak_nr > 0)
+        {
+          // add area between last peak (inside boundaries) and current peak (inside boundaries)
+          double delta_rt = it->getRT() - prev_it->getRT();
+          intensity_integral += (prev_it->getIntensity() + it->getIntensity())/2.0 * delta_rt;
+        }
+
+        DPosition<2> p;
+        p[0] = it->getMZ();
+        p[1] = it->getIntensity();
+        hull_points.push_back(p);
+        if (std::fabs(it->getMZ() - peak_apex_rt) <= peak_apex_dist)
+        {
+          peak_apex_int = p[1];
+          peak_apex_dist = std::fabs(it->getMZ() - peak_apex_rt);
+        }
+        rt_sum += it->getMZ();
+        intensity_sum += it->getIntensity();
+        peak_nr++;
+      }
+      else if (peak_nr > 0 && !added_right)
+      {
+        // add area between last measured peak inside the peak boundaries and end of peak to the right
+        double delta_rt = best_right - prev_it->getRT();
+        double interpol_intensity = lin_interpolate(best_right, prev_it->getRT(), it->getRT(), prev_it->getIntensity(), it->getIntensity());
+        intensity_integral += (prev_it->getIntensity() + interpol_intensity)/2.0 * delta_rt;
+        added_right = true;
+      }
+      prev_it = it;
+    }
+  }
+
+  void MRMTransitionGroupPicker::calculatePeakShapeMetrics_(const MSChromatogram& chromatogram, 
+    double best_left, double best_right, 
+    double peak_height, double peak_apex_rt, double avg_noise_level,
+    PeakShapeMetrics_ & peakShapeMetrics)
+  {
+    peakShapeMetrics.points_across_baseline = 0;
+    double start_intensity(0), end_intensity(0);
+    double delta_rt, delta_int, height_5, height_10, height_50;
+    
+    for (MSChromatogram::const_iterator it = chromatogram.begin() + 1; it != chromatogram.end(); ++it)
+    {
+      MSChromatogram::const_iterator it_prev = it;
+      --it_prev; //previous point
+      double intensity = std::max(it->getIntensity()-avg_noise_level, 0.0); //background-subtracted intensity
+      double intensity_prev = std::max(it_prev->getIntensity()-avg_noise_level, 0.0); //background-subtracted intensity of the previous point
+      double retention_time = it->getMZ();
+      double retention_time_prev = it_prev->getMZ();
+
+      // start and end intensities
+      if (retention_time_prev < best_left && retention_time >= best_left)
+      {
+        start_intensity = intensity_prev;
+      }
+      else if (retention_time_prev < best_right && retention_time >= best_right)
+      {
+        end_intensity = intensity;
+      }
+
+      if (retention_time >= best_left && retention_time <= best_right)
+      {
+        //start and end retention times
+        if (retention_time < peak_apex_rt)
+        {
+          // start_time_at_5
+          if (intensity >= 0.05*peak_height && 
+            intensity_prev < 0.05*peak_height && 
+            peakShapeMetrics.points_across_baseline > 1)
+          {
+            delta_rt = retention_time - retention_time_prev;
+            delta_int = intensity - intensity_prev;
+            height_5 = intensity - 0.05*peak_height;
+            peakShapeMetrics.start_time_at_5 = retention_time - delta_int*delta_rt/height_5;
+          }
+          // start_time_at_10
+          if (intensity >= 0.1*peak_height && 
+            intensity_prev < 0.1*peak_height && 
+            peakShapeMetrics.points_across_baseline > 1)
+          {
+            delta_rt = retention_time - retention_time_prev;
+            delta_int = intensity - intensity_prev;
+            height_10 = intensity - 0.1*peak_height;
+            peakShapeMetrics.start_time_at_10 = retention_time - delta_int*delta_rt/height_10;
+          }
+          // start_time_at_50
+          if (intensity >= 0.5*peak_height && 
+            intensity_prev < 0.5*peak_height && 
+            peakShapeMetrics.points_across_baseline > 1)
+          {
+            delta_rt = retention_time - retention_time_prev;
+            delta_int = intensity - intensity_prev;
+            height_50 = intensity - 0.5*peak_height;
+            peakShapeMetrics.start_time_at_50 = retention_time - delta_int*delta_rt/height_50;
+          }
+        } 
+        else if (retention_time > peak_apex_rt)
+        {
+          // end_time_at_5
+          if (intensity <= 0.05*peak_height && 
+            intensity_prev > 0.05*peak_height)
+          {
+            delta_rt = retention_time - retention_time_prev;
+            delta_int = intensity_prev - intensity;
+            height_5 = 0.05*peak_height - intensity;
+            peakShapeMetrics.end_time_at_5 = retention_time - delta_int*delta_rt/height_5;
+          }
+          // start_time_at_10
+          if (intensity <= 0.1*peak_height && 
+            intensity_prev > 0.1*peak_height)
+          {
+            delta_rt = retention_time - retention_time_prev;
+            delta_int = intensity_prev - intensity;
+            height_10 = 0.1*peak_height - intensity;
+            peakShapeMetrics.end_time_at_10 = retention_time - delta_int*delta_rt/height_10;
+          }
+          // end_time_at_50
+          if (intensity <= 0.5*peak_height && 
+          intensity_prev > 0.5*peak_height)
+          {
+            delta_rt = retention_time - retention_time_prev;
+            delta_int = intensity_prev - intensity;
+            height_50 = 0.5*peak_height - intensity;
+            peakShapeMetrics.end_time_at_50 = retention_time - delta_int*delta_rt/height_50;
+          }
+        } 
+
+        // points across the peak
+        peakShapeMetrics.points_across_baseline ++;
+        if (intensity >= 0.5*peak_height)
+        {
+          peakShapeMetrics.points_across_half_height ++;
+        }
+      }
+    }
+
+    // peak widths
+    peakShapeMetrics.width_at_5 = peakShapeMetrics.end_time_at_5 - peakShapeMetrics.start_time_at_5;
+    peakShapeMetrics.width_at_10 = peakShapeMetrics.end_time_at_10 - peakShapeMetrics.start_time_at_10;
+    peakShapeMetrics.width_at_50 = peakShapeMetrics.end_time_at_50 - peakShapeMetrics.start_time_at_50;
+    peakShapeMetrics.total_width = best_right - best_left;
+    peakShapeMetrics.slope_of_baseline = end_intensity - start_intensity;
+    peakShapeMetrics.baseline_delta_2_height = peakShapeMetrics.slope_of_baseline / peak_height;
+
+    // other
+    peakShapeMetrics.tailing_factor = peakShapeMetrics.width_at_5 / std::min(peak_apex_rt - peakShapeMetrics.start_time_at_5, peakShapeMetrics.end_time_at_5 - peak_apex_rt);
+    peakShapeMetrics.asymmetry_factor = std::min(peak_apex_rt - peakShapeMetrics.start_time_at_10, peakShapeMetrics.end_time_at_10 - peak_apex_rt) / std::max(peak_apex_rt - peakShapeMetrics.start_time_at_10, peakShapeMetrics.end_time_at_10 - peak_apex_rt);
   }
 
 }
