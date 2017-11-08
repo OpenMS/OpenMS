@@ -228,7 +228,7 @@ namespace OpenMS
     params.setValue("mz_tolerance", 0.1, "Mass to Charge tolerance.");
 
     params.setValue("mz_tolerance_units", "Da", "Mass to Charge tolerance units.");
-    params.setValidStrings("mz_tolerance_units", ListUtils::create<String>("ppm,Da"));
+    params.setValidStrings("mz_tolerance_units", ListUtils::create<String>("Da,ppm"));
 
     params.setValue("sgolay_frame_length", 15, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
     params.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
@@ -349,26 +349,26 @@ namespace OpenMS
   }
 
   void SpectrumExtractor::scoreSpectra(
-    const std::vector<MSSpectrum>& annotated,
-    const std::vector<MSSpectrum>& picked,
-    std::vector<MSSpectrum>& scored,
+    const std::vector<MSSpectrum>& annotated_spectra,
+    const std::vector<MSSpectrum>& picked_spectra,
+    std::vector<MSSpectrum>& scored_spectra,
     FeatureMap& features
   )
   {
-    for (UInt i=0; i<annotated.size(); ++i)
+    for (UInt i=0; i<annotated_spectra.size(); ++i)
     {
       double total_tic = 0;
-      for (UInt j=0; j<annotated[i].size(); ++j)
+      for (UInt j=0; j<annotated_spectra[i].size(); ++j)
       {
-        total_tic += annotated[i][j].getIntensity();
+        total_tic += annotated_spectra[i][j].getIntensity();
       }
 
       double avgFWHM = 0;
-      for (UInt j=0; j<picked[i].getFloatDataArrays()[0].size(); ++j)
+      for (UInt j=0; j<picked_spectra[i].getFloatDataArrays()[0].size(); ++j)
       {
-        avgFWHM += picked[i].getFloatDataArrays()[0][j];
+        avgFWHM += picked_spectra[i].getFloatDataArrays()[0][j];
       }
-      avgFWHM /= picked[i].getFloatDataArrays()[0].size();
+      avgFWHM /= picked_spectra[i].getFloatDataArrays()[0].size();
 
       SignalToNoiseEstimatorMedian<MSSpectrum> sne;
       Param p;
@@ -377,19 +377,19 @@ namespace OpenMS
       p.setValue("min_required_elements", 10);
       sne.setParameters(p);
       MSSpectrum::const_iterator it;
-      sne.init(annotated[i].begin(), annotated[i].end());
+      sne.init(annotated_spectra[i].begin(), annotated_spectra[i].end());
       double avgSNR = 0.0;
-      for (it=annotated[i].begin(); it!=annotated[i].end(); ++it)
+      for (it=annotated_spectra[i].begin(); it!=annotated_spectra[i].end(); ++it)
       {
         avgSNR += sne.getSignalToNoise(it);
       }
-      avgSNR /= annotated[i].size();
+      avgSNR /= annotated_spectra[i].size();
 
       double log10_total_tic = log10(total_tic);
       double inverse_avgFWHM = 1.0 / avgFWHM;
       double score = log10_total_tic * getTICWeight() + inverse_avgFWHM * getFWHMWeight() + avgSNR * getSNRWeight();
 
-      MSSpectrum spectrum = annotated[i];
+      MSSpectrum spectrum = annotated_spectra[i];
       spectrum.getFloatDataArrays().resize(5);
       spectrum.getFloatDataArrays()[1].setName("score");
       spectrum.getFloatDataArrays()[1].push_back(score);
@@ -404,15 +404,15 @@ namespace OpenMS
       spectrum.getFloatDataArrays()[4].setName("avgSNR");
       spectrum.getFloatDataArrays()[4].push_back(avgSNR);
       features[i].setMetaValue("avgSNR", avgSNR);
-      scored.push_back(spectrum);
+      scored_spectra.push_back(spectrum);
 
       std::vector<Feature> subordinates;
-      for (UInt j=0; j<picked[i].size(); ++j)
+      for (UInt j=0; j<picked_spectra[i].size(); ++j)
       {
         Feature feature;
-        feature.setMZ(picked[i][j].getMZ());
-        feature.setIntensity(picked[i][j].getIntensity());
-        feature.setMetaValue("FWHM", picked[i].getFloatDataArrays()[0][j]);
+        feature.setMZ(picked_spectra[i][j].getMZ());
+        feature.setIntensity(picked_spectra[i][j].getIntensity());
+        feature.setMetaValue("FWHM", picked_spectra[i].getFloatDataArrays()[0][j]);
         subordinates.push_back(feature);
       }
       features[i].setSubordinates(subordinates);
