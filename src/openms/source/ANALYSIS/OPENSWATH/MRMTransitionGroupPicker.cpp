@@ -203,8 +203,9 @@ namespace OpenMS
         // calculate the background using the formula
         // y = mx + b where x = retention time, m = slope, b = left intensity
         double delta_int = intensity_right - intensity_left; // sign will determine line direction
-        double background_int_apex = delta_int/delta_rt*it->getMZ() + intensity_left;
-        background = background + background_int_apex;
+        double delta_rt_current = (it->getMZ() - best_left);
+        double background_int_current = delta_int/delta_rt*delta_rt_current + intensity_left;
+        background = background + background_int_current;
       }
     }
   }
