@@ -433,28 +433,6 @@ protected:
   }
 
 
-  struct FragmentAnnotationDetail_
-  {
-    int charge;
-    double mz;
-    double intensity;
-
-    bool operator<(const FragmentAnnotationDetail_& other) const
-    {
-      return std::tie(charge, mz, intensity) <
-             std::tie(other.charge, other.mz, other.intensity);
-    }
-
-    bool operator==(const FragmentAnnotationDetail_& other) const
-    {
-      double mz_diff = fabs(mz - other.mz);
-      double intensity_diff = fabs(intensity - other.intensity);
-      // mz and intensity difference comparison actually not needed but kept for completeness
-      return (mz_diff < 1e-6 && intensity_diff < 1e-6);
-    }
-  };
-
-
   void postProcessHits_(const PeakMap& exp,
                         vector<vector<AnnotatedHit>>& annotated_hits,
                         IdentificationData& id_data,
