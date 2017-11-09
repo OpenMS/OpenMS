@@ -109,51 +109,70 @@ namespace OpenMS
 
         // iterate through multi-feature/multi-sub-feature QCs/filters
         // iterate through component_groups
-        if (sub_it == 0)
+        for (size_t cg_qc_it = 0; cg_qc_it < filter_criteria.component_group_qcs_.size(); ++cg_qc_it)
         {
-          for (size_t cg_qc_it = 0; cg_qc_it < filter_criteria.component_group_qcs_.size(); ++cg_qc_it)
+          if (filter_criteria.component_group_qcs_[cg_qc_it].component_group_name_ == component_group_name)
           {
-            if (filter_criteria.component_group_qcs_[cg_qc_it].component_group_name_ == component_group_name)
+            // labels and transition counts QC
+            if (!checkRange(labels_and_transition_types["n_heavy"],
+              filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l_,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_u_))
             {
-              // labels and transition counts QC
-              cg_qc_pass = checkRange(labels_and_transition_types["n_heavy"],
-                filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l_,
-                filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_u_);
-              cg_qc_pass = checkRange(labels_and_transition_types["n_light"],
-                filter_criteria.component_group_qcs_[cg_qc_it].n_light_l_,
-                filter_criteria.component_group_qcs_[cg_qc_it].n_light_u_);
-              cg_qc_pass = checkRange(labels_and_transition_types["n_detecting"],
-                filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_l_,
-                filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_u_);
-              cg_qc_pass = checkRange(labels_and_transition_types["n_quantifying"],
-                filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_l_,
-                filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_u_);
-              cg_qc_pass = checkRange(labels_and_transition_types["n_identifying"],
-                filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_l_,
-                filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_u_);
-              cg_qc_pass = checkRange(labels_and_transition_types["n_transitions"],
-                filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_l_,
-                filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_u_);
+              cg_qc_pass = false;
+            }
+            if (! checkRange(labels_and_transition_types["n_light"],
+              filter_criteria.component_group_qcs_[cg_qc_it].n_light_l_,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_light_u_))
+            {
+              cg_qc_pass = false;
+            }
+            if (! checkRange(labels_and_transition_types["n_detecting"],
+              filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_l_,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_u_))
+            {
+              cg_qc_pass = false;
+            }
+            if (! checkRange(labels_and_transition_types["n_quantifying"],
+              filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_l_,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_u_))
+            {
+              cg_qc_pass = false;
+            }
+            if (! checkRange(labels_and_transition_types["n_identifying"],
+              filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_l_,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_u_))
+            {
+              cg_qc_pass = false;
+            }
+            if (! checkRange(labels_and_transition_types["n_transitions"],
+              filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_l_,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_u_))
+            {
+              cg_qc_pass = false;
+            }
 
-              // ion ratio QC
-              for (size_t sub_it2 = 0; sub_it2 < features[feature_it].getSubordinates().size(); ++sub_it2)
+            // ion ratio QC
+            for (size_t sub_it2 = 0; sub_it2 < features[feature_it].getSubordinates().size(); ++sub_it2)
+            {
+              String component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id"); 
+
+              // find the ion ratio pair
+              if (filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_1_ == component_name
+                && filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_2_ == component_name2)
               {
-                String component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id"); 
-
-                // find the ion ratio pair
-                if (filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_1_ == component_name
-                  && filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_2_ == component_name2)
+                double ion_ratio = calculateIonRatio(features[feature_it].getSubordinates()[sub_it], features[feature_it].getSubordinates()[sub_it2], filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_feature_name_);
+                
+                if (! checkRange(ion_ratio,
+                  filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_l_,
+                  filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_u_))
                 {
-                  double ion_ratio = calculateIonRatio(features[feature_it].getSubordinates()[sub_it], features[feature_it].getSubordinates()[sub_it2], filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_feature_name_);
-                  
-                  cg_qc_pass = checkRange(ion_ratio,
-                    filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_l_,
-                    filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_u_);
+                  cg_qc_pass = false;
                 }
               }
             }
           }
         }
+        
         // iterate through feature/sub-feature QCs/filters        
         for (size_t c_qc_it = 0; c_qc_it < filter_criteria.component_qcs_.size(); ++c_qc_it)
         {
@@ -161,21 +180,30 @@ namespace OpenMS
           {
             // RT check
             double rt = features[feature_it].getSubordinates()[sub_it].getRT(); //check!
-            c_qc_pass = checkRange(rt,
+            if (!checkRange(rt,
               filter_criteria.component_qcs_[c_qc_it].retention_time_l_,
-              filter_criteria.component_qcs_[c_qc_it].retention_time_u_);
+              filter_criteria.component_qcs_[c_qc_it].retention_time_u_))
+            {
+              c_qc_pass = false;
+            }
 
             // intensity check
             double intensity = features[feature_it].getSubordinates()[sub_it].getIntensity();
-            c_qc_pass = checkRange(intensity,
+            if (!checkRange(intensity,
               filter_criteria.component_qcs_[c_qc_it].intensity_l_,
-              filter_criteria.component_qcs_[c_qc_it].intensity_u_);
+              filter_criteria.component_qcs_[c_qc_it].intensity_u_))
+            {
+              c_qc_pass = false;
+            }
 
             // overall quality check getQuality
             double quality = features[feature_it].getSubordinates()[sub_it].getOverallQuality();
-            c_qc_pass = checkRange(quality,
+            if (!checkRange(quality,
               filter_criteria.component_qcs_[c_qc_it].overall_quality_l_,
-              filter_criteria.component_qcs_[c_qc_it].overall_quality_u_);
+              filter_criteria.component_qcs_[c_qc_it].overall_quality_u_))
+            {
+              c_qc_pass = false;
+            }
 
             // metaValue checks
             for (auto const& kv : filter_criteria.component_qcs_[c_qc_it].meta_value_qc_)
