@@ -116,6 +116,7 @@ public:
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
       std::vector<MSChromatogram > picked_chroms_;
+      std::vector<MSChromatogram > smoothed_chroms_;
 
       // Pick fragment ion chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
@@ -131,10 +132,11 @@ public:
           continue;
         }
 
-        MSChromatogram picked_chrom;
-        picker_.pickChromatogram(chromatogram, picked_chrom);
-        picked_chrom.sortByIntensity(); // we could do without that
+        MSChromatogram picked_chrom, smoothed_chrom;
+        picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
+        picked_chrom.sortByIntensity();
         picked_chroms_.push_back(picked_chrom);
+        smoothed_chroms_.push_back(smoothed_chrom);
       }
 
       // Pick precursor chromatograms
@@ -142,13 +144,14 @@ public:
       {
         for (Size k = 0; k < transition_group.getPrecursorChromatograms().size(); k++)
         {
-          SpectrumT picked_chrom;
+          SpectrumT picked_chrom, smoothed_chrom;
           SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
           String native_id = chromatogram.getNativeID();
 
-          picker_.pickChromatogram(chromatogram, picked_chrom);
-          picked_chrom.sortByIntensity(); // we could do without that
+          picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
+          picked_chrom.sortByIntensity();
           picked_chroms_.push_back(picked_chrom);
+          smoothed_chroms_.push_back(smoothed_chrom);
         }
       }
 
@@ -165,7 +168,7 @@ public:
         if (chr_idx == -1 && peak_idx == -1) break;
 
         // Compute a feature from the individual chromatograms and add non-zero features
-        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, chr_idx, peak_idx);
+        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, smoothed_chroms_, chr_idx, peak_idx);
         if (mrm_feature.getIntensity() > 0)
         {
           features.push_back(mrm_feature);
@@ -202,7 +205,7 @@ public:
     /// Create feature from a vector of chromatograms and a specified peak
     template <typename SpectrumT, typename TransitionT>
     MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
-                                std::vector<SpectrumT>& picked_chroms, const int chr_idx, const int peak_idx)
+                                std::vector<SpectrumT>& picked_chroms, std::vector<SpectrumT>& smoothed_chroms, const int chr_idx, const int peak_idx)
     {
       OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
@@ -291,25 +294,26 @@ public:
         double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
         {
-          if (background_subtraction_ == "smoothed")
+          if ((background_subtraction_ == "smoothed_average" || background_subtraction_ == "smoothed_exact") && smoothed_chroms.size() <= k)
           {
-            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-            /*
-             * Currently we do not have access to the smoothed chromatogram any more
-            if (smoothed_chroms_.size() <= k)
-            {
-              std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
-              background =  0;
-            }
-            else
-            {
-              background = calculateBgEstimation_(smoothed_chroms_[k], best_left, best_right);
-            }
-            */
+            std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
+            background =  0;
           }
-          else if (background_subtraction_ == "original")
+          else if (background_subtraction_ == "smoothed_average")
           {
-            calculateBgEstimation_(used_chromatogram, best_left, best_right, background, avg_noise_level);
+            calculateBgEstimationAverage_(smoothed_chroms[k], best_left, best_right, background, avg_noise_level);
+          }
+          else if (background_subtraction_ == "smoothed_exact")
+          {
+            calculateBgEstimationExact_(smoothed_chroms[k], best_left, best_right, peak_apex_int, background, avg_noise_level);
+          }
+          else if (background_subtraction_ == "original_average")
+          {
+            calculateBgEstimationAverage_(used_chromatogram, best_left, best_right, background, avg_noise_level);
+          }
+          else if (background_subtraction_ == "original_exact")
+          {
+            calculateBgEstimationExact_(used_chromatogram, best_left, best_right, peak_apex_int, background, avg_noise_level);
           }
           intensity_sum -= background;
           peak_apex_int -= avg_noise_level;
@@ -498,6 +502,34 @@ public:
     void findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
     
     /**
+      @brief The background noise is estimated based on the peak boundaries 
+
+      The average noise level is computed as the average intensity of the left and
+      right peak borders. The background is then computed by multiplying
+      the average noise level by all data points under the peak 
+      (i.e., integrating the background under the peak).
+      The integration strategy assumes that all points are equally spaced.
+
+    */
+    void calculateBgEstimationAverage_(const MSChromatogram& chromatogram,
+                                  double best_left, double best_right, double & background, double & avg_noise_level);
+    
+    /**
+      @brief The background noise is estimated based on the exact intensity 
+        at the left and right peak borders.
+
+      The average noise level is computed by interpolating the intensity at the retention time
+      of the peak apex by calculating a line from the intensities at the left and right peak borders. 
+      The background is then computed by summing the intensities at each point along
+      the line between the intensities at the left and right peak borders 
+      (i.e., integrating the background under the peak).
+      The integration strategy assumes that all points are equally spaced.
+
+    */
+    void calculateBgEstimationExact_(const MSChromatogram& chromatogram,
+                                  double best_left, double best_right, double peak_height, double & background, double & avg_noise_level);
+
+    /**
     @brief Will use the chromatogram to get the maximum peak intensity
 
     The maximum peak intensity/height is calculated.  The convex hull points,
@@ -560,7 +592,6 @@ public:
     double peak_height, double peak_apex_rt, double avg_noise_level,
     PeakShapeMetrics_ & peakShapeMetrics);
     
-
 protected:
 
     /// Synchronize members with param class
@@ -920,15 +951,6 @@ protected:
     }
 
     //@}
-
-    /**
-      @brief Will use the chromatogram to estimate the background noise and then subtract it
-
-      The background is estimated by averaging the noise on either side of the
-      peak and then subtracting that from the total intensity.
-    */
-    void calculateBgEstimation_(const MSChromatogram& chromatogram,
-                                  double best_left, double best_right, double & background, double & avg_noise_level);	
 
     // Members
     String background_subtraction_;
