@@ -47,8 +47,9 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <QtGui/QMessageBox>
 #include <QtCore/QString>
+#include <QtGui/QMessageBox>
+#include <QtGui/QPainter>
 
 using namespace OpenMS;
 using namespace std;
@@ -148,14 +149,16 @@ namespace OpenMS
   void TOPPViewIdentificationViewBehavior::addFragmentAnnotations_(const PeptideHit& ph)
   {
     // called anew for every click on a spectrum
-    LayerData & current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    Spectrum1DCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
+    LayerData& current_layer = current_canvas->getCurrentLayer();
+    const SpectrumType& spectrum = current_layer.getCurrentSpectrum();
 
-    if (current_layer.getCurrentSpectrum().empty())
+    if (spectrum.empty())
     {
       LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
     }
 
-    if (!current_layer.getCurrentSpectrum().isSorted())
+    if (!spectrum.isSorted())
     {
       QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
       return;
@@ -200,7 +203,16 @@ namespace OpenMS
       }
       else // use peak color as default annotation color
       {
-        item = new Annotation1DPeakItem(position, annotation.toQString(), QColor(current_layer.param.getValue("peak_color").toQString()));
+        QColor color = (annotation[0] < 'n') ? Qt::darkRed : Qt::darkGreen;
+        item = new Annotation1DPeakItem(position, annotation.toQString(), color);
+        // add peak (code from "Spectrum1DCanvas::drawAlignment"):
+        QPainter painter(current_canvas);
+        painter.setPen(color);
+        QPoint begin_p, end_p;
+        // updatePercentageFactor_(current_layer); // @TODO: needed?
+        current_canvas->dataToWidget(it->mz, 0, begin_p, false, true);
+        current_canvas->dataToWidget(it->mz, it->intensity, end_p, false, true);
+        painter.drawLine(begin_p.x(), begin_p.y(), end_p.x(), end_p.y());
       }
       item->setSelected(false);
       temporary_annotations_.push_back(item); // for removal (no ownership)
@@ -840,7 +852,8 @@ namespace OpenMS
           Annotation1DItem * item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::darkGreen);
           // save label for later removal
           temporary_annotations_.push_back(item);
-        } else
+        }
+        else
         {
           s.append("\n");
           Annotation1DItem * item = tv_->getActive1DWidget()->canvas()->addPeakAnnotation(pi, s, Qt::black);
