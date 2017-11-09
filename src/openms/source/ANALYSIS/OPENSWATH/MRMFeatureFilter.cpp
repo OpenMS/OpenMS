@@ -116,22 +116,22 @@ namespace OpenMS
             if (filter_criteria.component_group_qcs_[cg_qc_it].component_group_name_ == component_group_name)
             {
               // labels and transition counts QC
-              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_heavy"],
+              cg_qc_pass = checkRange(labels_and_transition_types["n_heavy"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_u_);
-              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_light"],
+              cg_qc_pass = checkRange(labels_and_transition_types["n_light"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_light_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_light_u_);
-              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_detecting"],
+              cg_qc_pass = checkRange(labels_and_transition_types["n_detecting"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_u_);
-              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_quantifying"],
+              cg_qc_pass = checkRange(labels_and_transition_types["n_quantifying"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_u_);
-              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_identifying"],
+              cg_qc_pass = checkRange(labels_and_transition_types["n_identifying"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_u_);
-              cg_qc_pass = checkRange <int> (labels_and_transition_types["n_transitions"],
+              cg_qc_pass = checkRange(labels_and_transition_types["n_transitions"],
                 filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_l_,
                 filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_u_);
 
@@ -146,7 +146,7 @@ namespace OpenMS
                 {
                   double ion_ratio = calculateIonRatio(features[feature_it].getSubordinates()[sub_it], features[feature_it].getSubordinates()[sub_it2], filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_feature_name_);
                   
-                  cg_qc_pass = checkRange <double> (ion_ratio,
+                  cg_qc_pass = checkRange(ion_ratio,
                     filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_l_,
                     filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_u_);
                 }
@@ -161,19 +161,19 @@ namespace OpenMS
           {
             // RT check
             double rt = features[feature_it].getSubordinates()[sub_it].getRT(); //check!
-            c_qc_pass = checkRange <double> (rt,
+            c_qc_pass = checkRange(rt,
               filter_criteria.component_qcs_[c_qc_it].retention_time_l_,
               filter_criteria.component_qcs_[c_qc_it].retention_time_u_);
 
             // intensity check
             double intensity = features[feature_it].getSubordinates()[sub_it].getIntensity();
-            c_qc_pass = checkRange <double> (intensity,
+            c_qc_pass = checkRange(intensity,
               filter_criteria.component_qcs_[c_qc_it].intensity_l_,
               filter_criteria.component_qcs_[c_qc_it].intensity_u_);
 
             // overall quality check getQuality
             double quality = features[feature_it].getSubordinates()[sub_it].getOverallQuality();
-            c_qc_pass = checkRange <double> (quality,
+            c_qc_pass = checkRange(quality,
               filter_criteria.component_qcs_[c_qc_it].overall_quality_l_,
               filter_criteria.component_qcs_[c_qc_it].overall_quality_u_);
 
@@ -324,7 +324,7 @@ namespace OpenMS
     if (component.metaValueExists(meta_value_key))
     {
       double meta_value = (double)component.getMetaValue(meta_value_key);
-      check = checkRange <double> (meta_value,
+      check = checkRange(meta_value,
         meta_value_l,
         meta_value_u);
     }
