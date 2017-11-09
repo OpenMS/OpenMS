@@ -65,11 +65,11 @@ START_SECTION(~MRMFeatureFilter())
 }
 END_SECTION
 
-START_SECTION(bool checkRange(T value, T value_l, T value_u))
+START_SECTION(template <typename T> bool checkRange(T const& value, T const& value_l, T const& value_u))
 {
   MRMFeatureFilter mrmff;
   // tests
-  TEST_EQUAL(mrmff.checkRange((double)2.0, (double)1.0, (double)2.0), true);
+  TEST_EQUAL(mrmff.checkRange(2.0, 1.0, 2.0), true);
   TEST_EQUAL(mrmff.checkRange(0.0, 1.0, 2.0), false);
   TEST_EQUAL(mrmff.checkRange(3.0, 1.0, 2.0), false);
   TEST_EQUAL(mrmff.checkRange(2, 1, 2), true);
