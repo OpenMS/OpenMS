@@ -502,25 +502,29 @@ public:
     void findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
     
     /**
-      @brief Use the peak boundaries to estimate the background noise 
+      @brief The background noise is estimated based on the peak boundaries 
 
-        Background estimation is computed as the average intensity of the left and
-        right peak borders to produce the average noise level. The background is then
-        computed by integrating (multiplying by number of points) over all data points,
-        yielding a trapezoidal area under the curve. This assumes that all points are
-        equally spaced.
+      The average noise level is computed as the average intensity of the left and
+      right peak borders. The background is then computed by multiplying
+      the average noise level by all data points under the peak 
+      (i.e., integrating the background under the peak).
+      The integration strategy assumes that all points are equally spaced.
 
     */
     void calculateBgEstimationAverage_(const MSChromatogram& chromatogram,
                                   double best_left, double best_right, double & background, double & avg_noise_level);
     
     /**
-      @brief Will use the chromatogram to estimate the background noise 
-        using the exact intensity of the left and right peak borders,
-        and then subtract it
+      @brief The background noise is estimated based on the exact intensity 
+        at the left and right peak borders.
 
-      The background is estimated by averaging the noise on either side of the
-      peak and then subtracting that from the total intensity.
+      The average noise level is computed by interpolating the intensity at the retention time
+      of the peak apex by calculating a line from the intensities at the left and right peak borders. 
+      The background is then computed by summing the intensities at each point along
+      the line between the intensities at the left and right peak borders 
+      (i.e., integrating the background under the peak).
+      The integration strategy assumes that all points are equally spaced.
+
     */
     void calculateBgEstimationExact_(const MSChromatogram& chromatogram,
                                   double best_left, double best_right, double peak_height, double & background, double & avg_noise_level);
