@@ -183,6 +183,21 @@ namespace OpenMS
       const double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
       DPosition<2> position = DPosition<2>(it->mz, peak_int);
       String annotation = it->annotation;
+      // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
+      QColor color;
+      if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) && annotation.hasSubstring(String("|ci$")))
+      {
+        color = Qt::darkGreen;
+      }
+      else if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) &&  annotation.hasSubstring(String("|xi$")))
+      {
+        color = Qt::darkRed;
+      }
+      else
+      {
+        continue; // handled by "addAnnotationsSpectrumLayer_"
+      }
+
       // write out positive and negative charges with the correct sign at the end of the annotation string
       switch (it->charge)
       {
@@ -194,35 +209,17 @@ namespace OpenMS
       default: annotation += ((it->charge > 0) ? "+" : "") + String(it->charge);
       }
 
-      Annotation1DItem* item;
-
-      // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
-      if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) && annotation.hasSubstring(String("|ci$")))
-      {
-        item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkGreen);
-      }
-      else if ((annotation.hasSubstring(String("[alpha|")) || annotation.hasSubstring(String("[beta|"))) &&  annotation.hasSubstring(String("|xi$")))
-      {
-        item = new Annotation1DPeakItem(position, annotation.toQString(), Qt::darkRed);
-      }
-      else // color red/green depending on left/right fragment
-      {
-        QColor color = (annotation[0] < 'n') ? Qt::darkRed : Qt::darkGreen;
-        item = new Annotation1DPeakItem(position, annotation.toQString(), color);
-        // add peak (code from "Spectrum1DCanvas::drawAlignment"):
-        QPainter painter(current_canvas);
-        painter.setPen(color);
-        QPoint begin_p, end_p;
-        // updatePercentageFactor_(current_layer); // @TODO: needed?
-        current_canvas->dataToWidget(it->mz, 0, begin_p, false, true);
-        current_canvas->dataToWidget(it->mz, it->intensity, end_p, false, true);
-        painter.drawLine(begin_p.x(), begin_p.y(), end_p.x(), end_p.y());
-      }
+      Annotation1DItem* item = new Annotation1DPeakItem(position, annotation.toQString(), color);
       item->setSelected(false);
       temporary_annotations_.push_back(item); // for removal (no ownership)
       current_layer.getCurrentAnnotations().push_front(item); // for visualization (ownership)
     }
+
+    String name = ph.getSequence().toString();
+    if (name.empty()) name = ph.getMetaValue("label");
+    addAnnotationsSpectrumLayer_(fa, name);
   }
+
 
   void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const std::vector<PeptideIdentification>& ph)
   {
@@ -912,6 +909,77 @@ namespace OpenMS
 
     widget_1D->canvas()->setTextBox(QString());
   }
+
+  void TOPPViewIdentificationViewBehavior::addAnnotationsSpectrumLayer_(const vector<PeptideHit::PeakAnnotation>& annotations, const String& name)
+  {
+    SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
+    LayerData& current_layer = current_canvas->getCurrentLayer();
+    Size current_spectrum_layer_index = current_canvas->activeLayerIndex();
+    Size current_spectrum_index = current_layer.getCurrentSpectrumIndex();
+
+    PeakSpectrum spectrum;
+    vector<String> labels;
+    for (const auto& ann : annotations)
+    {
+      Peak1D peak(ann.mz, ann.intensity);
+      spectrum.push_back(peak);
+      String label = ann.annotation;
+      // write out positive and negative charges with the correct sign at the end of the annotation string
+      switch (ann.charge)
+      {
+      case 0: break;
+      case 1: label += "+"; break;
+      case 2: label += "++"; break;
+      case -1: label += "-"; break;
+      case -2: label += "--"; break;
+      default: label += ((ann.charge > 0) ? "+" : "") + String(ann.charge);
+      }
+      labels.push_back(label);
+    }
+    spectrum.sortByPosition();
+
+    PeakMap new_exp;
+    new_exp.addSpectrum(spectrum);
+    ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
+    FeatureMapSharedPtrType f_dummy(new FeatureMapType());
+    ConsensusMapSharedPtrType c_dummy(new ConsensusMapType());
+    vector<PeptideIdentification> p_dummy;
+
+    // Block update events for identification widget
+    tv_->getSpectraIdentificationViewWidget()->ignore_update = true;
+
+    String layer_caption = name + " (identification view)";
+    tv_->addData(f_dummy, c_dummy, p_dummy, new_exp_sptr, LayerData::DT_PEAK, true, false, false, "", layer_caption);
+
+    // get layer index of new layer
+    Size theoretical_spectrum_layer_index = tv_->getActive1DWidget()->canvas()->activeLayerIndex();
+
+    // kind of a hack to check whether adding the layer was successful
+    if (current_spectrum_layer_index != theoretical_spectrum_layer_index)
+    {
+      // Ensure theoretical spectrum is drawn as dashed sticks
+      tv_->setDrawMode1D(Spectrum1DCanvas::DM_PEAKS);
+      // tv_->getActive1DWidget()->canvas()->setCurrentLayerPeakPenStyle(Qt::DashLine);
+
+      // Add ion names as annotations to the theoretical spectrum
+      for (Size i = 0; i != spectrum.size(); ++i)
+      {
+        DPosition<2> position = DPosition<2>(spectrum[i].getMZ(), spectrum[i].getIntensity());
+        const String& label = labels[i];
+        QColor color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
+        Annotation1DItem* item = new Annotation1DPeakItem(position, label.toQString(), color);
+        item->setSelected(false);
+        tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentAnnotations().push_front(item);
+      }
+
+      tv_->getActive1DWidget()->canvas()->activateLayer(current_spectrum_layer_index);
+      tv_->getActive1DWidget()->canvas()->getCurrentLayer().setCurrentSpectrumIndex(current_spectrum_index);
+
+      tv_->updateLayerBar();
+      tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
+    }
+  }
+
 
   void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()
   {

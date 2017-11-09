@@ -108,6 +108,9 @@ private:
     /// Adds a theoretical spectrum as set from the preferences dialog for the peptide hit.
     void addTheoreticalSpectrumLayer_(const PeptideHit& ph);
 
+    /// Adds spectrum comprising annotated peaks
+    void addAnnotationsSpectrumLayer_(const std::vector<PeptideHit::PeakAnnotation>& annotations, const String& name);
+
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
 
