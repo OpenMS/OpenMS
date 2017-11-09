@@ -69,13 +69,12 @@ START_SECTION(bool checkRange(T value, T value_l, T value_u))
 {
   MRMFeatureFilter mrmff;
   // tests
-  bool test1 = mrmff.checkRange (2.0, 1.0, 2.0);
-  TEST_EQUAL(test1, true);
-  TEST_EQUAL(mrmff.checkRange <double> (0.0, 1.0, 2.0), false);
-  TEST_EQUAL(mrmff.checkRange <double> (3.0, 1.0, 2.0), false);
-  TEST_EQUAL(mrmff.checkRange <int> (2, 1, 2), true);
-  TEST_EQUAL(mrmff.checkRange <int> (0, 1, 2), false);
-  TEST_EQUAL(mrmff.checkRange <int> (3, 1, 2), false);
+  TEST_EQUAL(mrmff.checkRange (2.0, 1.0, 2.0), true);
+  TEST_EQUAL(mrmff.checkRange(0.0, 1.0, 2.0), false);
+  TEST_EQUAL(mrmff.checkRange(3.0, 1.0, 2.0), false);
+  TEST_EQUAL(mrmff.checkRange(2, 1, 2), true);
+  TEST_EQUAL(mrmff.checkRange(0, 1, 2), false);
+  TEST_EQUAL(mrmff.checkRange(3, 1, 2), false);
 
 }
 END_SECTION
