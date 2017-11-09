@@ -335,7 +335,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.ion_ratio_pair_name_1_ = "component1.1.Light";
   cgqcs.ion_ratio_pair_name_2_ = "component1.2.Light";
   cgqcs.ion_ratio_l_ = 0.5;
-  cgqcs.ion_ratio_u_ = 10,0;
+  cgqcs.ion_ratio_u_ = 10.0;
   cgqcs.ion_ratio_feature_name_ = "peak_apex_int";
   // transition 1
   cqcs.component_name_ = "component1.1.Heavy";   
@@ -383,7 +383,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.ion_ratio_pair_name_1_ = "component2.1.Light";
   cgqcs.ion_ratio_pair_name_2_ = "component2.2.Light";
   cgqcs.ion_ratio_l_ = 0.5;
-  cgqcs.ion_ratio_u_ = 10,0;
+  cgqcs.ion_ratio_u_ = 10.0;
   cgqcs.ion_ratio_feature_name_ = "peak_apex_int";
   // transition 1
   cqcs.component_name_ = "component2.1.Heavy";   
