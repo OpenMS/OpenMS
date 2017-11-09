@@ -938,6 +938,15 @@ namespace OpenMS
     }
     spectrum.sortByPosition();
 
+    if (spectrum.getMaxInt() <= 1.0) // undo scaling of intensities
+    {
+      double max_int = current_layer.getCurrentSpectrum().getMaxInt();
+      for (auto& peak : spectrum)
+      {
+        peak.setIntensity(peak.getIntensity() * max_int);
+      }
+    }
+
     PeakMap new_exp;
     new_exp.addSpectrum(spectrum);
     ExperimentSharedPtrType new_exp_sptr(new PeakMap(new_exp));
