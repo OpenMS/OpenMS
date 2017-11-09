@@ -454,6 +454,7 @@ set(analysis_executables_list
   LocalLinearMap_test
   TargetedExperiment_test
   MRMFragmentSelection_test
+  MRMMapping_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test

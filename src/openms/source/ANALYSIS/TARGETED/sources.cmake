@@ -3,6 +3,7 @@ set(directory source/ANALYSIS/TARGETED)
 
 ### list all filenames of the directory here
 set(sources_list
+MRMMapping.cpp
 PrecursorIonSelectionPreprocessing.cpp
 PrecursorIonSelection.cpp
 OfflinePrecursorIonSelection.cpp
