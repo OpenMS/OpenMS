@@ -69,13 +69,13 @@ START_SECTION(bool checkRange(T value, T value_l, T value_u))
 {
   MRMFeatureFilter mrmff;
   // tests
-  bool test1 = mrmff.checkRange <double> (2.0 ,1.0 ,2.0);
+  bool test1 = mrmff.checkRange (2.0, 1.0, 2.0);
   TEST_EQUAL(test1, true);
-  TEST_EQUAL(mrmff.checkRange <double> (0.0 ,1.0 ,2.0), false);
-  TEST_EQUAL(mrmff.checkRange <double> (3.0 ,1.0 ,2.0), false);
-  TEST_EQUAL(mrmff.checkRange <int> (2 ,1 ,2), true);
-  TEST_EQUAL(mrmff.checkRange <int> (0 ,1 ,2), false);
-  TEST_EQUAL(mrmff.checkRange <int> (3 ,1 ,2), false);
+  TEST_EQUAL(mrmff.checkRange <double> (0.0, 1.0, 2.0), false);
+  TEST_EQUAL(mrmff.checkRange <double> (3.0, 1.0, 2.0), false);
+  TEST_EQUAL(mrmff.checkRange <int> (2, 1, 2), true);
+  TEST_EQUAL(mrmff.checkRange <int> (0, 1, 2), false);
+  TEST_EQUAL(mrmff.checkRange <int> (3, 1, 2), false);
 
 }
 END_SECTION
@@ -103,14 +103,6 @@ START_SECTION(double calculateIonRatio(const Feature & component_1, const Featur
   component_4.setMetaValue("native_id","component4");
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_1,component_4,feature_name),5.0);
   TEST_REAL_SIMILAR(mrmff.calculateIonRatio(component_3,component_4,feature_name),0.0);
-
-}
-END_SECTION
-
-START_SECTION(double calculateRTDifference(Feature & component_1, Feature & component_2))
-{
-  MRMFeatureFilter mrmff;
-  //TODO
 
 }
 END_SECTION
@@ -861,6 +853,14 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
 END_SECTION
 
 START_SECTION(void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment))
+{
+  MRMFeatureFilter mrmff;
+  //TODO
+
+}
+END_SECTION
+
+START_SECTION(double calculateRTDifference(Feature & component_1, Feature & component_2))
 {
   MRMFeatureFilter mrmff;
   //TODO
