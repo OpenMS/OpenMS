@@ -244,7 +244,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setIntensity(5000);
   subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
-  subordinate.setMetaValue("peak_apex_int",1000); //should fail
+  subordinate.setMetaValue("peak_apex_int",500); //should fail
   subordinates.push_back(subordinate);
   component_1.setMetaValue("setPeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
@@ -317,7 +317,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   MRMFeatureQC qc_criteria;
   MRMFeatureQC::ComponentGroupQCs cgqcs;
   MRMFeatureQC::ComponentQCs cqcs;
-  std::pair<double,double> lbub(500, 4e6);
+  std::pair<double,double> lbub(501, 4e6);
   // transition group 1
   cgqcs.component_group_name_ =  "component_group1";    
   cgqcs.n_heavy_l_ = 1;
@@ -335,7 +335,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.ion_ratio_pair_name_1_ = "component1.1.Light";
   cgqcs.ion_ratio_pair_name_2_ = "component1.2.Light";
   cgqcs.ion_ratio_l_ = 0.5;
-  cgqcs.ion_ratio_u_ = 2.0;
+  cgqcs.ion_ratio_u_ = 10,0;
   cgqcs.ion_ratio_feature_name_ = "peak_apex_int";
   // transition 1
   cqcs.component_name_ = "component1.1.Heavy";   
@@ -383,7 +383,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.ion_ratio_pair_name_1_ = "component2.1.Light";
   cgqcs.ion_ratio_pair_name_2_ = "component2.2.Light";
   cgqcs.ion_ratio_l_ = 0.5;
-  cgqcs.ion_ratio_u_ = 2.0;
+  cgqcs.ion_ratio_u_ = 10,0;
   cgqcs.ion_ratio_feature_name_ = "peak_apex_int";
   // transition 1
   cqcs.component_name_ = "component2.1.Heavy";   
