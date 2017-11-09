@@ -65,19 +65,19 @@ START_SECTION(~MRMFeatureFilter())
 }
 END_SECTION
 
-START_SECTION(template <typename T> bool checkRange(T const& value, T const& value_l, T const& value_u))
-{
-  MRMFeatureFilter mrmff;
-  // tests
-  TEST_EQUAL(mrmff.checkRange(2.0, 1.0, 2.0), true);
-  TEST_EQUAL(mrmff.checkRange(0.0, 1.0, 2.0), false);
-  TEST_EQUAL(mrmff.checkRange(3.0, 1.0, 2.0), false);
-  TEST_EQUAL(mrmff.checkRange(2, 1, 2), true);
-  TEST_EQUAL(mrmff.checkRange(0, 1, 2), false);
-  TEST_EQUAL(mrmff.checkRange(3, 1, 2), false);
+// START_SECTION(template <typename T> bool checkRange(T const& value, T const& value_l, T const& value_u))
+// {
+//   MRMFeatureFilter mrmff;
+//   // tests
+//   TEST_EQUAL(mrmff.checkRange(2.0, 1.0, 2.0), true);
+//   TEST_EQUAL(mrmff.checkRange(0.0, 1.0, 2.0), false);
+//   TEST_EQUAL(mrmff.checkRange(3.0, 1.0, 2.0), false);
+//   TEST_EQUAL(mrmff.checkRange(2, 1, 2), true);
+//   TEST_EQUAL(mrmff.checkRange(0, 1, 2), false);
+//   TEST_EQUAL(mrmff.checkRange(3, 1, 2), false);
 
-}
-END_SECTION
+// }
+// END_SECTION
 
 START_SECTION(double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name))
 {
