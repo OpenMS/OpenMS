@@ -46,6 +46,12 @@ The respective license files for the contrib libraries
 can be found in the "contrib" package root directory or online
 (see below).
 
+SeqAn
+  - URL:
+  https://www.seqan.de/
+  - License:
+  https://github.com/seqan/seqan/blob/master/LICENSE
+
 libSVM
   - URL:
   http://www.csie.ntu.edu.tw/~cjlin/libsvm/
@@ -76,12 +82,6 @@ Boost (headers)
   - License:
   http://www.boost.org/more/license_info.html
 
-Comet
-  - URL:
-  http://comet-ms.sourceforge.net/
-  - License:
-  http://www.apache.org/licenses/LICENSE-2.0.html
-
 ZLib
   - URL:
   http://www.zlib.net
@@ -94,11 +94,36 @@ BZ2Lib
   - License:
   http://www.bzip.org/1.0.5/bzip2-manual-1.0.5.html
 
+Eigen
+ - URL:
+ http://eigen.tuxfamily.org/
+ - License:
+ https://www.mozilla.org/en-US/MPL/2.0/
+
+Geometric Tools (Wildmagic)
+ - URL:
+ https://www.geometrictools.com/
+ - License:
+ http://www.boost.org/LICENSE_1_0.txt
+
+SQLite:
+ - URL:
+ https://www.sqlite.org/
+ - License:
+ https://www.sqlite.org/copyright.html
+
+Kiss FFT
+`- URL:
+ https://sourceforge.net/projects/kissfft/
+ - License:
+ https://sourceforge.net/p/kissfft/code/ci/default/tree/COPYING
+
+
 ---------------------   Search engines:  ------------------------
  
 OMSSA
   - URL:
-  http://pubchem.ncbi.nlm.nih.gov/omssa/
+  ftp://ftp.ncbi.nlm.nih.gov/pub/lewisg/omssa
   - License:
   Public Domain
 
@@ -116,16 +141,15 @@ X!Tandem:
 
 MyriMatch:
   - URL and source code:
-  http://fenchurch.mc.vanderbilt.edu/software.php
+  https://www.ncbi.nlm.nih.gov/pubmed/17269722
   - License:
   http://www.apache.org/licenses/LICENSE-2.0.txt
 
 MSGF+:
   - URL and source code:
-  http://proteomics.ucsd.edu/Software/MSGFPlus/ 
+  https://github.com/sangtaekim/msgfplus
   - License:
-  http://sourceforge.net/p/open-ms/code/HEAD/tree/THIRDPARTY/All/
-  MSGFPlus/LICENSE.txt
+  https://github.com/sangtaekim/msgfplus/blob/master/LICENSE.txt
 
 Fido:
   - URL and source code:
@@ -138,3 +162,24 @@ LuciPhOr2:
   http://luciphor2.sourceforge.net/
   - License:
   http://www.apache.org/licenses/LICENSE-2.0
+
+SpectraST:
+  - URL and source code:
+ https://sourceforge.net/p/sashimi/code/HEAD/tree/trunk/
+ trans_proteomic_pipeline/src/Search/SpectraST/ 
+  - License:
+  https://www.gnu.org/licenses/gpl.html
+  https://www.gnu.org/copyleft/lesser.html
+
+SIRIUS:
+  - URL:
+  https://bio.informatik.uni-jena.de/software/sirius/
+  - License:
+  https://www.gnu.org/licenses/gpl
+
+Comet:
+  - URL and source code:
+  https://sourceforge.net/projects/comet-ms/
+  - License:
+  http://www.apache.org/licenses/LICENSE-2.0.html
+

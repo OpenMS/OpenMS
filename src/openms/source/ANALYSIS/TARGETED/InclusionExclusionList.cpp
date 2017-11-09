@@ -35,7 +35,7 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/SIMULATION/RTSimulation.h>
@@ -160,7 +160,7 @@ namespace OpenMS
   {
     WindowList result;
 
-    EnzymaticDigestion digest;
+    ProteaseDigestion digest;
 
     digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 

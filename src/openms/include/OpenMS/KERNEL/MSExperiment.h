@@ -909,7 +909,7 @@ public:
           // sum intensities of a spectrum
           for (SpectrumType::const_iterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
           {
-            totalIntensity += peak_it->getIntensity();
+            totalIntensity += static_cast<double>(peak_it->getIntensity());
           }
           // fill chromatogram
           ChromatogramPeakType peak;

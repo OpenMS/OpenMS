@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<TrafoXML version="1.0" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<TrafoXML version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/TrafoXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <Transformation name="linear">
 		<Param type="string" name="symmetric_regression" value="false"/>
+		<Param  type="string" name="x_weight" value=""/>
+		<Param  type="string" name="y_weight" value=""/>
+		<Param  type="float" name="x_datum_min" value="1e-15"/>
+		<Param  type="float" name="x_datum_max" value="1e15"/>
+		<Param  type="float" name="y_datum_min" value="1e-15"/>
+		<Param  type="float" name="y_datum_max" value="1e15"/>
 		<Param  type="float" name="slope" value="1"/>
 		<Param  type="float" name="intercept" value="10.0999999046734"/>
 		<Pairs count="2">

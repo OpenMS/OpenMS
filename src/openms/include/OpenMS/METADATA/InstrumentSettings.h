@@ -66,7 +66,7 @@ public:
       TDF,                              ///< Time-delayed fragmentation scan
       EMR,                              ///< Electromagnetic radiation scan @n Synonyms: 'EMR spectrum'
       EMISSION,                     ///< Emission scan
-      ABSORBTION,               ///< Absorbtion scan
+      ABSORPTION,               ///< Absorption scan
       SIZE_OF_SCANMODE
     };
 

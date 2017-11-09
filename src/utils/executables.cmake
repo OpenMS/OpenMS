@@ -4,6 +4,8 @@ set(directory source/APPLICATIONS/UTILS)
 ### list all filenames of the directory here
 set(UTILS_executables
 AccurateMassSearch
+ClusterMassTraces
+ClusterMassTracesByPrecursor
 CVInspector
 DatabaseFilter
 DecoyDatabase
@@ -42,6 +44,7 @@ QCExtractor
 QCImporter
 QCMerger
 QCShrinker
+RNADigestor
 RNPxl
 RNPxlXICFilter
 RNPxlSearch

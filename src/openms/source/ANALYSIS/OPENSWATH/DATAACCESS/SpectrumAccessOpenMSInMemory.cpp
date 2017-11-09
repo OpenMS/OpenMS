@@ -33,22 +33,35 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 
 namespace OpenMS
 {
 
   SpectrumAccessOpenMSInMemory::SpectrumAccessOpenMSInMemory(OpenSwath::ISpectrumAccess & origin)
   {
-    for (Size i = 0; i < origin.getNrSpectra(); ++i)
+    // special case: we can grab the data directly (and fast)
+    if (dynamic_cast<SpectrumAccessSqMass*> (&origin))
     {
-      spectra_.push_back( origin.getSpectrumById(i) );
-      spectra_meta_.push_back( origin.getSpectrumMetaById(i) );
+        SpectrumAccessSqMass* tmp = dynamic_cast<SpectrumAccessSqMass*> (&origin);
+        tmp->getAllSpectra(spectra_, spectra_meta_);
     }
-    for (Size i = 0; i < origin.getNrChromatograms(); ++i)
+    else
     {
-      chromatograms_.push_back( origin.getChromatogramById(i) );
-      chromatogram_ids_.push_back( origin.getChromatogramNativeID(i) );
+      for (Size i = 0; i < origin.getNrSpectra(); ++i)
+      {
+        spectra_.push_back( origin.getSpectrumById(i) );
+        spectra_meta_.push_back( origin.getSpectrumMetaById(i) );
+      }
+      for (Size i = 0; i < origin.getNrChromatograms(); ++i)
+      {
+        chromatograms_.push_back( origin.getChromatogramById(i) );
+        chromatogram_ids_.push_back( origin.getChromatogramNativeID(i) );
+      }
     }
+
+    OPENMS_POSTCONDITION(spectra_.size() == spectra_meta_.size(), "Spectra and meta data needs to match")
+    OPENMS_POSTCONDITION(chromatogram_ids_.size() == chromatograms_.size(), "Chromatograms and meta data needs to match")
   }
 
   SpectrumAccessOpenMSInMemory::~SpectrumAccessOpenMSInMemory() {}
@@ -69,11 +82,15 @@ namespace OpenMS
 
   OpenSwath::SpectrumPtr SpectrumAccessOpenMSInMemory::getSpectrumById(int id)
   {
+    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
+    OPENMS_PRECONDITION(id < (int)getNrSpectra(), "Id cannot be larger than number of spectra");
     return spectra_[id];
   }
 
   OpenSwath::SpectrumMeta SpectrumAccessOpenMSInMemory::getSpectrumMetaById(int id) const
   {
+    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
+    OPENMS_PRECONDITION(id < (int)getNrSpectra(), "Id cannot be larger than number of spectra");
     return spectra_meta_[id];
   }
 
@@ -102,22 +119,30 @@ namespace OpenMS
 
   size_t SpectrumAccessOpenMSInMemory::getNrSpectra() const
   {
+    OPENMS_PRECONDITION(spectra_.size() == spectra_meta_.size(), "Spectra and meta data needs to match")
     return spectra_.size();
   }
 
   OpenSwath::ChromatogramPtr SpectrumAccessOpenMSInMemory::getChromatogramById(int id)
   {
+    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
+    OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of chromatograms");
+
     return chromatograms_[id];
   }
 
   size_t SpectrumAccessOpenMSInMemory::getNrChromatograms() const
   {
+    OPENMS_PRECONDITION(chromatogram_ids_.size() == chromatograms_.size(), "Chromatograms and meta data needs to match")
     return chromatograms_.size();
   }
 
   std::string SpectrumAccessOpenMSInMemory::getChromatogramNativeID(int id) const
   {
+    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
+    OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of spectra");
     return chromatogram_ids_[id];
   }
 
 } //end namespace OpenMS
+

@@ -39,7 +39,9 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+
 #include <set>
 #include <string>
 #include <iostream>
@@ -224,58 +226,55 @@ namespace OpenMS
           LOG_DEBUG << "Reading a Cross-Linking MS file." << endl;
         }
 
-
-        // 0. AnalysisSoftware {1,unbounded}
+        // 0. AnalysisSoftwareList {0,1}
         DOMNodeList* analysisSoftwareElements = xmlDoc->getElementsByTagName(XMLString::transcode("AnalysisSoftware"));
-        if (!analysisSoftwareElements) throw(runtime_error("No AnalysisSoftware nodes"));
         parseAnalysisSoftwareList_(analysisSoftwareElements);
 
         // 1. DataCollection {1,1}
         DOMNodeList* spectraDataElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectraData"));
-        if (!spectraDataElements) throw(runtime_error("No SpectraData nodes"));
+        if (spectraDataElements->getLength() == 0) throw(runtime_error("No SpectraData nodes"));
         parseInputElements_(spectraDataElements);
 
+        // 1.2. SearchDatabase {0,unbounded}
         DOMNodeList* searchDatabaseElements = xmlDoc->getElementsByTagName(XMLString::transcode("SearchDatabase"));
-        if (!searchDatabaseElements) throw(runtime_error("No SearchDatabase nodes"));
         parseInputElements_(searchDatabaseElements);
 
+        // 1.1 SourceFile {0,unbounded}
         DOMNodeList* sourceFileElements = xmlDoc->getElementsByTagName(XMLString::transcode("SourceFile"));
-        if (!sourceFileElements) throw(runtime_error("No SourceFile nodes"));
         parseInputElements_(sourceFileElements);
 
         // 2. SpectrumIdentification  {1,unbounded} ! creates identification runs (or ProteinIdentifications)
         DOMNodeList* spectrumIdentificationElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentification"));
-        if (!spectrumIdentificationElements) throw(runtime_error("No SpectrumIdentification nodes"));
+        if (spectrumIdentificationElements->getLength() == 0) throw(runtime_error("No SpectrumIdentification nodes"));
         parseSpectrumIdentificationElements_(spectrumIdentificationElements);
 
         // 3. AnalysisProtocolCollection {1,1} SpectrumIdentificationProtocol  {1,unbounded} ! identification run parameters
         DOMNodeList* spectrumIdentificationProtocolElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentificationProtocol"));
-        if (!spectrumIdentificationProtocolElements) throw(runtime_error("No SpectrumIdentificationProtocol nodes"));
+        if (spectrumIdentificationProtocolElements->getLength() == 0) throw(runtime_error("No SpectrumIdentificationProtocol nodes"));
         parseSpectrumIdentificationProtocolElements_(spectrumIdentificationProtocolElements);
 
         // 4. SequenceCollection nodes {0,1} DBSequenceElement {1,unbounded} Peptide {0,unbounded} PeptideEvidence {0,unbounded}
         DOMNodeList* dbSequenceElements = xmlDoc->getElementsByTagName(XMLString::transcode("DBSequence"));
-        if (!dbSequenceElements) throw(runtime_error("No SequenceCollection/DBSequence nodes"));
         parseDBSequenceElements_(dbSequenceElements);
 
         DOMNodeList* peptideElements = xmlDoc->getElementsByTagName(XMLString::transcode("Peptide"));
-        if (!peptideElements) throw(runtime_error("No SequenceCollection/Peptide nodes"));
         parsePeptideElements_(peptideElements);
 
         DOMNodeList* peptideEvidenceElements = xmlDoc->getElementsByTagName(XMLString::transcode("PeptideEvidence"));
-        if (!peptideEvidenceElements) throw(runtime_error("No SequenceCollection/PeptideEvidence nodes"));
         parsePeptideEvidenceElements_(peptideEvidenceElements);
 //          mzid_parser_.resetDocumentPool(); //segfault prone: do not use!
 
         // 5. AnalysisSampleCollection ??? contact stuff
 
         // 6. AnalysisCollection {1,1} - build final structures PeptideIdentification (and hits)
+
+        // 6.1 SpectrumIdentificationList {0,1}
         DOMNodeList* spectrumIdentificationListElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentificationList"));
-        if (!spectrumIdentificationListElements) throw(runtime_error("No SpectrumIdentificationList nodes"));
+        if (spectrumIdentificationListElements->getLength() == 0) throw(runtime_error("No SpectrumIdentificationList nodes"));
         parseSpectrumIdentificationListElements_(spectrumIdentificationListElements);
 
+        // 6.2 ProteinDetection {0,1}
         DOMNodeList* parseProteinDetectionListElements = xmlDoc->getElementsByTagName(XMLString::transcode("ProteinDetectionList"));
-        if (!parseProteinDetectionListElements) throw(runtime_error("No ProteinDetectionList nodes"));
         parseProteinDetectionListElements_(parseProteinDetectionListElements);
 
         for (vector<ProteinIdentification>::iterator it = pro_id_->begin(); it != pro_id_->end(); ++it)
@@ -772,8 +771,14 @@ namespace OpenMS
           char post = '-';
           try
           {
-            pre = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("pre")));
-            post = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("post")));
+            if (element_pev->hasAttribute(XMLString::transcode("pre")))
+            {
+              pre = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("pre")));
+            }
+            if (element_pev->hasAttribute(XMLString::transcode("post")))
+            {
+              post = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("post")));
+            }
           }
           catch (...)
           {
@@ -1054,9 +1059,9 @@ namespace OpenMS
                   }
                   sub = sub->getNextElementSibling();
                 }
-                if (EnzymesDB::getInstance()->hasEnzyme(enzymename))
+                if (ProteaseDB::getInstance()->hasEnzyme(enzymename))
                 {
-                  sp.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzymename);
+                  sp.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzymename));
                 }
                 enzyme = enzyme->getNextElementSibling();
               }
@@ -1658,7 +1663,7 @@ namespace OpenMS
           String donor_pep = xl_id_donor_map_.at(peptides[i]);      // map::at throws an out-of-range
           alpha.push_back(i);
         }
-        catch (const std::out_of_range& oor)
+        catch (const std::out_of_range& /*oor*/)
         {
           beta.push_back(i);
         }
@@ -1684,7 +1689,7 @@ namespace OpenMS
             xl_type = "loop-link";
           }
         }
-        catch (const std::out_of_range& oor)
+        catch (const std::out_of_range& /*oor*/)
         {
             // do nothing. Must be a mono-link, which is already set
         }
@@ -1881,8 +1886,8 @@ namespace OpenMS
           if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
           {
             MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
-            pev.setAABefore(pv.pre);
-            pev.setAAAfter(pv.post);
+            if (pv.pre != '-') pev.setAABefore(pv.pre);
+            if (pv.post != '-') pev.setAAAfter(pv.post);
 
             if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
             {
@@ -2051,7 +2056,14 @@ namespace OpenMS
         {
           for (vector<CVTerm>::const_iterator cv = cvs->second.begin(); cv != cvs->second.end(); ++cv)
           {
-            hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+            if (cvs->first == "MS:1002540")
+            {
+              hit.setMetaValue(cvs->first, cv->getValue().toString());
+            }
+            else
+            {
+              hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+            }
           }
         }
         for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
@@ -2072,8 +2084,8 @@ namespace OpenMS
           if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
           {
             MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
-            pev.setAABefore(pv.pre);
-            pev.setAAAfter(pv.post);
+            if (pv.pre != '-') pev.setAABefore(pv.pre);
+            if (pv.post != '-') pev.setAAAfter(pv.post);
 
             if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
             {
@@ -2433,10 +2445,103 @@ namespace OpenMS
                 CVTerm cv = parseCvParam_(cvp);
                 if (cv.getAccession() == "MS:1001460") // unknown modification
                 {
-                  // TODO: actually parse this and add a new modification of
-                  // mass "monoisotopicMassDelta" to the AASequence
+                  // note, this is optional
+                  double mass_delta = 0;
+                  bool has_mass_delta = false;
+                  String mod;
+
+                  // try to parse information, give up if we cannot
+                  try
+                  {
+                    mod = String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("monoisotopicMassDelta"))));
+                    mass_delta = static_cast<double>(mod.toDouble());
+                    has_mass_delta = true;
+                  }
+                  catch (...)
+                  {
+                    LOG_WARN << "Found unreadable modification location." << endl;
+                    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
+                  }
+                  if (!has_mass_delta)
+                  {
+                    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
+                  }
+
+                  // Parse this and add a new modification of mass "monoisotopicMassDelta" to the AASequence
                   // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
-                  throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
+
+                  // compare with String::ConstIterator AASequence::parseModSquareBrackets_
+                  ModificationsDB* mod_db = ModificationsDB::getInstance();
+                  if (index == 0)
+                  {
+                    // n-terminal
+                    String residue_name = ".[" + mod + "]";
+
+                    // Check if it already exists, if not create new modification, transfer
+                    // ownership to ModDB
+                    if (!mod_db->has(residue_name))
+                    {
+                      ResidueModification * new_mod = new ResidueModification();
+                      new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                      new_mod->setDiffMonoMass(mass_delta);
+                      new_mod->setTermSpecificity(ResidueModification::N_TERM);
+                      mod_db->addModification(new_mod);
+                    }
+                    aas.setNTerminalModification(residue_name);
+                  }
+                  else if (index == (int)aas.size() +1)
+                  {
+                    // c-terminal
+                    String residue_name = ".[" + mod + "]";
+
+                    // Check if it already exists, if not create new modification, transfer
+                    // ownership to ModDB
+                    if (!mod_db->has(residue_name))
+                    {
+                      ResidueModification * new_mod = new ResidueModification();
+                      new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                      new_mod->setDiffMonoMass(mass_delta);
+                      new_mod->setTermSpecificity(ResidueModification::C_TERM);
+                      mod_db->addModification(new_mod);
+                    }
+                    aas.setCTerminalModification(residue_name);
+                  }
+                  else if (index > 0 && index <= (int)aas.size() )
+                  {
+                    // internal modification
+                    const Residue& residue = aas[index-1];
+                    // String residue_name = residue.getOneLetterCode() + "[" + mod + "]";
+                    String residue_name = "[" + mod + "]";
+
+                    if (!mod_db->has(residue_name))
+                    {
+                      // create new modification
+                      ResidueModification * new_mod = new ResidueModification();
+                      new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+
+                      // We cannot set origin if we want to use the same modification name
+                      // also at other AA (and since we have no information here, it is safer
+                      // to assume that this may happen).
+                      // new_mod->setOrigin(residue.getOneLetterCode()[0]);
+
+                      new_mod->setMonoMass(mass_delta + residue.getMonoWeight());
+                      new_mod->setAverageMass(mass_delta + residue.getAverageWeight());
+                      new_mod->setDiffMonoMass(mass_delta);
+
+                      mod_db->addModification(new_mod);
+                    }
+
+                    // now use the new modification
+                    Size mod_idx = mod_db->findModificationIndex(residue_name);
+                    const ResidueModification* res_mod = &mod_db->getModification(mod_idx);
+
+                    // Set a modification on the given AA
+                    // Note: this calls setModification_ on a new Residue which changes its
+                    // weight to the weight of the modification (set above)
+                    //
+                    aas.setModification(index-1, res_mod->getFullId());
+                  }
+
                 }
                 if (cv.getCVIdentifierRef() != "UNIMOD")
                 {

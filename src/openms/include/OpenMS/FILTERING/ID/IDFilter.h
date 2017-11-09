@@ -36,7 +36,7 @@
 #define OPENMS_FILTERING_ID_IDFILTER_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -292,7 +292,7 @@ public:
       const Entry& getValue(const PeptideEvidence& evidence) const
       {
         if(!exists(evidence)){
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Accesion: '"+ getHitKey(evidence) + "'. peptide evidence accession not in data");
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Accession: '"+ getHitKey(evidence) + "'. peptide evidence accession not in data");
         }
         return *(items.find(getHitKey(evidence))->second);
       }
@@ -336,6 +336,52 @@ public:
     /// Is the list of peptide evidences of this peptide hit empty?
     struct HasNoEvidence;
 
+    
+    /**
+       @brief Filter Peptide Hit by its digestion product
+
+    */
+
+    class PeptideDigestionFilter
+    {
+     private:
+      EnzymaticDigestion& digestion_;
+      Int min_cleavages_;
+      Int max_cleavages_;
+
+     public:
+      typedef PeptideHit argument_type;
+      PeptideDigestionFilter(EnzymaticDigestion& digestion, Int min, Int max) :
+      digestion_(digestion), min_cleavages_(min), max_cleavages_(max)
+      {}
+
+      static inline Int disabledValue(){ return -1; }
+      
+      /// Filter function on min max cutoff values to be used with remove_if 
+      /// returns true if peptide should be removed (does not pass filter)
+      bool operator()(PeptideHit& p)
+      {
+        return digestion_.filterByMissedCleavages(
+          p.getSequence().toUnmodifiedString(),
+          [&](const Int missed_cleavages)
+          {
+
+            bool max_filter = max_cleavages_ != disabledValue() ? 
+                              missed_cleavages > max_cleavages_ : false;
+            bool min_filter = min_cleavages_ != disabledValue() ?
+                              missed_cleavages < min_cleavages_ : false;
+            return max_filter || min_filter;
+          });
+      }
+
+      void filterPeptideSequences(std::vector<PeptideHit>& hits)
+      {
+        hits.erase(std::remove_if(hits.begin(), hits.end(), (*this)), hits.end());
+      }
+
+    };
+
+
     /**
        @brief Is peptide evidence digestion product of some protein
 
@@ -347,20 +393,20 @@ public:
 
       // Build an accession index to avoid the linear search cost
       GetMatchingItems<PeptideEvidence, FASTAFile::FASTAEntry>accession_resolver_;
-      EnzymaticDigestion& digestion_;
+      ProteaseDigestion& digestion_;
       bool ignore_missed_cleavages_;
       bool methionine_cleavage_;
 
       DigestionFilter(std::vector<FASTAFile::FASTAEntry>& entries,
-                      EnzymaticDigestion& digestion,
+                      ProteaseDigestion& digestion,
                       bool ignore_missed_cleavages,
-                      bool methionine_cleavage) : 
-        accession_resolver_(entries), 
+                      bool methionine_cleavage) :
+        accession_resolver_(entries),
         digestion_(digestion),
         ignore_missed_cleavages_(ignore_missed_cleavages),
         methionine_cleavage_(methionine_cleavage)
       {}
- 
+
       bool operator()(const PeptideEvidence& evidence) const
       {
         if(!evidence.hasValidLimits())
@@ -368,29 +414,28 @@ public:
           LOG_WARN << "Invalid limits! Peptide '" << evidence.getProteinAccession() << "' not filtered" << std::endl;
           return true;
         }
-        
-        if(accession_resolver_.exists(evidence))
+
+        if (accession_resolver_.exists(evidence))
         {
           return digestion_.isValidProduct(
             AASequence::fromString(accession_resolver_.getValue(evidence).sequence),
-            evidence.getStart(), evidence.getEnd() - evidence.getStart(), methionine_cleavage_, ignore_missed_cleavages_);
+            evidence.getStart(), evidence.getEnd() - evidence.getStart(), ignore_missed_cleavages_, methionine_cleavage_);
         }
         else
         {
-          if(evidence.getProteinAccession().empty())
+          if (evidence.getProteinAccession().empty())
           {
             LOG_WARN << "Peptide accession not available! Skipping Evidence." << std::endl;
           }
           else
           {
-            LOG_WARN << "Peptide accession '" << 
-              evidence.getProteinAccession() << 
-              "' not found in fasta file!" << std::endl;
+            LOG_WARN << "Peptide accession '" << evidence.getProteinAccession()
+                     << "' not found in fasta file!" << std::endl;
           }
           return true;
         }
       }
-      
+
       void filterPeptideEvidences(std::vector<PeptideIdentification>& peptides)
       {
         IDFilter::FilterPeptideEvidences<IDFilter::DigestionFilter>(*this,peptides);
@@ -575,6 +620,7 @@ public:
         }
       }
     }
+    
 
     ///@}
 

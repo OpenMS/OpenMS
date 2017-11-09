@@ -576,12 +576,16 @@ namespace OpenMS
     if (File::exists(exec)) return exec;
 
 #if defined(__APPLE__)
-    // check if we are in one of the bundles
+    // check if we are in one of the bundles (only built, not installed) 
     exec = File::getExecutablePath() + "../../../" + toolName;
     if (File::exists(exec)) return exec;
 
-    // check if we are in one of the bundles in an installed bundle
+    // check if we are in one of the bundles in an installed bundle (old bundles)
     exec = File::getExecutablePath() + "../../../TOPP/" + toolName;
+    if (File::exists(exec)) return exec;
+    
+    // check if we are in one of the bundles in an installed bundle (new bundles)
+    exec = File::getExecutablePath() + "../../../bin/" + toolName;
     if (File::exists(exec)) return exec;
 #endif
     // TODO(aiche): probe in PATH

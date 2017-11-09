@@ -685,7 +685,7 @@ protected:
         // TODO: percentage procedure with MetaInfoInterfaceUtils
         vector<String> ph_keys;
         best_ph.getKeys(ph_keys);
-        // TODO: no conversion but make funtion on collections
+        // TODO: no conversion but make function on collections
         set<String> ph_key_set(ph_keys.begin(), ph_keys.end());
         addMetaInfoToOptionalColumns(ph_key_set, row.opt_, String("global"), best_ph);
 
