@@ -378,7 +378,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cgqcs.n_quantifying_u_ = 2;
   cgqcs.n_identifying_l_ = 0;
   cgqcs.n_identifying_u_ = 3;
-  cgqcs.n_transitions_l_ = 2;
+  cgqcs.n_transitions_l_ = 3;  //should fail
   cgqcs.n_transitions_u_ = 3;
   cgqcs.ion_ratio_pair_name_1_ = "component2.1.Light";
   cgqcs.ion_ratio_pair_name_2_ = "component2.2.Light";
