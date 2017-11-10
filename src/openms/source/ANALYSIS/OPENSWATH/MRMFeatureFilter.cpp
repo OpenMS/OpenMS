@@ -257,6 +257,7 @@ namespace OpenMS
       {
         std::cout << "copied passing feature" << std::endl; //debugging
         Feature feature_filtered(features[feature_it]);
+        feature_filtered.setSubordinates(subordinates_filtered);
         features_filtered.push_back(feature_filtered);
       }   
       else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() == 0)
