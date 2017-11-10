@@ -330,10 +330,10 @@ namespace OpenMS
     // record
     output["n_heavy"] = n_heavy;
     output["n_light"] = n_light;
-    output["n_quant"] = n_quant;
-    output["n_ident"] = n_ident;
-    output["n_detect"] = n_detect;
-    output["n_trans"] = n_trans;
+    output["n_quantifying"] = n_quant;
+    output["n_identifying"] = n_ident;
+    output["n_detecting"] = n_detect;
+    output["n_transitions"] = n_trans;
 
     return output;
   }
