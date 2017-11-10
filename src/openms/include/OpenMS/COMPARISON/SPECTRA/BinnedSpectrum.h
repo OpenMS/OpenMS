@@ -114,7 +114,7 @@ public:
     /// inequality operator
     bool operator!=(const BinnedSpectrum& rhs) const;
 
-    inline size_t getBinIndex(double mz) { return static_cast<int>(floor(mz / bin_size_)); }
+    inline size_t getBinIndex(double mz) { return static_cast<size_t>(floor(mz / bin_size_)); }
 
     /// get the bin size
     inline double getBinSize() const { return bin_size_; }
