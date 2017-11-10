@@ -292,6 +292,10 @@ namespace OpenMS
     //TODO: possible refactor the method to include a seperate function to find the IS
   }
 
+  /** TODO: this method is incomplete
+   * 1. interface with MRMRTNormalizer
+   * 2. make tests
+   */
   void AbsoluteQuantitation::optimizeCalibrationCurveBruteForce(
     const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
     const String & feature_name,
