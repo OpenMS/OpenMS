@@ -230,6 +230,39 @@ public:
       return ret;
     }
 
+    // multiply with scalar
+    SparseVector operator*=(float s)
+    {
+      auto it = begin();
+      while(it != end())
+      {
+        const Value& v = (Value)*it;
+        if (v != sparse_element_)
+        {
+          values_[it.position()] *= s;
+        }
+        it.hop();
+      }
+    }
+
+    // multiply with scalar
+    SparseVector operator*(float s)
+    {
+      SparseVector ret(*this);
+      auto it = begin();
+      while(it != end())
+      {
+        const Value& v = (Value)*it;
+        if (v != sparse_element_)
+        {
+          ret.values_[it.position()] *= s;
+        } 
+        it.hop();
+      }
+      return ret;
+    }
+
+
     /** at (see stl vector docs)
 
             @param pos index at which the desired element stays

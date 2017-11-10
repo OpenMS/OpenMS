@@ -197,6 +197,46 @@ START_SECTION((SparseVector operator+(const SparseVector &source)))
 }
 END_SECTION
 
+START_SECTION((SparseVector& operator+=(float s)))
+{
+  SparseVector<double> a;
+  a.push_back(1.0);
+  a.push_back(1.1);
+  a.push_back(1.2);
+  a.push_back(1.3);
+  a.push_back(1.4);
+
+  a *= 10;
+ 
+  TEST_EQUAL(a.size(), 5)
+  TEST_EQUAL(a.at(0), 10.0)
+  TEST_EQUAL(a.at(1), 11.0);
+  TEST_EQUAL(a.at(2), 12.0);
+  TEST_EQUAL(a.at(3), 13.0);
+  TEST_EQUAL(a.at(4), 14.0);
+}
+END_SECTION
+
+START_SECTION((SparseVector operator+(const SparseVector &source)))
+{
+  SparseVector<double> a;
+  a.push_back(1.0);
+  a.push_back(1.1);
+  a.push_back(1.2);
+  a.push_back(1.3);
+  a.push_back(1.4);
+
+  a = a * 10;
+
+  TEST_EQUAL(a.size(), 5)
+  TEST_EQUAL(a.at(0), 10.0)
+  TEST_EQUAL(a.at(1), 11.0);
+  TEST_EQUAL(a.at(2), 12.0);
+  TEST_EQUAL(a.at(3), 13.0);
+  TEST_EQUAL(a.at(4), 14.0);
+}
+END_SECTION
+
 START_SECTION((bool operator==(const SparseVector &rhs) const ))
 {
   SparseVector<double> sv3(sv);

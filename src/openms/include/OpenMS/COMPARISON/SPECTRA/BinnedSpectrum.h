@@ -50,7 +50,7 @@ namespace OpenMS
 
     @param sz the size of the bins and
     @param sp number of neighboring bins to both sides affected by a peak contribution
-    @param ps the PeakSpectrum, used to calculate the bins
+    @param ps the PeakSpectrum, used to calculate the binned spectrum
 
     sz denotes the size of a bin in @p Th, thereby deciding the number of bins (all of size sz) the spectrum is discretized to.
     Each bin will represent a certain @p Th range and the peaks will be put in the respective bins and sum up inside.
@@ -59,6 +59,9 @@ namespace OpenMS
     If the binspread is 1, the peak at 100 Th will be added to bin no. 199, 200 and 201.
     If the binspread is 2, the peak at 100 @p Th will also be added to bin no. 198 and 202, and so on.
 
+    Supported operations provided by the underlying SparseVector implementation:
+    - bin-wise addition (e.g.: c = a.getBins() + b.getBins())
+    - bin-wise scaling  (e.g.: c = a.getBins() * 5f)
     @ingroup SpectraComparison
   */
 
