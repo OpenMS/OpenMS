@@ -111,8 +111,7 @@ namespace OpenMS
   
   double AbsoluteQuantitation::calculateBias(const double & actual_concentration, const double & calculated_concentration)
   {
-    double bias = 0.0;
-    bias = fabs(actual_concentration - calculated_concentration)/actual_concentration*100;
+    double bias = fabs(actual_concentration - calculated_concentration)/actual_concentration*100;
     return bias;
   }
   
@@ -149,9 +148,8 @@ namespace OpenMS
     double ratio = calculateRatio(component, IS_component, feature_name);
 
     // calculate the absolute concentration
-    double calculated_concentration = 0.0;
     AbsoluteQuantitationMethod aqm;
-    calculated_concentration = aqm.evaluateTransformationModel(
+    double calculated_concentration = aqm.evaluateTransformationModel(
       transformation_model, ratio, transformation_model_params);
 
     // check for less than zero
@@ -310,9 +308,8 @@ namespace OpenMS
     size_t min_points = 4;
     double max_bias = 30.0;
     double min_r2 = 0.9; 
-    size_t max_outliers = 1;  
+    // size_t max_outliers = 1;  // not used currently
 
-    size_t n_loops;
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_start_it;
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_end_it;
 
@@ -328,7 +325,7 @@ namespace OpenMS
     // loop from all points to min_points
     for (size_t n_points = component_concentrations.size(); n_points >= min_points; --n_points)
     {
-      n_loops = component_concentrations.size() - n_points;
+      size_t n_loops = component_concentrations.size() - n_points;
       for (size_t  component_it = 0; component_it < n_loops; ++component_it)
       {
         // TODO: support for outliers
@@ -387,26 +384,25 @@ namespace OpenMS
     
     // extract out the calibration points
     std::vector<double> concentration_ratios, feature_amounts_ratios;
-    double calculated_concentration_ratio, actual_concentration_ratio, feature_amount_ratio, bias;
     for (size_t i = 0; i < component_concentrations.size(); ++i)
     {
 
       // calculate the actual and calculated concentration ratios
-      calculated_concentration_ratio = applyCalibration(component_concentrations[i].feature,
+      double calculated_concentration_ratio = applyCalibration(component_concentrations[i].feature,
         component_concentrations[i].IS_feature,
         feature_name,
         transformation_model,
         transformation_model_params);
 
-      actual_concentration_ratio = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
+      double actual_concentration_ratio = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
       concentration_ratios.push_back(component_concentrations[i].actual_concentration);
 
       // calculate the bias
-      bias = calculateBias(actual_concentration_ratio, calculated_concentration_ratio);
+      double bias = calculateBias(actual_concentration_ratio, calculated_concentration_ratio);
       biases.push_back(bias);
 
       // extract out the feature amount ratios
-      feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
+      double feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
         component_concentrations[i].IS_feature,
         feature_name);
       feature_amounts_ratios.push_back(feature_amount_ratio);
