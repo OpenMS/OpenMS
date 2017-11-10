@@ -204,9 +204,10 @@ START_SECTION((std::map<String,int> countLabelsAndTransitionTypes(const Feature 
   std::map<String,int> test1 = mrmff.countLabelsAndTransitionTypes(component_1, transitions);
   TEST_EQUAL(test1["n_heavy"], 1);
   TEST_EQUAL(test1["n_light"], 2);
-  TEST_EQUAL(test1["n_quant"], 2);
-  TEST_EQUAL(test1["n_ident"], 0);
-  TEST_EQUAL(test1["n_detect"], 3);
+  TEST_EQUAL(test1["n_quantifying"], 2);
+  TEST_EQUAL(test1["n_identifying"], 0);
+  TEST_EQUAL(test1["n_detecting"], 3);
+  TEST_EQUAL(test1["n_transitions"], 3);
 
 }
 END_SECTION
@@ -214,7 +215,8 @@ END_SECTION
 START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
   const TargetedExperiment & transitions))
 {
-  // FilterFeatureMap Test 1
+  /** FilterFeatureMap Test 1: basic ability to flag or filter transitions or transition groups */
+  
   MRMFeatureFilter mrmff;
 
   //make the FeatureMap
@@ -434,7 +436,7 @@ END_SECTION
 START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_criteria,
   const TargetedExperiment & transitions))
 {
-  // FilterFeatureMap Test 2
+  /** FilterFeatureMap Test 2: tests for individual checks on each transition and transition group */
   MRMFeatureFilter mrmff;
 
   //make the FeatureMap
@@ -584,12 +586,12 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinates.push_back(subordinate);
   // transition 3
   subordinate.setMetaValue("native_id","component1.2.Light");
-  subordinates.push_back(subordinate);
   subordinate.setRT(6.0); // should fail
   subordinate.setIntensity(0.0);
   subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
+  subordinates.push_back(subordinate);
   component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
