@@ -157,6 +157,36 @@ namespace OpenMS
     return signal_to_noise_;
   }
 
+  void SpectrumExtractor::setPeakHeightMin(const double& peak_height_min)
+  {
+    peak_height_min_ = peak_height_min;
+  }
+
+  double SpectrumExtractor::getPeakHeightMin() const
+  {
+    return peak_height_min_;
+  }
+
+  void SpectrumExtractor::setPeakHeightMax(const double& peak_height_max)
+  {
+    peak_height_max_ = peak_height_max;
+  }
+
+  double SpectrumExtractor::getPeakHeightMax() const
+  {
+    return peak_height_max_;
+  }
+
+  void SpectrumExtractor::setFWHMThreshold(const double& fwhm_threshold)
+  {
+    fwhm_threshold_ = fwhm_threshold;
+  }
+
+  double SpectrumExtractor::getFWHMThreshold() const
+  {
+    return fwhm_threshold_;
+  }
+
   void SpectrumExtractor::setTICWeight(const double& tic_weight)
   {
     tic_weight_ = tic_weight;
@@ -202,6 +232,10 @@ namespace OpenMS
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
     signal_to_noise_ = (double)param_.getValue("signal_to_noise");
 
+    peak_height_min_ = (double)param_.getValue("peak_height_min");
+    peak_height_max_ = (double)param_.getValue("peak_height_max");
+    fwhm_threshold_ = (double)param_.getValue("fwhm_threshold");
+
     tic_weight_ = (double)param_.getValue("tic_weight");
     fwhm_weight_ = (double)param_.getValue("fwhm_weight");
     snr_weight_ = (double)param_.getValue("snr_weight");
@@ -211,7 +245,7 @@ namespace OpenMS
   {
     params.clear();
 
-    params.setValue("rt_window", 30, "Retention time window in seconds.");
+    params.setValue("rt_window", 30.0, "Retention time window in seconds.");
 
     params.setValue("min_score", 0.7, "The minimum score a spectrum must have to be assignable to a transition.");
     params.setMinFloat("min_score", 0.0);
@@ -236,6 +270,13 @@ namespace OpenMS
     params.setValidStrings("use_gauss", ListUtils::create<String>("false,true"));
     params.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
     params.setMinFloat("signal_to_noise", 0.0);
+
+    params.setValue("peak_height_min", 0.0, "Minimum picked peak's height.");
+    params.setMinFloat("peak_height_min", 0.0);
+    params.setValue("peak_height_max", 4e6, "Maximum picked peak's height.");
+    params.setMinFloat("peak_height_max", 0.0);
+    params.setValue("fwhm_threshold", 0.0, "Picked peak's FWHM threshold.");
+    params.setMinFloat("fwhm_threshold", 0.0);
 
     params.setValue("tic_weight", 1.0, "TIC weight when scoring spectra.");
     params.setMinFloat("tic_weight", 0.0);
@@ -263,7 +304,15 @@ namespace OpenMS
 
     // Smooth the spectrum
     MSSpectrum smoothed_spectrum = spectrum;
-    if (!use_gauss_)
+    if (getUseGauss())
+    {
+      GaussFilter gauss;
+      Param filter_parameters = gauss.getParameters();
+      filter_parameters.setValue("gaussian_width", gauss_width_);
+      gauss.setParameters(filter_parameters);
+      gauss.filter(smoothed_spectrum);
+    }
+    else
     {
       SavitzkyGolayFilter sgolay;
       Param filter_parameters = sgolay.getParameters();
@@ -271,14 +320,6 @@ namespace OpenMS
       filter_parameters.setValue("polynomial_order", sgolay_polynomial_order_);
       sgolay.setParameters(filter_parameters);
       sgolay.filter(smoothed_spectrum);
-    }
-    else
-    {
-      GaussFilter gauss;
-      Param filter_parameters = gauss.getParameters();
-      filter_parameters.setValue("gaussian_width", gauss_width_);
-      gauss.setParameters(filter_parameters);
-      gauss.filter(smoothed_spectrum);
     }
 
     // Find initial seeds (peak picking)
@@ -293,7 +334,32 @@ namespace OpenMS
     PeakPickerHiRes pp;
     pp.setParameters(pepi_param);
     pp.pick(smoothed_spectrum, picked_spectrum);
-    LOG_DEBUG << "Found " << picked_spectrum.size() << " spectrum peaks." << std::endl;
+
+    std::vector<UInt> peaks_pos_to_erase;
+    for (Int i=picked_spectrum.size()-1; i>=0; --i)
+    {
+      if (picked_spectrum[i].getIntensity() < getPeakHeightMin() ||
+          picked_spectrum[i].getIntensity() > getPeakHeightMax() ||
+          picked_spectrum.getFloatDataArrays()[0][i] < getFWHMThreshold())
+      {
+        peaks_pos_to_erase.push_back(i);
+      }
+    }
+
+    if (peaks_pos_to_erase.size() != picked_spectrum.size()) // if not all peaks are to be removed
+    {
+      for (auto i : peaks_pos_to_erase) // then keep only the valid peaks (and fwhm)
+      {
+        picked_spectrum.erase(picked_spectrum.begin() + i);
+        picked_spectrum.getFloatDataArrays()[0].erase(picked_spectrum.getFloatDataArrays()[0].begin() + i);
+      }
+    }
+    else // otherwise output an empty picked_spectrum
+    {
+      picked_spectrum.clear(true);
+    }
+
+    LOG_DEBUG << "Found " << picked_spectrum.size() << " peaks." << std::endl;
   }
 
   void SpectrumExtractor::annotateSpectra(
@@ -351,8 +417,8 @@ namespace OpenMS
   void SpectrumExtractor::scoreSpectra(
     const std::vector<MSSpectrum>& annotated_spectra,
     const std::vector<MSSpectrum>& picked_spectra,
-    std::vector<MSSpectrum>& scored_spectra,
-    FeatureMap& features
+    FeatureMap& features,
+    std::vector<MSSpectrum>& scored_spectra
   )
   {
     scored_spectra.clear();
@@ -440,17 +506,28 @@ namespace OpenMS
       pickSpectrum(annotated[i], picked[i]);
     }
 
+    // remove empty picked<> spectra, and accordingly update annotated<> and features
+    for (Int i=annotated.size()-1; i>=0; --i)
+    {
+      if (!picked[i].size())
+      {
+        annotated.erase(annotated.begin() + i);
+        picked.erase(picked.begin() + i);
+        features.erase(features.begin() + i);
+      }
+    }
+
     // score spectra
     std::vector<MSSpectrum> scored;
-    scoreSpectra(annotated, picked, scored, features);
+    scoreSpectra(annotated, picked, features, scored);
 
-    selectSpectra(scored, extracted_spectra, features, extracted_features);
+    selectSpectra(scored, features, extracted_spectra, extracted_features);
   }
 
   void SpectrumExtractor::selectSpectra(
     const std::vector<MSSpectrum>& scored_spectra,
-    std::vector<MSSpectrum>& selected_spectra,
     const FeatureMap& features,
+    std::vector<MSSpectrum>& selected_spectra,
     FeatureMap& selected_features
   )
   {
@@ -498,6 +575,6 @@ namespace OpenMS
   {
     FeatureMap dummy_features;
     FeatureMap dummy_selected_features;
-    selectSpectra(scored_spectra, selected_spectra, dummy_features, dummy_selected_features);
+    selectSpectra(scored_spectra, dummy_features, selected_spectra, dummy_selected_features);
   }
 }

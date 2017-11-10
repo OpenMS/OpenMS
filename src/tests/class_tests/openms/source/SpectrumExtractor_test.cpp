@@ -314,7 +314,7 @@ ptr = new SpectrumExtractor();
 START_SECTION(getParameters())
 {
   Param params = ptr->getParameters();
-  TEST_EQUAL(params.getValue("rt_window"), 30)
+  TEST_EQUAL(params.getValue("rt_window"), 30.0)
   TEST_EQUAL(params.getValue("min_score"), 0.7)
   TEST_EQUAL(params.getValue("min_forward_match"), 0.9)
   TEST_EQUAL(params.getValue("min_reverse_match"), 0.9)
@@ -325,6 +325,9 @@ START_SECTION(getParameters())
   TEST_EQUAL(params.getValue("gauss_width"), 0.2)
   TEST_EQUAL(params.getValue("use_gauss"), "true")
   TEST_EQUAL(params.getValue("signal_to_noise"), 1.0)
+  TEST_EQUAL(params.getValue("peak_height_min"), 0.0)
+  TEST_EQUAL(params.getValue("peak_height_max"), 4e6)
+  TEST_EQUAL(params.getValue("fwhm_threshold"), 0.0)
   TEST_EQUAL(params.getValue("tic_weight"), 1.0)
   TEST_EQUAL(params.getValue("fwhm_weight"), 1.0)
   TEST_EQUAL(params.getValue("snr_weight"), 1.0)
@@ -333,9 +336,9 @@ END_SECTION
 
 START_SECTION(setRTWindow())
 {
-  TEST_EQUAL(ptr->getRTWindow(), 30)
-  ptr->setRTWindow(50);
-  TEST_EQUAL(ptr->getRTWindow(), 50)
+  TEST_EQUAL(ptr->getRTWindow(), 30.0)
+  ptr->setRTWindow(50.0);
+  TEST_EQUAL(ptr->getRTWindow(), 50.0)
 }
 END_SECTION
 
@@ -420,6 +423,30 @@ START_SECTION(setSignalToNoise())
 }
 END_SECTION
 
+START_SECTION(getPeakHeightMin())
+{
+  TEST_EQUAL(ptr->getPeakHeightMin(), 0.0)
+  ptr->setPeakHeightMin(0.6);
+  TEST_EQUAL(ptr->getPeakHeightMin(), 0.6)
+}
+END_SECTION
+
+START_SECTION(getPeakHeightMax())
+{
+  TEST_EQUAL(ptr->getPeakHeightMax(), 4e6)
+  ptr->setPeakHeightMax(150000.0);
+  TEST_EQUAL(ptr->getPeakHeightMax(), 150000.0)
+}
+END_SECTION
+
+START_SECTION(getFWHMThreshold())
+{
+  TEST_EQUAL(ptr->getFWHMThreshold(), 0.0)
+  ptr->setFWHMThreshold(0.23);
+  TEST_EQUAL(ptr->getFWHMThreshold(), 0.23)
+}
+END_SECTION
+
 START_SECTION(getParameters().getDescription("rt_window"))
 {
   TEST_EQUAL(ptr->getParameters().getDescription("rt_window"), "Retention time window in seconds.")
@@ -454,29 +481,59 @@ START_SECTION(pickSpectrum())
 {
   MSSpectrum picked_spectrum;
   spectrum.sortByPosition();
-  ptr->setGaussWidth(0.2);
+
   ptr->setUseGauss(true);
+  ptr->setGaussWidth(0.25);
+  ptr->setPeakHeightMin(0.0);
+  ptr->setPeakHeightMax(200000.0);
+  ptr->setFWHMThreshold(0.0);
   ptr->pickSpectrum(spectrum, picked_spectrum);
   TEST_NOT_EQUAL(spectrum.size(), picked_spectrum.size())
-
+  TEST_EQUAL(picked_spectrum.size(), 6)
   MSSpectrum::Iterator it = picked_spectrum.begin();
   TEST_REAL_SIMILAR(it->getMZ(), 85.014)
-  TEST_REAL_SIMILAR(it->getIntensity(), 60774.2)
+  TEST_REAL_SIMILAR(it->getIntensity(), 60754.7)
   ++it;
   TEST_REAL_SIMILAR(it->getMZ(), 86.0196)
-  TEST_REAL_SIMILAR(it->getIntensity(), 116084)
+  TEST_REAL_SIMILAR(it->getIntensity(), 116036.0)
   ++it;
   TEST_REAL_SIMILAR(it->getMZ(), 112.033)
-  TEST_REAL_SIMILAR(it->getIntensity(), 21948.4)
+  TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
   ++it;
   TEST_REAL_SIMILAR(it->getMZ(), 129.396)
-  TEST_REAL_SIMILAR(it->getIntensity(), 10570)
+  TEST_REAL_SIMILAR(it->getIntensity(), 10575.5)
   ++it;
   TEST_REAL_SIMILAR(it->getMZ(), 130.081)
-  TEST_REAL_SIMILAR(it->getIntensity(), 31851.7)
+  TEST_REAL_SIMILAR(it->getIntensity(), 31838.1)
   ++it;
-  TEST_REAL_SIMILAR(it->getMZ(), 174.239)
-  TEST_REAL_SIMILAR(it->getIntensity(), 11734.7)
+  TEST_REAL_SIMILAR(it->getMZ(), 174.24)
+  TEST_REAL_SIMILAR(it->getIntensity(), 11731.3)
+
+  ptr->setPeakHeightMin(15000.0);
+  ptr->setPeakHeightMax(110000.0);
+  ptr->pickSpectrum(spectrum, picked_spectrum);
+  // With the new filters on peaks' heights, less peaks get picked.
+  TEST_EQUAL(picked_spectrum.size(), 3)
+  it = picked_spectrum.begin();
+  TEST_REAL_SIMILAR(it->getMZ(), 85.014)
+  TEST_REAL_SIMILAR(it->getIntensity(), 60754.7)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 112.033)
+  TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 130.081)
+  TEST_REAL_SIMILAR(it->getIntensity(), 31838.1)
+
+  ptr->setFWHMThreshold(0.23);
+  ptr->pickSpectrum(spectrum, picked_spectrum);
+  // Filtering also on fwhm, even less peaks get picked.
+  TEST_EQUAL(picked_spectrum.size(), 2)
+  it = picked_spectrum.begin();
+  TEST_REAL_SIMILAR(it->getMZ(), 85.014)
+  TEST_REAL_SIMILAR(it->getIntensity(), 60754.7)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 112.033)
+  TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
 }
 END_SECTION
 
@@ -487,10 +544,13 @@ START_SECTION(annotateSpectra())
   TransitionTSVReader tsv_reader;
   TargetedExperiment targeted_exp;
 
-  ptr->setRTWindow(30);
-  ptr->setMZTolerance(0.1);
-  ptr->setGaussWidth(0.25);
   ptr->setUseGauss(true);
+  ptr->setGaussWidth(0.25);
+  ptr->setRTWindow(30.0);
+  ptr->setMZTolerance(0.1);
+  ptr->setPeakHeightMin(15000.0);
+  ptr->setPeakHeightMax(110000.0);
+  ptr->setFWHMThreshold(0.23);
 
   mzml.load(experiment_path, experiment);
   tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
@@ -504,112 +564,7 @@ START_SECTION(annotateSpectra())
   TEST_NOT_EQUAL(annotated_spectra.size(), 0)
   TEST_EQUAL(annotated_spectra.size(), features.size())
 
-  ofstream outfile;
-  outfile.open(
-    OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_annotateSpectra_test.html"),
-    ios::out | ios::trunc
-  );
-  if (outfile.is_open())
-  {
-    const string header = ""
-    "<!doctype html>"
-    "<html>"
-    "<head>"
-    "  <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>"
-    "</head>"
-    "<body>"
-    "  <div id=\"plot-here\" style=\"height: 800px\"></div>"
-    "RT window: " + to_string(ptr->getRTWindow()) + "<br>"
-    "MZ tolerance: " + to_string(ptr->getMZTolerance()) + "<br>"
-    "Gauss width: " + to_string(ptr->getGaussWidth()) + "<br>"
-    "Using Gauss filter: " + to_string(ptr->getUseGauss()) + "<br>"
-    "</body>"
-    "<script>"
-    "const data = [";
-
-    outfile << header;
-    for (UInt i=0; i<annotated_spectra.size(); ++i)
-    {
-      MSSpectrum picked_spectrum;
-      ptr->pickSpectrum(annotated_spectra[i], picked_spectrum);
-
-      outfile << "  {" << endl <<  "    x: [";
-      for (auto s : annotated_spectra[i])
-      {
-        outfile << s.getMZ() << ", ";
-      }
-      outfile << "]," << endl << "    y: [";
-      for (auto s : annotated_spectra[i])
-      {
-        outfile << s.getIntensity() << ", ";
-      }
-      outfile << "]," << endl;
-
-      string annotated_trace_ending = ""
-      "    legendgroup: '" + to_string(i) + "',"
-      "    visible: 'legendonly',"
-      "    mode: 'lines+markers',"
-      "    name: '[" + to_string(i) + "] " + picked_spectrum.getName() + "',"
-      "    type: 'scatter',"
-      "    line: {"
-      "      width: 1"
-      "    },"
-      "    marker: {"
-      "      color: 'green',"
-      "      size: 4"
-      "    }"
-      "  },";
-
-      outfile << annotated_trace_ending << endl << "{" << endl << "    x: [";
-      for (auto s : picked_spectrum)
-      {
-        outfile << s.getMZ() << ", ";
-      }
-      outfile << "]," << endl << "y: [";
-      for (auto s : picked_spectrum)
-      {
-        outfile << s.getIntensity() << ", ";
-      }
-      outfile << "]," << endl;
-      string picked_trace_ending = ""
-      "    legendgroup: '" + to_string(i) + "',"
-      "    visible: 'legendonly',"
-      "    showlegend: false,"
-      "    mode: 'markers',"
-      "    name: '[" + to_string(i) + "] " + picked_spectrum.getName() + "',"
-      "    type: 'scatter',"
-      "    marker: {"
-      "      color: 'red',"
-      "      size: 10,"
-      "      symbol: 'square-open-dot'"
-      "    }"
-      "  },";
-      outfile << picked_trace_ending << endl;
-    }
-
-    const string footer = ""
-    "];"
-    "const layout = {"
-    "  title: 'Spectrum',"
-    "  xaxis: {"
-    "    title: 'Mass-to-charge ratio (m/z)'"
-    "  },"
-    "  yaxis: {"
-    "    title: 'Intensity'"
-    "  },"
-    "  hovermode: 'closest'"
-    "};"
-    "Plotly.plot(document.getElementById('plot-here'), data, layout);"
-    "</script>"
-    "</html>";
-
-    outfile << footer;
-    outfile.close();
-  }
-  else
-  {
-    cout << "Unable to open file to write the spectrum";
-  }
+  // TODO check the values of annotated spectra, also check that metadata is present
 }
 END_SECTION
 
@@ -623,34 +578,50 @@ START_SECTION(scoreSpectra())
   mzml.load(experiment_path, experiment);
   tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
 
-  ptr->setRTWindow(30);
-  ptr->setMZTolerance(0.1);
-  ptr->setGaussWidth(0.25);
   ptr->setUseGauss(true);
+  ptr->setGaussWidth(0.25);
+  ptr->setRTWindow(30.0);
+  ptr->setMZTolerance(0.1);
+  ptr->setPeakHeightMin(15000.0);
+  ptr->setPeakHeightMax(110000.0);
+  ptr->setFWHMThreshold(0.23);
   ptr->setTICWeight(1.0);
   ptr->setFWHMWeight(1.0);
   ptr->setSNRWeight(1.0);
 
   vector<MSSpectrum> annotated_spectra;
   FeatureMap features;
-  vector<MSSpectrum> spectra = experiment.getSpectra();
+  const vector<MSSpectrum> spectra = experiment.getSpectra();
 
   ptr->annotateSpectra(spectra, targeted_exp, annotated_spectra, features);
+  TEST_EQUAL(annotated_spectra.size(), features.size())
 
   vector<MSSpectrum> picked_spectra(annotated_spectra.size());
-
   for (UInt i=0; i<annotated_spectra.size(); ++i)
   {
     ptr->pickSpectrum(annotated_spectra[i], picked_spectra[i]);
   }
 
-  ptr->setTICWeight(1.0);
-  ptr->setFWHMWeight(1.0);
-  ptr->setSNRWeight(1.0);
+  for (Int i=annotated_spectra.size()-1; i>=0; --i)
+  {
+    if (!picked_spectra[i].size())
+    {
+      annotated_spectra.erase(annotated_spectra.begin() + i);
+      picked_spectra.erase(picked_spectra.begin() + i);
+      features.erase(features.begin() + i);
+    }
+  }
+  TEST_EQUAL(annotated_spectra.size(), features.size())
+  TEST_EQUAL(picked_spectra.size(), features.size())
+
   vector<MSSpectrum> scored_spectra;
-  ptr->scoreSpectra(annotated_spectra, picked_spectra, scored_spectra, features);
+  ptr->scoreSpectra(annotated_spectra, picked_spectra, features, scored_spectra);
 
   TEST_NOT_EQUAL(scored_spectra.size(), 0)
+  TEST_EQUAL(scored_spectra.size(), annotated_spectra.size())
+  TEST_EQUAL(scored_spectra.size(), features.size())
+
+  // TODO check the values of scored spectra, also check that metadata is present
 
   // sort(scored_spectra.begin(), scored_spectra.end(), [](MSSpectrum a, MSSpectrum b)
   // {
@@ -696,14 +667,17 @@ START_SECTION(extractSpectra())
   mzml.load(experiment_path, experiment);
   tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
 
-  ptr->setRTWindow(30);
-  ptr->setMZTolerance(0.1);
-  ptr->setGaussWidth(0.25);
   ptr->setUseGauss(true);
+  ptr->setGaussWidth(0.25);
+  ptr->setRTWindow(30.0);
+  ptr->setMZTolerance(0.1);
+  ptr->setPeakHeightMin(15000.0);
+  ptr->setPeakHeightMax(110000.0);
+  ptr->setFWHMThreshold(0.23);
   ptr->setTICWeight(1.0);
   ptr->setFWHMWeight(1.0);
   ptr->setSNRWeight(1.0);
-  ptr->setMinScore(15);
+  ptr->setMinScore(15.0);
 
   vector<MSSpectrum> extracted_spectra;
   FeatureMap extracted_features;

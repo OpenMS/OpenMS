@@ -106,6 +106,15 @@ public:
     void setSignalToNoise(const double& signal_to_noise);
     double getSignalToNoise() const;
 
+    void setPeakHeightMin(const double& peak_height_min);
+    double getPeakHeightMin() const;
+
+    void setPeakHeightMax(const double& peak_height_max);
+    double getPeakHeightMax() const;
+
+    void setFWHMThreshold(const double& fwhm_threshold);
+    double getFWHMThreshold() const;
+
     void setTICWeight(const double& tic_weight);
     double getTICWeight() const;
 
@@ -126,6 +135,7 @@ public:
       sgolay_frame_length_ and sgolay_polynomial_order_ through their setters.
       The peak picking is executed with PeakPickerHiRes. It's possible to set the
       signal_to_noise_ parameter.
+      Peaks are then filtered by their heights and FWHM values (setters are provided).
 
       @param[in] spectrum The input spectrum
       @param[out] picked_spectrum A spectrum containing only the picked peaks
@@ -139,6 +149,8 @@ public:
       The spectra taken into account are those that fall within the precursor RT
       window and MZ tolerance set by the user through the setRTWindows() and
       setMZTolerance setters. Default values are provided for both parameters.
+
+      @warning The picked spectrum could be empty, meaning no peaks were found.
 
       @param[in] spectra The spectra to filter
       @param[in] targeted_exp The target list
@@ -167,14 +179,14 @@ public:
 
       @param[in] annotated_spectra The annotated spectra to score (for TIC and SNR)
       @param[in] picked_spectra The picked peaks found on each of the annotated spectra (for FWHM)
+      @param[in,out] features The score informations are also added to this FeatureMap. Picked peaks' FWHMs are saved in features' subordinates.
       @param[out] scored_spectra The scored spectra. Basically a copy of annotated_spectra with the added score informations
-      @param[out] features The score informations are also added to this FeatureMap. Picked peaks' FWHMs are saved in features' subordinates.
     */
     void scoreSpectra(
       const std::vector<MSSpectrum>& annotated_spectra,
       const std::vector<MSSpectrum>& picked_spectra,
-      std::vector<MSSpectrum>& scored_spectra,
-      FeatureMap& features
+      FeatureMap& features,
+      std::vector<MSSpectrum>& scored_spectra
     );
 
     /**
@@ -204,14 +216,14 @@ public:
       annotation (i.e., transition name)
 
       @param[in] scored_spectra Input annotated and scored spectra
-      @param[out] selected_spectra Output selected spectra
       @param[in] features Input features
+      @param[out] selected_spectra Output selected spectra
       @param[out] selected_features Output selected features
     */
     void selectSpectra(
       const std::vector<MSSpectrum>& scored_spectra,
-      std::vector<MSSpectrum>& selected_spectra,
       const FeatureMap& features,
+      std::vector<MSSpectrum>& selected_spectra,
       FeatureMap& selected_features
     );
 
@@ -245,6 +257,11 @@ private:
     double gauss_width_; /**< Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z) */
     bool use_gauss_; /**< Set to false if you want to use the Savitzky-Golay filtering method */
     double signal_to_noise_; /**< Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!) */
+
+    // peak picking
+    double peak_height_min_; /**< Minimum picked peak's height */
+    double peak_height_max_; /**< Maximum picked peak's height */
+    double fwhm_threshold_; /**< Picked peak's FWHM threshold */
 
     // scoring
     double tic_weight_; /**< Total TIC's weight when computing a spectrum's score */
