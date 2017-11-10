@@ -337,7 +337,7 @@ protected:
     }
 
     auto it = bin_frequency.begin();
-    while(it != bin_frequency.end())
+    while (it != bin_frequency.end())
     {
       const float& v = (float)*it;
       if (v != 0)
