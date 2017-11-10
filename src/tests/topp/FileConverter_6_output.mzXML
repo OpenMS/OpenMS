@@ -30,11 +30,7 @@
 			<processingOperation name="parameter: mode" value="test_mode"/>
 		</dataProcessing>
 		<scan num="1" msLevel="1" peaksCount="15" polarity="+" scanType="Full" filterLine="+ c NSI Full ms [ 400.00-1800.00]" retentionTime="PT5.1S" startMz="400" endMz="1800" lowMz="400.39" highMz="1795.56" basePeakMz="445.347" basePeakIntensity="120054" totIonCurrent="16675500">
-			<peaks precision="32"
- byteOrder="network"
- contentType="m/z-int"
- compressionType="none"
- compressedLen="0" >AAAAAEFwAAA/gAAAQWAAAEAAAABBUAAAQEAAAEFAAABAgAAAQTAAAECgAABBIAAAQMAAAEEQAABA4AAAQQAAAEEAAABA4AAAQRAAAEDAAABBIAAAQKAAAEEwAABAgAAAQUAAAEBAAABBUAAAQAAAAEFgAAA/gAAA</peaks>
+			<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" >AAAAAEFwAAA/gAAAQWAAAEAAAABBUAAAQEAAAEFAAABAgAAAQTAAAECgAABBIAAAQMAAAEEQAABA4AAAQQAAAEEAAABA4AAAQRAAAEDAAABBIAAAQKAAAEEwAABAgAAAQUAAAEBAAABBUAAAQAAAAEFgAAA/gAAA</peaks>
 			<nameValue name="maldi_spot_id" value="M0"/>
 			<nameValue name="lowest observed m/z" value="400.39"/>
 			<nameValue name="highest observed m/z" value="1795.56"/>
@@ -60,11 +56,7 @@
 			<scan num="2" msLevel="2" peaksCount="10" polarity="+" scanType="Full" filterLine="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]" retentionTime="PT5.2S" startMz="100" endMz="500" lowMz="320.39" highMz="1003.56" basePeakMz="456.347" basePeakIntensity="23433" totIonCurrent="16675500" collisionEnergy="4.2" >
 				<precursorMz precursorIntensity="120053" precursorCharge="2" windowWideness="14.43" activationMethod="CID" >5.5555</precursorMz>
 				<precursorMz precursorIntensity="0" windowWideness="34.43" activationMethod="ETD" >15.55</precursorMz>
-				<peaks precision="32"
- byteOrder="network"
- contentType="m/z-int"
- compressionType="none"
- compressedLen="0" >AAAAAEGgAABAAAAAQZAAAECAAABBgAAAQMAAAEFgAABBAAAAQUAAAEEgAABBIAAAQUAAAEEAAABBYAAAQMAAAEGAAABAgAAAQZAAAEAAAAA=</peaks>
+				<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" >AAAAAEGgAABAAAAAQZAAAECAAABBgAAAQMAAAEFgAABBAAAAQUAAAEEgAABBIAAAQUAAAEEAAABBYAAAQMAAAEGAAABAgAAAQZAAAEAAAAA=</peaks>
 				<nameValue name="maldi_spot_id" value="M1"/>
 				<nameValue name="lowest observed m/z" value="320.39"/>
 				<nameValue name="highest observed m/z" value="1003.56"/>
@@ -80,11 +72,7 @@
 			</scan>
 		</scan>
 		<scan num="3" msLevel="1" peaksCount="15" polarity="+" scanType="Full" filterLine="+ c NSI Full ms [ 400.00-1800.00]" retentionTime="PT5.3S" startMz="400" endMz="1800" lowMz="400.39" highMz="1795.56" basePeakMz="445.347" basePeakIntensity="120054" totIonCurrent="16675500">
-			<peaks precision="32"
- byteOrder="network"
- contentType="m/z-int"
- compressionType="none"
- compressedLen="0" >AAAAAEFwAAA/gAAAQWAAAEAAAABBUAAAQEAAAEFAAABAgAAAQTAAAECgAABBIAAAQMAAAEEQAABA4AAAQQAAAEEAAABA4AAAQRAAAEDAAABBIAAAQKAAAEEwAABAgAAAQUAAAEBAAABBUAAAQAAAAEFgAAA/gAAA</peaks>
+			<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0" >AAAAAEFwAAA/gAAAQWAAAEAAAABBUAAAQEAAAEFAAABAgAAAQTAAAECgAABBIAAAQMAAAEEQAABA4AAAQQAAAEEAAABA4AAAQRAAAEDAAABBIAAAQKAAAEEwAABAgAAAQUAAAEBAAABBUAAAQAAAAEFgAAA/gAAA</peaks>
 			<nameValue name="maldi_spot_id" value="M2"/>
 			<nameValue name="lowest observed m/z" value="400.39"/>
 			<nameValue name="highest observed m/z" value="1795.56"/>
@@ -96,19 +84,15 @@
 			<nameValue name="preset scan configuration" value="3"/>
 		</scan>
 		<scan num="4" msLevel="1" peaksCount="0" polarity="+" scanType="zoom" retentionTime="PT5.4S" startMz="110" endMz="905" basePeakMz="0">
-			<peaks precision="32"
- byteOrder="network"
- contentType="m/z-int"
- compressionType="none"
- compressedLen="0"  xsi:nil="true" />
+			<peaks precision="32" byteOrder="network" contentType="m/z-int" compressionType="none" compressedLen="0"  xsi:nil="true" />
 			<nameValue name="sdname" value="spectrumdescription4"/>
 		</scan>
 	</msRun>
 <index name = "scan" >
 <offset id = "1" >2064</offset>
-<offset id = "2" >3874</offset>
-<offset id = "3" >5381</offset>
-<offset id = "4" >6481</offset>
+<offset id = "2" >3870</offset>
+<offset id = "3" >5373</offset>
+<offset id = "4" >6469</offset>
 </index>
-<indexOffset>6826</indexOffset>
+<indexOffset>6810</indexOffset>
 </mzXML>

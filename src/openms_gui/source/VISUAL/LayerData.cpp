@@ -140,10 +140,12 @@ namespace OpenMS
   void LayerData::updatePeptideHitAnnotations_(PeptideHit& hit)
   {
     // copy user annotations to fragment annotation vector
-    Annotations1DContainer & las = getAnnotations(current_spectrum_);
+    Annotations1DContainer & las = getCurrentAnnotations();
 
-    vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
+    // initialize with an empty vector
+    vector<PeptideHit::PeakAnnotation> fas;
 
+    // do not change PeptideHit annotations, if there are no annotations on the spectrum
     bool annotations_changed(false);
 
     // regular expression for a charge at the end of the annotation
@@ -158,60 +160,22 @@ namespace OpenMS
 
       int tmp_charge(0);
 
-      // if already annotated we want to keep mz, intensity, and charge information
-      bool already_annotated(false);
-      for (auto& tmp_a : fas)
+      // add new fragment annotation
+      QString peak_anno = pa->getText();
+      int match_pos = reg_exp.indexIn(peak_anno);
+      if (match_pos >= 0)
       {
-        if (fabs(tmp_a.mz - pa->getPeakPosition()[0]) < 1e-6)
-        {
-          QString peak_anno = pa->getText();
-          int match_pos = reg_exp.indexIn(peak_anno);
-          // if a charge was found at the annotation, remove it from the annotation string an fill the charge attribute
-          if (match_pos >= 0)
-          {
-            tmp_charge = reg_exp.cap(1).toInt();
-            peak_anno = peak_anno.left(match_pos);
-          }
-
-          if (tmp_a.annotation == String(peak_anno))
-          {
-            already_annotated = true;
-            break;
-          }
-          else // peak annotated but different text (e.g., changed by user)
-          {
-            tmp_a.annotation = peak_anno;
-            // if the new annotation has a charge, use the new one
-            if (tmp_charge != 0)
-            {
-              tmp_a.charge = tmp_charge;
-            }
-            annotations_changed = true;
-            already_annotated = true;
-            break;
-          }
-        }
+        tmp_charge = reg_exp.cap(1).toInt();
+        peak_anno = peak_anno.left(match_pos);
       }
 
-      // add new fragment annotation if peak not yet annotated
-      if (!already_annotated)
-      {
-        QString peak_anno = pa->getText();
-        int match_pos = reg_exp.indexIn(peak_anno);
-        if (match_pos >= 0)
-        {
-          tmp_charge = reg_exp.cap(1).toInt();
-          peak_anno = peak_anno.left(match_pos);
-        }
-
-        PeptideHit::PeakAnnotation fa;
-        fa.charge = tmp_charge;
-        fa.mz = pa->getPeakPosition()[0];
-        fa.intensity = pa->getPeakPosition()[1];
-        fa.annotation = peak_anno;
-        fas.push_back(fa);
-        annotations_changed = true;
-      }
+      PeptideHit::PeakAnnotation fa;
+      fa.charge = tmp_charge;
+      fa.mz = pa->getPeakPosition()[0];
+      fa.intensity = pa->getPeakPosition()[1];
+      fa.annotation = peak_anno;
+      fas.push_back(fa);
+      annotations_changed = true;
     }
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }

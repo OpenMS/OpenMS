@@ -116,8 +116,6 @@ public:
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
       std::vector<MSChromatogram > picked_chroms_;
-      PeakPickerMRM picker;
-      picker.setParameters(param_.copy("PeakPickerMRM:", true));
 
       // Pick fragment ion chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
@@ -133,13 +131,8 @@ public:
           continue;
         }
 
-        if (!chromatogram.isSorted())
-        {
-          chromatogram.sortByPosition();
-        }
-
         MSChromatogram picked_chrom;
-        picker.pickChromatogram(chromatogram, picked_chrom);
+        picker_.pickChromatogram(chromatogram, picked_chrom);
         picked_chrom.sortByIntensity(); // we could do without that
         picked_chroms_.push_back(picked_chrom);
       }
@@ -153,7 +146,7 @@ public:
           SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
           String native_id = chromatogram.getNativeID();
 
-          picker.pickChromatogram(chromatogram, picked_chrom);
+          picker_.pickChromatogram(chromatogram, picked_chrom);
           picked_chrom.sortByIntensity(); // we could do without that
           picked_chroms_.push_back(picked_chrom);
         }
@@ -179,7 +172,8 @@ public:
         }
 
         cnt++;
-        if ((stop_after_feature_ > 0 && cnt > stop_after_feature_) &&
+        if (stop_after_feature_ > 0 && cnt > stop_after_feature_) {break;}
+        if (mrm_feature.getIntensity() > 0 && 
             mrm_feature.getIntensity() / (double)mrm_feature.getMetaValue("total_xic") < stop_after_intensity_ratio_)
         {
           break;
@@ -290,27 +284,9 @@ public:
         f.setOverallQuality(quality);
 
         ConvexHull2D::PointArrayType hull_points;
-        double intensity_sum(0.0), rt_sum(0.0);
+        double intensity_sum(0.0), intensity_integral(0), rt_sum(0.0);
         double peak_apex_int = -1;
-        double peak_apex_dist = std::fabs(used_chromatogram.begin()->getMZ() - peak_apex);
-        // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
-        for (typename SpectrumT::const_iterator it = used_chromatogram.begin(); it != used_chromatogram.end(); it++)
-        {
-          if (it->getMZ() > best_left && it->getMZ() < best_right)
-          {
-            DPosition<2> p;
-            p[0] = it->getMZ();
-            p[1] = it->getIntensity();
-            hull_points.push_back(p);
-            if (std::fabs(it->getMZ() - peak_apex) <= peak_apex_dist)
-            {
-              peak_apex_int = p[1];
-              peak_apex_dist = std::fabs(it->getMZ() - peak_apex);
-            }
-            rt_sum += it->getMZ();
-            intensity_sum += it->getIntensity();
-          }
-        }
+        calculatePeakApexInt_(used_chromatogram, best_left, best_right, hull_points, intensity_sum, intensity_integral, rt_sum, peak_apex_int, peak_apex);
 
         double background(0), avg_noise_level(0);
         if (background_subtraction_ != "none")
@@ -368,6 +344,32 @@ public:
           total_intensity += intensity_sum;
           total_peak_apices += peak_apex_int;
         }
+    
+        if (compute_peak_shape_metrics_)
+        { //for backwards compatibility with TOPP tests
+          // Calculate peak shape metrics that will be used for later QC  
+          PeakShapeMetrics_ peakShapeMetrics;        
+          calculatePeakShapeMetrics_(used_chromatogram, 
+            best_left, best_right, 
+            peak_apex_int, peak_apex, avg_noise_level,
+            peakShapeMetrics);    
+
+          f.setMetaValue("width_at_5", peakShapeMetrics.width_at_5);    
+          f.setMetaValue("width_at_10", peakShapeMetrics.width_at_10);
+          f.setMetaValue("width_at_50", peakShapeMetrics.width_at_50);
+          f.setMetaValue("start_time_at_10", peakShapeMetrics.start_time_at_10);
+          f.setMetaValue("start_time_at_5", peakShapeMetrics.start_time_at_5);
+          f.setMetaValue("end_time_at_10", peakShapeMetrics.end_time_at_10);
+          f.setMetaValue("end_time_at_5", peakShapeMetrics.end_time_at_5);
+          f.setMetaValue("total_width", peakShapeMetrics.total_width);
+          f.setMetaValue("tailing_factor", peakShapeMetrics.tailing_factor);
+          f.setMetaValue("asymmetry_factor", peakShapeMetrics.asymmetry_factor);
+          f.setMetaValue("baseline_delta_2_height", peakShapeMetrics.baseline_delta_2_height);
+          f.setMetaValue("slope_of_baseline", peakShapeMetrics.slope_of_baseline);
+          f.setMetaValue("points_across_baseline", peakShapeMetrics.points_across_baseline);
+          f.setMetaValue("points_across_half_height", peakShapeMetrics.points_across_half_height);   
+        }       
+
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
       }
 
@@ -494,6 +496,70 @@ public:
 
     /// Find largest peak in a vector of chromatograms
     void findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx);
+    
+    /**
+    @brief Will use the chromatogram to get the maximum peak intensity
+
+    The maximum peak intensity/height is calculated.  The convex hull points,
+    intensity_sum, and rt_sum are also calculated.
+    */
+    void calculatePeakApexInt_(const MSChromatogram& chromatogram,
+    double best_left, double best_right, 
+    ConvexHull2D::PointArrayType & hull_points,
+    double & intensity_sum, 
+    double & intensity_integral,
+    double & rt_sum,
+    double & peak_apex_int,
+    double & peak_apex_rt);
+
+    // internal structure to represent various peak shape metrics
+    struct PeakShapeMetrics_ {
+      double width_at_5 = 0.0;
+      double width_at_10 = 0.0;
+      double width_at_50 = 0.0;
+      double start_time_at_10 = 0.0;
+      double start_time_at_5 = 0.0;
+      double start_time_at_50 = 0.0;
+      double end_time_at_10 = 0.0;
+      double end_time_at_5 = 0.0;
+      double end_time_at_50 = 0.0;
+      double total_width = 0.0;
+      double tailing_factor = 0.0; /**The tailing factor is a measure of peak tailing. 
+        It is defined as the distance from the front slope of the peak to the back slope 
+        divided by twice the distance from the center line of the peak to the front slope, 
+        with all measurements made at 5% of the maximum peak height.  
+        tailing_factor = Tf = W0.05/2a
+          where W0.05 is peak width at 5% max peak height
+          a = min width to peak maximum at 5% max peak height
+          b = max width to peak maximum at 5% max peak height
+          0.9 < Tf < 1.2
+          front Tf < 0.9
+          tailing Tf > 1.2*/       
+      double asymmetry_factor = 0.0; /**The asymmetry factor is a measure of peak tailing. 
+        It is defined as the distance from the center line of the peak to the back slope 
+        divided by the distance from the center line of the peak to the front slope, 
+        with all measurements made at 10% of the maximum peak height. 
+        asymmetry_factor = As = b/a
+		      where a is min width to peak maximum at 10% max peak height
+		      b is max width to peak maximum at 10% max peak height */
+      double baseline_delta_2_height = 0.0; /**The change in baseline divided by the height is
+        a way of comparing the influence of the change of baseline on the peak height.*/
+      double slope_of_baseline = 0.0; /**The slope of the baseline is a measure of slope change.
+        It is approximated as the difference in baselines between the peak start and peak end.  */
+      int points_across_baseline = 0;
+      int points_across_half_height = 0;
+    };
+
+    /**
+    @brief Calculates standard peak shape quality metrics
+
+    Standard peak shape quality metrics are calculated for down stream QC/QA.
+    */
+    void calculatePeakShapeMetrics_(const MSChromatogram& chromatogram, 
+    double best_left, double best_right, 
+    double peak_height, double peak_apex_rt, double avg_noise_level,
+    PeakShapeMetrics_ & peakShapeMetrics);
+    
 
 protected:
 
@@ -577,7 +643,7 @@ protected:
         for (Size i = 0; i < all_ints.size(); i++)
         {
           if (i == k) {continue;}
-          std::map<int, double> res = OpenSwath::Scoring::normalizedCrossCorrelation(
+          OpenSwath::Scoring::XCorrArrayType res = OpenSwath::Scoring::normalizedCrossCorrelation(
               all_ints[k], all_ints[i], boost::numeric_cast<int>(all_ints[i].size()), 1);
 
           // the first value is the x-axis (retention time) and should be an int -> it show the lag between the two
@@ -862,13 +928,14 @@ protected:
       peak and then subtracting that from the total intensity.
     */
     void calculateBgEstimation_(const MSChromatogram& chromatogram,
-                                  double best_left, double best_right, double & background, double & avg_noise_level);
+                                  double best_left, double best_right, double & background, double & avg_noise_level);	
 
     // Members
     String background_subtraction_;
     bool recalculate_peaks_;
     bool use_precursors_;
     bool compute_peak_quality_;
+    bool compute_peak_shape_metrics_;
     double min_qual_;
 
     int stop_after_feature_;
@@ -876,6 +943,8 @@ protected:
     double min_peak_width_;
     double recalculate_peaks_max_z_;
     double resample_boundary_;
+
+    PeakPickerMRM picker_;
   };
 }
 

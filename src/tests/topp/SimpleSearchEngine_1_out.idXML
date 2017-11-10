@@ -4,20 +4,20 @@
 	<SearchParameters id="SP_0" db="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/SimpleSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="+2-+5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.3" peak_mass_tolerance_ppm="false" >
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2016-08-02T12:07:39" search_engine="SimpleSearchEngine" search_engine_version="2.0.1" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-10-09T11:01:32" search_engine="SimpleSearchEngine" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<UserParam type="stringList" name="spectra_data" value="[file://./KKramer_150612_yeastTAP_4_120min.raw]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="520.262817382812" RT="2655.095703125" >
-			<PeptideHit score="19.9107943781455" sequence="DFASSGGYVLHLHR" charge="3" >
+			<PeptideHit score="20.3423871533647" sequence="DFASSGGYVLHLHR" charge="3" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" >
-			<PeptideHit score="44.8456634522477" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" >
+			<PeptideHit score="44.95562558097" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="775.38720703125" RT="4923.77734375" >
-			<PeptideHit score="42.0327923354962" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" >
+			<PeptideHit score="42.1529394535928" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

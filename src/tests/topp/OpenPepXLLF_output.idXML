@@ -17,7 +17,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="397"/>
 	</SearchParameters>
-	<IdentificationRun date="2017-08-07T12:39:18" search_engine="OpenXQuest" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-10-09T11:02:35" search_engine="OpenXQuest" search_engine_version="2.2.0" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -40,11 +40,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.56221037512444"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.455574405379593"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0262537296550961"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.879178599934125"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.906950953740478"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0124010834366111"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.05993806219882"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.06854778360777"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.906950953740478"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.06854778360777"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -70,11 +70,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33199421133167"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.105083806440234"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00224370460161933"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.866702729488634"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0319655113261516"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0700873889193175"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.48621553614602"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="-0.866702729488634"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.48621553614602"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -97,11 +97,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33199421133167"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.105083806440234"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00224370460161933"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.866702729488634"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0319655113261516"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0700873889193175"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.48621553614602"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="-0.866702729488634"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.48621553614602"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -127,11 +127,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.75473893302454"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.178856384009123"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00609733471490703"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.72064864247609"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.307850872437433"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.763734530641098"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.91047157448717"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.744610620743106"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.819956273048619"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0427300340231806"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.64945145222649"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -154,11 +154,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.75473893302454"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.178856384009123"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00609733471490703"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.72064864247609"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.307850872437433"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.763734530641098"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.91047157448717"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.744610620743106"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.819956273048619"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0427300340231806"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.64945145222649"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -184,11 +184,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.71716389284832"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.191480197012424"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00603081714216171"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.72064864247609"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.307850872437433"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.52508294478255"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.91047157448717"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0633827047130814"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.819956273048619"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.747900404751165"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.35325022755031"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -211,11 +211,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.71716389284832"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.191480197012424"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00603081714216171"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.72064864247609"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.307850872437433"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.52508294478255"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.91047157448717"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0633827047130814"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.819956273048619"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.747900404751165"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.35325022755031"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -241,11 +241,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33315984623444"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.138040512800217"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00423719025631294"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.72064864247609"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.307850872437433"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.811551403335647"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.91047157448717"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0119234560433378"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.819956273048619"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00283620812330531"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.92106740429872"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -268,11 +268,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.33315984623444"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.138040512800217"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00423719025631294"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.72064864247609"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.307850872437433"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.811551403335647"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.91047157448717"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0119234560433378"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.819956273048619"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00283620812330531"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.92106740429872"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -298,11 +298,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74404813080311"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.191480197012424"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00603081714216171"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.72064864247609"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.307850872437433"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.52508294478255"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.91047157448717"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0633827047130814"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.819956273048619"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.747900404751165"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.35325022755031"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -325,11 +325,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74404813080311"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.191480197012424"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00603081714216171"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.72064864247609"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.307850872437433"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.52508294478255"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.91047157448717"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0633827047130814"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.819956273048619"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.747900404751165"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.35325022755031"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -355,11 +355,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36381971887944"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.139243769459426"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00270827461616124"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.60397167120286"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.865607178044313"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="-0.140574891859892"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.81661156892516"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0334481369487898"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.11931872714073"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.66559135206953"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.111172096941999"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.24412483717608"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -382,11 +382,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36381971887944"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.139243769459426"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00270827461616124"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.60397167120286"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.865607178044313"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="-0.140574891859892"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.81661156892516"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0334481369487898"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.11931872714073"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.66559135206953"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.111172096941999"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.24412483717608"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -412,11 +412,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.73413432141225"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.472755631431937"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00843821017728526"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.02269999306992"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.66193792151447"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.85593634666856"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.712583684064766"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.17255527560237"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0430109236840409"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.84894268436306"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.97763682303171"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -439,11 +439,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.73413432141225"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.472755631431937"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00843821017728526"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.02269999306992"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.66193792151447"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.85593634666856"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.712583684064766"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.17255527560237"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0430109236840409"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.84894268436306"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.97763682303171"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -469,11 +469,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.79529535544501"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.252572377678007"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00432248163902588"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.504535470237461"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.504535470237461"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.317089753487937"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0280313439478041"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.202242198997631"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0280313439478041"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.202242198997631"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.918346519436516"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -496,11 +496,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.79529535544501"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.252572377678007"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00432248163902588"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.504535470237461"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.504535470237461"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.317089753487937"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0280313439478041"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.202242198997631"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0280313439478041"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.202242198997631"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.918346519436516"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -526,11 +526,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74024802275347"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.373701589182019"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00554739852932557"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.180650759244063"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.367348046787511"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.5235817366314"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.87289894316669"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.64827330461971"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.69449578494476"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.81454414940044"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.80563219070114"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -553,11 +553,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.74024802275347"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.373701589182019"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00554739852932557"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.180650759244063"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.367348046787511"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.5235817366314"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.87289894316669"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.64827330461971"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.69449578494476"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.81454414940044"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.80563219070114"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -583,11 +583,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.70687677116351"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.380650551989675"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00567747679572726"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.180650759244063"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.367348046787511"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.90532749980086"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.771173739712564"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.64827330461971"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.69449578494476"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.712631578648247"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.19375581348138"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -610,11 +610,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.70687677116351"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.380650551989675"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00567747679572726"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.180650759244063"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.367348046787511"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.90532749980086"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.771173739712564"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.64827330461971"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.69449578494476"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.712631578648247"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.19375581348138"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -640,11 +640,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.73929340695119"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.28398877941072"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00422791534052908"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.422386228162793"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.695330912840708"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.95492714964391"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.706744826607603"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.940489957262378"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.240010331553827"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.81454414940044"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.43603042000212"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -667,11 +667,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.73929340695119"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.28398877941072"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00422791534052908"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.422386228162793"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.695330912840708"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.95492714964391"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.706744826607603"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.940489957262378"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.240010331553827"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.81454414940044"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.43603042000212"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -697,11 +697,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.47579738056227"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.836318178102374"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0130753993905867"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="2.55998432397981"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="7.13801061670484"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.87049827575057"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.73814353860498"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="11.1941963133001"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="3.35894195215164"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="7.07591985368403"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.1842737523759"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.87281726071671"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="11.9773337500576"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -724,11 +724,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.47579738056227"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.836318178102374"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0130753993905867"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="2.55998432397981"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="7.13801061670484"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.87049827575057"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.73814353860498"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="11.1941963133001"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="3.35894195215164"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="7.07591985368403"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.1842737523759"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.87281726071671"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="11.9773337500576"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -754,11 +754,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.68283753355919"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.871776471380144"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00760957138378669"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="6.43530271543276"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="7.07574406705786"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="8.23378845314386"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00582711532832168"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="7.20301205728832"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="7.87204475630852"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.049077669833696"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="8.99789864585003"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -781,11 +781,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.68283753355919"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.871776471380144"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00760957138378669"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="6.43530271543276"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="7.07574406705786"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="8.23378845314386"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00582711532832168"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="7.20301205728832"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="7.87204475630852"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.049077669833696"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="8.99789864585003"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -811,11 +811,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.15051270795164"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.828652024269104"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.010352928401112"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="5.25689078516543"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.97358584881443"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.207625544565552"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="9.56935007679423"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.72186635621793"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="6.06815692809752"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.95205892690314"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.897217361891434"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="10.3608841390292"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -838,11 +838,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.15051270795164"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.828652024269104"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.010352928401112"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="5.25689078516543"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.97358584881443"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.207625544565552"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="9.56935007679423"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.72186635621793"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="6.06815692809752"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.95205892690314"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.897217361891434"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="10.3608841390292"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -868,11 +868,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.5503650295547"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.657178037799895"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00858602554336871"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="7.12623284031733"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.94536605913328"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.207625544565552"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="7.95121037002735"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.714391496833207"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="7.0713260053111"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.14572115057604"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.897217361891434"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="8.87612685977665"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -895,11 +895,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.5503650295547"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.657178037799895"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00858602554336871"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="7.12623284031733"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.94536605913328"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.207625544565552"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="7.95121037002735"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.714391496833207"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="7.0713260053111"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.14572115057604"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.897217361891434"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="8.87612685977665"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -919,17 +919,17 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.4399738185818"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.43997381887074"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.312879077650838"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0581863803541114"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.99778844482736"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0874803415499628"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00151573072435212"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0334334412352916"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.745247784680955"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0141126066122014"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.763855083729451"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.47015776820154"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -946,17 +946,17 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="8"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.4399738185818"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.43997381887074"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.312879077650838"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0581863803541114"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.99778844482736"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0874803415499628"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00151573072435212"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0334334412352916"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.745247784680955"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0141126066122014"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.763855083729451"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.47015776820154"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -982,11 +982,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.0230746455366"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0695972158573568"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00415569805794305"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0267400720700147"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0416182406104834"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0340784527803897"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0343351828868899"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.760429324386609"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1009,11 +1009,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.0230746455366"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0695972158573568"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00415569805794305"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0267400720700147"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0416182406104834"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0340784527803897"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0343351828868899"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.760429324386609"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1039,11 +1039,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.48356067397196"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0136021336074919"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00111516885809279"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0111574110118724"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.00237941349374334"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0135104550023438"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0135104550023438"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1072,11 +1072,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.12677805434349"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.273831146769226"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00435050471658479"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.626679301369163"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.49651585400521"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.713505144191959"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.225751784031557"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.03378847973636"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.49651585400521"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.03378847973636"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1099,11 +1099,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.12677805434349"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.273831146769226"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00435050471658479"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.626679301369163"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.49651585400521"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.713505144191959"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.225751784031557"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.03378847973636"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.49651585400521"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.03378847973636"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1129,11 +1129,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.95174235581919"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="1.04521081317216"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00918492970419742"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.192621717527233"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.05150038770721"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.52485752350596"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.151934300882008"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="3.80992492677915"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="6.19613979464939"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.52485752350596"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="6.19613979464939"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1156,11 +1156,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.95174235581919"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="1.04521081317216"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00918492970419742"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.192621717527233"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.05150038770721"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.52485752350596"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.151934300882008"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="3.80992492677915"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="6.19613979464939"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.52485752350596"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="6.19613979464939"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1180,17 +1180,17 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.43349787753277"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.43349787737875"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.282383924404941"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0168443028610636"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.09131332032556"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.574837880209088"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.012547949820376"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.978749089698312"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.34631798835578"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.83262713571799"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.09157871070505"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.775050829985206"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0532665565150395"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.418793971186215"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.84044669489892"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1207,17 +1207,17 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.43349787753277"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="2.43349787737875"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.282383924404941"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0168443028610636"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.09131332032556"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.574837880209088"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.012547949820376"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.978749089698312"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.34631798835578"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.83262713571799"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.09157871070505"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.775050829985206"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0532665565150395"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.418793971186215"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.84044669489892"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1243,11 +1243,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.47645552206342"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.30282426904887"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00342142551530911"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.380306698536738"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.59715685737181"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0332118733090988"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.931419492739718"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.05629389185096"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.59715685737181"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.05629389185096"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1270,11 +1270,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.47645552206342"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.30282426904887"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00342142551530911"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.380306698536738"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.59715685737181"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0332118733090988"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.931419492739718"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.05629389185096"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.59715685737181"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.05629389185096"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1294,17 +1294,17 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.87580183995883"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.87580183980481"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.256850116357478"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0134248561060071"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.46813077791107"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.146806430071592"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00154809734840695"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.689900834011891"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.873119107044676"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.90707638901343"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0242802273421897"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.92874053120802"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.873119107044676"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.92874053120802"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1321,17 +1321,17 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.87580183995883"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.87580183980481"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.256850116357478"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0134248561060071"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.46813077791107"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.146806430071592"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00154809734840695"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.689900834011891"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.873119107044676"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.90707638901343"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0242802273421897"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.92874053120802"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.873119107044676"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.92874053120802"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1351,17 +1351,17 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.48558817285451"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.48558817270049"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.27286428369415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00924776757793332"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.80758625750148"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.477926426567137"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00551069549293828"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="5.04497914757368"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.43241991999168"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.04919326512896"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00200778345560699"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="5.17677098102663"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.56632764894168"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00348688400043113"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.17813178502109"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1378,17 +1378,17 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.48558817285451"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.48558817270049"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.27286428369415"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.00924776757793332"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.80758625750148"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.477926426567137"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00551069549293828"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="5.04497914757368"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.43241991999168"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.04919326512896"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00200778345560699"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="5.17677098102663"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.56632764894168"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00348688400043113"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.17813178502109"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1408,17 +1408,17 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.956707509679647"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.956707509833665"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.259395679424268"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.00275477849268277"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.2628277643077"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.483799802139401"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0111122411527101"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.838117653186386"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.08109384123226"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.06567537944987"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0568803675356328"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.04750889468484"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.774583937016291"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.335725669539488"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.18636570065412"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1435,17 +1435,17 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.956707509679647"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.956707509833665"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.259395679424268"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.00275477849268277"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.2628277643077"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.483799802139401"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0111122411527101"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.838117653186386"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.08109384123226"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.06567537944987"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0568803675356328"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.04750889468484"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.774583937016291"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.335725669539488"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.18636570065412"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1471,11 +1471,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.67888117942069"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.198211165610701"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00255110581337423"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="-0.304013364928515"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.50779095777114"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.25277868730401"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.820414086438338"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.44691056681272"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.35049135660964"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00996377478222428"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.05203076018572"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1498,11 +1498,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.67888117942069"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.198211165610701"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00255110581337423"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="-0.304013364928515"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.50779095777114"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.25277868730401"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.820414086438338"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.44691056681272"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.35049135660964"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00996377478222428"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.05203076018572"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1528,11 +1528,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.21322948952159"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0288142878562212"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00104570320781595"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.81238701939464"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.722240168082691"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.83086026475934"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.703579373413111"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.83662669611993"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1555,11 +1555,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.21322948952159"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0288142878562212"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00104570320781595"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.81238701939464"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.722240168082691"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.83086026475934"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.703579373413111"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.83662669611993"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1585,11 +1585,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.17375321948352"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0261900093173608"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.000950465161330746"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.80981300887781"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.722240168082691"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.83086026475934"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.700978951379866"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.63015231414943"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1612,11 +1612,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.17375321948352"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0261900093173608"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.000950465161330746"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.80981300887781"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.722240168082691"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.83086026475934"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.700978951379866"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.63015231414943"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1642,11 +1642,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.16928587980719"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0199519390007481"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.000724078509916247"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.705055414876179"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.722240168082691"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.83086026475934"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00162313104961349"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.52556838396999"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1669,11 +1669,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.16928587980719"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0199519390007481"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.000724078509916247"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.705055414876179"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.722240168082691"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.83086026475934"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00162313104961349"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.52556838396999"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1693,17 +1693,17 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.24975441253637"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.24975441238245"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.272910863245464"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0198505472750013"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.66679514650813"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.318336974829435"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0016630921368776"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.138052218150544"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="-0.540213702345184"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.241649573139717"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.884733460740688"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.794952264815631"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.66266543586437"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.241649573139717"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.66266543586437"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1720,17 +1720,17 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.24975441253637"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.24975441238245"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.272910863245464"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0198505472750013"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.66679514650813"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.318336974829435"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0016630921368776"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.138052218150544"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="-0.540213702345184"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.241649573139717"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.884733460740688"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.794952264815631"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.66266543586437"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.241649573139717"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.66266543586437"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1756,11 +1756,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450258782576"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0463221018435434"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00432803609248757"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00135288206146093"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0439865540709582"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.039029669039751"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00649960050373504"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.738428435552795"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1783,11 +1783,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450258782576"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0463221018435434"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00432803609248757"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00135288206146093"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0439865540709582"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.039029669039751"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00649960050373504"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.738428435552795"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1813,11 +1813,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450228473577"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0145370890386403"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00129401597984953"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.000415939470216318"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0140222896139904"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0124406129719719"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00201673476001371"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.707579619109512"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1840,11 +1840,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.89450228473577"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0145370890386403"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00129401597984953"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.000415939470216318"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0140222896139904"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0124406129719719"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00201673476001371"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.707579619109512"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1870,11 +1870,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.22590326392747"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0263632675050758"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00149336779119425"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.000881812858588836"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.81692130414102"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.51092839576724"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.51092839576724"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1897,11 +1897,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.22590326392747"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0263632675050758"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00149336779119425"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.000881812858588836"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.81692130414102"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.51092839576724"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.51092839576724"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1927,11 +1927,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.40015393166131"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.02335430419771"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00132292272450287"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.000881812858588836"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.41905726876384"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.51852295980775"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.51852295980775"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1954,11 +1954,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.40015393166131"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.02335430419771"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00132292272450287"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.000881812858588836"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.41905726876384"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.51852295980775"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.51852295980775"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -1984,11 +1984,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.2070099838773"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.497716104611754"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00646367021786359"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.966658797963605"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.995421744989439"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.08762160839691"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0140132143942964"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.09708853141396"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.995421744989439"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.09708853141396"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2011,11 +2011,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.2070099838773"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.497716104611754"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00646367021786359"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.966658797963605"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.995421744989439"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.08762160839691"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0140132143942964"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.09708853141396"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.995421744989439"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.09708853141396"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2041,11 +2041,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.160919555132"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.660742052830756"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0122583327236422"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.14729625203674"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.23991324506549"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.26158458172123"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.37736771616008"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.96832800611827"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.383646031495561"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0111858535162274"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.19361539328893"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.2990239914905"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2068,11 +2068,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.160919555132"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.660742052830756"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0122583327236422"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.14729625203674"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.23991324506549"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.26158458172123"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.37736771616008"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.96832800611827"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.383646031495561"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0111858535162274"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.19361539328893"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.2990239914905"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2098,11 +2098,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.32329491696964"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0874389419332147"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00162219982613264"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0111858535162274"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0734272981804641"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0111858535162274"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0734272981804641"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.77697251761567"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2125,11 +2125,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.32329491696964"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0874389419332147"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00162219982613264"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0111858535162274"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0734272981804641"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0111858535162274"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0734272981804641"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.77697251761567"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2155,11 +2155,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.24543385415673"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.206253104726784"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00371845911211729"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="5.95152282546392"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.95189257960181"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="6.79235948057828"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.80158894965007"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="6.7585474941779"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="6.7586081956625"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00975756424258981"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="8.55852962877267"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2182,11 +2182,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.24543385415673"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.206253104726784"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00371845911211729"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="5.95152282546392"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.95189257960181"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="6.79235948057828"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.80158894965007"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="6.7585474941779"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="6.7586081956625"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00975756424258981"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="8.55852962877267"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2212,11 +2212,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.21028025454207"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0320638755802065"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00162275215002622"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0120751848576898"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0197197722388379"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0027873741254276"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0288523519056247"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.724707740645964"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2239,11 +2239,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.21028025454207"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0320638755802065"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00162275215002622"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0120751848576898"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0197197722388379"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0027873741254276"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0288523519056247"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.724707740645964"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2269,11 +2269,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.39567538407891"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0400526029989123"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00144640920021193"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00846570141101026"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0310634621032261"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0310634621032261"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00846570141101026"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0392712916808125"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2296,11 +2296,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.39567538407891"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0400526029989123"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00144640920021193"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00846570141101026"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0310634621032261"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0310634621032261"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00846570141101026"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0392712916808125"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2326,11 +2326,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.37285095911698"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0400526029989123"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00144640920021193"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00846570141101026"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0611909860197587"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0611909860197587"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00846570141101026"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.762303369965116"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2353,11 +2353,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.37285095911698"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0400526029989123"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00144640920021193"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00846570141101026"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0611909860197587"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0611909860197587"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00846570141101026"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.762303369965116"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2383,11 +2383,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.19266111259219"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0489208595827222"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00344343439034496"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00282892511768812"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.53624958545179"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.701944720967048"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.83738311289935"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.63754940965052"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2410,11 +2410,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.19266111259219"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0489208595827222"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00344343439034496"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00282892511768812"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.53624958545179"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.701944720967048"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.83738311289935"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.63754940965052"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2440,11 +2440,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="5.97940311762737"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.400832806830294"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0139415416369527"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="3.07994726384911"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05560242038371"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.85692047483902"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="3.46586235732109"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.30688022135857"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.05560242038371"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.30688022135857"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2470,11 +2470,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.51339289589193"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.235949162510224"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00820665129521973"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="-0.414627270261509"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="-0.474548040670961"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.42706210065436"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.807821467248907"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.801500181357128"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.08304023844234"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.42706210065436"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.08304023844234"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2494,17 +2494,17 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-50210.1318427363"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-50210.1318427365"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.231152371999909"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0943976258734896"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.83524149677736"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.149201757274568"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00518945175121501"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="-0.280752354956469"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.889303655925897"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.739070836071299"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0973147888929716"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.93082704647847"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.889303655925897"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.93082704647847"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2530,11 +2530,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36120525400929"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.362820671871305"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00918344646105603"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.199675544383578"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.24956605151172"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.24956605151172"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.199675544383578"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.4667923396747"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.152931592558187"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.05150002966894"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05150002966894"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.152931592558187"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.79019549870737"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2557,11 +2557,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.36120525400929"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.362820671871305"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00918344646105603"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.199675544383578"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.24956605151172"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.24956605151172"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.199675544383578"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.4667923396747"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.152931592558187"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.05150002966894"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05150002966894"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.152931592558187"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.79019549870737"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2587,11 +2587,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.51728970148157"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.293228185735643"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00435624092544793"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.52955269911896"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.6466867567454"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.12930347853717"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.724465371009463"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.10343465845952"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.20591366471339"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0265706425561595"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="6.61324922266903"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2614,11 +2614,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.51728970148157"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.293228185735643"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00435624092544793"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.52955269911896"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.6466867567454"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.12930347853717"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.724465371009463"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.10343465845952"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.20591366471339"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0265706425561595"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="6.61324922266903"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2644,11 +2644,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.992714381621201"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0630364939570427"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00127860531481128"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00589779644608174"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.754276610428334"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.738278828326124"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0225304137387574"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.45297282530135"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2671,11 +2671,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.992714381621201"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0630364939570427"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00127860531481128"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00589779644608174"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.754276610428334"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.738278828326124"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0225304137387574"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.45297282530135"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2701,11 +2701,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.04179783857762"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.00141199061181396"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="6.42948374285271e-05"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00141099469044756"/>
 				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.00141099469044756"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.00141099469044756"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2731,11 +2731,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.29925008836444"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0455110555049032"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00281144685633285"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.711581760605722"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.719697101083914"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.43080017532156"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.43080017532156"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2758,11 +2758,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.29925008836444"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0455110555049032"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00281144685633285"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.711581760605722"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.719697101083914"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.43080017532156"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.43080017532156"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2788,11 +2788,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.45252493336095"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.330916581908241"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0256938547522567"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="4.65309775989437"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.54142517926089"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="6.17861022723393"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="5.06634770522085"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.706387432010027"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.04361411382295"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.53230176723233"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="7.56128867937403"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2815,11 +2815,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="4.45252493336095"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.330916581908241"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.0256938547522567"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="4.65309775989437"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.54142517926089"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="6.17861022723393"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="5.06634770522085"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.706387432010027"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="2.04361411382295"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.53230176723233"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="7.56128867937403"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2845,11 +2845,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.76069700524752"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.107068945653737"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00597051644143753"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="-0.54113511956176"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.021788404884821"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.774765360456215"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.794863113877055"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="-0.54113511956176"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.794863113877055"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2869,17 +2869,17 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095568691"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.329709618133968"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0264826484533675"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.702585089128707"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0843387101776898"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00104598915804906"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0176910154306605"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0643731466879616"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.774117498034472"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.774117498034472"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2896,17 +2896,17 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095568691"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.329709618133968"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="0.0264826484533675"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="0.702585089128707"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0843387101776898"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00104598915804906"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.0176910154306605"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0643731466879616"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.774117498034472"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.774117498034472"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2932,11 +2932,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.86461152597238"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.202286339830607"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00705884779305436"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.862318592093583"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.89336824753821"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.98118015060448"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.4417829577367"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.92736441529989"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.00079736309684"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0619578966828442"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="6.76347623924638"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2959,11 +2959,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.86461152597238"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.202286339830607"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00705884779305436"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.862318592093583"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.89336824753821"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.98118015060448"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="1.4417829577367"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.92736441529989"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.00079736309684"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0619578966828442"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="6.76347623924638"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -2983,17 +2983,17 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095568691"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.305468099790881"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0104949482637371"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.30962430769166"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0559197023976594"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.000693529724441464"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.70837049463986"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.82726991920514"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.53505106633876"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.53505106633876"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -3010,17 +3010,17 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095581662"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.21089095568691"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.305468099790881"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0104949482637371"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.30962430769166"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0559197023976594"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.000693529724441464"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.70837049463986"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.82726991920514"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.53505106633876"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.53505106633876"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -3046,11 +3046,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.09419743178112"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.178283484186977"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00591770569593032"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.862318592093583"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.89336824753821"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.24543291182306"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.7256667481587"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.92736441529989"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.00079736309684"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0391386844845854"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.13387200456974"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -3073,11 +3073,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="3.09419743178112"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.178283484186977"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00591770569593032"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.862318592093583"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.89336824753821"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="3.24543291182306"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.7256667481587"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.92736441529989"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.00079736309684"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0391386844845854"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.13387200456974"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -3103,11 +3103,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.41504305777641"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.00518364692106843"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.000806758967183234"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.698317438632091"/>
 				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.698317438632091"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.698317438632091"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -3127,17 +3127,17 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.89595625823609"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.89595625836565"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.17518545498017"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0374062258192429"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.97101568816126"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0967834340408444"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00273526161610465"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.712494927292395"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0744089973524312"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.88414121447847"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.88414121447847"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -3154,17 +3154,17 @@
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.89595625823609"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.89595625836565"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.17518545498017"/>
 				<UserParam type="float" name="OpenXQuest:xcorr common" value="-0.0374062258192429"/>
 				<UserParam type="float" name="OpenXQuest:match-odds" value="1.97101568816126"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0967834340408444"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00273526161610465"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.712494927292395"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0744089973524312"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.88414121447847"/>
 				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.88414121447847"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -3190,11 +3190,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.4415995970594"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0527717871591449"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00193065241960557"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00620867497696757"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="3.95501743584403"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.21981725477676"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.742898268384254"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.05934064492308"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
@@ -3217,11 +3217,11 @@
 				<UserParam type="float" name="OpenXQuest:match-odds" value="2.4415995970594"/>
 				<UserParam type="float" name="OpenXQuest:intsum" value="0.0527717871591449"/>
 				<UserParam type="float" name="OpenXQuest:wTIC" value="0.00193065241960557"/>
-				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
+				<UserParam type="float" name="OpenPepXL:HyperCommon" value="0.00620867497696757"/>
+				<UserParam type="float" name="OpenPepXL:HyperXlink" value="3.95501743584403"/>
+				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="3.21981725477676"/>
+				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.742898268384254"/>
+				<UserParam type="float" name="OpenPepXL:HyperBoth" value="5.05934064492308"/>
 				<UserParam type="float" name="OpenPepXL:PScoreCommon" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
 				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
