@@ -246,7 +246,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",500); //should fail
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
@@ -267,7 +267,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",1000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("setPeptideRef", "component_group2"); 
+  component_1.setMetaValue("PeptideRef", "component_group2"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
@@ -466,7 +466,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
@@ -590,7 +590,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setOverallQuality(100);
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
-  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();  
@@ -627,7 +627,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
@@ -664,7 +664,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
@@ -701,7 +701,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",400); //should fail
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
@@ -735,7 +735,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
@@ -772,7 +772,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
@@ -801,7 +801,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",5000);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
@@ -837,7 +837,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   subordinate.setMetaValue("LabelType","Light");
   subordinate.setMetaValue("peak_apex_int",500);
   subordinates.push_back(subordinate);
-  component_1.setMetaValue("setPeptideRef", "component_group1"); 
+  component_1.setMetaValue("PeptideRef", "component_group1"); 
   component_1.setSubordinates(subordinates); 
   components.push_back(component_1);
   subordinates.clear();
