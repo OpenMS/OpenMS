@@ -234,6 +234,7 @@ namespace OpenMS
         // Copy or Flag passing/failing subordinates
         if (c_qc_pass && flag_or_filter_ == "filter")
         {
+          std::cout << "copied passing subordinate" << std::endl; //debugging
           subordinates_filtered.push_back(features[feature_it].getSubordinates()[sub_it]);
         }
         else if (c_qc_pass && flag_or_filter_ == "flag")
@@ -243,6 +244,7 @@ namespace OpenMS
         else if (!c_qc_pass && flag_or_filter_ == "filter")
         {
           // do nothing
+          std::cout << "omitted failing subordinate" << std::endl; //debugging
         }
         else if (!c_qc_pass && flag_or_filter_ == "flag")
         {
@@ -250,15 +252,17 @@ namespace OpenMS
         }
       }
 
-      // make the filtered Feature
+      // Copy or Flag passing/failing Features
       if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() > 0)
       {
+        std::cout << "copied passing feature" << std::endl; //debugging
         Feature feature_filtered(features[feature_it]);
         features_filtered.push_back(feature_filtered);
       }   
       else if (cg_qc_pass && flag_or_filter_ == "filter" && subordinates_filtered.size() == 0)
       {
         // do nothing
+        std::cout << "omitted failing feature" << std::endl; //debugging
       }   
       else if (cg_qc_pass && flag_or_filter_ == "flag")
       {
@@ -267,6 +271,7 @@ namespace OpenMS
       else if (!cg_qc_pass && flag_or_filter_ == "filter")
       {
         // do nothing
+        std::cout << "omitted failing feature" << std::endl; //debugging
       }   
       else if (!cg_qc_pass && flag_or_filter_ == "flag")
       {
