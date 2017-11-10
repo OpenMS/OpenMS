@@ -47,7 +47,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 //Quantitation classes
-#include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationStandards.h>
+#include <OpenMS/METADATA/AbsoluteQuantitationStandards.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>
 
 //Math classes
