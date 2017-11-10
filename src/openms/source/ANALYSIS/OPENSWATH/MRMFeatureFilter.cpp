@@ -333,6 +333,7 @@ namespace OpenMS
     output["n_quant"] = n_quant;
     output["n_ident"] = n_ident;
     output["n_detect"] = n_detect;
+    output["n_trans"] = n_trans;
 
     return output;
   }
