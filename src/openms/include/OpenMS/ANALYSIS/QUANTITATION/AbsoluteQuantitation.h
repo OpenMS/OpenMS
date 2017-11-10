@@ -171,19 +171,6 @@ public:
       const Param & transformation_model_params,
       std::vector<double> & biases,
       double & r2_value);
-    
-    /**
-    @brief This function defines the sorting for AbsoluteQuantitationStandards::featureConcentration.
-
-    @param lhs Left hand side
-    @param rhs Right hand side
-
-    @returns true if lhs < rhs or false otherwise
-
-    @exception None
-    */ 
-    bool sortByConcentration(const AbsoluteQuantitationStandards::featureConcentration &lhs, 
-      const AbsoluteQuantitationStandards::featureConcentration &rhs);
       
     /**
       @brief This function optimizes the parameters of the calibration for a 

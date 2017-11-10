@@ -32,8 +32,8 @@
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONSTANDARDS_H
-#define OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONSTANDARDS_H
+#ifndef OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
+#define OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
 
 #include <OpenMS/config.h>
 
@@ -50,10 +50,6 @@ namespace OpenMS
   /**
     @brief AbsoluteQuantitationStandards is a class to handle the relationship between
     runs, components, and actual concentrations.
-
-    TODO:
-    1. Move to FORMAT
-    2. Update dependencies headers
   */
   class OPENMS_DLLAPI AbsoluteQuantitationStandards :
   public DefaultParamHandler
@@ -111,5 +107,5 @@ private:
   };
 
 }
-#endif // OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONSTANDARDS_H
+#endif // OPENMS_METADATA_ABSOLUTEQUANTITATIONSTANDARDS_H
 

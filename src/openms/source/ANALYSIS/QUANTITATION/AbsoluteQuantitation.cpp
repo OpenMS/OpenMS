@@ -291,7 +291,7 @@ namespace OpenMS
 
   void AbsoluteQuantitation::findIS_()
   {
-    //TODO
+    //TODO: possible refactor the method to include a seperate function to find the IS
   }
 
   void AbsoluteQuantitation::optimizeCalibrationCurveBruteForce(
@@ -431,12 +431,6 @@ namespace OpenMS
     // std::cout << "r_value = " << r_value << "." << std::endl;
     // std::cout << "r2_value = " << r2_value << "." << std::endl;
 
-  }
-
-  bool AbsoluteQuantitation::sortByConcentration(const AbsoluteQuantitationStandards::featureConcentration &lhs, 
-    const AbsoluteQuantitationStandards::featureConcentration &rhs)
-  { 
-    return lhs.actual_concentration < rhs.actual_concentration; 
   }
 
 } // namespace

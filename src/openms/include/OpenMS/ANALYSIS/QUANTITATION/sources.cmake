@@ -23,7 +23,6 @@ TMTSixPlexQuantitationMethod.h
 TMTTenPlexQuantitationMethod.h
 AbsoluteQuantitation.h
 AbsoluteQuantitationMethod.h
-AbsoluteQuantitationStandards.h
 )
 
 ### add path to the filenames

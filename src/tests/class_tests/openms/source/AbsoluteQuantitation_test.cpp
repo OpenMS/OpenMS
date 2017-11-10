@@ -222,17 +222,6 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   TEST_STRING_EQUAL(unknown_feature_map[2].getSubordinates()[0].getMetaValue("concentration_units"),"uM");
 END_SECTION
 
-START_SECTION((void optimizeCalibrationCurveBruteForce(
-  const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-  const String & feature_name,
-  const String & transformation_model,
-  const Param & transformation_model_params)))
-  
-  AbsoluteQuantitation absquant;
-
-  //TODO
-END_SECTION
-
 START_SECTION((void calculateBiasAndR2(
   const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
   const String & feature_name,
@@ -302,6 +291,17 @@ START_SECTION((void calculateBiasAndR2(
   TEST_REAL_SIMILAR(biases[0],0.0);  
   TEST_REAL_SIMILAR(r2,1.0);  
   
+END_SECTION
+
+START_SECTION((void optimizeCalibrationCurveBruteForce(
+  const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+  const String & feature_name,
+  const String & transformation_model,
+  const Param & transformation_model_params)))
+  
+  AbsoluteQuantitation absquant;
+
+  //TODO
 END_SECTION
 
 /////////////////////////////////////////////////////////////

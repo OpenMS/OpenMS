@@ -31,35 +31,30 @@
 // $Maintainer: Douglas McCloskey $
 // $Authors: Douglas McCloskey $
 // --------------------------------------------------------------------------
-//
-
-#include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
-
-///////////////////////////
 
 #include <OpenMS/METADATA/AbsoluteQuantitationStandards.h>
 
-using namespace OpenMS;
-using namespace std;
+#include <cstddef> // for size_t & ptrdiff_t
+#include <vector>
+#include <string>
 
-///////////////////////////
+namespace OpenMS
+{
+    
+    AbsoluteQuantitationStandards::AbsoluteQuantitationStandards() :
+    DefaultParamHandler("AbsoluteQuantitationStandards")
+    {
+      //todo:  see MRMTransitionGroupPicker.cpp
+    }
+    
+    AbsoluteQuantitationStandards::~AbsoluteQuantitationStandards()
+    {
+    }
 
-START_TEST(AbsoluteQuantitationStandards, "$Id$")
+    void AbsoluteQuantitationStandards::mapConcentrationsToComponents()
+    {
+        //todo
+    }
 
-/////////////////////////////////////////////////////////////
+} // namespace
 
-AbsoluteQuantitationStandards* ptr = 0;
-AbsoluteQuantitationStandards* nullPointer = 0;
-START_SECTION((AbsoluteQuantitationStandards()))
-	ptr = new AbsoluteQuantitationStandards();
-	TEST_NOT_EQUAL(ptr, nullPointer)
-END_SECTION
-
-START_SECTION((~AbsoluteQuantitationStandards()))
-	delete ptr;
-END_SECTION
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-END_TEST

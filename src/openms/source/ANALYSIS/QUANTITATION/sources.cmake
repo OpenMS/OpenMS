@@ -23,7 +23,6 @@ TMTSixPlexQuantitationMethod.cpp
 TMTTenPlexQuantitationMethod.cpp
 AbsoluteQuantitation.cpp
 AbsoluteQuantitationMethod.cpp
-AbsoluteQuantitationStandards.cpp
 )
 
 ### add path to the filenames
