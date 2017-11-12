@@ -312,13 +312,6 @@ protected:
       }
       // Store the final assembled CSV file
       csv_out.store(this->getStringOption_(TOPPMSstatsConverter::param_out));
-
-      for (const std::pair< String, Size > & stuff :  condition_bioreplicate_fraction_to_run)
-      {
-        cout << stuff.first << '\t' << String(stuff.second) << std::endl;
-      }
-
-
       return EXECUTION_OK;
     }
     catch(int)
