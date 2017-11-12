@@ -187,6 +187,9 @@ protected:
       // Stores all the lines that will be present in the final MSstats output,
       std::map< String, std::set<String > > peptideseq_to_outputlines;
 
+      // Store strings to determine the 'run' value in MSstats (runs are the enumeration of the (condition, bioreplicate, fraction) triple)
+      std::map < String, Size > condition_bioreplicate_fraction_to_run;
+
       for (const OpenMS::ConsensusFeature & consensus_feature : consensus_map)
       {
         Peak2D::IntensityType intensity = consensus_feature.getIntensity();
@@ -253,6 +256,16 @@ protected:
                   const String & accession = pep_ev.getProteinAccession();
                   peptideseq_to_accessions[sequence].insert(accession);
                   const String & condition = file_run.get(filename, "Condition");
+                  const String & bioreplicate = file_condition.get(condition, arg_msstats_bioreplicate);
+                  const String & fraction = String(has_fraction ? ("," + file_run.get(filename, "Fraction")) : "");
+
+                  // Add the condition_bioreplicate_run
+                  const String triple(condition + ':' + bioreplicate + ':' + fraction);
+                  if (condition_bioreplicate_fraction_to_run.find(triple) == condition_bioreplicate_fraction_to_run.end())
+                  {
+                    Size run_counter(condition_bioreplicate_fraction_to_run.size() + 1);
+                    condition_bioreplicate_fraction_to_run[triple] = run_counter;
+                  }
 
                   peptideseq_to_outputlines[sequence].insert(accession
                                                              + delim + sequence
@@ -261,10 +274,10 @@ protected:
                                                              + delim + frag_charge
                                                              + delim + isotope_label_type
                                                              + delim + file_condition.get(condition, arg_msstats_condition)
-                                                             + delim + file_condition.get(condition, arg_msstats_bioreplicate)
-                                                             + delim + file_run.get(filename, "Run")
+                                                             + delim + bioreplicate
+                                                             + delim + String(condition_bioreplicate_fraction_to_run[triple])
                                                              + delim + intensity
-                                                             + String(has_fraction ? ("," + file_run.get(filename, "Fraction")) : ""));
+                                                             + fraction);
                 }
               }
             }
@@ -299,6 +312,13 @@ protected:
       }
       // Store the final assembled CSV file
       csv_out.store(this->getStringOption_(TOPPMSstatsConverter::param_out));
+
+      for (const std::pair< String, Size > & stuff :  condition_bioreplicate_fraction_to_run)
+      {
+        cout << stuff.first << '\t' << String(stuff.second) << std::endl;
+      }
+
+
       return EXECUTION_OK;
     }
     catch(int)
