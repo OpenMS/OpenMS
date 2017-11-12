@@ -208,8 +208,7 @@ protected:
 
     inline bool operator()(const UInt & index1, const UInt & index2)
     {
-      return (  TOPPXFDR::getCrosslinkScore(all_ids[rank_one_ids[index1]])
-      > TOPPXFDR::getCrosslinkScore(all_ids[rank_one_ids[index2]]));
+      return ( TOPPXFDR::getCrosslinkScore(all_ids[rank_one_ids[index1]]) > TOPPXFDR::getCrosslinkScore(all_ids[rank_one_ids[index2]]));
     }
   };
 
@@ -220,14 +219,14 @@ protected:
    */
   static double getCrosslinkScore(const PeptideIdentification & pep_id)
   {
-    const vector< PeptideHit > & pep_hits = pep_id.getHits();
+    const std::vector< PeptideHit > & pep_hits = pep_id.getHits();
 
 #ifndef NDEBUG
     const Size n_hits = pep_hits.size();
     assert(n_hits == 1 || n_hits == 2);
     if (n_hits == 2)
     {
-      assert(std::fabs(pep_hits[0].getScore() - pep_hits[1].getScore()) < 0.0001);
+      assert(std::fabs(pep_hits[0].getScore() - pep_hits[1].getScore()) < 0.000001);
     }
 #endif
     return pep_hits[0].getScore();
@@ -285,7 +284,7 @@ protected:
       }
 
       // Set the minScore and MaxScore attribute depending on the input data
-      double score = getCrosslinkScore(pep_id);
+      const double score = getCrosslinkScore(pep_id);
       if (score < this->min_score)
       {
         this->min_score = std::floor(score);
@@ -294,6 +293,7 @@ protected:
       {
         this->max_score = std::ceil(score);
       }
+      assert(this->min_score <= this->max_score);
 
       // Fetch the PeptideHits
       const vector< PeptideHit > & pep_hits = pep_id.getHits();
@@ -302,35 +302,29 @@ protected:
 
       // Pull crosslink_type and crosslink_rank to the peptide_identification if necessary
       // Return false if one of the methods fails
-
-      if ( ! TOPPXFDR::moveToPeptideIdentification(pep_id, TOPPXFDR::crosslink_type) ||
-          ! TOPPXFDR::moveToPeptideIdentification(pep_id, TOPPXFDR::crosslink_rank) )
+      if ((TOPPXFDR::moveToPeptideIdentification(pep_id, TOPPXFDR::crosslink_type) == false) ||
+          (TOPPXFDR::moveToPeptideIdentification(pep_id, TOPPXFDR::crosslink_rank) == false))
       {
         return false;
       }
 
-      // Set peptide identification to target or decoy
-      if (    pep_hits[0].getMetaValue(TOPPXFDR::target_decoy).toString() == "decoy"
-          || (n_hits == 2 && pep_hits[1].getMetaValue(TOPPXFDR::target_decoy).toString() == "decoy"))
-      {
-        pep_id.setMetaValue(TOPPXFDR::target_decoy, DataValue("decoy"));
-      }
-      else
-      {
-        pep_id.setMetaValue(TOPPXFDR::target_decoy, DataValue("target"));
-      }
+      pep_id.setMetaValue(TOPPXFDR::target_decoy, DataValue(
+                           ((pep_hits[0].getMetaValue(TOPPXFDR::target_decoy).toString() == "decoy")
+                        || ((n_hits == 2) && (pep_hits[1].getMetaValue(TOPPXFDR::target_decoy).toString() == "decoy")))
+                        ?  "decoy" : "target"));
+      assert(pep_id.metaValueExists(TOPPXFDR::target_decoy));
 
       // figure out if crosslink is inter- or intra protein
       if (n_hits == 2)
       {
-        vector< PeptideEvidence > alpha_ev = pep_hits[0].getPeptideEvidences();
-        vector< PeptideEvidence > beta_ev = pep_hits[1].getPeptideEvidences();
+        std::vector< PeptideEvidence > alpha_ev = pep_hits[0].getPeptideEvidences();
+        std::vector< PeptideEvidence > beta_ev = pep_hits[1].getPeptideEvidences();
 
-        for (vector< PeptideEvidence >::const_iterator alpha_ev_it  = alpha_ev.begin();
-            alpha_ev_it != alpha_ev.end(); ++alpha_ev_it)
+        for (std::vector< PeptideEvidence >::const_iterator alpha_ev_it  = alpha_ev.begin();
+             alpha_ev_it != alpha_ev.end(); ++alpha_ev_it)
         {
-          for (vector< PeptideEvidence >::const_iterator beta_ev_it = beta_ev.begin();
-              beta_ev_it != beta_ev.end(); ++beta_ev_it)
+          for (std::vector< PeptideEvidence >::const_iterator beta_ev_it = beta_ev.begin();
+               beta_ev_it != beta_ev.end(); ++beta_ev_it)
           {
             String alpha_prot = alpha_ev_it->getProteinAccession();
             String beta_prot = beta_ev_it->getProteinAccession();
@@ -339,6 +333,10 @@ protected:
             alpha_prot.substitute(Internal::XQuestResultXMLHandler::decoy_string, "");
             beta_prot.substitute("reverse_", "");
             beta_prot.substitute(Internal::XQuestResultXMLHandler::decoy_string, "");
+            assert(alpha_prot.hasSubstring("reverse") == false);
+            assert(beta_prot.hasSubstring("reverse") == false);
+            assert(alpha_prot.hasSubstring(Internal::XQuestResultXMLHandler::decoy_string) == false);
+            assert(beta_prot.hasSubstring(Internal::XQuestResultXMLHandler::decoy_string) == false);
             pep_id.setMetaValue( alpha_prot == beta_prot ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein" , DataValue());
           }
         }
@@ -410,21 +408,17 @@ protected:
       PeptideHit alpha = pep_hits[0];
       PeptideHit beta = pep_hits[1];
 
-      bool alpha_is_decoy = alpha.getMetaValue("target_decoy").toString() == "decoy";
-      bool beta_is_decoy = beta.getMetaValue("target_decoy").toString() == "decoy";
+      const bool alpha_is_decoy = alpha.getMetaValue("target_decoy").toString() == "decoy";
+      const bool beta_is_decoy = beta.getMetaValue("target_decoy").toString() == "decoy";
 
       // fulldecoysintralinks
-      if (   pep_id.metaValueExists("OpenXQuest:is_intraprotein")
-          && alpha_is_decoy
-          && beta_is_decoy)
+      if (pep_id.metaValueExists("OpenXQuest:is_intraprotein") && alpha_is_decoy && beta_is_decoy)
       {
         types.push_back(TOPPXFDR::crosslink_class_fulldecoysintralinks);
       }
 
       // fulldecoysinterlinks
-      if (   pep_id.metaValueExists("OpenXQuest:is_interprotein")
-          && alpha_is_decoy
-          && beta_is_decoy)
+      if (pep_id.metaValueExists("OpenXQuest:is_interprotein") && alpha_is_decoy && beta_is_decoy)
       {
         types.push_back(TOPPXFDR::crosslink_class_fulldecoysinterlinks);
 
@@ -433,9 +427,9 @@ protected:
       // hybriddecoysintralinks
       if (       pep_id.metaValueExists("OpenXQuest:is_intraprotein")
           && (( ! alpha_is_decoy
-              &&     beta_is_decoy)
-              ||     (alpha_is_decoy
-                  &&   ! beta_is_decoy)))
+          &&     beta_is_decoy)
+          ||     (alpha_is_decoy
+          &&   ! beta_is_decoy)))
       {
         types.push_back(TOPPXFDR::crosslink_class_hybriddecoysintralinks);
       }
@@ -443,9 +437,9 @@ protected:
       // hybriddecoysinterlinks
       if (       pep_id.metaValueExists("OpenXQuest:is_interprotein")
           && (( ! alpha_is_decoy
-              &&     beta_is_decoy)
-              ||     (alpha_is_decoy
-                  &&   ! beta_is_decoy)))
+          &&     beta_is_decoy)
+          ||     (alpha_is_decoy
+          &&   ! beta_is_decoy)))
       {
         types.push_back(TOPPXFDR::crosslink_class_hybriddecoysinterlinks);
       }
@@ -531,13 +525,13 @@ protected:
 
     if (arg_minborder > arg_maxborder)
     {
-      LOG_ERROR << "ERROR: Minborder cannot be larger than Maxborder. Terminating" << endl;
+      LOG_ERROR << "FATAL: Minborder cannot be larger than Maxborder. Terminating" << endl;
       return ILLEGAL_PARAMETERS;
     }
-    const Int arg_minionsmatched = getIntOption_(TOPPXFDR::param_minionsmatched);
+    const Int arg_minionsmatched = this->getIntOption_(TOPPXFDR::param_minionsmatched);
 
-    const Int arg_minscore = getIntOption_(TOPPXFDR::param_minscore);
-    bool arg_uniquex = getFlag_(TOPPXFDR::param_uniquexl);
+    const Int arg_minscore = this->getIntOption_(TOPPXFDR::param_minscore);
+    bool arg_uniquex = this->getFlag_(TOPPXFDR::param_uniquexl);
 
     //-------------------------------------------------------------
     // Printing parameters to log
@@ -559,30 +553,29 @@ protected:
     //-------------------------------------------------------------
     // Determine type of input file
     //-------------------------------------------------------------
-    const String arg_in = getStringOption_(TOPPXFDR::param_in);
+    const String arg_in = this->getStringOption_(TOPPXFDR::param_in);
     if (arg_in.empty())
     {
       LOG_ERROR << "FATAL: Input file is empty. Terminating." << endl;
       return ILLEGAL_PARAMETERS;
     }
-    const String arg_in_type = getStringOption_(TOPPXFDR::param_in_type);
-    const FileTypes::Type in_type = arg_in_type.empty() ? FileHandler::getType(arg_in)
-    : FileTypes::nameToType(arg_in_type);
+    const String arg_in_type = this->getStringOption_(TOPPXFDR::param_in_type);
+    const FileTypes::Type in_type = arg_in_type.empty() ? FileHandler::getType(arg_in) : FileTypes::nameToType(arg_in_type);
 
     //-------------------------------------------------------------
     // Declare important variables
     //-------------------------------------------------------------
-    Size pep_id_index = TOPPXFDR::n_rank - 1;
+    const Size pep_id_index = TOPPXFDR::n_rank - 1;
     bool is_xquest_input = false;
 
     // Variable is only used if the input is xQuest XML file
     Size n_spectra = 0;
 
     // Main data structures
-    vector < PeptideIdentification > all_ids;
-    vector < ProteinIdentification > prot_ids;
-    vector < Size > rank_one_ids; // Stores the indizes of the rank one hits within all_ids
-    vector < vector < PeptideIdentification > > spectra;
+    std::vector < PeptideIdentification > all_ids;
+    std::vector < ProteinIdentification > prot_ids;
+    std::vector < Size > rank_one_ids; // Stores the indizes of the rank one hits within all_ids
+    std::vector < std::vector < PeptideIdentification > > spectra;
 
     //-------------------------------------------------------------
     // Parse the input file
@@ -602,11 +595,11 @@ protected:
                 "\nTotal number of hits: " + String(xquest_result_file.getNumberOfHits()));
 
       Size rank_counter = 0;
-      for (vector < vector < PeptideIdentification > >::const_iterator spectra_it = spectra.begin();
-          spectra_it != spectra.end(); ++spectra_it)
+      for (std::vector < std::vector < PeptideIdentification > >::const_iterator spectra_it = spectra.begin();
+           spectra_it != spectra.end(); ++spectra_it)
       {
-        vector< PeptideIdentification > spectrum = *spectra_it;
-        for (vector< PeptideIdentification >::const_iterator spectrum_it = spectrum.begin(); spectrum_it != spectrum.end(); ++spectrum_it)
+        std::vector< PeptideIdentification > spectrum = *spectra_it;
+        for (std::vector< PeptideIdentification >::const_iterator spectrum_it = spectrum.begin(); spectrum_it != spectrum.end(); ++spectrum_it)
         {
           PeptideIdentification pep_id = *spectrum_it;
           all_ids.push_back(pep_id);
@@ -620,7 +613,7 @@ protected:
       }
       writeLog_("Number of IDs in input file: " + String(all_ids.size()));
 
-      // Terminate if no hits could be foud
+      // Terminate if no hits could be found
       if (all_ids.size() == 0)
       {
         LOG_ERROR << "ERROR: Input file does not contain any identifications. Terminating." << endl;
@@ -639,9 +632,8 @@ protected:
 
         if (n_hits == 1)
         {
-          assert(    (alpha_target_decoy == "decoy" && pep_id_target_decoy == "decoy")
-                     || (alpha_target_decoy == "target" && pep_id_target_decoy == "target"));
-
+          assert(   (alpha_target_decoy == "decoy" && pep_id_target_decoy == "decoy")
+                 || (alpha_target_decoy == "target" && pep_id_target_decoy == "target"));
         }
         else if (n_hits == 2)
         {
@@ -663,17 +655,16 @@ protected:
       // Prevent filter options for this input (currently not supported)
       if (arg_uniquex || arg_minborder != -1 || arg_maxborder != -1 || arg_minionsmatched != 0 || arg_mindeltas != 0)
       {
-        LOG_ERROR << "ERROR: The filters uniquexl min/maxborder, minionsmatched, and mindeltas are not supported for idXML. Terminating." << endl;
+        LOG_ERROR << "FATAL: The filters uniquexl min/maxborder, minionsmatched, and mindeltas are not supported for idXML. Terminating." << endl;
         return ILLEGAL_PARAMETERS;
       }
-
       MzIdentMLFile().load(arg_in, prot_ids, all_ids);
       writeLog_("Number of IDs in input file: " + String(all_ids.size()));
 
       // Terminate if no hits could be foud
       if (all_ids.size() == 0)
       {
-        LOG_ERROR << "ERROR: Input file does not contain any identifications. Terminating." << endl;
+        LOG_ERROR << "FATAL: Input file does not contain any identifications. Terminating." << endl;
         return INPUT_FILE_EMPTY;
       }
     }
@@ -720,9 +711,8 @@ protected:
         rank_counter++;
       }
     }
-
     // Number of peptide identifications that need to be considered
-    Size n_ids = rank_one_ids.size();
+    const Size n_ids = rank_one_ids.size();
 
     //-------------------------------------------------------------
     // Calculate the delta score for each hit
@@ -744,13 +734,13 @@ protected:
       {
         Size n_hits = spectra[i].size();
         //delta_scores[i] = new std::vector<double>(n_hits);
-        vector<double> current(n_hits);
+        std::vector< double > current(n_hits);
 
         assert(n_hits > 0); // because we initially do not load 'empty' spectra
         // calculate n_min_ions_matched
         PeptideIdentification * pep_id1 = &spectra[i][0];
         assert( static_cast<int>(pep_id1->getMetaValue(TOPPXFDR::crosslink_rank)) == 1); // because hits are sorted according to their rank within the spectrum
-        const vector<PeptideHit> & pep_hits = pep_id1->getHits();
+        const std::vector<PeptideHit> & pep_hits = pep_id1->getHits();
 
         if ( pep_id1->getMetaValue(TOPPXFDR::crosslink_type) == "cross-link")
         {
@@ -773,7 +763,7 @@ protected:
               if (pep_id1->getMetaValue("OpenXQuest:structure") != pep_id2->getMetaValue("OpenXQuest:structure"))
               {
                 current[j] =   static_cast<double>(pep_id2->getMetaValue("OpenXQuest:score"))
-                                      / static_cast<double>(pep_id1->getMetaValue("OpenXQuest:score"));
+                             / static_cast<double>(pep_id1->getMetaValue("OpenXQuest:score"));
                 break;
               }
             }
@@ -792,11 +782,11 @@ protected:
      */
 
     // Contains the indices of the rank_one_ids sorted by the score (Init from 0,1,2,...,rank_one_ids.size()
-    vector< UInt > order_score ( boost::counting_iterator<Size>(0),
-                                 boost::counting_iterator<Size>(rank_one_ids.size()));
+    std::vector< UInt > order_score ( boost::counting_iterator< Size >(0),
+                                 boost::counting_iterator< Size >(rank_one_ids.size()));
 
     // Configure the sorting of the Peptide Identifications
-    greater_than_by_key order_conf = {
+    const greater_than_by_key order_conf = {
         all_ids,
         rank_one_ids,
     };
