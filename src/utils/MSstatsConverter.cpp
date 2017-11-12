@@ -179,10 +179,9 @@ protected:
       // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
       const String isotope_label_type = this->getFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides) ? "H" : "L";
 
-      // Keeps track of precursor charges and accessions of a peptide sequence to avoid duplicate lines in output (logic currently not used)
-      //String previous_sequence = "";
-      //std::set< Int > previous_precursor_charges;
-      //std::set< String > previous_prot_accs;
+      // Stores all the lines that will be present in the final MSstats output
+      std::set< String > output_line_set;
+      const char delim(',');
 
       for (const OpenMS::ConsensusFeature & consensus_feature : consensus_map)
       {
@@ -251,39 +250,28 @@ protected:
 
                   // Find the Biological replicate by filename
                   const String & condition = file_run.get(filename, "Condition");
-
-
-                  // The peptide sequence has changed, the charges and accessions of the previous peptide can be removed
-                  //if (sequence != previous_sequence)
-                  //{
-                  //  previous_precursor_charges.clear();
-                  //  previous_prot_accs.clear();
-                  //  previous_sequence = sequence;
-                  //}
-
-                  // Determine whether we need to write the current protein hit (precursor charge or accession changes)
-                  //if (   previous_prot_accs.find(accession) == previous_prot_accs.end()
-                  //    || previous_precursor_charges.find(precursor_charge) == previous_precursor_charges.end())
-                  //{
-                  csv_out.addLine(  accession
-                                    + ',' + sequence
-                                    + ',' + precursor_charge
-                                    + ',' + fragment_ion
-                                    + ',' + frag_charge
-                                    + ',' + isotope_label_type
-                                    + ',' + file_condition.get(condition, arg_msstats_condition)
-                                    + ',' + file_condition.get(condition, arg_msstats_bioreplicate)
-                                    + ',' + file_run.get(filename, "Run")
-                                    + ',' + intensity
-                                    + String(has_fraction ? ("," + file_run.get(filename, "Fraction")) : ""));
-                  //previous_prot_accs.insert(accession);
-                  //previous_precursor_charges.insert(precursor_charge);
-                  //}
+                  output_line_set.insert(   accession
+                                          + delim + sequence
+                                          + delim + precursor_charge
+                                          + delim + fragment_ion
+                                          + delim + frag_charge
+                                          + delim + isotope_label_type
+                                          + delim + file_condition.get(condition, arg_msstats_condition)
+                                          + delim + file_condition.get(condition, arg_msstats_bioreplicate)
+                                          + delim + file_run.get(filename, "Run")
+                                          + delim + intensity
+                                          + String(has_fraction ? ("," + file_run.get(filename, "Fraction")) : ""));
                 }
               }
             }
           }
         }
+      }
+
+      // Add the final lines to MSstats
+      for (const String &line : output_line_set)
+      {
+        csv_out.addLine(line);
       }
       // Store the final assembled CSV file
       csv_out.store(this->getStringOption_(TOPPMSstatsConverter::param_out));
