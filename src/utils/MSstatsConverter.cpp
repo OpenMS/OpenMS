@@ -71,12 +71,11 @@ public:
   static const String param_in_consensusxml;
   static const String param_in_design_run;
   static const String param_in_design_condition;
-
   static const String param_msstats_bioreplicate;
   static const String param_msstats_condition;
-
   static const String param_out;
   static const String param_labeled_reference_peptides;
+  static const String param_ambiguous_peptides;
 
   static const String na_string;
 
@@ -107,6 +106,9 @@ protected:
     // Isotope label type
     this->registerFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides, "If set, IsotopeLabelType is 'H', else 'L'");
 
+    // Non-unique Peptides
+    this->registerFlag_(TOPPMSstatsConverter::param_ambiguous_peptides, "If set, the output CSV file can contain peptides that have been assigned to multiple protein ids. Attention: you normally do not want to do this for MSstats", true);
+
     // Output CSV file
     this->registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
     this->setValidFormats_(TOPPMSstatsConverter::param_out, ListUtils::create<String>("csv"));
@@ -128,7 +130,6 @@ protected:
         LOG_FATAL_ERROR << "FATAL: At least one of the specified column names is not part of condition table!" << std::endl;
         return ILLEGAL_PARAMETERS;
       }
-
 
       // Read the input files
       ConsensusMap consensus_map;
@@ -178,10 +179,13 @@ protected:
 
       // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
       const String isotope_label_type = this->getFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides) ? "H" : "L";
-
-      // Stores all the lines that will be present in the final MSstats output
-      std::set< String > output_line_set;
       const char delim(',');
+
+      // Keeps track of unique peptides (Size of value set is 1)
+      std::map< String, std::set<String > > peptideseq_to_accessions;
+
+      // Stores all the lines that will be present in the final MSstats output,
+      std::map< String, std::set<String > > peptideseq_to_outputlines;
 
       for (const OpenMS::ConsensusFeature & consensus_feature : consensus_map)
       {
@@ -217,6 +221,7 @@ protected:
             // Variables of the peptide hit
             // MSstats User manual 3.7.3: Unknown precursor charge should be set to 0
             const Int precursor_charge = (std::max)(pep_hit.getCharge(), 0);
+            const String & sequence = pep_hit.getSequence().toUnmodifiedString();
 
             // Have to combine all fragment annotations with all peptide evidences
             for (const OpenMS::PeptideHit::PeakAnnotation & frag_ann : fragment_annotations)
@@ -246,21 +251,20 @@ protected:
                 for (const String & filename : filenames)
                 {
                   const String & accession = pep_ev.getProteinAccession();
-                  const String & sequence = pep_hit.getSequence().toUnmodifiedString();
-
-                  // Find the Biological replicate by filename
+                  peptideseq_to_accessions[sequence].insert(accession);
                   const String & condition = file_run.get(filename, "Condition");
-                  output_line_set.insert(   accession
-                                          + delim + sequence
-                                          + delim + precursor_charge
-                                          + delim + fragment_ion
-                                          + delim + frag_charge
-                                          + delim + isotope_label_type
-                                          + delim + file_condition.get(condition, arg_msstats_condition)
-                                          + delim + file_condition.get(condition, arg_msstats_bioreplicate)
-                                          + delim + file_run.get(filename, "Run")
-                                          + delim + intensity
-                                          + String(has_fraction ? ("," + file_run.get(filename, "Fraction")) : ""));
+
+                  peptideseq_to_outputlines[sequence].insert(accession
+                                                             + delim + sequence
+                                                             + delim + precursor_charge
+                                                             + delim + fragment_ion
+                                                             + delim + frag_charge
+                                                             + delim + isotope_label_type
+                                                             + delim + file_condition.get(condition, arg_msstats_condition)
+                                                             + delim + file_condition.get(condition, arg_msstats_bioreplicate)
+                                                             + delim + file_run.get(filename, "Run")
+                                                             + delim + intensity
+                                                             + String(has_fraction ? ("," + file_run.get(filename, "Fraction")) : ""));
                 }
               }
             }
@@ -268,10 +272,30 @@ protected:
         }
       }
 
-      // Add the final lines to MSstats
-      for (const String &line : output_line_set)
+      // Write all the peptides in turn
+      if (this->getFlag_(TOPPMSstatsConverter::param_ambiguous_peptides))
       {
-        csv_out.addLine(line);
+        for (const std::pair< String, std::set< String> > & peptideseq_lines : peptideseq_to_outputlines)
+        {
+          for (const String & line : peptideseq_lines.second)
+          {
+            csv_out.addLine(line);
+          }
+        }
+      }
+      else
+      {
+        for (const std::pair< String, std::set< String> > & peptideseq_accessions : peptideseq_to_accessions)
+        {
+          // Only write if unique peptide
+          if (peptideseq_accessions.second.size() == 1)
+          {
+            for (const String & line : peptideseq_to_outputlines[peptideseq_accessions.first])
+            {
+              csv_out.addLine(line);
+            }
+          }
+        }
       }
       // Store the final assembled CSV file
       csv_out.store(this->getStringOption_(TOPPMSstatsConverter::param_out));
@@ -388,11 +412,6 @@ private:
     std::map< String, Size > _columnname_to_columnindex;
   };
 
-
-  // Advances
-  //this->registerInputFile_(TOPPMSstatsConverter::param_in_experimental_design, "<in_experimental_design>", "",
-  //                           "Experimental design as CSV file. The required columns are FileName,Condition,BioReplicate,Run", true, false
-
   void _registerExperimentalDesignInputFile(const String & param_name, const String & argument, const String & description)
   {
     static const StringList valid_formats = ListUtils::create<String>("tsv");
@@ -404,16 +423,13 @@ private:
 const String TOPPMSstatsConverter::param_in_consensusxml = "in";
 const String TOPPMSstatsConverter::param_in_design_run = "in_design_run";
 const String TOPPMSstatsConverter::param_in_design_condition = "in_design_condition";
-
 const String TOPPMSstatsConverter::param_msstats_bioreplicate = "msstats_bioreplicate";
 const String TOPPMSstatsConverter::param_msstats_condition = "msstats_condition";
-
 const String TOPPMSstatsConverter::param_out = "out";
 const String TOPPMSstatsConverter::na_string = "NA";
 const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
 const String TOPPMSstatsConverter::meta_value_exp_design_key = "spectra_data";
-
-
+const String TOPPMSstatsConverter::param_ambiguous_peptides = "ambiguous_peptides";
 
 
 // the actual main function needed to create an executable
