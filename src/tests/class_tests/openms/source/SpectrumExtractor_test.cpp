@@ -564,7 +564,48 @@ START_SECTION(annotateSpectra())
   TEST_NOT_EQUAL(annotated_spectra.size(), 0)
   TEST_EQUAL(annotated_spectra.size(), features.size())
 
-  // TODO check the values of annotated spectra, also check that metadata is present
+  TEST_EQUAL(annotated_spectra[0].getName(), "met-L.met-L_m0-0")
+  TEST_EQUAL(annotated_spectra[0].size(), 121)
+  TEST_EQUAL(annotated_spectra[4].getName(), "glu-L.glu-L_m4-4")
+  TEST_EQUAL(annotated_spectra[4].size(), 98)
+  TEST_EQUAL(annotated_spectra[8].getName(), "asp-L.asp-L_m0-0")
+  TEST_EQUAL(annotated_spectra[8].size(), 61)
+  TEST_EQUAL(annotated_spectra[12].getName(), "asp-L.asp-L_m3-2")
+  TEST_EQUAL(annotated_spectra[12].size(), 432)
+  TEST_EQUAL(annotated_spectra[16].getName(), "glu-L.glu-L_m1-1")
+  TEST_EQUAL(annotated_spectra[16].size(), 149)
+  TEST_EQUAL(annotated_spectra[20].getName(), "skm.skm_m4-3")
+  TEST_EQUAL(annotated_spectra[20].size(), 552)
+
+  TEST_EQUAL(features[0].getMetaValue("transition_name"), "met-L.met-L_m0-0")
+  TEST_REAL_SIMILAR(features[0].getRT(), 1.337016666667)
+  TEST_REAL_SIMILAR(features[0].getMZ(), 148.052001953125)
+  TEST_EQUAL(features[4].getMetaValue("transition_name"), "glu-L.glu-L_m4-4")
+  TEST_REAL_SIMILAR(features[4].getRT(), 2.050366666667)
+  TEST_REAL_SIMILAR(features[4].getMZ(), 150.059005737305)
+  TEST_EQUAL(features[8].getMetaValue("transition_name"), "asp-L.asp-L_m0-0")
+  TEST_REAL_SIMILAR(features[8].getRT(), 2.162216666667)
+  TEST_REAL_SIMILAR(features[8].getMZ(), 132.029998779297)
+  TEST_EQUAL(features[12].getMetaValue("transition_name"), "asp-L.asp-L_m3-2")
+  TEST_REAL_SIMILAR(features[12].getRT(), 2.339083333333)
+  TEST_REAL_SIMILAR(features[12].getMZ(), 135.039993286133)
+  TEST_EQUAL(features[16].getMetaValue("transition_name"), "glu-L.glu-L_m1-1")
+  TEST_REAL_SIMILAR(features[16].getRT(), 2.452616666667)
+  TEST_REAL_SIMILAR(features[16].getMZ(), 147.04899597168)
+  TEST_EQUAL(features[20].getMetaValue("transition_name"), "skm.skm_m4-3")
+  TEST_REAL_SIMILAR(features[20].getRT(), 2.782566666667)
+  TEST_REAL_SIMILAR(features[20].getMZ(), 177.057998657227)
+
+  cout << "Annotated spectra from annotateSpectra():" << endl;
+  for (auto s : annotated_spectra)
+  {
+    cout << "name: " << s.getName() << "\t peaks: " << s.size() << endl;
+  }
+  cout << "Features from annotateSpectra():" << endl;
+  for (auto f : features)
+  {
+    cout << "name: " << f.getMetaValue("transition_name") << "\t RT: " << f.getRT() << "\t MZ: " << f.getMZ() << endl;
+  }
 }
 END_SECTION
 
@@ -621,17 +662,67 @@ START_SECTION(scoreSpectra())
   TEST_EQUAL(scored_spectra.size(), annotated_spectra.size())
   TEST_EQUAL(scored_spectra.size(), features.size())
 
-  // TODO check the values of scored spectra, also check that metadata is present
+  TEST_EQUAL(scored_spectra[0].getName(), "met-L.met-L_m0-0")
+  TEST_REAL_SIMILAR(scored_spectra[0].getFloatDataArrays()[1][0], 15.2046270370483) // score
+  TEST_REAL_SIMILAR(scored_spectra[0].getFloatDataArrays()[2][0], 5.3508939743042)  // total tic
+  TEST_REAL_SIMILAR(scored_spectra[0].getFloatDataArrays()[3][0], 3.96267318725586) // inverse average fwhm
+  TEST_REAL_SIMILAR(scored_spectra[0].getFloatDataArrays()[4][0], 5.89106035232544) // average snr
+
+  TEST_EQUAL(scored_spectra[4].getName(), "asp-L.asp-L_m1-0")
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[1][0], 10.90163230896)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[2][0], 6.50192594528198)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[3][0], 2.14086890220642)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[4][0], 2.25883746147156)
+
+  TEST_EQUAL(scored_spectra[8].getName(), "glu-L.glu-L_m1-1")
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[1][0], 13.7276296615601)
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[2][0], 5.51675566061136)
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[3][0], 3.46319246830875)
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[4][0], 4.74768113612061)
+
+  TEST_EQUAL(scored_spectra[11].getName(), "skm.skm_m4-3")
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[1][0], 10.5747480392456)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[2][0], 6.60354130105922)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[3][0], 2.0288507938385)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[4][0], 1.94235549504842)
+
+  TEST_EQUAL(features[0].getMetaValue("transition_name"), "met-L.met-L_m0-0")
+  TEST_REAL_SIMILAR(features[0].getIntensity(), 15.2046270370483)                  // score
+  TEST_REAL_SIMILAR(features[0].getMetaValue("log10_total_tic"), 5.3508939743042)  // total tic
+  TEST_REAL_SIMILAR(features[0].getMetaValue("inverse_avgFWHM"), 3.96267318725586) // inverse average fwhm
+  TEST_REAL_SIMILAR(features[0].getMetaValue("avgSNR"), 5.89106035232544)          // average snr
+  TEST_REAL_SIMILAR(features[0].getMetaValue("avgFWHM"), 0.252354895075162)        // average fwhm
+
+  TEST_EQUAL(features[4].getMetaValue("transition_name"), "asp-L.asp-L_m1-0")
+  TEST_REAL_SIMILAR(features[4].getIntensity(), 10.90163230896)
+  TEST_REAL_SIMILAR(features[4].getMetaValue("log10_total_tic"), 6.50192594528198)
+  TEST_REAL_SIMILAR(features[4].getMetaValue("inverse_avgFWHM"), 2.14086890220642)
+  TEST_REAL_SIMILAR(features[4].getMetaValue("avgSNR"), 2.25883746147156)
+  TEST_REAL_SIMILAR(features[4].getMetaValue("avgFWHM"), 0.467100044855705)
+
+  TEST_EQUAL(features[8].getMetaValue("transition_name"), "glu-L.glu-L_m1-1")
+  TEST_REAL_SIMILAR(features[8].getIntensity(), 13.7276296615601)
+  TEST_REAL_SIMILAR(features[8].getMetaValue("log10_total_tic"), 5.51675566061136)
+  TEST_REAL_SIMILAR(features[8].getMetaValue("inverse_avgFWHM"), 3.46319246830875)
+  TEST_REAL_SIMILAR(features[8].getMetaValue("avgSNR"), 4.74768113612061)
+  TEST_REAL_SIMILAR(features[8].getMetaValue("avgFWHM"), 0.288750916719437)
+
+  TEST_EQUAL(features[11].getMetaValue("transition_name"), "skm.skm_m4-3")
+  TEST_REAL_SIMILAR(features[11].getIntensity(), 10.5747480392456)
+  TEST_REAL_SIMILAR(features[11].getMetaValue("log10_total_tic"), 6.60354130105922)
+  TEST_REAL_SIMILAR(features[11].getMetaValue("inverse_avgFWHM"), 2.02885079241748)
+  TEST_REAL_SIMILAR(features[11].getMetaValue("avgSNR"), 1.94235549504842)
+  TEST_REAL_SIMILAR(features[11].getMetaValue("avgFWHM"), 0.492889868361609)
 
   // sort(scored_spectra.begin(), scored_spectra.end(), [](MSSpectrum a, MSSpectrum b)
   // {
   //   return a.getFloatDataArrays()[1][0] > b.getFloatDataArrays()[1][0];
   // });
-  sort(scored_spectra.begin(), scored_spectra.end(), [](MSSpectrum a, MSSpectrum b)
-  {
-    return a.getName().compare(b.getName()) < 0;
-  });
-  cout <<  endl << "Scored spectra have been sorted by name." << endl;
+  // sort(scored_spectra.begin(), scored_spectra.end(), [](MSSpectrum a, MSSpectrum b)
+  // {
+  //   return a.getName().compare(b.getName()) < 0;
+  // });
+  // cout <<  endl << "Scored spectra have been sorted by name." << endl;
 
   cout << endl << "Info from scored spectra:" << endl;
   for (auto s : scored_spectra)
