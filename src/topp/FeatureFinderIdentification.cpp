@@ -176,6 +176,9 @@ class TOPPFeatureFinderIdentification :
   public TOPPBase
 {
 public:
+
+  // TODO
+  // cppcheck-suppress uninitMemberVar
   TOPPFeatureFinderIdentification() :
     TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.")
   {
@@ -427,6 +430,8 @@ protected:
       {
         RTRegion region;
         region.start = *rt_it - rt_tolerance;
+        // TODO
+        // cppcheck-suppress uninitStructMember
         rt_regions.push_back(region);
       }
       rt_regions.back().end = *rt_it + rt_tolerance;

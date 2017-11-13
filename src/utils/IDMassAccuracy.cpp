@@ -237,6 +237,9 @@ protected:
               md.exp_mz = it->getMZ();
               md.theo_mz = (hit.getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
               md.charge = charge;
+              // TODO
+              // md.intensity =  ??
+              // cppcheck-suppress uninitStructMember
               precursor_diffs.push_back(md);
             }
           }
