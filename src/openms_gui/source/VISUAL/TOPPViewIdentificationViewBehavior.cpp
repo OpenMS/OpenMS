@@ -49,7 +49,6 @@
 
 #include <QtCore/QString>
 #include <QtGui/QMessageBox>
-#include <QtGui/QPainter>
 
 using namespace OpenMS;
 using namespace std;
