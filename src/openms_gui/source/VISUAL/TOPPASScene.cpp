@@ -467,6 +467,7 @@ namespace OpenMS
     }
 
     TOPPASEdge* edge;
+    // cppcheck-suppress uninitvar
     foreach(edge, edges_to_be_removed)
     {
       edges_.removeAll(edge);
@@ -474,6 +475,7 @@ namespace OpenMS
       delete edge;
     }
     TOPPASVertex* vertex;
+    // cppcheck-suppress uninitvar
     foreach(vertex, vertices_to_be_removed)
     {
       vertices_.removeAll(vertex);
