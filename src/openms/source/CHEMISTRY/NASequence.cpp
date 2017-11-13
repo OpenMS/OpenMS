@@ -127,9 +127,9 @@ namespace OpenMS
 
   EmpiricalFormula NASequence::getFormula(NASFragmentType type, Int charge) const
   {
-    static const EmpiricalFormula H_weight = EmpiricalFormula("H");
-    static const EmpiricalFormula OH_weight = EmpiricalFormula("OH");
-    static const EmpiricalFormula NH_weight = EmpiricalFormula("NH");
+    static const EmpiricalFormula H_form = EmpiricalFormula("H");
+    static const EmpiricalFormula OH_form = EmpiricalFormula("OH");
+    static const EmpiricalFormula NH_form = EmpiricalFormula("NH");
     static const EmpiricalFormula internal_to_full = EmpiricalFormula("H2O");
     static const EmpiricalFormula five_prime_to_full = EmpiricalFormula("HPO3");
     static const EmpiricalFormula three_prime_to_full = EmpiricalFormula("");
@@ -171,40 +171,40 @@ namespace OpenMS
     switch (type)
     {
     case Full:
-      return our_form - phosphate_form + EmpiricalFormula("O") + (H_weight * charge) + local_five_prime + local_three_prime;
+      return our_form - phosphate_form + EmpiricalFormula("O") + (H_form * charge) + local_five_prime + local_three_prime;
 
     case FivePrime:
-      return our_form - five_prime_to_full + OH_weight + (H_weight * charge) + local_three_prime;
+      return our_form - five_prime_to_full + OH_form + (H_form * charge) + local_three_prime;
 
     case BIon:
-      return our_form - b_ion_to_full - H_weight + OH_weight + (H_weight * charge) + local_five_prime; //WHY h_weight sub?
+      return our_form - b_ion_to_full - H_form + OH_form + (H_form * charge) + local_five_prime; //WHY H_form sub?
 
     case AIon:
-      return our_form - a_ion_to_full - H_weight * 2 + OH_weight + (H_weight * charge) + local_five_prime;
+      return our_form - a_ion_to_full - H_form * 2 + OH_form + (H_form * charge) + local_five_prime;
 
     case CIon:
-      return our_form - c_ion_to_full + OH_weight + (H_weight * charge) + local_five_prime;
+      return our_form - c_ion_to_full + OH_form + (H_form * charge) + local_five_prime;
 
     case DIon:
-      return our_form - d_ion_to_full + OH_weight + (H_weight * charge) + local_five_prime;
+      return our_form - d_ion_to_full + OH_form + (H_form * charge) + local_five_prime;
 
     case XIon:
-      return our_form - x_ion_to_full + OH_weight + (H_weight * charge) + local_three_prime;
+      return our_form - x_ion_to_full + OH_form + (H_form * charge) + local_three_prime;
 
     case WIon:
-      return our_form - w_ion_to_full + OH_weight + (H_weight * charge) + local_three_prime;
+      return our_form - w_ion_to_full + OH_form + (H_form * charge) + local_three_prime;
 
     case YIon:
-      return our_form - y_ion_to_full + OH_weight + (H_weight * charge) + local_three_prime;
+      return our_form - y_ion_to_full + OH_form + (H_form * charge) + local_three_prime;
 
     case ZIon:
-      return our_form - z_ion_to_full + OH_weight + (H_weight * charge) + local_three_prime;
+      return our_form - z_ion_to_full + OH_form + (H_form * charge) + local_three_prime;
 
     case AminusB:
-      return our_form - a_ion_to_full - EmpiricalFormula("O") + (H_weight * charge) + local_five_prime - seq_.back()->getFormula() + abasicform_RNA - EmpiricalFormula("P");// - base_to_formula[seq_[seq_.size()-1]]; //FIXME
+      return our_form - a_ion_to_full - EmpiricalFormula("O") + (H_form * charge) + local_five_prime - seq_.back()->getFormula() + abasicform_RNA - EmpiricalFormula("P");// - base_to_formula[seq_[seq_.size()-1]]; //FIXME
       // THIS WILL HAVE PROBLEMS WITH modded sugar
     default:
-      LOG_ERROR << "NASequence::getMonoWeight: unknown NASFragmentType" << std::endl;
+      LOG_ERROR << "NASequence::getFormula: unknown NASFragmentType" << std::endl;
     }
 
     /*EmpiricalFormula abasicform;
@@ -239,7 +239,7 @@ namespace OpenMS
          if (seq_.size() == 0) //FIXME
          {
          mono_formula += base_to_formula[seq_[0]] + abasicform;
-         return mono_formula + (H_weight * charge) + internal_to_full; //FIXME add switch for other terminals (phosphates etc.)
+         return mono_formula + (H_form * charge) + internal_to_full; //FIXME add switch for other terminals (phosphates etc.)
          }
          else
          {
@@ -254,40 +254,40 @@ namespace OpenMS
          switch (type)
          {
          case Full:
-         return mono_formula + internal_to_full - fivePrime_to_full + (H_weight * charge);
+         return mono_formula + internal_to_full - fivePrime_to_full + (H_form * charge);
 
          case FivePrime:
-         return mono_formula + internal_to_full - fivePrime_to_full + (H_weight * charge);
+         return mono_formula + internal_to_full - fivePrime_to_full + (H_form * charge);
 
          case BIon:
-         return mono_formula + internal_to_full - b_ion_to_full - H_weight + (H_weight * charge);
+         return mono_formula + internal_to_full - b_ion_to_full - H_form + (H_form * charge);
 
          case AIon:
-         return mono_formula + internal_to_full - a_ion_to_full - H_weight * 2 + (H_weight * charge);
+         return mono_formula + internal_to_full - a_ion_to_full - H_form * 2 + (H_form * charge);
 
          case CIon:
-         return mono_formula + internal_to_full - c_ion_to_full + (H_weight * charge);
+         return mono_formula + internal_to_full - c_ion_to_full + (H_form * charge);
 
          case DIon:
-         return mono_formula + internal_to_full - d_ion_to_full + (H_weight * charge);
+         return mono_formula + internal_to_full - d_ion_to_full + (H_form * charge);
 
          case XIon:
-         return mono_formula + internal_to_full - x_ion_to_full + (H_weight * charge);
+         return mono_formula + internal_to_full - x_ion_to_full + (H_form * charge);
 
          case WIon:
-         return mono_formula + internal_to_full - w_ion_to_full + (H_weight * charge);
+         return mono_formula + internal_to_full - w_ion_to_full + (H_form * charge);
 
          case YIon:
-         return mono_formula + internal_to_full - y_ion_to_full + (H_weight * charge);
+         return mono_formula + internal_to_full - y_ion_to_full + (H_form * charge);
 
          case ZIon:
-         return mono_formula + internal_to_full - z_ion_to_full + (H_weight * charge);
+         return mono_formula + internal_to_full - z_ion_to_full + (H_form * charge);
 
          case AminusB:
-         return mono_formula + internal_to_full - a_ion_to_full - H_weight * 2 + (H_weight * charge) - base_to_formula[seq_[seq_.size()-1]];
+         return mono_formula + internal_to_full - a_ion_to_full - H_form * 2 + (H_form * charge) - base_to_formula[seq_[seq_.size()-1]];
 
          default:
-         LOG_ERROR << "NASequence::getMonoWeight: unknown RibonucleotideType" << std::endl;
+         LOG_ERROR << "NASequence::getFormula: unknown NASFragmentType" << std::endl;
          }
          }
          } */
@@ -332,8 +332,7 @@ namespace OpenMS
 
   double NASequence::getMonoWeight(NASFragmentType type, Int charge) const
   {
-    double mono_weight(getFormula(type, charge).getMonoWeight()); //the original assumed positive mode
-    return mono_weight;//(double)charge;//+getFormula(type,charge).getMonoWeight();
+    return getFormula(type, charge).getMonoWeight();
   }
 
   size_t NASequence::size() const
