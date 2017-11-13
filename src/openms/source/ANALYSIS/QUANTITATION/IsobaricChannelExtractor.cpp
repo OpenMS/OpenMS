@@ -623,7 +623,7 @@ namespace OpenMS
           double dist_mz = fabs(mz_it->getMZ() - cl_it->center);
           if (dist_mz < reporter_mass_shift_) ++peak_count;
           if (idx_nearest == mz_end // first peak
-              || ((idx_nearest != mz_end) && (dist_mz < fabs(idx_nearest->getMZ() - cl_it->center)))) // closer to best candidate
+              || ((dist_mz < fabs(idx_nearest->getMZ() - cl_it->center)))) // closer to best candidate
           {
             idx_nearest = mz_it;
           }
