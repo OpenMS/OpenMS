@@ -771,9 +771,8 @@ protected:
       {
         if (best_rt_dist <= 0.0)
         {
-          String msg = "overlapping feature candidates for assay '" + ref + "'";
-          throw Exception::Precondition(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION, msg);
+          LOG_WARN << "Warning: overlapping feature candidates for assay '"
+                   << ref << "'" << endl;
         }
         rt_dist = 0.0;
       }
