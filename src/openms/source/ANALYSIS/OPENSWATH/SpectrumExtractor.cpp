@@ -551,6 +551,9 @@ namespace OpenMS
       }
     }
 
+    selected_spectra.clear();
+    selected_features.clear(true);
+
     if (features.size())
     {
       for (auto it = transition_best_spec.cbegin(); it!=transition_best_spec.cend(); ++it)

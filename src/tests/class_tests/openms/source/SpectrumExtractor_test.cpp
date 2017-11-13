@@ -295,6 +295,12 @@ SpectrumExtractor* ptr = 0;
 SpectrumExtractor* null_ptr = 0;
 const String experiment_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1_spectra0to100.mzML");
 const String target_list_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13CFlux_TraML.csv");
+MzMLFile mzml;
+PeakMap experiment;
+TransitionTSVReader tsv_reader;
+TargetedExperiment targeted_exp;
+mzml.load(experiment_path, experiment);
+tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
 
 START_SECTION(SpectrumExtractor())
 {
@@ -539,11 +545,6 @@ END_SECTION
 
 START_SECTION(annotateSpectra())
 {
-  MzMLFile mzml;
-  PeakMap experiment;
-  TransitionTSVReader tsv_reader;
-  TargetedExperiment targeted_exp;
-
   ptr->setUseGauss(true);
   ptr->setGaussWidth(0.25);
   ptr->setRTWindow(30.0);
@@ -551,9 +552,6 @@ START_SECTION(annotateSpectra())
   ptr->setPeakHeightMin(15000.0);
   ptr->setPeakHeightMax(110000.0);
   ptr->setFWHMThreshold(0.23);
-
-  mzml.load(experiment_path, experiment);
-  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
 
   vector<MSSpectrum> spectra = experiment.getSpectra();
   vector<MSSpectrum> annotated_spectra;
@@ -611,14 +609,6 @@ END_SECTION
 
 START_SECTION(scoreSpectra())
 {
-  MzMLFile mzml;
-  PeakMap experiment;
-  TransitionTSVReader tsv_reader;
-  TargetedExperiment targeted_exp;
-
-  mzml.load(experiment_path, experiment);
-  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
-
   ptr->setUseGauss(true);
   ptr->setGaussWidth(0.25);
   ptr->setRTWindow(30.0);
@@ -749,15 +739,6 @@ END_SECTION
 
 START_SECTION(extractSpectra())
 {
-  MzMLFile mzml;
-  PeakMap experiment;
-  TransitionTSVReader tsv_reader;
-  TargetedExperiment targeted_exp;
-
-  // load files into variables
-  mzml.load(experiment_path, experiment);
-  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
-
   ptr->setUseGauss(true);
   ptr->setGaussWidth(0.25);
   ptr->setRTWindow(30.0);
@@ -780,6 +761,71 @@ START_SECTION(extractSpectra())
   for (UInt i=0; i<extracted_spectra.size(); ++i)
   {
     cout << extracted_spectra[i].getName() << "\t" << extracted_features[i].getIntensity() << endl;
+  }
+}
+END_SECTION
+
+START_SECTION(selectSpectra())
+{
+  ptr->setUseGauss(true);
+  ptr->setGaussWidth(0.25);
+  ptr->setRTWindow(30.0);
+  ptr->setMZTolerance(0.1);
+  ptr->setPeakHeightMin(15000.0);
+  ptr->setPeakHeightMax(110000.0);
+  ptr->setFWHMThreshold(0.23);
+  ptr->setTICWeight(1.0);
+  ptr->setFWHMWeight(1.0);
+  ptr->setSNRWeight(1.0);
+  ptr->setMinScore(15.0);
+
+  const std::vector<MSSpectrum> spectra = experiment.getSpectra();
+  std::vector<MSSpectrum> annotated;
+  FeatureMap features;
+  ptr->annotateSpectra(spectra, targeted_exp, annotated, features);
+  std::vector<MSSpectrum> picked(annotated.size());
+  for (UInt i=0; i<annotated.size(); ++i)
+  {
+    ptr->pickSpectrum(annotated[i], picked[i]);
+  }
+  for (Int i=annotated.size()-1; i>=0; --i)
+  {
+    if (!picked[i].size())
+    {
+      annotated.erase(annotated.begin() + i);
+      picked.erase(picked.begin() + i);
+      features.erase(features.begin() + i);
+    }
+  }
+  std::vector<MSSpectrum> scored;
+  ptr->scoreSpectra(annotated, picked, features, scored);
+
+  cout << endl << "Scored spectra and their score:" << endl;
+  for (auto s : scored)
+  {
+    cout << s.getName() << "\t" << s.getFloatDataArrays()[1][0] << endl;
+  }
+
+  std::vector<MSSpectrum> selected_spectra;
+  FeatureMap selected_features;
+
+  ptr->selectSpectra(scored, features, selected_spectra, selected_features);
+  TEST_EQUAL(selected_spectra.size(), 2)
+  TEST_EQUAL(selected_spectra.size(), selected_features.size())
+  for (UInt i=0; i<selected_spectra.size(); ++i)
+  {
+    TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
+    TEST_EQUAL(selected_spectra[i].getName(), selected_features[i].getMetaValue("transition_name"))
+    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0], selected_features[i].getIntensity())
+    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= ptr->getMinScore(), true)
+  }
+
+  ptr->selectSpectra(scored, selected_spectra);
+  TEST_NOT_EQUAL(selected_spectra.size(), 0)
+  for (UInt i=0; i<selected_spectra.size(); ++i)
+  {
+    TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
+    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= ptr->getMinScore(), true)
   }
 }
 END_SECTION
