@@ -275,7 +275,6 @@ protected:
       {
         dp = cons.getDataProcessing();
       }
-      int i = 0;
       for (vector<DataProcessing>::iterator it = dp.begin(); it != dp.end(); ++it)
       {
         os << "Data processing " << i << endl;
@@ -286,7 +285,6 @@ protected:
           os << "\t\tprocessing action: " << DataProcessing::NamesOfProcessingAction[*paIt] << endl;
         }
       }
-      ++i;
     }
 
     //-------------------------------------------------------------

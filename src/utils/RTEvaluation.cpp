@@ -104,7 +104,7 @@ protected:
     vector<FASTAFile::FASTAEntry> sequences;
 
     bool latex = getFlag_("latex");
-    bool strict = true; // @TODO: would things even work with "strict = false"?
+    // bool strict = true; // @TODO: would things even work with "strict = false"?
     double p_value_dim_1 = getDoubleOption_("p_value_dim_1");
     double p_value_dim_2 = getDoubleOption_("p_value_dim_2");
     State state = TP;
@@ -151,7 +151,8 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    if (strict) IDFilter::keepBestPeptideHits(identifications, strict);
+    // if (strict)
+    IDFilter::keepBestPeptideHits(identifications, strict);
 
     for (SignedSize j = fdrs.size() - 1; j >= 0; --j)
     {
