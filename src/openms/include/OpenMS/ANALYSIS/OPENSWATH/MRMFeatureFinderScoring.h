@@ -267,7 +267,7 @@ private:
     OpenSwath_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
                                           OpenSwathScoring& scorer,
                                           const size_t feature_idx,
-                                          const std::vector<std::string> native_ids_detection,
+                                          const std::vector<std::string> & native_ids_detection,
                                           const double sn_win_len_,
                                           const unsigned int sn_bin_count_,
                                           bool write_log_messages,

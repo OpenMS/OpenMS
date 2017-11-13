@@ -214,7 +214,7 @@ private:
          The keys of @p abundances are stored ordered in @p result, best first.
     */
     template <typename T>
-    void orderBest_(const std::map<T, SampleAbundances> abundances,
+    void orderBest_(const std::map<T, SampleAbundances> & abundances,
                     std::vector<T>& result)
     {
       typedef std::pair<Size, double> PairType;

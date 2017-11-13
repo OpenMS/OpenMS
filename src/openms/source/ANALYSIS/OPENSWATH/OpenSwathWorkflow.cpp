@@ -669,7 +669,7 @@ namespace OpenMS
   void OpenSwathWorkflow::scoreAllChromatograms(
     const OpenSwath::SpectrumAccessPtr input,
     const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
-    const std::vector< OpenSwath::SwathMap > swath_maps,
+    const std::vector< OpenSwath::SwathMap >& swath_maps,
     OpenSwath::LightTargetedExperiment& transition_exp,
     const Param& feature_finder_param,
     TransformationDescription trafo,
