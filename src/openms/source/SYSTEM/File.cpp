@@ -450,6 +450,7 @@ namespace OpenMS
   String File::getTempDirectory()
   {
     Param p = getSystemParameters();
+    String dir;
     if (getenv("OPENMS_TMPDIR") != 0)
     {
       dir = getenv("OPENMS_TMPDIR");
