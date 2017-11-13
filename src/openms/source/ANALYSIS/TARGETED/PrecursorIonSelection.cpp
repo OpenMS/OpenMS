@@ -737,7 +737,9 @@ namespace OpenMS
 
     std::ofstream* precs = 0;
     if (precursor_path != "")
+    {
       precs = new std::ofstream(precursor_path.c_str());
+    }
 
 #ifdef PIS_DEBUG
     std::cout << max_iteration_ << std::endl;
@@ -978,7 +980,11 @@ namespace OpenMS
     }
 #endif
 
-
+    // cleanup
+    if (precursor_path != "")
+    {
+      delete precs;
+    }
   }
 
   void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap& features, PeakMap& experiment,
@@ -1085,7 +1091,9 @@ namespace OpenMS
 
     std::ofstream* precs = 0;
     if (precursor_path != "")
+    {
       precs = new std::ofstream(precursor_path.c_str());
+    }
 
     std::vector<PeptideIdentification> curr_pep_ids, all_pep_ids;
     std::vector<ProteinIdentification> curr_prot_ids;
@@ -1238,7 +1246,11 @@ namespace OpenMS
       // #endif
     } //while(new_features.size() > 0 && iteration < max_iteration)
 
-
+    // cleanup
+    if (precursor_path != "")
+    {
+      delete precs;
+    }
 
 #ifdef PIS_DEBUG
     std::map<String, std::set<String> >::iterator pic_iter = prot_id_counter_.begin();
