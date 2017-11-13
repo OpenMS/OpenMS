@@ -109,16 +109,13 @@ private:
     void addTheoreticalSpectrumLayer_(const PeptideHit& ph);
 
     /// Adds spectrum comprising annotated peaks
-    void addAnnotationsSpectrumLayer_(const std::vector<PeptideHit::PeakAnnotation>& annotations, const String& name);
+    void addAnnotationsSpectrumLayer_(const PeptideHit& hit, bool align = false);
 
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
 
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
     void addPeakAnnotations_(const std::vector<PeptideIdentification>& ph);
-
-    /// Adds fragment annotations to peaks in 1D spectra
-    void addFragmentAnnotations_(const PeptideHit& ph);
 
   /// Helper function for text formatting
   String n_times(Size n, String input);
