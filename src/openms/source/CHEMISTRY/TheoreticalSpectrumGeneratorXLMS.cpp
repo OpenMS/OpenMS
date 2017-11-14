@@ -1449,10 +1449,14 @@ namespace OpenMS
         vector<EmpiricalFormula> loss_formulas = peptide[i].getLossFormulas();
         for (Size k = 0; k != loss_formulas.size(); ++k)
         {
-          TheoreticalSpectrumGeneratorXLMS::LossMass new_loss_mass;
-          new_loss_mass.name = loss_formulas[k].toString();
-          new_loss_mass.mass = loss_formulas[k].getMonoWeight();
-          losses[i].insert(new_loss_mass);
+          String loss_name = loss_formulas[k].toString();
+          if (loss_name == "H2O1" || loss_name == "H3N1") // for now only these most common losses are considered
+          {
+            TheoreticalSpectrumGeneratorXLMS::LossMass new_loss_mass;
+            new_loss_mass.name = loss_formulas[k].toString();
+            new_loss_mass.mass = loss_formulas[k].getMonoWeight();
+            losses[i].insert(new_loss_mass);
+          }
         }
       }
     }
@@ -1480,7 +1484,7 @@ namespace OpenMS
         for (Size k = 0; k != loss_formulas.size(); ++k)
         {
           String loss_name = loss_formulas[k].toString();
-          if (loss_name == "H2O1" || loss_name == "H3N1")
+          if (loss_name == "H2O1" || loss_name == "H3N1") // for now only these most common losses are considered
           {
             TheoreticalSpectrumGeneratorXLMS::LossMass new_loss_mass;
             new_loss_mass.name = loss_formulas[k].toString();
