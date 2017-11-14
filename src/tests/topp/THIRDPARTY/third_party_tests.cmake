@@ -213,7 +213,7 @@ if (NOT (${SPECTRAST_BINARY} STREQUAL "SPECTRAST_BINARY-NOTFOUND"))
 
   add_test("TOPP_SpectrastSearchAdapter_2_0_prepare" ${TOPP_BIN_PATH}/FileConverter -test -force_TPP_compatibility -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra_spectrast.mzXML -out SpectrastAdapter_2_hack.mzXML)
   add_test("TOPP_SpectrastSearchAdapter_2" ${TOPP_BIN_PATH}/SpectraSTSearchAdapter -test -library_file ${DATA_DIR_TOPP}/THIRDPARTY/testLib.splib -spectra_files SpectrastAdapter_2_hack.mzXML -output_files SpectrastAdapter_2_out1.tmp.pep.xml -executable "${SPECTRAST_BINARY}")
-  add_test("TOPP_SpectrastSearchAdapter_2_out" ${DIFF} -in1 SpectrastAdapter_2_out1.tmp.pep.xml -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SpectrastAdapter_1_output.pep.xml -whitelist "msms_pipeline_analysis date" "?xml-stylesheet" "summary base_name" "spectral_library")
+  add_test("TOPP_SpectrastSearchAdapter_2_out" ${DIFF} -in1 SpectrastAdapter_2_out1.tmp.pep.xml -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SpectrastAdapter_2_output.pep.xml -whitelist "msms_pipeline_analysis date" "?xml-stylesheet" "summary base_name" "spectral_library")
   set_tests_properties("TOPP_SpectrastSearchAdapter_2" PROPERTIES DEPENDS "TOPP_SpectrastSearchAdapter_2_0_prepare")
   set_tests_properties("TOPP_SpectrastSearchAdapter_2_out" PROPERTIES DEPENDS "TOPP_SpectrastSearchAdapter_2")
 endif()
