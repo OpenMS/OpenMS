@@ -128,21 +128,20 @@ namespace OpenMS
   EmpiricalFormula NASequence::getFormula(NASFragmentType type, Int charge) const
   {
     static const EmpiricalFormula H_form = EmpiricalFormula("H");
-    static const EmpiricalFormula OH_form = EmpiricalFormula("OH");
-    static const EmpiricalFormula NH_form = EmpiricalFormula("NH");
     static const EmpiricalFormula internal_to_full = EmpiricalFormula("H2O");
-    static const EmpiricalFormula five_prime_to_full = EmpiricalFormula("HPO3");
-    static const EmpiricalFormula three_prime_to_full = EmpiricalFormula("");
-    static const EmpiricalFormula b_ion_to_full = EmpiricalFormula("PO3");
-    static const EmpiricalFormula a_ion_to_full = EmpiricalFormula("HPO4");
-    static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("O"); // OH or just O?
-    static const EmpiricalFormula d_ion_to_full = EmpiricalFormula("H2O"); //H2O falls off here
-    static const EmpiricalFormula x_ion_to_full = EmpiricalFormula("O");
-    static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("HPO3");
-    static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("HPO4");
-    static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("");
+    // static const EmpiricalFormula five_prime_to_full = EmpiricalFormula("HPO3");
+    // static const EmpiricalFormula three_prime_to_full = EmpiricalFormula("");
+    static const EmpiricalFormula a_ion_to_full = EmpiricalFormula("H-2O-1");
+    static const EmpiricalFormula b_ion_to_full = EmpiricalFormula("");
+    static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H-1PO2");
+    static const EmpiricalFormula d_ion_to_full = EmpiricalFormula("HPO3");
+    static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("H");
+    static const EmpiricalFormula x_ion_to_full = EmpiricalFormula("H3O1");
+    static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("H2PO3");
+    static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("H4PO4");
+    static const EmpiricalFormula aminusB_ion_to_full = EmpiricalFormula("C5H6O3");
     static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO3");
-    static const EmpiricalFormula abasicform_RNA = EmpiricalFormula("C5H7O6P");
+    // static const EmpiricalFormula abasicform_RNA = EmpiricalFormula("C5H8O4");
     // static const EmpiricalFormula abasicform_DNA = EmpiricalFormula("C5H7O5P");
 
     if (seq_.empty()) return EmpiricalFormula();
@@ -153,58 +152,58 @@ namespace OpenMS
     {
       our_form += i->getFormula();
     }
-    our_form += phosphate_form * seq_.size(); // add the phosphates in between each ribo
-    our_form -= internal_to_full * seq_.size();
-    EmpiricalFormula local_three_prime("H"); //If there is nothing there we default to H
-    EmpiricalFormula local_five_prime("H");
+    // phosphates linking nucleosides:
+    our_form += (phosphate_form - internal_to_full) * (seq_.size() - 1);
+    EmpiricalFormula local_three_prime, local_five_prime;
 
-    //Make local copies of the formulas for the terminal mods so we don't get into trouble dereferencing nullptrs
+    // Make local copies of the formulas for the terminal mods so we don't get into trouble dereferencing nullptrs
     if (three_prime_ != nullptr)
     {
-      local_three_prime = three_prime_->getFormula();
+      local_three_prime = three_prime_->getFormula() - H_form;
     }
     if (five_prime_ != nullptr)
     {
-      local_five_prime = five_prime_->getFormula();
+      local_five_prime = five_prime_->getFormula() - H_form;
     }
 
     switch (type)
     {
     case Full:
-      return our_form - phosphate_form + EmpiricalFormula("O") + (H_form * charge) + local_five_prime + local_three_prime;
+      return our_form + (H_form * charge) + local_five_prime + local_three_prime;
 
-    case FivePrime:
-      return our_form - five_prime_to_full + OH_form + (H_form * charge) + local_three_prime;
-
-    case BIon:
-      return our_form - b_ion_to_full - H_form + OH_form + (H_form * charge) + local_five_prime; //WHY H_form sub?
-
-    case AIon:
-      return our_form - a_ion_to_full - H_form * 2 + OH_form + (H_form * charge) + local_five_prime;
-
-    case CIon:
-      return our_form - c_ion_to_full + OH_form + (H_form * charge) + local_five_prime;
-
-    case DIon:
-      return our_form - d_ion_to_full + OH_form + (H_form * charge) + local_five_prime;
-
-    case XIon:
-      return our_form - x_ion_to_full + OH_form + (H_form * charge) + local_three_prime;
-
-    case WIon:
-      return our_form - w_ion_to_full + OH_form + (H_form * charge) + local_three_prime;
-
-    case YIon:
-      return our_form - y_ion_to_full + OH_form + (H_form * charge) + local_three_prime;
-
-    case ZIon:
-      return our_form - z_ion_to_full + OH_form + (H_form * charge) + local_three_prime;
+    // case FivePrime:
+    //   return our_form - five_prime_to_full + OH_form + (H_form * charge) + local_three_prime;
 
     case AminusB:
-      return our_form - a_ion_to_full - EmpiricalFormula("O") + (H_form * charge) + local_five_prime - seq_.back()->getFormula() + abasicform_RNA - EmpiricalFormula("P");// - base_to_formula[seq_[seq_.size()-1]]; //FIXME
-      // THIS WILL HAVE PROBLEMS WITH modded sugar
+      return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula();
+      // @TODO: deal with mods on the ribose
+
+    case AIon:
+      return our_form + (H_form * charge) + local_five_prime + a_ion_to_full;
+
+    case BIon:
+      return our_form + (H_form * charge) + local_five_prime + b_ion_to_full;
+
+    case CIon:
+      return our_form + (H_form * charge) + local_five_prime + c_ion_to_full;
+
+    case DIon:
+      return our_form + (H_form * charge) + local_five_prime + d_ion_to_full;
+
+    case WIon:
+      return our_form + (H_form * charge) + local_three_prime - w_ion_to_full;
+
+    case XIon:
+      return our_form + (H_form * charge) + local_three_prime - x_ion_to_full;
+
+    case YIon:
+      return our_form + (H_form * charge) + local_three_prime - y_ion_to_full;
+
+    case ZIon:
+      return our_form + (H_form * charge) + local_three_prime - z_ion_to_full;
+
     default:
-      LOG_ERROR << "NASequence::getFormula: unknown NASFragmentType" << std::endl;
+      LOG_ERROR << "NASequence::getFormula: unsupported NASFragmentType" << std::endl;
     }
 
     /*EmpiricalFormula abasicform;
