@@ -35,6 +35,7 @@
 
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
+#include <boost/math/distributions/binomial.hpp>
 #include <numeric>
 
 using namespace std;
@@ -81,6 +82,8 @@ namespace OpenMS
 
   double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const std::vector< std::pair< Size, Size > >& matched_spec, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
   {
+    using boost::math::binomial;
+
     Size matched_size = matched_spec.size();
     Size theo_size = theoretical_spec.size();
 
@@ -114,12 +117,16 @@ namespace OpenMS
     }
 
     double match_odds = 0;
-    match_odds = -log(1 - Math::CumulativeBinomial::compute(theo_size, matched_size, a_priori_p) + 1e-5);
+    //match_odds = -log(1 - Math::CumulativeBinomial::compute(theo_size, matched_size, a_priori_p) + 1e-5);
+
+    binomial flip(theo_size, a_priori_p);
+    // min double number to avoid 0 values, causing scores with the value "inf"
+    match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
 
 //     cout << "TEST a_priori_prob: " << a_priori_p << " | tolerance: " << tolerance_Th << " | theo_size: " << theo_size << " | matched_size: " << matched_size << " | cumul_binom: " << cumulativeBinomial_(theo_size, matched_size, a_priori_p)
 //              << " | match_odds: " << match_odds << endl;
 
-    // score lower than 0 does not make sense, but can happen if cumBinom = 0, -log( 1 + 1e5 ) < 0
+    // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
     if (match_odds >= 0.0)
     {
       return match_odds;
