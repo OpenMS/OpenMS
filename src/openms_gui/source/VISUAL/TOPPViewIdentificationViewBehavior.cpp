@@ -863,7 +863,7 @@ namespace OpenMS
 
     MSSpectrum ann_spectrum;
     vector<String> labels;
-    for (const auto& ann : annotations)
+    for (const auto& ann : annotations) // NOLINT
     {
       Peak1D peak(ann.mz, ann.intensity);
       if (align) // align to the measured spectrum
