@@ -99,21 +99,13 @@ namespace OpenMS
       return 0;
     }
 
-    double score(0), numerator(0), sharedBins(min(spec1.getBinNumber(), spec2.getBinNumber())), sum1(0), sum2(0);
-
-    // all bins at equal position that have both intensity > 0 contribute positively to score
-    for (Size i = 0; i < sharedBins; ++i)
-    {
-      sum1 += spec1.getBins()[i] * spec1.getBins()[i];
-      sum2 += spec2.getBins()[i] * spec2.getBins()[i];
-      numerator += (spec1.getBins()[i] * spec2.getBins()[i]);
-    }
-
     // resulting score standardized to interval [0,1]
-    score = numerator / (sqrt(sum1 * sum2));
+    const double sum1 = spec1.getBins().dot(spec1.getBins());    
+    const double sum2 = spec2.getBins().dot(spec2.getBins());    
+    const double numerator = spec1.getBins().dot(spec2.getBins());
+    const double score = numerator / (sqrt(sum1 * sum2));
 
     return score;
-
   }
-
 }
+

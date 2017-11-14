@@ -101,23 +101,14 @@ namespace OpenMS
       return 0;
     }
 
-    double score(0), sum(0);
-    UInt denominator(max(spec1.getFilledBinNumber(), spec2.getFilledBinNumber())), shared_Bins(min(spec1.getBinNumber(), spec2.getBinNumber()));
+    size_t denominator(max(spec1.getBins().nonZeros(), spec2.getBins().nonZeros()));
 
-    // all bins at equal position that have both intensity > 0 contribute positively to score
-    for (Size i = 0; i < shared_Bins; ++i)
-    {
-      if (spec1.getBins()[i] > 0 && spec2.getBins()[i] > 0)
-      {
-        sum++;
-      }
-    }
-
+    // Note: keep in single expression for faster computation via expression templates
+    // Calculate coefficient-wise product and count non-zero entries
+    Eigen::SparseVector<float> s = spec1.getBins().cwiseProduct(spec2.getBins());
+    
     // resulting score normalized to interval [0,1]
-    score = sum / denominator;
-
-    return score;
-
+    return static_cast<double>(s.nonZeros()) / denominator;
   }
 
 }

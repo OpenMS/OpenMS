@@ -44,11 +44,15 @@ namespace OpenMS
 {
 
   /**
-    @brief Compare functor scoring the sum of agreeing intensities for similarity measurement
+    @brief Sum of agreeing intensities for similarity measurement
 
     Transformation and other factors of the peptide mass spectrometry pairwise peak-list comparison process
     Witold E Wolski , Maciej Lalowski* , Peter Martus* , Ralf Herwig* , Patrick Giavalisco , Johan Gobom , Albert Sickmann , Hans Lehrach and Knut Reinert*
     BMC Bioinformatics 2005, 6:285 doi:10.1186/1471-2105-6-285
+
+    Bins whose intensity differences are larger than their average intensity receive a weight of zero.
+
+    Prefect agreement results in a similarity score of 1.0
 
     @htmlinclude OpenMS_BinnedSumAgreeingIntensities.parameters
 

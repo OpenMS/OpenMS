@@ -37,8 +37,9 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/DATASTRUCTURES/SparseVector.h>
 #include <OpenMS/CONCEPT/Exception.h>
+
+#include <Eigen/Sparse>
 
 #include <cmath>
 
@@ -62,30 +63,15 @@ namespace OpenMS
     Supported operations provided by the underlying SparseVector implementation:
     - bin-wise addition (e.g.: c = a.getBins() + b.getBins())
     - bin-wise scaling  (e.g.: c = a.getBins() * 5f)
+
+    to get the number of filled bins, call: getBins().nonZeros()
     @ingroup SpectraComparison
   */
 
   class OPENMS_DLLAPI BinnedSpectrum
   {
 
-private:
-    /// the spread to left or right
-    UInt bin_spread_;
-
-    /// the size of each bin
-    float bin_size_;
-
-    /// bins
-    SparseVector<float> bins_;
-
-    void binSpectrum_(const PeakSpectrum& ps);
-
-    std::vector<Precursor> precursors_;
 public:
-
-    typedef SparseVector<float>::const_iterator const_bin_iterator;
-    typedef SparseVector<float>::iterator bin_iterator;
-
     /// default constructor
     BinnedSpectrum() = delete;
 
@@ -102,17 +88,12 @@ public:
     BinnedSpectrum& operator=(const BinnedSpectrum&) = default;
 
     /// equality operator
-    bool operator==(const BinnedSpectrum& rhs) const
-    {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-      return std::tie(bin_size_, bin_spread_, precursors_, bins_) 
-          == std::tie(rhs.bin_size_, rhs.bin_spread_, rhs.precursors_, rhs.bins_);
-#pragma clang diagnostic pop
-    }
+    bool operator==(const BinnedSpectrum& rhs) const;
 
     /// inequality operator
     bool operator!=(const BinnedSpectrum& rhs) const;
+
+    inline float getBinIntensity(double mz) { return bins_.coeffRef(getBinIndex(mz)); }
 
     inline size_t getBinIndex(double mz) { return static_cast<size_t>(floor(mz / bin_size_)); }
 
@@ -125,14 +106,11 @@ public:
     /// get the number of bins
     inline size_t getBinNumber() const { return bins_.size(); }
 
-    /// get the number of filled bins
-    inline size_t getFilledBinNumber() const { return bins_.nonzero_size(); }
-
     /// immutable access to the bin container
-    const SparseVector<float>& getBins() const;
+    const Eigen::SparseVector<float>& getBins() const;
 
     /// mutable access to the bin container
-    SparseVector<float>& getBins();
+    Eigen::SparseVector<float>& getBins();
 
     // inmutable access to precursors
     const std::vector<Precursor>& getPrecursors() const;
@@ -140,21 +118,23 @@ public:
     /// mutable access to precursors
     std::vector<Precursor>& getPrecursors();
 
-    /// returns the const begin iterator of the container
-    inline const_bin_iterator begin() const { return bins_.begin(); }
-
-    /// returns the const end iterator of the container
-    inline const_bin_iterator end() const { return bins_.end(); }
-
-    /// returns the begin iterator of the container
-    inline bin_iterator begin() { return bins_.begin(); }
-
-    /// returns the end iterator of the container
-    inline bin_iterator end() { return bins_.end(); }
-
     /// Function to check comparability of two BinnedSpectrum objects,
     /// That is, if they have equal bin size and spread
     static bool isCompatible(const BinnedSpectrum& a, const BinnedSpectrum& b);
+
+private:
+    /// the spread to left or right
+    UInt bin_spread_;
+
+    /// the size of each bin
+    float bin_size_;
+
+    /// bins
+    Eigen::SparseVector<float> bins_;
+
+    void binSpectrum_(const PeakSpectrum& ps);
+
+    std::vector<Precursor> precursors_;
   };
 
 }

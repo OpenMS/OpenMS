@@ -88,11 +88,10 @@ START_SECTION((BinnedSpectrum& operator=(const BinnedSpectrum &source)))
 }
 END_SECTION
 
-
 START_SECTION((bool operator==(const BinnedSpectrum &rhs) const ))
 {
   BinnedSpectrum copy = *bs1;
-  TEST_EQUAL((*bs1==copy),true)
+  TEST_EQUAL((*bs1 == copy), true)
 }
 END_SECTION
 
@@ -117,61 +116,31 @@ END_SECTION
 
 START_SECTION((UInt getBinNumber() const ))
 {
-  TEST_EQUAL(bs1->getBinNumber(),659)
-}
-END_SECTION
-
-START_SECTION((UInt getFilledBinNumber() const ))
-{
-  TEST_EQUAL(bs1->getFilledBinNumber(),347)
+  TEST_EQUAL(bs1->getBinNumber(), numeric_limits<Eigen::Index>::max())
 }
 END_SECTION
 
 START_SECTION((const SparseVector<float>& getBins() const))
 {
-  TEST_EQUAL(bs1->getBins().at(658),501645)
+  // count non-zero elements before access
+  TEST_EQUAL(bs1->getBins().nonZeros(), 347)
+
+  // access by bin index
+  TEST_EQUAL(bs1->getBins().coeffRef(658), 501645)
+
+  // check if number of non-zero elements is still the same
+  TEST_EQUAL(bs1->getBins().nonZeros(), 347)
+
+  // some additional tests for the underlying Eigen SparseVector
+  UInt c = 0;
+  for (Eigen::SparseVector<float>::InnerIterator it(bs1->getBins()); it; ++it) { ++c; }
+  TEST_EQUAL(bs1->getBins().nonZeros(), c)
 }
 END_SECTION
 
 START_SECTION((SparseVector<float>& getBins()))
 {
-  TEST_EQUAL(bs1->getBins().at(658),501645)
-}
-END_SECTION
-
-START_SECTION((const_bin_iterator begin() const ))
-{
-  UInt c(0);
-  for (BinnedSpectrum::const_bin_iterator it1 = bs1->begin(); it1 != bs1->end(); ++it1)
-  {
-    ++c;
-  }
-  TEST_EQUAL(bs1->getBinNumber(),c)
-}
-END_SECTION
-
-START_SECTION((const_bin_iterator end() const ))
-{
-  NOT_TESTABLE
-  //tested above
-}
-END_SECTION
-
-START_SECTION((bin_iterator begin()))
-{
-  UInt c(0);
-  for (BinnedSpectrum::bin_iterator it1 = bs1->begin(); it1 != bs1->end(); ++it1)
-  {
-    ++c;
-  }
-  TEST_EQUAL(bs1->getBinNumber(),c)
-}
-END_SECTION
-
-START_SECTION((bin_iterator end()))
-{
-  NOT_TESTABLE
-	//tested above
+  TEST_EQUAL(bs1->getBins().coeffRef(658),501645)
 }
 END_SECTION
 

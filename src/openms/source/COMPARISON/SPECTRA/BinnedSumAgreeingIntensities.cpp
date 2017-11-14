@@ -78,7 +78,6 @@ namespace OpenMS
 
   double BinnedSumAgreeingIntensities::operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
   {
-    // avoid crash while comparing
     if (!BinnedSpectrum::isCompatible(spec1, spec2))
     {
       throw IncompatibleBinning(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "");
@@ -100,21 +99,18 @@ namespace OpenMS
       return 0;
     }
 
-    double score(0), sharedBins(min(spec1.getBinNumber(), spec2.getBinNumber())), sum1(0), sum2(0), summax(0);
+    const double sum1 = spec1.getBins().sum();
+    const double sum2 = spec2.getBins().sum();
 
-    // all bins at equal position and similar intensities contribute positively to score
-    for (Size i = 0; i < sharedBins; ++i)
-    {
-      sum1 += spec1.getBins()[i];
-      sum2 += spec2.getBins()[i];
-      summax += max((float)0, ((spec1.getBins()[i] + spec2.getBins()[i]) / 2) - fabs(spec1.getBins()[i] - spec2.getBins()[i]));
-    }
+    // For maximum speed, keep in single expression
+    // 1. calculate mean minus difference: x = mean(a,b) - abs(a-b)
+    // 2. truncate negative values:        y = max(0, x)
+    // 3. calculate sum of entries:   sum_nn = y.sum()
+    double sum_nn = (((spec1.getBins() + spec2.getBins()) * 0.5) - ((spec1.getBins() - spec2.getBins()).cwiseAbs())
+                    ).cwiseMax(Eigen::SparseVector<float>(numeric_limits<int>::max())).sum();
 
     // resulting score normalized to interval [0,1]
-    score = summax * (2 / (sum1 + sum2));
-
-    return score;
-
+    return min(sum_nn / ((sum1 + sum2) / 2.0), 1.0);
   }
-
 }
+

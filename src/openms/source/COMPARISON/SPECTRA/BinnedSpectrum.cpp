@@ -53,12 +53,12 @@ namespace OpenMS
   {
   }
 
-  const SparseVector<float>& BinnedSpectrum::getBins() const
+  const Eigen::SparseVector<float>& BinnedSpectrum::getBins() const
   {
     return bins_;
   }
 
-  SparseVector<float>& BinnedSpectrum::getBins()
+  Eigen::SparseVector<float>& BinnedSpectrum::getBins()
   {
     return bins_;
   }
@@ -76,11 +76,13 @@ namespace OpenMS
   void BinnedSpectrum::binSpectrum_(const PeakSpectrum& ps)
   {
     OPENMS_PRECONDITION(ps.isSorted(), "Spectrum needs to be sorted by m/z.");
-    
+
     if (ps.empty()) { return; }
 
-    const size_t highest_index = getBinIndex(ps.back().getMZ()) + bin_spread_;
-    bins_ = SparseVector<float>(highest_index + 1, 0, 0);
+    // we need to define the dimensionality (even for sparse vectors)
+    static const Eigen::Index highest_index = numeric_limits<Eigen::Index>::max();
+
+    bins_ = Eigen::SparseVector<float>(highest_index);
 
     // put all peaks into bins
     for (auto const & p : ps)
@@ -89,20 +91,45 @@ namespace OpenMS
       const size_t idx = getBinIndex(p.getMZ());
 
       // add peak to corresponding bin
-      bins_[idx] = bins_.at(idx) + p.getIntensity();
+      bins_.coeffRef(idx) += p.getIntensity();
 
       // add peak to neighboring bins
       for (Size j = 0; j < bin_spread_; ++j)
       {
-        bins_[idx + j + 1] = bins_.at(idx + j + 1) + p.getIntensity();
+         bins_.coeffRef(idx + j + 1) +=  p.getIntensity();
         
         // prevent spreading over left boundaries
         if (static_cast<int>(idx - j - 1) >= 0)
         {
-          bins_[idx - j - 1] = bins_.at(idx - j - 1) + p.getIntensity();
+          bins_.coeffRef(idx - j - 1) += p.getIntensity();
         }
       }
     }
+  }
+
+  bool BinnedSpectrum::operator==(const BinnedSpectrum& rhs) const
+  {
+    // first compare bin layout and precursors
+    if (std::tie(bin_size_, bin_spread_, precursors_)
+        != std::tie(rhs.bin_size_, rhs.bin_spread_, rhs.precursors_)) 
+    {
+      return false; 
+    }
+
+    // efficient look-up of number of non-zero entries, so we use this as-well
+    if (bins_.nonZeros() != rhs.bins_.nonZeros()) { return false; }
+
+    // test non-sparse (non-zero) elements for equality
+    Eigen::SparseVector<float>::InnerIterator it(bins_);
+    Eigen::SparseVector<float>::InnerIterator rhs_it(rhs.bins_);  
+    while(it)      
+    {
+      if (it.index() != rhs_it.index()
+       || it.value() != rhs_it.value()) { return false; }
+      ++it;
+      ++rhs_it;
+    }
+    return true;
   }
 
   // static

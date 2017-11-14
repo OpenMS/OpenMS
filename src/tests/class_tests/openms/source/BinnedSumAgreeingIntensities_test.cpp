@@ -93,7 +93,10 @@ START_SECTION((double operator()(const BinnedSpectrum &spec1, const BinnedSpectr
   BinnedSpectrum bs2 (1.5,2,s2);
 
   double score = (*ptr)(bs1, bs2);
-  TEST_REAL_SIMILAR(score, 0.997576)
+  TEST_REAL_SIMILAR(score, 0.99707)
+
+  score = (*ptr)(bs1, bs1);
+  TEST_REAL_SIMILAR(score, 1.0)
 }
 END_SECTION
 

@@ -336,19 +336,15 @@ protected:
       bin_frequency.getBins() += b.getBins();
     }
 
-    auto it = bin_frequency.begin();
-    while(it != bin_frequency.end())
+    
+    for (Eigen::SparseVector<float>::InnerIterator it(bin_frequency.getBins()); it; ++it)
     {
-      const float& v = (float)*it;
-      if (v != 0)
-      {
-        // output m/z of bin start and average bin intensity
-        cout << it.position() * bin_frequency.getBinSize()  << "\t" << static_cast<float>(v/library.size()) << "\n";
-        cout << static_cast<float>(v) << "\n";
-        cout << static_cast<float>(library.size()) << "\n";
-      }
-      it.hop();  // move to next non-empty bin
+      // output m/z of bin start and average bin intensity
+      cout << it.index() * bin_frequency.getBinSize()  << "\t" << static_cast<float>(it.value()/library.size()) << "\n";
+      cout << static_cast<float>(it.value()) << "\n";
+      cout << static_cast<float>(library.size()) << "\n";
     }
+
     cout << endl;
 
     MapLibraryPrecursorToLibrarySpectrum mslib = annotateIdentificationsToSpectra_(ids, library, variable_modifications, fixed_modifications, remove_peaks_below_threshold);
