@@ -1,0 +1,17 @@
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	null
+MTD	mzTab-type	null
+MTD	description	CSI:FingerID-3.5
+MTD	smallmolecule_search_engine_score[1]	[, , score, ]
+MTD	ms_run[1]-location	/var/folders/mz/8dz2f2mx0fl159nrypn6p4h40000gn/T/20171023_075533_unicorn.Informatik.Uni-Tuebingen.De_25685_1/sirius_out/4_20171023_075533_unicorn.Informatik.Uni-Tuebingen.De_25685_2_unknown4
+
+SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	modifications	rank	compoundId
+SML	22076599	C7H9N5O2	C1=C(C=NC=C1NC(=N)O)NC(=N)O	WOKLLNGDZPWVFU	[5-(carbamoylamino)pyridin-3-yl]urea	null	null	null	null	null	null	null	null	null	null	-162.300412374306	null	1	4
+SML	67092616	C7H9N5O2	CC(=NC1=C(N=C(C)O)N=NN=C1)O	UHGSQWJAJXLPFK	""	null	null	null	null	null	null	null	null	null	null	-168.428267097703	null	2	4
+SML	12320906	C11H7NO5	C1=CC2=C(C=C1)NC(=C(C2=O)C(=O)O)C(=O)O	OEJMUGQIHDYSOM	2,3-Quinolinedicarboxylic acid, 1,4-dihydro-4-oxo-	null	null	null	null	null	null	null	null	null	null	-170.314238948558	null	3	4
+SML	14612981	C7H9N5O2	CN1C=NC2=C1C(=O)N(C)C(=O)N2N	DEAMSHFCDLOBEJ	""	null	null	null	null	null	null	null	null	null	null	-171.578568278781	null	4	4
+SML	339843|46780260	C7H9N5O2	CN1C=NC2=C1C(=O)N(C(=O)N2C)N	NAVLIYUAMBPQRQ	5-Amino-3,7-dimethyl-d6-xanthine	null	null	null	null	null	null	null	null	null	null	-171.578568278781	null	5	4
+SML	339842	C7H9N5O2	CN1C2=C(C(=O)N(C)C1=O)N(C=N2)N	OVSANTZNGLNNHC	Oprea1_407388	null	null	null	null	null	null	null	null	null	null	-172.5757707735	null	6	4
+SML	110491684	C7H9N5O2	C1=CC(=NC=C1)N=C(NNC(=N)O)O	UJRWSMMRLAMCFP	""	null	null	null	null	null	null	null	null	null	null	-172.606140919883	null	7	4
+SML	46915370	C7H9N5O2	CN1C(=C2C(=NC1=O)N(C)C(=N2)O)N	KGPUFODTNGATQW	""	null	null	null	null	null	null	null	null	null	null	-173.048534709575	null	8	4
+SML	46915372	C7H9N5O2	CN1C2=C(C(=N)N=C(N2C)O)N=C1O	PGIDADRKLVPTLG	""	null	null	null	null	null	null	null	null	null	null	-174.191487520449	null	9	4

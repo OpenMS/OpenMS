@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -46,7 +46,7 @@ namespace OpenMS
 {
 
   EnzymaticDigestionLogModel::EnzymaticDigestionLogModel() :
-    enzyme_(*EnzymesDB::getInstance()->getEnzyme("Trypsin")),
+    enzyme_(ProteaseDB::getInstance()->getEnzyme("Trypsin")),
     log_model_threshold_(0.25),
     model_data_()
   {
@@ -94,12 +94,12 @@ namespace OpenMS
 
   void EnzymaticDigestionLogModel::setEnzyme(const String enzyme_name)
   {
-    enzyme_ = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
+    enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
   }
 
   String EnzymaticDigestionLogModel::getEnzymeName() const
   {
-    return enzyme_.getName();
+    return enzyme_->getName();
   }
 
   double EnzymaticDigestionLogModel::getLogThreshold() const
@@ -115,16 +115,16 @@ namespace OpenMS
   bool EnzymaticDigestionLogModel::isCleavageSite_(
     const AASequence& protein, const AASequence::ConstIterator& iterator) const
   {
-    if (enzyme_.getName() != "Trypsin") // no cleavage
+    if (enzyme_->getName() != "Trypsin") // no cleavage
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("EnzymaticDigestionLogModel: enzyme '") + enzyme_.getName() + " does not support logModel!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("EnzymaticDigestionLogModel: enzyme '") + enzyme_->getName() + " does not support logModel!");
     }
-    if ((!enzyme_.getRegEx().hasSubstring(iterator->getOneLetterCode())) || *iterator == 'P') // wait for R or K
+    if ((!enzyme_->getRegEx().hasSubstring(iterator->getOneLetterCode())) || *iterator == 'P') // wait for R or K
     {
       return false;
     }
     const SignedSize pos = distance(AASequence::ConstIterator(protein.begin()),
-                                iterator) - 4; // start position in sequence
+                                    iterator) - 4; // start position in sequence
     double score_cleave = 0, score_missed = 0;
     for (SignedSize i = 0; i < 9; ++i)
     {

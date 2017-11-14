@@ -102,13 +102,13 @@ namespace OpenSwath
       return std::acos(dotprod / (x_len * y_len));
     }
 
-    XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType& array)
+    XCorrArrayType::const_iterator xcorrArrayGetMaxPeak(const XCorrArrayType& array)
     {
-      OPENSWATH_PRECONDITION(array.size() > 0, "Cannot get highest apex from empty array.");
+      OPENSWATH_PRECONDITION(array.data.size() > 0, "Cannot get highest apex from empty array.");
 
-      XCorrArrayType::iterator max_it = array.begin();
+      XCorrArrayType::const_iterator max_it = array.begin();
       double max = array.begin()->second;
-      for (XCorrArrayType::iterator it = array.begin(); it != array.end(); ++it)
+      for (XCorrArrayType::const_iterator it = array.begin(); it != array.end(); ++it)
       {
         if (it->second > max)
         {
@@ -139,15 +139,15 @@ namespace OpenSwath
     }
 
     XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
-                                              std::vector<double>& data2, int maxdelay, int lag = 1)
+                                              std::vector<double>& data2, const int& maxdelay, const int& lag = 1)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       // normalize the data
       standardize_data(data1);
       standardize_data(data2);
-      std::map<int, double> result = calculateCrossCorrelation(data1, data2, maxdelay, lag);
-      for (std::map<int, double>::iterator it = result.begin(); it != result.end(); ++it)
+      XCorrArrayType result = calculateCrossCorrelation(data1, data2, maxdelay, lag);
+      for (XCorrArrayType::iterator it = result.begin(); it != result.end(); ++it)
       {
         it->second = it->second / data1.size();
       }
@@ -155,11 +155,12 @@ namespace OpenSwath
     }
 
     XCorrArrayType calculateCrossCorrelation(std::vector<double>& data1,
-                                             std::vector<double>& data2, int maxdelay, int lag)
+                                             std::vector<double>& data2, const int& maxdelay, const int& lag)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       XCorrArrayType result;
+      result.data.reserve( std::ceil((2*maxdelay + 1) / lag));
       int datasize = boost::numeric_cast<int>(data1.size());
       int i, j, delay;
 
@@ -175,7 +176,7 @@ namespace OpenSwath
           }
           sxy += (data1[i]) * (data2[j]);
         }
-        result[delay] = sxy;
+        result.data.push_back(std::make_pair(delay, sxy));
       }
       return result;
     }
@@ -187,7 +188,6 @@ namespace OpenSwath
       int maxdelay = boost::numeric_cast<int>(data1.size());
       int lag = 1;
 
-      XCorrArrayType result;
       double mean1 = std::accumulate(data1.begin(), data1.end(), 0.) / (double)data1.size();
       double mean2 = std::accumulate(data2.begin(), data2.end(), 0.) / (double)data2.size();
       double denominator = 1.0;
@@ -212,7 +212,10 @@ namespace OpenSwath
         denominator = sqrt(sqsum1 * sqsum2);
       }
 
-      for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag)
+      XCorrArrayType result;
+      result.data.reserve( std::ceil((2*maxdelay + 1) / lag));
+      int cnt = 0;
+      for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag, cnt++)
       {
         double sxy = 0;
         for (i = 0; i < datasize; i++)
@@ -234,12 +237,12 @@ namespace OpenSwath
 
         if (denominator > 0)
         {
-          result[delay] = sxy / denominator;
+          result.data.push_back(std::make_pair(delay, sxy/denominator));
         }
         else
         {
           // e.g. if all datapoints are zero
-          result[delay] = 0;
+          result.data.push_back(std::make_pair(delay, 0));
         }
       }
       return result;

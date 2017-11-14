@@ -33,20 +33,15 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/CHEMISTRY/Enzyme.h>
-#include <cstdlib>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <iostream>
 
 using namespace std;
 
 namespace OpenMS
 {
-  // enzyme
-  Enzyme::Enzyme() :
-    name_("unknown_enzyme"),
-    cleavage_regex_(""),
-    synonyms_(),
-    regex_description_(""),
+  DigestionEnzymeProtein::DigestionEnzymeProtein() :
+    DigestionEnzyme(),
     n_term_gain_(""),
     c_term_gain_(""),
     psi_id_(""),
@@ -57,11 +52,8 @@ namespace OpenMS
   {
   }
 
-  Enzyme::Enzyme(const Enzyme& enzyme) :
-    name_(enzyme.name_),
-    cleavage_regex_(enzyme.cleavage_regex_),
-    synonyms_(enzyme.synonyms_),
-    regex_description_(enzyme.regex_description_),
+  DigestionEnzymeProtein::DigestionEnzymeProtein(const DigestionEnzymeProtein& enzyme) :
+    DigestionEnzyme(enzyme),
     n_term_gain_(enzyme.n_term_gain_),
     c_term_gain_(enzyme.c_term_gain_),
     psi_id_(enzyme.psi_id_),
@@ -72,21 +64,18 @@ namespace OpenMS
   {
   }
 
-  Enzyme::Enzyme(const String& name,
-                   const String& cleavage_regex,
-                   const std::set<String>& synonyms,
-                   String regex_description,
-                   EmpiricalFormula n_term_gain,
-                   EmpiricalFormula c_term_gain,
-                   String psi_id,
-                   String xtandem_id,
-                   UInt comet_id,
-                   Int msgf_id,
-                   UInt omssa_id) :
-    name_(name),
-    cleavage_regex_(cleavage_regex),
-    synonyms_(synonyms),
-    regex_description_(regex_description),
+  DigestionEnzymeProtein::DigestionEnzymeProtein(const String& name,
+                                                 const String& cleavage_regex,
+                                                 const std::set<String>& synonyms,
+                                                 String regex_description,
+                                                 EmpiricalFormula n_term_gain,
+                                                 EmpiricalFormula c_term_gain,
+                                                 String psi_id,
+                                                 String xtandem_id,
+                                                 UInt comet_id,
+                                                 Int msgf_id,
+                                                 UInt omssa_id) :
+    DigestionEnzyme(name, cleavage_regex, synonyms, regex_description),
     n_term_gain_(n_term_gain),
     c_term_gain_(c_term_gain),
     psi_id_(psi_id),
@@ -97,18 +86,15 @@ namespace OpenMS
   {
   }
 
-  Enzyme::~Enzyme()
+  DigestionEnzymeProtein::~DigestionEnzymeProtein()
   {
   }
 
-  Enzyme& Enzyme::operator=(const Enzyme& enzyme)
+  DigestionEnzymeProtein& DigestionEnzymeProtein::operator=(const DigestionEnzymeProtein& enzyme)
   {
     if (this != &enzyme)
     {
-      name_ = enzyme.name_;
-      cleavage_regex_ = enzyme.cleavage_regex_;
-      synonyms_ = enzyme.synonyms_;
-      regex_description_ = enzyme.regex_description_;
+      DigestionEnzyme::operator=(enzyme);
       n_term_gain_ = enzyme.n_term_gain_;
       c_term_gain_ = enzyme.c_term_gain_;
       psi_id_ = enzyme.psi_id_;
@@ -120,127 +106,79 @@ namespace OpenMS
     return *this;
   }
 
-  void Enzyme::setName(const String& name)
-  {
-    name_ = name;
-  }
-
-  const String& Enzyme::getName() const
-  {
-    return name_;
-  }
-
-  void Enzyme::setSynonyms(const set<String>& synonyms)
-  {
-    synonyms_ = synonyms;
-  }
-
-  void Enzyme::addSynonym(const String& synonym)
-  {
-    synonyms_.insert(synonym);
-  }
-
-  const set<String>& Enzyme::getSynonyms() const
-  {
-    return synonyms_;
-  }
-
-  void Enzyme::setRegEx(const String& cleavage_regex)
-  {
-    cleavage_regex_ = cleavage_regex;
-  }
-
-  const String& Enzyme::getRegEx() const
-  {
-    return cleavage_regex_;
-  }
-
-  void Enzyme::setRegExDescription(String value)
-  {
-    regex_description_ = value;
-  }
-
-  String Enzyme::getRegExDescription() const
-  {
-    return regex_description_;
-  }
-
-  void Enzyme::setNTermGain(EmpiricalFormula value)
+  void DigestionEnzymeProtein::setNTermGain(EmpiricalFormula value)
   {
     n_term_gain_ = value;
   }
 
-  void Enzyme::setCTermGain(EmpiricalFormula value)
+  void DigestionEnzymeProtein::setCTermGain(EmpiricalFormula value)
   {
     c_term_gain_ = value;
   }
 
-  EmpiricalFormula Enzyme::getNTermGain() const
+  EmpiricalFormula DigestionEnzymeProtein::getNTermGain() const
   {
     return n_term_gain_;
   }
 
-  EmpiricalFormula Enzyme::getCTermGain() const
+  EmpiricalFormula DigestionEnzymeProtein::getCTermGain() const
   {
     return c_term_gain_;
   }
 
-  void Enzyme::setPSIID(String value)
+  void DigestionEnzymeProtein::setPSIID(String value)
   {
     psi_id_ = value;
   }
 
-  String Enzyme::getPSIID() const
+  String DigestionEnzymeProtein::getPSIID() const
   {
     return psi_id_;
   }
 
-  void Enzyme::setXTandemID(String value)
+  void DigestionEnzymeProtein::setXTandemID(String value)
   {
     xtandem_id_ = value;
   }
 
-  String Enzyme::getXTandemID() const
+  String DigestionEnzymeProtein::getXTandemID() const
   {
     return xtandem_id_;
   }
 
-  void Enzyme::setCometID(UInt value)
+  void DigestionEnzymeProtein::setCometID(UInt value)
   {
     comet_id_ = value;
   }
 
-  UInt Enzyme::getCometID() const
+  UInt DigestionEnzymeProtein::getCometID() const
   {
     return comet_id_;
   }
 
-  void Enzyme::setOMSSAID(UInt value)
+  void DigestionEnzymeProtein::setOMSSAID(UInt value)
   {
     omssa_id_ = value;
   }
 
-  UInt Enzyme::getOMSSAID() const
+  UInt DigestionEnzymeProtein::getOMSSAID() const
   {
     return omssa_id_;
   }
 
-  void Enzyme::setMSGFID(Int value)
+  void DigestionEnzymeProtein::setMSGFID(Int value)
   {
     msgf_id_ = value;
   }
 
-  Int Enzyme::getMSGFID() const
+  Int DigestionEnzymeProtein::getMSGFID() const
   {
     return msgf_id_;
   }
-  
-  bool Enzyme::operator==(const Enzyme& enzyme) const
+
+  bool DigestionEnzymeProtein::operator==(const DigestionEnzymeProtein& enzyme) const
   {
-    return name_ == enzyme.name_ &&
-           synonyms_ == enzyme.synonyms_ &&
-           cleavage_regex_ == enzyme.cleavage_regex_ &&
-           regex_description_ == enzyme.regex_description_ &&
+    return DigestionEnzyme::operator==(enzyme) &&
            n_term_gain_ == enzyme.n_term_gain_ &&
            c_term_gain_ == enzyme.c_term_gain_ &&
            psi_id_ == enzyme.psi_id_ &&
@@ -250,32 +188,74 @@ namespace OpenMS
            omssa_id_ == enzyme.omssa_id_;
   }
 
-  bool Enzyme::operator==(String cleavage_regex) const
+  bool DigestionEnzymeProtein::operator==(String cleavage_regex) const
   {
     return cleavage_regex_ == cleavage_regex;
   }
 
-  bool Enzyme::operator!=(String cleavage_regex) const
+  bool DigestionEnzymeProtein::operator!=(String cleavage_regex) const
   {
     return cleavage_regex_ != cleavage_regex;
   }
 
-  bool Enzyme::operator!=(const Enzyme& enzyme) const
+  bool DigestionEnzymeProtein::operator!=(const DigestionEnzymeProtein& enzyme) const
   {
     return !(*this == enzyme);
   }
 
-  bool Enzyme::operator<(const Enzyme& enzyme) const
+  bool DigestionEnzymeProtein::operator<(const DigestionEnzymeProtein& enzyme) const
   {
     return this->getName() < enzyme.getName();
   }
 
-  ostream& operator<<(ostream& os, const Enzyme& enzyme)
+  bool DigestionEnzymeProtein::setValueFromFile(const String& key, const String& value)
   {
-    os << enzyme.name_ << " "
-    << enzyme.cleavage_regex_ << " "
-    << enzyme.regex_description_ << " "
-    << enzyme.psi_id_;
+    if (DigestionEnzyme::setValueFromFile(key, value))
+    {
+      return true;
+    }
+    if (key.hasSuffix(":NTermGain"))
+    {
+      setNTermGain(EmpiricalFormula(value));
+      return true;
+    }
+    if (key.hasSuffix(":CTermGain"))
+    {
+      setCTermGain(EmpiricalFormula(value));
+      return true;
+    }
+    if (key.hasSuffix(":PSIID"))
+    {
+      setPSIID(value);
+      return true;
+    }
+    if (key.hasSuffix(":XTandemID"))
+    {
+      setXTandemID(value);
+      return true;
+    }
+    if (key.hasSuffix(":CometID"))
+    {
+      setCometID(value.toInt());
+      return true;
+    }
+    if (key.hasSuffix(":OMSSAID"))
+    {
+      setOMSSAID(value.toInt());
+      return true;
+    }
+    if (key.hasSuffix(":MSGFID"))
+    {
+      setMSGFID(value.toInt());
+      return true;
+    }
+    return false;
+  }
+
+  ostream& operator<<(ostream& os, const DigestionEnzymeProtein& enzyme)
+  {
+    os << static_cast<const DigestionEnzyme&>(enzyme) << " "
+       << enzyme.psi_id_;
     return os;
   }
 

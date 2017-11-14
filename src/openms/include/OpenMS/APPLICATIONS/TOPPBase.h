@@ -919,6 +919,9 @@ protected:
     /// .TOPP.ini file for storing system default parameters
     static String topp_ini_file_;
 
+    /// The OpenMS citation
+    static const Citation cite_openms_;
+
     /// Debug level set by -debug
     Int debug_level_;
 private:
