@@ -475,7 +475,7 @@ namespace OpenMS
     return result;
   }
 
-  // Helper function, that collapses a vector of Strings into one String
+  // Helper function that collapses a vector of strings into one string
   String TOPPViewIdentificationViewBehavior::collapseStringVector(vector<String> strings)
   {
     String result;
@@ -486,7 +486,7 @@ namespace OpenMS
     return result;
   }
 
-  // Helper function, that turns fragment annotations into coverage Strings for visuaization with the sequence
+  // Helper function that turns fragment annotations into coverage strings for visualization with the sequence
   void TOPPViewIdentificationViewBehavior::extractCoverageStrings(vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size)
   {
     vector<String> alpha_strings(alpha_size, " ");
