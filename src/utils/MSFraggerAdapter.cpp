@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
@@ -257,7 +257,7 @@ protected:
 
     // Enzyme
     StringList enzyme_names;
-    EnzymesDB::getInstance()->getAllNames(enzyme_names);
+    ProteaseDB::getInstance()->getAllNames(enzyme_names);
     registerStringOption_(TOPPMSFraggerAdapter::param_search_enzyme_name, "<search_enzyme_name>", "Trypsin", "Name of the enzyme to be written to the pepXML file", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::param_search_enzyme_name, enzyme_names);
 
