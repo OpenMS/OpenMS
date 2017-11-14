@@ -41,7 +41,7 @@ set(SOURCE_FILE_REGEX "\\.cpp$")
 # - DIAScoring.cpp since it triggers an cppcheck bug (may be fixed in newer versions of cppcheck)
 # - MSFraggerAdapter.cpp since it triggers an cppcheck bug (may be fixed in newer versions of cppcheck)
 # - third party sources
-+set(DO_NOT_TEST_THESE_FILES_REGEX "(/(moc|ui)_|/MSNumpress.cpp|/DIAScoring.cpp|/MSFraggerAdapter.cpp|thirdparty)")
+set(DO_NOT_TEST_THESE_FILES_REGEX "(/(moc|ui)_|/MSNumpress.cpp|/DIAScoring.cpp|/MSFraggerAdapter.cpp|thirdparty)")
 
 # --------------------------------------------------------------------------
 # add_cpp_check_tests : This macro generates cppcheck tests for files in the
