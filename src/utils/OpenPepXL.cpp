@@ -970,15 +970,22 @@ protected:
           double match_odds_c_alpha = XQuestScores::matchOddsScore(theoretical_spec_linear_alpha, matched_spec_linear_alpha, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false);
           double match_odds_x_alpha = XQuestScores::matchOddsScore(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks , fragment_mass_tolerance_unit_ppm, true, n_xlink_charges);
           double match_odds = 0;
+
+          double match_odds_alpha = 0;
+          double match_odds_beta = 0;
+
           if (type_is_cross_link)
           {
             double match_odds_c_beta = XQuestScores::matchOddsScore(theoretical_spec_linear_beta, matched_spec_linear_beta, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false);
             double match_odds_x_beta = XQuestScores::matchOddsScore(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, true, n_xlink_charges);
             match_odds = (match_odds_c_alpha + match_odds_x_alpha + match_odds_c_beta + match_odds_x_beta) / 4;
+            match_odds_alpha = (match_odds_c_alpha + match_odds_x_alpha) / 2;
+            match_odds_beta = (match_odds_c_beta + match_odds_x_beta) / 2;
           }
           else
           {
             match_odds = (match_odds_c_alpha + match_odds_x_alpha) / 2;
+            match_odds_alpha = match_odds;
           }
 
           //Cross-correlation
@@ -1079,6 +1086,8 @@ protected:
           csm.wTICold = wTICold;
           csm.int_sum = intsum;
           csm.match_odds = match_odds;
+          csm.match_odds_alpha = match_odds_alpha;
+          csm.match_odds_beta = match_odds_beta;
           csm.xcorrx_max = xcorrx_max;
           csm.xcorrc_max = xcorrc_max;
           csm.matched_linear_alpha = matched_spec_linear_alpha.size();

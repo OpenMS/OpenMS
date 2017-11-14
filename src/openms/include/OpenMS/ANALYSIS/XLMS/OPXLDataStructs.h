@@ -130,6 +130,8 @@ namespace OpenMS
         double wTICold;
         double int_sum;
         double match_odds;
+        double match_odds_alpha;
+        double match_odds_beta;
         std::vector< double > xcorrx;
         double xcorrx_max;
         std::vector< double > xcorrc;
