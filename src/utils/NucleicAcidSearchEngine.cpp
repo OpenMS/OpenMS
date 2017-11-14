@@ -104,11 +104,14 @@ class NucleicAcidSearchEngine :
 
 public:
   NucleicAcidSearchEngine() :
-    TOPPBase("NucleicAcidSearchEngine", "Annotate nucleic acid identifications to MS/MS spectra.", false)
+    TOPPBase("NucleicAcidSearchEngine", "Annotate nucleic acid identifications to MS/MS spectra.", false),
+    fragment_ion_codes_(ListUtils::create<String>("a-B,a,b,c,d,w,x,y,z"))
   {
   }
 
 protected:
+  vector<String> fragment_ion_codes_;
+
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file: spectra");
@@ -147,6 +150,9 @@ protected:
     registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment m", false, false);
     setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
+    registerStringList_("fragment:ions", "<choice>", ListUtils::create<String>("a-B,c,w,y"), "Fragment ions to include in theoretical spectra", false);
+    setValidStrings_("fragment:ions", fragment_ion_codes_);
+
     registerTOPPSubsection_("modifications", "Modifications Options");
 
     // add modified ribos from database
@@ -161,7 +167,7 @@ protected:
       }
     }
 
-    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications'", false);
+    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications", false);
     setValidStrings_("modifications:fixed", all_mods);
     registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications", false);
     setValidStrings_("modifications:variable", all_mods);
@@ -656,12 +662,21 @@ protected:
 
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
-    Param param(spectrum_generator.getParameters());
-    // set nucleic acid-specific fragmentation pattern:
-    param.setValue("add_b_ions", "false");
-    param.setValue("add_c_ions", "true");
-    param.setValue("add_w_ions", "true");
-    param.setValue("add_a-B_ions", "true");
+    Param param = spectrum_generator.getParameters();
+    vector<String> temp = getStringList_("fragment:ions");
+    set<String> selected_ions(temp.begin(), temp.end());
+    for (const auto& code : fragment_ion_codes_)
+    {
+      String param_name = "add_" + code + "_ions";
+      if (selected_ions.count(code))
+      {
+        param.setValue(param_name, "true");
+      }
+      else
+      {
+        param.setValue(param_name, "false");
+      }
+    }
     param.setValue("add_first_prefix_ion", "true");
     param.setValue("add_metainfo", "true");
     spectrum_generator.setParameters(param);
