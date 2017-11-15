@@ -200,18 +200,23 @@ BOOST_AUTO_TEST_CASE(test_calculateCrossCorrelation)
   Scoring::standardize_data(data1);
   Scoring::standardize_data(data2);
 
-  std::map<int, double> result = Scoring::calculateCrossCorrelation(data1, data2, 2, 1);
-  for(std::map<int, double>::iterator it = result.begin(); it != result.end(); it++)
+  OpenSwath::Scoring::XCorrArrayType result = Scoring::calculateCrossCorrelation(data1, data2, 2, 1);
+  for(OpenSwath::Scoring::XCorrArrayType::iterator it = result.begin(); it != result.end(); it++)
   {
     it->second = it->second / 6.0;
   }
 
-  TEST_REAL_SIMILAR (result.find( 2)->second, -0.7374631);
-  TEST_REAL_SIMILAR (result.find( 1)->second, -0.567846);
-  TEST_REAL_SIMILAR (result.find( 0)->second,  0.4159292);
-  TEST_REAL_SIMILAR (result.find(-1)->second,  0.8215339);
-  TEST_REAL_SIMILAR (result.find(-2)->second,  0.15634218);
-    
+  TEST_REAL_SIMILAR (result.data[4].second, -0.7374631);    // find( 2)->
+  TEST_REAL_SIMILAR (result.data[3].second, -0.567846);     // find( 1)->
+  TEST_REAL_SIMILAR (result.data[2].second,  0.4159292);    // find( 0)->
+  TEST_REAL_SIMILAR (result.data[1].second,  0.8215339);    // find(-1)->
+  TEST_REAL_SIMILAR (result.data[0].second,  0.15634218);   // find(-2)->
+
+  TEST_EQUAL (result.data[4].first, 2)
+  TEST_EQUAL (result.data[3].first, 1)
+  TEST_EQUAL (result.data[2].first, 0)
+  TEST_EQUAL (result.data[1].first, -1)
+  TEST_EQUAL (result.data[0].first, -2)
 }
 END_SECTION
 
@@ -231,14 +236,19 @@ BOOST_AUTO_TEST_CASE(test_MRMFeatureScoring_normalizedCrossCorrelation)
   std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
   std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
-  std::map<int, double> result = Scoring::normalizedCrossCorrelation(data1, data2, 2, 1);
+  OpenSwath::Scoring::XCorrArrayType result = Scoring::normalizedCrossCorrelation(data1, data2, 2, 1);
 
-  TEST_REAL_SIMILAR (result.find( 2)->second, -0.7374631);
-  TEST_REAL_SIMILAR (result.find( 1)->second, -0.567846);
-  TEST_REAL_SIMILAR (result.find( 0)->second,  0.4159292);
-  TEST_REAL_SIMILAR (result.find(-1)->second,  0.8215339);
-  TEST_REAL_SIMILAR (result.find(-2)->second,  0.15634218);
+  TEST_REAL_SIMILAR (result.data[4].second, -0.7374631);  // .find( 2)
+  TEST_REAL_SIMILAR (result.data[3].second, -0.567846);   // .find( 1)
+  TEST_REAL_SIMILAR (result.data[2].second,  0.4159292);  // .find( 0)
+  TEST_REAL_SIMILAR (result.data[1].second,  0.8215339);  // .find(-1)
+  TEST_REAL_SIMILAR (result.data[0].second,  0.15634218); // .find(-2)
     
+  TEST_EQUAL (result.data[4].first, 2)
+  TEST_EQUAL (result.data[3].first, 1)
+  TEST_EQUAL (result.data[2].first, 0)
+  TEST_EQUAL (result.data[1].first, -1)
+  TEST_EQUAL (result.data[0].first, -2)
 }
 END_SECTION
 
@@ -251,14 +261,20 @@ BOOST_AUTO_TEST_CASE(test_MRMFeatureScoring_calcxcorr_legacy_mquest_)
   std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
   std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
-  std::map<int, double> result = Scoring::calcxcorr_legacy_mquest_(data1, data2, true);
+  OpenSwath::Scoring::XCorrArrayType result = Scoring::calcxcorr_legacy_mquest_(data1, data2, true);
+  TEST_EQUAL (result.data.size(), 13)
 
-  TEST_REAL_SIMILAR (result.find( 2)->second, -0.7374631);
-  TEST_REAL_SIMILAR (result.find( 1)->second, -0.567846);
-  TEST_REAL_SIMILAR (result.find( 0)->second,  0.4159292);
-  TEST_REAL_SIMILAR (result.find(-1)->second,  0.8215339);
-  TEST_REAL_SIMILAR (result.find(-2)->second,  0.15634218);
+  TEST_REAL_SIMILAR (result.data[4+4].second, -0.7374631);    // .find( 2)
+  TEST_REAL_SIMILAR (result.data[3+4].second, -0.567846);     // .find( 1)
+  TEST_REAL_SIMILAR (result.data[2+4].second,  0.4159292);    // .find( 0)
+  TEST_REAL_SIMILAR (result.data[1+4].second,  0.8215339);    // .find(-1)
+  TEST_REAL_SIMILAR (result.data[0+4].second,  0.15634218);   // .find(-2)
     
+  TEST_EQUAL (result.data[4+4].first, 2)
+  TEST_EQUAL (result.data[3+4].first, 1)
+  TEST_EQUAL (result.data[2+4].first, 0)
+  TEST_EQUAL (result.data[1+4].first, -1)
+  TEST_EQUAL (result.data[0+4].first, -2)
 }
 END_SECTION
 

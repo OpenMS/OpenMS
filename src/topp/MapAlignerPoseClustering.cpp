@@ -118,7 +118,7 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    TOPPMapAlignerBase::registerOptionsAndFlags_("mzML,featureXML",
+    TOPPMapAlignerBase::registerOptionsAndFlags_("featureXML,mzML",
                                                  REF_RESTRICTED);
     registerSubsection_("algorithm", "Algorithm parameters section");
   }

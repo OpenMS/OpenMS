@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_5156711929824391485" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_12175240310315893095" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="floatList" name="FDR_probabilities" value="[0.0422636196017265, 0.195453345775604, 0.897265672683716]"/>
 	<UserParam type="floatList" name="FDR_qvalues_raw" value="[0.117647058823529, 0.0625, 0]"/>
 	<UserParam type="floatList" name="FDR_qvalues_corrected" value="[0.040920716112532, 0.0217391304347826, 0]"/>
@@ -1265,8 +1265,8 @@
 				<pt x="1744.55932617188" y="646.856361551171" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_10627069796380146481_12156709473159629610">
-					<position dim="0">1766.28153652464</position>
+				<feature id="f_10627069796380146481_14768204679546465715">
+					<position dim="0">1766.28153443885</position>
 					<position dim="1">646.304684132271</position>
 					<intensity>740116</intensity>
 					<quality dim="0">0</quality>
@@ -1280,8 +1280,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.602938310378619"/>
 				</feature>
-				<feature id="f_10627069796380146481_15885522598119108466">
-					<position dim="0">1766.28153652464</position>
+				<feature id="f_10627069796380146481_12156709473159629610">
+					<position dim="0">1766.28153443885</position>
 					<position dim="1">646.806361551171</position>
 					<intensity>413408</intensity>
 					<quality dim="0">0</quality>
@@ -1316,7 +1316,7 @@
 			<UserParam type="float" name="var_library_rmsd" value="0.0386749522384563"/>
 			<UserParam type="float" name="var_library_sangle" value="0.0729584275113503"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0386749522384563"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0405203562071072"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0405203562071071"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999204154558718"/>
 			<UserParam type="float" name="var_intensity_score" value="0.8889094556155"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -1340,16 +1340,16 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.968841252735696"/>
+			<UserParam type="float" name="predicted_probability" value="0.937644594306058"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_11275867043381640475">
-			<position dim="0">1766.55652075376</position>
+		<feature id="f_17447818880105247092">
+			<position dim="0">1766.55652283954</position>
 			<position dim="1">431.205548243771</position>
 			<intensity>1.49441e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.945514</overallquality>
+			<overallquality>0.902869</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1746.17114257812" y="431.155548243771" />
@@ -1364,8 +1364,8 @@
 				<pt x="1746.17114257812" y="431.589999856371" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_11275867043381640475_3713543811689521337">
-					<position dim="0">1766.55652075376</position>
+				<feature id="f_17447818880105247092_1003624456647096845">
+					<position dim="0">1766.55652283954</position>
 					<position dim="1">431.205548243771</position>
 					<intensity>9.1312e+06</intensity>
 					<quality dim="0">0</quality>
@@ -1379,8 +1379,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.602938310378619"/>
 				</feature>
-				<feature id="f_11275867043381640475_8666254306116808202">
-					<position dim="0">1766.55652075376</position>
+				<feature id="f_17447818880105247092_15120290131060441429">
+					<position dim="0">1766.55652283954</position>
 					<position dim="1">431.539999856371</position>
 					<intensity>5.81293e+06</intensity>
 					<quality dim="0">0</quality>
@@ -1395,7 +1395,7 @@
 					<UserParam type="float" name="isotope_probability" value="0.397061689621381"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="431.205548243771" RT="1766.55652075376" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="431.205548243771" RT="1766.55652283954" >
 				<PeptideHit score="0" sequence="EC(Carbamidomethyl)C(Carbamidomethyl)DKPLLEK" charge="3" aa_before="K" aa_after="S" protein_refs="PH_25">
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="implied"/>
@@ -1411,9 +1411,9 @@
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999058019936054"/>
 			<UserParam type="float" name="var_library_corr" value="0.999999999999998"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.00808392340072367"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0154598316046801"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0154598316046945"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.00808392340072367"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.00837267607337999"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.00837267607337994"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.99996575680108"/>
 			<UserParam type="float" name="var_intensity_score" value="0.980683786895208"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -1437,16 +1437,16 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.945513969241561"/>
+			<UserParam type="float" name="predicted_probability" value="0.902868600935734"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_3246735940528705071">
-			<position dim="0">2007.51161653761</position>
+		<feature id="f_11275867043381640475">
+			<position dim="0">2007.51161844537</position>
 			<position dim="1">379.715100772821</position>
 			<intensity>3.18473e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.967844</overallquality>
+			<overallquality>0.936082</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1973.24267578125" y="379.665100772821" />
@@ -1461,8 +1461,8 @@
 				<pt x="1973.24267578125" y="380.266778191721" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_3246735940528705071_4584897071539917580">
-					<position dim="0">2007.51161653761</position>
+				<feature id="f_11275867043381640475_3713543811689521337">
+					<position dim="0">2007.51161844537</position>
 					<position dim="1">379.715100772821</position>
 					<intensity>2.28382e+07</intensity>
 					<quality dim="0">0</quality>
@@ -1476,8 +1476,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.710034950213183"/>
 				</feature>
-				<feature id="f_3246735940528705071_260132145239717571">
-					<position dim="0">2007.51161653761</position>
+				<feature id="f_11275867043381640475_8666254306116808202">
+					<position dim="0">2007.51161844537</position>
 					<position dim="1">380.216778191721</position>
 					<intensity>9.00904e+06</intensity>
 					<quality dim="0">0</quality>
@@ -1508,10 +1508,10 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.9998135456195"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.99976967068158"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00708243948867984"/>
+			<UserParam type="float" name="var_library_corr" value="1"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00708243948867976"/>
 			<UserParam type="float" name="var_library_sangle" value="0.0119791052800022"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00708243948867984"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00708243948867976"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.00822738059596984"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999969321163731"/>
 			<UserParam type="float" name="var_intensity_score" value="0.99412241432128"/>
@@ -1536,87 +1536,87 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.967844077192148"/>
+			<UserParam type="float" name="predicted_probability" value="0.936081632757912"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_17671779025680303814">
-			<position dim="0">1871.44516101075</position>
+		<feature id="f_3246735940528705071">
+			<position dim="0">1815.31645134042</position>
 			<position dim="1">408.874238280604</position>
-			<intensity>351473</intensity>
+			<intensity>812940</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.041238</overallquality>
+			<overallquality>0.0613914</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
+				<pt x="1802.93933105469" y="408.824238280604" />
 				<pt x="1857.064453125" y="408.824238280604" />
-				<pt x="1890.11450195312" y="408.824238280604" />
-				<pt x="1890.11450195312" y="408.924238280604" />
 				<pt x="1857.064453125" y="408.924238280604" />
+				<pt x="1802.93933105469" y="408.924238280604" />
 			</convexhull>
 			<convexhull nr="1">
+				<pt x="1802.93933105469" y="409.158689893204" />
 				<pt x="1857.064453125" y="409.158689893204" />
-				<pt x="1890.11450195312" y="409.158689893204" />
-				<pt x="1890.11450195312" y="409.258689893204" />
 				<pt x="1857.064453125" y="409.258689893204" />
+				<pt x="1802.93933105469" y="409.258689893204" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_17671779025680303814_6182960951962378739">
-					<position dim="0">1871.44516101075</position>
+				<feature id="f_3246735940528705071_260132145239717571">
+					<position dim="0">1815.31645134042</position>
 					<position dim="1">408.874238280604</position>
-					<intensity>221846</intensity>
+					<intensity>504454</intensity>
 					<quality dim="0">0</quality>
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="408.874238280604"/>
 					<UserParam type="string" name="native_id" value="GM(Oxidation)LWAVFEQK/3_i1"/>
-					<UserParam type="float" name="peak_apex_int" value="14049.859375"/>
+					<UserParam type="float" name="peak_apex_int" value="13680.3388671875"/>
 					<UserParam type="float" name="logSN" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.592413860111113"/>
 				</feature>
-				<feature id="f_17671779025680303814_14891455924036538147">
-					<position dim="0">1871.44516101075</position>
+				<feature id="f_3246735940528705071_17569764383250687096">
+					<position dim="0">1815.31645134042</position>
 					<position dim="1">409.208689893204</position>
-					<intensity>129627</intensity>
+					<intensity>308485</intensity>
 					<quality dim="0">0</quality>
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
 					<UserParam type="float" name="MZ" value="409.208689893204"/>
 					<UserParam type="string" name="native_id" value="GM(Oxidation)LWAVFEQK/3_i2"/>
-					<UserParam type="float" name="peak_apex_int" value="4732.01318359375"/>
-					<UserParam type="float" name="logSN" value="0"/>
+					<UserParam type="float" name="peak_apex_int" value="8238.21875"/>
+					<UserParam type="float" name="logSN" value="0.0582944789871161"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.407586139888887"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="408.874238280604" RT="1871.44516101075" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="408.874238280604" RT="1815.31645134042" >
 				<PeptideHit score="0" sequence="GM(Oxidation)LWAVFEQK" charge="3" aa_before="K" aa_after="A" protein_refs="PH_16">
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="implied"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="PeptideRef" value="GM(Oxidation)LWAVFEQK/3"/>
-			<UserParam type="float" name="leftWidth" value="1857.064453125"/>
-			<UserParam type="float" name="rightWidth" value="1890.11450195312"/>
+			<UserParam type="float" name="leftWidth" value="1802.93933105469"/>
+			<UserParam type="float" name="rightWidth" value="1857.064453125"/>
 			<UserParam type="float" name="total_xic" value="5550367.88299561"/>
-			<UserParam type="float" name="peak_apices_sum" value="18781.8725585938"/>
-			<UserParam type="float" name="var_xcorr_coelution" value="6.37478521766071"/>
-			<UserParam type="float" name="var_xcorr_coelution_weighted" value="3.38043549843109"/>
-			<UserParam type="float" name="var_xcorr_shape" value="0.859158419623954"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.795954623732148"/>
+			<UserParam type="float" name="peak_apices_sum" value="21918.5576171875"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="18.2136720504592"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="9.65838713837454"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.753258046966701"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.642530604148865"/>
 			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0387753364781597"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0738293770300568"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0387753364781597"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0403113938333928"/>
-			<UserParam type="float" name="var_library_dotprod" value="0.999208292111752"/>
-			<UserParam type="float" name="var_intensity_score" value="0.0633242541141805"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0281171554821371"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0537837457991951"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0281171554821371"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0291179809802888"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.999585834807525"/>
+			<UserParam type="float" name="var_intensity_score" value="0.146465944625142"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
-			<UserParam type="float" name="sn_ratio" value="0.760797402187902"/>
+			<UserParam type="float" name="sn_ratio" value="0.974369897838621"/>
 			<UserParam type="float" name="var_log_sn_score" value="0"/>
-			<UserParam type="float" name="var_elution_model_fit_score" value="0.857296228408813"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="2.92605467806292"/>
+			<UserParam type="float" name="var_elution_model_fit_score" value="0.761914789676666"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="1.41384020115827"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
 			<UserParam type="float" name="var_massdev_score" value="0"/>
@@ -1625,24 +1625,24 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0"/>
 			<UserParam type="float" name="var_manhatt_score" value="2"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="0.203844374870718"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.54802197264124"/>
 			<UserParam type="float" name="PrecursorMZ" value="408.874238280604"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 			<UserParam type="int" name="n_total_ids" value="0"/>
 			<UserParam type="int" name="n_matching_ids" value="-1"/>
 			<UserParam type="string" name="feature_class" value="unknown"/>
-			<UserParam type="float" name="rt_delta" value="0"/>
+			<UserParam type="float" name="rt_delta" value="77.0766601562525"/>
 			<UserParam type="int" name="predicted_class" value="0"/>
-			<UserParam type="float" name="predicted_probability" value="0.0412380426905813"/>
+			<UserParam type="float" name="predicted_probability" value="0.0613914170699725"/>
 			<UserParam type="float" name="q-value" value="0.040920716112532"/>
 		</feature>
-		<feature id="f_7870901012988979006">
-			<position dim="0">2298.1472125613</position>
+		<feature id="f_7316644956366259183">
+			<position dim="0">2298.14715595203</position>
 			<position dim="1">435.910228820904</position>
 			<intensity>107976</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.195453</overallquality>
+			<overallquality>0.216168</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="2288.541015625" y="435.860228820904" />
@@ -1657,8 +1657,8 @@
 				<pt x="2288.541015625" y="436.294680433504" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_7870901012988979006_16164338904207598736">
-					<position dim="0">2298.1472125613</position>
+				<feature id="f_7316644956366259183_5860084234476467938">
+					<position dim="0">2298.14715595203</position>
 					<position dim="1">435.910228820904</position>
 					<intensity>71412.4</intensity>
 					<quality dim="0">0</quality>
@@ -1672,8 +1672,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.586748524736467"/>
 				</feature>
-				<feature id="f_7870901012988979006_4410447320637600518">
-					<position dim="0">2298.1472125613</position>
+				<feature id="f_7316644956366259183_12758854762884412659">
+					<position dim="0">2298.14715595203</position>
 					<position dim="1">436.244680433504</position>
 					<intensity>36564</intensity>
 					<quality dim="0">0</quality>
@@ -1732,16 +1732,16 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="0"/>
-			<UserParam type="float" name="predicted_probability" value="0.195453344777091"/>
+			<UserParam type="float" name="predicted_probability" value="0.216168113013107"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_12561328592123678330">
-			<position dim="0">1658.35957629977</position>
+		<feature id="f_17287849381738438716">
+			<position dim="0">1658.35957551813</position>
 			<position dim="1">532.248746583271</position>
 			<intensity>128355</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.934178</overallquality>
+			<overallquality>0.887238</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1633.28234863281" y="532.198746583271" />
@@ -1756,8 +1756,8 @@
 				<pt x="1633.28234863281" y="532.800424002171" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_12561328592123678330_6878260161865568505">
-					<position dim="0">1658.35957629977</position>
+				<feature id="f_17287849381738438716_5495827884756377090">
+					<position dim="0">1658.35957551813</position>
 					<position dim="1">532.248746583271</position>
 					<intensity>86477.8</intensity>
 					<quality dim="0">0</quality>
@@ -1771,8 +1771,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.66039156605171"/>
 				</feature>
-				<feature id="f_12561328592123678330_4021463513649428920">
-					<position dim="0">1658.35957629977</position>
+				<feature id="f_17287849381738438716_4143272592559840046">
+					<position dim="0">1658.35957551813</position>
 					<position dim="1">532.750424002171</position>
 					<intensity>41877.4</intensity>
 					<quality dim="0">0</quality>
@@ -1831,16 +1831,16 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.934177702474674"/>
+			<UserParam type="float" name="predicted_probability" value="0.887237879036321"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_11106716189850669289">
-			<position dim="0">2005.79703137669</position>
+		<feature id="f_16164338904207598736">
+			<position dim="0">2005.79703513527</position>
 			<position dim="1">404.203412328071</position>
 			<intensity>444698</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.934086</overallquality>
+			<overallquality>0.887214</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1953.46435546875" y="404.153412328071" />
@@ -1855,8 +1855,8 @@
 				<pt x="1953.46435546875" y="404.755089746971" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_11106716189850669289_7061025990090747374">
-					<position dim="0">2005.79703137669</position>
+				<feature id="f_16164338904207598736_4021463513649428920">
+					<position dim="0">2005.79703513527</position>
 					<position dim="1">404.203412328071</position>
 					<intensity>413099</intensity>
 					<quality dim="0">0</quality>
@@ -1870,8 +1870,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.701130386577533"/>
 				</feature>
-				<feature id="f_11106716189850669289_8195437834883133454">
-					<position dim="0">2005.79703137669</position>
+				<feature id="f_16164338904207598736_3386388678910226661">
+					<position dim="0">2005.79703513527</position>
 					<position dim="1">404.705089746971</position>
 					<intensity>31598.8</intensity>
 					<quality dim="0">0</quality>
@@ -1930,16 +1930,16 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.934085725968333"/>
+			<UserParam type="float" name="predicted_probability" value="0.887214444844118"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_12388384985798314387">
-			<position dim="0">1782.51151069112</position>
+		<feature id="f_5805590394902791448">
+			<position dim="0">1782.51150785909</position>
 			<position dim="1">300.195528597604</position>
 			<intensity>1.17056e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.959637</overallquality>
+			<overallquality>0.923348</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1763.34350585938" y="300.145528597604" />
@@ -1954,8 +1954,8 @@
 				<pt x="1763.34350585938" y="300.579980210204" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_12388384985798314387_18390135059454481268">
-					<position dim="0">1782.51151069112</position>
+				<feature id="f_5805590394902791448_3395379003172100421">
+					<position dim="0">1782.51150785909</position>
 					<position dim="1">300.195528597604</position>
 					<intensity>8.21652e+06</intensity>
 					<quality dim="0">0</quality>
@@ -1969,8 +1969,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.668051514852376"/>
 				</feature>
-				<feature id="f_12388384985798314387_15721057298497490036">
-					<position dim="0">1782.51151069112</position>
+				<feature id="f_5805590394902791448_11630589982317102322">
+					<position dim="0">1782.51150785909</position>
 					<position dim="1">300.529980210204</position>
 					<intensity>3.48903e+06</intensity>
 					<quality dim="0">0</quality>
@@ -2001,11 +2001,11 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999219220116872"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.998961131663337"/>
-			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.033881966605777"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0595943078565422"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.033881966605777"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0378305231519566"/>
+			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0338819666057769"/>
+			<UserParam type="float" name="var_library_sangle" value="0.059594307856544"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0338819666057769"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0378305231519567"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999334609191848"/>
 			<UserParam type="float" name="var_intensity_score" value="0.371192366908246"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -2019,7 +2019,7 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="12.751237371524"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.72994867000711"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.729948670007111"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.16861748604685"/>
 			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="3.31115353012128"/>
 			<UserParam type="float" name="PrecursorMZ" value="300.195528597604"/>
@@ -2029,16 +2029,16 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.959637362703152"/>
+			<UserParam type="float" name="predicted_probability" value="0.923348052664696"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_7344192187426184761">
-			<position dim="0">1617.1483410699</position>
+		<feature id="f_13641829453453140763">
+			<position dim="0">1617.14833782168</position>
 			<position dim="1">368.862109904738</position>
 			<intensity>9.25278e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.370489</overallquality>
+			<overallquality>0.364417</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1595.50939941406" y="368.812109904738" />
@@ -2053,8 +2053,8 @@
 				<pt x="1595.50939941406" y="369.246561517338" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_7344192187426184761_9140546320740515641">
-					<position dim="0">1617.1483410699</position>
+				<feature id="f_13641829453453140763_4041634828915281168">
+					<position dim="0">1617.14833782168</position>
 					<position dim="1">368.862109904738</position>
 					<intensity>5.79311e+06</intensity>
 					<quality dim="0">0</quality>
@@ -2068,8 +2068,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.637366103952144"/>
 				</feature>
-				<feature id="f_7344192187426184761_12049315334424432437">
-					<position dim="0">1617.1483410699</position>
+				<feature id="f_13641829453453140763_17078574238716611972">
+					<position dim="0">1617.14833782168</position>
 					<position dim="1">369.196561517338</position>
 					<intensity>3.45967e+06</intensity>
 					<quality dim="0">0</quality>
@@ -2084,7 +2084,7 @@
 					<UserParam type="float" name="isotope_probability" value="0.362633896047856"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="368.862109904738" RT="1617.1483410699" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="368.862109904738" RT="1617.14833782168" >
 				<PeptideHit score="0" sequence="LAMTLAEAER" charge="3" aa_before="R" aa_after="A" protein_refs="PH_14">
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="implied"/>
@@ -2098,18 +2098,18 @@
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.97124963771702"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.960129477115842"/>
-			<UserParam type="float" name="var_library_corr" value="0.999999999999998"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0112721013675149"/>
+			<UserParam type="float" name="var_library_corr" value="1"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0112721013675148"/>
 			<UserParam type="float" name="var_library_sangle" value="0.021080330114212"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0112721013675149"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0118955544334976"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0112721013675148"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0118955544334975"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999931728221565"/>
 			<UserParam type="float" name="var_intensity_score" value="0.840154044545519"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
 			<UserParam type="float" name="sn_ratio" value="18.2658987545969"/>
 			<UserParam type="float" name="var_log_sn_score" value="2.90503586542027"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.940495908260345"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="6.21488287496598"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.21488287496599"/>
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.509134767132634"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
 			<UserParam type="float" name="var_massdev_score" value="28.1440905745226"/>
@@ -2126,16 +2126,16 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="0"/>
-			<UserParam type="float" name="predicted_probability" value="0.370489338009818"/>
+			<UserParam type="float" name="predicted_probability" value="0.364417121077943"/>
 			<UserParam type="float" name="q-value" value="0.0217391304347826"/>
 		</feature>
-		<feature id="f_25974125700937907">
-			<position dim="0">1782.34333734102</position>
+		<feature id="f_15721057298497490036">
+			<position dim="0">1782.343335925</position>
 			<position dim="1">449.744389900421</position>
 			<intensity>1.7437e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.990289</overallquality>
+			<overallquality>0.975579</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1761.75610351562" y="449.694389900421" />
@@ -2150,8 +2150,8 @@
 				<pt x="1761.75610351562" y="450.296067319321" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_25974125700937907_17876486934271562208">
-					<position dim="0">1782.34333734102</position>
+				<feature id="f_15721057298497490036_2130311522918743509">
+					<position dim="0">1782.343335925</position>
 					<position dim="1">449.744389900421</position>
 					<intensity>1.27819e+06</intensity>
 					<quality dim="0">0</quality>
@@ -2165,8 +2165,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.674606839793181"/>
 				</feature>
-				<feature id="f_25974125700937907_9949257177078866781">
-					<position dim="0">1782.34333734102</position>
+				<feature id="f_15721057298497490036_9140546320740515641">
+					<position dim="0">1782.343335925</position>
 					<position dim="1">450.246067319321</position>
 					<intensity>465501</intensity>
 					<quality dim="0">0</quality>
@@ -2181,7 +2181,7 @@
 					<UserParam type="float" name="isotope_probability" value="0.325393160206819"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="449.744389900421" RT="1782.34333734102" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="449.744389900421" RT="1782.343335925" >
 				<PeptideHit score="0" sequence="LC(Carbamidomethyl)VLHEK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_25">
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="implied"/>
@@ -2196,9 +2196,9 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.995444848298674"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.994000524898595"/>
 			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.0584307399821588"/>
-			<UserParam type="float" name="var_library_sangle" value="0.100167183533035"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.0584307399821588"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0584307399821589"/>
+			<UserParam type="float" name="var_library_sangle" value="0.100167183533034"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0584307399821589"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.0670063315124288"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.997948935934463"/>
 			<UserParam type="float" name="var_intensity_score" value="0.675325870287564"/>
@@ -2210,7 +2210,7 @@
 			<UserParam type="float" name="var_isotope_correlation_score" value="0.984152837341836"/>
 			<UserParam type="float" name="var_isotope_overlap_score" value="0.26696240901947"/>
 			<UserParam type="float" name="var_massdev_score" value="0.43272982427065"/>
-			<UserParam type="float" name="var_massdev_score_weighted" value="0.447953512388763"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.447953512388762"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.698534764147426"/>
@@ -2223,16 +2223,16 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.99028897925455"/>
+			<UserParam type="float" name="predicted_probability" value="0.975579305837008"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_7619024488371696138">
-			<position dim="0">1782.50461751663</position>
+		<feature id="f_3619468215685938204">
+			<position dim="0">1782.50461964066</position>
 			<position dim="1">300.165352089204</position>
 			<intensity>1.17279e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.93419</overallquality>
+			<overallquality>0.887233</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1761.75610351562" y="300.115352089204" />
@@ -2247,8 +2247,8 @@
 				<pt x="1761.75610351562" y="300.549803701804" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_7619024488371696138_16459288859473286876">
-					<position dim="0">1782.50461751663</position>
+				<feature id="f_3619468215685938204_3607574553438867574">
+					<position dim="0">1782.50461964066</position>
 					<position dim="1">300.165352089204</position>
 					<intensity>8.23888e+06</intensity>
 					<quality dim="0">0</quality>
@@ -2262,8 +2262,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.674606839793181"/>
 				</feature>
-				<feature id="f_7619024488371696138_6330535588886112108">
-					<position dim="0">1782.50461751663</position>
+				<feature id="f_3619468215685938204_4906628401344677738">
+					<position dim="0">1782.50461964066</position>
 					<position dim="1">300.499803701804</position>
 					<intensity>3.48903e+06</intensity>
 					<quality dim="0">0</quality>
@@ -2293,10 +2293,10 @@
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<UserParam type="float" name="var_xcorr_shape" value="0.999223453079938"/>
-			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.998977229691246"/>
-			<UserParam type="float" name="var_library_corr" value="1"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.998977229691247"/>
+			<UserParam type="float" name="var_library_corr" value="0.999999999999999"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.0278949113172731"/>
-			<UserParam type="float" name="var_library_sangle" value="0.0488381457118399"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0488381457118354"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0278949113172731"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.0312839115958893"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.99954626385961"/>
@@ -2322,16 +2322,16 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.93419010354917"/>
+			<UserParam type="float" name="predicted_probability" value="0.887233268031868"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_7273255783824449336">
-			<position dim="0">1943.3004011853</position>
+		<feature id="f_2067209405782217684">
+			<position dim="0">1943.30040332327</position>
 			<position dim="1">395.239463487571</position>
 			<intensity>8.96624e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.93411</overallquality>
+			<overallquality>0.887163</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="1918.98767089844" y="395.189463487571" />
@@ -2346,8 +2346,8 @@
 				<pt x="1918.98767089844" y="395.791140906471" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_7273255783824449336_17732694574582820772">
-					<position dim="0">1943.3004011853</position>
+				<feature id="f_2067209405782217684_1253235807487386477">
+					<position dim="0">1943.30040332327</position>
 					<position dim="1">395.239463487571</position>
 					<intensity>6.32974e+07</intensity>
 					<quality dim="0">0</quality>
@@ -2361,8 +2361,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.704209887318509"/>
 				</feature>
-				<feature id="f_7273255783824449336_15974525296577096328">
-					<position dim="0">1943.3004011853</position>
+				<feature id="f_2067209405782217684_15568981923429820128">
+					<position dim="0">1943.30040332327</position>
 					<position dim="1">395.741140906471</position>
 					<intensity>2.6365e+07</intensity>
 					<quality dim="0">0</quality>
@@ -2394,10 +2394,10 @@
 			<UserParam type="float" name="var_xcorr_shape" value="0.999857333290542"/>
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999821696582955"/>
 			<UserParam type="float" name="var_library_corr" value="1"/>
-			<UserParam type="float" name="var_library_rmsd" value="0.00174267930381977"/>
-			<UserParam type="float" name="var_library_sangle" value="0.00298344304196402"/>
-			<UserParam type="float" name="var_library_rootmeansquare" value="0.00174267930381977"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.00199874144393369"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.00174267930381986"/>
+			<UserParam type="float" name="var_library_sangle" value="0.00298344304200124"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.00174267930381986"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.00199874144393375"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999998174406389"/>
 			<UserParam type="float" name="var_intensity_score" value="0.841853555210182"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -2421,16 +2421,16 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.934109549991632"/>
+			<UserParam type="float" name="predicted_probability" value="0.887163040595241"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_4804931408721345291">
-			<position dim="0">2391.85092347612</position>
+		<feature id="f_9693516254110939661">
+			<position dim="0">2391.85092296619</position>
 			<position dim="1">501.795134726821</position>
 			<intensity>3.71667e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.934071</overallquality>
+			<overallquality>0.887262</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="2367.25073242188" y="501.745134726821" />
@@ -2445,8 +2445,8 @@
 				<pt x="2367.25073242188" y="502.346812145721" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_4804931408721345291_17559911639132578699">
-					<position dim="0">2391.85092347612</position>
+				<feature id="f_9693516254110939661_16459288859473286876">
+					<position dim="0">2391.85092296619</position>
 					<position dim="1">501.795134726821</position>
 					<intensity>2.4399e+07</intensity>
 					<quality dim="0">0</quality>
@@ -2460,8 +2460,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.653030735732608"/>
 				</feature>
-				<feature id="f_4804931408721345291_16987762588190708774">
-					<position dim="0">2391.85092347612</position>
+				<feature id="f_9693516254110939661_6330535588886112108">
+					<position dim="0">2391.85092296619</position>
 					<position dim="1">502.296812145721</position>
 					<intensity>1.27677e+07</intensity>
 					<quality dim="0">0</quality>
@@ -2520,16 +2520,16 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.934071160028355"/>
+			<UserParam type="float" name="predicted_probability" value="0.887262117252348"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_12855069628258305325">
-			<position dim="0">1558.9325598625</position>
+		<feature id="f_16262506217367104038">
+			<position dim="0">1558.93256201525</position>
 			<position dim="1">358.174576486338</position>
 			<intensity>1.33422e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.934067</overallquality>
+			<overallquality>0.887139</overallquality>
 			<charge>3</charge>
 			<convexhull nr="0">
 				<pt x="1537.60900878906" y="358.124576486338" />
@@ -2544,8 +2544,8 @@
 				<pt x="1537.60900878906" y="358.559028098938" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_12855069628258305325_435931305321438914">
-					<position dim="0">1558.9325598625</position>
+				<feature id="f_16262506217367104038_9239964739177281349">
+					<position dim="0">1558.93256201525</position>
 					<position dim="1">358.174576486338</position>
 					<intensity>941962</intensity>
 					<quality dim="0">0</quality>
@@ -2559,8 +2559,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.646660950740033"/>
 				</feature>
-				<feature id="f_12855069628258305325_6432949088199598535">
-					<position dim="0">1558.9325598625</position>
+				<feature id="f_16262506217367104038_1913989207508168661">
+					<position dim="0">1558.93256201525</position>
 					<position dim="1">358.509028098938</position>
 					<intensity>392257</intensity>
 					<quality dim="0">0</quality>
@@ -2619,16 +2619,16 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.934067016960979"/>
+			<UserParam type="float" name="predicted_probability" value="0.887139465312895"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_12175240310315893095">
-			<position dim="0">2090.16589783288</position>
+		<feature id="f_15974525296577096328">
+			<position dim="0">2090.16589529491</position>
 			<position dim="1">421.758354535421</position>
 			<intensity>1.18363e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.977176</overallquality>
+			<overallquality>0.951373</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="2036.53295898438" y="421.708354535421" />
@@ -2643,8 +2643,8 @@
 				<pt x="2036.53295898438" y="422.310031954321" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_12175240310315893095_18365384202816725379">
-					<position dim="0">2090.16589783288</position>
+				<feature id="f_15974525296577096328_14745721201431314415">
+					<position dim="0">2090.16589529491</position>
 					<position dim="1">421.758354535421</position>
 					<intensity>8.41822e+06</intensity>
 					<quality dim="0">0</quality>
@@ -2658,8 +2658,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.688369804746839"/>
 				</feature>
-				<feature id="f_12175240310315893095_3115030544351500350">
-					<position dim="0">2090.16589783288</position>
+				<feature id="f_15974525296577096328_4804931408721345291">
+					<position dim="0">2090.16589529491</position>
 					<position dim="1">422.260031954321</position>
 					<intensity>3.41811e+06</intensity>
 					<quality dim="0">0</quality>
@@ -2674,7 +2674,7 @@
 					<UserParam type="float" name="isotope_probability" value="0.311630195253161"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="421.758354535421" RT="2090.16589783288" >
+			<PeptideIdentification identification_run_ref="PI_1" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="421.758354535421" RT="2090.16589529491" >
 				<PeptideHit score="0" sequence="VATVSLPR" charge="2" aa_before="R" aa_after="S" protein_refs="PH_24">
 				</PeptideHit>
 				<UserParam type="string" name="FFId_category" value="implied"/>
@@ -2692,7 +2692,7 @@
 			<UserParam type="float" name="var_library_rmsd" value="0.0228491945584772"/>
 			<UserParam type="float" name="var_library_sangle" value="0.0394036750093723"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.0228491945584772"/>
-			<UserParam type="float" name="var_library_manhattan" value="0.0260154723185835"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0260154723185836"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.999689271317972"/>
 			<UserParam type="float" name="var_intensity_score" value="0.971776335054532"/>
 			<UserParam type="float" name="nr_peaks" value="2"/>
@@ -2716,16 +2716,16 @@
 			<UserParam type="string" name="feature_class" value="unknown"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.977175560191329"/>
+			<UserParam type="float" name="predicted_probability" value="0.951373132521128"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
-		<feature id="f_15490049804574065229">
-			<position dim="0">2336.46435114133</position>
+		<feature id="f_17623301629315165502">
+			<position dim="0">2336.46435698137</position>
 			<position dim="1">464.250362519471</position>
 			<intensity>1.26924e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.973261</overallquality>
+			<overallquality>0.944816</overallquality>
 			<charge>2</charge>
 			<convexhull nr="0">
 				<pt x="2307.17138671875" y="464.200362519471" />
@@ -2740,8 +2740,8 @@
 				<pt x="2307.17138671875" y="464.802039938371" />
 			</convexhull>
 			<subordinate>
-				<feature id="f_15490049804574065229_17052620940680608488">
-					<position dim="0">2336.46435114133</position>
+				<feature id="f_17623301629315165502_8226270557132872791">
+					<position dim="0">2336.46435698137</position>
 					<position dim="1">464.250362519471</position>
 					<intensity>8.3097e+07</intensity>
 					<quality dim="0">0</quality>
@@ -2755,8 +2755,8 @@
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 					<UserParam type="float" name="isotope_probability" value="0.655742026441336"/>
 				</feature>
-				<feature id="f_15490049804574065229_6748518772549940365">
-					<position dim="0">2336.46435114133</position>
+				<feature id="f_17623301629315165502_15355009979912333657">
+					<position dim="0">2336.46435698137</position>
 					<position dim="1">464.752039938371</position>
 					<intensity>4.38269e+07</intensity>
 					<quality dim="0">0</quality>
@@ -2815,7 +2815,7 @@
 			<UserParam type="string" name="feature_class" value="positive"/>
 			<UserParam type="float" name="rt_delta" value="0"/>
 			<UserParam type="int" name="predicted_class" value="1"/>
-			<UserParam type="float" name="predicted_probability" value="0.973260623803488"/>
+			<UserParam type="float" name="predicted_probability" value="0.944815504742313"/>
 			<UserParam type="float" name="q-value" value="0"/>
 		</feature>
 	</featureList>

@@ -639,6 +639,10 @@ namespace OpenMS
           {
             description = String(mit->first.getMetaValue("peptide_sequence")).toQString();
           }
+          if (mit->first.metaValueExists("description"))
+          {
+            description = String(mit->first.getMetaValue("description")).toQString();
+          }
 
           // Show all: iterate over all chromatograms corresponding to the current precursor and add action containing all chromatograms
           QList<QVariant> chroms_idx;
@@ -675,17 +679,22 @@ namespace OpenMS
               one_selected = true;
               selected_item = sub_item;
             }
+            QString chrom_description = "ion";
+            if (mit->first.metaValueExists("description"))
+            {
+              chrom_description = String(mit->first.getMetaValue("description")).toQString();
+            }
+
             sub_item->setText(0, QString("Transition"));
             sub_item->setText(1, QString::number((unsigned int)*vit));
             sub_item->setText(2, QString::number(current_chromatogram.getProduct().getMZ()));
             //sub_item->setText(7, QString::number(prod_it->second[0].getProduct().getCharge())); // TODO product charge
-            sub_item->setText(3, QString("ion")); // TODO product ion description (e.g.)
+            sub_item->setText(3, QString(chrom_description));
             if (! current_chromatogram.empty())
             {
               sub_item->setText(4, QString::number(current_chromatogram.front().getRT()));
               sub_item->setText(5, QString::number(current_chromatogram.back().getRT()));
             }
-
 
             switch (current_chromatogram.getChromatogramType())
             {

@@ -240,6 +240,7 @@ set(format_executables_list
   MSDataStoringConsumer_test
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
+  SpectrumAccessSqMass_test
 )
 
 set(math_executables_list
@@ -457,6 +458,7 @@ set(analysis_executables_list
   LocalLinearMap_test
   TargetedExperiment_test
   MRMFragmentSelection_test
+  MRMMapping_test
   MapAlignmentAlgorithmIdentification_test
   MapAlignmentAlgorithmKD_test
   MapAlignmentAlgorithmPoseClustering_test
@@ -606,6 +608,7 @@ if(NOT DISABLE_OPENSWATH)
     SpectrumAddition_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
+    MasstraceCorrelator_test
     MRMFeatureScoring_test
     MRMFeatureFinderScoring_test
     SpectrumHelpers_test
