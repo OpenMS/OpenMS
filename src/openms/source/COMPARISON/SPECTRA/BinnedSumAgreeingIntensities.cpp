@@ -84,8 +84,8 @@ namespace OpenMS
     // 1. calculate mean minus difference: x = mean(a,b) - abs(a-b)
     // 2. truncate negative values:        y = max(0, x)
     // 3. calculate sum of entries:   sum_nn = y.sum()
-    double sum_nn = (((spec1.getBins() + spec2.getBins()) * 0.5) - ((spec1.getBins() - spec2.getBins()).cwiseAbs())
-                    ).cwiseMax(BinnedSpectrum::EmptySparseVector).sum();
+    BinnedSpectrum::SparseVectorType s = ((spec1.getBins() + spec2.getBins()) * 0.5) - ((spec1.getBins() - spec2.getBins()).cwiseAbs());
+    double sum_nn = s.coeffs().cwiseMax(0).sum();
 
     // resulting score normalized to interval [0,1]
     return min(sum_nn / ((sum1 + sum2) / 2.0), 1.0);
