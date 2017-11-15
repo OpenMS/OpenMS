@@ -43,8 +43,6 @@ namespace OpenMS
     BinnedSpectrumCompareFunctor()
   {
     setName(BinnedSpectralContrastAngle::getProductName());
-    defaults_.setValue("normalized", 1, "is set 1 if the similarity-measurement is normalized to the range [0,1]");
-    defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, defines the distance of two PrecursorPeaks for which they are supposed to be from different peptides");
     defaultsToParam_();
   }
 
@@ -73,31 +71,11 @@ namespace OpenMS
 
   void BinnedSpectralContrastAngle::updateMembers_()
   {
-    precursor_mass_tolerance_ = param_.getValue("precursor_mass_tolerance");
   }
 
   double BinnedSpectralContrastAngle::operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
   {
-    if (!BinnedSpectrum::isCompatible(spec1, spec2))
-    {
-      throw IncompatibleBinning(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "");
-    }
-
-    // shortcut similarity calculation by comparing PrecursorPeaks (PrecursorPeaks more than delta away from each other are supposed to be from another peptide)
-    double pre_mz1 = 0.0;
-    if (!spec1.getPrecursors().empty())
-    {
-      pre_mz1 = spec1.getPrecursors()[0].getMZ();
-    }
-    double pre_mz2 = 0.0;
-    if (!spec2.getPrecursors().empty())
-    {
-      pre_mz2 = spec2.getPrecursors()[0].getMZ();
-    }
-    if (fabs(pre_mz1 - pre_mz2) > precursor_mass_tolerance_)
-    {
-      return 0;
-    }
+    OPENMS_PRECONDITION(BinnedSpectrum::isCompatible(spec1, spec2), "Binned spectra have different bin size or spread");
 
     // resulting score standardized to interval [0,1]
     const double sum1 = spec1.getBins().dot(spec1.getBins());    

@@ -60,11 +60,16 @@ namespace OpenMS
     If the binspread is 1, the peak at 100 Th will be added to bin no. 199, 200 and 201.
     If the binspread is 2, the peak at 100 @p Th will also be added to bin no. 198 and 202, and so on.
 
-    Supported operations provided by the underlying SparseVector implementation:
+    Many operations are provided by the underlying SparseVector implementation:
     - bin-wise addition (e.g.: c = a.getBins() + b.getBins())
     - bin-wise scaling  (e.g.: c = a.getBins() * 5f)
+    - to get the number of filled bins, call: getBins().nonZeros()
+    - many more...
+    See the Eigen SparseVector implementation for details.
 
-    to get the number of filled bins, call: getBins().nonZeros()
+    Implementation detail: Eigen SparseVectors need to have the same dimensionality. EmptySparseVector provides an empty SparseVector
+                           with compatible dimension to perform all supported operations.
+
     @ingroup SpectraComparison
   */
 
@@ -72,6 +77,18 @@ namespace OpenMS
   {
 
 public:
+    /// typedef for the underlying sparse vector
+    using SparseVectorType = Eigen::SparseVector<float>;
+
+    /// typedef for the index into the sparse vector
+    using SparseVectorIndexType = Eigen::SparseVector<float>::Index;
+ 
+    /// typedef for the index into the sparse vector
+    using SparseVectorIteratorType = Eigen::SparseVector<float>::InnerIterator;
+
+    /// the empty SparseVector
+    static const SparseVectorType EmptySparseVector;
+
     /// default constructor
     BinnedSpectrum() = delete;
 
@@ -93,9 +110,11 @@ public:
     /// inequality operator
     bool operator!=(const BinnedSpectrum& rhs) const;
 
+    /// returns the bin intensity at a given m/z position 
     inline float getBinIntensity(double mz) { return bins_.coeffRef(getBinIndex(mz)); }
 
-    inline size_t getBinIndex(double mz) { return static_cast<size_t>(floor(mz / bin_size_)); }
+    /// return the bin index of a given m/z position. mainly for internal use
+    inline SparseVectorIndexType getBinIndex(double mz) { return static_cast<SparseVectorIndexType>(floor(mz / bin_size_)); }
 
     /// get the bin size
     inline double getBinSize() const { return bin_size_; }
@@ -103,14 +122,11 @@ public:
     /// get the bin spread
     inline size_t getBinSpread() const { return bin_spread_; }
 
-    /// get the number of bins
-    inline size_t getBinNumber() const { return bins_.size(); }
-
     /// immutable access to the bin container
-    const Eigen::SparseVector<float>& getBins() const;
+    const SparseVectorType& getBins() const;
 
     /// mutable access to the bin container
-    Eigen::SparseVector<float>& getBins();
+    SparseVectorType& getBins();
 
     // inmutable access to precursors
     const std::vector<Precursor>& getPrecursors() const;
@@ -130,10 +146,12 @@ private:
     float bin_size_;
 
     /// bins
-    Eigen::SparseVector<float> bins_;
+    SparseVectorType bins_;
 
+    /// calculate binnning of peak spectrum
     void binSpectrum_(const PeakSpectrum& ps);
 
+    /// precursor information
     std::vector<Precursor> precursors_;
   };
 

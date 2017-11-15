@@ -114,13 +114,7 @@ START_SECTION((UInt getBinSpread() const ))
 }
 END_SECTION
 
-START_SECTION((UInt getBinNumber() const ))
-{
-  TEST_EQUAL(bs1->getBinNumber(), numeric_limits<Eigen::Index>::max())
-}
-END_SECTION
-
-START_SECTION((const SparseVector<float>& getBins() const))
+START_SECTION((const SparseVectorType& getBins() const))
 {
   // count non-zero elements before access
   TEST_EQUAL(bs1->getBins().nonZeros(), 347)
@@ -133,12 +127,12 @@ START_SECTION((const SparseVector<float>& getBins() const))
 
   // some additional tests for the underlying Eigen SparseVector
   UInt c = 0;
-  for (Eigen::SparseVector<float>::InnerIterator it(bs1->getBins()); it; ++it) { ++c; }
+  for (BinnedSpectrum::SparseVectorIteratorType it(bs1->getBins()); it; ++it) { ++c; }
   TEST_EQUAL(bs1->getBins().nonZeros(), c)
 }
 END_SECTION
 
-START_SECTION((SparseVector<float>& getBins()))
+START_SECTION((SparseVectorType& getBins()))
 {
   TEST_EQUAL(bs1->getBins().coeffRef(658),501645)
 }

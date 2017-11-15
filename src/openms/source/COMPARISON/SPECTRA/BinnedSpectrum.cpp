@@ -39,6 +39,8 @@ using namespace std;
 
 namespace OpenMS
 {
+  // Empty vector initialized to maximum supported dimensionality.
+  const BinnedSpectrum::SparseVectorType BinnedSpectrum::EmptySparseVector(numeric_limits<BinnedSpectrum::SparseVectorIndexType>::max());
 
   BinnedSpectrum::BinnedSpectrum(const float size, const UInt spread, const PeakSpectrum & ps) :
     bin_spread_(spread), 
@@ -53,12 +55,12 @@ namespace OpenMS
   {
   }
 
-  const Eigen::SparseVector<float>& BinnedSpectrum::getBins() const
+  const BinnedSpectrum::SparseVectorType& BinnedSpectrum::getBins() const
   {
     return bins_;
   }
 
-  Eigen::SparseVector<float>& BinnedSpectrum::getBins()
+  BinnedSpectrum::SparseVectorType& BinnedSpectrum::getBins()
   {
     return bins_;
   }
@@ -79,12 +81,9 @@ namespace OpenMS
 
     if (ps.empty()) { return; }
 
-    // we need to define the dimensionality (even for sparse vectors)
-    static const Eigen::Index highest_index = numeric_limits<Eigen::Index>::max();
+    bins_ = EmptySparseVector;
 
-    bins_ = Eigen::SparseVector<float>(highest_index);
-
-    // put all peaks into bins
+    // TODO
     for (auto const & p : ps)
     {
       // e.g.: bin_size_ = 1.5: first bin covers range [0, 1.5) so peak at 1.5 falls in second bin (index 1)
@@ -120,8 +119,8 @@ namespace OpenMS
     if (bins_.nonZeros() != rhs.bins_.nonZeros()) { return false; }
 
     // test non-sparse (non-zero) elements for equality
-    Eigen::SparseVector<float>::InnerIterator it(bins_);
-    Eigen::SparseVector<float>::InnerIterator rhs_it(rhs.bins_);  
+    SparseVectorIteratorType it(bins_);
+    SparseVectorIteratorType rhs_it(rhs.bins_);  
     while(it)      
     {
       if (it.index() != rhs_it.index()
