@@ -205,7 +205,7 @@ public:
       @param[out] extracted_features The features related to the output spectra
     */
     void extractSpectra(
-      const PeakMap& experiment,
+      const MSExperiment& experiment,
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra,
       FeatureMap& extracted_features

@@ -296,7 +296,7 @@ SpectrumExtractor* null_ptr = 0;
 const String experiment_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1_spectra0to100.mzML");
 const String target_list_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13CFlux_TraML.csv");
 MzMLFile mzml;
-PeakMap experiment;
+MSExperiment experiment;
 TransitionTSVReader tsv_reader;
 TargetedExperiment targeted_exp;
 mzml.load(experiment_path, experiment);
