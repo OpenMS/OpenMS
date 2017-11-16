@@ -135,10 +135,10 @@ namespace OpenMS
     static const EmpiricalFormula b_ion_to_full = EmpiricalFormula("");
     static const EmpiricalFormula c_ion_to_full = EmpiricalFormula("H-1PO2");
     static const EmpiricalFormula d_ion_to_full = EmpiricalFormula("HPO3");
-    static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("H");
-    static const EmpiricalFormula x_ion_to_full = EmpiricalFormula("H3O1");
-    static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("H2PO3");
-    static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("H4PO4");
+    static const EmpiricalFormula w_ion_to_full = EmpiricalFormula("HPO3");
+    static const EmpiricalFormula x_ion_to_full = EmpiricalFormula("H-1PO2");
+    static const EmpiricalFormula y_ion_to_full = EmpiricalFormula("");
+    static const EmpiricalFormula z_ion_to_full = EmpiricalFormula("H-2O-1");
     static const EmpiricalFormula aminusB_ion_to_full = EmpiricalFormula("C5H6O3");
     static const EmpiricalFormula phosphate_form = EmpiricalFormula("HPO3");
     // static const EmpiricalFormula abasicform_RNA = EmpiricalFormula("C5H8O4");
@@ -191,16 +191,16 @@ namespace OpenMS
       return our_form + (H_form * charge) + local_five_prime + d_ion_to_full;
 
     case WIon:
-      return our_form + (H_form * charge) + local_three_prime - w_ion_to_full;
+      return our_form + (H_form * charge) + local_three_prime + w_ion_to_full;
 
     case XIon:
-      return our_form + (H_form * charge) + local_three_prime - x_ion_to_full;
+      return our_form + (H_form * charge) + local_three_prime + x_ion_to_full;
 
     case YIon:
-      return our_form + (H_form * charge) + local_three_prime - y_ion_to_full;
+      return our_form + (H_form * charge) + local_three_prime + y_ion_to_full;
 
     case ZIon:
-      return our_form + (H_form * charge) + local_three_prime - z_ion_to_full;
+      return our_form + (H_form * charge) + local_three_prime + z_ion_to_full;
 
     default:
       LOG_ERROR << "NASequence::getFormula: unsupported NASFragmentType" << std::endl;
