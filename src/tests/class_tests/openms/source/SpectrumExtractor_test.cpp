@@ -594,15 +594,15 @@ START_SECTION(annotateSpectra())
   TEST_REAL_SIMILAR(features[20].getRT(), 2.782566666667)
   TEST_REAL_SIMILAR(features[20].getMZ(), 177.057998657227)
 
-  cout << "Annotated spectra from annotateSpectra():" << endl;
+  STATUS("Annotated spectra from annotateSpectra():")
   for (auto s : annotated_spectra)
   {
-    cout << "name: " << s.getName() << "\t peaks: " << s.size() << endl;
+    STATUS("name: " << s.getName() << "\t peaks: " << s.size())
   }
-  cout << "Features from annotateSpectra():" << endl;
+  STATUS("Features from annotateSpectra():")
   for (auto f : features)
   {
-    cout << "name: " << f.getMetaValue("transition_name") << "\t RT: " << f.getRT() << "\t MZ: " << f.getMZ() << endl;
+    STATUS("name: " << f.getMetaValue("transition_name") << "\t RT: " << f.getRT() << "\t MZ: " << f.getMZ())
   }
 }
 END_SECTION
@@ -712,27 +712,27 @@ START_SECTION(scoreSpectra())
   // {
   //   return a.getName().compare(b.getName()) < 0;
   // });
-  // cout <<  endl << "Scored spectra have been sorted by name." << endl;
+  // STATUS("Scored spectra have been sorted by name.")
 
-  cout << endl << "Info from scored spectra:" << endl;
+  STATUS("Info from scored spectra:")
   for (auto s : scored_spectra)
   {
-    cout << s.getName()
+    STATUS(s.getName()
     << "\t score: " << s.getFloatDataArrays()[1][0]
     << "\t log10_tic: " << s.getFloatDataArrays()[2][0]
     << "\t 1/fwhm: " << s.getFloatDataArrays()[3][0]
-    << "\t SNR: " << s.getFloatDataArrays()[4][0] << endl;
+    << "\t SNR: " << s.getFloatDataArrays()[4][0])
   }
 
-  cout << endl << "Info from FeatureMap:" << endl;
+  STATUS("Info from FeatureMap:")
   for (auto f : features)
   {
-    cout << f.getMetaValue("transition_name")
+    STATUS(f.getMetaValue("transition_name")
     << "\t score: " << f.getIntensity()
     << "\t log10_tic: " << f.getMetaValue("log10_total_tic")
     << "\t 1/fwhm: " << f.getMetaValue("inverse_avgFWHM")
     << "\t SNR: " << f.getMetaValue("avgSNR")
-    << "\t fwhm: " << f.getMetaValue("avgFWHM") << endl;
+    << "\t fwhm: " << f.getMetaValue("avgFWHM"))
   }
 }
 END_SECTION
@@ -757,10 +757,10 @@ START_SECTION(extractSpectra())
 
   TEST_EQUAL(extracted_spectra.size(), extracted_features.size())
 
-  cout << endl << "Printing mapping of transition -> best spectrum:" << endl;
+  STATUS("Printing mapping of transition -> best spectrum:")
   for (UInt i=0; i<extracted_spectra.size(); ++i)
   {
-    cout << extracted_spectra[i].getName() << "\t" << extracted_features[i].getIntensity() << endl;
+    STATUS(extracted_spectra[i].getName() << "\t" << extracted_features[i].getIntensity())
   }
 }
 END_SECTION
@@ -800,10 +800,10 @@ START_SECTION(selectSpectra())
   std::vector<MSSpectrum> scored;
   ptr->scoreSpectra(annotated, picked, features, scored);
 
-  cout << endl << "Scored spectra and their score:" << endl;
+  STATUS("Scored spectra and their score:")
   for (auto s : scored)
   {
-    cout << s.getName() << "\t" << s.getFloatDataArrays()[1][0] << endl;
+    STATUS(s.getName() << "\t" << s.getFloatDataArrays()[1][0])
   }
 
   std::vector<MSSpectrum> selected_spectra;
