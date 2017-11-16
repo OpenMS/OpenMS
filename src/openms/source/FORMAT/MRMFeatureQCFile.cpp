@@ -289,9 +289,10 @@ namespace OpenMS
     mrmfqc.component_group_qcs.push_back(cgqcs);
   }
 
-  void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc)
-  {
-    // TODO: pending fix to CsvFile::fstore()
-  }
+  //TODO
+  // void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc)
+  // {
+  //   // TODO: pending fix to CsvFile::fstore()
+  // }
 
 } // namespace OpenMS
