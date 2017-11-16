@@ -67,7 +67,12 @@ public:
 
     // Members
 
-    /// QCs within a component group
+    /**@brief Quality Controls (QCs) within a component group
+
+      A component group is analagous to a transition group or feature.
+      A component group includes all transitions that correspond to a given component (i.e., peptide or metabolite)
+
+    */
     struct ComponentGroupQCs
     {
       /// name of the component group
@@ -98,7 +103,12 @@ public:
         
     };
 
-    // QCs for individual components
+    /**@brief Quality Controls (QCs) for individual components
+
+      A component is analagous to a transition or subfeature.
+      A component is a transition that corresponds to a single peptide or metabolite
+
+    */
     struct ComponentQCs
     {
       /// name of the component
@@ -123,7 +133,13 @@ public:
 
     };
 
-    // QCs for multiple components (between or within component_groups)
+    /**@brief Quality Controls (QCs) for multiple components (between or within component_groups)
+
+      This structure contains upper and lower bounds for parameters that involve two or more
+      component groups.  For example, a quality control that is based on a minimum retention
+      time difference between two components would be suitable for this struct.
+
+    */
     struct ComponentGroupPairQCs
     {
 
@@ -141,14 +157,13 @@ public:
       double rt_diff_u;
     };
 
-protected:
     //members
     /// list of all component QCs
-    std::vector<ComponentQCs> component_qcs_;
+    std::vector<ComponentQCs> component_qcs;
     /// list of all component group QCs
-    std::vector<ComponentGroupQCs> component_group_qcs_;
+    std::vector<ComponentGroupQCs> component_group_qcs;
     /// list of all component group pair QCs
-    std::vector<ComponentGroupQCs> component_group_pair_qcs_;
+    std::vector<ComponentGroupQCs> component_group_pair_qcs;
   };
 }
 

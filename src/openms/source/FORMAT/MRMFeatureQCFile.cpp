@@ -192,7 +192,7 @@ namespace OpenMS
       // cqcs.meta_value_qc
       
     }
-    mrmfqc.component_qcs_.push_back(cqcs);
+    mrmfqc.component_qcs.push_back(cqcs);
 
     //component_group QCs
     MRMFeatureQC::ComponentGroupQCs cgqcs;
@@ -286,7 +286,7 @@ namespace OpenMS
     {
       cgqcs.ion_ratio_feature_name = line[headers["ion_ratio_feature_name"]];
     }
-    mrmfqc.component_group_qcs_.push_back(cgqcs);
+    mrmfqc.component_group_qcs.push_back(cgqcs);
   }
 
   void MRMFeatureQCFile::store(const String & filename, const MRMFeatureQC & mrmfqc)

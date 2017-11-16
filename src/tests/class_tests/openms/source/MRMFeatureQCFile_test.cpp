@@ -228,14 +228,14 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
 
     mrmfqcfile.parseLine(line1, headers, params_headers, mrmfqc);
   
-    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_group_name, "component_group1");
-    TEST_EQUAL(mrmfqc.component_group_qcs_[0].n_quantifying_u, 1);
+    TEST_EQUAL(mrmfqc.component_group_qcs[0].component_group_name, "component_group1");
+    TEST_EQUAL(mrmfqc.component_group_qcs[0].n_quantifying_u, 1);
 
-    TEST_EQUAL(mrmfqc.component_qcs_[0].component_name, "component1");
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].retention_time_l, 1.0);
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].overall_quality_u, 5.0);
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc["peak_apex_int"].first, 1.1e3);
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc["sn_score"].second, 10.0);
+    TEST_EQUAL(mrmfqc.component_qcs[0].component_name, "component1");
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs[0].retention_time_l, 1.0);
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs[0].overall_quality_u, 5.0);
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs[0].meta_value_qc["peak_apex_int"].first, 1.1e3);
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs[0].meta_value_qc["sn_score"].second, 10.0);
   
     headers.clear();
     
@@ -247,19 +247,19 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
   
     mrmfqcfile.load(OPENMS_GET_TEST_DATA_PATH("MRMFeatureQCFile_1.csv"), mrmfqc);
     // first line
-    TEST_EQUAL(mrmfqc.component_group_qcs_[0].component_group_name, "componentGroup1");
-    TEST_EQUAL(mrmfqc.component_qcs_[0].component_name, "component1");
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[0].meta_value_qc["sn_score"].second, 10.0);
+    TEST_EQUAL(mrmfqc.component_group_qcs[0].component_group_name, "componentGroup1");
+    TEST_EQUAL(mrmfqc.component_qcs[0].component_name, "component1");
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs[0].meta_value_qc["sn_score"].second, 10.0);
     
     // second line
-    TEST_EQUAL(mrmfqc.component_group_qcs_[1].component_group_name, "componentGroup2");
-    TEST_EQUAL(mrmfqc.component_qcs_[1].component_name, "component2");
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[1].meta_value_qc["sn_score"].second, 20.0);
+    TEST_EQUAL(mrmfqc.component_group_qcs[1].component_group_name, "componentGroup2");
+    TEST_EQUAL(mrmfqc.component_qcs[1].component_name, "component2");
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs[1].meta_value_qc["sn_score"].second, 20.0);
 
     // third line
-    TEST_EQUAL(mrmfqc.component_group_qcs_[2].component_group_name, "componentGroup3");
-    TEST_EQUAL(mrmfqc.component_qcs_[2].component_name, "component3");
-    TEST_REAL_SIMILAR(mrmfqc.component_qcs_[2].meta_value_qc["sn_score"].second, 50.0);
+    TEST_EQUAL(mrmfqc.component_group_qcs[2].component_group_name, "componentGroup3");
+    TEST_EQUAL(mrmfqc.component_qcs[2].component_name, "component3");
+    TEST_REAL_SIMILAR(mrmfqc.component_qcs[2].meta_value_qc["sn_score"].second, 50.0);
   
   END_SECTION
 

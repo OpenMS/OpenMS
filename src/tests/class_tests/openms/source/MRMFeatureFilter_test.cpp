@@ -366,8 +366,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.overall_quality_l = 100;
   cqcs.overall_quality_u = 500;
   cqcs.meta_value_qc["peak_apex_int"] = lbub;
-  qc_criteria.component_group_qcs_.push_back(cgqcs);
-  qc_criteria.component_qcs_.push_back(cqcs);
+  qc_criteria.component_group_qcs.push_back(cgqcs);
+  qc_criteria.component_qcs.push_back(cqcs);
   // transition group 2
   cgqcs.component_group_name =  "component_group2";    
   cgqcs.n_heavy_l = 1;
@@ -405,8 +405,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.overall_quality_l = 100;
   cqcs.overall_quality_u = 500;
   cqcs.meta_value_qc["peak_apex_int"] = lbub;
-  qc_criteria.component_group_qcs_.push_back(cgqcs);
-  qc_criteria.component_qcs_.push_back(cqcs);
+  qc_criteria.component_group_qcs.push_back(cgqcs);
+  qc_criteria.component_qcs.push_back(cqcs);
   
   //test flag mode
   Param params;
@@ -550,8 +550,8 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   cqcs.overall_quality_l = 100;
   cqcs.overall_quality_u = 500;
   cqcs.meta_value_qc["peak_apex_int"] = lbub;
-  qc_criteria.component_group_qcs_.push_back(cgqcs);
-  qc_criteria.component_qcs_.push_back(cqcs);
+  qc_criteria.component_group_qcs.push_back(cgqcs);
+  qc_criteria.component_qcs.push_back(cqcs);
   
   //test all possible comparisons
   Param params;
