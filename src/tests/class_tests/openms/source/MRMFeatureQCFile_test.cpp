@@ -40,7 +40,7 @@
 using namespace OpenMS;
 using namespace std;
 
-class MRMFeatureQC_facade : MRMFeatureQC
+class MRMFeatureQCFile_facade : MRMFeatureQCFile
 {
   public:
 
@@ -83,7 +83,7 @@ START_SECTION((void parseHeader_(StringList & line, std::map<String,int> & heade
     std::map<String,int> & params_headers)))
     //TODO
 
-    MRMFeatureQC_facade mrmfqcfile;
+    MRMFeatureQCFile_facade mrmfqcfile;
     
     std::map<String,int> headers;
     std::map<String,int> params_headers;
@@ -176,7 +176,7 @@ START_SECTION((void parseHeader_(StringList & line, std::map<String,int> & heade
   START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers, 
     std::map<String,int> & params_headers, MRMFeatureQC & mrmfqc)))
     
-    MRMFeatureQC_facade mrmfqcfile;
+    MRMFeatureQCFile_facade mrmfqcfile;
     MRMFeatureQC mrmfqc;
     
     // headers
