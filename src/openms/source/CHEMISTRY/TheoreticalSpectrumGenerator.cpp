@@ -649,19 +649,13 @@ namespace OpenMS
       // retained/lost, depending on the mod (whether it's on the base or on the
       // backbone or both - we don't have that information at the moment)
 
-      double mod_mass = 0.0;
-      if (nucleotide.hasFivePrimeMod())
-      {
-        mod_mass = nucleotide.getFivePrimeMod()->getMonoMass();
-      }
-
       if (!add_isotopes_) // add single peak
       {
         Size length = add_first_prefix_ion_ ? 1 : 2;
         for (; length < nucleotide.size(); ++length)
         {
           NASequence ion = nucleotide.getPrefix(length);
-          double mass = mod_mass + ion.getMonoWeight(res_type, charge);
+          double mass = ion.getMonoWeight(res_type, charge);
           Peak1D p;
           p.setMZ(mass / abs(charge));
           p.setIntensity(intensity);
@@ -696,18 +690,12 @@ namespace OpenMS
     }
     else // WIon, XIon, YIon, ZIon
     {
-      double mod_mass = 0.0;
-      if (nucleotide.hasThreePrimeMod())
-      {
-        mod_mass = nucleotide.getThreePrimeMod()->getMonoMass();
-      }
-
       if (!add_isotopes_) // add single peak
       {
         for (Size length = 1; length < nucleotide.size(); ++length)
         {
           NASequence ion = nucleotide.getSuffix(length);
-          double mass = mod_mass + ion.getMonoWeight(res_type, charge);
+          double mass = ion.getMonoWeight(res_type, charge);
           Peak1D p;
           p.setMZ(mass / abs(charge));
           p.setIntensity(intensity);
