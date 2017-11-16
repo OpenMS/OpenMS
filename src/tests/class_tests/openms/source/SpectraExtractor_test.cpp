@@ -36,13 +36,13 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/OPENSWATH/SpectrumExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SpectraExtractor.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(SpectrumExtractor, "$Id$")
+START_TEST(SpectraExtractor, "$Id$")
 
 /////////////////////////////////////////////////////////////
 // Raw spectrum data acquired in DDA mode (i.e., product ion full spectrum scan)
@@ -291,10 +291,10 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumExtractor* ptr = 0;
-SpectrumExtractor* null_ptr = 0;
-const String experiment_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13C1_spectra0to100.mzML");
-const String target_list_path = OPENMS_GET_TEST_DATA_PATH("SpectrumExtractor_13CFlux_TraML.csv");
+SpectraExtractor* ptr = 0;
+SpectraExtractor* null_ptr = 0;
+const String experiment_path = OPENMS_GET_TEST_DATA_PATH("SpectraExtractor_13C1_spectra0to100.mzML");
+const String target_list_path = OPENMS_GET_TEST_DATA_PATH("SpectraExtractor_13CFlux_TraML.csv");
 MzMLFile mzml;
 MSExperiment experiment;
 TransitionTSVReader tsv_reader;
@@ -302,20 +302,20 @@ TargetedExperiment targeted_exp;
 mzml.load(experiment_path, experiment);
 tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
 
-START_SECTION(SpectrumExtractor())
+START_SECTION(SpectraExtractor())
 {
-  ptr = new SpectrumExtractor();
+  ptr = new SpectraExtractor();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~SpectrumExtractor())
+START_SECTION(~SpectraExtractor())
 {
   delete ptr;
 }
 END_SECTION
 
-ptr = new SpectrumExtractor();
+ptr = new SpectraExtractor();
 
 START_SECTION(getParameters())
 {

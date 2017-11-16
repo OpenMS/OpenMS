@@ -32,8 +32,8 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SPECTRUMEXTRACTOR_H
-#define OPENMS_ANALYSIS_OPENSWATH_SPECTRUMEXTRACTOR_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_SPECTRAEXTRACTOR_H
+#define OPENMS_ANALYSIS_OPENSWATH_SPECTRAEXTRACTOR_H
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
@@ -66,12 +66,12 @@ namespace OpenMS
     One spectrum is chosen for each of those transitions for which at least one
     valid spectrum was found and matched.
   */
-  class OPENMS_DLLAPI SpectrumExtractor :
+  class OPENMS_DLLAPI SpectraExtractor :
     public DefaultParamHandler
   {
 public:
-    SpectrumExtractor();
-    virtual ~SpectrumExtractor();
+    SpectraExtractor();
+    virtual ~SpectraExtractor();
 
     void setRTWindow(const double& rt_window);
     double getRTWindow() const;
@@ -270,4 +270,4 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_SPECTRUMEXTRACTOR_H
+#endif // OPENMS_ANALYSIS_OPENSWATH_SPECTRAEXTRACTOR_H

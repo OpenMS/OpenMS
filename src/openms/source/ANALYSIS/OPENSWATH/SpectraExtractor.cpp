@@ -32,12 +32,12 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/SpectrumExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SpectraExtractor.h>
 
 namespace OpenMS
 {
-  SpectrumExtractor::SpectrumExtractor() :
-    DefaultParamHandler("SpectrumExtractor")
+  SpectraExtractor::SpectraExtractor() :
+    DefaultParamHandler("SpectraExtractor")
   {
     getDefaultParameters(defaults_);
 
@@ -45,179 +45,179 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SpectrumExtractor::~SpectrumExtractor() {}
+  SpectraExtractor::~SpectraExtractor() {}
 
-  void SpectrumExtractor::setRTWindow(const double& rt_window)
+  void SpectraExtractor::setRTWindow(const double& rt_window)
   {
     rt_window_ = rt_window;
   }
 
-  double SpectrumExtractor::getRTWindow() const
+  double SpectraExtractor::getRTWindow() const
   {
     return rt_window_;
   }
 
-  void SpectrumExtractor::setMinScore(const double& min_score)
+  void SpectraExtractor::setMinScore(const double& min_score)
   {
     min_score_ = min_score;
   }
 
-  double SpectrumExtractor::getMinScore() const
+  double SpectraExtractor::getMinScore() const
   {
     return min_score_;
   }
 
-  void SpectrumExtractor::setMinForwardMatch(const double& min_forward_match)
+  void SpectraExtractor::setMinForwardMatch(const double& min_forward_match)
   {
     min_forward_match_ = min_forward_match;
   }
 
-  double SpectrumExtractor::getMinForwardMatch() const
+  double SpectraExtractor::getMinForwardMatch() const
   {
     return min_forward_match_;
   }
 
-  void SpectrumExtractor::setMinReverseMatch(const double& min_reverse_match)
+  void SpectraExtractor::setMinReverseMatch(const double& min_reverse_match)
   {
     min_reverse_match_ = min_reverse_match;
   }
 
-  double SpectrumExtractor::getMinReverseMatch() const
+  double SpectraExtractor::getMinReverseMatch() const
   {
     return min_reverse_match_;
   }
 
-  void SpectrumExtractor::setMZTolerance(const double& mz_tolerance)
+  void SpectraExtractor::setMZTolerance(const double& mz_tolerance)
   {
     mz_tolerance_ = mz_tolerance;
   }
 
-  double SpectrumExtractor::getMZTolerance() const
+  double SpectraExtractor::getMZTolerance() const
   {
     return mz_tolerance_;
   }
 
-  void SpectrumExtractor::setMZToleranceUnits(const String& mz_tolerance_units)
+  void SpectraExtractor::setMZToleranceUnits(const String& mz_tolerance_units)
   {
     mz_tolerance_units_ = mz_tolerance_units;
   }
 
-  String SpectrumExtractor::getMZToleranceUnits() const
+  String SpectraExtractor::getMZToleranceUnits() const
   {
     return mz_tolerance_units_;
   }
 
-  void SpectrumExtractor::setSGolayFrameLength(const UInt& sgolay_frame_length)
+  void SpectraExtractor::setSGolayFrameLength(const UInt& sgolay_frame_length)
   {
     sgolay_frame_length_ = sgolay_frame_length;
   }
 
-  UInt SpectrumExtractor::getSGolayFrameLength() const
+  UInt SpectraExtractor::getSGolayFrameLength() const
   {
     return sgolay_frame_length_;
   }
 
-  void SpectrumExtractor::setSGolayPolynomialOrder(const UInt& sgolay_polynomial_order)
+  void SpectraExtractor::setSGolayPolynomialOrder(const UInt& sgolay_polynomial_order)
   {
     sgolay_polynomial_order_ = sgolay_polynomial_order;
   }
 
-  UInt SpectrumExtractor::getSGolayPolynomialOrder() const
+  UInt SpectraExtractor::getSGolayPolynomialOrder() const
   {
     return sgolay_polynomial_order_;
   }
 
-  void SpectrumExtractor::setGaussWidth(const double& gauss_width)
+  void SpectraExtractor::setGaussWidth(const double& gauss_width)
   {
     gauss_width_ = gauss_width;
   }
 
-  double SpectrumExtractor::getGaussWidth() const
+  double SpectraExtractor::getGaussWidth() const
   {
     return gauss_width_;
   }
 
-  void SpectrumExtractor::setUseGauss(const bool& use_gauss)
+  void SpectraExtractor::setUseGauss(const bool& use_gauss)
   {
     use_gauss_ = use_gauss;
   }
 
-  bool SpectrumExtractor::getUseGauss() const
+  bool SpectraExtractor::getUseGauss() const
   {
     return use_gauss_;
   }
 
-  void SpectrumExtractor::setSignalToNoise(const double& signal_to_noise)
+  void SpectraExtractor::setSignalToNoise(const double& signal_to_noise)
   {
     signal_to_noise_ = signal_to_noise;
   }
 
-  double SpectrumExtractor::getSignalToNoise() const
+  double SpectraExtractor::getSignalToNoise() const
   {
     return signal_to_noise_;
   }
 
-  void SpectrumExtractor::setPeakHeightMin(const double& peak_height_min)
+  void SpectraExtractor::setPeakHeightMin(const double& peak_height_min)
   {
     peak_height_min_ = peak_height_min;
   }
 
-  double SpectrumExtractor::getPeakHeightMin() const
+  double SpectraExtractor::getPeakHeightMin() const
   {
     return peak_height_min_;
   }
 
-  void SpectrumExtractor::setPeakHeightMax(const double& peak_height_max)
+  void SpectraExtractor::setPeakHeightMax(const double& peak_height_max)
   {
     peak_height_max_ = peak_height_max;
   }
 
-  double SpectrumExtractor::getPeakHeightMax() const
+  double SpectraExtractor::getPeakHeightMax() const
   {
     return peak_height_max_;
   }
 
-  void SpectrumExtractor::setFWHMThreshold(const double& fwhm_threshold)
+  void SpectraExtractor::setFWHMThreshold(const double& fwhm_threshold)
   {
     fwhm_threshold_ = fwhm_threshold;
   }
 
-  double SpectrumExtractor::getFWHMThreshold() const
+  double SpectraExtractor::getFWHMThreshold() const
   {
     return fwhm_threshold_;
   }
 
-  void SpectrumExtractor::setTICWeight(const double& tic_weight)
+  void SpectraExtractor::setTICWeight(const double& tic_weight)
   {
     tic_weight_ = tic_weight;
   }
 
-  double SpectrumExtractor::getTICWeight() const
+  double SpectraExtractor::getTICWeight() const
   {
     return tic_weight_;
   }
 
-  void SpectrumExtractor::setFWHMWeight(const double& fwhm_weight)
+  void SpectraExtractor::setFWHMWeight(const double& fwhm_weight)
   {
     fwhm_weight_ = fwhm_weight;
   }
 
-  double SpectrumExtractor::getFWHMWeight() const
+  double SpectraExtractor::getFWHMWeight() const
   {
     return fwhm_weight_;
   }
 
-  void SpectrumExtractor::setSNRWeight(const double& snr_weight)
+  void SpectraExtractor::setSNRWeight(const double& snr_weight)
   {
     snr_weight_ = snr_weight;
   }
 
-  double SpectrumExtractor::getSNRWeight() const
+  double SpectraExtractor::getSNRWeight() const
   {
     return snr_weight_;
   }
 
-  void SpectrumExtractor::updateMembers_()
+  void SpectraExtractor::updateMembers_()
   {
     rt_window_ = (double)param_.getValue("rt_window");
     min_score_ = (double)param_.getValue("min_score");
@@ -241,7 +241,7 @@ namespace OpenMS
     snr_weight_ = (double)param_.getValue("snr_weight");
   }
 
-  void SpectrumExtractor::getDefaultParameters(Param& params)
+  void SpectraExtractor::getDefaultParameters(Param& params)
   {
     params.clear();
 
@@ -286,7 +286,7 @@ namespace OpenMS
     params.setMinFloat("snr_weight", 0.0);
   }
 
-  void SpectrumExtractor::annotateSpectra(
+  void SpectraExtractor::annotateSpectra(
     const std::vector<MSSpectrum>& spectra,
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& annotated_spectra,
@@ -338,7 +338,7 @@ namespace OpenMS
     LOG_DEBUG << "the annotated variable has " << annotated_spectra.size() << " elements instead of " << spectra.size() << std::endl;
   }
 
-  void SpectrumExtractor::pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum)
+  void SpectraExtractor::pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum)
   {
     if (!spectrum.isSorted())
     {
@@ -414,7 +414,7 @@ namespace OpenMS
     LOG_DEBUG << "Found " << picked_spectrum.size() << " peaks." << std::endl;
   }
 
-  void SpectrumExtractor::scoreSpectra(
+  void SpectraExtractor::scoreSpectra(
     const std::vector<MSSpectrum>& annotated_spectra,
     const std::vector<MSSpectrum>& picked_spectra,
     FeatureMap& features,
@@ -484,7 +484,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumExtractor::selectSpectra(
+  void SpectraExtractor::selectSpectra(
     const std::vector<MSSpectrum>& scored_spectra,
     const FeatureMap& features,
     std::vector<MSSpectrum>& selected_spectra,
@@ -531,7 +531,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumExtractor::selectSpectra(
+  void SpectraExtractor::selectSpectra(
     const std::vector<MSSpectrum>& scored_spectra,
     std::vector<MSSpectrum>& selected_spectra
   )
@@ -541,7 +541,7 @@ namespace OpenMS
     selectSpectra(scored_spectra, dummy_features, selected_spectra, dummy_selected_features);
   }
 
-  void SpectrumExtractor::extractSpectra(
+  void SpectraExtractor::extractSpectra(
     const PeakMap& experiment,
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& extracted_spectra,
