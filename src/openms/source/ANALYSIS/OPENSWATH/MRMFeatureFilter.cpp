@@ -115,48 +115,48 @@ namespace OpenMS
         // iterate through component_groups
         for (size_t cg_qc_it = 0; cg_qc_it < filter_criteria.component_group_qcs_.size(); ++cg_qc_it)
         {
-          if (filter_criteria.component_group_qcs_[cg_qc_it].component_group_name_ == component_group_name)
+          if (filter_criteria.component_group_qcs_[cg_qc_it].component_group_name == component_group_name)
           {
             // labels and transition counts QC
               std::cout << "n_heavy" << std::endl; //debugging
             if (!checkRange(labels_and_transition_types["n_heavy"],
-              filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l_,
-              filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_u_))
+              filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_l,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_heavy_u))
             {
               cg_qc_pass = false;
             }
             std::cout << "n_light" << std::endl; //debugging
             if (! checkRange(labels_and_transition_types["n_light"],
-              filter_criteria.component_group_qcs_[cg_qc_it].n_light_l_,
-              filter_criteria.component_group_qcs_[cg_qc_it].n_light_u_))
+              filter_criteria.component_group_qcs_[cg_qc_it].n_light_l,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_light_u))
             {
               cg_qc_pass = false;
             }
             std::cout << "n_detecting" << std::endl; //debugging
             if (! checkRange(labels_and_transition_types["n_detecting"],
-              filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_l_,
-              filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_u_))
+              filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_l,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_detecting_u))
             {
               cg_qc_pass = false;
             }
             std::cout << "n_quantifying" << std::endl; //debugging
             if (! checkRange(labels_and_transition_types["n_quantifying"],
-              filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_l_,
-              filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_u_))
+              filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_l,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_quantifying_u))
             {
               cg_qc_pass = false;
             }
             std::cout << "n_identifying" << std::endl; //debugging
             if (! checkRange(labels_and_transition_types["n_identifying"],
-              filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_l_,
-              filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_u_))
+              filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_l,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_identifying_u))
             {
               cg_qc_pass = false;
             }
             std::cout << "n_transitions" << std::endl; //debugging
             if (! checkRange(labels_and_transition_types["n_transitions"],
-              filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_l_,
-              filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_u_))
+              filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_l,
+              filter_criteria.component_group_qcs_[cg_qc_it].n_transitions_u))
             {
               cg_qc_pass = false;
             }
@@ -167,15 +167,15 @@ namespace OpenMS
               String component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id"); 
 
               // find the ion ratio pair
-              if (filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_1_ == component_name
-                && filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_2_ == component_name2)
+              if (filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_1 == component_name
+                && filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_pair_name_2 == component_name2)
               {
-                double ion_ratio = calculateIonRatio(features[feature_it].getSubordinates()[sub_it], features[feature_it].getSubordinates()[sub_it2], filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_feature_name_);
+                double ion_ratio = calculateIonRatio(features[feature_it].getSubordinates()[sub_it], features[feature_it].getSubordinates()[sub_it2], filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_feature_name);
                 
                 std::cout << "ion_ratio" << std::endl; //debugging
                 if (! checkRange(ion_ratio,
-                  filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_l_,
-                  filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_u_))
+                  filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_l,
+                  filter_criteria.component_group_qcs_[cg_qc_it].ion_ratio_u))
                 {
                   cg_qc_pass = false;
                 }
@@ -187,14 +187,14 @@ namespace OpenMS
         // iterate through feature/sub-feature QCs/filters        
         for (size_t c_qc_it = 0; c_qc_it < filter_criteria.component_qcs_.size(); ++c_qc_it)
         {
-          if (filter_criteria.component_qcs_[c_qc_it].component_name_ == component_name)
+          if (filter_criteria.component_qcs_[c_qc_it].component_name == component_name)
           {
             // RT check
             double rt = features[feature_it].getSubordinates()[sub_it].getRT(); //check!
             std::cout << "RT" << std::endl; //debugging
             if (!checkRange(rt,
-              filter_criteria.component_qcs_[c_qc_it].retention_time_l_,
-              filter_criteria.component_qcs_[c_qc_it].retention_time_u_))
+              filter_criteria.component_qcs_[c_qc_it].retention_time_l,
+              filter_criteria.component_qcs_[c_qc_it].retention_time_u))
             {
               c_qc_pass = false;
             }
@@ -203,8 +203,8 @@ namespace OpenMS
             std::cout << "Intensity" << std::endl; //debugging
             double intensity = features[feature_it].getSubordinates()[sub_it].getIntensity();
             if (!checkRange(intensity,
-              filter_criteria.component_qcs_[c_qc_it].intensity_l_,
-              filter_criteria.component_qcs_[c_qc_it].intensity_u_))
+              filter_criteria.component_qcs_[c_qc_it].intensity_l,
+              filter_criteria.component_qcs_[c_qc_it].intensity_u))
             {
               c_qc_pass = false;
             }
@@ -213,14 +213,14 @@ namespace OpenMS
             double quality = features[feature_it].getSubordinates()[sub_it].getOverallQuality();
             std::cout << "Quality" << std::endl; //debugging
             if (!checkRange(quality,
-              filter_criteria.component_qcs_[c_qc_it].overall_quality_l_,
-              filter_criteria.component_qcs_[c_qc_it].overall_quality_u_))
+              filter_criteria.component_qcs_[c_qc_it].overall_quality_l,
+              filter_criteria.component_qcs_[c_qc_it].overall_quality_u))
             {
               c_qc_pass = false;
             }
 
             // metaValue checks
-            for (auto const& kv : filter_criteria.component_qcs_[c_qc_it].meta_value_qc_)
+            for (auto const& kv : filter_criteria.component_qcs_[c_qc_it].meta_value_qc)
             {
               std::cout << "MetaData" << std::endl; //debugging
               if (!checkMetaValue(features[feature_it].getSubordinates()[sub_it], kv.first, kv.second.first, kv.second.second))

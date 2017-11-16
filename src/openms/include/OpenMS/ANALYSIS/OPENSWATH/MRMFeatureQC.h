@@ -71,30 +71,30 @@ public:
     struct ComponentGroupQCs
     {
       /// name of the component group
-      String component_group_name_; 
+      String component_group_name; 
 
       // number of transitions and labels
       /// number of heavy ion lower bound
-      int n_heavy_l_;
+      int n_heavy_l;
       /// number of heavy ion upper bound
-      int n_heavy_u_;
-      int n_light_l_;
-      int n_light_u_;
-      int n_detecting_l_;
-      int n_detecting_u_;
-      int n_quantifying_l_;
-      int n_quantifying_u_;
-      int n_identifying_l_;
-      int n_identifying_u_;
-      int n_transitions_l_;
-      int n_transitions_u_;
+      int n_heavy_u;
+      int n_light_l;
+      int n_light_u;
+      int n_detecting_l;
+      int n_detecting_u;
+      int n_quantifying_l;
+      int n_quantifying_u;
+      int n_identifying_l;
+      int n_identifying_u;
+      int n_transitions_l;
+      int n_transitions_u;
 
       // Ion Ratio QCs
-      String ion_ratio_pair_name_1_;
-      String ion_ratio_pair_name_2_;
-      double ion_ratio_l_;
-      double ion_ratio_u_;
-      String ion_ratio_feature_name_;
+      String ion_ratio_pair_name_1;
+      String ion_ratio_pair_name_2;
+      double ion_ratio_l;
+      double ion_ratio_u;
+      String ion_ratio_feature_name;
         
     };
 
@@ -102,24 +102,24 @@ public:
     struct ComponentQCs
     {
       /// name of the component
-      String component_name_; 
+      String component_name; 
 
       // Feature members
       /// retention time lower bound
-      double retention_time_l_;
+      double retention_time_l;
       /// retention time upper bound
-      double retention_time_u_;
+      double retention_time_u;
       /// intensity lower bound
-      double intensity_l_;
+      double intensity_l;
       /// intensity upper bound
-      double intensity_u_;
+      double intensity_u;
       /// overall quality lower bound
-      double overall_quality_l_;
+      double overall_quality_l;
       /// overall quality upper bound
-      double overall_quality_u_;
+      double overall_quality_u;
 
       /// Feature MetaValues
-      std::map<String,std::pair<double,double>> meta_value_qc_;
+      std::map<String,std::pair<double,double>> meta_value_qc;
 
     };
 
@@ -128,19 +128,20 @@ public:
     {
 
       /// name of the component
-      String component_group_name_; 
+      String component_group_name; 
       /// name of the component to calculate the resolution or retention time 
-      String resolution_pair_name_; 
+      String resolution_pair_name; 
       /// resolution lower bound 
-      double resolution_l_;
+      double resolution_l;
       /// resolution upper bound 
-      double resolution_u_;
+      double resolution_u;
       /// retention time lower bound 
-      double rt_diff_l_;
+      double rt_diff_l;
       /// retention time upper bound 
-      double rt_diff_u_;
+      double rt_diff_u;
     };
 
+protected:
     //members
     /// list of all component QCs
     std::vector<ComponentQCs> component_qcs_;
