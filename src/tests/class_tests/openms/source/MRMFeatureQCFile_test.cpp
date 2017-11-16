@@ -40,6 +40,24 @@
 using namespace OpenMS;
 using namespace std;
 
+class MRMFeatureQC_facade : MRMFeatureQC
+{
+  public:
+
+    void parseHeader_(StringList & line, std::map<String, int> & headers,
+    std::map<String, int> & params_headers)
+    {
+      MRMFeatureQC::parseHeader_(line, headers, params_headers);
+    }
+
+    void parseLine_(StringList & line, std::map<String,int> & headers, 
+    std::map<String,int> & params_headers,
+    MRMFeatureQC & mrmfqc)
+    {
+      MRMFeatureQC::parseLine_(line, headers, params_headers, MRMFeatureQC & mrmfqc);
+    }
+}
+
 START_TEST(MRMFeatureQCFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -61,11 +79,11 @@ START_SECTION(~MRMFeatureQCFile())
 }
 END_SECTION
 
-START_SECTION((void parseHeader(StringList & line, std::map<String,int> & headers,
+START_SECTION((void parseHeader_(StringList & line, std::map<String,int> & headers,
     std::map<String,int> & params_headers)))
     //TODO
 
-    MRMFeatureQCFile mrmfqcfile;
+    MRMFeatureQC_facade mrmfqcfile;
     
     std::map<String,int> headers;
     std::map<String,int> params_headers;
@@ -102,7 +120,7 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     header1.push_back("metaValue_sn_score_l");
     header1.push_back("metaValue_sn_score_u");
   
-    mrmfqcfile.parseHeader(header1, headers, params_headers);
+    mrmfqcfile.parseHeader_(header1, headers, params_headers);
   
     TEST_EQUAL(headers["component_name"], 0);
     TEST_EQUAL(headers["n_detecting_u"], 7);
@@ -145,7 +163,7 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     header2.push_back("metaValue_sn_score_l");
     header2.push_back("metaValue_sn_score_u");
   
-    mrmfqcfile.parseHeader(header2, headers, params_headers);
+    mrmfqcfile.parseHeader_(header2, headers, params_headers);
     
     TEST_EQUAL(headers["component_name"], 0);
     TEST_EQUAL(headers["n_detecting_u"], -1);
@@ -155,10 +173,10 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     
   END_SECTION
   
-  START_SECTION((void parseLine(StringList & line, std::map<String,int> & headers, 
+  START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers, 
     std::map<String,int> & params_headers, MRMFeatureQC & mrmfqc)))
     
-    MRMFeatureQCFile mrmfqcfile;
+    MRMFeatureQC_facade mrmfqcfile;
     MRMFeatureQC mrmfqc;
     
     // headers
@@ -226,7 +244,7 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
     line1.push_back(2.0);
     line1.push_back(10.0);
 
-    mrmfqcfile.parseLine(line1, headers, params_headers, mrmfqc);
+    mrmfqcfile.parseLine_(line1, headers, params_headers, mrmfqc);
   
     TEST_EQUAL(mrmfqc.component_group_qcs[0].component_group_name, "component_group1");
     TEST_EQUAL(mrmfqc.component_group_qcs[0].n_quantifying_u, 1);

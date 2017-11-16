@@ -67,17 +67,17 @@ namespace OpenMS
       if (i == 0) // header row
       {
         CsvFile::getRow(i, header);
-        parseHeader(header, headers, params_headers);
+        parseHeader_(header, headers, params_headers);
       }
       else
       {
         CsvFile::getRow(i, line);
-        parseLine(line, headers, params_headers, mrmfqc);
+        parseLine_(line, headers, params_headers, mrmfqc);
       }    
     }
   }
 
-  void MRMFeatureQCFile::parseHeader(StringList & line, std::map<String, int> & headers,
+  void MRMFeatureQCFile::parseHeader_(StringList & line, std::map<String, int> & headers,
     std::map<String, int> & params_headers)
   {    
     // default header column positions
@@ -124,7 +124,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureQCFile::parseLine(StringList & line, std::map<String,int> & headers, 
+  void MRMFeatureQCFile::parseLine_(StringList & line, std::map<String,int> & headers, 
     std::map<String,int> & params_headers,
     MRMFeatureQC & mrmfqc)
   {

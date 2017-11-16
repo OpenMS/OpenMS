@@ -74,6 +74,8 @@ public:
   */
   void store(const String & filename, const MRMFeatureQC & mrmfqc);
 
+
+protected:
   /**
     @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
@@ -81,7 +83,7 @@ public:
     @param headers A map of header strings to column positions.
     @param params_headers A map of transformation model parameter header strings to column positions.
   */
-  void parseHeader(StringList & line, std::map<String, int> & headers,
+  void parseHeader_(StringList & line, std::map<String, int> & headers,
     std::map<String, int> & params_headers);
 
   /**
@@ -90,7 +92,7 @@ public:
     @param line line of the .csv file.
     @param aqm MRMFeatureQC.
   */
-  void parseLine(StringList & line, std::map<String, int> & headers, 
+  void parseLine_(StringList & line, std::map<String, int> & headers, 
     std::map<String, int> & params_headers, MRMFeatureQC & mrmfqc);
 
   };
