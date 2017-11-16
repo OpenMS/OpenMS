@@ -283,14 +283,30 @@ END_SECTION
 
 START_SECTION((double getMonoWeight(NASequence::NASFragmentType type = NASequence::Full, Int charge = 0) const))
 {
+  // masses from Mongo-Oligo (http://mods.rna.albany.edu/masspec/Mongo-Oligo):
   NASequence seq = NASequence::fromString("GGG");
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::AminusB, -1), 803.117);
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::WIon, -1), 1052.143);
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::YIon, -1), 972.177);
-  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::DIon, -1), 1034.133);
+  // Mongo-Oligo calls this ion "d-H20":
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::CIon, -1), 1034.133);
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::AminusB, -2), 802.117);
   NASequence seq_not_sym = NASequence::fromString("GAU");
   TEST_REAL_SIMILAR(seq_not_sym.getMonoWeight(NASequence::AminusB, -1), 787.122);
+
+  seq = NASequence::fromString("AAUC");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::AminusB, -1), 1077.1548);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::CIon, -1), 1268.1644);
+  seq = NASequence::fromString("AUCGp");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::WIon, -1), 1382.1362);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::YIon, -1), 1302.1698);
+
+  seq = NASequence::fromString("[m1A]UCCACA");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::AminusB, -1), 2006.2943);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::CIon, -1), 2221.3151);
+  seq = NASequence::fromString("UCCACAGp");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::WIon, -1), 2321.2713);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::YIon, -1), 2241.3049);
 
   // these masses were checked against external tools:
   seq = NASequence::fromString("pAAUCCAUGp");
