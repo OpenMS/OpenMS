@@ -65,6 +65,7 @@ START_SECTION(~MRMFeatureFilter())
 }
 END_SECTION
 
+// NOTE: private (tested when public)
 // START_SECTION(template <typename T> bool checkRange(T const& value, T const& value_l, T const& value_u))
 // {
 //   MRMFeatureFilter mrmff;

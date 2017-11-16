@@ -47,14 +47,14 @@ class MRMFeatureQCFile_facade : MRMFeatureQCFile
     void parseHeader_(StringList & line, std::map<String, int> & headers,
     std::map<String, int> & params_headers)
     {
-      MRMFeatureQC::parseHeader_(line, headers, params_headers);
+      MRMFeatureQCFile::parseHeader_(line, headers, params_headers);
     }
 
     void parseLine_(StringList & line, std::map<String,int> & headers, 
     std::map<String,int> & params_headers,
     MRMFeatureQC & mrmfqc)
     {
-      MRMFeatureQC::parseLine_(line, headers, params_headers, MRMFeatureQC & mrmfqc);
+      MRMFeatureQCFile::parseLine_(line, headers, params_headers, mrmfqc);
     }
 };
 
