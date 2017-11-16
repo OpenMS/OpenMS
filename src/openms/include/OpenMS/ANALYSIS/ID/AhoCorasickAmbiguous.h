@@ -300,9 +300,9 @@ namespace seqan
     KeyWordLengthType max_ambAA;            // default: 3
     Holder<TNeedle> data_host;                    // holds needles, i.e. Peptides
     TGraph data_graph;                            // regular trie data
-    String<String<TSize> > data_terminalStateMap; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
-    String<TVert> data_supplyMap;                 // trie suffix links
-    String<KeyWordLengthType> data_nodeDepths;    // depths of each graph node
+    String<String<TSize> > data_map_outputNodes; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
+    String<TVert> data_map_failurelink;                 // trie suffix links
+    String<KeyWordLengthType> data_node_depth;    // depths of each graph node
 
 #ifndef NDEBUG
     String<TVert> parentMap;  //< allows to find parent of each node
@@ -389,7 +389,7 @@ namespace seqan
     TVert nilVal = getNil<TVert>();
 
     // Create regular trie
-    createTrie(me.data_graph, me.data_terminalStateMap, host(me));
+    createTrie(me.data_graph, me.data_map_outputNodes, host(me));
 
     // Create parent map
     String<TVert> parentMap;  //< allows to find parent of each node
@@ -417,10 +417,10 @@ namespace seqan
     // Build AC
     TVert root = getRoot(me.data_graph);
     // properties....
-    resizeVertexMap(me.data_graph, me.data_supplyMap);  // suffix links
-    assignProperty(me.data_supplyMap, root, nilVal);
-    resizeVertexMap(me.data_graph, me.data_nodeDepths);  // node depths
-    assignProperty(me.data_nodeDepths, root, 0);
+    resizeVertexMap(me.data_graph, me.data_map_failurelink);  // suffix links
+    assignProperty(me.data_map_failurelink, root, nilVal);
+    resizeVertexMap(me.data_graph, me.data_node_depth);  // node depths
+    assignProperty(me.data_node_depth, root, 0);
 
     // Bfs Traversal
     typedef typename Iterator<TGraph, BfsIterator>::Type TBfsIterator;
@@ -435,34 +435,43 @@ namespace seqan
       //int edgecount = outDegree(me.data_graph, itval);
       //++connectivity[edgecount];
 
+      // set depth of current node using: depths(parent) + 1
       TVert parent = getProperty(parentMap, itval);
-      assignProperty(me.data_nodeDepths, itval, getProperty(me.data_nodeDepths, parent) + 1);
+      assignProperty(me.data_node_depth, itval, getProperty(me.data_node_depth, parent) + 1);
 
+
+      ///
+      /// create failure function (suffix links) and output function
+      ///
+      // sigma: edge label
       TAlphabet sigma = getProperty(parentCharMap, itval);
-      TVert down = getProperty(me.data_supplyMap, parent);
+      // take suffix link of parent and try to go down with sigma
+      TVert down = getProperty(me.data_map_failurelink, parent);
       while ((down != nilVal) &&
         (getSuccessor(me.data_graph, down, sigma) == nilVal))
       {
-        down = getProperty(me.data_supplyMap, down);
+        down = getProperty(me.data_map_failurelink, down);
       }
       if (down != nilVal)
-      {
-        assignProperty(me.data_supplyMap, itval, getSuccessor(me.data_graph, down, sigma));
-        String<TPosition> endPositions = getProperty(me.data_terminalStateMap, getProperty(me.data_supplyMap, itval));
+      { // we found an edge to follow down
+        assignProperty(me.data_map_failurelink, itval, getSuccessor(me.data_graph, down, sigma));
+        String<TPosition> endPositions = getProperty(me.data_map_outputNodes, getProperty(me.data_map_failurelink, itval));
         if (!empty(endPositions))
         {
-          String<TPosition> endPositionsCurrent = getProperty(me.data_terminalStateMap, itval);
+          // get current end positions (full path) ...
+          String<TPosition> endPositionsCurrent = getProperty(me.data_map_outputNodes, itval);
           typedef typename Iterator<String<TPosition>, Rooted >::Type TStringIterator;
+          // .. and append all patterns which are a suffix
           TStringIterator sit = begin(endPositions);
           for (;!atEnd(sit); goNext(sit))
           {
             appendValue(endPositionsCurrent, *sit);
           }
-          assignProperty(me.data_terminalStateMap, itval, endPositionsCurrent);
+          assignProperty(me.data_map_outputNodes, itval, endPositionsCurrent);
         }
       }
-      else {
-        assignProperty(me.data_supplyMap, itval, root);
+      else { // no suffix exists: point suffix link of current node to root
+        assignProperty(me.data_map_failurelink, itval, root);
       }
 
     }
@@ -478,26 +487,27 @@ namespace seqan
   }
 
   template <typename TNeedle, typename TNeedle2>
-  void setHost(Pattern<TNeedle, FuzzyAC> & me, TNeedle2 const & needle) {
+  void setHost(Pattern<TNeedle, FuzzyAC> & me, TNeedle2 const & needle)
+  {
     SEQAN_CHECKPOINT;
     SEQAN_ASSERT_NOT(empty(needle));
     setValue(me.data_host, needle);
     clear(me.data_graph);
-    clear(me.data_supplyMap);
-    clear(me.data_terminalStateMap);
+    clear(me.data_map_failurelink);
+    clear(me.data_map_outputNodes);
     _createAcTrie(me);
 
     //fstream strm;
     //strm.open(TEST_PATH "my_trie.dot", ios_base::out | ios_base::trunc);
     //String<String<char> > nodeMap;
-    //_createTrieNodeAttributes(me.data_graph, me.data_terminalStateMap, nodeMap);
+    //_createTrieNodeAttributes(me.data_graph, me.data_map_outputNodes, nodeMap);
     //String<String<char> > edgeMap;
     //_createEdgeAttributes(me.data_graph,edgeMap);
     //write(strm,me.data_graph,nodeMap,edgeMap,DotDrawing());
     //strm.close();
     // Supply links
-    //for(unsigned int i=0;i<length(me.data_supplyMap);++i) {
-    //	std::cout << i << "->" << getProperty(me.data_supplyMap,i) << ::std::endl;
+    //for(unsigned int i=0;i<length(me.data_map_failurelink);++i) {
+    //	std::cout << i << "->" << getProperty(me.data_map_failurelink,i) << ::std::endl;
     //}
   }
   template <typename TNeedle, typename TNeedle2>
@@ -591,7 +601,7 @@ namespace seqan
       if (_consumeChar(me, dh, node_spawn, AAcid(idx), Tag<FixedAASpec>())) // call this using master's _consumeChar(), since it might pass through root (which is allowed), but should not die.
       { // spawn from current position; push front to flag as 'processed' for the current input char
         // depths is 'current_depth - 1' (must be computed here!); ambAA-count: fixed to 1 (first AAA, since spawned from master)
-        dh.spawns.push_front(Spawn<TNeedle>(node_spawn, getProperty(me.data_nodeDepths, node_spawn) - 1, 1));
+        dh.spawns.push_front(Spawn<TNeedle>(node_spawn, getProperty(me.data_node_depth, node_spawn) - 1, 1));
         DEBUG_ONLY std::cout << "  Init Spawn from Master consuming '" << AAcid(idx) << "\n";
       }
     }
@@ -652,10 +662,10 @@ namespace seqan
   template<class TNeedle> inline bool goUp(const Pattern<TNeedle, FuzzyAC>& me, Spawn<TNeedle>& spawn)
   {
     //if (atRoot(me, spawn)) return false; // cannot happen -- spawn would have died before
-    const typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.data_supplyMap, spawn.current_state);
+    const typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.data_map_failurelink, spawn.current_state);
     // check if spawn is allowed to loose that many chars in front
     typedef typename Pattern<TNeedle, FuzzyAC>::KeyWordLengthType KeyWordLengthType;
-    const KeyWordLengthType depthDiff = getProperty(me.data_nodeDepths, spawn.current_state) - getProperty(me.data_nodeDepths, suffix_node);
+    const KeyWordLengthType depthDiff = getProperty(me.data_node_depth, spawn.current_state) - getProperty(me.data_node_depth, suffix_node);
     if (depthDiff > spawn.max_depth_decrease)
     {
       //DEBUG_ONLY std::cout << "spawn died while going up (AAA out of scope)\n";
@@ -669,8 +679,8 @@ namespace seqan
   template<class TNeedle> inline bool goUp(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert& current_state)
   {
     if (atRoot(me, current_state)) return false;
-    // data_supplyMap points to root or another node. Only root itself points to me.nilVal
-    typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.data_supplyMap, current_state);
+    // data_map_failurelink points to root or another node. Only root itself points to me.nilVal
+    typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.data_map_failurelink, current_state);
     current_state = suffix_node;
     return true;
   }
@@ -704,11 +714,11 @@ namespace seqan
   template<class TNeedle> inline void addHits(const Pattern<TNeedle, FuzzyAC>& me, PatternAuxData<TNeedle>& dh, Spawn<TNeedle>& spawn)
   {
     typedef typename Pattern<TNeedle, FuzzyAC>::TSize TSize;
-    String<TSize> needle_hits = getProperty(me.data_terminalStateMap, spawn.current_state);
+    String<TSize> needle_hits = getProperty(me.data_map_outputNodes, spawn.current_state);
     //DEBUG_ONLY std::cout << "spawn at path: " << getPath(me, spawn.current_state) << "\n";
     if (length(needle_hits) > 0)
     {
-      int path_length = getProperty(me.data_nodeDepths, spawn.current_state); // == length of current path to spawn
+      int path_length = getProperty(me.data_node_depth, spawn.current_state); // == length of current path to spawn
       int unambiguous_suffix_length = path_length - spawn.max_depth_decrease; // == length of suffix peptide which does not contain AAA
       DEBUG_ONLY std::cout << "  spawn adding hits which are at least " << unambiguous_suffix_length << " chars long (thus contain the AAA).\n";
 
@@ -726,11 +736,11 @@ namespace seqan
   {
     typedef typename Pattern<TNeedle, FuzzyAC>::TSize TSize;
     //DEBUG_ONLY std::cout << "master at path: " << getPath(me, current_state) << "\n";
-    String<TSize> needle_hits = getProperty(me.data_terminalStateMap, current_state);
+    String<TSize> needle_hits = getProperty(me.data_map_outputNodes, current_state);
     if (length(needle_hits))
     {
       DEBUG_ONLY std::cout << "master's new hits: total " << length(needle_hits) << " hits\n";
-      append(dh.hits_endPositions, getProperty(me.data_terminalStateMap, current_state)); // indices into TNeedle!
+      append(dh.hits_endPositions, getProperty(me.data_map_outputNodes, current_state)); // indices into TNeedle!
     }
   }
 
@@ -857,9 +867,9 @@ namespace seqan
         }
       }
       // main thread
-      DEBUG_ONLY std::cout << " --> Main; d: " << int(getProperty(me.data_nodeDepths, dh.data_lastState)) << ")\n";
+      DEBUG_ONLY std::cout << " --> Main; d: " << int(getProperty(me.data_node_depth, dh.data_lastState)) << ")\n";
       _masterConsumeChar(me, dh, c); // might create new spawns
-      DEBUG_ONLY std::cout << "  <-- Main end; d: " << int(getProperty(me.data_nodeDepths, dh.data_lastState)) << ")\n";
+      DEBUG_ONLY std::cout << "  <-- Main end; d: " << int(getProperty(me.data_node_depth, dh.data_lastState)) << ")\n";
 
       // print current states
       DEBUG_ONLY std::cout << " --> POST: Main state: " << getPath(me, dh.data_lastState) << "\n";
