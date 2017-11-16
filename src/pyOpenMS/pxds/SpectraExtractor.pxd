@@ -11,14 +11,14 @@ from PeakPickerHiRes cimport *
 from String cimport *
 from libcpp.vector cimport vector as libcpp_vector
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/SpectrumExtractor.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/SpectraExtractor.h>" namespace "OpenMS":
 
-    cdef cppclass SpectrumExtractor(DefaultParamHandler):
+    cdef cppclass SpectraExtractor(DefaultParamHandler):
         # wrap-inherits:
         #  DefaultParamHandler
 
-        SpectrumExtractor() nogil except +
-        SpectrumExtractor(SpectrumExtractor) nogil except +
+        SpectraExtractor() nogil except +
+        SpectraExtractor(SpectraExtractor) nogil except +
 
         void setRTWindow(double) nogil except +
         double getRTWindow() nogil except +
