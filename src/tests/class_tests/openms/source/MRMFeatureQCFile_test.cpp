@@ -56,7 +56,7 @@ class MRMFeatureQC_facade : MRMFeatureQC
     {
       MRMFeatureQC::parseLine_(line, headers, params_headers, MRMFeatureQC & mrmfqc);
     }
-}
+};
 
 START_TEST(MRMFeatureQCFile, "$Id$")
 
