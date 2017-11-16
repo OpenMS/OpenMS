@@ -74,7 +74,6 @@ public:
   */
   void store(const String & filename, const MRMFeatureQC & mrmfqc);
 
-protected:  
   /**
     @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
