@@ -286,6 +286,58 @@ namespace OpenMS
     params.setMinFloat("snr_weight", 0.0);
   }
 
+  void SpectrumExtractor::annotateSpectra(
+    const std::vector<MSSpectrum>& spectra,
+    const TargetedExperiment& targeted_exp,
+    std::vector<MSSpectrum>& annotated_spectra,
+    FeatureMap& features
+  )
+  {
+    annotated_spectra.clear();
+    features.clear(true);
+    const std::vector<ReactionMonitoringTransition> transitions = targeted_exp.getTransitions();
+    for (UInt i=0; i<spectra.size(); ++i)
+    {
+      MSSpectrum spectrum = spectra[i];
+      // It is supposed to have RT in minutes in target list file, therefore we divide by 60.0
+      const double spectrum_rt = spectrum.getRT() / 60.0;
+      const double rt_left_lim = spectrum_rt - getRTWindow() / 60.0 / 2.0;
+      const double rt_right_lim = spectrum_rt + getRTWindow() / 60.0 / 2.0;
+      const std::vector<Precursor> precursors = spectrum.getPrecursors();
+      if (precursors.size() < 1)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                         "Spectrum does not contain precursor info.");
+      }
+      const double spectrum_mz = precursors[0].getMZ();
+      const double mz_left_lim = spectrum_mz - getMZTolerance();
+      const double mz_right_lim = spectrum_mz + getMZTolerance();
+
+      LOG_DEBUG << "[" << i << "]\trt: " << spectrum_rt << "\tmz: " << spectrum_mz << std::endl;
+
+      for (UInt j=0; j<transitions.size(); ++j)
+      {
+        const double target_rt = targeted_exp.getPeptideByRef(transitions[j].getPeptideRef()).getRetentionTime();
+        const double target_mz = transitions[j].getPrecursorMZ();
+
+        if (target_rt >= rt_left_lim && target_rt <= rt_right_lim && target_mz >= mz_left_lim && target_mz <= mz_right_lim)
+        {
+          LOG_DEBUG << "target_rt: " << target_rt << "\ttarget_mz: " << target_mz << std::endl;
+          LOG_DEBUG << "pushed thanks to transition: " << j << " with name: " << transitions[j].getPeptideRef() << std::endl << std::endl;
+          spectrum.setName(transitions[j].getPeptideRef());
+          annotated_spectra.push_back(spectrum);
+          Feature feature;
+          feature.setRT(spectrum_rt);
+          feature.setMZ(spectrum_mz);
+          feature.setMetaValue("transition_name", transitions[j].getPeptideRef());
+          features.push_back(feature);
+          break;
+        }
+      }
+    }
+    LOG_DEBUG << "the annotated variable has " << annotated_spectra.size() << " elements instead of " << spectra.size() << std::endl;
+  }
+
   void SpectrumExtractor::pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum)
   {
     if (!spectrum.isSorted())
@@ -362,58 +414,6 @@ namespace OpenMS
     LOG_DEBUG << "Found " << picked_spectrum.size() << " peaks." << std::endl;
   }
 
-  void SpectrumExtractor::annotateSpectra(
-    const std::vector<MSSpectrum>& spectra,
-    const TargetedExperiment& targeted_exp,
-    std::vector<MSSpectrum>& annotated_spectra,
-    FeatureMap& features
-  )
-  {
-    annotated_spectra.clear();
-    features.clear(true);
-    const std::vector<ReactionMonitoringTransition> transitions = targeted_exp.getTransitions();
-    for (UInt i=0; i<spectra.size(); ++i)
-    {
-      MSSpectrum spectrum = spectra[i];
-      // It is supposed to have RT in minutes in target list file, therefore we divide by 60.0
-      const double spectrum_rt = spectrum.getRT() / 60.0;
-      const double rt_left_lim = spectrum_rt - getRTWindow() / 60.0 / 2.0;
-      const double rt_right_lim = spectrum_rt + getRTWindow() / 60.0 / 2.0;
-      const std::vector<Precursor> precursors = spectrum.getPrecursors();
-      if (precursors.size() < 1)
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Spectrum does not contain precursor info.");
-      }
-      const double spectrum_mz = precursors[0].getMZ();
-      const double mz_left_lim = spectrum_mz - getMZTolerance();
-      const double mz_right_lim = spectrum_mz + getMZTolerance();
-
-      LOG_DEBUG << "[" << i << "]\trt: " << spectrum_rt << "\tmz: " << spectrum_mz << std::endl;
-
-      for (UInt j=0; j<transitions.size(); ++j)
-      {
-        const double target_rt = targeted_exp.getPeptideByRef(transitions[j].getPeptideRef()).getRetentionTime();
-        const double target_mz = transitions[j].getPrecursorMZ();
-
-        if (target_rt >= rt_left_lim && target_rt <= rt_right_lim && target_mz >= mz_left_lim && target_mz <= mz_right_lim)
-        {
-          LOG_DEBUG << "target_rt: " << target_rt << "\ttarget_mz: " << target_mz << std::endl;
-          LOG_DEBUG << "pushed thanks to transition: " << j << " with name: " << transitions[j].getPeptideRef() << std::endl << std::endl;
-          spectrum.setName(transitions[j].getPeptideRef());
-          annotated_spectra.push_back(spectrum);
-          Feature feature;
-          feature.setRT(spectrum_rt);
-          feature.setMZ(spectrum_mz);
-          feature.setMetaValue("transition_name", transitions[j].getPeptideRef());
-          features.push_back(feature);
-          break;
-        }
-      }
-    }
-    LOG_DEBUG << "the annotated variable has " << annotated_spectra.size() << " elements instead of " << spectra.size() << std::endl;
-  }
-
   void SpectrumExtractor::scoreSpectra(
     const std::vector<MSSpectrum>& annotated_spectra,
     const std::vector<MSSpectrum>& picked_spectra,
@@ -484,46 +484,6 @@ namespace OpenMS
     }
   }
 
-  void SpectrumExtractor::extractSpectra(
-    const PeakMap& experiment,
-    const TargetedExperiment& targeted_exp,
-    std::vector<MSSpectrum>& extracted_spectra,
-    FeatureMap& extracted_features
-  )
-  {
-    // get the spectra from the experiment
-    const std::vector<MSSpectrum> spectra = experiment.getSpectra();
-
-    // annotate spectra
-    std::vector<MSSpectrum> annotated;
-    FeatureMap features;
-    annotateSpectra(spectra, targeted_exp, annotated, features);
-
-    // pick peaks from annotate spectra
-    std::vector<MSSpectrum> picked(annotated.size());
-    for (UInt i=0; i<annotated.size(); ++i)
-    {
-      pickSpectrum(annotated[i], picked[i]);
-    }
-
-    // remove empty picked<> spectra, and accordingly update annotated<> and features
-    for (Int i=annotated.size()-1; i>=0; --i)
-    {
-      if (!picked[i].size())
-      {
-        annotated.erase(annotated.begin() + i);
-        picked.erase(picked.begin() + i);
-        features.erase(features.begin() + i);
-      }
-    }
-
-    // score spectra
-    std::vector<MSSpectrum> scored;
-    scoreSpectra(annotated, picked, features, scored);
-
-    selectSpectra(scored, features, extracted_spectra, extracted_features);
-  }
-
   void SpectrumExtractor::selectSpectra(
     const std::vector<MSSpectrum>& scored_spectra,
     const FeatureMap& features,
@@ -579,5 +539,45 @@ namespace OpenMS
     FeatureMap dummy_features;
     FeatureMap dummy_selected_features;
     selectSpectra(scored_spectra, dummy_features, selected_spectra, dummy_selected_features);
+  }
+
+  void SpectrumExtractor::extractSpectra(
+    const PeakMap& experiment,
+    const TargetedExperiment& targeted_exp,
+    std::vector<MSSpectrum>& extracted_spectra,
+    FeatureMap& extracted_features
+  )
+  {
+    // get the spectra from the experiment
+    const std::vector<MSSpectrum> spectra = experiment.getSpectra();
+
+    // annotate spectra
+    std::vector<MSSpectrum> annotated;
+    FeatureMap features;
+    annotateSpectra(spectra, targeted_exp, annotated, features);
+
+    // pick peaks from annotate spectra
+    std::vector<MSSpectrum> picked(annotated.size());
+    for (UInt i=0; i<annotated.size(); ++i)
+    {
+      pickSpectrum(annotated[i], picked[i]);
+    }
+
+    // remove empty picked<> spectra, and accordingly update annotated<> and features
+    for (Int i=annotated.size()-1; i>=0; --i)
+    {
+      if (!picked[i].size())
+      {
+        annotated.erase(annotated.begin() + i);
+        picked.erase(picked.begin() + i);
+        features.erase(features.begin() + i);
+      }
+    }
+
+    // score spectra
+    std::vector<MSSpectrum> scored;
+    scoreSpectra(annotated, picked, features, scored);
+
+    selectSpectra(scored, features, extracted_spectra, extracted_features);
   }
 }

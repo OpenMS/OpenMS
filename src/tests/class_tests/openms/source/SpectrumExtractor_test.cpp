@@ -483,66 +483,6 @@ START_SECTION(setSNRWeight())
 }
 END_SECTION
 
-START_SECTION(pickSpectrum())
-{
-  MSSpectrum picked_spectrum;
-  spectrum.sortByPosition();
-
-  ptr->setUseGauss(true);
-  ptr->setGaussWidth(0.25);
-  ptr->setPeakHeightMin(0.0);
-  ptr->setPeakHeightMax(200000.0);
-  ptr->setFWHMThreshold(0.0);
-  ptr->pickSpectrum(spectrum, picked_spectrum);
-  TEST_NOT_EQUAL(spectrum.size(), picked_spectrum.size())
-  TEST_EQUAL(picked_spectrum.size(), 6)
-  MSSpectrum::Iterator it = picked_spectrum.begin();
-  TEST_REAL_SIMILAR(it->getMZ(), 85.014)
-  TEST_REAL_SIMILAR(it->getIntensity(), 60754.7)
-  ++it;
-  TEST_REAL_SIMILAR(it->getMZ(), 86.0196)
-  TEST_REAL_SIMILAR(it->getIntensity(), 116036.0)
-  ++it;
-  TEST_REAL_SIMILAR(it->getMZ(), 112.033)
-  TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
-  ++it;
-  TEST_REAL_SIMILAR(it->getMZ(), 129.396)
-  TEST_REAL_SIMILAR(it->getIntensity(), 10575.5)
-  ++it;
-  TEST_REAL_SIMILAR(it->getMZ(), 130.081)
-  TEST_REAL_SIMILAR(it->getIntensity(), 31838.1)
-  ++it;
-  TEST_REAL_SIMILAR(it->getMZ(), 174.24)
-  TEST_REAL_SIMILAR(it->getIntensity(), 11731.3)
-
-  ptr->setPeakHeightMin(15000.0);
-  ptr->setPeakHeightMax(110000.0);
-  ptr->pickSpectrum(spectrum, picked_spectrum);
-  // With the new filters on peaks' heights, less peaks get picked.
-  TEST_EQUAL(picked_spectrum.size(), 3)
-  it = picked_spectrum.begin();
-  TEST_REAL_SIMILAR(it->getMZ(), 85.014)
-  TEST_REAL_SIMILAR(it->getIntensity(), 60754.7)
-  ++it;
-  TEST_REAL_SIMILAR(it->getMZ(), 112.033)
-  TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
-  ++it;
-  TEST_REAL_SIMILAR(it->getMZ(), 130.081)
-  TEST_REAL_SIMILAR(it->getIntensity(), 31838.1)
-
-  ptr->setFWHMThreshold(0.23);
-  ptr->pickSpectrum(spectrum, picked_spectrum);
-  // Filtering also on fwhm, even less peaks get picked.
-  TEST_EQUAL(picked_spectrum.size(), 2)
-  it = picked_spectrum.begin();
-  TEST_REAL_SIMILAR(it->getMZ(), 85.014)
-  TEST_REAL_SIMILAR(it->getIntensity(), 60754.7)
-  ++it;
-  TEST_REAL_SIMILAR(it->getMZ(), 112.033)
-  TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
-}
-END_SECTION
-
 START_SECTION(annotateSpectra())
 {
   ptr->setUseGauss(true);
@@ -604,6 +544,66 @@ START_SECTION(annotateSpectra())
   {
     STATUS("name: " << f.getMetaValue("transition_name") << "\t RT: " << f.getRT() << "\t MZ: " << f.getMZ())
   }
+}
+END_SECTION
+
+START_SECTION(pickSpectrum())
+{
+  MSSpectrum picked_spectrum;
+  spectrum.sortByPosition();
+
+  ptr->setUseGauss(true);
+  ptr->setGaussWidth(0.25);
+  ptr->setPeakHeightMin(0.0);
+  ptr->setPeakHeightMax(200000.0);
+  ptr->setFWHMThreshold(0.0);
+  ptr->pickSpectrum(spectrum, picked_spectrum);
+  TEST_NOT_EQUAL(spectrum.size(), picked_spectrum.size())
+  TEST_EQUAL(picked_spectrum.size(), 6)
+  MSSpectrum::Iterator it = picked_spectrum.begin();
+  TEST_REAL_SIMILAR(it->getMZ(), 85.014)
+  TEST_REAL_SIMILAR(it->getIntensity(), 60754.7)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 86.0196)
+  TEST_REAL_SIMILAR(it->getIntensity(), 116036.0)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 112.033)
+  TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 129.396)
+  TEST_REAL_SIMILAR(it->getIntensity(), 10575.5)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 130.081)
+  TEST_REAL_SIMILAR(it->getIntensity(), 31838.1)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 174.24)
+  TEST_REAL_SIMILAR(it->getIntensity(), 11731.3)
+
+  ptr->setPeakHeightMin(15000.0);
+  ptr->setPeakHeightMax(110000.0);
+  ptr->pickSpectrum(spectrum, picked_spectrum);
+  // With the new filters on peaks' heights, less peaks get picked.
+  TEST_EQUAL(picked_spectrum.size(), 3)
+  it = picked_spectrum.begin();
+  TEST_REAL_SIMILAR(it->getMZ(), 85.014)
+  TEST_REAL_SIMILAR(it->getIntensity(), 60754.7)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 112.033)
+  TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 130.081)
+  TEST_REAL_SIMILAR(it->getIntensity(), 31838.1)
+
+  ptr->setFWHMThreshold(0.23);
+  ptr->pickSpectrum(spectrum, picked_spectrum);
+  // Filtering also on fwhm, even less peaks get picked.
+  TEST_EQUAL(picked_spectrum.size(), 2)
+  it = picked_spectrum.begin();
+  TEST_REAL_SIMILAR(it->getMZ(), 85.014)
+  TEST_REAL_SIMILAR(it->getIntensity(), 60754.7)
+  ++it;
+  TEST_REAL_SIMILAR(it->getMZ(), 112.033)
+  TEST_REAL_SIMILAR(it->getIntensity(), 21941.9)
 }
 END_SECTION
 
@@ -737,34 +737,6 @@ START_SECTION(scoreSpectra())
 }
 END_SECTION
 
-START_SECTION(extractSpectra())
-{
-  ptr->setUseGauss(true);
-  ptr->setGaussWidth(0.25);
-  ptr->setRTWindow(30.0);
-  ptr->setMZTolerance(0.1);
-  ptr->setPeakHeightMin(15000.0);
-  ptr->setPeakHeightMax(110000.0);
-  ptr->setFWHMThreshold(0.23);
-  ptr->setTICWeight(1.0);
-  ptr->setFWHMWeight(1.0);
-  ptr->setSNRWeight(1.0);
-  ptr->setMinScore(15.0);
-
-  vector<MSSpectrum> extracted_spectra;
-  FeatureMap extracted_features;
-  ptr->extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features);
-
-  TEST_EQUAL(extracted_spectra.size(), extracted_features.size())
-
-  STATUS("Printing mapping of transition -> best spectrum:")
-  for (UInt i=0; i<extracted_spectra.size(); ++i)
-  {
-    STATUS(extracted_spectra[i].getName() << "\t" << extracted_features[i].getIntensity())
-  }
-}
-END_SECTION
-
 START_SECTION(selectSpectra())
 {
   ptr->setUseGauss(true);
@@ -826,6 +798,34 @@ START_SECTION(selectSpectra())
   {
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= ptr->getMinScore(), true)
+  }
+}
+END_SECTION
+
+START_SECTION(extractSpectra())
+{
+  ptr->setUseGauss(true);
+  ptr->setGaussWidth(0.25);
+  ptr->setRTWindow(30.0);
+  ptr->setMZTolerance(0.1);
+  ptr->setPeakHeightMin(15000.0);
+  ptr->setPeakHeightMax(110000.0);
+  ptr->setFWHMThreshold(0.23);
+  ptr->setTICWeight(1.0);
+  ptr->setFWHMWeight(1.0);
+  ptr->setSNRWeight(1.0);
+  ptr->setMinScore(15.0);
+
+  vector<MSSpectrum> extracted_spectra;
+  FeatureMap extracted_features;
+  ptr->extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features);
+
+  TEST_EQUAL(extracted_spectra.size(), extracted_features.size())
+
+  STATUS("Printing mapping of transition -> best spectrum:")
+  for (UInt i=0; i<extracted_spectra.size(); ++i)
+  {
+    STATUS(extracted_spectra[i].getName() << "\t" << extracted_features[i].getIntensity())
   }
 }
 END_SECTION

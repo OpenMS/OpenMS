@@ -127,22 +127,6 @@ public:
     void getDefaultParameters(Param& params);
 
     /**
-      @brief Picks a spectrum's peaks and saves them in picked_spectrum.
-
-      The spectrum is first smoothed with a Gaussian filter (default) or using the
-      Savitzky-Golay method.
-      For these filters it is possible to set parameters like gauss_width_,
-      sgolay_frame_length_ and sgolay_polynomial_order_ through their setters.
-      The peak picking is executed with PeakPickerHiRes. It's possible to set the
-      signal_to_noise_ parameter.
-      Peaks are then filtered by their heights and FWHM values (setters are provided).
-
-      @param[in] spectrum The input spectrum
-      @param[out] picked_spectrum A spectrum containing only the picked peaks
-    */
-    void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum);
-
-    /**
       @brief Filters and annotates those spectra that could potentially match the
       transitions of the target list.
 
@@ -163,6 +147,22 @@ public:
       std::vector<MSSpectrum>& annotated_spectra,
       FeatureMap& features
     );
+
+    /**
+      @brief Picks a spectrum's peaks and saves them in picked_spectrum.
+
+      The spectrum is first smoothed with a Gaussian filter (default) or using the
+      Savitzky-Golay method.
+      For these filters it is possible to set parameters like gauss_width_,
+      sgolay_frame_length_ and sgolay_polynomial_order_ through their setters.
+      The peak picking is executed with PeakPickerHiRes. It's possible to set the
+      signal_to_noise_ parameter.
+      Peaks are then filtered by their heights and FWHM values (setters are provided).
+
+      @param[in] spectrum The input spectrum
+      @param[out] picked_spectrum A spectrum containing only the picked peaks
+    */
+    void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum);
 
     /**
       @brief Assigns a score to the spectra given an input and saves them in scored_spectra.
@@ -187,28 +187,6 @@ public:
       const std::vector<MSSpectrum>& picked_spectra,
       FeatureMap& features,
       std::vector<MSSpectrum>& scored_spectra
-    );
-
-    /**
-      @brief Combines the functionalities given by all the other methods implemented
-      in this class.
-
-      The method expects an experiment and a target list in input,
-      and constructs the extracted spectra and features.
-      For each transition of the target list, the method tries to find its best
-      spectrum match. A FeatureMap is also filled with informations about the
-      extracted spectra.
-
-      @param[in] experiment The input experiment
-      @param[in] targeted_exp The target list
-      @param[out] extracted_spectra The spectra related to the transitions
-      @param[out] extracted_features The features related to the output spectra
-    */
-    void extractSpectra(
-      const MSExperiment& experiment,
-      const TargetedExperiment& targeted_exp,
-      std::vector<MSSpectrum>& extracted_spectra,
-      FeatureMap& extracted_features
     );
 
     /**
@@ -237,6 +215,28 @@ public:
     void selectSpectra(
       const std::vector<MSSpectrum>& scored_spectra,
       std::vector<MSSpectrum>& selected_spectra
+    );
+
+    /**
+      @brief Combines the functionalities given by all the other methods implemented
+      in this class.
+
+      The method expects an experiment and a target list in input,
+      and constructs the extracted spectra and features.
+      For each transition of the target list, the method tries to find its best
+      spectrum match. A FeatureMap is also filled with informations about the
+      extracted spectra.
+
+      @param[in] experiment The input experiment
+      @param[in] targeted_exp The target list
+      @param[out] extracted_spectra The spectra related to the transitions
+      @param[out] extracted_features The features related to the output spectra
+    */
+    void extractSpectra(
+      const MSExperiment& experiment,
+      const TargetedExperiment& targeted_exp,
+      std::vector<MSSpectrum>& extracted_spectra,
+      FeatureMap& extracted_features
     );
 
 protected:
