@@ -127,13 +127,13 @@ namespace OpenMS
     {
       feature_name = line[headers["feature_name"]];
     }
-    aqm.setISName(IS_name);
+    aqm.setFeatureName(feature_name);
     String IS_name = "";
     if (headers["IS_name"] != -1)
     {
       IS_name = line[headers["IS_name"]];
     }
-    aqm.setFeatureName(feature_name);
+    aqm.setISName(IS_name);
     // aqm.setComponentISFeatureNames(component_name, IS_name, feature_name);
 
     // LODs
