@@ -87,7 +87,6 @@ namespace OpenMS
   )
   {     
     // initialize QC variables
-    std::map<String,MRMFeatureQC>::iterator feature_qc_it;
     FeatureMap features_filtered;
 
     // bool qc_pass;
