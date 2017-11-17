@@ -166,23 +166,7 @@ namespace OpenMS
     //Potential Optimizations: create a map for each unknown FeatureMap
     // to reduce multiple loops
 
-    // initialize all quant_method variables
-    std::map<String,AbsoluteQuantitationMethod>::iterator quant_methods_it;
-    String quant_component_name; //i.e., quant_method transition_id
-    String quant_IS_component_name; //i.e., quant_method internal standard transition_id
-    String quant_feature_name; //i.e., quant_method peak_apex_int or peak_area
-    String transformation_model;
-    Param transformation_model_params;
-
-    // initialize all unknown variables
-    String component_name; //i.e., transition_id
-    String IS_component_name; //i.e., internal standard transition_id
-    String component_group_name; //i.e., peptideRef
-    double calculated_concentration;
-    String concentration_units;
-
     // initalize all other variables
-    bool IS_found;
     Feature empty_feature;
     size_t IS_component_it, IS_component_group_it;
 
@@ -193,24 +177,26 @@ namespace OpenMS
     // iterate through each component_group/feature     
     for (size_t feature_it = 0; feature_it < unknowns.size(); ++feature_it)
     {
-      component_group_name = (String)unknowns[feature_it].getMetaValue("PeptideRef");
+      String component_group_name = (String)unknowns[feature_it].getMetaValue("PeptideRef");
       Feature unknowns_quant_feature;
 
       // iterate through each component/sub-feature
       for (size_t sub_it = 0; sub_it < unknowns[feature_it].getSubordinates().size(); ++sub_it)
       {
-        component_name = (String)unknowns[feature_it].getSubordinates()[sub_it].getMetaValue("native_id");  
+        String component_name = (String)unknowns[feature_it].getSubordinates()[sub_it].getMetaValue("native_id");  
 
         // apply the calibration curve to components that are in the quant_method
         if (quant_methods_.count(component_name)>0)
         { 
-          calculated_concentration = 0.0;    
-          quant_methods_it = quant_methods_.find(component_name);
-          quant_methods_it->second.getComponentISFeatureNames(quant_component_name,quant_IS_component_name,quant_feature_name);
+          double calculated_concentration = 0.0;    
+          std::map<String,AbsoluteQuantitationMethod>::iterator quant_methods_it = quant_methods_.find(component_name);
+          String quant_component_name = quant_methods_it->second.getComponentName();
+          String quant_IS_component_name = quant_methods_it->second.getISFeatureName();
+          String quant_feature_name = quant_methods_it->second.getFeatureNames();
           if (quant_IS_component_name != "")
           {
             // look up the internal standard for the component
-            IS_found = false;
+            bool IS_found = false;
             // Optimization: 90% of the IS will be in the same component_group/feature
             for (size_t is_sub_it = 0; is_sub_it < unknowns[feature_it].getSubordinates().size(); ++is_sub_it)
             {
@@ -248,7 +234,8 @@ namespace OpenMS
             }
             if (IS_found)
             {                
-              quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
+              String transformation_model = quant_methods_it->second.getTransformationModel();
+              Param transformation_model_params quant_methods_it->second.getTransformationModelParams();
               calculated_concentration = applyCalibration(
                 unknowns[feature_it].getSubordinates()[sub_it],
                 unknowns[IS_component_group_it].getSubordinates()[IS_component_it],
@@ -262,7 +249,8 @@ namespace OpenMS
           }
           else
           {
-            quant_methods_it->second.getTransformationModel(transformation_model,transformation_model_params);
+            String transformation_model = quant_methods_it->second.getTransformationModel();
+            Param transformation_model_params quant_methods_it->second.getTransformationModelParams();
             calculated_concentration = applyCalibration(
               unknowns[feature_it].getSubordinates()[sub_it],
               empty_feature,
@@ -271,7 +259,7 @@ namespace OpenMS
 
           // add new metadata (calculated_concentration, concentration_units) to the component
           unknowns[feature_it].getSubordinates()[sub_it].setMetaValue("calculated_concentration",calculated_concentration);
-          quant_methods_it->second.getConcentrationUnits(concentration_units);
+          String concentration_units = quant_methods_it->second.getConcentrationUnits();
           unknowns[feature_it].getSubordinates()[sub_it].setMetaValue("concentration_units",concentration_units);
           // calculate the bias?
         }
