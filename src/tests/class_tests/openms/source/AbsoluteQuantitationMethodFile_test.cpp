@@ -185,22 +185,16 @@ START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers
 
   aqmf.parseLine_(line1, headers, params_headers, aqm);
 
-  // String component_name, IS_name, feature_name;
-  // aqm.getComponentISFeatureNames(component_name, IS_name, feature_name);
   String component_name = aqm.getComponentName();
   String IS_name = aqm.getISName();
   String feature_name = aqm.getFeatureName();
   TEST_EQUAL(component_name, "component1");
   TEST_EQUAL(IS_name, "IS1");
   TEST_EQUAL(feature_name, "feature1");
-  // double llod, ulod;
-  // aqm.getLOD(llod, ulod);
   double llod = aqm.getLLOD();
   double ulod = aqm.getULOD();
   TEST_REAL_SIMILAR(llod, 0.0);
   TEST_REAL_SIMILAR(ulod, 0.0);
-  // double lloq, uloq;
-  // aqm.getLOQ(lloq, uloq);
   double lloq = aqm.getLLOQ();
   double uloq = aqm.getULOQ();
   TEST_REAL_SIMILAR(lloq, 2.0);
@@ -209,9 +203,6 @@ START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers
   TEST_EQUAL(concentration_units, "uM");  
   double actual_concentration = aqm.getActualConcentration();
   TEST_REAL_SIMILAR(actual_concentration, 1.0);
-  // int n_points;
-  // double correlation_coefficient;
-  // aqm.getStatistics(n_points, correlation_coefficient);
   int n_points = aqm.getNPoints();
   double correlation_coefficient = aqm.getCorrelationCoefficient();
   TEST_EQUAL(n_points, 5);
@@ -233,7 +224,6 @@ START_SECTION((void load(const String & filename, std::vector<AbsoluteQuantitati
 
   aqmf.load(OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_1.csv"), aqm_list);
   String component_name, IS_name, feature_name;
-  // aqm_list[0].getComponentISFeatureNames(component_name, IS_name, feature_name);
   component_name = aqm_list[0].getComponentName();
   IS_name = aqm_list[0].getISName();
   feature_name = aqm_list[0].getFeatureName();
@@ -249,14 +239,12 @@ START_SECTION((void load(const String & filename, std::vector<AbsoluteQuantitati
   TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),1.0);
   transformation_model_params.clear();
 
-  // aqm_list[1].getComponentISFeatureNames(component_name, IS_name, feature_name);
   component_name = aqm_list[1].getComponentName();
   IS_name = aqm_list[1].getISName();
   feature_name = aqm_list[1].getFeatureName();
   TEST_EQUAL(component_name, "component2");
   TEST_EQUAL(IS_name, "IS2");
   TEST_EQUAL(feature_name, "feature2");
-  // aqm_list[1].getTransformationModel(transformation_model, transformation_model_params);
   transformation_model = aqm_list[1].getTransformationModel();
   transformation_model_params = aqm_list[1].getTransformationModelParams();
   TEST_EQUAL(transformation_model, "TransformationModelLinear");
@@ -264,14 +252,12 @@ START_SECTION((void load(const String & filename, std::vector<AbsoluteQuantitati
   TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),2.0);
   transformation_model_params.clear();
   
-  // aqm_list[2].getComponentISFeatureNames(component_name, IS_name, feature_name);
   component_name = aqm_list[2].getComponentName();
   IS_name = aqm_list[2].getISName();
   feature_name = aqm_list[2].getFeatureName();
   TEST_EQUAL(component_name, "component3");
   TEST_EQUAL(IS_name, "IS3");
   TEST_EQUAL(feature_name, "feature3");
-  // aqm_list[2].getTransformationModel(transformation_model, transformation_model_params);
   transformation_model = aqm_list[2].getTransformationModel();
   transformation_model_params = aqm_list[2].getTransformationModelParams();
   TEST_EQUAL(transformation_model, "TransformationModelLinear");

@@ -72,22 +72,18 @@ public:
   /// LLOD and ULOD setter
   void setLLOD(const double& llod);
   void setULOD(const double& ulod);
-  void setLOD(const double& llod, const double& ulod);
 
   /// LLOD and ULOD getter
   double getLLOD();
   double getULOD();
-  void getLOD(double& llod, double& ulod);
   
   /// LLOQ and ULOQ setter
   void setLLOQ(const double& lloq);
   void setULOQ(const double& uloq);
-  void setLOQ(const double& lloq, const double& uloq);
 
   /// LLOQ and ULOQ getter
   double getLLOQ();
   double getULOQ();
-  void getLOQ(double& lloq, double& uloq);
 
   /**
   @brief This function checks if the value is within the
@@ -107,13 +103,11 @@ public:
   void setComponentName(const String& component_name);
   void setISName(const String& IS_name);
   void setFeatureName(const String& feature_name);
-  void setComponentISFeatureNames(const String& component_name, const String& IS_name, const String& feature_name);
 
   /// component_name, IS_name, and feature_name getter
   String getComponentName();
   String getISName();
   String getFeatureName();
-  void getComponentISFeatureNames(String& component_name, String& IS_name, String& feature_name);
   
   /// concentration_units setter
   void setConcentrationUnits(const String& concentration_units);
@@ -122,16 +116,12 @@ public:
   String getConcentrationUnits();
   
   /// transformation_model and transformation_model_params setter
-  //DEPRECATED
   void setTransformationModel(const String& transformation_model);
   void setTransformationModelParams(const Param& transformation_model_params);
-  // void setTransformationModel(const String& transformation_model, const Param& transformation_model_params);
 
   /// transformation_model and transformation_model_params getter
   String getTransformationModel();
   Param getTransformationModelParams();
-  //DEPRECATED
-  // void getTransformationModel(String& transformation_model, Param& transformation_model_params);
 
   /// actual concentration setter
   void setActualConcentration(const double& actual_concentration);
@@ -142,12 +132,10 @@ public:
   /// statistics setter
   void setNPoints(const int& n_points);
   void setCorrelationCoefficient(const double& correlation_coefficient);
-  void setStatistics(const int& n_points, const double& correlation_coefficient);
   
   /// statistics getter
   int getNPoints();
   double getCorrelationCoefficient();
-  void getStatistics(int& n_points, double& correlation_coefficient);
 
   /**
   @brief This function fits the transformation model with the data

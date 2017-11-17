@@ -70,13 +70,7 @@ namespace OpenMS
   {
     ulod_ = ulod;
   }
-  
-  void AbsoluteQuantitationMethod::setLOD(const double& llod, const double& ulod)
-  {
-    llod_ = llod;
-    ulod_ = ulod;
-  }
-  
+    
   double AbsoluteQuantitationMethod::getLLOD()
   {
     return ulod_;
@@ -87,12 +81,6 @@ namespace OpenMS
     return ulod_;
   }
   
-  void AbsoluteQuantitationMethod::getLOD(double& llod, double& ulod)
-  {
-    llod = llod_;
-    ulod = ulod_;
-  }
-  
   void AbsoluteQuantitationMethod::setLLOQ(const double& lloq)
   {
     lloq_ = lloq;
@@ -100,12 +88,6 @@ namespace OpenMS
   
   void AbsoluteQuantitationMethod::setULOQ(const double& uloq)
   {
-    uloq_ = uloq;
-  }
-  
-  void AbsoluteQuantitationMethod::setLOQ(const double& lloq, const double& uloq)
-  {
-    lloq_ = lloq;
     uloq_ = uloq;
   }
   
@@ -119,27 +101,7 @@ namespace OpenMS
     return uloq_;
   }
   
-  void AbsoluteQuantitationMethod::getLOQ(double& lloq, double& uloq)
-  {
-    lloq = lloq_;
-    uloq = uloq_;
-  }
-  
-  //Component, IS, and Feature name setters
-  void AbsoluteQuantitationMethod::setComponentISFeatureNames(const String& component_name, const String& IS_name, const String& feature_name)
-  {
-    component_name_ = component_name;
-    IS_name_ = IS_name;
-    feature_name_ = feature_name;
-  }
-  
-  void AbsoluteQuantitationMethod::getComponentISFeatureNames(String& component_name, String& IS_name, String& feature_name)
-  {
-    component_name = component_name_;
-    IS_name = IS_name_;
-    feature_name = feature_name_;
-  } 
-  
+  //Component, IS, and Feature name setters  
   void AbsoluteQuantitationMethod::setFeatureName(const String& feature_name)
   {
     feature_name_ = feature_name;
@@ -190,11 +152,6 @@ namespace OpenMS
   {
     transformation_model_params_ = transformation_model_params;
   }
-  // void AbsoluteQuantitationMethod::setTransformationModel(const String& transformation_model, const Param& transformation_model_params)
-  // {
-  //   transformation_model_ = transformation_model;
-  //   transformation_model_params_ = transformation_model_params;
-  // }
 
   String AbsoluteQuantitationMethod::getTransformationModel()
   {
@@ -205,13 +162,6 @@ namespace OpenMS
   {
     return transformation_model_params_;
   }
-
-  //DEPRECATED
-  // void AbsoluteQuantitationMethod::getTransformationModel(String& transformation_model, Param& transformation_model_params)
-  // {
-  //   transformation_model = transformation_model_;
-  //   transformation_model_params = transformation_model_params_;
-  // }
   
   //Actual concentration getter and setter
   void AbsoluteQuantitationMethod::setActualConcentration(const double& actual_concentration)
@@ -233,11 +183,6 @@ namespace OpenMS
   {
     correlation_coefficient_ = correlation_coefficient;
   }
-  void AbsoluteQuantitationMethod::setStatistics(const int& n_points, const double& correlation_coefficient)
-  {
-    n_points_ = n_points;
-    correlation_coefficient_ = correlation_coefficient;
-  }
   
   int AbsoluteQuantitationMethod::getNPoints()
   {
@@ -246,11 +191,6 @@ namespace OpenMS
   double AbsoluteQuantitationMethod::getCorrelationCoefficient()
   {
     return correlation_coefficient_;
-  }
-  void AbsoluteQuantitationMethod::getStatistics(int& n_points, double& correlation_coefficient)
-  {
-    n_points = n_points_;
-    correlation_coefficient = correlation_coefficient_;
   }
 
   //Non getter/setter methods

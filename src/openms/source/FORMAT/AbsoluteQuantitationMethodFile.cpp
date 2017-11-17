@@ -134,7 +134,6 @@ namespace OpenMS
       IS_name = line[headers["IS_name"]];
     }
     aqm.setISName(IS_name);
-    // aqm.setComponentISFeatureNames(component_name, IS_name, feature_name);
 
     // LODs
     double llod = 0.0;
@@ -149,7 +148,6 @@ namespace OpenMS
       ulod = (line[headers["ulod"]].empty()) ? 0.0 : std::stod(line[headers["ulod"]]);
     }
     aqm.setULOD(ulod);
-    // aqm.setLOD(llod,ulod);
 
     // LOQs
     double lloq = 0.0;
@@ -164,7 +162,6 @@ namespace OpenMS
       uloq = (line[headers["uloq"]].empty()) ? 0.0 : std::stod(line[headers["uloq"]]);
     }
     aqm.setULOQ(uloq);
-    // aqm.setLOQ(lloq,uloq);
 
     // actual concentration
     double actual_concentration = 0.0;
@@ -195,7 +192,6 @@ namespace OpenMS
       correlation_coefficient = (line[headers["correlation_coefficient"]].empty()) ? 0.0 : std::stod(line[headers["correlation_coefficient"]]);
     }
     aqm.setCorrelationCoefficient(correlation_coefficient);
-    // aqm.setStatistics(n_points, correlation_coefficient);
 
     // transformation model
     String transformation_model = "";

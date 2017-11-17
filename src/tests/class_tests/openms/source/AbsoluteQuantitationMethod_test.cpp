@@ -76,15 +76,12 @@ START_SECTION((bool checkLOD(const double & value)))
   // tests
   aqm.setLLOD(0.0);
   aqm.setULOD(4.0);
-  // aqm.setLOD(0.0,4.0);
   TEST_EQUAL(aqm.checkLOD(value),true);
   aqm.setLLOD(0.0);
   aqm.setULOD(1.0);
-  // aqm.setLOD(0.0,1.0);
   TEST_EQUAL(aqm.checkLOD(value),false);
   aqm.setLLOD(3.0);
   aqm.setULOD(4.0);
-  // aqm.setLOD(3.0,4.0);
   TEST_EQUAL(aqm.checkLOD(value),false);
 END_SECTION
 
@@ -96,15 +93,12 @@ START_SECTION((bool checkLOQ(const double & value)))
   // tests
   aqm.setLLOQ(0.0);
   aqm.setULOQ(4.0);
-  // aqm.setLOQ(0.0,4.0);
   TEST_EQUAL(aqm.checkLOQ(value),true);
   aqm.setLLOQ(0.0);
   aqm.setULOQ(1.0);
-  // aqm.setLOQ(0.0,1.0);
   TEST_EQUAL(aqm.checkLOQ(value),false);
   aqm.setLLOQ(3.0);
   aqm.setULOQ(4.0);
-  // aqm.setLOQ(3.0,4.0);
   TEST_EQUAL(aqm.checkLOQ(value),false);
 END_SECTION
 
