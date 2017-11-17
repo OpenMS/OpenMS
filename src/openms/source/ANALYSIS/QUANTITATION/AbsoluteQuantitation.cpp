@@ -77,7 +77,7 @@ namespace OpenMS
     quant_methods_.clear();
     for (size_t i = 0; i < quant_methods.size(); i++)
     {
-      String component_name = quant_methods[i].getComponenName();
+      String component_name = quant_methods[i].getComponentName();
       quant_methods_[component_name] = quant_methods[i];
     }
   }
