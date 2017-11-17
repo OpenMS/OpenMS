@@ -18,6 +18,7 @@ OpenSwathWorkflow.cpp
 ChromatogramExtractor.cpp
 ChromatogramExtractorAlgorithm.cpp
 SpectrumAddition.cpp
+MRMFeatureSelector.cpp
 MRMTransitionGroupPicker.cpp
 DIAHelper.cpp
 DIAScoring.cpp
