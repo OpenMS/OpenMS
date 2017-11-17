@@ -71,6 +71,12 @@ namespace OpenMS
     ulod_ = ulod;
   }
   
+  void AbsoluteQuantitationMethod::setLOD(const double& llod, const double& ulod)
+  {
+    llod_ = llod;
+    ulod_ = ulod;
+  }
+  
   void AbsoluteQuantitationMethod::getLOD(double& llod, double& ulod)
   {
     llod = llod_;
