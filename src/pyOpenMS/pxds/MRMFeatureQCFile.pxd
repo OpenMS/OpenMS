@@ -1,5 +1,5 @@
 from String cimport *
-from MRMFeatureQC import *
+from MRMFeatureQC cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQCFile.h>" namespace "OpenMS":
 
