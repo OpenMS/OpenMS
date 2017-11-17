@@ -226,15 +226,14 @@ namespace seqan
     KeyWordLengthType max_depth_decrease; // maximum loss in depths of traversed nodes (both while reporting hits and changing its own state)
     KeyWordLengthType ambAA_seen;         // number of ambAA's which the spawn has seen
 
-    private:
-	    Spawn();
-
     public:
 	    Spawn(TVert init_state, KeyWordLengthType current_depth, KeyWordLengthType aaa_seen) :
 		    current_state(init_state),
 		    max_depth_decrease(current_depth),
         ambAA_seen(aaa_seen)
 	    {}	
+      Spawn() = default;
+      Spawn& operator=(const Spawn&) = default;
   };
 
   template <typename TNeedle>
@@ -301,7 +300,6 @@ namespace seqan
     Holder<TNeedle> data_host;                    // holds needles, i.e. Peptides
     TGraph data_graph;                            // regular trie data
     String<String<TSize> > data_map_outputNodes; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
-    String<TVert> data_map_failurelink;                 // trie suffix links
     String<KeyWordLengthType> data_node_depth;    // depths of each graph node
 
 #ifndef NDEBUG
@@ -403,7 +401,7 @@ namespace seqan
     typedef typename Iterator<TGraph, EdgeIterator>::Type TEdgeIterator;
     TEdgeIterator itEd(me.data_graph);
     //int count_prop = 0;
-    for (;!atEnd(itEd);goNext(itEd)) {
+    for (; !atEnd(itEd); goNext(itEd)) {
       //             property,  vertex            , value
       assignProperty(parentMap, targetVertex(itEd), sourceVertex(itEd));
       assignProperty(parentCharMap, targetVertex(itEd), label(itEd));
@@ -417,8 +415,10 @@ namespace seqan
     // Build AC
     TVert root = getRoot(me.data_graph);
     // properties....
-    resizeVertexMap(me.data_graph, me.data_map_failurelink);  // suffix links
-    assignProperty(me.data_map_failurelink, root, nilVal);
+    String<TVert> data_map_failurelink;                 // trie suffix links (temporary only)
+    resizeVertexMap(me.data_graph, data_map_failurelink);  
+    assignProperty(data_map_failurelink, root, nilVal);
+
     resizeVertexMap(me.data_graph, me.data_node_depth);  // node depths
     assignProperty(me.data_node_depth, root, 0);
 
@@ -426,9 +426,17 @@ namespace seqan
     typedef typename Iterator<TGraph, BfsIterator>::Type TBfsIterator;
     TBfsIterator it(me.data_graph, root);
     //std::map<int, int> connectivity;
-    goNext(it); // skip root
+    typedef typename Size<AAcid>::Type TSize;
+    TSize idxAAFirst, idxAALast; // range of unambiguous AAcids: AAcid(idx)
+    _getSpawnRange('X', idxAAFirst, idxAALast);
+    // create nextMove function for root (point to itself)
+    for (TSize idx = idxAAFirst; idx <= idxAALast; ++idx)
+    {
+      if (getSuccessor(me.data_graph, root, AAcid(idx)) == nilVal) addEdge(me.data_graph, root, root, AAcid(idx));
+    }
 
-    for (;!atEnd(it);goNext(it))
+    goNext(it); // skip root
+    for (; !atEnd(it); goNext(it))
     {
       const typename GetValue<TBfsIterator>::Type itval = *it; // dereferencing *it will give an index into the property array!
 
@@ -446,16 +454,17 @@ namespace seqan
       // sigma: edge label
       TAlphabet sigma = getProperty(parentCharMap, itval);
       // take suffix link of parent and try to go down with sigma
-      TVert down = getProperty(me.data_map_failurelink, parent);
+      TVert down = getProperty(data_map_failurelink, parent);
       while ((down != nilVal) &&
         (getSuccessor(me.data_graph, down, sigma) == nilVal))
       {
-        down = getProperty(me.data_map_failurelink, down);
+        down = getProperty(data_map_failurelink, down);
       }
       if (down != nilVal)
       { // we found an edge to follow down
-        assignProperty(me.data_map_failurelink, itval, getSuccessor(me.data_graph, down, sigma));
-        String<TPosition> endPositions = getProperty(me.data_map_outputNodes, getProperty(me.data_map_failurelink, itval));
+        assignProperty(data_map_failurelink, itval, getSuccessor(me.data_graph, down, sigma));
+        // output function
+        String<TPosition> endPositions = getProperty(me.data_map_outputNodes, getProperty(data_map_failurelink, itval));
         if (!empty(endPositions))
         {
           // get current end positions (full path) ...
@@ -471,9 +480,19 @@ namespace seqan
         }
       }
       else { // no suffix exists: point suffix link of current node to root
-        assignProperty(me.data_map_failurelink, itval, root);
+        assignProperty(data_map_failurelink, itval, root);
       }
-
+      
+      // create nextMove function
+      for (TSize idx = idxAAFirst; idx <= idxAALast; ++idx)
+      {
+        if (getSuccessor(me.data_graph, itval, AAcid(idx)) == nilVal)
+        { // no child:
+          const TVert& target = getSuccessor(me.data_graph, getProperty(data_map_failurelink, itval) , AAcid(idx));
+          addEdge(me.data_graph, itval, target, AAcid(idx));
+        }
+        
+      }
     }
 
     //sw.stop();
@@ -493,7 +512,6 @@ namespace seqan
     SEQAN_ASSERT_NOT(empty(needle));
     setValue(me.data_host, needle);
     clear(me.data_graph);
-    clear(me.data_map_failurelink);
     clear(me.data_map_outputNodes);
     _createAcTrie(me);
 
@@ -552,8 +570,6 @@ namespace seqan
     return false;
   }
 
-  struct FixedAASpec {};
-
   /**
    @brief given an ambAA @p c, return a range of AA's (including @p idxLast) which need to be spawned.
 
@@ -595,14 +611,14 @@ namespace seqan
     typedef typename Pattern<TNeedle, FuzzyAC>::TVert TVert;
     TSize idxFirst, idxLast;
     _getSpawnRange(c, idxFirst, idxLast);
-    for (TSize idx = idxFirst; idx <= idxLast; ++idx)
+    for (; idxFirst <= idxLast; ++idxFirst)
     {
-      TVert node_spawn = dh.data_lastState; 
-      if (_consumeChar(me, dh, node_spawn, AAcid(idx), Tag<FixedAASpec>())) // call this using master's _consumeChar(), since it might pass through root (which is allowed), but should not die.
+      TVert node_spawn = dh.data_lastState; // last state of master
+      if (_consumeChar(me, dh, node_spawn, AAcid(idxFirst))) // call this using master's _consumeChar(), since it might pass through root (which is allowed), but should not die.
       { // spawn from current position; push front to flag as 'processed' for the current input char
         // depths is 'current_depth - 1' (must be computed here!); ambAA-count: fixed to 1 (first AAA, since spawned from master)
         dh.spawns.push_front(Spawn<TNeedle>(node_spawn, getProperty(me.data_node_depth, node_spawn) - 1, 1));
-        DEBUG_ONLY std::cout << "  Init Spawn from Master consuming '" << AAcid(idx) << "\n";
+        DEBUG_ONLY std::cout << "  Init Spawn from Master consuming '" << AAcid(idxFirst) << "\n";
       }
     }
   }
@@ -625,64 +641,19 @@ namespace seqan
     {
       Spawn<TNeedle> spawn2 = spawn; // a potential spawn
       //std::cout << "spawn aa is " << AAcid(idx) << "\n";
-      if (_consumeChar(me, dh, spawn2, AAcid(idx), Tag<FixedAASpec>()))
+      if (_consumeChar(me, dh, spawn2, AAcid(idx)))
       {
         // Spawn2 inherits the depths from its parent
         dh.spawns.push_front(spawn2);
         DEBUG_ONLY std::cout << "  Spawn from Spawn '" << getPath(me, spawn2.current_state) << "' created at d: " << int(spawn2.max_depth_decrease) << " AA-seen: " << int(spawn2.ambAA_seen) << "\n";
       }
     }
-    bool r = _consumeChar(me, dh, spawn, AAcid(idxFirst), Tag<FixedAASpec>());
+    bool r = _consumeChar(me, dh, spawn, AAcid(idxFirst));
     if (r)
     {
       DEBUG_ONLY std::cout << "  Spawn from Spawn '" << getPath(me, spawn.current_state) << "' created at d: " << int(spawn.max_depth_decrease) << " AA-seen: " << int(spawn.ambAA_seen) << "\n";
     }
     return r;
-  }
-
-  /// ###  go down  ####
-  template<class TNeedle> inline bool goDown(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert& current, const AAcid c)
-  { 
-    typename Pattern<TNeedle, FuzzyAC>::TVert successor = getSuccessor(me.data_graph, current, c);
-    if (successor == me.nilVal) return false;
-    //DEBUG_ONLY std::cout << "master/init-spawn matched '" << c << "'\n";
-    current = successor;
-    return true;
-  }
-  template<class TNeedle> inline bool goDown(const Pattern<TNeedle, FuzzyAC>& me, Spawn<TNeedle>& spawn, const AAcid c)
-  {
-    typename Pattern<TNeedle, FuzzyAC>::TVert successor = getSuccessor(me.data_graph, spawn.current_state, c);
-    if (successor == me.nilVal) return false;
-    //DEBUG_ONLY std::cout << "spawn matched '" << c << "' AA-seen: " << int(spawn.ambAA_seen) << "\n";
-    spawn.current_state = successor;
-    return true;
-  }
-
-  /// ###  go up  ####
-  template<class TNeedle> inline bool goUp(const Pattern<TNeedle, FuzzyAC>& me, Spawn<TNeedle>& spawn)
-  {
-    //if (atRoot(me, spawn)) return false; // cannot happen -- spawn would have died before
-    const typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.data_map_failurelink, spawn.current_state);
-    // check if spawn is allowed to loose that many chars in front
-    typedef typename Pattern<TNeedle, FuzzyAC>::KeyWordLengthType KeyWordLengthType;
-    const KeyWordLengthType depthDiff = getProperty(me.data_node_depth, spawn.current_state) - getProperty(me.data_node_depth, suffix_node);
-    if (depthDiff > spawn.max_depth_decrease)
-    {
-      //DEBUG_ONLY std::cout << "spawn died while going up (AAA out of scope)\n";
-      spawn.current_state = getRoot(me.data_graph); // reset to root -- indicating failure!
-      return false; // this spawn just threw away its reason of existance (i.e. the AAA). Die!
-    }
-    spawn.max_depth_decrease -= depthDiff;
-    spawn.current_state = suffix_node; // no need to check for nilVal, since we cannot reach root (depths runs out before!)
-    return true;
-  }
-  template<class TNeedle> inline bool goUp(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert& current_state)
-  {
-    if (atRoot(me, current_state)) return false;
-    // data_map_failurelink points to root or another node. Only root itself points to me.nilVal
-    typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.data_map_failurelink, current_state);
-    current_state = suffix_node;
-    return true;
   }
 
 #ifdef NDEBUG  
@@ -704,31 +675,25 @@ namespace seqan
   }
 #endif
 
-  template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, FuzzyAC>& me, Spawn<TNeedle>& spawn) {return spawn.current_state == getRoot(me.data_graph);}
-  template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert& current_state)
-  {
-    //DEBUG_ONLY std::cout << "master/test remains at root\n";
-    return current_state == getRoot(me.data_graph);
-  }
-
   template<class TNeedle> inline void addHits(const Pattern<TNeedle, FuzzyAC>& me, PatternAuxData<TNeedle>& dh, Spawn<TNeedle>& spawn)
   {
+  // TODO check if at root and return immediately?
     typedef typename Pattern<TNeedle, FuzzyAC>::TSize TSize;
-    String<TSize> needle_hits = getProperty(me.data_map_outputNodes, spawn.current_state);
+    const String<TSize>& needle_hits = getProperty(me.data_map_outputNodes, spawn.current_state);
     //DEBUG_ONLY std::cout << "spawn at path: " << getPath(me, spawn.current_state) << "\n";
-    if (length(needle_hits) > 0)
+    if (length(needle_hits))
     {
       int path_length = getProperty(me.data_node_depth, spawn.current_state); // == length of current path to spawn
       int unambiguous_suffix_length = path_length - spawn.max_depth_decrease; // == length of suffix peptide which does not contain AAA
       DEBUG_ONLY std::cout << "  spawn adding hits which are at least " << unambiguous_suffix_length << " chars long (thus contain the AAA).\n";
 
       // but only report those which contain the AAA
-      for (int i = 0; i < (int)length(needle_hits); ++i)
+      for (const auto it = begin(needle_hits); it != end(needle_hits); ++it)
       {
-        int hit_length = (int)length(value(host(me), needle_hits[i]));
+        int hit_length = (int)length(value(host(me), *it));
         if (hit_length < unambiguous_suffix_length) break; // assumption: terminalStateMap is sorted by length of hits! ... uiuiui...
-        DEBUG_ONLY std::cout << "  add spawn hit: needle #" << needle_hits[i] << " as " << (value(host(me), needle_hits[i])) << "\n";
-        append(dh.hits_endPositions, needle_hits[i]); // append hits which still contain the AAA
+        DEBUG_ONLY std::cout << "  add spawn hit: needle #" << needle_hits[i] << " as " << (value(host(me), *it)) << "\n";
+        append(dh.hits_endPositions, *it); // append hits which still contain the AAA
       }
     }
   }
@@ -736,7 +701,7 @@ namespace seqan
   {
     typedef typename Pattern<TNeedle, FuzzyAC>::TSize TSize;
     //DEBUG_ONLY std::cout << "master at path: " << getPath(me, current_state) << "\n";
-    String<TSize> needle_hits = getProperty(me.data_map_outputNodes, current_state);
+    const String<TSize>& needle_hits = getProperty(me.data_map_outputNodes, current_state);
     if (length(needle_hits))
     {
       DEBUG_ONLY std::cout << "master's new hits: total " << length(needle_hits) << " hits\n";
@@ -753,30 +718,51 @@ namespace seqan
 
      @return False if it reached the 'root', true otherwise
    */
-  template <typename TNeedle, typename TWalker>
+  template <typename TNeedle>
   inline bool _consumeChar(const Pattern<TNeedle, FuzzyAC>& me,
                            PatternAuxData<TNeedle>& dh,
-                           TWalker& walker, // a MasterVertex or Spawn
-                           const AAcid c,
-                           Tag<FixedAASpec> /*fixedAASpec*/)
+                           typename Pattern<TNeedle, FuzzyAC>::TVert& current,
+                           const AAcid c)
   {
     //DEBUG_ONLY std::cout << "consuming real char " << c << " ";
-
-    // if we cannot go down, but up is possible:
-    while ((!goDown(me, walker, c)) &&
-             goUp(me, walker)) // returns false when Spawn goes out of scope
-    { /* .. follow suffix links upwards */ }
-    if (atRoot(me, walker))
-    {
-      //DEBUG_ONLY std::cout << "fail\n";
-      return false;
-    }
-    else // found a successor
-    {
-      //DEBUG_ONLY std::cout << "ok\n";
-      addHits(me, dh, walker);
+    current = getSuccessor(me.data_graph, current, c);
+    assert(current != me.nilVal);
+    if (current != getRoot(me.data_graph)) {
+      addHits(me, dh, current);
       return true;
     }
+    return false;
+  }
+
+  template <typename TNeedle>
+  inline bool _consumeChar(const Pattern<TNeedle, FuzzyAC>& me,
+    PatternAuxData<TNeedle>& dh,
+    Spawn<TNeedle>& spawn,
+    const AAcid c)
+  {
+    //DEBUG_ONLY std::cout << "consuming real char " << c << " ";
+    typename Pattern<TNeedle, FuzzyAC>::TVert successor = getSuccessor(me.data_graph, spawn.current_state, c);
+    assert(successor != me.nilVal);
+    // check if prefix was lost
+    if (getProperty(me.data_node_depth, spawn.current_state) >= getProperty(me.data_node_depth, successor))
+    { // went at least one level up (and maybe one down again, hence equality)
+      typedef typename Pattern<TNeedle, FuzzyAC>::KeyWordLengthType KeyWordLengthType;
+      const KeyWordLengthType up_count = 1 + getProperty(me.data_node_depth, spawn.current_state) - getProperty(me.data_node_depth, successor);
+      // the +1 is not valid if we end up at root (but there, the spawn is dead anyway)
+      if (up_count > spawn.max_depth_decrease)
+      {
+        //DEBUG_ONLY std::cout << "spawn died while going up (AAA out of scope)\n";
+        //spawn.current_state = getRoot(me.data_graph); // reset to root -- not required
+        return false; // this spawn just threw away its reason of existance (i.e. the AAA). Die!
+      }
+      spawn.max_depth_decrease -= up_count;
+    }
+    spawn.current_state = successor;
+    if (spawn.current_state != getRoot(me.data_graph)) {
+      addHits(me, dh, spawn.current_state);
+      return true;
+    }
+    return false;
   }
 
   // 
@@ -796,7 +782,7 @@ namespace seqan
       return _createSecondarySpawns(me, dh, spawn, c); // child spawns are preprended to spawn list; returns if main spawn survived
     }
     // UNambiguous
-    return _consumeChar(me, dh, spawn, c, Tag<FixedAASpec>());
+    return _consumeChar(me, dh, spawn, c);
   }
 
   // This is called by the master thread only!
@@ -821,7 +807,7 @@ namespace seqan
     } // end: ambiguous
 
     // 'c' is UN-ambiguous
-    _consumeChar(me, dh, dh.data_lastState, c, Tag<FixedAASpec>()); // adds hits as well
+    _consumeChar(me, dh, dh.data_lastState, c); // adds hits as well
   }
 
 

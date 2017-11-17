@@ -39,13 +39,6 @@ using namespace OpenMS;
 using namespace std;
 
 
-namespace seqan
-{
-
-}
-
-
-
   PeptideIndexing::PeptideIndexing()
     : DefaultParamHandler("PeptideIndexing")
   {
