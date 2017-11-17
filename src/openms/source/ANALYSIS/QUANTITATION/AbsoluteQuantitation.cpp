@@ -191,7 +191,7 @@ namespace OpenMS
           double calculated_concentration = 0.0;    
           std::map<String,AbsoluteQuantitationMethod>::iterator quant_methods_it = quant_methods_.find(component_name);
           String quant_component_name = quant_methods_it->second.getComponentName();
-          String quant_IS_component_name = quant_methods_it->second.getISFeatureName();
+          String quant_IS_component_name = quant_methods_it->second.getISName();
           String quant_feature_name = quant_methods_it->second.getFeatureNames();
           if (quant_IS_component_name != "")
           {
