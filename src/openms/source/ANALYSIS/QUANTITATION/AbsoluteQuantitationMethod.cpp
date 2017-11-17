@@ -157,7 +157,7 @@ namespace OpenMS
     return transformation_model_;
   }
 
-  Param AbsoluteQuantitationMethod::getTransformationModel()
+  Param AbsoluteQuantitationMethod::getTransformationModelParams()
   {
     return transformation_model_params_;
   }
@@ -197,13 +197,11 @@ namespace OpenMS
   
   int AbsoluteQuantitationMethod::getNPoints()
   {
-    n_points = n_points_;
-    correlation_coefficient = correlation_coefficient_;
+    return n_points_;
   }
   double AbsoluteQuantitationMethod::getCorrelationCoefficient()
   {
-    n_points = n_points_;
-    correlation_coefficient = correlation_coefficient_;
+    return correlation_coefficient_;
   }
   void AbsoluteQuantitationMethod::getStatistics(int& n_points, double& correlation_coefficient)
   {
