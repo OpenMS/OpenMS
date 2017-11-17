@@ -191,14 +191,14 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   aqm.setConcentrationUnits("uM");
   quant_methods.push_back(aqm);  
   // component_2
-  aqm.setComponentName("component1");
+  aqm.setComponentName("component2");
   aqm.setISName("IS1");
   aqm.setFeatureName(feature_name); // test IS outside component_group
   aqm.setConcentrationUnits("uM");
   quant_methods.push_back(aqm); 
   // component_3
-  aqm.setComponentName("component1");
-  aqm.setISName("IS1");
+  aqm.setComponentName("component3");
+  aqm.setISName("IS3");
   aqm.setFeatureName(feature_name);
   aqm.setConcentrationUnits("uM");
   quant_methods.push_back(aqm); 
