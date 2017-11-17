@@ -185,15 +185,21 @@ START_SECTION((void quantifyComponents(std::vector<FeatureMap>& unknowns)))
   // set-up the quant_method map
   std::vector<AbsoluteQuantitationMethod> quant_methods;
   // component_1
-  aqm.setComponentISFeatureNames("component1","IS1",feature_name);
+  aqm.setComponentName("component1");
+  aqm.setISName("IS1");
+  aqm.setFeatureName(feature_name);
   aqm.setConcentrationUnits("uM");
   quant_methods.push_back(aqm);  
   // component_2
-  aqm.setComponentISFeatureNames("component2","IS1",feature_name); // test IS outside component_group
+  aqm.setComponentName("component1");
+  aqm.setISName("IS1");
+  aqm.setFeatureName(feature_name); // test IS outside component_group
   aqm.setConcentrationUnits("uM");
   quant_methods.push_back(aqm); 
   // component_3
-  aqm.setComponentISFeatureNames("component3","IS3",feature_name);
+  aqm.setComponentName("component1");
+  aqm.setISName("IS1");
+  aqm.setFeatureName(feature_name);
   aqm.setConcentrationUnits("uM");
   quant_methods.push_back(aqm); 
 
