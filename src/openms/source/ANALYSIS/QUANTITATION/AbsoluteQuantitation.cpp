@@ -200,7 +200,7 @@ namespace OpenMS
             // Optimization: 90% of the IS will be in the same component_group/feature
             for (size_t is_sub_it = 0; is_sub_it < unknowns[feature_it].getSubordinates().size(); ++is_sub_it)
             {
-              IS_component_name = (String)unknowns[feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");              
+              String IS_component_name = (String)unknowns[feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");              
               if (quant_IS_component_name == IS_component_name)
               {
                 IS_found = true;
@@ -217,7 +217,7 @@ namespace OpenMS
                 //iterate through each component/sub-feature
                 for (size_t is_sub_it = 0; is_sub_it < unknowns[is_feature_it].getSubordinates().size(); ++is_sub_it)
                 {
-                  IS_component_name = (String)unknowns[is_feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");                   
+                  String IS_component_name = (String)unknowns[is_feature_it].getSubordinates()[is_sub_it].getMetaValue("native_id");                   
                   if (quant_IS_component_name == IS_component_name)
                   {
                     IS_found = true;
@@ -235,7 +235,7 @@ namespace OpenMS
             if (IS_found)
             {                
               String transformation_model = quant_methods_it->second.getTransformationModel();
-              Param transformation_model_params quant_methods_it->second.getTransformationModelParams();
+              Param transformation_model_params = quant_methods_it->second.getTransformationModelParams();
               calculated_concentration = applyCalibration(
                 unknowns[feature_it].getSubordinates()[sub_it],
                 unknowns[IS_component_group_it].getSubordinates()[IS_component_it],
@@ -250,7 +250,7 @@ namespace OpenMS
           else
           {
             String transformation_model = quant_methods_it->second.getTransformationModel();
-            Param transformation_model_params quant_methods_it->second.getTransformationModelParams();
+            Param transformation_model_params = quant_methods_it->second.getTransformationModelParams();
             calculated_concentration = applyCalibration(
               unknowns[feature_it].getSubordinates()[sub_it],
               empty_feature,
