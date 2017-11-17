@@ -192,7 +192,7 @@ namespace OpenMS
           std::map<String,AbsoluteQuantitationMethod>::iterator quant_methods_it = quant_methods_.find(component_name);
           String quant_component_name = quant_methods_it->second.getComponentName();
           String quant_IS_component_name = quant_methods_it->second.getISName();
-          String quant_feature_name = quant_methods_it->second.getFeatureNames();
+          String quant_feature_name = quant_methods_it->second.getFeatureName();
           if (quant_IS_component_name != "")
           {
             // look up the internal standard for the component
