@@ -216,8 +216,8 @@ START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers
   double correlation_coefficient = aqm.getCorrelationCoefficient();
   TEST_EQUAL(n_points, 5);
   TEST_REAL_SIMILAR(correlation_coefficient, 0.99);
-  String transformation_model = aqm.getTransformationModel(transformation_model, transformation_model_params);
-  Param transformation_model_params = aqm.getTransformationModelParams(transformation_model, transformation_model_params);
+  String transformation_model = aqm.getTransformationModel();
+  Param transformation_model_params = aqm.getTransformationModelParams();
   TEST_EQUAL(transformation_model, "TransformationModelLinear");
   TEST_REAL_SIMILAR(transformation_model_params.getValue("slope"),2.0);
   TEST_REAL_SIMILAR(transformation_model_params.getValue("intercept"),1.0);
