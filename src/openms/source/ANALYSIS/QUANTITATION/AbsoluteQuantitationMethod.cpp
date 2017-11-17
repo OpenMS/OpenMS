@@ -182,11 +182,19 @@ namespace OpenMS
   }
   
   //Transformation model getters and setters
-  void AbsoluteQuantitationMethod::setTransformationModel(const String& transformation_model, const Param& transformation_model_params)
+  void AbsoluteQuantitationMethod::setTransformationModel(const String& transformation_model)
   {
     transformation_model_ = transformation_model;
+  }
+  void AbsoluteQuantitationMethod::setTransformationModelParams(const Param& transformation_model_params)
+  {
     transformation_model_params_ = transformation_model_params;
   }
+  // void AbsoluteQuantitationMethod::setTransformationModel(const String& transformation_model, const Param& transformation_model_params)
+  // {
+  //   transformation_model_ = transformation_model;
+  //   transformation_model_params_ = transformation_model_params;
+  // }
 
   String AbsoluteQuantitationMethod::getTransformationModel()
   {

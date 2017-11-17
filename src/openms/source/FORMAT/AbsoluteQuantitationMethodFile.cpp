@@ -226,7 +226,7 @@ namespace OpenMS
       
     }
     aqm.setTransformationModel(transformation_model);
-    // aqm.setTransformationModelParams(transformation_model_params);
+    aqm.setTransformationModelParams(transformation_model_params);
   }
 
   // void AbsoluteQuantitationMethodFile::store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list)

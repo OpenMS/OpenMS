@@ -122,7 +122,10 @@ public:
   String getConcentrationUnits();
   
   /// transformation_model and transformation_model_params setter
-  void setTransformationModel(const String& transformation_model, const Param& transformation_model_params);
+  //DEPRECATED
+  void setTransformationModel(const String& transformation_model);
+  void setTransformationModelParams(const Param& transformation_model_params);
+  // void setTransformationModel(const String& transformation_model, const Param& transformation_model_params);
 
   /// transformation_model and transformation_model_params getter
   String getTransformationModel();
