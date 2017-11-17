@@ -44,6 +44,24 @@
 using namespace OpenMS;
 using namespace std;
 
+class AbsoluteQuantitationMethodFile_facade : AbsoluteQuantitationMethodFile
+{
+  public:
+
+    void parseHeader_(StringList & line, std::map<String, int> & headers,
+    std::map<String, int> & params_headers)
+    {
+      AbsoluteQuantitationMethodFile::parseHeader_(line, headers, params_headers);
+    }
+
+    void parseLine_(StringList & line, std::map<String,int> & headers, 
+    std::map<String,int> & params_headers,
+    AbsoluteQuantitationMethod & aqm)
+    {
+      AbsoluteQuantitationMethodFile::parseLine_(line, headers, params_headers, aqm);
+    }
+};
+
 ///////////////////////////
 
 START_TEST(AbsoluteQuantitationMethodFile, "$Id$")
@@ -62,10 +80,10 @@ START_SECTION((~AbsoluteQuantitationMethodFile()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((void parseHeader(StringList & line, std::map<String,int> & headers,
+START_SECTION((void parseHeader_(StringList & line, std::map<String,int> & headers,
   std::map<String,int> & params_headers)))
   
-  AbsoluteQuantitationMethodFile aqmf;
+  AbsoluteQuantitationMethodFile_facade aqmf;
   
   std::map<String,int> headers;
   std::map<String,int> params_headers;
@@ -87,7 +105,7 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
   header1.push_back("transformation_model_param_slope");
   header1.push_back("transformation_model_param_intercept");
 
-  aqmf.parseHeader(header1, headers, params_headers);
+  aqmf.parseHeader_(header1, headers, params_headers);
 
   TEST_EQUAL(headers["IS_name"], 0);
   TEST_EQUAL(headers["transformation_model"], 11);
@@ -114,7 +132,7 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
   header2.push_back("transformation_model_param_slope");
   header2.push_back("transformation_model_param_intercept");
 
-  aqmf.parseHeader(header2, headers, params_headers);
+  aqmf.parseHeader_(header2, headers, params_headers);
 
   TEST_EQUAL(headers["IS_name"], 0);
   TEST_EQUAL(headers["llod"], -1);
@@ -124,10 +142,10 @@ START_SECTION((void parseHeader(StringList & line, std::map<String,int> & header
   
 END_SECTION
 
-START_SECTION((void parseLine(StringList & line, std::map<String,int> & headers, 
+START_SECTION((void parseLine_(StringList & line, std::map<String,int> & headers, 
   std::map<String,int> & params_headers, AbsoluteQuantitationMethod & aqm)))
   
-  AbsoluteQuantitationMethodFile aqmf;
+  AbsoluteQuantitationMethodFile_facade aqmf;
   AbsoluteQuantitationMethod aqm;
   
   // headers
@@ -165,7 +183,7 @@ START_SECTION((void parseLine(StringList & line, std::map<String,int> & headers,
   line1.push_back("2.0");
   line1.push_back("1.0");
 
-  aqmf.parseLine(line1, headers, params_headers, aqm);
+  aqmf.parseLine_(line1, headers, params_headers, aqm);
 
   String component_name, IS_name, feature_name;
   aqm.getComponentISFeatureNames(component_name, IS_name, feature_name);

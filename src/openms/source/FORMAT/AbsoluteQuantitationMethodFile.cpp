@@ -67,18 +67,18 @@ namespace OpenMS
       if (i == 0) // header row
       {
         CsvFile::getRow(i, header);
-        parseHeader(header, headers, params_headers);
+        parseHeader_(header, headers, params_headers);
       }
       else
       {
         CsvFile::getRow(i, line); 
-        parseLine(line, headers, params_headers, aqm);    
+        parseLine_(line, headers, params_headers, aqm);    
         aqm_list.push_back(aqm);  
       }    
     }
   }
 
-  void AbsoluteQuantitationMethodFile::parseHeader(StringList & line, std::map<String, int> & headers,
+  void AbsoluteQuantitationMethodFile::parseHeader_(StringList & line, std::map<String, int> & headers,
     std::map<String, int> & params_headers)
   {    
     // default header column positions
@@ -112,7 +112,7 @@ namespace OpenMS
     }
   }
 
-  void AbsoluteQuantitationMethodFile::parseLine(StringList & line, std::map<String,int> & headers, 
+  void AbsoluteQuantitationMethodFile::parseLine_(StringList & line, std::map<String,int> & headers, 
     std::map<String,int> & params_headers, AbsoluteQuantitationMethod & aqm)
   {
     // component, IS, and feature names
