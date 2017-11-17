@@ -121,17 +121,20 @@ namespace OpenMS
     {
       component_name = line[headers["component_name"]];
     }
+    aqm.setComponentName(component_name);
     String feature_name = "";
     if (headers["feature_name"] != -1)
     {
       feature_name = line[headers["feature_name"]];
     }
+    aqm.setISName(IS_name);
     String IS_name = "";
     if (headers["IS_name"] != -1)
     {
       IS_name = line[headers["IS_name"]];
     }
-    aqm.setComponentISFeatureNames(component_name, IS_name, feature_name);
+    aqm.setFeatureName(feature_name);
+    // aqm.setComponentISFeatureNames(component_name, IS_name, feature_name);
 
     // LODs
     double llod = 0.0;
@@ -139,12 +142,14 @@ namespace OpenMS
     {
       llod = (line[headers["llod"]].empty()) ? 0.0 : std::stod(line[headers["llod"]]);
     }
+    aqm.setLLOD(llod);
     double ulod = 0.0;
     if (headers["ulod"] != -1)
     {
       ulod = (line[headers["ulod"]].empty()) ? 0.0 : std::stod(line[headers["ulod"]]);
     }
-    aqm.setLOD(llod,ulod);
+    aqm.setULOD(ulod);
+    // aqm.setLOD(llod,ulod);
 
     // LOQs
     double lloq = 0.0;
@@ -152,12 +157,14 @@ namespace OpenMS
     {
       lloq = (line[headers["lloq"]].empty()) ? 0.0 : std::stod(line[headers["lloq"]]);
     }
+    aqm.setLLOQ(lloq);
     double uloq = 0.0;
     if (headers["uloq"] != -1)
     {
       uloq = (line[headers["uloq"]].empty()) ? 0.0 : std::stod(line[headers["uloq"]]);
     }
-    aqm.setLOQ(lloq,uloq);
+    aqm.setULOQ(uloq);
+    // aqm.setLOQ(lloq,uloq);
 
     // actual concentration
     double actual_concentration = 0.0;
@@ -181,12 +188,14 @@ namespace OpenMS
     {
       n_points = (line[headers["n_points"]].empty()) ? 0.0 : std::stoi(line[headers["n_points"]]);
     }
+    aqm.setNPoints(n_points);
     double correlation_coefficient = 0.0;
     if (headers["correlation_coefficient"] != -1)
     {
       correlation_coefficient = (line[headers["correlation_coefficient"]].empty()) ? 0.0 : std::stod(line[headers["correlation_coefficient"]]);
     }
-    aqm.setStatistics(n_points, correlation_coefficient);
+    aqm.setCorrelationCoefficient(correlation_coefficient);
+    // aqm.setStatistics(n_points, correlation_coefficient);
 
     // transformation model
     String transformation_model = "";
@@ -216,7 +225,8 @@ namespace OpenMS
       }
       
     }
-    aqm.setTransformationModel(transformation_model, transformation_model_params);
+    aqm.setTransformationModel(transformation_model);
+    aqm.setTransformationModelParams(transformation_model_params);
   }
 
   // void AbsoluteQuantitationMethodFile::store(const String & filename, const std::vector<AbsoluteQuantitationMethod> & aqm_list)
