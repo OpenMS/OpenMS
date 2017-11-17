@@ -111,7 +111,7 @@ namespace OpenMS
   
   double AbsoluteQuantitationMethod::getLLOQ()
   {
-    return uloq_;
+    return lloq_;
   }
   
   double AbsoluteQuantitationMethod::getULOQ()
