@@ -72,6 +72,36 @@ public:
     //@}
 
     // Members
+    //
+    /**@brief Quality Controls (QCs) for individual components
+
+      A component is analogous to a transition or subfeature.
+      A component is a transition that corresponds to a single peptide or metabolite
+
+    */
+    struct ComponentQCs
+    {
+      /// name of the component
+      String component_name;
+
+      // Feature members
+      /// retention time lower bound
+      double retention_time_l;
+      /// retention time upper bound
+      double retention_time_u;
+      /// intensity lower bound
+      double intensity_l;
+      /// intensity upper bound
+      double intensity_u;
+      /// overall quality lower bound
+      double overall_quality_l;
+      /// overall quality upper bound
+      double overall_quality_u;
+
+      /// Feature MetaValues
+      std::map<String,std::pair<double,double>> meta_value_qc;
+
+    };
 
     /**@brief Quality Controls (QCs) within a component group
 
@@ -106,36 +136,6 @@ public:
       double ion_ratio_l;
       double ion_ratio_u;
       String ion_ratio_feature_name;
-
-    };
-
-    /**@brief Quality Controls (QCs) for individual components
-
-      A component is analogous to a transition or subfeature.
-      A component is a transition that corresponds to a single peptide or metabolite
-
-    */
-    struct ComponentQCs
-    {
-      /// name of the component
-      String component_name;
-
-      // Feature members
-      /// retention time lower bound
-      double retention_time_l;
-      /// retention time upper bound
-      double retention_time_u;
-      /// intensity lower bound
-      double intensity_l;
-      /// intensity upper bound
-      double intensity_u;
-      /// overall quality lower bound
-      double overall_quality_l;
-      /// overall quality upper bound
-      double overall_quality_u;
-
-      /// Feature MetaValues
-      std::map<String,std::pair<double,double>> meta_value_qc;
 
     };
 
