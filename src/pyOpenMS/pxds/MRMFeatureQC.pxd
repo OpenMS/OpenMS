@@ -34,7 +34,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>" namespace "OpenMS"
         double intensity_u
         double overall_quality_l
         double overall_quality_u
-        libcpp_map[String,libcpp_pair[double,double]] meta_value_qc
+        # libcpp_map[String,libcpp_pair[double,double]] meta_value_qc
+        # currently not supported
 
     cdef cppclass MRMFQC_ComponentGroupPairQCs "OpenMS::MRMFeatureQC::ComponentGroupPairQCs":
         String component_group_name 
