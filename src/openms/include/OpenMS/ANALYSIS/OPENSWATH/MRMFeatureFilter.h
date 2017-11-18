@@ -91,7 +91,7 @@ public:
       @brief Converts a FeatureMap to a qcMLFile::Attachment
 
       @param features FeatureMap to flag or filter
-      @param attachment acML Attachment
+      @param attachment qcML Attachment
 
     */
     void FeatureMapToAttachment(FeatureMap& features, QcMLFile::Attachment& attachment);
@@ -100,7 +100,7 @@ public:
       @brief Calculates the ion ratio between two transitions
 
       @param component_1 component of the numerator
-      @param component_2 component of the denomenator
+      @param component_2 component of the denominator
       @param feature_name name of the feature to calculate the ratio on
        e.g., peak_apex, peak_area
 
@@ -136,7 +136,7 @@ public:
       @param meta_value_l Lower bound (inclusive) for the metaValue range
       @param meta_value_u Upper bound (inclusive) for the metaValue range
 
-      @return True if the metavlue is within the bounds, and False otherwise.
+      @return True if the metaValue is within the bounds, and False otherwise.
     */ 
     bool checkMetaValue(const Feature & component, const String & meta_value_key, const double & meta_value_l, const double & meta_value_u);
     
@@ -159,7 +159,7 @@ private:
 
     /// flag or filter (i.e., remove) features that do not pass the QC
     String flag_or_filter_;
-    /// include the data points for the exctracted ion chromatogram (XIC) in the attachment
+    /// include the data points for the extracted ion chromatogram (XIC) in the attachment
     bool report_xic_;
     /// include the data points for the total ion chromatogram (TIC) in the attachment
     bool report_tic_;
@@ -177,4 +177,5 @@ private:
 }
 
 #endif //  OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
+
 

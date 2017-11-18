@@ -48,9 +48,15 @@ namespace OpenMS
 
   /**
 
-    @brief The MRMFeatureQC is a class to handle the parameters and options for 
-      MRMFeatureFilter. The format is based on the TraML format.
+    @brief The MRMFeatureQC is a class to handle the parameters and options for
+     MRMFeatureFilter.
 
+     The format is based loosely on the TraML format and can be stored and loaded to disk using MRMFeatureQCFile.
+
+     Quality control parameters are available on multiple levels:
+       - the level of a single component (or transition) representing a single transition
+       - the level of a component group (or transition group) representing a single chemical entity
+       - the level of component group pairs (e.g. isotopic pairs) representing multiple chemical entities that may be related by isotopic pairing
   */
   class OPENMS_DLLAPI MRMFeatureQC
   {
@@ -69,14 +75,14 @@ public:
 
     /**@brief Quality Controls (QCs) within a component group
 
-      A component group is analagous to a transition group or feature.
+      A component group is analogous to a transition group or feature.
       A component group includes all transitions that correspond to a given component (i.e., peptide or metabolite)
 
     */
     struct ComponentGroupQCs
     {
       /// name of the component group
-      String component_group_name; 
+      String component_group_name;
 
       // number of transitions and labels
       /// number of heavy ion lower bound
@@ -100,19 +106,19 @@ public:
       double ion_ratio_l;
       double ion_ratio_u;
       String ion_ratio_feature_name;
-        
+
     };
 
     /**@brief Quality Controls (QCs) for individual components
 
-      A component is analagous to a transition or subfeature.
+      A component is analogous to a transition or subfeature.
       A component is a transition that corresponds to a single peptide or metabolite
 
     */
     struct ComponentQCs
     {
       /// name of the component
-      String component_name; 
+      String component_name;
 
       // Feature members
       /// retention time lower bound
@@ -144,16 +150,16 @@ public:
     {
 
       /// name of the component
-      String component_group_name; 
-      /// name of the component to calculate the resolution or retention time 
-      String resolution_pair_name; 
-      /// resolution lower bound 
+      String component_group_name;
+      /// name of the component to calculate the resolution or retention time
+      String resolution_pair_name;
+      /// resolution lower bound
       double resolution_l;
-      /// resolution upper bound 
+      /// resolution upper bound
       double resolution_u;
-      /// retention time lower bound 
+      /// retention time lower bound
       double rt_diff_l;
-      /// retention time upper bound 
+      /// retention time upper bound
       double rt_diff_u;
     };
 
