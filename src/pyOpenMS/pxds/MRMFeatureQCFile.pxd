@@ -1,7 +1,7 @@
 from String cimport *
 from MRMFeatureQC cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQCFile.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FORMAT/MRMFeatureQCFile.h>" namespace "OpenMS":
 
     cdef cppclass MRMFeatureQCFile:
 
@@ -9,4 +9,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQCFile.h>" namespace "Ope
         MRMFeatureQCFile(MRMFeatureQCFile &) nogil except +
 
         void load(String filename, MRMFeatureQC mrmfqc) nogil except +
-        void store(String filename, MRMFeatureQC mrmfqc);
+        void store(String filename, MRMFeatureQC mrmfqc) nogil except +
+
