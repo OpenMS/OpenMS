@@ -331,6 +331,8 @@ protected:
     registerStringOption_("spectra:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
     registerStringOption_("spectra:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept", false, false);
     setValidStrings_("spectra:blackorwhitelist:blacklist", ListUtils::create<String>("false,true"));
+    setMinFloat_("spectra:blackorwhitelist:similarity_threshold", -1.0);
+    setMaxFloat_("spectra:blackorwhitelist:similarity_threshold", 1.0);
 
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Feature data options");
@@ -1308,7 +1310,7 @@ protected:
           // skip if not similar enough
           if (enable_sim_check && (*comp_function)(exp_spectrum, lib_spectrum) < sim_tol) { continue; }
 
-           writeDebug_("Similarity score: " + String((*comp_function)(exp_spectrum, lib_spectrum)), 10);
+          writeDebug_("Similarity score: " + String((*comp_function)(exp_spectrum, lib_spectrum)), 10);
 
           // we have matching spectra
           list_idx.insert(exp_index); 
