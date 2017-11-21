@@ -107,6 +107,7 @@ namespace OpenMS
       PIN,                ///< Percolator tab-delimited input (PSM level)
       PARAMXML,           ///< internal format for writing and reading parameters (also used as part of CTD)
       SPLIB,              ///< SpectraST binary spectral library file (sptxt is the equivalent text-based format, similar to the MSP format)
+      XQUESTXML,          ///< xQuest XML file format for protein-protein cross-link identifications (.xquest.xml)
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
@@ -122,7 +123,7 @@ namespace OpenMS
 private:
     /// Maps the FileType::Type to the preferred extension.
     static const std::map<Type, String> name_of_types_;
-    
+
     /// Maps the FileType::Type to the preferred mzML CV name.
     static const std::map<Type, String> name_of_MZMLtypes_;
 
