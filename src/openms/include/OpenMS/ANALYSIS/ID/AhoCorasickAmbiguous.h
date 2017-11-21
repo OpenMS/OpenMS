@@ -665,7 +665,7 @@ namespace seqan
   /// for debug only
   template<class TNeedle> inline std::string getPath(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert current_state)
   {
-    if (atRoot(me, current_state)) return "";
+    if (getRoot(me.data_graph) == current_state) return "";
 
     typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.parentMap, current_state);
     typename Iterator<typename Pattern<TNeedle, FuzzyAC>::TGraph const, OutEdgeIterator>::Type it(me.data_graph, suffix_node);
@@ -688,11 +688,11 @@ namespace seqan
       DEBUG_ONLY std::cout << "  spawn adding hits which are at least " << unambiguous_suffix_length << " chars long (thus contain the AAA).\n";
 
       // but only report those which contain the AAA
-      for (const auto it = begin(needle_hits); it != end(needle_hits); ++it)
+      for (auto it = begin(needle_hits); it != end(needle_hits); ++it)
       {
         int hit_length = (int)length(value(host(me), *it));
         if (hit_length < unambiguous_suffix_length) break; // assumption: terminalStateMap is sorted by length of hits! ... uiuiui...
-        DEBUG_ONLY std::cout << "  add spawn hit: needle #" << needle_hits[i] << " as " << (value(host(me), *it)) << "\n";
+        DEBUG_ONLY std::cout << "  add spawn hit: needle #" << *it << " as " << (value(host(me), *it)) << "\n";
         append(dh.hits_endPositions, *it); // append hits which still contain the AAA
       }
     }
@@ -759,7 +759,7 @@ namespace seqan
     }
     spawn.current_state = successor;
     if (spawn.current_state != getRoot(me.data_graph)) {
-      addHits(me, dh, spawn.current_state);
+      addHits(me, dh, spawn); // use spawn version for length checking!
       return true;
     }
     return false;
