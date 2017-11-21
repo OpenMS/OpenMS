@@ -373,6 +373,34 @@ namespace seqan
   //////////////////////////////////////////////////////////////////////////////
   // Functions
   //////////////////////////////////////////////////////////////////////////////
+  /**
+  @brief given an ambAA @p c, return a range of AA's (including @p idxLast) which need to be spawned.
+
+  The range can be converted to AAcids via 'AAcid(T)'.
+  */
+  template<typename T>
+  inline void _getSpawnRange(const AAcid c, T& idxFirst, T& idxLast)
+  {
+    // jump table:                  // start of spawns    // end of spawns (including)
+    static const T jump[4][2] = { { ordValue(AAcid('D')), ordValue(AAcid('N')) },  // B = D,N
+    { ordValue(AAcid('I')), ordValue(AAcid('L')) },  // J = I,L
+    { ordValue(AAcid('E')), ordValue(AAcid('Q')) },  // Z = E,Q
+    { 0                   , 21 } };// X = A..V
+    static const T ord_b = ordValue(AAcid('B'));
+#ifndef NDEBUG
+    assert(ordValue(AAcid('N')) - ordValue(AAcid('D')) == 1); // must be neighbours
+    assert(ordValue(AAcid('Q')) - ordValue(AAcid('E')) == 1); // must be neighbours
+    assert(ordValue(AAcid('V')) == 21); // make sure the table is ordered as we expect
+                                        // row of jump table:
+    assert(ord_b == 22); // make sure the table is ordered as we expect
+    assert(ordValue(AAcid('J')) == 23); // make sure the table is ordered as we expect
+    assert(ordValue(AAcid('Z')) == 24); // make sure the table is ordered as we expect
+    assert(ordValue(AAcid('X')) == 25); // make sure the table is ordered as we expect
+#endif
+    idxFirst = jump[ordValue(c) - ord_b][0];
+    idxLast = jump[ordValue(c) - ord_b][1];
+  }
+
 
   template <typename TNeedle>
   inline void _createAcTrie(Pattern<TNeedle, FuzzyAC> & me)
@@ -570,33 +598,7 @@ namespace seqan
     return false;
   }
 
-  /**
-   @brief given an ambAA @p c, return a range of AA's (including @p idxLast) which need to be spawned.
 
-   The range can be converted to AAcids via 'AAcid(T)'.
-  */
-  template<typename T>
-  inline void _getSpawnRange(const AAcid c, T& idxFirst, T& idxLast)
-  {
-    // jump table:                  // start of spawns    // end of spawns (including)
-    static const T jump[4][2] = { { ordValue(AAcid('D')), ordValue(AAcid('N'))},  // B = D,N
-                                  { ordValue(AAcid('I')), ordValue(AAcid('L'))},  // J = I,L
-                                  { ordValue(AAcid('E')), ordValue(AAcid('Q'))},  // Z = E,Q
-                                  { 0                   , 21                  } };// X = A..V
-    static const T ord_b = ordValue(AAcid('B'));
-#ifndef NDEBUG
-    assert(ordValue(AAcid('N')) - ordValue(AAcid('D')) == 1); // must be neighbours
-    assert(ordValue(AAcid('Q')) - ordValue(AAcid('E')) == 1); // must be neighbours
-    assert(ordValue(AAcid('V')) == 21); // make sure the table is ordered as we expect
-    // row of jump table:
-    assert(ord_b                == 22); // make sure the table is ordered as we expect
-    assert(ordValue(AAcid('J')) == 23); // make sure the table is ordered as we expect
-    assert(ordValue(AAcid('Z')) == 24); // make sure the table is ordered as we expect
-    assert(ordValue(AAcid('X')) == 25); // make sure the table is ordered as we expect
-#endif
-    idxFirst = jump[ordValue(c) - ord_b][0];
-    idxLast = jump[ordValue(c) - ord_b][1];
-  }
 
   // This will only be called by the master itself (before moving to root); so far, no AAA was consumed (by master)
   template <typename TNeedle>
