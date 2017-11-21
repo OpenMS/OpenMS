@@ -32,8 +32,8 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SPECTRAEXTRACTOR_H
-#define OPENMS_ANALYSIS_OPENSWATH_SPECTRAEXTRACTOR_H
+#ifndef OPENMS_ANALYSIS_OPENSWATH_TARGETEDSPECTRAEXTRACTOR_H
+#define OPENMS_ANALYSIS_OPENSWATH_TARGETEDSPECTRAEXTRACTOR_H
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
@@ -66,12 +66,12 @@ namespace OpenMS
     One spectrum is chosen for each of those transitions for which at least one
     valid spectrum was found and matched.
   */
-  class OPENMS_DLLAPI SpectraExtractor :
+  class OPENMS_DLLAPI TargetedSpectraExtractor :
     public DefaultParamHandler
   {
 public:
-    SpectraExtractor();
-    virtual ~SpectraExtractor();
+    TargetedSpectraExtractor();
+    virtual ~TargetedSpectraExtractor();
 
     void setRTWindow(const double& rt_window);
     double getRTWindow() const;
@@ -88,8 +88,8 @@ public:
     void setMZTolerance(const double& mz_tolerance);
     double getMZTolerance() const;
 
-    void setMZToleranceUnits(const String& mz_tolerance_units);
-    String getMZToleranceUnits() const;
+    void setMZUnit(const bool& mz_unit_is_Da);
+    bool getMZUnit() const;
 
     void setSGolayFrameLength(const UInt& sgolay_frame_length);
     UInt getSGolayFrameLength() const;
@@ -249,7 +249,7 @@ private:
     double min_forward_match_;
     double min_reverse_match_;
     double mz_tolerance_; /**< Precursor MZ tolerance used during the annotation phase */
-    String mz_tolerance_units_; /**< MZ tolerance unit to use: Da or ppm */
+    bool mz_unit_is_Da_; /**< MZ tolerance unit to use: true for Da, false for ppm */
 
     // filters
     UInt sgolay_frame_length_; /**< The number of subsequent data points used for smoothing */
@@ -270,4 +270,4 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_SPECTRAEXTRACTOR_H
+#endif // OPENMS_ANALYSIS_OPENSWATH_TARGETEDSPECTRAEXTRACTOR_H

@@ -36,13 +36,13 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/OPENSWATH/SpectraExtractor.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(SpectraExtractor, "$Id$")
+START_TEST(TargetedSpectraExtractor, "$Id$")
 
 /////////////////////////////////////////////////////////////
 // Raw spectrum data acquired in DDA mode (i.e., product ion full spectrum scan)
@@ -291,10 +291,10 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectraExtractor* ptr = 0;
-SpectraExtractor* null_ptr = 0;
-const String experiment_path = OPENMS_GET_TEST_DATA_PATH("SpectraExtractor_13C1_spectra0to100.mzML");
-const String target_list_path = OPENMS_GET_TEST_DATA_PATH("SpectraExtractor_13CFlux_TraML.csv");
+TargetedSpectraExtractor* ptr = 0;
+TargetedSpectraExtractor* null_ptr = 0;
+const String experiment_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_13C1_spectra0to100.mzML");
+const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_13CFlux_TraML.csv");
 MzMLFile mzml;
 MSExperiment experiment;
 TransitionTSVReader tsv_reader;
@@ -302,20 +302,20 @@ TargetedExperiment targeted_exp;
 mzml.load(experiment_path, experiment);
 tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
 
-START_SECTION(SpectraExtractor())
+START_SECTION(TargetedSpectraExtractor())
 {
-  ptr = new SpectraExtractor();
+  ptr = new TargetedSpectraExtractor();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~SpectraExtractor())
+START_SECTION(~TargetedSpectraExtractor())
 {
   delete ptr;
 }
 END_SECTION
 
-ptr = new SpectraExtractor();
+ptr = new TargetedSpectraExtractor();
 
 START_SECTION(getParameters())
 {
@@ -325,7 +325,7 @@ START_SECTION(getParameters())
   TEST_EQUAL(params.getValue("min_forward_match"), 0.9)
   TEST_EQUAL(params.getValue("min_reverse_match"), 0.9)
   TEST_EQUAL(params.getValue("mz_tolerance"), 0.1)
-  TEST_EQUAL(params.getValue("mz_tolerance_units"), "Da")
+  TEST_EQUAL(params.getValue("mz_unit_is_Da"), "true")
   TEST_EQUAL(params.getValue("sgolay_frame_length"), 15)
   TEST_EQUAL(params.getValue("sgolay_polynomial_order"), 3)
   TEST_EQUAL(params.getValue("gauss_width"), 0.2)
@@ -380,12 +380,12 @@ START_SECTION(setMZTolerance())
 }
 END_SECTION
 
-START_SECTION(setMZToleranceUnits())
+START_SECTION(setMZUnit())
 {
-  TEST_EQUAL(ptr->getMZToleranceUnits(), "Da")
-  TEST_NOT_EQUAL(ptr->getMZToleranceUnits(), "ppm")
-  ptr->setMZToleranceUnits("ppm");
-  TEST_EQUAL(ptr->getMZToleranceUnits(), "ppm")
+  TEST_EQUAL(ptr->getMZUnit(), true)
+  TEST_NOT_EQUAL(ptr->getMZUnit(), false)
+  ptr->setMZUnit(false);
+  TEST_EQUAL(ptr->getMZUnit(), false)
 }
 END_SECTION
 
