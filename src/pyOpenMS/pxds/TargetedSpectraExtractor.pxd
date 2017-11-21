@@ -35,8 +35,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         void setMZTolerance(double) nogil except +
         double getMZTolerance() nogil except +
 
-        void setMZToleranceUnits(String) nogil except +
-        String getMZToleranceUnits() nogil except +
+        void setMZUnit(bool) nogil except +
+        bool getMZUnit() nogil except +
 
         void setSGolayFrameLength(UInt) nogil except +
         UInt getSGolayFrameLength() nogil except +
