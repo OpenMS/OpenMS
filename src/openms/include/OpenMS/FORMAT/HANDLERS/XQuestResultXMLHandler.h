@@ -41,8 +41,12 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 namespace OpenMS
 {
+  class ProgressLogger;
+
   namespace Internal
   {
     /** @brief XMLHandler for the result files of XQuest
@@ -61,11 +65,17 @@ namespace OpenMS
       // Decoy string used by xQuest
       static const String decoy_string;
 
+      /// Constructor for a read-only handler for internal identification structures
       XQuestResultXMLHandler(const String & filename,
                              std::vector< std::vector< PeptideIdentification > > & csms,
                              std::vector< ProteinIdentification > & prot_ids,
                              Size min_n_ions_per_spectrum,
-                             bool load_to_peptideHit_);
+                             bool load_to_peptideHit_,
+                             const ProgressLogger& logger);
+
+      /// Constructor for a write-only handler for internal identification structures
+      XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
+
       virtual ~XQuestResultXMLHandler();
 
       // Docu in base class
@@ -92,11 +102,21 @@ namespace OpenMS
        */
       UInt getNumberOfHits() const;
 
+      //Docu in base class
+      virtual void writeTo(std::ostream& os);
+
     private:
 
+      /// Progress logger
+      const ProgressLogger& logger_;
+
       // Main data structures that are populated during loading the file
-      std::vector< std::vector< PeptideIdentification > > & csms_;
-      std::vector< ProteinIdentification > & prot_ids_;
+      std::vector< std::vector< PeptideIdentification > >* csms_;
+      std::vector< ProteinIdentification >* prot_ids_;
+
+      // internal ID items for writing files
+      const std::vector<ProteinIdentification>* cpro_id_;
+      const std::vector<PeptideIdentification>* cpep_id_;
 
       UInt n_hits_; // Total no. of hits found in the result XML file
 

@@ -65,14 +65,17 @@ namespace OpenMS
 
     const String XQuestResultXMLHandler::decoy_string = "decoy_";
 
+
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
                                                    std::vector< std::vector< PeptideIdentification > > & csms,
                                                    std::vector< ProteinIdentification > & prot_ids,
                                                    Size min_n_ions_per_spectrum,
-                                                   bool load_to_peptideHit) :
+                                                   bool load_to_peptideHit,
+                                                   const ProgressLogger& logger) :
       XMLHandler(filename, "1.0"),
-      csms_(csms),
-      prot_ids_(prot_ids),
+      logger_(logger),
+      csms_(&csms),
+      prot_ids_(&prot_ids),
       n_hits_(0),
       min_score_(0),
       max_score_(0),
@@ -80,18 +83,28 @@ namespace OpenMS
       load_to_peptideHit_(load_to_peptideHit)
     {
       // Initialize the one and only protein identification
-      this->prot_ids_.clear();
+      this->prot_ids_->clear();
       ProteinIdentification prot_id;
       prot_id.setSearchEngine("OpenXQuest");
       prot_id.setSearchEngineVersion(VersionInfo::getVersion());
       prot_id.setMetaValue("SpectrumIdentificationProtocol", DataValue("MS:1002494")); // cross-linking search = MS:1002494
-      this->prot_ids_.push_back(prot_id);
+      this->prot_ids_->push_back(prot_id);
 
       // Fetch the enzymes database
       this->enzymes_db_ = ProteaseDB::getInstance();
 
       // Produce some warnings that are associated with the reading of xQuest result files
       LOG_WARN << "WARNING: Fixed modifications are not available in the xQuest input file and will thus be not present in the loaded data!\n" << std::endl;
+    }
+
+    XQuestResultXMLHandler::XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
+      XMLHandler(filename, version),
+      logger_(logger),
+      csms_(0),
+      prot_ids_(0),
+      cpro_id_(&pro_id),
+      cpep_id_(&pep_id)
+    {
     }
 
     XQuestResultXMLHandler::~XQuestResultXMLHandler()
@@ -153,7 +166,7 @@ namespace OpenMS
           prot_hit.setAccession(accession);
           prot_hit.setMetaValue("target_decoy", accession.hasSubstring("decoy") ? "decoy" : "target");
 
-          this->prot_ids_[0].getHits().push_back(prot_hit);
+          (*this->prot_ids_)[0].getHits().push_back(prot_hit);
         }
 
         pep_ev.setProteinAccession(accession);
@@ -233,15 +246,15 @@ namespace OpenMS
               }
               newvec[index] = *it;
             }
-            this->csms_.push_back(newvec);
+            this->csms_->push_back(newvec);
             */
-          this->csms_.push_back(this->current_spectrum_search_);
+          this->csms_->push_back(this->current_spectrum_search_);
         }
         this->current_spectrum_search_.clear();
       }
       else if (tag == "xquest_results")
       {
-        ProteinIdentification::SearchParameters search_params(this->prot_ids_[0].getSearchParameters());
+        ProteinIdentification::SearchParameters search_params((*this->prot_ids_)[0].getSearchParameters());
         //search_params.charges = ListUtils::concatenate(this->charges_, ",");
         //search_params.setMetaValue("precursor:min_charge", this->min_precursor_charge_);
         //search_params.setMetaValue("precursor:max_charge", this->max_precursor_charge_);
@@ -253,7 +266,7 @@ namespace OpenMS
         }
         search_params.setMetaValue("cross_link:mass_monolink", DataValue(monolink_masses_list));
 
-        this->prot_ids_[0].setSearchParameters(search_params);
+        (*this->prot_ids_)[0].setSearchParameters(search_params);
       }
     }
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
@@ -269,7 +282,7 @@ namespace OpenMS
         // Date and Time of Search
         DateTime date_time;
         this->extractDateTime_(this->attributeAsString_(attributes, "date"), date_time);
-        this->prot_ids_[0].setDateTime(date_time);
+        (*this->prot_ids_)[0].setDateTime(date_time);
 
         // Set the search parameters
         ProteinIdentification::SearchParameters search_params;
@@ -311,7 +324,7 @@ namespace OpenMS
         search_params.setMetaValue("decoy_string", DataValue(XQuestResultXMLHandler::decoy_string));
         search_params.setMetaValue("fragment:mass_tolerance_xlinks", DataValue(this->attributeAsDouble_(attributes, "xlink_ms2tolerance")));
 
-        this->prot_ids_[0].setSearchParameters(search_params);
+        (*this->prot_ids_)[0].setSearchParameters(search_params);
       }
       else if (tag == "spectrum_search")
       {
@@ -425,9 +438,9 @@ namespace OpenMS
         if (xlink_type_string == "xlink")
         {
           // Set the cross Link Mass
-          ProteinIdentification::SearchParameters search_params(this->prot_ids_[0].getSearchParameters());
+          ProteinIdentification::SearchParameters search_params((*this->prot_ids_)[0].getSearchParameters());
           search_params.setMetaValue("cross_link:mass", DataValue(this->attributeAsDouble_(attributes, "xlinkermass")));
-          this->prot_ids_[0].setSearchParameters(search_params);
+          (*this->prot_ids_)[0].setSearchParameters(search_params);
 
           peptide_hit_beta.setScore(score);
 
@@ -538,6 +551,102 @@ namespace OpenMS
         this->peptide_id_meta_values_.clear();
         this->current_spectrum_search_.push_back(peptide_identification);
       }
+    }
+
+    void XQuestResultXMLHandler::writeTo(std::ostream& os)
+    {
+      ProteinIdentification::SearchParameters search_params;
+      search_params = (*this->cpro_id_)[0].getSearchParameters();
+
+      String input_filename = search_params.getMetaValue("input_mzML");
+      // vector<String> name_parts;
+      // input_filename.split(".", name_parts);
+      // String input_basename = name_parts[0];
+
+      String spec_xml_name = search_params.getMetaValue("out_xquest_specxml");
+
+      os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+      os << "<?xml-stylesheet type=\"text/xsl\" href=\"\"?>\n";
+
+      DateTime time= DateTime::now();
+      String timestring = time.getDate() + " " + time.getTime();
+
+      String mono_masses = search_params.getMetaValue("cross_link:mass_monolink");
+      mono_masses = mono_masses.substr(1).chop(1);
+
+      String precursor_mass_tolerance_unit = search_params.precursor_mass_tolerance_ppm ? "ppm" : "Da";
+      double precursor_mass_tolerance = search_params.precursor_mass_tolerance;
+      String fragment_mass_tolerance_unit = search_params.fragment_mass_tolerance_ppm ? "ppm" : "Da";
+      double fragment_mass_tolerance = search_params.fragment_mass_tolerance;
+      double fragment_mass_tolerance_xlinks = search_params.getMetaValue("fragment:mass_tolerance_xlinks");
+
+      String cross_link_name = search_params.getMetaValue("cross_link:name");
+      double cross_link_mass_light = search_params.getMetaValue("cross_link:mass");
+      double cross_link_mass_iso_shift = search_params.getMetaValue("cross_link:mass_isoshift");
+      String aarequired1, aarequired2;
+      aarequired1 = search_params.getMetaValue("cross_link:residue1");
+      aarequired1 = aarequired1.substr(1).chop(1);
+      aarequired2 = search_params.getMetaValue("cross_link:residue2");
+      aarequired2 = aarequired2.substr(1).chop(1);
+      bool ntermxlinkable = aarequired1.hasSubstring("N-term") || aarequired2.hasSubstring("N-term");
+
+      String in_fasta = search_params.db;
+      String in_decoy_fasta = search_params.getMetaValue("input_decoys");
+      String enzyme_name = search_params.digestion_enzyme.getName();
+      int missed_cleavages = search_params.missed_cleavages;
+
+      StringList variable_mod_list = search_params.variable_modifications;
+      String variable_mods;
+      for (Size i = 0; i < variable_mod_list.size(); ++i)
+      {
+        variable_mods += variable_mod_list[i] + ",";
+      }
+      variable_mods = variable_mods.chop(1);
+
+      StringList fixed_mod_list = search_params.fixed_modifications;
+      String fixed_mods;
+      for (Size i = 0; i < fixed_mod_list.size(); ++i)
+      {
+        fixed_mods += fixed_mod_list[i] + ",";
+      }
+      fixed_mods = fixed_mods.chop(1);
+
+      os << "<xquest_results xquest_version=\"OpenPepXL 1.0\" date=\"" << timestring <<
+               "\" author=\"Eugen Netz\" tolerancemeasure_ms1=\"" << precursor_mass_tolerance_unit  <<
+               "\" tolerancemeasure_ms2=\"" << fragment_mass_tolerance_unit << "\" ms1tolerance=\"" << precursor_mass_tolerance <<
+               "\" ms2tolerance=\"" << fragment_mass_tolerance << "\" xlink_ms2tolerance=\"" << fragment_mass_tolerance_xlinks <<
+               "\" crosslinkername=\"" << cross_link_name << "\" xlinkermw=\"" << cross_link_mass_light <<
+               "\" monolinkmw=\"" << mono_masses << "\" database=\"" << in_fasta << "\" database_dc=\"" << in_decoy_fasta <<
+               "\" xlinktypes=\"1111\" AArequired1=\"" << aarequired1 << "\" AArequired2=\"" << aarequired2 <<  "\" cp_isotopediff=\"" << cross_link_mass_iso_shift <<
+               "\" enzyme_name=\"" << enzyme_name << "\" outputpath=\"" << spec_xml_name <<
+               "\" Iontag_charges_for_index=\"1\" missed_cleavages=\"" << missed_cleavages <<
+               "\" ntermxlinkable=\"" << ntermxlinkable << "\" CID_match2ndisotope=\"1" <<
+               "\" variable_mod=\"" << variable_mods << "\" fixed_mod=\"" << fixed_mods << "\" nocutatxlink=\"1\" xcorrdelay=\"5\" >" << std::endl;
+
+      // os << (*this->cpep_id_)[0].getHits()[0].getMetaValue("OpenXQuest:match-odds") << endl;
+
+      // per spectrum
+      // os << "<spectrum_search spectrum=\"" << spectrum_name << "\" mean_ionintensity=\"" << mean_intensity << "\" ionintensity_stdev=\"" << "TODO" << "\" addedMass=\"" << "TODO" << "\" iontag_ncandidates=\"" << "TODO"
+      //     << "\"  apriori_pmatch_common=\"" << "TODO" << "\" apriori_pmatch_xlink=\"" << "TODO" << "\" ncommonions=\"" << "TODO" << "\" nxlinkions=\"" << "TODO" << "\" mz_precursor=\"" << precursor_mz
+      //     << "\" scantype=\"" << "light_heavy" << "\" charge_precursor=\"" << precursor_charge << "\" Mr_precursor=\"" << precursor_mass <<  "\" rtsecscans=\"" << rt_scans << "\" mzscans=\"" << mz_scans << "\" >" << std::endl;
+
+
+      // per ID in that spectrum
+          // xml_file << "<search_hit search_hit_rank=\"" <<top_csm->rank << "\" id=\"" << id << "\" type=\"" << xltype << "\" structure=\"" << structure << "\" seq1=\"" << top_csm->cross_link.alpha.toUnmodifiedString() << "\" seq2=\"" << top_csm->cross_link.beta.toUnmodifiedString()
+          //       << "\" prot1=\"" << prot_alpha << "\" prot2=\"" << prot_beta << "\" topology=\"" << topology << "\" xlinkposition=\"" << (top_csm->cross_link.cross_link_position.first+1) << "," << (top_csm->cross_link.cross_link_position.second+1)
+          //       << "\" Mr=\"" << weight << "\" mz=\"" << cl_mz << "\" charge=\"" << precursor_charge << "\" xlinkermass=\"" << top_csm->cross_link.cross_linker_mass << "\" measured_mass=\"" << precursor_mass << "\" error=\"" << error
+          //       << "\" error_rel=\"" << rel_error << "\" xlinkions_matched=\"" << (top_csm->matched_xlink_alpha + top_csm->matched_xlink_beta) << "\" backboneions_matched=\"" << (top_csm->matched_common_alpha + top_csm->matched_common_beta)
+          //       << "\" weighted_matchodds_mean=\"" << "TODO" << "\" weighted_matchodds_sum=\"" << "TODO" << "\" match_error_mean=\"" << "TODO" << "\" match_error_stdev=\"" << "TODO" << "\" xcorrx=\"" << top_csm->xcorrx_max << "\" xcorrb=\"" << top_csm->xcorrc_max << "\" match_odds=\"" <<top_csm->match_odds << "\" prescore=\"" << top_csm->pre_score
+          //       << "\" prescore_alpha=\"" << "TODO" << "\" prescore_beta=\"" << "TODO" << "\" match_odds_alphacommon=\"" << "TODO" << "\" match_odds_betacommon=\"" << "TODO" << "\" match_odds_alphaxlink=\"" << "TODO"
+          //       << "\" match_odds_betaxlink=\"" << "TODO" << "\" num_of_matched_ions_alpha=\"" << (top_csm->matched_common_alpha + top_csm->matched_xlink_alpha) << "\" num_of_matched_ions_beta=\"" << (top_csm->matched_common_beta + top_csm->matched_xlink_beta) << "\" num_of_matched_common_ions_alpha=\"" << top_csm->matched_common_alpha
+          //       << "\" num_of_matched_common_ions_beta=\"" << top_csm->matched_common_beta << "\" num_of_matched_xlink_ions_alpha=\"" << top_csm->matched_xlink_alpha << "\" num_of_matched_xlink_ions_beta=\"" << top_csm->matched_xlink_beta << "\" xcorrall=\"" << "TODO" << "\" TIC=\"" << top_csm->percTIC
+          //       << "\" TIC_alpha=\"" << "TODO" << "\" TIC_beta=\"" << "TODO" << "\" wTIC=\"" << top_csm->wTIC << "\" intsum=\"" << top_csm->int_sum * 100 << "\" apriori_match_probs=\"" << "TODO" << "\" apriori_match_probs_log=\"" << "TODO"
+          //       << "\" HyperCommon=\"" << top_csm->HyperCommon << "\" HyperXLink=\"" << top_csm->HyperXlink << "\" HyperAlpha=\"" << top_csm->HyperAlpha << "\" HyperBeta=\"" << top_csm->HyperBeta << "\" HyperBoth=\"" << top_csm->HyperBoth
+          //       << "\" PScoreCommon=\"" << top_csm->PScoreCommon << "\" PScoreXLink=\"" << top_csm->PScoreXlink << "\" PScoreAlpha=\"" << top_csm->PScoreAlpha << "\" PScoreBeta=\"" << top_csm->PScoreBeta << "\" PScoreBoth=\"" << top_csm->PScoreBoth
+          //       << "\" series_score_mean=\"" << "TODO" << "\" annotated_spec=\"" << "" << "\" score=\"" << top_csm->score << "\" >" << std::endl;
+          // xml_file << "</search_hit>" << std::endl;
+
+
     }
   }   // namespace Internal
 } // namespace OpenMS

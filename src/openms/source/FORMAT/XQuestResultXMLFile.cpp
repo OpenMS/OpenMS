@@ -31,6 +31,7 @@
 // $Maintainer: Lukas Zimmermann $
 // $Authors: Lukas Zimmermann, Eugen Netz $
 // --------------------------------------------------------------------------
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -56,7 +57,7 @@ namespace OpenMS
                                  bool load_to_peptideHit)
   {
    Internal::XQuestResultXMLHandler handler(filename, csms, prot_ids,
-                                            min_n_hits_per_spectrum, load_to_peptideHit);
+                                            min_n_hits_per_spectrum, load_to_peptideHit, *this);
    this->parse_(filename, &handler);
 
    this->n_hits_ = handler.getNumberOfHits();
@@ -77,6 +78,17 @@ namespace OpenMS
   double XQuestResultXMLFile::getMaxScore() const
   {
     return this->max_score_;
+  }
+
+  void XQuestResultXMLFile::store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const
+  {
+    if (!FileHandler::hasValidExtension(filename, FileTypes::XQUESTXML))
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "invalid file extension, expected '" + FileTypes::typeToName(FileTypes::XQUESTXML) + "'");
+    }
+
+    Internal::XQuestResultXMLHandler handler(poid, peid, filename, schema_version_, *this);
+    save_(filename, &handler);
   }
 
   void  XQuestResultXMLFile::writeXQuestXML(String out_file, String base_name, const std::vector< PeptideIdentification >& peptide_ids, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra,

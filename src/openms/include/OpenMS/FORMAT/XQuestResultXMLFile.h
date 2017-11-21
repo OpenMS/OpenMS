@@ -35,6 +35,7 @@
 #define OPENMS_FORMAT_XQUESTRESULTXMLFILE_H
 
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
@@ -43,7 +44,8 @@ namespace OpenMS
 {
 
   class OPENMS_DLLAPI XQuestResultXMLFile :
-    public Internal::XMLFile
+    public Internal::XMLFile,
+    public ProgressLogger
   {
 public:
     XQuestResultXMLFile();
@@ -65,6 +67,13 @@ public:
 
     // Currently not implemented
     //void store(const String &, std::vector< std::vector< PeptideIdentification > > & );
+
+    /**
+        @brief Stores the identifications in a xQuest XML file.
+
+        @exception Exception::UnableToCreateFile is thrown if the file could not be created
+    */
+    void store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const;
 
     /**
      * @brief Returns the total number of hits in the file
