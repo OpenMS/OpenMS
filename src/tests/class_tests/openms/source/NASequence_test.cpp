@@ -342,24 +342,14 @@ START_SECTION((EmpiricalFormula getFormula(NASequence::NASFragmentType type = NA
   TEST_EQUAL(seq.getFormula(NASequence::Full, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
   TEST_EQUAL(seq.getFormula(NASequence::Full, -2), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O5"));
   TEST_EQUAL(seq.getFormula(NASequence::WIon, -1), EmpiricalFormula("C20H25N10O15P2"));
-  TEST_EQUAL(seq.getFormula(NASequence::XIon, -1), EmpiricalFormula("C20H25N10O14P2"));
+  TEST_EQUAL(seq.getFormula(NASequence::XIon, -1), EmpiricalFormula("C20H23N10O14P2"));
   TEST_EQUAL(seq.getFormula(NASequence::YIon, -1), EmpiricalFormula("C10H12N5O6P") + EmpiricalFormula("C10H12N5O6"));
-  TEST_EQUAL(seq.getFormula(NASequence::ZIon, -1), EmpiricalFormula("C20H24N10O11P"));
+  TEST_EQUAL(seq.getFormula(NASequence::ZIon, -1), EmpiricalFormula("C20H22N10O11P"));
   TEST_EQUAL(seq.getFormula(NASequence::AIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H10N5O4"));
   TEST_EQUAL(seq.getFormula(NASequence::BIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
   TEST_EQUAL(seq.getFormula(NASequence::CIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O7P"));
-  TEST_EQUAL(seq.getFormula(NASequence::DIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H13N5O7P"));
+  TEST_EQUAL(seq.getFormula(NASequence::DIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H13N5O8P"));
   TEST_EQUAL(seq.getFormula(NASequence::AminusB, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C5H5O3"));
-
-  seq = NASequence::fromString("GGG");
-  TEST_EQUAL(seq.getFormula(NASequence::Full, -1), EmpiricalFormula("C30H36N15O19P2"));
-  TEST_EQUAL(seq.getFormula(NASequence::FivePrime, -1), EmpiricalFormula("C30H36N15O19P2"));
-  //TEST_EQUAL(seq.getFormula(NASequence::CTerminal, 1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O7P"));
-  //TEST_EQUAL(seq.getFormula(NASequence::Internal, 1), EmpiricalFormula("C10H10N5O6P") * 3 - EmpiricalFormula("H"));
-  TEST_EQUAL(seq.getFormula(NASequence::WIon, -2), EmpiricalFormula("C20H25N10O15P2") + EmpiricalFormula("C10H11N5O7P"));
-  TEST_EQUAL(seq.getFormula(NASequence::XIon, -2), EmpiricalFormula("C20H25N10O14P2") + EmpiricalFormula("C10H11N5O7P"));
-  TEST_EQUAL(seq.getFormula(NASequence::YIon, -2), EmpiricalFormula("C10H12N5O6P") + EmpiricalFormula("C10H12N5O6")+EmpiricalFormula("C10H11N5O7P"));
-  TEST_EQUAL(seq.getFormula(NASequence::ZIon, -2), EmpiricalFormula("C20H24N10O11P") + EmpiricalFormula("C10H11N5O7P"));
 }
 END_SECTION
 
