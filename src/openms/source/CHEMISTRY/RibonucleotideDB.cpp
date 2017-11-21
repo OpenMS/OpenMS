@@ -145,7 +145,7 @@ namespace OpenMS
     }
     else if (parts[3].size() == 1) // A, C, G, U
     {
-      ribo->setOrigin( parts[3][0] );
+      ribo->setOrigin(parts[3][0]);
     }
     // "parts[4]" is the Unicode equivalent to "parts[5]", so we can skip it
     ribo->setHTMLCode(parts[5]);
