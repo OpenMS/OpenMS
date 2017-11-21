@@ -71,14 +71,13 @@ namespace OpenMS
 
   double SpectraSTSimilarityScore::operator()(const PeakSpectrum & s1, const PeakSpectrum & s2) const
   {
-    BinnedSpectrum bin1(1, 1, s1);
-    BinnedSpectrum bin2(1, 1, s2);
+    BinnedSpectrum bin1(s1, 1, false, 1);
+    BinnedSpectrum bin2(s2, 1, false, 1);
 
     // normalized dot product
     bin1.getBins() /= bin1.getBins().norm();
     bin2.getBins() /= bin2.getBins().norm();
     return bin1.getBins().dot(bin2.getBins());
-
   }
 
   double SpectraSTSimilarityScore::operator()(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2) const
@@ -120,7 +119,7 @@ namespace OpenMS
 
   BinnedSpectrum SpectraSTSimilarityScore::transform(const PeakSpectrum & spec)
   {
-    BinnedSpectrum bin(1, 1, spec);
+    BinnedSpectrum bin(spec, 1, false, 1);
     bin.getBins() /= bin.getBins().norm();
     return bin;
   }

@@ -42,9 +42,10 @@ namespace OpenMS
   // Empty vector initialized to maximum supported dimensionality.
   const BinnedSpectrum::SparseVectorType BinnedSpectrum::EmptySparseVector(numeric_limits<BinnedSpectrum::SparseVectorIndexType>::max());
 
-  BinnedSpectrum::BinnedSpectrum(const float size, const UInt spread, const PeakSpectrum & ps) :
+  BinnedSpectrum::BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread) :
     bin_spread_(spread), 
-    bin_size_(size), 
+    bin_size_(size),
+    unit_ppm_(unit_ppm),
     bins_()
   {
     precursors_ = ps.getPrecursors();
@@ -83,9 +84,11 @@ namespace OpenMS
 
     bins_ = EmptySparseVector;
 
-    // TODO
     for (auto const & p : ps)
     {
+      // if bin size is in relative units (ppm), check if minimum value is >= 1 (otherwise we might get numerical problems with the negative log)
+      OPENMS_PRECONDITION(!unit_ppm_ || p.getMZ() >= BinnedSpectrum::MIN_MZ_, "Spectrum with relative bin size contains peaks with m/z < 1");
+
       // e.g.: bin_size_ = 1.5: first bin covers range [0, 1.5) so peak at 1.5 falls in second bin (index 1)
       const size_t idx = getBinIndex(p.getMZ());
 
@@ -109,8 +112,8 @@ namespace OpenMS
   bool BinnedSpectrum::operator==(const BinnedSpectrum& rhs) const
   {
     // first compare bin layout and precursors
-    if (std::tie(bin_size_, bin_spread_, precursors_)
-        != std::tie(rhs.bin_size_, rhs.bin_spread_, rhs.precursors_)) 
+    if (std::tie(unit_ppm_, bin_size_, bin_spread_, precursors_)
+        != std::tie(rhs.unit_ppm_, rhs.bin_size_, rhs.bin_spread_, rhs.precursors_)) 
     {
       return false; 
     }
@@ -134,9 +137,9 @@ namespace OpenMS
   // static
   bool BinnedSpectrum::isCompatible(const BinnedSpectrum& a, const BinnedSpectrum& b)
   {
-    // check if bin size and spread are equal
-    return std::tie(a.bin_size_, a.bin_spread_) 
-        == std::tie(b.bin_size_, b.bin_spread_);
+    // check if bin size (and unit) are equal
+    return std::tie(a.unit_ppm_, a.bin_size_) 
+        == std::tie(b.unit_ppm_, b.bin_size_);
   }
 
   bool BinnedSpectrum::operator!=(const BinnedSpectrum& rhs) const

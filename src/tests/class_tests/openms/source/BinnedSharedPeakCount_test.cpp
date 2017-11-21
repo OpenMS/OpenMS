@@ -88,8 +88,8 @@ START_SECTION((double operator()(const BinnedSpectrum &spec1, const BinnedSpectr
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s2);
   s2.pop_back();
-  BinnedSpectrum bs1(1.5, 2, s1);
-  BinnedSpectrum bs2(1.5, 2, s2);
+  BinnedSpectrum bs1(s1, 1.5, false, 2);
+  BinnedSpectrum bs2(s2, 1.5, false, 2);
 
   double score = (*ptr)(bs1, bs2);
   TEST_REAL_SIMILAR(score, 0.997118)
@@ -104,7 +104,7 @@ START_SECTION((double operator()(const BinnedSpectrum &spec) const ))
 {
   PeakSpectrum s1;
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
-  BinnedSpectrum bs1 (1.5,2, s1);
+  BinnedSpectrum bs1(s1, 1.5, false, 2);
   double score = (*ptr)(bs1);
   TEST_REAL_SIMILAR(score,1);
 }
@@ -129,6 +129,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
 
 

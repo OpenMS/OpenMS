@@ -75,6 +75,8 @@ namespace OpenMS
 
   class OPENMS_DLLAPI BinnedSpectrum
   {
+    // smallest possible m/z value (needs to be >= 1)
+    static constexpr const float MIN_MZ_ = 1.0;
 
 public:
     /// typedef for the underlying sparse vector
@@ -93,7 +95,7 @@ public:
     BinnedSpectrum() = delete;
 
     /// detailed constructor
-    BinnedSpectrum(float size, UInt spread, const PeakSpectrum& ps);
+    BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread);
 
     /// copy constructor
     BinnedSpectrum(const BinnedSpectrum&) = default;
@@ -113,11 +115,39 @@ public:
     /// returns the bin intensity at a given m/z position 
     inline float getBinIntensity(double mz) { return bins_.coeffRef(getBinIndex(mz)); }
 
-    /// return the bin index of a given m/z position. mainly for internal use
-    inline SparseVectorIndexType getBinIndex(double mz) { return static_cast<SparseVectorIndexType>(floor(mz / bin_size_)); }
+    /// return the bin index of a given m/z position
+    inline SparseVectorIndexType getBinIndex(float mz) const 
+    {
+      if (unit_ppm_)
+      {
+        /*
+         * By solving:    mz = MIN_MZ_ * (1.0 + bin_size_)^index for index
+         *     we get: index = floor(log(mz/MIN_MZ_)/log(1.0 + bin_size_))
+         */  
+        return static_cast<SparseVectorIndexType>(floor(log(mz/MIN_MZ_)/log(1.0 + bin_size_ * 1e-6)));
+      }
+      else 
+      { 
+        return static_cast<SparseVectorIndexType>(floor(mz / bin_size_)); 
+      }
+    }
+
+    /// return the lower m/z of a bin given its index
+    inline float getBinLowerMZ(size_t i) const
+    {
+      if (unit_ppm_)
+      {
+        // mz = MIN_MZ_ * (1.0 + bin_size_)^index for index
+        return (MIN_MZ_ * pow(1.0 + bin_size_ * 1e-6, i));
+      }
+      else 
+      { 
+        return (i * bin_size_);
+      }
+    }
 
     /// get the bin size
-    inline double getBinSize() const { return bin_size_; }
+    inline float getBinSize() const { return bin_size_; }
 
     /// get the bin spread
     inline size_t getBinSpread() const { return bin_spread_; }
@@ -134,8 +164,8 @@ public:
     /// mutable access to precursors
     std::vector<Precursor>& getPrecursors();
 
-    /// Function to check comparability of two BinnedSpectrum objects,
-    /// That is, if they have equal bin size and spread
+    /// Check if two BinnedSpectrum objects have equally sized bins.
+    //  returns true if bin size and unit are equal, otherwise false
     static bool isCompatible(const BinnedSpectrum& a, const BinnedSpectrum& b);
 
 private:
@@ -144,6 +174,9 @@ private:
 
     /// the size of each bin
     float bin_size_;
+
+    /// absolute bin size or relative bin size
+    bool unit_ppm_;
 
     /// bins
     SparseVectorType bins_;

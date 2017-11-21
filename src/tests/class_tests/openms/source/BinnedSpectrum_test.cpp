@@ -64,7 +64,7 @@ DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1)
 
 START_SECTION((BinnedSpectrum(float size, UInt spread, const PeakSpectrum & ps)))
 {
-  bs1 = new BinnedSpectrum(1.5, 2, s1);
+  bs1 = new BinnedSpectrum(s1, 1.5, false, 2);
   TEST_NOT_EQUAL(bs1, nullPointer)
 }
 END_SECTION
@@ -82,7 +82,7 @@ END_SECTION
 START_SECTION((BinnedSpectrum& operator=(const BinnedSpectrum &source)))
 {
   BinnedSpectrum copy(*bs1);
-  bs1 = new BinnedSpectrum(1.5,2,s1);
+  bs1 = new BinnedSpectrum(s1, 1.5, false, 2);
   TEST_EQUAL(copy.getBinSize(), bs1->getBinSize());
   TEST_EQUAL((UInt)copy.getPrecursors()[0].getMZ(),(UInt)bs1->getPrecursors()[0].getMZ());
 }
@@ -102,7 +102,7 @@ START_SECTION((bool operator!=(const BinnedSpectrum &rhs) const ))
 }
 END_SECTION
 
-START_SECTION((double getBinSize() const ))
+START_SECTION((float getBinSize() const ))
 {
   TEST_EQUAL(bs1->getBinSize(),1.5)
 }
@@ -114,8 +114,32 @@ START_SECTION((UInt getBinSpread() const ))
 }
 END_SECTION
 
+START_SECTION((SparseVectorIndexType getBinIndex(double mz) const))
+{
+  bs1 = new BinnedSpectrum(s1, 10, true, 0); // 10 ppm bins
+  TEST_EQUAL(bs1->getBinIndex(1.0), 0);
+  TEST_EQUAL(bs1->getBinIndex(10.0), 230259);
+  TEST_EQUAL(bs1->getBinIndex(100.0), 460519);
+  TEST_EQUAL(bs1->getBinIndex(1000.0), 690778);
+}
+END_SECTION
+
+START_SECTION((float getBinLowerMZ(size_t i) const))
+{
+  bs1 = new BinnedSpectrum(s1, 10, true, 0); // 10 ppm bins
+  TEST_REAL_SIMILAR(bs1->getBinLowerMZ(0), 1); // m/z = 1 corresponds to lowest index
+  TEST_REAL_SIMILAR(bs1->getBinLowerMZ(1), 1 + 10 * 1e-6); // (1 + 10 ppm)
+  TEST_REAL_SIMILAR(bs1->getBinLowerMZ(1000), pow(1 + 10 * 1e-6, 1000));
+  TEST_REAL_SIMILAR(bs1->getBinLowerMZ(bs1->getBinIndex(1.0)), 1);
+  TEST_REAL_SIMILAR(bs1->getBinLowerMZ(bs1->getBinIndex(10.0)), 10.0);
+  TEST_REAL_SIMILAR(bs1->getBinLowerMZ(bs1->getBinIndex(100.0)), 100.0);
+  TEST_REAL_SIMILAR(bs1->getBinLowerMZ(bs1->getBinIndex(1000.0)), 1000.0);
+}
+END_SECTION
+
 START_SECTION((const SparseVectorType& getBins() const))
 {
+  bs1 = new BinnedSpectrum(s1, 1.5, false, 2);
   // count non-zero elements before access
   TEST_EQUAL(bs1->getBins().nonZeros(), 347)
 
@@ -148,7 +172,7 @@ END_SECTION
 // static
 START_SECTION((bool BinnedSpectrum::isCompatible(const BinnedSpectrum& a, const BinnedSpectrum& b)))
 {
-  BinnedSpectrum bs2(1.234, 2, s1);
+  BinnedSpectrum bs2(s1, 1.234, false, 2);
   TEST_EQUAL(BinnedSpectrum::isCompatible(*bs1, bs2), false)
   TEST_EQUAL(BinnedSpectrum::isCompatible(*bs1, *bs1), true)
 }
