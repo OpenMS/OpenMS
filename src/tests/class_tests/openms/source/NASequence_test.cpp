@@ -319,6 +319,16 @@ START_SECTION((double getMonoWeight(NASequence::NASFragmentType type = NASequenc
   // with charge (negative!):
   seq = NASequence::fromString("AAU[m5C]Gp");
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::Full, -2), 1644.228);
+
+  // data from RNAModMapper publication (Yu et al., Anal. Chem. 2017), Fig. 4:
+  TOLERANCE_ABSOLUTE(0.9); // numbers don't match very accurately
+  seq = NASequence::fromString("A[ms2i6A]AACC");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::AminusB, -1), 1848.587);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::CIon, -2) / 2, 1020.023);
+  seq = NASequence::fromString("[ms2i6A]AACCGp");
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::WIon, -2) / 2, 1076.045);
+  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::YIon, -2) / 2, 1036.459);
+  TOLERANCE_ABSOLUTE(1e-5); // reset tolerance
 }
 END_SECTION
 
@@ -333,8 +343,8 @@ START_SECTION((EmpiricalFormula getFormula(NASequence::NASFragmentType type = NA
   TEST_EQUAL(seq.getFormula(NASequence::ZIon, -1), EmpiricalFormula("C20H24N10O11P"));
   TEST_EQUAL(seq.getFormula(NASequence::AIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H10N5O4"));
   TEST_EQUAL(seq.getFormula(NASequence::BIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H12N5O5"));
-  TEST_EQUAL(seq.getFormula(NASequence::CIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H13N5O7P"));
-  TEST_EQUAL(seq.getFormula(NASequence::DIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(NASequence::CIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H11N5O7P"));
+  TEST_EQUAL(seq.getFormula(NASequence::DIon, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C10H13N5O7P"));
   TEST_EQUAL(seq.getFormula(NASequence::AminusB, -1), EmpiricalFormula("C10H12N5O7P") + EmpiricalFormula("C5H5O3"));
 
   seq = NASequence::fromString("GGG");
