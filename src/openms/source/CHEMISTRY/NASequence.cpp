@@ -334,6 +334,11 @@ namespace OpenMS
     return getFormula(type, charge).getMonoWeight();
   }
 
+  double NASequence::getAverageWeight(NASFragmentType type, Int charge) const
+  {
+    return getFormula(type, charge).getAverageWeight();
+  }
+
   size_t NASequence::size() const
   {
     return seq_.size();

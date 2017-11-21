@@ -319,16 +319,20 @@ START_SECTION((double getMonoWeight(NASequence::NASFragmentType type = NASequenc
   // with charge (negative!):
   seq = NASequence::fromString("AAU[m5C]Gp");
   TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::Full, -2), 1644.228);
+}
+END_SECTION
 
+START_SECTION((double getAverageWeight(NASequence::NASFragmentType type = NASequence::Full, Int charge = 0) const))
+{
   // data from RNAModMapper publication (Yu et al., Anal. Chem. 2017), Fig. 4:
-  TOLERANCE_ABSOLUTE(0.9); // numbers don't match very accurately
+  NASequence seq = NASequence::fromString("A[ms2i6A]AACCGp");
+  TEST_REAL_SIMILAR(seq.getAverageWeight(NASequence::Full, -2) / 2, 1201.3);
   seq = NASequence::fromString("A[ms2i6A]AACC");
-  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::AminusB, -1), 1848.587);
-  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::CIon, -2) / 2, 1020.023);
+  TEST_REAL_SIMILAR(seq.getAverageWeight(NASequence::AminusB, -1), 1848.587 + 0.734);
+  TEST_REAL_SIMILAR(seq.getAverageWeight(NASequence::CIon, -2) / 2, 1020.023 - 0.324);
   seq = NASequence::fromString("[ms2i6A]AACCGp");
-  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::WIon, -2) / 2, 1076.045);
-  TEST_REAL_SIMILAR(seq.getMonoWeight(NASequence::YIon, -2) / 2, 1036.459);
-  TOLERANCE_ABSOLUTE(1e-5); // reset tolerance
+  TEST_REAL_SIMILAR(seq.getAverageWeight(NASequence::WIon, -2) / 2, 1076.045 + 0.651);
+  TEST_REAL_SIMILAR(seq.getAverageWeight(NASequence::YIon, -2) / 2, 1036.459 + 0.247);
 }
 END_SECTION
 
