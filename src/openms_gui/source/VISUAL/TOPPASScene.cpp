@@ -466,16 +466,14 @@ namespace OpenMS
       }
     }
 
-    TOPPASEdge* edge;
-    // cppcheck-suppress uninitvar
+    TOPPASEdge* edge = nullptr;
     foreach(edge, edges_to_be_removed)
     {
       edges_.removeAll(edge);
       removeItem(edge); // remove from scene
       delete edge;
     }
-    TOPPASVertex* vertex;
-    // cppcheck-suppress uninitvar
+    TOPPASVertex* vertex = nullptr;
     foreach(vertex, vertices_to_be_removed)
     {
       vertices_.removeAll(vertex);
