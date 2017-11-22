@@ -49,7 +49,6 @@ InspectInfile.h
 InspectOutfile.h
 KroenikFile.h
 LibSVMEncoder.h
-MRMFeatureQCFile.h
 MS2File.h
 MSNumpressCoder.h
 MSPFile.h
