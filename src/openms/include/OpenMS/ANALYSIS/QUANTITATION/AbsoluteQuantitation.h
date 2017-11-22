@@ -232,10 +232,10 @@ public:
 
     */ 
     void quantifyComponents(FeatureMap& unknowns);    
-
-    void findIS_();
      
 private:  
+    void findIS_();
+    
     // members
     /// map between components and quantitation methods
     std::map<String,AbsoluteQuantitationMethod> quant_methods_;

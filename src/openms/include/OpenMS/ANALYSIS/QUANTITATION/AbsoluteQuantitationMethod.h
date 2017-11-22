@@ -53,8 +53,14 @@ namespace OpenMS
 {
 
   /**
-    @brief AbsoluteQuantitationMethod is a class to handle the relationship between
-    runs, components, and actual concentrations.
+    @brief AbsoluteQuantitationMethod is a class to hold information about the
+      quantitation method and for applying and/or generating the quantitation method.
+
+    The quantitation method describes all parameters required to define the 
+      calibration curve used for absolute quantitation by Isotope Dilution Mass Spectrometry (IDMS).
+      The quantitation method also defines the statistics of the fitted calibration curve as well
+      as the lower and upper bounds of the calibration for later Quality Control.
+      
   */
   class OPENMS_DLLAPI AbsoluteQuantitationMethod
   {

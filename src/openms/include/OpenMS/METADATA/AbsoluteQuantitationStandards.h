@@ -49,7 +49,11 @@ namespace OpenMS
 
   /**
     @brief AbsoluteQuantitationStandards is a class to handle the relationship between
-    runs, components, and actual concentrations.
+    runs, components, and their actual concentrations.
+
+    A mapping between a run, the components in the run, and the actual concentration
+    of the components in the run are required to build a calibration curve that is
+    required for absolute quantitation.
   */
   class OPENMS_DLLAPI AbsoluteQuantitationStandards :
   public DefaultParamHandler
