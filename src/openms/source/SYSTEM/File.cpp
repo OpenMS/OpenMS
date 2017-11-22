@@ -463,7 +463,6 @@ namespace OpenMS
     {
       dir = String(QDir::tempPath());
     }
-    dir.ensureLastChar('/');
     return dir;
   }
 
