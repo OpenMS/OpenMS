@@ -36,7 +36,12 @@
 
 namespace OpenMS
 {
-  PeakIntegrator::PeakIntegrator() {}
+  PeakIntegrator::PeakIntegrator() :
+    DefaultParamHandler("PeakIntegrator")
+  {
+    getDefaultParameters(defaults_);
+    defaultsToParam_(); // write defaults into Param object param_
+  }
 
   PeakIntegrator::~PeakIntegrator() {}
 
@@ -68,5 +73,26 @@ namespace OpenMS
   String PeakIntegrator::getPeakModel() const
   {
     return peak_model_;
+  }
+
+  void PeakIntegrator::getDefaultParameters(Param& params)
+  {
+    params.clear();
+    // TODO improve descriptions
+    params.setValue("integration_type", "trapezoid", "Integration method to use.");
+    params.setValidStrings("integration_type", ListUtils::create<String>("intensity_sum,simpson,trapezoid"));
+
+    params.setValue("baseline_type", "vertical_division", "Type of baseline to use.");
+    params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division"));
+
+    params.setValue("peak_model", "none", "Peak model.");
+    params.setValidStrings("peak_model", ListUtils::create<String>("none"));
+  }
+
+  void PeakIntegrator::updateMembers_()
+  {
+    integration_type_ = (String)param_.getValue("integration_type");
+    baseline_type_ = (String)param_.getValue("baseline_type");
+    peak_model_ = (String)param_.getValue("peak_model");
   }
 }

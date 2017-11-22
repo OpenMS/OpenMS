@@ -63,6 +63,17 @@ START_SECTION(~PeakIntegrator())
 }
 END_SECTION
 
+ptr = new PeakIntegrator();
+
+START_SECTION(getParameters())
+{
+  Param params = ptr->getParameters();
+  TEST_EQUAL(params.getValue("integration_type"), "trapezoid")
+  TEST_EQUAL(params.getValue("baseline_type"), "vertical_division")
+  TEST_EQUAL(params.getValue("peak_model"), "none")
+}
+END_SECTION
+
 START_SECTION(setIntegrationType())
 {
   TEST_EQUAL(ptr->getIntegrationType(), "trapezoid")
@@ -87,6 +98,8 @@ START_SECTION(getPeakModel())
   //TEST_EQUAL(ptr->getPeakModel(), "base_to_base")
 }
 END_SECTION
+
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

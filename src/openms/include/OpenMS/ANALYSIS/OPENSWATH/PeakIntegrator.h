@@ -36,11 +36,13 @@
 #define OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI PeakIntegrator
+  class OPENMS_DLLAPI PeakIntegrator :
+    public DefaultParamHandler
   {
 public:
     PeakIntegrator();
@@ -54,6 +56,11 @@ public:
 
     void setPeakModel(const String& peak_model);
     String getPeakModel() const;
+
+    void getDefaultParameters(Param& params);
+
+protected:
+    void updateMembers_();
 
 private:
     String integration_type_; // intensity_sum, trapezoid, simpson
