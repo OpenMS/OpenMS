@@ -39,4 +39,34 @@ namespace OpenMS
   PeakIntegrator::PeakIntegrator() {}
 
   PeakIntegrator::~PeakIntegrator() {}
+
+  void PeakIntegrator::setIntegrationType(const String& integration_type)
+  {
+    integration_type_ = integration_type;
+  }
+
+  String PeakIntegrator::getIntegrationType() const
+  {
+    return integration_type_;
+  }
+
+  void PeakIntegrator::setBaselineType(const String& baseline_type)
+  {
+    baseline_type_ = baseline_type;
+  }
+
+  String PeakIntegrator::getBaselineType() const
+  {
+    return baseline_type_;
+  }
+
+  void PeakIntegrator::setPeakModel(const String& peak_model)
+  {
+    peak_model_ = peak_model;
+  }
+
+  String PeakIntegrator::getPeakModel() const
+  {
+    return peak_model_;
+  }
 }

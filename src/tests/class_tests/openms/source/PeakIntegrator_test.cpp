@@ -63,6 +63,31 @@ START_SECTION(~PeakIntegrator())
 }
 END_SECTION
 
+START_SECTION(setIntegrationType())
+{
+  TEST_EQUAL(ptr->getIntegrationType(), "trapezoid")
+  ptr->setIntegrationType("intensity_sum");
+  TEST_EQUAL(ptr->getIntegrationType(), "intensity_sum")
+}
+END_SECTION
+
+START_SECTION(setBaselineType())
+{
+  TEST_EQUAL(ptr->getBaselineType(), "vertical_division")
+  ptr->setBaselineType("base_to_base");
+  TEST_EQUAL(ptr->getBaselineType(), "base_to_base")
+}
+END_SECTION
+
+START_SECTION(getPeakModel())
+{
+  TEST_EQUAL(ptr->getPeakModel(), "none")
+  // TODO update this to also test the setter
+  //ptr->setPeakModel("base_to_base");
+  //TEST_EQUAL(ptr->getPeakModel(), "base_to_base")
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

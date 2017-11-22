@@ -36,6 +36,7 @@
 #define OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
@@ -44,6 +45,20 @@ namespace OpenMS
 public:
     PeakIntegrator();
     virtual ~PeakIntegrator();
+
+    void setIntegrationType(const String& integration_type);
+    String getIntegrationType() const;
+
+    void setBaselineType(const String& baseline_type);
+    String getBaselineType() const;
+
+    void setPeakModel(const String& peak_model);
+    String getPeakModel() const;
+
+private:
+    String integration_type_; // intensity_sum, trapezoid, simpson
+    String baseline_type_; // vertical_division, base_to_base
+    String peak_model_; // none
   };
 }
 
