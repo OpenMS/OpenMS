@@ -623,9 +623,12 @@ public:
           LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
           has_error = true;
         }
-        else
+        else if (missing_decoy_action_ == "warn")
         {
           LOG_WARN << "Warn: " << msg << "\nSet 'missing_decoy_action' to 'error' if you want to elevate this to an error!" << std::endl;
+        }
+        else // silent
+        {
         }
       }
 
