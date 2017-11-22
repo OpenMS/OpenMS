@@ -36,106 +36,34 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureScheduler.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(MRMFeatureSelector, "$Id$")
+START_TEST(MRMFeatureScheduler, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureSelector* ptr = 0;
-MRMFeatureSelector* null_ptr = 0;
+MRMFeatureScheduler* ptr = 0;
+MRMFeatureScheduler* null_ptr = 0;
+const String features_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1.featureXML");
+const String target_list_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_BloodProject01_SWATH.csv");
 
-START_SECTION(MRMFeatureSelector())
+START_SECTION(MRMFeatureScheduler())
 {
-  ptr = new MRMFeatureSelector();
+  ptr = new MRMFeatureScheduler();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~MRMFeatureSelector())
+START_SECTION(~MRMFeatureScheduler())
 {
   delete ptr;
 }
 END_SECTION
-
-ptr = new MRMFeatureSelector();
-
-START_SECTION(getParameters().getValue("nn_threshold"))
-{
-  TEST_EQUAL(ptr->getParameters().getValue("nn_threshold"), 4.0)
-}
-END_SECTION
-
-START_SECTION(setNNThreshold())
-{
-  TEST_EQUAL(ptr->getNNThreshold(), 4.0)
-  ptr->setNNThreshold(5.0);
-  TEST_EQUAL(ptr->getNNThreshold(), 5.0)
-}
-END_SECTION
-
-START_SECTION(getLocalityWeight())
-{
-  TEST_EQUAL(ptr->getLocalityWeight(), false)
-  ptr->setLocalityWeight(true);
-  TEST_EQUAL(ptr->getLocalityWeight(), true)
-}
-END_SECTION
-
-START_SECTION(getSelectTransitionGroup())
-{
-  TEST_EQUAL(ptr->getSelectTransitionGroup(), true)
-  ptr->setSelectTransitionGroup(false);
-  TEST_EQUAL(ptr->getSelectTransitionGroup(), false)
-}
-END_SECTION
-
-START_SECTION(getSegmentWindowLength())
-{
-  TEST_EQUAL(ptr->getSegmentWindowLength(), 8.0)
-  ptr->setSegmentWindowLength(7.0);
-  TEST_EQUAL(ptr->getSegmentWindowLength(), 7.0)
-}
-END_SECTION
-
-START_SECTION(getSegmentStepLength())
-{
-  TEST_EQUAL(ptr->getSegmentStepLength(), 4.0)
-  ptr->setSegmentStepLength(3.0);
-  TEST_EQUAL(ptr->getSegmentStepLength(), 3.0)
-}
-END_SECTION
-
-START_SECTION(getSelectHighestCount())
-{
-  TEST_EQUAL(ptr->getSelectHighestCount(), false)
-  ptr->setSelectHighestCount(true);
-  TEST_EQUAL(ptr->getSelectHighestCount(), true)
-}
-END_SECTION
-
-START_SECTION(getVariableType())
-{
-  TEST_EQUAL(ptr->getVariableType(), "continuous")
-  ptr->setVariableType("integer");
-  TEST_EQUAL(ptr->getVariableType(), "integer")
-}
-END_SECTION
-
-START_SECTION(getOptimalThreshold())
-{
-  TEST_EQUAL(ptr->getOptimalThreshold(), 0.5)
-  ptr->setOptimalThreshold(0.6);
-  TEST_EQUAL(ptr->getOptimalThreshold(), 0.6)
-}
-END_SECTION
-
-delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

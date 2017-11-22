@@ -14,6 +14,7 @@ set(sources_list_h
   MRMAssay.h
   MRMDecoy.h
   MRMFeatureFinderScoring.h
+  MRMFeatureScheduler.h
   MRMFeatureSelector.h
   MRMRTNormalizer.h
   MRMTransitionGroupPicker.h

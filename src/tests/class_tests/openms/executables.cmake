@@ -605,6 +605,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
     MasstraceCorrelator_test
+    MRMFeatureScheduler_test
     MRMFeatureScoring_test
     MRMFeatureSelector_test
     MRMFeatureFinderScoring_test
