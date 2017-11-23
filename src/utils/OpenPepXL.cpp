@@ -243,10 +243,10 @@ protected:
 
     // output file
     registerOutputFile_("out_xquestxml", "<file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false, false);
-    setValidFormats_("out_xquestxml", ListUtils::create<String>("xml"));
+    setValidFormats_("out_xquestxml", ListUtils::create<String>("xml,xquest.xml,xquestXML"));
 
     registerOutputFile_("out_xquest_specxml", "<file>", "", "Matched spectra in the xQuest .spec.xml format for spectra visualization in the xQuest results manager.", false, false);
-    setValidFormats_("out_xquest_specxml", ListUtils::create<String>("xml"));
+    setValidFormats_("out_xquest_specxml", ListUtils::create<String>("xml,spec.xml"));
 
     registerOutputFile_("out_idXML", "<file>", "", "Results in idXML format (at least one of these output parameters should be set, otherwise you will not have any results)", false, false);
     setValidFormats_("out_idXML", ListUtils::create<String>("idXML"));
@@ -604,6 +604,7 @@ protected:
     search_params.setMetaValue("input_decoys", in_decoy_fasta);
     search_params.setMetaValue("decoy_prefix", decoy_prefix);
     search_params.setMetaValue("decoy_string", decoy_string);
+    search_params.setMetaValue("out_xquest_specxml", out_xquest_specxml);
 
     search_params.setMetaValue("precursor:min_charge", min_precursor_charge);
     search_params.setMetaValue("precursor:max_charge", max_precursor_charge);
@@ -616,6 +617,7 @@ protected:
     search_params.setMetaValue("cross_link:mass", cross_link_mass_light);
     search_params.setMetaValue("cross_link:mass_isoshift", cross_link_mass_iso_shift);
     search_params.setMetaValue("cross_link:mass_monolink", cross_link_mass_mono_link);
+    search_params.setMetaValue("cross_link:name", cross_link_name);
 
     search_params.setMetaValue("modifications:variable_max_per_peptide", max_variable_mods_per_peptide);
     protein_ids[0].setSearchParameters(search_params);
@@ -1148,15 +1150,17 @@ protected:
       {
         String precursor_mass_tolerance_unit_string = precursor_mass_tolerance_unit_ppm ? "ppm" : "Da";
         String fragment_mass_tolerance_unit_string = fragment_mass_tolerance_unit_ppm ? "ppm" : "Da";
-        XQuestResultXMLFile::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
-                                                            precursor_mass_tolerance_unit_string, fragment_mass_tolerance_unit_string, precursor_mass_tolerance, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, cross_link_name,
-                                                            cross_link_mass_light, cross_link_mass_mono_link, in_fasta, in_decoy_fasta, cross_link_residue1, cross_link_residue2, cross_link_mass_iso_shift, enzyme_name, missed_cleavages);
+        // XQuestResultXMLFile::writeXQuestXML(out_xquest, base_name, peptide_ids, all_top_csms, spectra,
+        //                                                     precursor_mass_tolerance_unit_string, fragment_mass_tolerance_unit_string, precursor_mass_tolerance, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, cross_link_name,
+        //                                                     cross_link_mass_light, cross_link_mass_mono_link, in_fasta, in_decoy_fasta, cross_link_residue1, cross_link_residue2, cross_link_mass_iso_shift, enzyme_name, missed_cleavages);
+        XQuestResultXMLFile().store("out_xquest", protein_ids, peptide_ids);
       }
       if (out_xquest_specxml.size() > 0)
       {
         XQuestResultXMLFile::writeXQuestXMLSpec(out_xquest_specxml, base_name, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
       }
     }
+
     progresslogger.endProgress();
 
     return EXECUTION_OK;
