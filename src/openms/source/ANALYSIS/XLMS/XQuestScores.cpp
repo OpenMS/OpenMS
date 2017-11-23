@@ -107,14 +107,14 @@ namespace OpenMS
     // A priori probability of a random match given info about the theoretical spectrum
     double a_priori_p = 0;
 
-    if (is_xlink_spectrum)
-    {
-      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  (static_cast<double>(theo_size) / static_cast<double>(n_charges)))));
-    }
-    else
-    {
-      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  static_cast<int>(theo_size))));
-    }
+    // if (is_xlink_spectrum)
+    // {
+    a_priori_p = 1 - pow(1 - 2 * tolerance_Th / range,  static_cast<double>(theo_size));
+    // }
+    // else
+    // {
+    //   a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / range),  static_cast<int>(theo_size))));
+    // }
 
     double match_odds = 0;
     //match_odds = -log(1 - Math::CumulativeBinomial::compute(theo_size, matched_size, a_priori_p) + 1e-5);
