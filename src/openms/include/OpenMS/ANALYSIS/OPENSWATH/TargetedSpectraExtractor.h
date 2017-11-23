@@ -65,6 +65,13 @@ namespace OpenMS
     The spectra are then scored based on total TIC, FWHM and SNR.
     One spectrum is chosen for each of those transitions for which at least one
     valid spectrum was found and matched.
+
+    The user can decide to use only extractSpectra(), otherwise run the methods
+    in the following order:
+    annotateSpectra()
+    pickSpectrum() (called once for each annotated spectrum)
+    scoreSpectra()
+    selectSpectra()
   */
   class OPENMS_DLLAPI TargetedSpectraExtractor :
     public DefaultParamHandler

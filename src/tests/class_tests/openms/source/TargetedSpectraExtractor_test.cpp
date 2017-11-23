@@ -499,7 +499,7 @@ START_SECTION(annotateSpectra())
 
   ptr->annotateSpectra(spectra, targeted_exp, annotated_spectra, features);
 
-  TEST_NOT_EQUAL(annotated_spectra.size(), 0)
+  TEST_EQUAL(annotated_spectra.size(), 21)
   TEST_EQUAL(annotated_spectra.size(), features.size())
 
   TEST_EQUAL(annotated_spectra[0].getName(), "met-L.met-L_m0-0")
@@ -626,6 +626,7 @@ START_SECTION(scoreSpectra())
 
   ptr->annotateSpectra(spectra, targeted_exp, annotated_spectra, features);
   TEST_EQUAL(annotated_spectra.size(), features.size())
+  TEST_EQUAL(annotated_spectra.size(), 21)
 
   vector<MSSpectrum> picked_spectra(annotated_spectra.size());
   for (UInt i=0; i<annotated_spectra.size(); ++i)
@@ -642,13 +643,14 @@ START_SECTION(scoreSpectra())
       features.erase(features.begin() + i);
     }
   }
+  TEST_EQUAL(annotated_spectra.size(), 12)
   TEST_EQUAL(annotated_spectra.size(), features.size())
   TEST_EQUAL(picked_spectra.size(), features.size())
 
   vector<MSSpectrum> scored_spectra;
   ptr->scoreSpectra(annotated_spectra, picked_spectra, features, scored_spectra);
 
-  TEST_NOT_EQUAL(scored_spectra.size(), 0)
+  TEST_EQUAL(scored_spectra.size(), 12)
   TEST_EQUAL(scored_spectra.size(), annotated_spectra.size())
   TEST_EQUAL(scored_spectra.size(), features.size())
 
@@ -793,12 +795,16 @@ START_SECTION(selectSpectra())
   }
 
   ptr->selectSpectra(scored, selected_spectra);
-  TEST_NOT_EQUAL(selected_spectra.size(), 0)
+  TEST_EQUAL(selected_spectra.size(), 2)
   for (UInt i=0; i<selected_spectra.size(); ++i)
   {
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= ptr->getMinScore(), true)
   }
+  TEST_EQUAL(selected_spectra[0].getName(), "asp-L.asp-L_m2-1")
+  TEST_REAL_SIMILAR(selected_spectra[0].getFloatDataArrays()[1][0], 17.4552230834961)
+  TEST_EQUAL(selected_spectra[1].getName(), "met-L.met-L_m0-0")
+  TEST_REAL_SIMILAR(selected_spectra[1].getFloatDataArrays()[1][0], 16.0294418334961)
 }
 END_SECTION
 
@@ -821,6 +827,12 @@ START_SECTION(extractSpectra())
   ptr->extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features);
 
   TEST_EQUAL(extracted_spectra.size(), extracted_features.size())
+  TEST_EQUAL(extracted_spectra.size(), 2)
+
+  TEST_EQUAL(extracted_spectra[0].getName(), "asp-L.asp-L_m2-1")
+  TEST_REAL_SIMILAR(extracted_spectra[0].getFloatDataArrays()[1][0], 17.4552230834961)
+  TEST_EQUAL(extracted_spectra[1].getName(), "met-L.met-L_m0-0")
+  TEST_REAL_SIMILAR(extracted_spectra[1].getFloatDataArrays()[1][0], 16.0294418334961)
 
   STATUS("Printing mapping of transition -> best spectrum:")
   for (UInt i=0; i<extracted_spectra.size(); ++i)
