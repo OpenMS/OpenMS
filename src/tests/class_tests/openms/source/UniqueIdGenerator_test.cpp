@@ -45,7 +45,7 @@
 #include <boost/serialization/array_wrapper.hpp>
 #endif
 #include <boost/accumulators/statistics/covariance.hpp>
-#include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
+#include <boost/typeof/incr_registration_group.hpp>
 ///////////////////////////
 
 using namespace OpenMS;

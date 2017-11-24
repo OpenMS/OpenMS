@@ -24,6 +24,7 @@ DIAScoring.cpp
 SONARScoring.cpp
 DIAPrescoring.cpp
 MRMFeatureFinderScoring.cpp
+MasstraceCorrelator.cpp
 ConfidenceScoring.cpp
 PeakPickerMRM.cpp
 SwathWindowLoader.cpp

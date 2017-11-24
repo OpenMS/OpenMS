@@ -38,6 +38,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <OpenMS/ANALYSIS/TARGETED/MRMMapping.h>
+
 using namespace OpenMS;
 
 //-------------------------------------------------------------
@@ -70,12 +72,24 @@ using namespace OpenMS;
   SRM instrument) and a TraML file that contains the data that was used to
   generate the instrument method to measure said data. It then maps the
   transitions in the TraML file to the chromatograms found in the mzML file
-  and stores the mapping by replacing the "id" parameter in the mzML with the
-  "id" of the transition in the TraML file. It removes chromatograms for
-  which it cannot find a mapping and throws an error if more than one
-  transitions maps to a chromatogram.
-  In strict mode (default) it also throws an error it not all chromatograms
-  are found in the TraML file.
+  and stores the chromatograms annotated with meta-data from the TraML file.
+  Thus, the  output chromatograms are an annotated copy of the input
+  chromatograms with native id, precursor information and peptide sequence (if
+  available) annotated in the chromatogram files.
+
+  The algorithm tries to match a given set of chromatograms and targeted
+  assays. It iterates through all the chromatograms retrieves one or more
+  matching targeted assay for the chromatogram. By default, the algorithm
+  assumes that a 1:1 mapping exists. If a chromatogram cannot be mapped
+  (does not have a corresponding assay) the algorithm issues a warning, the
+  user can specify that the program should abort in such a case (see
+  error_on_unmapped).
+      
+  If multiple mapping is enabled (see map_multiple_assays parameter)
+  then each mapped assay will get its own chromatogram that contains the
+  same raw data but different meta-annotation. This *can* be useful if the
+  same transition is used to monitor multiple analytes but may also
+  indicate a problem with too wide mapping tolerances.
 
   The thus mapped mzML file can then be used in a downstream analysis.
 
@@ -115,23 +129,26 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file containing mapped chromatograms");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
-    registerDoubleOption_("precursor_tolerance", "<double>", 0.1, "Precursor tolerance when mapping (in Th)", false);
-    registerDoubleOption_("product_tolerance", "<double>", 0.1, "Product tolerance when mapping (in Th)", false);
+    registerSubsection_("algorithm", "Algorithm parameters section");
+  }
 
-    registerFlag_("no-strict", "run in non-strict mode and allow some chromatograms to not be mapped.");
-    registerFlag_("allow_multiple_mappings", "Allow multiple mappings (will take the last matching from the TraML)");
+  Param getSubsectionDefaults_(const String& name) const
+  {
+    if (name == "algorithm")
+    {
+      return MRMMapping().getDefaults();
+    }
+    else
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown subsection", name);
+    }
   }
 
   ExitCodes main_(int, const char **)
   {
-
     String in = getStringOption_("in");
     String tr_file = getStringOption_("tr");
     String out = getStringOption_("out");
-    double map_precursor_tol_ = getDoubleOption_("precursor_tolerance");
-    double map_product_tol_ = getDoubleOption_("product_tolerance");
-    bool nostrict = getFlag_("no-strict");
-    bool allow_multiple = getFlag_("allow_multiple_mappings");
 
     OpenMS::TargetedExperiment targeted_exp;
     OpenMS::PeakMap chromatogram_map;
@@ -140,88 +157,11 @@ protected:
     TraMLFile().load(tr_file, targeted_exp);
     MzMLFile().load(in, chromatogram_map);
 
-    // copy all meta data from old chromatogram
-    output = chromatogram_map;
-    output.clear(false);
-    std::vector<MSChromatogram > empty_chromats;
-    output.setChromatograms(empty_chromats);
+    Param param = getParam_().copy("algorithm:", true);
 
-    int notmapped = 0;
-    for (Size i = 0; i < chromatogram_map.getChromatograms().size(); i++)
-    {
-      // try to find the best matching transition for this chromatogram
-      bool mapped_already = false;
-      MSChromatogram chromatogram = chromatogram_map.getChromatograms()[i];
-
-      if (chromatogram.getPrecursor().getMZ() == 0.0 && chromatogram.getProduct().getMZ() == 0.0)
-      {
-        LOG_WARN << "Skip mapping for chromatogram " + String(chromatogram.getNativeID()) + " since no precursor or product m/z was recorded." << std::endl;
-        continue;
-      }
-
-      for (Size j = 0; j < targeted_exp.getTransitions().size(); j++)
-      {
-
-        if (fabs(chromatogram.getPrecursor().getMZ() - targeted_exp.getTransitions()[j].getPrecursorMZ()) < map_precursor_tol_ &&
-            fabs(chromatogram.getProduct().getMZ()   - targeted_exp.getTransitions()[j].getProductMZ())   < map_product_tol_)
-        {
-
-          LOG_DEBUG << "Mapping chromatogram " << i << " to transition " << j << " (" << targeted_exp.getTransitions()[j].getNativeID() << ")"
-             " with precursor mz " << chromatogram.getPrecursor().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getPrecursorMZ() <<
-             " and product mz " << chromatogram.getProduct().getMZ() << " / " <<  targeted_exp.getTransitions()[j].getProductMZ() << std::endl;
-
-          // ensure: map every chromatogram to only one transition
-          if (mapped_already && !allow_multiple)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Already mapped chromatogram " + String(i) + \
-             " with " + String(chromatogram.getPrecursor().getMZ()) + \
-              " -> " + String(chromatogram.getProduct().getMZ()) +  \
-                "! Maybe try to decrease your mapping tolerance.");
-          }
-
-          mapped_already = true;
-
-          // Create precursor and set the peptide sequence
-          Precursor precursor = chromatogram.getPrecursor();
-          String pepref = targeted_exp.getTransitions()[j].getPeptideRef();
-          for (Size pep_idx = 0; pep_idx < targeted_exp.getPeptides().size(); pep_idx++)
-          {
-            const OpenMS::TargetedExperiment::Peptide * pep = &targeted_exp.getPeptides()[pep_idx];
-            if (pep->id == pepref)
-            {
-              precursor.setMetaValue("peptide_sequence", pep->sequence);
-              break;
-            }
-          }
-          // add precursor to chromatogram
-          chromatogram.setPrecursor(precursor);
-
-          // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
-          chromatogram.setNativeID(targeted_exp.getTransitions()[j].getNativeID());
-        }
-      }
-
-      // ensure: map every chromatogram to at least one transition
-      if (!mapped_already)
-      {
-        LOG_ERROR << "Did not find a mapping for chromatogram " + String(i) + " with transition " + String(chromatogram.getPrecursor().getMZ()) + \
-          " -> " + String(chromatogram.getProduct().getMZ()) +  "! Maybe try to increase your mapping tolerance." << std::endl;
-        notmapped++;
-        if (!nostrict)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Did not find a mapping for chromatogram " + String(i) + "! Maybe try to increase your mapping tolerance.");
-        }
-      }
-      else
-      {
-        output.addChromatogram(chromatogram);
-      }
-    }
-
-    if (notmapped > 0)
-    {
-      std::cerr << "Could not find mapping for " << notmapped  << " chromatogram(s) " << std::endl;
-    }
+    MRMMapping mrmm;
+    mrmm.setParameters(param);
+    mrmm.mapExperiment(chromatogram_map, targeted_exp, output);
 
     // add all data processing information to all the chromatograms
     DataProcessing dp_ = getProcessingInfo_(DataProcessing::FORMAT_CONVERSION);

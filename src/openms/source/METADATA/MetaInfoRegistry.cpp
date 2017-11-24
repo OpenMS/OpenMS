@@ -56,17 +56,17 @@ namespace OpenMS
 
     name_to_index_["label"] = 3;
     index_to_name_[3] = "label";
-    index_to_description_[3] = "label e.g. shown in visialization";
+    index_to_description_[3] = "label e.g. shown in visualization";
     index_to_unit_[3] = "";
 
     name_to_index_["icon"] = 4;
     index_to_name_[4] = "icon";
-    index_to_description_[4] = "icon shown in visialization";
+    index_to_description_[4] = "icon shown in visualization";
     index_to_unit_[4] = "";
 
     name_to_index_["color"] = 5;
     index_to_name_[5] = "color";
-    index_to_description_[5] = "color used for visialization e.g. #FF00FF for purple";
+    index_to_description_[5] = "color used for visualization e.g. #FF00FF for purple";
     index_to_unit_[5] = "";
 
     name_to_index_["RT"] = 6;
@@ -91,7 +91,7 @@ namespace OpenMS
 
     name_to_index_["spectrum_reference"] = 10;
     index_to_name_[10] = "spectrum_reference";
-    index_to_description_[10] = "Refenference to a spectrum or feature number";
+    index_to_description_[10] = "Reference to a spectrum or feature number";
     index_to_unit_[10] = "";
 
     name_to_index_["ID"] = 11;
@@ -101,7 +101,7 @@ namespace OpenMS
 
     name_to_index_["low_quality"] = 12;
     index_to_name_[12] = "low_quality";
-    index_to_description_[12] = "Flag which indicatest that some entity has a low quality (e.g. a feature pair)";
+    index_to_description_[12] = "Flag which indicates that some entity has a low quality (e.g. a feature pair)";
     index_to_unit_[12] = "";
 
     name_to_index_["charge"] = 13;

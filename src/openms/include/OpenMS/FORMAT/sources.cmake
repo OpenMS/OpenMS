@@ -64,6 +64,7 @@ MzTabFile.h
 MzXMLFile.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
+OSWFile.h
 ParamXMLFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h

@@ -87,7 +87,8 @@ class TOPPIDEvaluatorGUI :
 public:
   TOPPIDEvaluatorGUI() :
     TOPPBase("IDEvaluatorGUI",
-             "Computes a 'q-value vs. #PSM' plot to visualize the number identifications for a certain q-value.", false, false, false)
+             "Computes a 'q-value vs. #PSM' plot to visualize the number identifications for a certain q-value.", 
+             false)
   {
     // Do _not_ create instances of QApplication here, see bug 569
   }
@@ -110,17 +111,16 @@ protected:
 
     QApplicationTOPP a(argc, const_cast<char **>(argv));
 
-    IDEvaluationBase * mw = new IDEvaluationBase();
-    Param alg_param = mw->getParameters();
+    IDEvaluationBase mw;
+    Param alg_param = mw.getParameters();
     alg_param.insert("", getParam_().copy("algorithm:", true));
-    mw->setParameters(alg_param);
-    if (!mw->loadFiles(in_list))
+    mw.setParameters(alg_param);
+    if (!mw.loadFiles(in_list))
     {
       LOG_ERROR << "Tool failed. See above." << std::endl;
       return INCOMPATIBLE_INPUT_DATA;
     };
-
-    mw->show();
+    mw.show();
 
 #ifdef OPENMS_WINDOWSPLATFORM
     FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
@@ -128,7 +128,6 @@ protected:
 #endif
 
     int result = a.exec();
-    delete(mw);
     if (result) return UNKNOWN_ERROR;
     else return EXECUTION_OK;
   }
@@ -139,6 +138,11 @@ protected:
 int main(int argc, const char ** argv)
 {
   TOPPIDEvaluatorGUI tool;
+  if (argc == 1) // TOPP will not allow empty argument list and display '--help'; but since this is a GUI, thats ok
+  {
+    const char* argv2[] = {argv[0], "-threads", "1"};
+    return tool.main(3, argv2);
+  }
   return tool.main(argc, argv);
 }
 

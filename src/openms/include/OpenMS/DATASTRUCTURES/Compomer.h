@@ -51,7 +51,7 @@ namespace OpenMS
   /**
     @brief Holds information on an edge connecting two features from a (putative) charge ladder
 
-    A compomer is storing information on the adducts used on LEFT and RIGHT nodes (Features) that are connected by the egde (i.e. ChargePair)
+    A compomer is storing information on the adducts used on LEFT and RIGHT nodes (Features) that are connected by the edge (i.e. ChargePair)
     holding the compomer. Additionally meta information on the edge (net_charge, edge score, id)
     which is kept up-to-date when adducts are added to either side is stored.
 

@@ -94,7 +94,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "2")
+set(OPENMS_PACKAGE_VERSION_MINOR "3")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
 #------------------------------------------------------------------------------
@@ -183,6 +183,11 @@ option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite s
 if(ADDRESS_SANITIZER)
   include(cmake/AddressSanitizer.cmake)
 endif()
+
+#------------------------------------------------------------------------------
+# Enable fingerid_test
+#------------------------------------------------------------------------------
+option(ENABLE_FINGERID_TEST "Enable test for fingerid (SiriusAdapter)" OFF)
 
 #------------------------------------------------------------------------------
 # Enable Coverage

@@ -112,6 +112,7 @@
   - @subpage TOPP_FeatureLinkerUnlabeledKD - Groups corresponding features from multiple maps using a KD tree
 
   <b>Protein/Peptide Identification</b>
+  - @subpage TOPP_CometAdapter - Identifies MS/MS spectra using Comet (external).
   - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
   - @subpage TOPP_CompNovoCID - Performs a peptide/protein identification with the CompNovo engine in CID mode.
   - @subpage TOPP_InspectAdapter - Identifies MS/MS spectra using Inspect (external).

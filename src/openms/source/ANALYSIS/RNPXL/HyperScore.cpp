@@ -46,22 +46,12 @@ using std::vector;
 
 namespace OpenMS
 {
-  double HyperScore::logfactorial_(UInt x)
+  inline double HyperScore::logfactorial_(UInt x)
   {
-    UInt y;
-
-    if (x < 2)
-      return 1;
-    else
-    {
-      double z = 0;
-      for (y = 2; y <= x; y++)
-      {
-        z = log((double)y) + z;
-      }
-
-      return z;
-    }
+    if (x < 2) { return 0; }
+    double z(0);
+    for (double y = 2; y <= static_cast<double>(x); ++y) { z += log(static_cast<double>(y)); }
+    return z;
   }
 
   double HyperScore::compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const PeakSpectrum& theo_spectrum)
@@ -121,19 +111,12 @@ namespace OpenMS
         }
       }
     }
-
+  
     // discard very low scoring hits (basically no matching peaks)
-    if (dot_product > 1e-1)
-    {
-      double yFact = logfactorial_(y_ion_count);
-      double bFact = logfactorial_(b_ion_count);
-      double hyperScore = log(dot_product) + yFact + bFact;
-      return hyperScore;
-    }
-    else
-    {
-      return 0;
-    }
+    const double yFact = logfactorial_(y_ion_count);
+    const double bFact = logfactorial_(b_ion_count);
+    const double hyperScore = log1p(dot_product) + yFact + bFact;
+    return hyperScore;
   }
 
 }

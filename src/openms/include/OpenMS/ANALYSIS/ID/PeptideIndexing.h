@@ -37,8 +37,8 @@
 
 
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -186,7 +186,7 @@ public:
       //-------------------------------------------------------------
       // parsing parameters
       //-------------------------------------------------------------
-      EnzymaticDigestion enzyme;
+      ProteaseDigestion enzyme;
       enzyme.setEnzyme(enzyme_name_);
       enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
 
@@ -714,10 +714,10 @@ protected:
       OpenMS::Size filter_rejected;
 
     private:
-      EnzymaticDigestion enzyme_;
+      ProteaseDigestion enzyme_;
 
     public:
-      explicit FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
+      explicit FoundProteinFunctor(const ProteaseDigestion& enzyme) :
         pep_to_prot(), filter_passed(0), filter_rejected(0), enzyme_(enzyme)
       {
       }
@@ -749,7 +749,7 @@ protected:
         const OpenMS::String& seq_prot,
         OpenMS::Int position)
       {
-        if (enzyme_.isValidProduct(seq_prot, position, len_pep, true))
+        if (enzyme_.isValidProduct(seq_prot, position, len_pep, true, true))
         {
           PeptideProteinMatchInformation match;
           match.protein_index = idx_prot;
