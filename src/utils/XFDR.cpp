@@ -804,7 +804,8 @@ protected:
     //-------------------------------------------------------------
     // Sort peptide ID based on the crosslink class and apply filters
     //-------------------------------------------------------------
-    for (Size i = 0; i < n_ids; ++i)
+    
+    for (size_t i = 0; i != n_ids; ++i)
     {
       // Extract required attributes of the peptide_identification (filter criteria)
       PeptideIdentification & pep_id = all_ids[rank_one_ids[order_score[i]]];
