@@ -22,6 +22,7 @@ source_group("Source Files\\OpenMS\\FORMAT" FILES ${mocced_sources})
 
 ### list all header files of the directory here
 set(sources_list_h
+AbsoluteQuantitationMethodFile.h
 Base64.h
 Bzip2Ifstream.h
 Bzip2InputStream.h
