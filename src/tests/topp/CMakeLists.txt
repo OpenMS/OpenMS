@@ -1960,6 +1960,10 @@ set_tests_properties("TOPP_PeptideIndexer_12_out" PROPERTIES DEPENDS "TOPP_Pepti
 add_test("TOPP_PeptideIndexer_13" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/degenerate_cases/empty.idXML -out PeptideIndexer_13_out.tmp.idXML -aaa_max 4)
 add_test("TOPP_PeptideIndexer_13_out" ${DIFF} -in1 PeptideIndexer_13_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/degenerate_cases/empty.idXML )
 set_tests_properties("TOPP_PeptideIndexer_13_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_13")
+# FASTA with X, overlapping peptides and some * in protein sequences (which should be removed internally)
+add_test("TOPP_PeptideIndexer_14" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_2.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_14.idXML -out PeptideIndexer_14_out.tmp.idXML -enzyme:specificity none -aaa_max 4 -write_protein_sequence)
+add_test("TOPP_PeptideIndexer_14_out" ${DIFF} -in1 PeptideIndexer_14_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_14_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_14_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_14")
 
 
 ## Tests for TOPPAS/ExecutePipeline are in ./src/tests/TOPPAS/...

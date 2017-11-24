@@ -49,6 +49,9 @@ namespace OpenMS
   /**
     @brief This class serves for reading in and writing FASTA files
 
+    If the protein/gene sequence contains unusual symbols (such as translation end (*)),
+    they will be kept!
+
     You can use aggegate methods load() and store() to read/write a
     set of protein sequences at the cost of memory.
     
