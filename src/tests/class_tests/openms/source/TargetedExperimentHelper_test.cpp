@@ -46,21 +46,55 @@ START_TEST(TargetedExperimentHelper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TargetedExperimentHelper* ptr = 0;
-TargetedExperimentHelper* null_ptr = 0;
-START_SECTION(TargetedExperimentHelper())
+TargetedExperimentHelper::Peptide* ptr = 0;
+TargetedExperimentHelper::Peptide* null_ptr = 0;
+START_SECTION(TargetedExperimentHelper::Peptide())
 {
-	ptr = new TargetedExperimentHelper();
+	ptr = new TargetedExperimentHelper::Peptide();
 	TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~TargetedExperimentHelper())
+START_SECTION(~TargetedExperimentHelper::Peptide())
 {
 	delete ptr;
 }
 END_SECTION
 
+START_SECTION((TargetedExperiment::RetentionTime))
+{
+  TargetedExperimentHelper::RetentionTime rt;
+    
+  TEST_EQUAL(rt.isRTset(), false)
+
+  rt.setRT(5.0);
+  TEST_EQUAL(rt.isRTset(), true)
+  TEST_REAL_SIMILAR (rt.getRT(), 5.0)
+
+}
+END_SECTION
+
+
+START_SECTION((TargetedExperiment::Peptide))
+{
+  TargetedExperimentHelper::Peptide p;
+    
+  TEST_EQUAL(p.hasRetentionTime(), false)
+
+  TEST_EQUAL(p.rts.size(), 0)
+  TargetedExperimentHelper::RetentionTime rt;
+  rt.setRT(5.0);
+  rt.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Second;
+  p.rts.push_back(rt);
+  TEST_EQUAL(p.rts.size(), 1)
+  TEST_EQUAL(p.hasRetentionTime(), true)
+  TEST_EQUAL(p.rts[0] == rt, true)
+  TEST_REAL_SIMILAR(p.rts[0].retention_time, 5.0)
+  TEST_REAL_SIMILAR(p.getRetentionTime(), 5.0)
+  TEST_EQUAL(p.rts[0].retention_time_unit, TargetedExperimentHelper::RetentionTime::RTUnit::Second)
+  TEST_EQUAL(p.getRetentionTimeUnit(), TargetedExperimentHelper::RetentionTime::RTUnit::Second)
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

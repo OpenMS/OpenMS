@@ -179,9 +179,6 @@ public:
   TOPPFeatureFinderIdentification() :
     TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.")
   {
-    rt_term_.setCVIdentifierRef("MS");
-    rt_term_.setAccession("MS:1000896");
-    rt_term_.setName("normalized retention time");
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
     // exclude some redundant/uninformative scores:
     // @TODO: intensity bias introduced by "peak_apices_sum"?
@@ -338,7 +335,6 @@ protected:
   bool keep_chromatograms_; // keep chromatogram data for output?
   TargetedExperiment library_; // accumulated assays for peptides
   bool keep_library_; // keep assay data for output?
-  CVTerm rt_term_; // controlled vocabulary term for reference RT
   String score_metavalues_; // names of scores to use as SVM features
   // SVM probability -> number of pos./neg. features (for FDR calculation):
   map<double, pair<Size, Size> > svm_probs_internal_;
@@ -361,7 +357,7 @@ protected:
   ProgressLogger prog_log_;
 
 
-  // generate transitions for a peptide ion and add them to the library:
+  /// generate transitions (isotopic traces) for a peptide ion and add them to the library:
   void generateTransitions_(const String& peptide_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist)
   {
@@ -389,13 +385,14 @@ protected:
 
   void addPeptideRT_(TargetedExperiment::Peptide& peptide, double rt)
   {
-    rt_term_.setValue(rt);
     TargetedExperiment::RetentionTime te_rt;
-    te_rt.addCVTerm(rt_term_);
+    te_rt.setRT(rt);
+    te_rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::Normalized;
     peptide.rts.push_back(te_rt);
   }
 
 
+  /// get regions in which peptide elutes (ideally only one) by clustering RT elution times
   void getRTRegions_(ChargeMap& peptide_data, vector<RTRegion>& rt_regions)
   {
     // use RTs from all charge states here to get a more complete picture:
@@ -459,7 +456,6 @@ protected:
     }
   }
 
-
   void annotateFeaturesFinalizeAssay_(
     FeatureMap& features, map<Size, vector<PeptideIdentification*> >& feat_ids,
     RTMap& rt_internal)
@@ -514,7 +510,7 @@ protected:
     rt_internal.clear();
   }
 
-
+  /// annotate identified features with m/z, isotope probabilities, etc.
   void annotateFeatures_(FeatureMap& features, PeptideRefRTMap& ref_rt_map)
   {
     String previous_ref, peptide_ref;
@@ -687,7 +683,6 @@ protected:
       }
     }
   }
-
 
   void ensureConvexHulls_(Feature& feature)
   {
