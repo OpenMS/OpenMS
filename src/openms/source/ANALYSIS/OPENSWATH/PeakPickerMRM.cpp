@@ -82,6 +82,12 @@ namespace OpenMS
 
   void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
+    MSChromatogram s;
+    pickChromatogram(chromatogram, picked_chrom, s);
+  }
+  
+  void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom, MSChromatogram& smoothed_chrom)
+  {
     if (!chromatogram.isSorted())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -108,7 +114,7 @@ namespace OpenMS
     }
 
     // Smooth the chromatogram
-    MSChromatogram smoothed_chrom = chromatogram;
+    smoothed_chrom = chromatogram;
     if (!use_gauss_)
     {
       sgolay_.filter(smoothed_chrom);

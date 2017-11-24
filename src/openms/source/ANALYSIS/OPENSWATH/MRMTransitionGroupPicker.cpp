@@ -58,7 +58,7 @@ namespace OpenMS
     defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,smoothed,original"));
+    defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,smoothed_average,smoothed_exact,original_average,original_exact"));
 
     defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if theof variation within the picked peaks is too large.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("recalculate_peaks", ListUtils::create<String>("true,false"));
@@ -115,8 +115,8 @@ namespace OpenMS
 
     picker_.setParameters(param_.copy("PeakPickerMRM:", true));
   }
-
-  void MRMTransitionGroupPicker::calculateBgEstimation_(const MSChromatogram& chromatogram,
+  
+  void MRMTransitionGroupPicker::calculateBgEstimationAverage_(const MSChromatogram& chromatogram,
       double best_left, double best_right, double & background, double & avg_noise_level)
   {
     // determine (in the chromatogram) the intensity at the left / right border
@@ -152,6 +152,76 @@ namespace OpenMS
 
     avg_noise_level = (intensity_right + intensity_left) / 2;
     background = avg_noise_level * nr_points;
+  }
+
+  void MRMTransitionGroupPicker::calculateBgEstimationExact_(const MSChromatogram& chromatogram,
+      double best_left, double best_right, double peak_height, double & background, double & avg_noise_level)
+  {
+    // determine (in the chromatogram) the intensity at the left / right border
+    double intensity_left = 0.0;
+    double rt_apex = 0.0;
+    double intensity_right = 0.0;
+    
+    // calculate the average noise level
+    for (MSChromatogram::const_iterator it = std::next(chromatogram.begin()); it != chromatogram.end(); ++it)
+    {
+      MSChromatogram::const_iterator it_prev = it;
+      --it_prev; //previous point
+
+      if (it->getMZ() >= best_left && it_prev->getMZ() < best_left)
+      {
+        intensity_left = it->getIntensity();
+      }
+      else if (it->getIntensity() >= peak_height && it_prev->getIntensity() < peak_height)
+      {
+        rt_apex = it->getMZ();
+      }
+      else if (it->getMZ() >= best_right && it_prev->getMZ() < best_right)
+      {
+        intensity_right = it->getIntensity();
+      }
+    }
+
+    double intensity_max, intensity_min, rt_min;
+    if (intensity_left >= intensity_right)
+    {
+      intensity_max = intensity_left;
+      intensity_min = intensity_right;
+      rt_min = best_right;
+    }
+    else 
+    {
+      intensity_max = intensity_right;
+      intensity_min = intensity_left;
+      rt_min = best_left;
+    }
+    // calculate the average noise level using the sin/cos rule
+    double delta_int = intensity_max - intensity_min;
+    double delta_rt = best_right - best_left;
+    double delta_rt_apex = std::fabs(rt_min-rt_apex);
+    double delta_int_apex = delta_int*delta_rt_apex/delta_rt;
+
+    avg_noise_level = intensity_min + delta_int_apex;
+    //NOTE: formula for calculating the background using the trapezoidal rule (future PR)
+    // background = intensity_min*delta_rt + 0.5*delta_int*delta_rt;
+
+    // calculate the background
+    background = 0.0;
+    for (MSChromatogram::const_iterator it = std::next(chromatogram.begin()); it != chromatogram.end(); ++it)
+    {
+      MSChromatogram::const_iterator it_prev = it;
+      --it_prev; //previous point
+
+      if (it->getMZ() >= best_left && it_prev->getMZ() < best_right)
+      {
+        // calculate the background using the formula
+        // y = mx + b where x = retention time, m = slope, b = left intensity
+        double delta_int = intensity_right - intensity_left; // sign will determine line direction
+        double delta_rt_current = (it->getMZ() - best_left);
+        double background_int_current = delta_int/delta_rt*delta_rt_current + intensity_left;
+        background = background + background_int_current;
+      }
+    }
   }
 
   void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx)

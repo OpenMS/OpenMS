@@ -264,11 +264,12 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 }
 END_SECTION
 
-START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group, std::vector<SpectrumT>& picked_chroms, int& chr_idx, int& peak_idx)))
+START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group, std::vector<SpectrumT>& picked_chroms, std::vector<SpectrumT>& smoothed_chroms, int& chr_idx, int& peak_idx)))
 {
   MRMTransitionGroupType transition_group;
   setup_transition_group(transition_group);
   std::vector< RichPeakChromatogram > picked_chroms;
+  std::vector< RichPeakChromatogram > smoothed_chroms;
 
   double left_start = 1481.840;
   double right_end = 1512.290;
@@ -304,7 +305,7 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
   picker_param.setValue("PeakPickerMRM::peak_width", 40.0); // old parameters
   picker.setParameters(picker_param);
 
-  MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, chr_idx, peak_idx);
+  MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
   TEST_REAL_SIMILAR(mrmfeature.getRT(), 1490.0)
 
   // test the number of hull points (should be equal)
@@ -489,6 +490,56 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
   TEST_REAL_SIMILAR(picked_chroms[1][0].getIntensity(), default_intensity)
   TEST_REAL_SIMILAR(picked_chroms[1][1].getIntensity(), 0.0);
 
+}
+END_SECTION
+
+START_SECTION(( void calculateBgEstimationAverage_(const MSChromatogram& chromatogram,
+  double best_left, double best_right, double & background, double & avg_noise_level) ))
+{
+
+  RichPeakChromatogram chromatogram;
+  setup_toy_chromatogram(chromatogram);
+
+  // Features
+  double best_left = 2.477966667;
+  double best_right = 3.01895;
+  double background, noise_level;
+
+  // Correct the background
+  MRMTransitionGroupPicker picker;
+
+  picker.calculateBgEstimationAverage_(chromatogram, 
+    best_left, best_right, background,
+    noise_level);
+
+  TEST_REAL_SIMILAR(background, 125076);
+  TEST_REAL_SIMILAR(noise_level, 2233.5);
+}
+END_SECTION
+
+START_SECTION(( void calculateBgEstimationExact_(const MSChromatogram& chromatogram,
+  double best_left, double best_right, double peak_height, double & background, double & avg_noise_level) ))
+{
+
+  RichPeakChromatogram chromatogram;
+  setup_toy_chromatogram(chromatogram);
+
+  // Features
+  double best_left = 2.477966667;
+  double best_right = 3.01895;
+  double peak_height = 966489;
+  double background, noise_level;
+
+  // Correct the background
+  MRMTransitionGroupPicker picker;
+
+  picker.calculateBgEstimationExact_(chromatogram, 
+    best_left, best_right, 
+    peak_height, background,
+    noise_level);
+
+  TEST_REAL_SIMILAR(background, 123446.661339019);
+  TEST_REAL_SIMILAR(noise_level, 1908.596906);
 }
 END_SECTION
 

@@ -78,101 +78,8 @@
 		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0" defaultSourceFileRef="sf_ru_0">
-		<chromatogramList count="6" defaultDataProcessingRef="dp_sp_0">
-			<chromatogram id="B2MG.VNHVTLSQPK.3.y5.1.light" index="0" defaultArrayLength="80">
-				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
-					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.88037109" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="572.340209960938" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="856">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>O99PjZdUe0BCYOXQIqV7QKwcWmQ7uXtAPQrXo3D1e0Av3SQGgQl8QM/3U+OlMXxAwcqhRbZFfEArhxbZzll8QARWDi2ygXxAvHSTGASWfECuR+F6FKp8QJzEILByDn1A2/l+arxefUBxPQrXo4Z9QG3n+6nxmn1AiUFg5dCufUD+1HjpJsN9QMP1KFyP3H1AwcqhRbb1fUCF61G4Hg9+QGQ730+NW35AObTIdr6nfkBCYOXQIsF+QEoMAiuH2n5ADi2yne/zfkAX2c73Uw1/QB+F61G4Jn9A46WbxCBAf0DsUbgehVl/QPT91Hjpcn9AuB6F61GMf0BzaJHtfKV/QAaBlUOL/n9ArBxaZDsOgECYbhKDwDqAQMdLN4lBToBA30+Nl25ugEAbL90kBqGAQIcW2c73xoBAx0s3iUHggEACK4cW2RKBQNEi2/l+H4FA/tR46SZSgUCmm8QgsF6BQPp+arx0a4FA46WbxCB4gUCyne+nxoSBQIGVQ4tskYFADAIrhxaegUCYbhKDwKqBQGZmZmZmt4FANV66SQzEgUAEVg4tstCBQNNNYhBY3YFAokW28/3pgUBxPQrXo/aBQPT91HjpNYJAPQrXo3BCgkCTGARWDl+CQDm0yHa+iYJA8tJNYhCYgkAK16NwPaaCQPhT46WbwoJAsHJoke3QgkDl0CLb+d6CQFyPwvUo7YJADAIrhxYLg0BiEFg5tCuDQB+F61G4PINAfT81XrpNg0CYbhKDwG+DQLKd76fGkYNAGQRWDi21g0Bt5/up8dmDQAAAAAAA7YNAokW28/0ShECkcD0K1ziEQJHtfD81hYRAI9v5fmrRhEDb+X5qvAqFQA==</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="428">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAC0QgAAtEIAANBBAABQQgAAUEEAAA5DAABbQwAAUEIAAIBCAABQQgAA0EEAAIBCAAA0QwAAlEMAgIdDAAC7QwAAtEIAAE5DAADOQgAAmkIAAChDAAAbQwAAG0MAgMdDAIBRRACA4UMAQEFEAIDHQwAAtEIAAK5DAADQQQAAUEEAAFBCAADQQQAAHEIAAOhCAABQQgAAgEIAAM5CAACUQwAAUEEAANBBAABQQQAAHEIAAEFDAAB1QwBAa0QAAPhEAIBIRQDgfEUAYPZEACDORACAN0QAgLRDAAC0QgAAUEEAAFBBAAAcQgAAHEIAALRCAAAcQgAA0EEAALRCAABOQwAAtEIAALRCAAAOQwAA0EEAAOhCAADOQgAA0EEAANBBAACBQwAAHEIAALRCAABQQQAAtEIAABxCAADQQQAAgEI=</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
-			<chromatogram id="B2MG.VNHVTLSQPK.3.y6.1.light" index="1" defaultArrayLength="55">
-				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
-					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.88037109" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="673.387939453125" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="588">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>4XoUrkeRe0CLbOf7qfV7QHnpJjEIWnxABoGVQ4vmfEAQWDm0yNx9QMP1KFyPjn5A1XjpJjGofkDdJAaBlcF+QOXQItv52n5AqvHSTWL0fkCyne+nxg1/QLpJDAIrJ39Af2q8dJNAf0BvEoPAyiuAQEoMAiuHQ4BARIts5/tYgEAMAiuHFnuAQNEi2/l+lIBAaJHtfD+hgEAQWDm0yK2AQN9PjZduuoBA1XjpJjHHgEB9PzVeutOAQBSuR+F64IBAlkOLbOfsgEDfT42XbvmAQPhT46WbH4FASOF6FK5rgUAxCKwcWniBQAAAAAAAhYFAz/dT46WRgUBaZDvfT56BQOXQItv5qoFAtMh2vp+3gUCDwMqhRcSBQFK4HoXr0IFAIbByaJHdgUC+nxov3faBQOXQItv5iYJAGQRWDi2YgkC28/3UeKaCQOkmMQistIJApHA9CtfCgkD+1HjpJtGCQJHtfD8134JAg8DKoUXtgkDdJAaBlfuCQDMzMzMzC4NAzczMzMwag0CwcmiR7SuDQG3n+6nxPINApHA9CtdNg0CamZmZmV6DQHe+nxovAIRAHVpkO99LhEA=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="296">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAOQwAA0EEAABxCAACaQgAAUEIAAFBCAABQQQAATkMAAOhCAABoQwAAAUMAAOhCAAAcQgAA0EEAABxCAACAQgAA0EEAAIBCAABQQgAA0EEAAGhDAIDHQwBAQUQAwDpEAABbQwAA0EEAABxCAAAoQwAAu0MAANtEAGDJRAAga0UAcDhFANAZRQAAaEQAgOFDAAChQwAAHEIAABtDAACaQgAA0EEAAFBCAAAbQwAAAUMAAAFDAAAcQgAA0EEAAJpCAAAcQgAAUEIAAFBBAADQQQAAUEIAANBBAABQQg==</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
-			<chromatogram id="B2MG.VNHVTLSQPK.3.y7.1.light" index="2" defaultArrayLength="16">
-				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
-					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="374.88037109" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<activation>
-							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="VNHVTLSQPK"/>
-						</activation>
-					</precursor>
-					<product>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="772.456359863281" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-					</product>
-				<binaryDataArrayList count="2">
-					<binaryDataArray encodedLength="172">
-						<cvParam cvRef="MS" accession="MS:1000595" name="time array" unitAccession="UO:0000010" unitName="second" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>NV66SQzCfkC0yHa+n/R+QIlBYOXQQH9ABoGVQ4u6gED8qfHSTceAQKRwPQrX04BAmpmZmZnggEC8dJMYBO2AQNEi2/l+RYFArBxaZDuFgUAGgZVDi56BQJHtfD81q4FAYOXQItu3gUAv3SQGgcSBQClcj8L1D4JAg8DKoUXRgkA=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="88">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AADQQQAAgEIAAFBBAADOQgAAgEIAAFtDAABbQwAAUEIAAIBCAAC0QgAADkMAAJpCAACUQwAAUEIAAFBBAACaQg==</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</chromatogram>
-			<chromatogram id="B2MG.VNHVTLSQPK.3.y5.1.heavy" index="3" defaultArrayLength="111">
+		<chromatogramList count="3" defaultDataProcessingRef="dp_sp_0">
+			<chromatogram id="B2MG.VNHVTLSQPK.3.y5.1.heavy" index="0" defaultArrayLength="111">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -203,7 +110,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="B2MG.VNHVTLSQPK.3.y6.1.heavy" index="4" defaultArrayLength="65">
+			<chromatogram id="B2MG.VNHVTLSQPK.3.y6.1.heavy" index="1" defaultArrayLength="65">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -234,7 +141,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-			<chromatogram id="B2MG.VNHVTLSQPK.3.y7.1.heavy" index="5" defaultArrayLength="16">
+			<chromatogram id="B2MG.VNHVTLSQPK.3.y7.1.heavy" index="2" defaultArrayLength="16">
 				<cvParam cvRef="MS" accession="MS:1001473" name="selected reaction monitoring chromatogram" />
 					<precursor>
 						<isolationWindow>
@@ -270,14 +177,11 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="B2MG.VNHVTLSQPK.3.y5.1.light">5241</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.light">8249</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.light">10857</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y5.1.heavy">12840</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.heavy">16342</offset>
-		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.heavy">19110</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y5.1.heavy">5241</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y6.1.heavy">8743</offset>
+		<offset idRef="B2MG.VNHVTLSQPK.3.y7.1.heavy">11511</offset>
 	</index>
 </indexList>
-<indexListOffset>21127</indexListOffset>
+<indexListOffset>13528</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

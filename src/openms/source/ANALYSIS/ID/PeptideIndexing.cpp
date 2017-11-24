@@ -39,13 +39,6 @@ using namespace OpenMS;
 using namespace std;
 
 
-namespace seqan
-{
-
-}
-
-
-
   PeptideIndexing::PeptideIndexing()
     : DefaultParamHandler("PeptideIndexing")
   {
@@ -55,8 +48,8 @@ namespace seqan
     defaults_.setValue("decoy_string_position", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?");
     defaults_.setValidStrings("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
 
-    defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)");
-    defaults_.setValidStrings("missing_decoy_action", ListUtils::create<String>("error,warn"));
+    defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message), 'silent' (no action is taken, not even a warning)");
+    defaults_.setValidStrings("missing_decoy_action", ListUtils::create<String>("error,warn,silent"));
 
     defaults_.setValue("enzyme:name", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).");
 

@@ -3336,6 +3336,36 @@ def testPeakFileOptions():
     pfo.setMetadataOnly
     pfo.setWriteSupplementalData
 
+@report
+def testMRMMapping():
+    """
+    @tests:
+     MRMMapping.__init__
+     MRMMapping.map
+    """
+
+    p = pyopenms.MRMMapping()
+    assert p.mapExperiment is not None
+    e = pyopenms.MSExperiment()
+    c = pyopenms.MSChromatogram()
+    e.addChromatogram(c)
+    assert e.getNrChromatograms() == 1
+
+    o = pyopenms.MSExperiment()
+    t = pyopenms.TargetedExperiment()
+    p.mapExperiment(e, t, o)
+    assert o.getNrChromatograms() == 0 # not so easy to test
+
+@report
+def testPeakPickerMRM():
+    """
+    @tests:
+     PeakPickerMRM.__init__
+     PeakPickerMRM.pickChromatogram
+    """
+
+    p = pyopenms.PeakPickerMRM()
+    assert p.pickChromatogram is not None
 
 @report
 def testPeakPickerHiRes():
@@ -3355,6 +3385,10 @@ def testPeakPickerHiRes():
      PeakPickerHiRes.setProgress
      PeakPickerHiRes.startProgress
     """
+
+    p = pyopenms.PeakPickerHiRes()
+    assert p.pick is not None
+    assert p.pickExperiment is not None
 
 @report
 def testPeakTypeEstimator():
