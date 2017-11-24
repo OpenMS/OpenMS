@@ -528,7 +528,7 @@ protected:
       LOG_ERROR << "FATAL: Minborder cannot be larger than Maxborder. Terminating" << endl;
       return ILLEGAL_PARAMETERS;
     }
-    const Int arg_minionsmatched = this->getIntOption_(TOPPXFDR::param_minionsmatched);
+    const UInt arg_minionsmatched = this->getIntOption_(TOPPXFDR::param_minionsmatched);
 
     const Int arg_minscore = this->getIntOption_(TOPPXFDR::param_minscore);
     bool arg_uniquex = this->getFlag_(TOPPXFDR::param_uniquexl);
