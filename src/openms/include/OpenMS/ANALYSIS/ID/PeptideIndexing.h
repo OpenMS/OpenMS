@@ -356,7 +356,7 @@ public:
                 while ((offset = prot.find(jumpX, offset + 1)) != std::string::npos)
                 {
                   //std::cout << "found X..X at " << offset << " in protein " << proteins[i].identifier << "\n";
-                  addHits_(fuzzyAC, pattern, pep_DB, prot.substr(start, offset + jumpX.size() - start), prot, prot_idx, start, func_threads);
+                  addHits_(fuzzyAC, pattern, pep_DB, prot.substr(start, offset + jumpX.size() - start), prot, prot_idx, (int)start, func_threads);
                   // skip ahead while we encounter more X...
                   while (offset + jumpX.size() < prot.size() && prot[offset + jumpX.size()] == 'X') ++offset;
                   start = offset;
@@ -365,7 +365,7 @@ public:
                 // last chunk
                 if (start < prot.size())
                 {
-                  addHits_(fuzzyAC, pattern, pep_DB, prot.substr(start), prot, prot_idx, start, func_threads);
+                  addHits_(fuzzyAC, pattern, pep_DB, prot.substr(start), prot, prot_idx, (int)start, func_threads);
                 }
               }
               else
@@ -518,7 +518,7 @@ public:
 
       }
 
-      int total_peptides = stats_count_m_t + stats_count_m_d + stats_count_m_td;
+      Size total_peptides = stats_count_m_t + stats_count_m_d + stats_count_m_td;
       LOG_INFO << "-----------------------------------\n";
       LOG_INFO << "Peptide statistics\n";
       LOG_INFO << "\n";
@@ -533,11 +533,7 @@ public:
       LOG_INFO << "    non-unique match (to >1 protein): " << stats_matched_multi << std::endl;
 
       /// for proteins --> peptides
-      int stats_matched_proteins(0);
-      int stats_matched_new_proteins(0);
-      int stats_orphaned_proteins(0);
-      int stats_proteins_target(0);
-      int stats_proteins_decoy(0);
+      Size stats_matched_proteins(0), stats_matched_new_proteins(0), stats_orphaned_proteins(0), stats_proteins_target(0), stats_proteins_decoy(0);
 
       // all peptides contain the correct protein hit references, now update the protein hits
       for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)

@@ -56,6 +56,8 @@ namespace OpenMS
          with spurious (since potentially slow) access to earlier entries which are currently
          not in the active chunk.
   
+  Internally uses FASTAFile class to read single sequences.
+
   FASTAContainer supports two template specializations @em TFI_File and @em TFI_Vector.
   
   TFI_File will make FASTA entries available chunk-wise from start to end by loading it from a FASTA file.
