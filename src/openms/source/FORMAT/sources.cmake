@@ -32,6 +32,7 @@ InspectInfile.cpp
 InspectOutfile.cpp
 KroenikFile.cpp
 LibSVMEncoder.cpp
+MRMFeatureQCFile.cpp
 MS2File.cpp
 MSNumpressCoder.cpp
 MSPFile.cpp
