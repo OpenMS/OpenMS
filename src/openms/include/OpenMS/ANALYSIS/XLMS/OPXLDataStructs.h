@@ -132,6 +132,10 @@ namespace OpenMS
         double match_odds;
         double match_odds_alpha;
         double match_odds_beta;
+        double log_occupancy;
+        double log_occupancy_alpha;
+        double log_occupancy_beta;
+        double log_occupancy_full_spec;
         std::vector< double > xcorrx;
         double xcorrx_max;
         std::vector< double > xcorrc;
