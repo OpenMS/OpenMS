@@ -154,11 +154,11 @@ namespace OpenMS
     {
       log_theo_spec.push_back(log(peak.getMZ()));
     }
-    double range = log_theo_spec[theo_size-1] - log_theo_spec[0];
+    double range = log_theo_spec[log_theo_spec.size()-1] - log_theo_spec[0];
 
     // A priori probability of a random match given info about the theoretical spectrum
     double a_priori_p = 0;
-    a_priori_p = 1 - pow(1 - 2 * fragment_mass_tolerance / range,  static_cast<double>(theo_size));
+    a_priori_p = 1 - pow(1 - 2 * fragment_mass_tolerance / 1e6 / range,  static_cast<double>(theo_size));
 
     double match_odds = 0;
     binomial flip(theo_size, a_priori_p);
