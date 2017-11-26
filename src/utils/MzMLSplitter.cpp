@@ -178,10 +178,9 @@ protected:
         if (precursor) 
         {
           // possibilty A) last spectrum = MS2 - find next MS1 and take last MS2 of the previous precusor
-          int count_till_ms1 = 0;
-
           if (spectra[last_spectrum].getMSLevel() == 2)
           {
+             int count_till_ms1 = 0;
              int i=1;
              while(spectra[last_spectrum + i].getMSLevel() == 2)
              {
