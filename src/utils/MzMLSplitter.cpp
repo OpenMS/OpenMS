@@ -86,8 +86,7 @@ protected:
     setMinInt_("size", 0);
     registerStringOption_("unit", "<choice>", "MB", "Unit for 'size' (base 1024)", false);
     setValidStrings_("unit", ListUtils::create<String>("KB,MB,GB"));
-    // @TODO:
-    // registerFlag_("precursor", "Make sure precursor spectra end up in the same part as their fragment spectra");
+    registerFlag_("precursor", "Make sure precursor spectra end up in the same part as their fragment spectra");
     registerFlag_("no_chrom", "Remove chromatograms, keep only spectra.");
     registerFlag_("no_spec", "Remove spectra, keep only chromatograms.");
   }
@@ -97,6 +96,8 @@ protected:
     String in = getStringOption_("in"), out = getStringOption_("out");
 
     if (out.empty()) out = File::removeExtension(in);
+    
+    bool precursor = getFlag_("precursor");
 
     bool no_chrom = getFlag_("no_chrom"), no_spec = getFlag_("no_spec");
     if (no_chrom && no_spec)
@@ -168,11 +169,40 @@ protected:
       Size n_spec = ceil((spectra.size() - spec_start) / double(remaining));
       if (n_spec > 0)
       {
-        part.reserveSpaceSpectra(n_spec);
+        int last_spectrum = spec_start + n_spec;   
+        part.reserveSpaceSpectra(n_spec);  
         for (Size i = spec_start; i < spec_start + n_spec; ++i)
         {
           part.addSpectrum(spectra[i]);
         }
+        if (precursor) 
+        {
+          // possibilty A) last spectrum = MS2 - find next MS1 and take last MS2 of the previous precusor
+          int count_till_ms1 = 0;
+
+          if (spectra[last_spectrum].getMSLevel() == 2)
+          {
+             int i=1;
+             while(spectra[last_spectrum + i].getMSLevel() == 2)
+             {
+               i += 1;
+               count_till_ms1 = i;
+             }
+             for(int i = last_spectrum; i < (last_spectrum + count_till_ms1); ++i)
+             {
+                part.addSpectrum(spectra[i]);
+             }
+             n_spec = n_spec + count_till_ms1;
+          }
+          // possibility B) last spectrum = MS1 - if next one is MS2 do not use it in this split -> next split 
+          if (spectra[last_spectrum].getMSLevel() == 1)
+          {
+            if (spectra[last_spectrum + 1].getMSLevel() == 2)
+            {
+              n_spec = n_spec - 1;
+            }
+          }          
+        } 
       }
       spec_start += n_spec;
 
