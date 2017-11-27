@@ -351,7 +351,15 @@ namespace OpenMS
     {
       double feature_1 = component_1.getMetaValue(feature_name);
       double feature_2 = component_2.getMetaValue(feature_name);
-      ratio = feature_1/feature_2;
+      if (feature_2 == 0.0)
+      {
+        LOG_INFO << "Division by zero.  Ratio will be set to 0.0.";
+      }
+      else
+      {
+        ratio = feature_1/feature_2;
+      }
+      
     } 
     else if (component_1.metaValueExists(feature_name))
     {
