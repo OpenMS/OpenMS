@@ -263,7 +263,7 @@ protected:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static int jackknifeOutlierCandidate_(
+    int jackknifeOutlierCandidate_(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
       const String & feature_name,
       const String & transformation_model,
@@ -283,7 +283,7 @@ protected:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static int residualOutlierCandidate_(
+    int residualOutlierCandidate_(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
       const String & feature_name,
       const String & transformation_model,
