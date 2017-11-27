@@ -138,7 +138,7 @@ namespace OpenMS
     cqcs.retention_time_l = 0;
     if (headers["retention_time_l"] != -1)
     {
-      cqcs.retention_time_ = (line[headers["retention_time_l"]].empty()) ? 0.0 : std::stod(line[headers["retention_time_l"]]);
+      cqcs.retention_time_l = (line[headers["retention_time_l"]].empty()) ? 0.0 : std::stod(line[headers["retention_time_l"]]);
     }
     cqcs.retention_time_u = 0;
     if (headers["retention_time_u"] != -1)
