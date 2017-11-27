@@ -80,57 +80,6 @@ public:
     TargetedSpectraExtractor();
     virtual ~TargetedSpectraExtractor();
 
-    void setRTWindow(const double& rt_window);
-    double getRTWindow() const;
-
-    void setMinScore(const double& min_score);
-    double getMinScore() const;
-
-    void setMinForwardMatch(const double& min_forward_match);
-    double getMinForwardMatch() const;
-
-    void setMinReverseMatch(const double& min_reverse_match);
-    double getMinReverseMatch() const;
-
-    void setMZTolerance(const double& mz_tolerance);
-    double getMZTolerance() const;
-
-    void setMZUnit(const bool& mz_unit_is_Da);
-    bool getMZUnit() const;
-
-    void setSGolayFrameLength(const UInt& sgolay_frame_length);
-    UInt getSGolayFrameLength() const;
-
-    void setSGolayPolynomialOrder(const UInt& sgolay_polynomial_order);
-    UInt getSGolayPolynomialOrder() const;
-
-    void setGaussWidth(const double& gauss_width);
-    double getGaussWidth() const;
-
-    void setUseGauss(const bool& use_gauss);
-    bool getUseGauss() const;
-
-    void setSignalToNoise(const double& signal_to_noise);
-    double getSignalToNoise() const;
-
-    void setPeakHeightMin(const double& peak_height_min);
-    double getPeakHeightMin() const;
-
-    void setPeakHeightMax(const double& peak_height_max);
-    double getPeakHeightMax() const;
-
-    void setFWHMThreshold(const double& fwhm_threshold);
-    double getFWHMThreshold() const;
-
-    void setTICWeight(const double& tic_weight);
-    double getTICWeight() const;
-
-    void setFWHMWeight(const double& fwhm_weight);
-    double getFWHMWeight() const;
-
-    void setSNRWeight(const double& snr_weight);
-    double getSNRWeight() const;
-
     void getDefaultParameters(Param& params);
 
     /**

@@ -45,176 +45,6 @@ namespace OpenMS
 
   TargetedSpectraExtractor::~TargetedSpectraExtractor() {}
 
-  void TargetedSpectraExtractor::setRTWindow(const double& rt_window)
-  {
-    rt_window_ = rt_window;
-  }
-
-  double TargetedSpectraExtractor::getRTWindow() const
-  {
-    return rt_window_;
-  }
-
-  void TargetedSpectraExtractor::setMinScore(const double& min_score)
-  {
-    min_score_ = min_score;
-  }
-
-  double TargetedSpectraExtractor::getMinScore() const
-  {
-    return min_score_;
-  }
-
-  void TargetedSpectraExtractor::setMinForwardMatch(const double& min_forward_match)
-  {
-    min_forward_match_ = min_forward_match;
-  }
-
-  double TargetedSpectraExtractor::getMinForwardMatch() const
-  {
-    return min_forward_match_;
-  }
-
-  void TargetedSpectraExtractor::setMinReverseMatch(const double& min_reverse_match)
-  {
-    min_reverse_match_ = min_reverse_match;
-  }
-
-  double TargetedSpectraExtractor::getMinReverseMatch() const
-  {
-    return min_reverse_match_;
-  }
-
-  void TargetedSpectraExtractor::setMZTolerance(const double& mz_tolerance)
-  {
-    mz_tolerance_ = mz_tolerance;
-  }
-
-  double TargetedSpectraExtractor::getMZTolerance() const
-  {
-    return mz_tolerance_;
-  }
-
-  void TargetedSpectraExtractor::setMZUnit(const bool& mz_unit_is_Da)
-  {
-    mz_unit_is_Da_ = mz_unit_is_Da;
-  }
-
-  bool TargetedSpectraExtractor::getMZUnit() const
-  {
-    return mz_unit_is_Da_;
-  }
-
-  void TargetedSpectraExtractor::setSGolayFrameLength(const UInt& sgolay_frame_length)
-  {
-    sgolay_frame_length_ = sgolay_frame_length;
-  }
-
-  UInt TargetedSpectraExtractor::getSGolayFrameLength() const
-  {
-    return sgolay_frame_length_;
-  }
-
-  void TargetedSpectraExtractor::setSGolayPolynomialOrder(const UInt& sgolay_polynomial_order)
-  {
-    sgolay_polynomial_order_ = sgolay_polynomial_order;
-  }
-
-  UInt TargetedSpectraExtractor::getSGolayPolynomialOrder() const
-  {
-    return sgolay_polynomial_order_;
-  }
-
-  void TargetedSpectraExtractor::setGaussWidth(const double& gauss_width)
-  {
-    gauss_width_ = gauss_width;
-  }
-
-  double TargetedSpectraExtractor::getGaussWidth() const
-  {
-    return gauss_width_;
-  }
-
-  void TargetedSpectraExtractor::setUseGauss(const bool& use_gauss)
-  {
-    use_gauss_ = use_gauss;
-  }
-
-  bool TargetedSpectraExtractor::getUseGauss() const
-  {
-    return use_gauss_;
-  }
-
-  void TargetedSpectraExtractor::setSignalToNoise(const double& signal_to_noise)
-  {
-    signal_to_noise_ = signal_to_noise;
-  }
-
-  double TargetedSpectraExtractor::getSignalToNoise() const
-  {
-    return signal_to_noise_;
-  }
-
-  void TargetedSpectraExtractor::setPeakHeightMin(const double& peak_height_min)
-  {
-    peak_height_min_ = peak_height_min;
-  }
-
-  double TargetedSpectraExtractor::getPeakHeightMin() const
-  {
-    return peak_height_min_;
-  }
-
-  void TargetedSpectraExtractor::setPeakHeightMax(const double& peak_height_max)
-  {
-    peak_height_max_ = peak_height_max;
-  }
-
-  double TargetedSpectraExtractor::getPeakHeightMax() const
-  {
-    return peak_height_max_;
-  }
-
-  void TargetedSpectraExtractor::setFWHMThreshold(const double& fwhm_threshold)
-  {
-    fwhm_threshold_ = fwhm_threshold;
-  }
-
-  double TargetedSpectraExtractor::getFWHMThreshold() const
-  {
-    return fwhm_threshold_;
-  }
-
-  void TargetedSpectraExtractor::setTICWeight(const double& tic_weight)
-  {
-    tic_weight_ = tic_weight;
-  }
-
-  double TargetedSpectraExtractor::getTICWeight() const
-  {
-    return tic_weight_;
-  }
-
-  void TargetedSpectraExtractor::setFWHMWeight(const double& fwhm_weight)
-  {
-    fwhm_weight_ = fwhm_weight;
-  }
-
-  double TargetedSpectraExtractor::getFWHMWeight() const
-  {
-    return fwhm_weight_;
-  }
-
-  void TargetedSpectraExtractor::setSNRWeight(const double& snr_weight)
-  {
-    snr_weight_ = snr_weight;
-  }
-
-  double TargetedSpectraExtractor::getSNRWeight() const
-  {
-    return snr_weight_;
-  }
-
   void TargetedSpectraExtractor::updateMembers_()
   {
     rt_unit_ = (String)param_.getValue("rt_unit");
@@ -303,8 +133,8 @@ namespace OpenMS
       MSSpectrum spectrum = spectra[i];
       const double divisor = (String)param_.getValue("rt_unit") == "seconds" ? 1.0 : 60.0;
       const double spectrum_rt = spectrum.getRT() / divisor;
-      const double rt_left_lim = spectrum_rt - getRTWindow() / divisor / 2.0;
-      const double rt_right_lim = spectrum_rt + getRTWindow() / divisor / 2.0;
+      const double rt_left_lim = spectrum_rt - rt_window_ / divisor / 2.0;
+      const double rt_right_lim = spectrum_rt + rt_window_ / divisor / 2.0;
       const std::vector<Precursor> precursors = spectrum.getPrecursors();
       if (precursors.size() < 1)
       {
@@ -312,8 +142,8 @@ namespace OpenMS
                                          "Spectrum does not contain precursor info.");
       }
       const double spectrum_mz = precursors[0].getMZ();
-      const double mz_left_lim = spectrum_mz - getMZTolerance();
-      const double mz_right_lim = spectrum_mz + getMZTolerance();
+      const double mz_left_lim = spectrum_mz - mz_tolerance_;
+      const double mz_right_lim = spectrum_mz + mz_tolerance_;
 
       LOG_DEBUG << "[" << i << "]\trt: " << spectrum_rt << "\tmz: " << spectrum_mz << std::endl;
 
@@ -363,14 +193,14 @@ namespace OpenMS
     LOG_DEBUG << " ====  Picking spectrum " << spectrum.getNativeID() << " with " << spectrum.size() << " peaks ";
     if (spectrum.empty())
     {
-        LOG_DEBUG << std::endl << " - Error: spectrum is empty, abort picking."  << std::endl;
+        LOG_DEBUG << std::endl << " - Error: spectrum is empty, abort picking." << std::endl;
         return;
     }
     LOG_DEBUG << "(start at RT " << spectrum[0].getMZ() << " to RT " << spectrum[spectrum.size() - 1].getMZ() << ") " << std::endl;
 
     // Smooth the spectrum
     MSSpectrum smoothed_spectrum = spectrum;
-    if (getUseGauss())
+    if (use_gauss_)
     {
       GaussFilter gauss;
       Param filter_parameters = gauss.getParameters();
@@ -404,9 +234,9 @@ namespace OpenMS
     std::vector<UInt> peaks_pos_to_erase;
     for (Int i=picked_spectrum.size()-1; i>=0; --i)
     {
-      if (picked_spectrum[i].getIntensity() < getPeakHeightMin() ||
-          picked_spectrum[i].getIntensity() > getPeakHeightMax() ||
-          picked_spectrum.getFloatDataArrays()[0][i] < getFWHMThreshold())
+      if (picked_spectrum[i].getIntensity() < peak_height_min_ ||
+          picked_spectrum[i].getIntensity() > peak_height_max_ ||
+          picked_spectrum.getFloatDataArrays()[0][i] < fwhm_threshold_)
       {
         peaks_pos_to_erase.push_back(i);
       }
@@ -469,7 +299,7 @@ namespace OpenMS
 
       const double log10_total_tic = log10(total_tic);
       const double inverse_avgFWHM = 1.0 / avgFWHM;
-      const double score = log10_total_tic * getTICWeight() + inverse_avgFWHM * getFWHMWeight() + avgSNR * getSNRWeight();
+      const double score = log10_total_tic * tic_weight_ + inverse_avgFWHM * fwhm_weight_ + avgSNR * snr_weight_;
 
       scored_spectra[i] = annotated_spectra[i];
       scored_spectra[i].getFloatDataArrays().resize(5);
@@ -508,7 +338,7 @@ namespace OpenMS
     std::unordered_map<std::string,UInt> transition_best_spec;
     for (UInt i=0; i<scored_spectra.size(); ++i)
     {
-      if (scored_spectra[i].getFloatDataArrays()[1][0] < getMinScore())
+      if (scored_spectra[i].getFloatDataArrays()[1][0] < min_score_)
       {
         continue;
       }

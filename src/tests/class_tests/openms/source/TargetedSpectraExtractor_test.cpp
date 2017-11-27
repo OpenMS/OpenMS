@@ -344,161 +344,14 @@ START_SECTION(getParameters())
 }
 END_SECTION
 
-START_SECTION(setRTWindow())
-{
-  TEST_EQUAL(ptr->getRTWindow(), 30.0)
-  ptr->setRTWindow(50.0);
-  TEST_EQUAL(ptr->getRTWindow(), 50.0)
-}
-END_SECTION
-
-START_SECTION(setMinScore())
-{
-  TEST_EQUAL(ptr->getMinScore(), 0.7)
-  ptr->setMinScore(2.5);
-  TEST_EQUAL(ptr->getMinScore(), 2.5)
-}
-END_SECTION
-
-START_SECTION(setMinForwardMatch())
-{
-  TEST_EQUAL(ptr->getMinForwardMatch(), 0.9)
-  ptr->setMinForwardMatch(0.5);
-  TEST_EQUAL(ptr->getMinForwardMatch(), 0.5)
-}
-END_SECTION
-
-START_SECTION(setMinReverseMatch())
-{
-  TEST_EQUAL(ptr->getMinReverseMatch(), 0.9)
-  ptr->setMinReverseMatch(0.5);
-  TEST_EQUAL(ptr->getMinReverseMatch(), 0.5)
-}
-END_SECTION
-
-START_SECTION(setMZTolerance())
-{
-  TEST_EQUAL(ptr->getMZTolerance(), 0.1)
-  ptr->setMZTolerance(0.5);
-  TEST_EQUAL(ptr->getMZTolerance(), 0.5)
-}
-END_SECTION
-
-START_SECTION(setMZUnit())
-{
-  TEST_EQUAL(ptr->getMZUnit(), true)
-  TEST_NOT_EQUAL(ptr->getMZUnit(), false)
-  ptr->setMZUnit(false);
-  TEST_EQUAL(ptr->getMZUnit(), false)
-}
-END_SECTION
-
-START_SECTION(setSGolayFrameLength())
-{
-  TEST_EQUAL(ptr->getSGolayFrameLength(), 15)
-  ptr->setSGolayFrameLength(7);
-  TEST_EQUAL(ptr->getSGolayFrameLength(), 7)
-}
-END_SECTION
-
-START_SECTION(setSGolayPolynomialOrder())
-{
-  TEST_EQUAL(ptr->getSGolayPolynomialOrder(), 3)
-  ptr->setSGolayPolynomialOrder(2);
-  TEST_EQUAL(ptr->getSGolayPolynomialOrder(), 2)
-}
-END_SECTION
-
-START_SECTION(setGaussWidth())
-{
-  TEST_EQUAL(ptr->getGaussWidth(), 0.2)
-  ptr->setGaussWidth(0.5);
-  TEST_EQUAL(ptr->getGaussWidth(), 0.5)
-}
-END_SECTION
-
-START_SECTION(setUseGauss())
-{
-  TEST_EQUAL(ptr->getUseGauss(), true)
-  ptr->setUseGauss(false);
-  TEST_EQUAL(ptr->getUseGauss(), false)
-}
-END_SECTION
-
-START_SECTION(setSignalToNoise())
-{
-  TEST_EQUAL(ptr->getSignalToNoise(), 1.0)
-  ptr->setSignalToNoise(0.6);
-  TEST_EQUAL(ptr->getSignalToNoise(), 0.6)
-}
-END_SECTION
-
-START_SECTION(getPeakHeightMin())
-{
-  TEST_EQUAL(ptr->getPeakHeightMin(), 0.0)
-  ptr->setPeakHeightMin(0.6);
-  TEST_EQUAL(ptr->getPeakHeightMin(), 0.6)
-}
-END_SECTION
-
-START_SECTION(getPeakHeightMax())
-{
-  TEST_EQUAL(ptr->getPeakHeightMax(), 4e6)
-  ptr->setPeakHeightMax(150000.0);
-  TEST_EQUAL(ptr->getPeakHeightMax(), 150000.0)
-}
-END_SECTION
-
-START_SECTION(getFWHMThreshold())
-{
-  TEST_EQUAL(ptr->getFWHMThreshold(), 0.0)
-  ptr->setFWHMThreshold(0.23);
-  TEST_EQUAL(ptr->getFWHMThreshold(), 0.23)
-}
-END_SECTION
-
-START_SECTION(getParameters().getDescription("rt_window"))
-{
-  TEST_EQUAL(ptr->getParameters().getDescription("rt_window"), "Retention time window in seconds.")
-}
-END_SECTION
-
-START_SECTION(setTICWeight())
-{
-  TEST_EQUAL(ptr->getTICWeight(), 1.0)
-  ptr->setTICWeight(2.0);
-  TEST_EQUAL(ptr->getTICWeight(), 2.0)
-}
-END_SECTION
-
-START_SECTION(setFWHMWeight())
-{
-  TEST_EQUAL(ptr->getFWHMWeight(), 1.0)
-  ptr->setFWHMWeight(2.0);
-  TEST_EQUAL(ptr->getFWHMWeight(), 2.0)
-}
-END_SECTION
-
-START_SECTION(setSNRWeight())
-{
-  TEST_EQUAL(ptr->getSNRWeight(), 1.0)
-  ptr->setSNRWeight(2.0);
-  TEST_EQUAL(ptr->getSNRWeight(), 2.0)
-}
-END_SECTION
-
 START_SECTION(annotateSpectra())
 {
-  ptr->setUseGauss(true);
-  ptr->setGaussWidth(0.25);
-  ptr->setRTWindow(30.0);
-  ptr->setMZTolerance(0.1);
-  ptr->setPeakHeightMin(15000.0);
-  ptr->setPeakHeightMax(110000.0);
-  ptr->setFWHMThreshold(0.23);
-
   Param params = ptr->getParameters();
   params.setValue("rt_unit", "minutes");
+  params.setValue("gauss_width", 0.25);
+  params.setValue("peak_height_min", 15000.0);
+  params.setValue("peak_height_max", 110000.0);
+  params.setValue("fwhm_threshold", 0.23);
   ptr->setParameters(params);
 
   vector<MSSpectrum> spectra = experiment.getSpectra();
@@ -560,11 +413,12 @@ START_SECTION(pickSpectrum())
   MSSpectrum picked_spectrum;
   spectrum.sortByPosition();
 
-  ptr->setUseGauss(true);
-  ptr->setGaussWidth(0.25);
-  ptr->setPeakHeightMin(0.0);
-  ptr->setPeakHeightMax(200000.0);
-  ptr->setFWHMThreshold(0.0);
+  Param params = ptr->getParameters();
+  params.setValue("gauss_width", 0.25);
+  params.setValue("peak_height_min", 0.0);
+  params.setValue("peak_height_max", 200000.0);
+  params.setValue("fwhm_threshold", 0.0);
+  ptr->setParameters(params);
   ptr->pickSpectrum(spectrum, picked_spectrum);
   TEST_NOT_EQUAL(spectrum.size(), picked_spectrum.size())
   TEST_EQUAL(picked_spectrum.size(), 6)
@@ -587,8 +441,9 @@ START_SECTION(pickSpectrum())
   TEST_REAL_SIMILAR(it->getMZ(), 174.24)
   TEST_REAL_SIMILAR(it->getIntensity(), 11731.3)
 
-  ptr->setPeakHeightMin(15000.0);
-  ptr->setPeakHeightMax(110000.0);
+  params.setValue("peak_height_min", 15000.0);
+  params.setValue("peak_height_max", 110000.0);
+  ptr->setParameters(params);
   ptr->pickSpectrum(spectrum, picked_spectrum);
   // With the new filters on peaks' heights, less peaks get picked.
   TEST_EQUAL(picked_spectrum.size(), 3)
@@ -602,7 +457,8 @@ START_SECTION(pickSpectrum())
   TEST_REAL_SIMILAR(it->getMZ(), 130.081)
   TEST_REAL_SIMILAR(it->getIntensity(), 31838.1)
 
-  ptr->setFWHMThreshold(0.23);
+  params.setValue("fwhm_threshold", 0.23);
+  ptr->setParameters(params);
   ptr->pickSpectrum(spectrum, picked_spectrum);
   // Filtering also on fwhm, even less peaks get picked.
   TEST_EQUAL(picked_spectrum.size(), 2)
@@ -617,16 +473,13 @@ END_SECTION
 
 START_SECTION(scoreSpectra())
 {
-  ptr->setUseGauss(true);
-  ptr->setGaussWidth(0.25);
-  ptr->setRTWindow(30.0);
-  ptr->setMZTolerance(0.1);
-  ptr->setPeakHeightMin(15000.0);
-  ptr->setPeakHeightMax(110000.0);
-  ptr->setFWHMThreshold(0.23);
-  ptr->setTICWeight(1.0);
-  ptr->setFWHMWeight(1.0);
-  ptr->setSNRWeight(1.0);
+  Param params = ptr->getParameters();
+  params.setValue("rt_unit", "minutes");
+  params.setValue("gauss_width", 0.25);
+  params.setValue("peak_height_min", 15000.0);
+  params.setValue("peak_height_max", 110000.0);
+  params.setValue("fwhm_threshold", 0.23);
+  ptr->setParameters(params);
 
   vector<MSSpectrum> annotated_spectra;
   FeatureMap features;
@@ -749,17 +602,15 @@ END_SECTION
 
 START_SECTION(selectSpectra())
 {
-  ptr->setUseGauss(true);
-  ptr->setGaussWidth(0.25);
-  ptr->setRTWindow(30.0);
-  ptr->setMZTolerance(0.1);
-  ptr->setPeakHeightMin(15000.0);
-  ptr->setPeakHeightMax(110000.0);
-  ptr->setFWHMThreshold(0.23);
-  ptr->setTICWeight(1.0);
-  ptr->setFWHMWeight(1.0);
-  ptr->setSNRWeight(1.0);
-  ptr->setMinScore(15.0);
+  const double min_score = 15.0;
+  Param params = ptr->getParameters();
+  params.setValue("rt_unit", "minutes");
+  params.setValue("min_score", min_score);
+  params.setValue("gauss_width", 0.25);
+  params.setValue("peak_height_min", 15000.0);
+  params.setValue("peak_height_max", 110000.0);
+  params.setValue("fwhm_threshold", 0.23);
+  ptr->setParameters(params);
 
   const std::vector<MSSpectrum> spectra = experiment.getSpectra();
   std::vector<MSSpectrum> annotated;
@@ -799,7 +650,7 @@ START_SECTION(selectSpectra())
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
     TEST_EQUAL(selected_spectra[i].getName(), selected_features[i].getMetaValue("transition_name"))
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0], selected_features[i].getIntensity())
-    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= ptr->getMinScore(), true)
+    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
   }
 
   ptr->selectSpectra(scored, selected_spectra);
@@ -807,7 +658,7 @@ START_SECTION(selectSpectra())
   for (UInt i=0; i<selected_spectra.size(); ++i)
   {
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
-    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= ptr->getMinScore(), true)
+    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
   }
   TEST_EQUAL(selected_spectra[0].getName(), "asp-L.asp-L_m2-1")
   TEST_REAL_SIMILAR(selected_spectra[0].getFloatDataArrays()[1][0], 17.4552230834961)
@@ -818,17 +669,14 @@ END_SECTION
 
 START_SECTION(extractSpectra())
 {
-  ptr->setUseGauss(true);
-  ptr->setGaussWidth(0.25);
-  ptr->setRTWindow(30.0);
-  ptr->setMZTolerance(0.1);
-  ptr->setPeakHeightMin(15000.0);
-  ptr->setPeakHeightMax(110000.0);
-  ptr->setFWHMThreshold(0.23);
-  ptr->setTICWeight(1.0);
-  ptr->setFWHMWeight(1.0);
-  ptr->setSNRWeight(1.0);
-  ptr->setMinScore(15.0);
+  Param params = ptr->getParameters();
+  params.setValue("rt_unit", "minutes");
+  params.setValue("min_score", 15.0);
+  params.setValue("gauss_width", 0.25);
+  params.setValue("peak_height_min", 15000.0);
+  params.setValue("peak_height_max", 110000.0);
+  params.setValue("fwhm_threshold", 0.23);
+  ptr->setParameters(params);
 
   vector<MSSpectrum> extracted_spectra;
   FeatureMap extracted_features;
