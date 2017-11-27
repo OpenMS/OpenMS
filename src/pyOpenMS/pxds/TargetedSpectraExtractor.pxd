@@ -20,57 +20,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         TargetedSpectraExtractor() nogil except +
         TargetedSpectraExtractor(TargetedSpectraExtractor) nogil except +
 
-        void setRTWindow(double) nogil except +
-        double getRTWindow() nogil except +
-
-        void setMinScore(double) nogil except +
-        double getMinScore() nogil except +
-
-        void setMinForwardMatch(double) nogil except +
-        double getMinForwardMatch() nogil except +
-
-        void setMinReverseMatch(double) nogil except +
-        double getMinReverseMatch() nogil except +
-
-        void setMZTolerance(double) nogil except +
-        double getMZTolerance() nogil except +
-
-        void setMZUnit(bool) nogil except +
-        bool getMZUnit() nogil except +
-
-        void setSGolayFrameLength(UInt) nogil except +
-        UInt getSGolayFrameLength() nogil except +
-
-        void setSGolayPolynomialOrder(UInt) nogil except +
-        UInt getSGolayPolynomialOrder() nogil except +
-
-        void setGaussWidth(double) nogil except +
-        double getGaussWidth() nogil except +
-
-        void setUseGauss(bool) nogil except +
-        bool getUseGauss() nogil except +
-
-        void setSignalToNoise(double) nogil except +
-        double getSignalToNoise() nogil except +
-
-        void setPeakHeightMin(double) nogil except +
-        double getPeakHeightMin() nogil except +
-
-        void setPeakHeightMax(double) nogil except +
-        double getPeakHeightMax() nogil except +
-
-        void setFWHMThreshold(double) nogil except +
-        double getFWHMThreshold() nogil except +
-
-        void setTICWeight(double) nogil except +
-        double getTICWeight() nogil except +
-
-        void setFWHMWeight(double) nogil except +
-        double getFWHMWeight() nogil except +
-
-        void setSNRWeight(double) nogil except +
-        double getSNRWeight() nogil except +
-
         void getDefaultParameters(Param) nogil except +
 
         void annotateSpectra(libcpp_vector[ MSSpectrum ], TargetedExperiment, libcpp_vector[ MSSpectrum ], FeatureMap) nogil except +
