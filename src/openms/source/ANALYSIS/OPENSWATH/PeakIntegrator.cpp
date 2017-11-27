@@ -45,6 +45,73 @@ namespace OpenMS
 
   PeakIntegrator::~PeakIntegrator() {}
 
+  void PeakIntegrator::integratePeak(
+    const MSChromatogram& chromatogram,
+    const double& left,
+    const double& right,
+    double& peak_area,
+    double& peak_height,
+    double& peak_apex_pos
+  )
+  {
+    peak_area = 0.0;
+    peak_height = -1.0;
+    peak_apex_pos = -1.0;
+    UInt n_points = 0;
+    for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it, ++n_points)
+      ;
+
+    if (getIntegrationType() == "trapezoid")
+    {
+      for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right)-1; ++it)
+      {
+        peak_area += ((it+1)->getRT() - it->getRT()) * ((it->getIntensity() + (it+1)->getIntensity()) / 2.0);
+        if (peak_height < it->getIntensity())
+        {
+          peak_height = it->getIntensity();
+          peak_apex_pos = it->getRT();
+        }
+      }
+    }
+    else if (getIntegrationType() == "simpson")
+    {
+      if (n_points < 3 || !(n_points % 2))
+      {
+        LOG_DEBUG << std::endl << "Error in integratePeak: number of points must be >=3 and odd for Simpson's rule" << std::endl;
+        return;
+      }
+      for (auto it=chromatogram.RTBegin(left); it<chromatogram.RTEnd(right)-2; it=it+2)
+      {
+        double h = (it+1)->getRT() - it->getRT();
+        double k = (it+2)->getRT() - (it+1)->getRT();
+        double y_h = it->getIntensity();
+        double y_0 = (it+1)->getIntensity();
+        double y_k = (it+2)->getIntensity();
+        peak_area += (1.0/6.0) * (h+k) * ((2.0-k/h)*y_h + (pow(h+k,2)/(h*k))*y_0 + (2.0-h/k)*y_k);
+        if (peak_height < it->getIntensity())
+        {
+          peak_height = it->getIntensity();
+          peak_apex_pos = it->getRT();
+        }
+      }
+    }
+    else
+    {
+      std::cout << std::endl << "WARNING: intensity_sum method is being used." << std::endl;
+      double intensity_sum = 0.0;
+      for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it)
+      {
+        intensity_sum += it->getIntensity();
+        if (peak_height < it->getIntensity())
+        {
+          peak_height = it->getIntensity();
+          peak_apex_pos = it->getRT();
+        }
+      }
+      peak_area = intensity_sum / n_points;
+    }
+  }
+
   void PeakIntegrator::setIntegrationType(const String& integration_type)
   {
     integration_type_ = integration_type;
