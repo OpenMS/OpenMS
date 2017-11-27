@@ -84,7 +84,7 @@ START_SECTION(double calculateIonRatio(const Feature & component_1, const Featur
 {
   MRMFeatureFilter mrmff;
   String feature_name = "peak_apex_int";
-  double inf = 1.0/0.0;
+  double inf = std::numeric_limits<double>::infinity();
   // dummy features
   OpenMS::Feature component_1, component_2;
   component_1.setMetaValue(feature_name, 5.0);

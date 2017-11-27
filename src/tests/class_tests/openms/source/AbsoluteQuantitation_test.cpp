@@ -64,7 +64,7 @@ END_SECTION
 START_SECTION((double calculateRatio(const Feature & component_1, const Feature & component_2, const String feature_name)))
   AbsoluteQuantitation absquant;
   String feature_name = "peak_apex_int";
-  double inf = 1.0/0.0;
+  double inf = std::numeric_limits<double>::infinity();
   // dummy features
   OpenMS::Feature component_1, component_2;
   component_1.setMetaValue(feature_name, 5.0);

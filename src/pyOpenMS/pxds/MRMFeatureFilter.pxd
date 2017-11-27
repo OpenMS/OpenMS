@@ -1,11 +1,14 @@
 from Types cimport *
 from FeatureMap cimport *
 from MRMFeatureQC cimport *
+from DefaultParamHandler cimport *
 from TargetedExperiment cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>" namespace "OpenMS":
 
-    cdef cppclass MRMFeatureFilter:
+    cdef cppclass MRMFeatureFilter(DefaultParamHandler):
+        # wrap-inherits:
+        #  DefaultParamHandler
 
         MRMFeatureFilter() nogil except +
         MRMFeatureFilter(MRMFeatureFilter &) nogil except +
