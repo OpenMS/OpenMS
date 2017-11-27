@@ -153,16 +153,16 @@ public:
       const Param & transformation_model_params);
       
     /**
-    @brief This function calculates the biases and R2 value of the calibration points.
+      @brief This function calculates the biases and R2 value of the calibration points.
 
-    @param component_concentrations list of structures with features and concentrations
-    @param feature_name name of the feature to calculate the absolute concentration.
-    @param transformation_model model used to fit the calibration points
-    @param transformation_model_params parameters used by the transformation_model
-    @param biases Vector of point biases
-    @param r2_value R2-value
+      @param component_concentrations list of structures with features and concentrations
+      @param feature_name name of the feature to calculate the absolute concentration.
+      @param transformation_model model used to fit the calibration points
+      @param transformation_model_params parameters used by the transformation_model
+      @param biases Vector of point biases
+      @param r2_value R2-value
 
-    @exception None
+      @exception None
     */ 
     void calculateBiasAndR2(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
@@ -174,7 +174,7 @@ public:
       
     /**
       @brief This function optimizes the parameters of the calibration for a 
-        given component.
+        given component iteratively.
 
       @param component_concentrations list of structures with features and concentrations
       @param feature_name name of the feature to calculate the absolute concentration.
@@ -184,7 +184,7 @@ public:
 
       @exception Exception::UnableToFit
     */ 
-    void optimizeCalibrationCurveBruteForce(
+    void optimizeCalibrationCurveIterative(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       const String & feature_name,
       const String & transformation_model,
@@ -232,6 +232,77 @@ public:
 
     */ 
     void quantifyComponents(FeatureMap& unknowns);    
+
+protected:
+    /**
+      @brief This function extractous out the components.
+
+      @param component_concentrations list of structures with features and concentrations
+      @param component_concentrations_indices indices to extract out
+
+      @returns component_concentrations_sub sublist of structures with features and concentrations.
+
+      @exception None
+    */ 
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents(
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+      std::vector<size_t> component_concentrations_indices);
+  
+    /**
+      @brief This function computes a candidate outlier point by iteratively
+       leaving one point out to find the one which results in the maximum R^2
+       of a first order linear regression of the remaining ones.
+
+      @param component_concentrations list of structures with features and concentrations
+      @param feature_name name of the feature to calculate the absolute concentration.
+      @param transformation_model model used to fit the calibration points
+      @param transformation_model_params parameters used by the transformation_model
+
+      @return The position of the candidate outlier point in component_concentrations.
+
+      @exception Exception::UnableToFit is thrown if fitting cannot be performed
+    */
+    static int jackknifeOutlierCandidate_(
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params);
+
+    /**
+      @brief This function computes a candidate outlier point by computing
+       the residuals of all points to the linear fit and selecting the one with
+       the largest deviation.
+
+      @param component_concentrations list of structures with features and concentrations
+      @param feature_name name of the feature to calculate the absolute concentration.
+      @param transformation_model model used to fit the calibration points
+      @param transformation_model_params parameters used by the transformation_model
+
+      @return The position of the candidate outlier point in component_concentrations.
+
+      @exception Exception::UnableToFit is thrown if fitting cannot be performed
+    */
+    static int residualOutlierCandidate_(
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params);
+
+    /**
+      @brief This function computes Chauvenet's criterion probability for a vector
+       and a value whose position is submitted.
+
+      @return Chauvenet's criterion probability
+    */
+    static double chauvenet_probability(std::vector<double>& residuals, int pos);
+
+    /**
+      @brief This function computes Chauvenet's criterion for a vector and a value
+       whose position is submitted.
+
+      @return TRUE, if Chauvenet's criterion is fulfilled and the outlier can be removed.
+    */
+    static bool chauvenet(std::vector<double>& residuals, int pos);
      
 private:  
     void findIS_();

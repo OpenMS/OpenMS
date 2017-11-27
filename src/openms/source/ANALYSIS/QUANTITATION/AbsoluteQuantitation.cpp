@@ -57,6 +57,8 @@
 #include <cstddef> // for size_t & ptrdiff_t
 #include <vector>
 #include <math.h>
+#include <numeric>
+#include <boost/math/special_functions/erf.hpp>
 #include <algorithm>
 
 namespace OpenMS
@@ -283,7 +285,7 @@ namespace OpenMS
    * 1. interface with MRMRTNormalizer
    * 2. make tests
    */
-  void AbsoluteQuantitation::optimizeCalibrationCurveBruteForce(
+  void AbsoluteQuantitation::optimizeCalibrationCurveIterative(
     const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
     const String & feature_name,
     const String & transformation_model,
@@ -291,15 +293,13 @@ namespace OpenMS
     Param & optimized_params)
   {
     
-    std::vector<double> biases;
-    double r2 = 0.0;
-    bool bias_check;
-
     //TODO use internal params
     size_t min_points = 4;
     double max_bias = 30.0;
     double min_r2 = 0.9; 
-    // size_t max_outliers = 1;  // not used currently
+    size_t max_iters = 100;
+    String outlier_detection_method = "iter_jackknife";
+    bool use_chauvenet = true;
 
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_start_it;
     std::vector<AbsoluteQuantitationStandards::featureConcentration>::const_iterator component_end_it;
@@ -309,59 +309,208 @@ namespace OpenMS
     std::sort(component_concentrations_sorted.begin(), component_concentrations_sorted.end(),
       [](AbsoluteQuantitationStandards::featureConcentration lhs, AbsoluteQuantitationStandards::featureConcentration rhs)
       {
-        return lhs.actual_concentration < rhs.actual_concentration;    
+        return lhs.actual_concentration < rhs.actual_concentration; //ascending order
       }
     );
 
-    // loop from all points to min_points
-    for (size_t n_points = component_concentrations.size(); n_points >= min_points; --n_points)
+    // indices of component_concentrations
+    std::vector<size_t> component_concentrations_sorted_indices;// loop from all points to min_points
+    for (size_t index = 0; index < component_concentrations_sorted.size(); ++index)
     {
-      size_t n_loops = component_concentrations.size() - n_points;
-      for (size_t  component_it = 0; component_it < n_loops; ++component_it)
+      component_concentrations_sorted_indices.push_back(index);
+    }
+
+    for (size_t n_iters = 0; n_iters < max_iters; ++n_iters)
+    {
+      // extract out components
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub = extractComponents(
+        component_concentrations_sorted, component_concentrations_sorted_indices);
+
+      // fit the model
+      optimized_params = fitCalibration(component_concentrations_sub,
+        feature_name,
+        transformation_model,
+        transformation_model_params);
+        
+      // calculate the R2 and bias
+      std::vector<double> biases;
+      double r2 = 0.0;
+      calculateBiasAndR2(
+        component_concentrations,
+        feature_name,
+        transformation_model,
+        transformation_model_params,
+        biases,
+        r2);
+
+      // check R2 and biases
+      bool bias_check = true;
+      for (size_t bias_it = 0; bias_it != biases.size(); --bias_it)
       {
-        // TODO: support for outliers
-        // // loop through max_outliers
-        // for (size_t n_outliers = 0; n_outliers <= max_outliers; ++n_outliers)
-        // {
+        if (biases[bias_it] > max_bias)
+        {
+          bias_check = false;
+        }
+      }
+      if (bias_check && r2 > min_r2)
+      {
+        LOG_INFO << "Valid calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
 
-          // extract out components
-          component_start_it = component_concentrations.begin() + component_it;
-          component_end_it = component_concentrations.begin() + component_it + n_points;
-          const std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub(component_start_it, component_end_it);
+        // copy over the final optimized points before exiting
+        component_concentrations = component_concentrations_sub;
+        break;
+      }  
 
-          // fit the model
-          optimized_params = fitCalibration(component_concentrations_sub,
-            feature_name,
-            transformation_model,
-            transformation_model_params);
+      // R2 and biases check failed, determine potential outlier
+      int pos;
+      if (method == "iter_jackknife")
+      {
+        // get candidate outlier: removal of which datapoint results in best rsq?
+        pos = jackknifeOutlierCandidate_(
+          component_concentrations_sub,
+          feature_name,
+          transformation_model,
+          transformation_model_params);
+      }
+      else if (method == "iter_residual")
+      {
+        // get candidate outlier: removal of datapoint with largest residual?
+        pos = residualOutlierCandidate_(
+          component_concentrations_sub,
+          feature_name,
+          transformation_model,
+          transformation_model_params);
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          String("Method ") + method + " is not a valid method for removeOutliersIterative");
+      }
 
-          // calculate the R2 and bias
-          calculateBiasAndR2(
-            component_concentrations,
-            feature_name,
-            transformation_model,
-            transformation_model_params,
-            biases,
-            r2);
-          
-          // check R2 and biases
-          bias_check = true;
-          for (size_t bias_it = 0; bias_it != biases.size(); --bias_it)
-          {
-            if (biases[bias_it] > max_bias)
-            {
-              bias_check = false;
-            }
-          }
-          if (bias_check && r2 > min_r2)
-          {
-            LOG_INFO << "Valid calibration found for " << component_concentrations[0].feature.getMetaValue("native_id") << " .";
-            return;
-          }   
-        // }   
+      // remove if residual is an outlier according to Chauvenet's criterion
+      // or if testing is turned off
+      if (!use_chauvenet || chauvenet(biases, pos))
+      {
+        component_concentrations_sorted_indices.erase(component_concentrations_sorted_indices.begin() + pos);
+      }
+      else
+      {
+        break;
       }
     }
-    LOG_INFO << "Valid calibration not found for " << component_concentrations[0].feature.getMetaValue("native_id") << " .";
+  }
+
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> AbsoluteQuantitation::extractComponents_(
+    const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+    std::vector<size_t> component_concentrations_indices)
+  {
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub;
+    for (size_t iter = 0; iter < component_concentrations_indices.size(); ++iter)
+    {
+      component_concentrations_sub.push_back(component_concentrations[component_concentrations_indices[iter]]);
+    }
+    return component_concentrations_sub;
+
+  }  
+
+  int AbsoluteQuantitation::jackknifeOutlierCandidate_(
+    const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+    const String & feature_name,
+    const String & transformation_model,
+    const Param & transformation_model_params)
+  {
+    // Returns candidate outlier: A linear regression and rsq is calculated for
+    // the data points with one removed pair. The combination resulting in
+    // highest rsq is considered corresponding to the outlier candidate. The
+    // corresponding iterator position is then returned.
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_tmp;
+    std::vector<double> rsq_tmp;
+
+    for (Size i = 0; i < component_concentrations.size(); i++)
+    {
+      component_concentrations_tmp = component_concentrations;
+      component_concentrations_tmp.erase(component_concentrations_tmp.begin() + i);
+
+      // fit the model
+      Param optimized_params = fitCalibration(component_concentrations_tmp,
+        feature_name,
+        transformation_model,
+        transformation_model_params);
+      
+      // calculate the R2 and bias
+      std::vector<double> biases;
+      double r2 = 0.0;
+      calculateBiasAndR2(
+        component_concentrations_tmp,
+        feature_name,
+        transformation_model,
+        transformation_model_params,
+        biases,
+        r2);
+
+      rsq_tmp.push_back(r2);
+    }
+    return max_element(rsq_tmp.begin(), rsq_tmp.end()) - rsq_tmp.begin();
+  }
+
+  int AbsoluteQuantitation::residualOutlierCandidate_(
+    const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+    const String & feature_name,
+    const String & transformation_model,
+    const Param & transformation_model_params)
+  {
+    // Returns candidate outlier: A linear regression and residuals are calculated for
+    // the data points. The one with highest residual error is selected as the outlier candidate. The
+    // corresponding iterator position is then returned.
+    
+    // fit the model
+    Param optimized_params = fitCalibration(component_concentrations,
+      feature_name,
+      transformation_model,
+      transformation_model_params);
+
+    // calculate the R2 and bias
+    std::vector<double> biases;
+    double r2 = 0.0;
+    calculateBiasAndR2(
+      component_concentrations_tmp,
+      feature_name,
+      transformation_model,
+      transformation_model_params,
+      biases,
+      r2);
+
+    return max_element(biases.begin(), biases.end()) - biases.begin();
+  }
+
+  bool AbsoluteQuantitation::chauvenet(std::vector<double>& residuals, int pos)
+  {
+    double criterion = 1.0 / (2 * residuals.size());
+    double prob = AbsoluteQuantitation::chauvenet_probability(residuals, pos);
+
+    LOG_DEBUG << " Chauvinet testing " << prob << " < " << criterion << std::endl;
+    if (prob < criterion)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  double AbsoluteQuantitation::chauvenet_probability(std::vector<double>& residuals, int pos)
+  {
+    double mean = std::accumulate(residuals.begin(), residuals.end(), 0.0) / residuals.size();
+    double stdev = std::sqrt(
+        std::inner_product(residuals.begin(), residuals.end(), residuals.begin(), 0.0
+          ) / residuals.size() - mean * mean);
+
+    double d = fabs(residuals[pos] - mean) / stdev;
+    d /= pow(2.0, 0.5);
+    double prob = boost::math::erfc(d);
+
+    return prob;
   }
   
   void AbsoluteQuantitation::calculateBiasAndR2(

@@ -300,7 +300,7 @@ START_SECTION((void calculateBiasAndR2(
   
 END_SECTION
 
-START_SECTION((void optimizeCalibrationCurveBruteForce(
+START_SECTION((void optimizeCalibrationCurveIterative(
   const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
   const String & feature_name,
   const String & transformation_model,
