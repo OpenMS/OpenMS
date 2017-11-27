@@ -141,6 +141,62 @@ namespace OpenMS
     return params;
   }
   
+  void AbsoluteQuantitation::calculateBiasAndR2(
+    const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+    const String & feature_name,
+    const String & transformation_model,
+    const Param & transformation_model_params,
+    std::vector<double> & biases,
+    double & r2_value)
+  {
+    
+    // extract out the calibration points
+    std::vector<double> concentration_ratios, feature_amounts_ratios;
+    for (size_t i = 0; i < component_concentrations.size(); ++i)
+    {
+
+      // calculate the actual and calculated concentration ratios
+      double calculated_concentration_ratio = applyCalibration(component_concentrations[i].feature,
+        component_concentrations[i].IS_feature,
+        feature_name,
+        transformation_model,
+        transformation_model_params);
+
+      double actual_concentration_ratio = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
+      concentration_ratios.push_back(component_concentrations[i].actual_concentration);
+
+      // calculate the bias
+      double bias = calculateBias(actual_concentration_ratio, calculated_concentration_ratio);
+      biases.push_back(bias);
+
+      // extract out the feature amount ratios
+      double feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
+        component_concentrations[i].IS_feature,
+        feature_name);
+      feature_amounts_ratios.push_back(feature_amount_ratio);
+      
+      //DEBUG
+      // std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << "." << std::endl;
+      // std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << "." << std::endl;
+      // std::cout << "bias = " << bias << "." << std::endl;
+      // std::cout << "feature_amount = " << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "." << std::endl;
+      // std::cout << "IS_feature_amount = " << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "." << std::endl;
+      // std::cout << "feature_amount_ratio = " << bias << "." << std::endl;
+    }
+
+    // calculate the R2 (R2 = Pearson_R^2)
+    double r_value = Math::pearsonCorrelationCoefficient(
+      concentration_ratios.begin(), concentration_ratios.begin() + concentration_ratios.size(),
+      feature_amounts_ratios.begin(), feature_amounts_ratios.begin() + feature_amounts_ratios.size()
+    ); 
+    r2_value = r_value*r_value;
+
+    //DEBUG
+    // std::cout << "r_value = " << r_value << "." << std::endl;
+    // std::cout << "r2_value = " << r2_value << "." << std::endl;
+
+  }
+  
   double AbsoluteQuantitation::applyCalibration(const Feature & component,
     const Feature & IS_component,
     const String & feature_name,
@@ -386,7 +442,7 @@ namespace OpenMS
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String("Method ") + method + " is not a valid method for removeOutliersIterative");
+          String("Method ") + outlier_detection_method + " is not a valid method for optimizeCalibrationCurveIterative");
       }
 
       // remove if residual is an outlier according to Chauvenet's criterion
@@ -474,7 +530,7 @@ namespace OpenMS
     std::vector<double> biases;
     double r2 = 0.0;
     calculateBiasAndR2(
-      component_concentrations_tmp,
+      component_concentrations,
       feature_name,
       transformation_model,
       transformation_model_params,
@@ -482,62 +538,6 @@ namespace OpenMS
       r2);
 
     return max_element(biases.begin(), biases.end()) - biases.begin();
-  }
-  
-  void AbsoluteQuantitation::calculateBiasAndR2(
-    const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-    const String & feature_name,
-    const String & transformation_model,
-    const Param & transformation_model_params,
-    std::vector<double> & biases,
-    double & r2_value)
-  {
-    
-    // extract out the calibration points
-    std::vector<double> concentration_ratios, feature_amounts_ratios;
-    for (size_t i = 0; i < component_concentrations.size(); ++i)
-    {
-
-      // calculate the actual and calculated concentration ratios
-      double calculated_concentration_ratio = applyCalibration(component_concentrations[i].feature,
-        component_concentrations[i].IS_feature,
-        feature_name,
-        transformation_model,
-        transformation_model_params);
-
-      double actual_concentration_ratio = component_concentrations[i].actual_concentration/component_concentrations[i].IS_actual_concentration;
-      concentration_ratios.push_back(component_concentrations[i].actual_concentration);
-
-      // calculate the bias
-      double bias = calculateBias(actual_concentration_ratio, calculated_concentration_ratio);
-      biases.push_back(bias);
-
-      // extract out the feature amount ratios
-      double feature_amount_ratio = calculateRatio(component_concentrations[i].feature,
-        component_concentrations[i].IS_feature,
-        feature_name);
-      feature_amounts_ratios.push_back(feature_amount_ratio);
-      
-      //DEBUG
-      // std::cout << "calculated_concentration_ratio = " << calculated_concentration_ratio << "." << std::endl;
-      // std::cout << "actual_concentration_ratio = " << actual_concentration_ratio << "." << std::endl;
-      // std::cout << "bias = " << bias << "." << std::endl;
-      // std::cout << "feature_amount = " << (String)component_concentrations[i].feature.getMetaValue(feature_name) << "." << std::endl;
-      // std::cout << "IS_feature_amount = " << (String)component_concentrations[i].IS_feature.getMetaValue(feature_name) << "." << std::endl;
-      // std::cout << "feature_amount_ratio = " << bias << "." << std::endl;
-    }
-
-    // calculate the R2 (R2 = Pearson_R^2)
-    double r_value = Math::pearsonCorrelationCoefficient(
-      concentration_ratios.begin(), concentration_ratios.begin() + concentration_ratios.size(),
-      feature_amounts_ratios.begin(), feature_amounts_ratios.begin() + feature_amounts_ratios.size()
-    ); 
-    r2_value = r_value*r_value;
-
-    //DEBUG
-    // std::cout << "r_value = " << r_value << "." << std::endl;
-    // std::cout << "r2_value = " << r2_value << "." << std::endl;
-
   }
 
 } // namespace
