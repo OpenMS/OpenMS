@@ -244,7 +244,7 @@ protected:
 
       @exception None
     */ 
-    std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents(
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents_(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       std::vector<size_t> component_concentrations_indices);
   
@@ -287,22 +287,6 @@ protected:
       const String & feature_name,
       const String & transformation_model,
       const Param & transformation_model_params);
-
-    /**
-      @brief This function computes Chauvenet's criterion probability for a vector
-       and a value whose position is submitted.
-
-      @return Chauvenet's criterion probability
-    */
-    static double chauvenet_probability(std::vector<double>& residuals, int pos);
-
-    /**
-      @brief This function computes Chauvenet's criterion for a vector and a value
-       whose position is submitted.
-
-      @return TRUE, if Chauvenet's criterion is fulfilled and the outlier can be removed.
-    */
-    static bool chauvenet(std::vector<double>& residuals, int pos);
      
 private:  
     void findIS_();

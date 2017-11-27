@@ -42,6 +42,8 @@
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
 
+//OpenSWATH classes
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
 //Analysis classes
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -323,7 +325,7 @@ namespace OpenMS
     for (size_t n_iters = 0; n_iters < max_iters; ++n_iters)
     {
       // extract out components
-      const std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub = extractComponents(
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub = extractComponents_(
         component_concentrations_sorted, component_concentrations_sorted_indices);
 
       // fit the model
@@ -389,7 +391,7 @@ namespace OpenMS
 
       // remove if residual is an outlier according to Chauvenet's criterion
       // or if testing is turned off
-      if (!use_chauvenet || chauvenet(biases, pos))
+      if (!use_chauvenet || MRMRTNormalizer::chauvenet(biases, pos))
       {
         component_concentrations_sorted_indices.erase(component_concentrations_sorted_indices.begin() + pos);
       }
@@ -481,36 +483,6 @@ namespace OpenMS
       r2);
 
     return max_element(biases.begin(), biases.end()) - biases.begin();
-  }
-
-  bool AbsoluteQuantitation::chauvenet(std::vector<double>& residuals, int pos)
-  {
-    double criterion = 1.0 / (2 * residuals.size());
-    double prob = AbsoluteQuantitation::chauvenet_probability(residuals, pos);
-
-    LOG_DEBUG << " Chauvinet testing " << prob << " < " << criterion << std::endl;
-    if (prob < criterion)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-  }
-
-  double AbsoluteQuantitation::chauvenet_probability(std::vector<double>& residuals, int pos)
-  {
-    double mean = std::accumulate(residuals.begin(), residuals.end(), 0.0) / residuals.size();
-    double stdev = std::sqrt(
-        std::inner_product(residuals.begin(), residuals.end(), residuals.begin(), 0.0
-          ) / residuals.size() - mean * mean);
-
-    double d = fabs(residuals[pos] - mean) / stdev;
-    d /= pow(2.0, 0.5);
-    double prob = boost::math::erfc(d);
-
-    return prob;
   }
   
   void AbsoluteQuantitation::calculateBiasAndR2(
