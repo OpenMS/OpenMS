@@ -300,6 +300,9 @@ MSExperiment experiment;
 TransitionTSVReader tsv_reader;
 TargetedExperiment targeted_exp;
 mzml.load(experiment_path, experiment);
+Param tsv_params = tsv_reader.getParameters();
+tsv_params.setValue("retentionTimeInterpretation", "minutes");
+tsv_reader.setParameters(tsv_params);
 tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
 
 START_SECTION(TargetedSpectraExtractor())
@@ -320,6 +323,7 @@ ptr = new TargetedSpectraExtractor();
 START_SECTION(getParameters())
 {
   Param params = ptr->getParameters();
+  TEST_EQUAL(params.getValue("rt_unit"), "seconds")
   TEST_EQUAL(params.getValue("rt_window"), 30.0)
   TEST_EQUAL(params.getValue("min_score"), 0.7)
   TEST_EQUAL(params.getValue("min_forward_match"), 0.9)
@@ -492,6 +496,10 @@ START_SECTION(annotateSpectra())
   ptr->setPeakHeightMin(15000.0);
   ptr->setPeakHeightMax(110000.0);
   ptr->setFWHMThreshold(0.23);
+
+  Param params = ptr->getParameters();
+  params.setValue("rt_unit", "minutes");
+  ptr->setParameters(params);
 
   vector<MSSpectrum> spectra = experiment.getSpectra();
   vector<MSSpectrum> annotated_spectra;
@@ -673,10 +681,10 @@ START_SECTION(scoreSpectra())
   TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[4][0], 4.74768113612061)
 
   TEST_EQUAL(scored_spectra[11].getName(), "skm.skm_m4-3")
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[1][0], 10.5747480392456)
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[2][0], 6.60354130105922)
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[3][0], 2.0288507938385)
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[4][0], 1.94235549504842)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[1][0], 10.5745859146118)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[2][0], 6.60354137420654)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[3][0], 2.02868914604187)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[4][0], 1.94235551357269)
 
   TEST_EQUAL(features[0].getMetaValue("transition_name"), "met-L.met-L_m0-0")
   TEST_REAL_SIMILAR(features[0].getIntensity(), 15.2046270370483)                  // score
@@ -700,11 +708,11 @@ START_SECTION(scoreSpectra())
   TEST_REAL_SIMILAR(features[8].getMetaValue("avgFWHM"), 0.288750916719437)
 
   TEST_EQUAL(features[11].getMetaValue("transition_name"), "skm.skm_m4-3")
-  TEST_REAL_SIMILAR(features[11].getIntensity(), 10.5747480392456)
+  TEST_REAL_SIMILAR(features[11].getIntensity(), 10.5745859146118)
   TEST_REAL_SIMILAR(features[11].getMetaValue("log10_total_tic"), 6.60354130105922)
-  TEST_REAL_SIMILAR(features[11].getMetaValue("inverse_avgFWHM"), 2.02885079241748)
+  TEST_REAL_SIMILAR(features[11].getMetaValue("inverse_avgFWHM"), 2.02868912178847)
   TEST_REAL_SIMILAR(features[11].getMetaValue("avgSNR"), 1.94235549504842)
-  TEST_REAL_SIMILAR(features[11].getMetaValue("avgFWHM"), 0.492889868361609)
+  TEST_REAL_SIMILAR(features[11].getMetaValue("avgFWHM"), 0.492929147822516)
 
   // sort(scored_spectra.begin(), scored_spectra.end(), [](MSSpectrum a, MSSpectrum b)
   // {

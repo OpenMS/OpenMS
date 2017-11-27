@@ -217,6 +217,7 @@ namespace OpenMS
 
   void TargetedSpectraExtractor::updateMembers_()
   {
+    rt_unit_ = (String)param_.getValue("rt_unit");
     rt_window_ = (double)param_.getValue("rt_window");
     min_score_ = (double)param_.getValue("min_score");
     min_forward_match_ = (double)param_.getValue("min_forward_match");
@@ -242,6 +243,9 @@ namespace OpenMS
   void TargetedSpectraExtractor::getDefaultParameters(Param& params)
   {
     params.clear();
+
+    params.setValue("rt_unit", "seconds", "Retention time unit used in the target list file.");
+    params.setValidStrings("rt_unit", ListUtils::create<String>("minutes,seconds"));
 
     params.setValue("rt_window", 30.0, "Retention time window in seconds.");
 
@@ -297,10 +301,10 @@ namespace OpenMS
     for (UInt i=0; i<spectra.size(); ++i)
     {
       MSSpectrum spectrum = spectra[i];
-      // It is supposed to have RT in minutes in target list file, therefore we divide by 60.0
-      const double spectrum_rt = spectrum.getRT() / 60.0;
-      const double rt_left_lim = spectrum_rt - getRTWindow() / 60.0 / 2.0;
-      const double rt_right_lim = spectrum_rt + getRTWindow() / 60.0 / 2.0;
+      const double divisor = (String)param_.getValue("rt_unit") == "seconds" ? 1.0 : 60.0;
+      const double spectrum_rt = spectrum.getRT() / divisor;
+      const double rt_left_lim = spectrum_rt - getRTWindow() / divisor / 2.0;
+      const double rt_right_lim = spectrum_rt + getRTWindow() / divisor / 2.0;
       const std::vector<Precursor> precursors = spectrum.getPrecursors();
       if (precursors.size() < 1)
       {
@@ -315,7 +319,19 @@ namespace OpenMS
 
       for (UInt j=0; j<transitions.size(); ++j)
       {
-        const double target_rt = targeted_exp.getPeptideByRef(transitions[j].getPeptideRef()).getRetentionTime();
+        const TargetedExperimentHelper::Peptide peptide = targeted_exp.getPeptideByRef(transitions[j].getPeptideRef());
+        double target_rt;
+        if (!peptide.rts.empty() &&
+            peptide.rts[0].hasCVTerm("MS:1000895") &&
+            !peptide.rts[0].getCVTerms()["MS:1000895"].empty())
+        {
+          target_rt = peptide.rts[0].getCVTerms()["MS:1000895"][0].getValue().toString().toDouble();
+        }
+        else
+        {
+          target_rt = peptide.getRetentionTime(); // accesses to MS:1000896. TODO: update if "guesstimate" in TargetedExperimentHelper.h is fixed
+        }
+
         const double target_mz = transitions[j].getPrecursorMZ();
 
         if (target_rt >= rt_left_lim && target_rt <= rt_right_lim && target_mz >= mz_left_lim && target_mz <= mz_right_lim)

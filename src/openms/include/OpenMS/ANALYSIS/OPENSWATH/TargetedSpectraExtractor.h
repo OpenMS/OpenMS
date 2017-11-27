@@ -251,6 +251,7 @@ protected:
     void updateMembers_();
 
 private:
+    String rt_unit_; /**< Retention time unit used in the target list file */
     double rt_window_; /**< Precursor Retention Time window used during the annotation phase */
     double min_score_; /**< The minimum score a spectrum must have to be assignable to a transition */
     double min_forward_match_;
