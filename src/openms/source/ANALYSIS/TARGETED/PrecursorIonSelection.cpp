@@ -735,12 +735,7 @@ namespace OpenMS
     std::vector<PeptideIdentification> curr_pep_ids, all_pep_ids;
     std::vector<ProteinIdentification> curr_prot_ids, all_prot_ids;
 
-    std::ofstream* precs = 0;
-    if (precursor_path != "")
-    {
-      precs = new std::ofstream(precursor_path.c_str());
-    }
-
+    std::ofstream precs(precursor_path.c_str());
 #ifdef PIS_DEBUG
     std::cout << max_iteration_ << std::endl;
 #endif
@@ -767,9 +762,9 @@ namespace OpenMS
                   <<  new_features[c].getMetaValue("msms_score");
 #endif
 
-        if (precursor_path != "")
+        if (precs.good())
         {
-          (*precs) << new_features[c].getRT() << " " << new_features[c].getMZ() << " " << new_features[c].getIntensity() << std::endl;
+          precs << new_features[c].getRT() << " " << new_features[c].getMZ() << " " << new_features[c].getIntensity() << std::endl;
         }
 
 
@@ -979,12 +974,6 @@ namespace OpenMS
 
     }
 #endif
-
-    // cleanup
-    if (precursor_path != "")
-    {
-      delete precs;
-    }
   }
 
   void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap& features, PeakMap& experiment,
@@ -1089,12 +1078,7 @@ namespace OpenMS
       }
     }
 
-    std::ofstream* precs = 0;
-    if (precursor_path != "")
-    {
-      precs = new std::ofstream(precursor_path.c_str());
-    }
-
+    std::ofstream precs(precursor_path.c_str());
     std::vector<PeptideIdentification> curr_pep_ids, all_pep_ids;
     std::vector<ProteinIdentification> curr_prot_ids;
 #ifdef PIS_DEBUG
@@ -1128,9 +1112,9 @@ namespace OpenMS
       // go through the new compounds
       for (UInt c = 0; c < new_features.size(); ++c)
       {
-        if (precursor_path != "")
+        if (precs.good())
         {
-          (*precs) << new_features[c].getRT() << " " << new_features[c].getMZ() << " " << new_features[c].getIntensity() << std::endl;
+          precs << new_features[c].getRT() << " " << new_features[c].getMZ() << " " << new_features[c].getIntensity() << std::endl;
         }
 
         //#ifdef PIS_DEBUG
@@ -1245,12 +1229,6 @@ namespace OpenMS
       //                std::cout << new_features.size() << " compounds for msms"<< std::endl;
       // #endif
     } //while(new_features.size() > 0 && iteration < max_iteration)
-
-    // cleanup
-    if (precursor_path != "")
-    {
-      delete precs;
-    }
 
 #ifdef PIS_DEBUG
     std::map<String, std::set<String> >::iterator pic_iter = prot_id_counter_.begin();
