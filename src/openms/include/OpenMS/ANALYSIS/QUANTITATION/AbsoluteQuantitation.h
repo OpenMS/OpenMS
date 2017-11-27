@@ -176,7 +176,8 @@ public:
       @brief This function optimizes the parameters of the calibration for a 
         given component iteratively.
 
-      @param component_concentrations list of structures with features and concentrations
+      @param component_concentrations list of structures with features and concentrations.  
+        The optimal points will be returned.
       @param feature_name name of the feature to calculate the absolute concentration.
       @param transformation_model model used to fit the calibration points
       @param transformation_model_params parameters used by the transformation_model
@@ -185,7 +186,7 @@ public:
       @exception Exception::UnableToFit
     */ 
     void optimizeCalibrationCurveIterative(
-      const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+      std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       const String & feature_name,
       const String & transformation_model,
       const Param & transformation_model_params,

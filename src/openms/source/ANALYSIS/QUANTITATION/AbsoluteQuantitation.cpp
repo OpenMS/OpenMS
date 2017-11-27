@@ -288,7 +288,7 @@ namespace OpenMS
    * 2. make tests
    */
   void AbsoluteQuantitation::optimizeCalibrationCurveIterative(
-    const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
     const String & feature_name,
     const String & transformation_model,
     const Param & transformation_model_params,
@@ -365,7 +365,7 @@ namespace OpenMS
 
       // R2 and biases check failed, determine potential outlier
       int pos;
-      if (method == "iter_jackknife")
+      if (outlier_detection_method == "iter_jackknife")
       {
         // get candidate outlier: removal of which datapoint results in best rsq?
         pos = jackknifeOutlierCandidate_(
@@ -374,7 +374,7 @@ namespace OpenMS
           transformation_model,
           transformation_model_params);
       }
-      else if (method == "iter_residual")
+      else if (outlier_detection_method == "iter_residual")
       {
         // get candidate outlier: removal of datapoint with largest residual?
         pos = residualOutlierCandidate_(
@@ -425,12 +425,11 @@ namespace OpenMS
     // the data points with one removed pair. The combination resulting in
     // highest rsq is considered corresponding to the outlier candidate. The
     // corresponding iterator position is then returned.
-    std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_tmp;
     std::vector<double> rsq_tmp;
 
     for (Size i = 0; i < component_concentrations.size(); i++)
     {
-      component_concentrations_tmp = component_concentrations;
+      std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_tmp = component_concentrations;
       component_concentrations_tmp.erase(component_concentrations_tmp.begin() + i);
 
       // fit the model
