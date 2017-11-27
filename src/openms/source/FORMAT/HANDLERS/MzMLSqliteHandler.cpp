@@ -1023,7 +1023,7 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (Size k = 0; k < spectra.size(); k++)
+      for (SignedSize k = 0; k < (SignedSize)spectra.size(); k++)
       {
         const MSSpectrum& spec = spectra[k];
 
@@ -1239,7 +1239,7 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (Size k = 0; k < chroms.size(); k++)
+      for (SignedSize k = 0; k < (SignedSize)chroms.size(); k++)
       {
         const MSChromatogram& chrom = chroms[k];
         // encode retention time data (zlib or np-linear + zlib)
