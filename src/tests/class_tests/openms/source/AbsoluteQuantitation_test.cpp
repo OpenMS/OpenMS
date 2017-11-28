@@ -407,7 +407,6 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   
   AbsoluteQuantitation absquant;
 
-  //TODO
 END_SECTION
 
 /////////////////////////////
@@ -466,12 +465,12 @@ START_SECTION((int jackknifeOutlierCandidate_(
     transformation_model,
     transformation_model_params);
   TEST_EQUAL(c1,4);
-  component_concentrations.clear();
 
   static const double arrx2[] = { 1,2,3,4,5,6  };
   std::vector<double> x2 (arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
   static const double arry2[] = { 1,2,3,4,5,6};
   std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) );
+  component_concentrations.clear();
   for (size_t i = 0; i < x2.size(); ++i)
   {
     component.setMetaValue("native_id","component");
@@ -492,7 +491,6 @@ START_SECTION((int jackknifeOutlierCandidate_(
     transformation_model_params);
   TEST_EQUAL(c2,0);
 
-  //TODO
 END_SECTION
 
 START_SECTION((int residualOutlierCandidate_(
