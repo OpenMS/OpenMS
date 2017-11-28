@@ -134,7 +134,9 @@ class TOPPFeatureFinderMetaboIdent :
 {
 public:
   TOPPFeatureFinderMetaboIdent() :
-    TOPPBase("FeatureFinderMetaboIdent", "Detects features in MS1 data based on metabolite identifications.", false)
+    TOPPBase("FeatureFinderMetaboIdent", "Detects features in MS1 data based on metabolite identifications.", false),
+    keep_chromatograms_(false), keep_library_(false), rt_window_(0.0),
+    mz_window_(0.0), mz_window_ppm_(false), isotope_pmin_(0.0), n_isotopes_(0)
   {
     rt_term_.setCVIdentifierRef("MS");
     rt_term_.setAccession("MS:1000896");
