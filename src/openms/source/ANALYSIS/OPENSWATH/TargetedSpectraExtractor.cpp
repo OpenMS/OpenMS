@@ -92,7 +92,7 @@ namespace OpenMS
 
     params.setValue("mz_tolerance", 0.1, "Mass to Charge tolerance.");
 
-    params.setValue("mz_unit_is_Da", "true", "True if the Mass to Charge tolerance unit is Da. False if ppm.");
+    params.setValue("mz_unit_is_Da", "true", "True if the unit for Mass to Charge tolerance and FWHM threshold is Da. False if ppm.");
     params.setValidStrings("mz_unit_is_Da", ListUtils::create<String>("false,true"));
 
     params.setValue("sgolay_frame_length", 15, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
@@ -142,8 +142,9 @@ namespace OpenMS
                                          "Spectrum does not contain precursor info.");
       }
       const double spectrum_mz = precursors[0].getMZ();
-      const double mz_left_lim = spectrum_mz - mz_tolerance_;
-      const double mz_right_lim = spectrum_mz + mz_tolerance_;
+      const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : mz_tolerance_ / 1e6;
+      const double mz_left_lim = spectrum_mz - mz_tolerance;
+      const double mz_right_lim = spectrum_mz + mz_tolerance;
 
       LOG_DEBUG << "[" << i << "]\trt: " << spectrum_rt << "\tmz: " << spectrum_mz << std::endl;
 
@@ -232,11 +233,12 @@ namespace OpenMS
     pp.pick(smoothed_spectrum, picked_spectrum);
 
     std::vector<UInt> peaks_pos_to_erase;
+    const double fwhm_threshold = mz_unit_is_Da_ ? fwhm_threshold_ : fwhm_threshold_ / 1e6;
     for (Int i=picked_spectrum.size()-1; i>=0; --i)
     {
       if (picked_spectrum[i].getIntensity() < peak_height_min_ ||
           picked_spectrum[i].getIntensity() > peak_height_max_ ||
-          picked_spectrum.getFloatDataArrays()[0][i] < fwhm_threshold_)
+          picked_spectrum.getFloatDataArrays()[0][i] < fwhm_threshold)
       {
         peaks_pos_to_erase.push_back(i);
       }

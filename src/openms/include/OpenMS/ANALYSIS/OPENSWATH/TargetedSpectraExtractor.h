@@ -206,7 +206,7 @@ private:
     double min_forward_match_;
     double min_reverse_match_;
     double mz_tolerance_; /**< Precursor MZ tolerance used during the annotation phase */
-    bool mz_unit_is_Da_; /**< MZ tolerance unit to use: true for Da, false for ppm */
+    bool mz_unit_is_Da_; /**< MZ tolerance and FWHM threshold unit to use: true for Da, false for ppm */
 
     // filters
     UInt sgolay_frame_length_; /**< The number of subsequent data points used for smoothing */
