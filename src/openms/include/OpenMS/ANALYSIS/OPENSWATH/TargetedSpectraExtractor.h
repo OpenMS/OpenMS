@@ -200,30 +200,69 @@ protected:
     void updateMembers_();
 
 private:
-    String rt_unit_; /**< Retention time unit used in the target list file */
-    double rt_window_; /**< Precursor Retention Time window used during the annotation phase */
-    double min_score_; /**< The minimum score a spectrum must have to be assignable to a transition */
-    double min_forward_match_;
-    double min_reverse_match_;
-    double mz_tolerance_; /**< Precursor MZ tolerance used during the annotation phase */
-    bool mz_unit_is_Da_; /**< MZ tolerance and FWHM threshold unit to use: true for Da, false for ppm */
+    /**
+      Unit used in the target list file for the RetentionTime column.
+    */
+    String rt_unit_;
 
-    // filters
+    /**
+      Unit to use for mz_tolerance_ and fwhm_threshold_: true for Da, false for ppm.
+    */
+    bool mz_unit_is_Da_;
+
+    /**
+      Precursor Retention Time window used during the annotation phase.
+      For each transition in the target list, annotateSpectra() looks for
+      the first spectrum whose RT time falls within the RT Window, whose
+      left and right limits are computed at each analyzed spectrum.
+      Also the spectrum's percursor MZ is checked against the transition MZ.
+    */
+    double rt_window_;
+
+    /**
+      Precursor MZ tolerance used during the annotation phase.
+      For each transition in the target list, annotateSpectra() looks for
+      the first spectrum whose precursor MZ is close enough (+-mz_tolerance_)
+      to the transition's MZ.
+      Also the spectrum's precursor RT is checked against the transition RT.
+    */
+    double mz_tolerance_;
+
+    /**
+      Used in pickSpectrum(), a peak's intensity needs to be >= peak_height_min_
+      for it to be picked.
+    */
+    double peak_height_min_;
+
+    /**
+      Used in pickSpectrum(), a peak's intensity needs to be <= peak_height_max_
+      for it to be picked.
+    */
+    double peak_height_max_;
+
+    /**
+      Used in pickSpectrum(), a peak's FWHM needs to be >= fwhm_threshold_
+      for it to be picked.
+    */
+    double fwhm_threshold_;
+
+    double tic_weight_; /**< Total TIC's weight when computing a spectrum's score */
+    double fwhm_weight_; /**< FWHM's weight when computing a spectrum's score */
+    double snr_weight_; /**< SNR's weight when computing a spectrum's score */
+
+    /**
+      Used in selectSpectra(), after the spectra have been assigned a score.
+      Remained transitions will have at least one spectrum assigned.
+      Each spectrum needs to have a score >= min_score_ to be valid,
+      otherwise it gets filtered out.
+    */
+    double min_score_;
+
     UInt sgolay_frame_length_; /**< The number of subsequent data points used for smoothing */
     UInt sgolay_polynomial_order_; /**< Order or the polynomial that is fitted */
     double gauss_width_; /**< Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z) */
     bool use_gauss_; /**< Set to false if you want to use the Savitzky-Golay filtering method */
     double signal_to_noise_; /**< Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!) */
-
-    // peak picking
-    double peak_height_min_; /**< Minimum picked peak's height */
-    double peak_height_max_; /**< Maximum picked peak's height */
-    double fwhm_threshold_; /**< Picked peak's FWHM threshold */
-
-    // scoring
-    double tic_weight_; /**< Total TIC's weight when computing a spectrum's score */
-    double fwhm_weight_; /**< FWHM's weight when computing a spectrum's score */
-    double snr_weight_; /**< SNR's weight when computing a spectrum's score */
   };
 }
 

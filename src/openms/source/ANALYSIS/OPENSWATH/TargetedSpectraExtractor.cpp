@@ -50,8 +50,6 @@ namespace OpenMS
     rt_unit_ = (String)param_.getValue("rt_unit");
     rt_window_ = (double)param_.getValue("rt_window");
     min_score_ = (double)param_.getValue("min_score");
-    min_forward_match_ = (double)param_.getValue("min_forward_match");
-    min_reverse_match_ = (double)param_.getValue("min_reverse_match");
     mz_tolerance_ = (double)param_.getValue("mz_tolerance");
     mz_unit_is_Da_ = param_.getValue("mz_unit_is_Da").toBool();
 
@@ -74,25 +72,40 @@ namespace OpenMS
   {
     params.clear();
 
-    params.setValue("rt_unit", "seconds", "Retention time unit used in the target list file.");
+    params.setValue("rt_unit", "seconds", "Unit used in the target list file for the RetentionTime column.");
     params.setValidStrings("rt_unit", ListUtils::create<String>("minutes,seconds"));
 
-    params.setValue("rt_window", 30.0, "Retention time window in seconds.");
+    params.setValue(
+      "rt_window",
+      30.0,
+      "Precursor Retention Time window used during the annotation phase.\n"
+      "For each transition in the target list, annotateSpectra() looks for "
+      "the first spectrum whose RT time falls within the RT Window, whose "
+      "left and right limits are computed at each analyzed spectrum.\n"
+      "Also the spectrum's percursor MZ is checked against the transition MZ."
+    );
 
-    params.setValue("min_score", 0.7, "The minimum score a spectrum must have to be assignable to a transition.");
+    params.setValue(
+      "min_score",
+      0.7,
+      "Used in selectSpectra(), after the spectra have been assigned a score.\n"
+      "Remained transitions will have at least one spectrum assigned.\n"
+      "Each spectrum needs to have a score >= min_score_ to be valid, "
+      "otherwise it gets filtered out."
+    );
     params.setMinFloat("min_score", 0.0);
 
-    params.setValue("min_forward_match", 0.9, "Minimum forward match.");
-    params.setMinFloat("min_forward_match", 0.0);
-    params.setMaxFloat("min_forward_match", 1.0);
+    params.setValue(
+      "mz_tolerance",
+      0.1,
+      "Precursor MZ tolerance used during the annotation phase.\n"
+      "For each transition in the target list, annotateSpectra() looks for "
+      "the first spectrum whose precursor MZ is close enough (+-mz_tolerance_) "
+      "to the transition's MZ.\n"
+      "Also the spectrum's precursor RT is checked against the transition RT."
+    );
 
-    params.setValue("min_reverse_match", 0.9, "Minimum reverse match.");
-    params.setMinFloat("min_reverse_match", 0.0);
-    params.setMaxFloat("min_reverse_match", 1.0);
-
-    params.setValue("mz_tolerance", 0.1, "Mass to Charge tolerance.");
-
-    params.setValue("mz_unit_is_Da", "true", "True if the unit for Mass to Charge tolerance and FWHM threshold is Da. False if ppm.");
+    params.setValue("mz_unit_is_Da", "true", "Unit to use for mz_tolerance_ and fwhm_threshold_: true for Da, false for ppm.");
     params.setValidStrings("mz_unit_is_Da", ListUtils::create<String>("false,true"));
 
     params.setValue("sgolay_frame_length", 15, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
@@ -103,11 +116,11 @@ namespace OpenMS
     params.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
     params.setMinFloat("signal_to_noise", 0.0);
 
-    params.setValue("peak_height_min", 0.0, "Minimum picked peak's height.");
+    params.setValue("peak_height_min", 0.0, "Used in pickSpectrum(), a peak's intensity needs to be >= peak_height_min_ for it to be picked.");
     params.setMinFloat("peak_height_min", 0.0);
-    params.setValue("peak_height_max", 4e6, "Maximum picked peak's height.");
+    params.setValue("peak_height_max", 4e6, "Used in pickSpectrum(), a peak's intensity needs to be <= peak_height_max_ for it to be picked.");
     params.setMinFloat("peak_height_max", 0.0);
-    params.setValue("fwhm_threshold", 0.0, "Picked peak's FWHM threshold.");
+    params.setValue("fwhm_threshold", 0.0, "Used in pickSpectrum(), a peak's FWHM needs to be >= fwhm_threshold_ for it to be picked.");
     params.setMinFloat("fwhm_threshold", 0.0);
 
     params.setValue("tic_weight", 1.0, "TIC weight when scoring spectra.");
