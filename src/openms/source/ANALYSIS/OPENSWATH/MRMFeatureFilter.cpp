@@ -167,7 +167,7 @@ namespace OpenMS
 
               // find the ion ratio pair
               if (filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_1 != ""
-                && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_1 != ""
+                && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_2 != ""
                 && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_1 == component_name
                 && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_2 == component_name2)
               {
