@@ -1917,7 +1917,7 @@ namespace OpenMS
         painter.drawLine(begin_p.x(), height() / 2 - 5, end_p.x(), height() / 2 + 5);
       }
     }
-    else if (!mirror_mode_)
+    else
     {
       painter.setPen(Qt::red);
       QPoint begin_p, end_p;
