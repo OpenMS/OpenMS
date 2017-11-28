@@ -384,13 +384,14 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   component_concentration.IS_actual_concentration = 1.0;
   component_concentrations.push_back(component_concentration); 
 
+  String feature_name = "peak_apex_int";
   Param transformation_model_params;
   String transformation_model = "TransformationModelLinear"; 
 
   Param param = absquant.fitCalibration(component_concentrations,
     feature_name,
     transformation_model,
-    transformation_model_params)
+    transformation_model_params);
 
   Param param_test;
   param_test.setValue("slope",1.0);
@@ -462,7 +463,7 @@ START_SECTION((int jackknifeOutlierCandidate_(
   Param transformation_model_params;
   String transformation_model = "TransformationModelLinear"; 
 
-  int c1 = AbsoluteQuantitation_test::jackknifeOutlierCandidate_(
+  int c1 = absquant.jackknifeOutlierCandidate_(
     component_concentrations,
     feature_name,
     transformation_model,
@@ -487,7 +488,7 @@ START_SECTION((int jackknifeOutlierCandidate_(
     component_concentrations.push_back(component_concentration); 
   }  
 
-  int c2 = AbsoluteQuantitation_test::jackknifeOutlierCandidate_(
+  int c2 = absquant.jackknifeOutlierCandidate_(
     component_concentrations,
     feature_name,
     transformation_model,

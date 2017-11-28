@@ -380,9 +380,17 @@ namespace OpenMS
 
     for (size_t n_iters = 0; n_iters < max_iters; ++n_iters)
     {
+
       // extract out components
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub = extractComponents_(
         component_concentrations_sorted, component_concentrations_sorted_indices);
+
+      // check if the min number of calibration points has been broken
+      if (component_concentrations_sorted_indices.size() < min_points)
+      {        
+        LOG_INFO << "No optimal calibration found for " << component_concentrations_sub[0].feature.getMetaValue("native_id") << " .";
+        break;
+      }
 
       // fit the model
       optimized_params = fitCalibration(component_concentrations_sub,
