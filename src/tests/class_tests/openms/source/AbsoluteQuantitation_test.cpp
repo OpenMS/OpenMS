@@ -396,6 +396,7 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   Param param_test;
   param_test.setValue("slope",1.0);
   param_test.setValue("intercept",0.0);
+  param_test.setValue("symmetric_regression","true");
 
   TEST_EQUAL(param,param_test);
 
