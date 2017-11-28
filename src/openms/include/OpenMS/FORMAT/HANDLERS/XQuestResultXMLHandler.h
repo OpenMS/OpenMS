@@ -67,14 +67,18 @@ namespace OpenMS
 
       /// Constructor for a read-only handler for internal identification structures
       XQuestResultXMLHandler(const String & filename,
-                             std::vector< std::vector< PeptideIdentification > > & csms,
+                             std::vector< std::vector< PeptideIdentification > > & pep_ids,
                              std::vector< ProteinIdentification > & prot_ids,
                              Size min_n_ions_per_spectrum,
                              bool load_to_peptideHit_,
                              const ProgressLogger& logger);
 
       /// Constructor for a write-only handler for internal identification structures
-      XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
+      XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
+                             const std::vector<PeptideIdentification>& pep_id,
+                             const String& filename,
+                             const String& version,
+                             const ProgressLogger& logger);
 
       virtual ~XQuestResultXMLHandler();
 
@@ -111,7 +115,7 @@ namespace OpenMS
       const ProgressLogger& logger_;
 
       // Main data structures that are populated during loading the file
-      std::vector< std::vector< PeptideIdentification > >* csms_;
+      std::vector< std::vector< PeptideIdentification > >* pep_ids_;
       std::vector< ProteinIdentification >* prot_ids_;
 
       // internal ID items for writing files

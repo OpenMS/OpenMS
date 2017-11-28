@@ -66,16 +66,16 @@ namespace OpenMS
 
     const String XQuestResultXMLHandler::decoy_string = "decoy_";
 
-
+    // reader
     XQuestResultXMLHandler::XQuestResultXMLHandler(const String &filename,
-                                                   std::vector< std::vector< PeptideIdentification > > & csms,
+                                                   std::vector< std::vector< PeptideIdentification > > & pep_ids,
                                                    std::vector< ProteinIdentification > & prot_ids,
                                                    Size min_n_ions_per_spectrum,
                                                    bool load_to_peptideHit,
                                                    const ProgressLogger& logger) :
       XMLHandler(filename, "1.0"),
       logger_(logger),
-      csms_(&csms),
+      pep_ids_(&pep_ids),
       prot_ids_(&prot_ids),
       n_hits_(0),
       min_score_(0),
@@ -98,10 +98,15 @@ namespace OpenMS
       LOG_WARN << "WARNING: Fixed modifications are not available in the xQuest input file and will thus be not present in the loaded data!\n" << std::endl;
     }
 
-    XQuestResultXMLHandler::XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger) :
+    // writer
+    XQuestResultXMLHandler::XQuestResultXMLHandler(const std::vector<ProteinIdentification>& pro_id,
+                                                   const std::vector<PeptideIdentification>& pep_id,
+                                                   const String& filename,
+                                                   const String& version,
+                                                   const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
-      csms_(0),
+      pep_ids_(0),
       prot_ids_(0),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id)
@@ -247,9 +252,9 @@ namespace OpenMS
               }
               newvec[index] = *it;
             }
-            this->csms_->push_back(newvec);
+            this->pep_ids_->push_back(newvec);
             */
-          this->csms_->push_back(this->current_spectrum_search_);
+          this->pep_ids_->push_back(this->current_spectrum_search_);
         }
         this->current_spectrum_search_.clear();
       }
@@ -270,6 +275,7 @@ namespace OpenMS
         (*this->prot_ids_)[0].setSearchParameters(search_params);
       }
     }
+
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
       String tag = XMLString::transcode(qname);
