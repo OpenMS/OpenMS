@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_17876486934271562208"
-	creationDate="2017-10-09T11:05:54">
+	creationDate="2017-11-28T14:11:49">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,12 +12,12 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.2.0" name="OpenXQuest" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="2.3.0" name="OpenXQuest" id="SOF_5233264595117471314">
 		<SoftwareName>
 			<cvParam accession="MS:1002673" cvRef="PSI-MS" name="OpenXQuest"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v2.2.0" name="TOPP software" id="SOF_9949257177078866781">
+	<AnalysisSoftware version="OpenMS TOPP v2.3.0" name="TOPP software" id="SOF_9949257177078866781">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -191,7 +191,7 @@
 	<PeptideEvidence id="PEV_8195437834883133454" peptide_ref="PEP_7061025990090747374" dBSequence_ref="PROT_13440783915218733453" post="Y" pre="R" start="67" end="76" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-10-09T11:05:53">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2017-11-28T14:11:49">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -204,11 +204,12 @@
 		<AdditionalSearchParams>
 
 			<cvParam accession="MS:1002494" cvRef="PSI-MS" name="cross-linking search"/>
-			<userParam name="input_consensusXML" unitName="xsd:string" value="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXL_input.consensusXML"/>
-			<userParam name="input_mzML" unitName="xsd:string" value="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXL_input.mzML"/>
+			<userParam name="input_consensusXML" unitName="xsd:string" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
+			<userParam name="input_mzML" unitName="xsd:string" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
 			<userParam name="input_decoys" unitName="xsd:string" value=""/>
 			<userParam name="decoy_prefix" unitName="xsd:integer" value="0"/>
 			<userParam name="decoy_string" unitName="xsd:string" value="decoy"/>
+			<userParam name="out_xquest_specxml" unitName="xsd:string" value="OpenPepXL_output.spec.xml.tmp"/>
 			<userParam name="precursor:min_charge" unitName="xsd:integer" value="3"/>
 			<userParam name="precursor:max_charge" unitName="xsd:integer" value="7"/>
 			<userParam name="fragment:mass_tolerance_xlinks" unitName="xsd:double" value="0.3"/>
@@ -218,6 +219,7 @@
 			<userParam name="cross_link:mass" unitName="xsd:double" value="138.0680796"/>
 			<userParam name="cross_link:mass_isoshift" unitName="xsd:double" value="12.075321"/>
 			<userParam name="cross_link:mass_monolink" unitName="xsd:string" value="[156.07864431, 155.094628715]"/>
+			<userParam name="cross_link:name" unitName="xsd:string" value="DSS"/>
 			<userParam name="modifications:variable_max_per_peptide" unitName="xsd:integer" value="2"/>
 			<userParam name="charges" unitName="xsd:string" value="2,3,4,5,6"/>
 		</AdditionalSearchParams>
@@ -243,12 +245,12 @@
 </AnalysisProtocolCollection>
 <DataCollection>
 	<Inputs>
-		<SearchDatabase location="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXL_input.fasta" id="SDB_3332699010107892018">
+		<SearchDatabase location="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta" id="SDB_3332699010107892018">
 			<FileFormat>
 				<cvParam accession="MS:1001348" cvRef="PSI-MS" name="FASTA format"/>
 			</FileFormat>
 			<DatabaseName>
-				<userParam name="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/OpenPepXL_input.fasta"/>
+				<userParam name="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta"/>
 			</DatabaseName>
 			<cvParam accession="MS:1001029" cvRef="PSI-MS" name="number of sequences searched" value="329"/>
 		</SearchDatabase>
@@ -316,18 +318,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.83711027456976"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.92258863151073"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.660300024858228"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="101"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-100055.236818812"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="5.59770114368979"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="4.32762764114041"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="11.9960758128656"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="11.9960758128656"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="63"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.735970556846563"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.660300024858228"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0795454531908035"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="5.59770114368979"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="4.32762764114041"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="11.9960758128656"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="0"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="11.9960758128656"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2129.23608398438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -371,18 +376,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.83711027456976"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.92258863151073"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.660300024858228"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="101"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-100055.236818812"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="5.59770114368979"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="4.32762764114041"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="11.9960758128656"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="11.9960758128656"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="63"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.735970556846563"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.660300024858228"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0795454531908035"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="5.59770114368979"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="4.32762764114041"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="11.9960758128656"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="0"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="11.9960758128656"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2110.98901367188" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -421,18 +429,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.58684476206822"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.07097506150603"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.656644298044688"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="11.7340328312971"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="19.7454211585198"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.0011273237485"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="33.5442326418358"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.68826250208028"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0824957937002182"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="11.7340328312971"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="19.7454211585198"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="12.0011273237485"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="33.5442326418358"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.47583007812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -469,18 +480,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.58684476206822"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.07097506150603"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.656644298044688"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="11.7340328312971"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="19.7454211585198"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.0011273237485"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="33.5442326418358"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.68826250208028"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0824957937002182"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="11.7340328312971"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="19.7454211585198"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="12.0011273237485"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="33.5442326418358"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2125.5966796875" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -494,18 +508,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.58684476206822"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.07097506150603"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.656644298044688"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="11.7340328312971"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="19.7454211585198"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.0011273237485"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="33.5442326418358"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.68826250208028"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0824957937002182"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="11.7340328312971"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="19.7454211585198"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="12.0011273237485"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="33.5442326418358"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.47583007812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -519,18 +532,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.58684476206822"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.07097506150603"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.656644298044688"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="11.7340328312971"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="19.7454211585198"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.0011273237485"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="33.5442326418358"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.68826250208028"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0824957937002182"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="11.7340328312971"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="19.7454211585198"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="12.0011273237485"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="33.5442326418358"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2125.5966796875" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -583,18 +595,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.31951038704145"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.13951131701469"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.768526301879695"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="10.3279912107947"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="14.8796248308368"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="5.72157119395302"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="26.3376974389005"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.817087084294762"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0763762667775154"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="10.3279912107947"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="14.8796248308368"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="5.72157119395302"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="26.3376974389005"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.47583007812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -645,18 +660,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.31951038704145"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.13951131701469"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.768526301879695"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="10.3279912107947"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="14.8796248308368"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="5.72157119395302"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="26.3376974389005"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.817087084294762"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0763762667775154"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="10.3279912107947"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="14.8796248308368"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="5.72157119395302"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="26.3376974389005"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2089.55322265625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -670,18 +688,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.31951038704145"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.13951131701469"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.768526301879695"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="10.3279912107947"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="14.8796248308368"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="5.72157119395302"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="26.3376974389005"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.817087084294762"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0763762667775154"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="10.3279912107947"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="14.8796248308368"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="5.72157119395302"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="26.3376974389005"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.47583007812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -695,18 +712,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.31951038704145"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="6.13951131701469"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.768526301879695"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="107"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.44642947666162"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="10.3279912107947"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="14.8796248308368"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="5.72157119395302"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="26.3376974389005"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.817087084294762"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0763762667775154"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="10.3279912107947"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="14.8796248308368"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="13.0553193219031"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="5.72157119395302"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="26.3376974389005"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2089.55322265625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -745,18 +761,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.03898893171825"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.32643697783351"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405495636964018"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.4557239863681"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.26907162356069"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="3.90423933427245"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="9.98970069914597"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.8805068625479"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.423253481612473"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.043920524418354"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="12.4557239863681"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.26907162356069"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="3.90423933427245"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="9.98970069914597"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.8805068625479"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.78686523438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -793,18 +812,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.03898893171825"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.32643697783351"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405495636964018"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.4557239863681"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.26907162356069"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="3.90423933427245"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="9.98970069914597"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.8805068625479"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.423253481612473"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.043920524418354"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="12.4557239863681"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.26907162356069"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="3.90423933427245"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="9.98970069914597"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.8805068625479"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="4"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2128.08715820312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -818,18 +840,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.03898893171825"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.32643697783351"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405495636964018"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.4557239863681"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.26907162356069"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="3.90423933427245"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="9.98970069914597"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.8805068625479"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.423253481612473"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.043920524418354"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="12.4557239863681"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.26907162356069"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="3.90423933427245"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="9.98970069914597"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.8805068625479"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.78686523438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -843,18 +864,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.03898893171825"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.32643697783351"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.405495636964018"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.4557239863681"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.26907162356069"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="3.90423933427245"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="9.98970069914597"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.8805068625479"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.423253481612473"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.043920524418354"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="12.4557239863681"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.26907162356069"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="3.90423933427245"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="9.98970069914597"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.8805068625479"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2128.08715820312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -893,18 +913,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.649742753110708"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.0623814240098"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.351837083235437"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="9.6197722715887"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="12.311687744963"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.49219682733782"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="8.01937149303993"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.1594788737984"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.370204782115238"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0380362868309021"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="9.6197722715887"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="12.311687744963"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="5.49219682733782"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="8.01937149303993"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.1594788737984"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="2"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.78686523438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -941,18 +964,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.649742753110708"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.0623814240098"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.351837083235437"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="9.6197722715887"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="12.311687744963"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.49219682733782"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="8.01937149303993"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.1594788737984"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.370204782115238"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0380362868309021"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="9.6197722715887"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="12.311687744963"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="5.49219682733782"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="8.01937149303993"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.1594788737984"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="2"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2096.1025390625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -966,18 +992,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.649742753110708"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.0623814240098"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.351837083235437"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="9.6197722715887"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="12.311687744963"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.49219682733782"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="8.01937149303993"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.1594788737984"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.370204782115238"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0380362868309021"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="9.6197722715887"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="12.311687744963"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="5.49219682733782"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="8.01937149303993"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.1594788737984"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2132.78686523438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -991,18 +1016,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.649742753110708"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.0623814240098"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.351837083235437"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="108"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="9.6197722715887"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="12.311687744963"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.49219682733782"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="8.01937149303993"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.1594788737984"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.370204782115238"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0380362868309021"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="9.6197722715887"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="12.311687744963"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="5.49219682733782"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="8.01937149303993"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.1594788737984"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2096.1025390625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1048,18 +1072,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.91795419754295"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="3.03074353560805"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.672367841921044"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="195"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-73470.0271881252"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="8.15707933298946"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="4.59543196178458"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="17.3945020752073"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="17.3945020752073"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="180"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="6.2016465793789"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.672367841921044"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.107142858207226"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="8.15707933298946"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="4.59543196178458"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="17.3945020752073"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="0"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="17.3945020752073"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="5"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="7"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2228.50292963107" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1103,18 +1130,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.91795419754295"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="3.03074353560805"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.672367841921044"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="195"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-73470.0271881252"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="8.15707933298946"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="4.59543196178458"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="17.3945020752073"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="17.3945020752073"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="180"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="6.2016465793789"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.672367841921044"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.107142858207226"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="8.15707933298946"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="4.59543196178458"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="17.3945020752073"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="0"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="17.3945020752073"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="5"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="7"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2221.23388666232" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1160,18 +1190,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.39268746822049"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.36105836182833"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.676504666279161"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.9034891768035"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="7.94442689027721"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="5.74294641191393"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.9031557384379"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.712739683814841"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0707106813788414"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="22.9034891768035"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="7.94442689027721"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="5.74294641191393"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.9031557384379"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="5"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="1"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.65356445312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1215,18 +1248,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.39268746822049"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.36105836182833"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.676504666279161"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.9034891768035"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="7.94442689027721"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="5.74294641191393"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.9031557384379"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.712739683814841"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0707106813788414"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="22.9034891768035"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="7.94442689027721"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="5.74294641191393"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.9031557384379"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="5"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="1"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2125.5966796875" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1240,18 +1276,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.39268746822049"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.36105836182833"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.676504666279161"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.9034891768035"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="7.94442689027721"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="5.74294641191393"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.9031557384379"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.712739683814841"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0707106813788414"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="22.9034891768035"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="7.94442689027721"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="5.74294641191393"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.9031557384379"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.65356445312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1265,18 +1300,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.39268746822049"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="5.36105836182833"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.676504666279161"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="92"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="22.9034891768035"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="7.94442689027721"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="5.74294641191393"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="19.9031557384379"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.712739683814841"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0707106813788414"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="22.9034891768035"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="7.94442689027721"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="5.74294641191393"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="19.9031557384379"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2125.5966796875" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1322,18 +1356,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.695707754294939"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="4.12981671839952"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.781255905117072"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="12.5484024106411"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.85784550030881"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.418041323402"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="11.9361911344104"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.835859433306086"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0500000007450581"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="12.5484024106411"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="5.85784550030881"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="2.418041323402"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="11.9361911344104"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="2"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="1"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.65356445312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1377,18 +1414,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.695707754294939"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="4.12981671839952"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.781255905117072"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="12.5484024106411"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.85784550030881"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.418041323402"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="11.9361911344104"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.835859433306086"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0500000007450581"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="12.5484024106411"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="5.85784550030881"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="2.418041323402"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="11.9361911344104"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="2"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="3"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="1"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2089.55322265625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1402,18 +1442,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.695707754294939"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="4.12981671839952"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.781255905117072"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="12.5484024106411"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.85784550030881"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.418041323402"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="11.9361911344104"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.835859433306086"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0500000007450581"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="12.5484024106411"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="5.85784550030881"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="2.418041323402"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="11.9361911344104"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2100.65356445312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1427,18 +1466,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.695707754294939"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="4.12981671839952"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.781255905117072"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="42"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="18"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="2.53107322829242"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="12.5484024106411"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="5.85784550030881"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="2.418041323402"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="11.9361911344104"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.835859433306086"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0500000007450581"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="7.38293521117503"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="12.5484024106411"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="5.85784550030881"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="2.418041323402"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="11.9361911344104"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2089.55322265625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1477,18 +1515,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.32056596920873"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.87241573631763"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.43644221362543"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="13.6989402028631"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="13.0083208179101"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="23.7149499390773"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.456624555347754"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0481125228106976"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="13.6989402028631"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="13.0083208179101"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="23.7149499390773"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="5"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2101.32348632812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1525,18 +1566,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.32056596920873"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.87241573631763"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.43644221362543"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="13.6989402028631"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="13.0083208179101"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="23.7149499390773"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.456624555347754"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0481125228106976"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="13.6989402028631"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="13.0083208179101"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="23.7149499390773"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="5"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2128.08715820312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1550,18 +1594,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.32056596920873"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.87241573631763"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.43644221362543"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="13.6989402028631"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="13.0083208179101"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="23.7149499390773"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.456624555347754"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0481125228106976"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="13.6989402028631"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="13.0083208179101"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="23.7149499390773"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2101.32348632812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1575,18 +1618,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.32056596920873"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.87241573631763"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.43644221362543"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="98"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="13.6989402028631"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="13.0083208179101"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="23.7149499390773"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.456624555347754"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0481125228106976"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="13.6989402028631"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="13.0083208179101"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="23.7149499390773"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2128.08715820312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1625,18 +1667,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.811493072604136"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.63155278563499"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.396954220850271"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.5650697679762"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.2918665538169"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="22.5977780606451"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.417075821155964"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.039283711463213"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="12.5650697679762"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="12.2918665538169"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="22.5977780606451"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2101.32348632812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1673,18 +1718,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.811493072604136"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.63155278563499"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.396954220850271"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.5650697679762"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.2918665538169"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="22.5977780606451"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.417075821155964"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.039283711463213"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="12.5650697679762"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="12.2918665538169"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="22.5977780606451"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="3"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2096.1025390625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1698,18 +1746,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.811493072604136"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.63155278563499"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.396954220850271"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.5650697679762"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.2918665538169"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="22.5977780606451"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.417075821155964"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.039283711463213"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="12.5650697679762"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="12.2918665538169"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="22.5977780606451"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2101.32348632812" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1723,18 +1770,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.811493072604136"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.63155278563499"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.396954220850271"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="44"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="32"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="1.73411703302438"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="12.5650697679762"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="12.2918665538169"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="22.5977780606451"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.417075821155964"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.039283711463213"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="12.5650697679762"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="8.28473988317518"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="4.05297537403953"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="12.2918665538169"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="22.5977780606451"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2096.1025390625" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1759,18 +1805,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.0668016022404448"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.0859605744481087"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="81"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975184722"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="39"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975169115"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0177079905174123"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.00398409552872181"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="0"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="0.0824649173979771"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="0.0824649173979771"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="0.0824649173979771"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2120.05249023438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1793,18 +1842,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.0668016022404448"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.0859605744481087"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="81"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="N_TERM"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975184722"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="39"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975169115"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0177079905174123"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.00398409552872181"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="0"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="0.0824649173979771"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="0.0824649173979771"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="0.0824649173979771"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2099.09545898438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1818,18 +1870,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.0668016022404448"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.0859605744481087"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="81"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975184722"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="39"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975169115"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0177079905174123"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.00398409552872181"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="0"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="0.0824649173979771"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="0.0824649173979771"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="0.0824649173979771"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2120.05249023438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1843,18 +1894,17 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.0668016022404448"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.0859605744481087"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0177079905174123"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="81"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975184722"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="0.0824649173979771"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="39"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="3.68496975169115"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0177079905174123"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.00398409552872181"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="0"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="0.0824649173979771"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="0"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="0.0824649173979771"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="0.0824649173979771"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2099.09545898438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1877,18 +1927,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.000228211390356841"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.334201395511627"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0688459236181392"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="81"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-66665.7792280486"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0.288332907246581"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="2.58943363761124"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="2.58943363761124"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="39"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-3.29631082786707"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0688459236181392"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.00694444449618459"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="0"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="0.288332907246581"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="2.58943363761124"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="0"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="2.58943363761124"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2120.05249023438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -1911,18 +1964,21 @@
 					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.000228211390356841"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="0.334201395511627"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.0688459236181392"/>
+					<userParam name="spectrum_index" unitName="xsd:integer" value="81"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
-					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-66665.7792280486"/>
-					<userParam name="OpenPepXL:HyperCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperXlink" unitName="xsd:double" value="0.288332907246581"/>
-					<userParam name="OpenPepXL:HyperAlpha" unitName="xsd:double" value="2.58943363761124"/>
-					<userParam name="OpenPepXL:HyperBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:HyperBoth" unitName="xsd:double" value="2.58943363761124"/>
-					<userParam name="OpenPepXL:PScoreCommon" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreXlink" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreAlpha" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBeta" unitName="xsd:double" value="0"/>
-					<userParam name="OpenPepXL:PScoreBoth" unitName="xsd:double" value="0"/>
+					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="39"/>
+					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="-3.29631082786707"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0688459236181392"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.00694444449618459"/>
+					<userParam name="HyperCommon" unitName="xsd:double" value="0"/>
+					<userParam name="HyperXlink" unitName="xsd:double" value="0.288332907246581"/>
+					<userParam name="HyperAlpha" unitName="xsd:double" value="2.58943363761124"/>
+					<userParam name="HyperBeta" unitName="xsd:double" value="0"/>
+					<userParam name="HyperBoth" unitName="xsd:double" value="2.58943363761124"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="1"/>
+					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_common_alpha" unitName="xsd:integer" value="0"/>
+					<userParam name="matched_common_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2099.09545898438" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
