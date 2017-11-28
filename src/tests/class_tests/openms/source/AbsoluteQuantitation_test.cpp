@@ -55,21 +55,35 @@ class AbsoluteQuantitation_test : public AbsoluteQuantitation
 {
   public :
 
-    int jackknifeOutlierCandidate_(std::vector<double> & x, std::vector<double> & y)
+    int jackknifeOutlierCandidate_(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params)
     {
-      return AbsoluteQuantitation::jackknifeOutlierCandidate_(x, y);
+      return AbsoluteQuantitation::jackknifeOutlierCandidate_(component_concentrations,
+        feature_name,
+        transformation_model,
+        transformation_model_params);
     }
 
-    int residualOutlierCandidate_(std::vector<double> & x, std::vector<double> & y)
+    int residualOutlierCandidate_(const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params)
     {
-      return AbsoluteQuantitation::residualOutlierCandidate_(x, y);
+      return AbsoluteQuantitation::residualOutlierCandidate_(component_concentrations,
+        feature_name,
+        transformation_model,
+        transformation_model_params);
     }
 
     std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents_(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       std::vector<size_t> component_concentrations_indices)
     {
-      return AbsoluteQuantitation::extractComponents_(x, y);
+      return AbsoluteQuantitation::extractComponents_(
+        component_concentrations,
+        component_concentrations_indices);
     }
 
 };
@@ -371,17 +385,18 @@ START_SECTION((Param AbsoluteQuantitation::fitCalibration(
   component_concentrations.push_back(component_concentration); 
 
   Param transformation_model_params;
-  transformation_model = "TransformationModelLinear"; 
+  String transformation_model = "TransformationModelLinear"; 
 
-  Param param_test = absquant.fitCalibration(component_concentrations,
+  Param param = absquant.fitCalibration(component_concentrations,
     feature_name,
     transformation_model,
     transformation_model_params)
 
   Param param_test;
-  transformation_model = "TransformationModelLinear"; 
-  param.setValue("slope",1.0);
-  param.setValue("intercept",0.0);
+  param_test.setValue("slope",1.0);
+  param_test.setValue("intercept",0.0);
+
+  TEST_EQUAL(param,param_test);
 
   //TODO
 END_SECTION
@@ -425,7 +440,7 @@ START_SECTION((int jackknifeOutlierCandidate_(
   // set-up the features
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
   AbsoluteQuantitationStandards::featureConcentration component_concentration;
-  Feature component1, IS_component1;
+  Feature component, IS_component;
   for (size_t i = 0; i < x1.size(); ++i)
   {
     component.setMetaValue("native_id","component");
@@ -444,9 +459,8 @@ START_SECTION((int jackknifeOutlierCandidate_(
   // set-up the model and params
   // y = m*x + b
   // x = (y - b)/m
-  String transformation_model;
   Param transformation_model_params;
-  transformation_model = "TransformationModelLinear"; 
+  String transformation_model = "TransformationModelLinear"; 
 
   int c1 = AbsoluteQuantitation_test::jackknifeOutlierCandidate_(
     component_concentrations,
