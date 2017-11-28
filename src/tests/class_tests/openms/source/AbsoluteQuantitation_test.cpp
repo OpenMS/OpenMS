@@ -311,6 +311,37 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   //TODO
 END_SECTION
 
+START_SECTION((std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents_(
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+      std::vector<size_t> component_concentrations_indices)))
+  
+  AbsoluteQuantitation absquant;
+
+  //TODO
+END_SECTION
+
+START_SECTION((int jackknifeOutlierCandidate_(
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params)))
+  
+  AbsoluteQuantitation absquant;
+
+  //TODO
+END_SECTION
+
+START_SECTION((int residualOutlierCandidate_(
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+      const String & feature_name,
+      const String & transformation_model,
+      const Param & transformation_model_params)))
+  
+  AbsoluteQuantitation absquant;
+
+  //TODO
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
