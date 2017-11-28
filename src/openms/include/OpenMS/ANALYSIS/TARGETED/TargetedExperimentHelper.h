@@ -145,7 +145,9 @@ namespace OpenMS
       According to the standard, each retention time tag can have one or more
       CV terms describing the retention time in question. The unit and type of
       retention time are stored using the RTUnit and RTType structure while the
-      actual value is stored in retention_time_
+      actual value is stored in retention_time_ and can be accessed by getRT /
+      setRT. Currently support for RT windows or lower/upper limits is not
+      implemented but is available via CV terms.
     */
     class OPENMS_DLLAPI RetentionTime :
       public CVTermListInterface
