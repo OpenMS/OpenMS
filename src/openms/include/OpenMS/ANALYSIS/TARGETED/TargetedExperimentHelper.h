@@ -164,9 +164,9 @@ public:
 
       enum RTType
       {
-        Local,            //
-        Normalized,       //
-        Predicted,        //
+        Local = 0,        // undefined local chromatography
+        Normalized,       // standardized reference chromatography
+        Predicted,        // predicted by referenced software
         HPINS,            // H-PINS "The de facto standard providing the retention times"
         iRT,              // iRT retention time standard
         type_Unannotated, // no stored annotation

@@ -940,19 +940,17 @@ namespace OpenMS
       }
 
       // write units (minute, second or none)
+      if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::Second) //seconds
       {
-        if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::Second) //seconds
-        {
-          os << " unitCvRef=\"UO\" unitAccession=\"UO:0000010\" unitName=\"second\"/>\n";
-        }
-        else if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::Minute) //minutes
-        {
-          os << " unitCvRef=\"UO\" unitAccession=\"UO:0000031\" unitName=\"minute\"/>\n";
-        }
-        else 
-        {
-          os << "/>\n";
-        }
+        os << " unitCvRef=\"UO\" unitAccession=\"UO:0000010\" unitName=\"second\"/>\n";
+      }
+      else if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::Minute) //minutes
+      {
+        os << " unitCvRef=\"UO\" unitAccession=\"UO:0000031\" unitName=\"minute\"/>\n";
+      }
+      else
+      {
+        os << "/>\n";
       }
 
       writeCVParams_(os, *rit, 5);
@@ -1263,19 +1261,17 @@ namespace OpenMS
         //   e.g.: MS:1000896 (normalized retention time)
         //   e.g.: MS:1000897 (predicted retention time)
 
+        if ( cv_term.getUnit().accession == "UO:0000010") //seconds
         {
-          if ( cv_term.getUnit().accession == "UO:0000010") //seconds
-          {
-            actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Second;
-          }
-          else if ( cv_term.getUnit().accession == "UO:0000031") //minutes
-          {
-            actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Minute;
-          }
-          else if (actual_rt_.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::SizeOfRTUnit) // do not overwrite previous data
-          {
-            actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::unit_Unannotated;
-          }
+          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Second;
+        }
+        else if ( cv_term.getUnit().accession == "UO:0000031") //minutes
+        {
+          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Minute;
+        }
+        else if (actual_rt_.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::SizeOfRTUnit) // do not overwrite previous data
+        {
+          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::unit_Unannotated;
         }
 
         if (cv_term.getAccession() == "MS:1000895") // local RT
@@ -1317,8 +1313,8 @@ namespace OpenMS
         // }
         else
         {
-          warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" + 
-                cv_term.getName() + "' used in tag '" + parent_tag + "' is currently not supprted!"));
+          warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" +
+                cv_term.getName() + "' used in tag '" + parent_tag + "' is currently not supported!"));
           actual_rt_.addCVTerm(cv_term);
         }
       }
@@ -1578,7 +1574,7 @@ namespace OpenMS
       }
       else
       {
-        warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" + 
+        warning(LOAD, String("The CV term '" + cv_term.getAccession() + "' - '" +
               cv_term.getName() + "' used in tag '" + parent_tag + "' could not be handled, ignoring it!"));
       }
       return;
