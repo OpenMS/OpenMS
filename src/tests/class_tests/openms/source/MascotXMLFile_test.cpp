@@ -251,7 +251,7 @@ START_SECTION((void load(const String& filename, ProteinIdentification& protein_
     FuzzyStringComparator fuzzy;
     fuzzy.setWhitelist(ListUtils::create<String>("<?xml-stylesheet"));
     fuzzy.setAcceptableAbsolute(0.0001);
-    bool result = fuzzy.compareFiles(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_out_3.idXML"), filename);
+    bool result = fuzzy.compareFiles(filename, OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_out_3.idXML"));
     TEST_EQUAL(result, true);
   }
 }
