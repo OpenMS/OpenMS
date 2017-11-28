@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/TraMLHandler.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -680,7 +681,7 @@ namespace OpenMS
                 }
                 const ResidueModification& rmod = mod_db->getModification("UniMod:" + String(mit->unimod_id), residue, term_spec);
                 String modname = rmod.getId();
-                os << "           <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id
+                os << "        <cvParam cvRef=\"UNIMOD\" accession=\"UNIMOD:" << mit->unimod_id
                   << "\" name=\"" << modname << "\"/>\n";
               }
 
@@ -910,31 +911,31 @@ namespace OpenMS
       }
       os << ">" << "\n";
 
-      if (rit->retention_time_set)
+      if (rit->isRTset())
       {
         if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::Local)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->retention_time << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\" ";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::Normalized)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000896\" name=\"normalized retention time\" value=\"" << rit->retention_time << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000896\" name=\"normalized retention time\" value=\"" << rit->getRT() << "\" ";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::Predicted)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000897\" name=\"predicted retention time\" value=\"" << rit->retention_time << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000897\" name=\"predicted retention time\" value=\"" << rit->getRT() << "\" ";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::HPINS)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000902\" name=\"H-PINS retention time normalization standard\" value=\"" << rit->retention_time << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000902\" name=\"H-PINS retention time normalization standard\" value=\"" << rit->getRT() << "\" ";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::iRT)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1002005\" name=\"iRT retention time normalization standard\" value=\"" << rit->retention_time << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1002005\" name=\"iRT retention time normalization standard\" value=\"" << rit->getRT() << "\" ";
         }
         else
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->retention_time << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\" ";
         }
       }
 
@@ -1247,20 +1248,20 @@ namespace OpenMS
       }
       else if (parent_tag == "RetentionTime")
       {
+        // Note: we have to be prepared to have multiple CV terms for the same
+        // RT, some indicating the unit, some indicating the type of RT
 
-        /*
-        MAY supply a *child* term of MS:1000915 (retention time window attribute) one or more times
-          e.g.: MS:1000916 (retention time window lower offset)
-          e.g.: MS:1000917 (retention time window upper offset)
-          e.g.: MS:1001907 (retention time window width)
-        MAY supply a *child* term of MS:1000901 (retention time normalization standard) only once
-          e.g.: MS:1000902 (H-PINS retention time normalization standard)
-          e.g.: MS:1002005 (iRT retention time normalization standard)
-        MAY supply a *child* term of MS:1000894 (retention time) one or more times
-          e.g.: MS:1000895 (local retention time)
-          e.g.: MS:1000896 (normalized retention time)
-          e.g.: MS:1000897 (predicted retention time)
-        */
+        // MAY supply a *child* term of MS:1000915 (retention time window attribute) one or more times
+        //   e.g.: MS:1000916 (retention time window lower offset)
+        //   e.g.: MS:1000917 (retention time window upper offset)
+        //   e.g.: MS:1001907 (retention time window width)
+        // MAY supply a *child* term of MS:1000901 (retention time normalization standard) only once
+        //   e.g.: MS:1000902 (H-PINS retention time normalization standard)
+        //   e.g.: MS:1002005 (iRT retention time normalization standard)
+        // MAY supply a *child* term of MS:1000894 (retention time) one or more times
+        //   e.g.: MS:1000895 (local retention time)
+        //   e.g.: MS:1000896 (normalized retention time)
+        //   e.g.: MS:1000897 (predicted retention time)
 
         {
           if ( cv_term.getUnit().accession == "UO:0000010") //seconds

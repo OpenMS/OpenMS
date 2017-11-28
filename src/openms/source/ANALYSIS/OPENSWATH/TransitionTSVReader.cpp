@@ -968,17 +968,15 @@ namespace OpenMS
 
   void TransitionTSVReader::interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value)
   {
+    TargetedExperiment::RetentionTime retention_time;
+    retention_time.setRT(rt_value);
     if (retentionTimeInterpretation_ == "iRT")
     {
-      TargetedExperiment::RetentionTime retention_time;
-      retention_time.retention_time = rt_value;
       retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::iRT;
-      retention_times.push_back(retention_time);
+      // no unit, since it is iRT (normalized RT)
     }
     else if (retentionTimeInterpretation_ == "seconds" || retentionTimeInterpretation_ == "minutes")
     {
-      TargetedExperiment::RetentionTime retention_time;
-      retention_time.retention_time = rt_value;
       retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::Local;
       if (retentionTimeInterpretation_ == "seconds")
       {
@@ -988,8 +986,8 @@ namespace OpenMS
       {
         retention_time.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Minute;
       }
-      retention_times.push_back(retention_time);
     }
+    retention_times.push_back(retention_time);
   }
 
   void TransitionTSVReader::createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide)

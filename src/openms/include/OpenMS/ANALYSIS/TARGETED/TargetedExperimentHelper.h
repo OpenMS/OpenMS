@@ -139,6 +139,14 @@ namespace OpenMS
 
     };
 
+    /**
+      @brief This class stores a retention time structure that is used in TargetedExperiment (representing a TraML file)
+
+      According to the standard, each retention time tag can have one or more
+      CV terms describing the retention time in question. The unit and type of
+      retention time are stored using the RTUnit and RTType structure while the
+      actual value is stored in retention_time_
+    */
     class OPENMS_DLLAPI RetentionTime :
       public CVTermListInterface
     {
@@ -168,8 +176,8 @@ public:
         software_ref(""),
         retention_time_unit(RTUnit::SizeOfRTUnit),
         retention_time_type(RTType::SizeOfRTType),
-        retention_time_set(false),
-        retention_time(0.0)
+        retention_time_set_(false),
+        retention_time_(0.0)
         // retention_time_width(0.0),
         // retention_time_lower(0.0),
         // retention_time_upper(0.0)
@@ -181,8 +189,8 @@ public:
         software_ref(rhs.software_ref),
         retention_time_unit(rhs.retention_time_unit),
         retention_time_type(rhs.retention_time_type),
-        retention_time_set(rhs.retention_time_set),
-        retention_time(rhs.retention_time)
+        retention_time_set_(rhs.retention_time_set_),
+        retention_time_(rhs.retention_time_)
       {
       }
 
@@ -198,8 +206,8 @@ public:
           software_ref = rhs.software_ref;
           retention_time_unit = rhs.retention_time_unit;
           retention_time_type = rhs.retention_time_type;
-          retention_time_set = rhs.retention_time_set;
-          retention_time = rhs.retention_time;
+          retention_time_set_ = rhs.retention_time_set_;
+          retention_time_ = rhs.retention_time_;
         }
         return *this;
       }
@@ -210,30 +218,33 @@ public:
                software_ref == rhs.software_ref &&
                retention_time_unit == rhs.retention_time_unit &&
                retention_time_type == rhs.retention_time_type &&
-               retention_time_set == rhs.retention_time_set &&
-               retention_time == rhs.retention_time;
+               retention_time_set_ == rhs.retention_time_set_ &&
+               retention_time_ == rhs.retention_time_;
       }
 
       bool isRTset() const 
       {
-        return retention_time_set;
+        return retention_time_set_;
       }
       void setRT(double rt)
       {
-        retention_time = rt;
-        retention_time_set = true;
+        retention_time_ = rt;
+        retention_time_set_ = true;
       }
       double getRT() const
       {
         OPENMS_PRECONDITION(isRTset(), "RT needs to be set")
-        return retention_time;
+        return retention_time_;
       }
 
       String software_ref;
       RTUnit retention_time_unit;
       RTType retention_time_type;
-      bool retention_time_set;
-      double retention_time;
+
+private:
+
+      bool retention_time_set_;
+      double retention_time_;
       // double retention_time_width;
       // double retention_time_lower;
       // double retention_time_upper;
@@ -307,7 +318,7 @@ public:
       /// Get compound or peptide retentiontime
       bool hasRetentionTime() const
       {
-        return (!rts.empty() && rts[0].retention_time_set);
+        return (!rts.empty() && rts[0].isRTset());
       }
 
       double getRetentionTime() const
@@ -317,7 +328,7 @@ public:
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "No retention time information available");
         }
-        return rts[0].retention_time;
+        return rts[0].getRT();
       }
 
       /// Get compound or peptide retentiontime type

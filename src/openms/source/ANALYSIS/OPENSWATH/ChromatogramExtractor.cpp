@@ -97,14 +97,14 @@ namespace OpenMS
       }
       else if (boost::math::isnan(rt_extraction_window)) // if 'rt_extraction_window' is NAN, we assume that RT start/end is encoded in the data
       {
+        // TODO: better use a single RT entry with start/end
         if (pep.rts.size() != 2)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
               "Error: Expected exactly two retention time entries for peptide '" + pep.id + "', found " + String(pep.rts.size()));
         }
-        coord.rt_start = pep.rts[0].retention_time;
-        coord.rt_end = pep.rts[1].retention_time;
-
+        coord.rt_start = pep.rts[0].getRT();
+        coord.rt_end = pep.rts[1].getRT();
       }
       else // if 'rt_extraction_window' is non-zero, just use the (first) RT value
       {
