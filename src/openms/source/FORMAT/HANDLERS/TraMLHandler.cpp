@@ -915,27 +915,27 @@ namespace OpenMS
       {
         if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::Local)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\"";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::Normalized)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000896\" name=\"normalized retention time\" value=\"" << rit->getRT() << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000896\" name=\"normalized retention time\" value=\"" << rit->getRT() << "\"";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::Predicted)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000897\" name=\"predicted retention time\" value=\"" << rit->getRT() << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000897\" name=\"predicted retention time\" value=\"" << rit->getRT() << "\"";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::HPINS)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000902\" name=\"H-PINS retention time normalization standard\" value=\"" << rit->getRT() << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000902\" name=\"H-PINS retention time normalization standard\" value=\"" << rit->getRT() << "\"";
         }
         else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::iRT)
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1002005\" name=\"iRT retention time normalization standard\" value=\"" << rit->getRT() << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1002005\" name=\"iRT retention time normalization standard\" value=\"" << rit->getRT() << "\"";
         }
         else
         {
-          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\" ";
+          os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\"";
         }
       }
 
@@ -943,11 +943,11 @@ namespace OpenMS
       {
         if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::Second) //seconds
         {
-          os << "unitCvRef=\"UO\" unitAccession=\"UO:0000010\" unitName=\"second\"/>\n";
+          os << " unitCvRef=\"UO\" unitAccession=\"UO:0000010\" unitName=\"second\"/>\n";
         }
         else if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::Minute) //minutes
         {
-          os << "unitCvRef=\"UO\" unitAccession=\"UO:0000031\" unitName=\"minute\"/>\n";
+          os << " unitCvRef=\"UO\" unitAccession=\"UO:0000031\" unitName=\"minute\"/>\n";
         }
         else 
         {
