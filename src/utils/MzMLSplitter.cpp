@@ -86,7 +86,7 @@ protected:
     setMinInt_("size", 0);
     registerStringOption_("unit", "<choice>", "MB", "Unit for 'size' (base 1024)", false);
     setValidStrings_("unit", ListUtils::create<String>("KB,MB,GB"));
-    registerFlag_("precursor", "Make sure precursor spectra end up in the same part as their fragment spectra");
+    registerFlag_("precursor", "The precursor spectrum and its corresponding MSn spectra will be saved in the same file");
     registerFlag_("no_chrom", "Remove chromatograms, keep only spectra.");
     registerFlag_("no_spec", "Remove spectra, keep only chromatograms.");
   }
@@ -95,11 +95,10 @@ protected:
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
 
-    if (out.empty()) out = File::removeExtension(in);
-    
-    bool precursor = getFlag_("precursor");
+    if (out.empty()){out = File::removeExtension(in);}
 
-    bool no_chrom = getFlag_("no_chrom"), no_spec = getFlag_("no_spec");
+    bool no_chrom = getFlag_("no_chrom"), no_spec = getFlag_("no_spec"), precursor = getFlag_("precursor");
+    
     if (no_chrom && no_spec)
     {
       writeLog_("Error: 'no_chrom' and 'no_spec' cannot be used together");
@@ -133,7 +132,8 @@ protected:
 
     vector<MSSpectrum > spectra;
     vector<MSChromatogram > chromatograms;
-
+    
+    //remove spectra or chromatograms 
     if (no_spec)
     {
       experiment.getSpectra().clear();
@@ -155,76 +155,96 @@ protected:
     writeLog_("Total spectra: " + String(spectra.size()));
     writeLog_("Total chromatograms: " + String(chromatograms.size()));
 
-    Size spec_start = 0, chrom_start = 0;
-    Size width = String(parts).size();
-    for (Size counter = 1; counter <= parts; ++counter)
+    //calculate split ranges e.g., (0,100), (101, 200), ...
+    vector<std::pair<int, int>> parts_spec_ranges;
+    vector<std::pair<int, int>> parts_chrom_ranges;
+    Size spec_start = 0,  chrom_start = 0;
+    Size width = String(parts).size(); 
+    Size n_chrom, n_spec;   
+
+    for (Size counter = 0 ; counter < parts; ++counter)
     {
-      ostringstream out_name;
-      out_name << out << "_part" << setw(width) << setfill('0') << counter
-               << "of" << parts << ".mzML";
-      PeakMap part = experiment;
-      addDataProcessing_(part, getProcessingInfo_(DataProcessing::FILTERING));
+      Size remaining = parts - counter ;
+      //n_spec has to be substracted by -1, since list of spectra (index) starts at 0  
+      n_spec = ceil((spectra.size() - spec_start) / double(remaining));
+      n_chrom = ceil((chromatograms.size() - chrom_start) / double(remaining));
 
-      Size remaining = parts - counter + 1;
-      Size n_spec = ceil((spectra.size() - spec_start) / double(remaining));
-      if (n_spec > 0)
-      {
-        int last_spectrum = spec_start + n_spec;   
-        part.reserveSpaceSpectra(n_spec);  
-        for (Size i = spec_start; i < spec_start + n_spec; ++i)
-        {
-          part.addSpectrum(spectra[i]);
-        }
-        if (precursor) 
-        {
-          // possibilty A) last spectrum = MS2 - find next MS1 and take last MS2 of the previous precusor
-          if (spectra[last_spectrum].getMSLevel() == 2)
-          {
-             int count_till_ms1 = 0;
-             int i=1;
-             while(spectra[last_spectrum + i].getMSLevel() == 2)
-             {
-               i += 1;
-               count_till_ms1 = i;
-             }
-             for(int i = last_spectrum; i < (last_spectrum + count_till_ms1); ++i)
-             {
-                part.addSpectrum(spectra[i]);
-             }
-             n_spec = n_spec + count_till_ms1;
-          }
-          // possibility B) last spectrum = MS1 - if next one is MS2 do not use it in this split -> next split 
-          if (spectra[last_spectrum].getMSLevel() == 1)
-          {
-            if (spectra[last_spectrum + 1].getMSLevel() == 2)
-            {
-              n_spec = n_spec - 1;
-            }
-          }          
-        } 
-      }
-      spec_start += n_spec;
-
-      Size n_chrom = ceil((chromatograms.size() - chrom_start) /
-                          double(remaining));
+      //chromatograms
       if (n_chrom > 0)
       {
-        part.reserveSpaceChromatograms(n_chrom);
-        for (Size i = chrom_start; i < chrom_start + n_chrom; ++i)
+        parts_chrom_ranges.push_back(std::make_pair(chrom_start, chrom_start + n_chrom - 1));   
+      }
+
+      //spectra
+      if (!precursor)
+      {
+        if (n_spec > 0)
         {
-          part.addChromatogram(chromatograms[i]);
+           parts_spec_ranges.push_back(std::make_pair(spec_start, (spec_start + n_spec - 1)));
         }
       }
+      else
+      {
+        int last_spectrum = spec_start + n_spec - 1;
+        //Last spectrum is a MS1 spectrum and either a MS2 Spectrum follows - than the MS1 will be in the next part.
+        if (spectra[last_spectrum].getMSLevel() == 1)
+        {
+          if (spectra[last_spectrum + 1].getMSLevel() == 2)
+          {
+            n_spec -= 1;
+          }
+        }
+        //Last spectrum is a MS2 spectrum - appends all MS2 till next MS1 is reached. ´
+        else
+        {
+          //if not end of file 
+          if (last_spectrum != spectra.size() - 1)
+          {
+            int i(1);
+            while(spectra[last_spectrum + i].getMSLevel() == 2)
+            {
+              ++i;
+              ++n_spec;
+            }
+          }
+        }
+        parts_spec_ranges.push_back(std::make_pair(spec_start, (spec_start + n_spec - 1)));
+      }
+      // start at the next spectrum/chromatogram in the list
+      spec_start += n_spec;
       chrom_start += n_chrom;
-
-      writeLog_("Part " + String(counter) + ": " + String(n_spec) + 
-                " spectra, " + String(n_chrom) + " chromatograms");
-      MzMLFile().store(out_name.str(), part);
     }
-
-    return EXECUTION_OK;
+    
+    
+    //add spectra
+    if(n_spec > 0)
+    {
+      for (size_t i = 0; i < parts_spec_ranges.size(); ++i)
+      { 
+        MSExperiment part = experiment;
+        addDataProcessing_(part, getProcessingInfo_(DataProcessing::FILTERING));
+        //add chromatograms
+        if(n_chrom > 0)
+        { 
+          for (auto const& range : parts_chrom_ranges)
+          {
+            for (size_t i = range.first; i != range.second; ++i) 
+            {    
+              part.addChromatogram(chromatograms[i]);  
+            }
+          }
+        } 
+        ostringstream out_name;
+        int count_part = i;
+        out_name << out << "_part" << setw(width) << setfill('0') << count_part + 1 << "of" << parts << ".mzML";
+        for (size_t j = parts_spec_ranges[i].first; j <= parts_spec_ranges[i].second; ++j) 
+        {
+          part.addSpectrum(spectra[j]);
+        }
+        MzMLFile().store(out_name.str(), part);
+      }
+    }
   }
-
 };
 
 

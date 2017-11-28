@@ -2124,6 +2124,18 @@ add_test("UTILS_MzMLSplitter_2_out1" ${DIFF} -in1 MzMLSplitter_2_output_part1of2
 set_tests_properties("UTILS_MzMLSplitter_2_out1" PROPERTIES DEPENDS "UTILS_MzMLSplitter_2")
 add_test("UTILS_MzMLSplitter_2_out2" ${DIFF} -in1 MzMLSplitter_2_output_part2of2.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part2.mzML)
 set_tests_properties("UTILS_MzMLSplitter_2_out2" PROPERTIES DEPENDS "UTILS_MzMLSplitter_2")
+# specify number of parts directly with option precursor:
+add_test("UTILS_MzMLSplitter_3" ${TOPP_BIN_PATH}/MzMLSplitter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out MzMLSplitter_3_output -parts 2 -precursor)
+add_test("UTILS_MzMLSplitter_3_out1" ${DIFF} -in1 MzMLSplitter_3_output_part1of2.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part1.mzML)
+set_tests_properties("UTILS_MzMLSplitter_3_out1" PROPERTIES DEPENDS "UTILS_MzMLSplitter_3")
+add_test("UTILS_MzMLSplitter_3_out2" ${DIFF} -in1 MzMLSplitter_3_output_part2of2.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part2.mzML)
+set_tests_properties("UTILS_MzMLSplitter_3_out2" PROPERTIES DEPENDS "UTILS_MzMLSplitter_3")
+# specify target file size with option precursor:
+add_test("UTILS_MzMLSplitter_4" ${TOPP_BIN_PATH}/MzMLSplitter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out MzMLSplitter_4_output -size 40 -unit KB -precursor)
+add_test("UTILS_MzMLSplitter_4_out1" ${DIFF} -in1 MzMLSplitter_4_output_part1of2.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part1.mzML)
+set_tests_properties("UTILS_MzMLSplitter_4_out1" PROPERTIES DEPENDS "UTILS_MzMLSplitter_4")
+add_test("UTILS_MzMLSplitter_4_out2" ${DIFF} -in1 MzMLSplitter_4_output_part2of2.mzML -in2 ${DATA_DIR_TOPP}/MzMLSplitter_output_part2.mzML)
+set_tests_properties("UTILS_MzMLSplitter_4_out2" PROPERTIES DEPENDS "UTILS_MzMLSplitter_4")
 
 # TICCalculator test:
 add_test("UTILS_TICCalculator_1" ${TOPP_BIN_PATH}/TICCalculator -test -in ${DATA_DIR_TOPP}/MapNormalizer_output.mzML -read_method regular)
