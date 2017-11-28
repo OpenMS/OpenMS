@@ -36,6 +36,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/METADATA/AbsoluteQuantitationStandards.h>
+
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>
@@ -46,6 +48,31 @@ using namespace std;
 ///////////////////////////
 
 START_TEST(AbsoluteQuantitation, "$Id$")
+
+/////////////////////////////////////////////////////////////
+
+class AbsoluteQuantitation_test : public AbsoluteQuantitation
+{
+  public :
+
+    int jackknifeOutlierCandidate_(std::vector<double> & x, std::vector<double> & y)
+    {
+      return AbsoluteQuantitation::jackknifeOutlierCandidate_(x, y);
+    }
+
+    int residualOutlierCandidate_(std::vector<double> & x, std::vector<double> & y)
+    {
+      return AbsoluteQuantitation::residualOutlierCandidate_(x, y);
+    }
+
+    std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents_(
+      const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+      std::vector<size_t> component_concentrations_indices)
+    {
+      return AbsoluteQuantitation::extractComponents_(x, y);
+    }
+
+};
 
 /////////////////////////////////////////////////////////////
 
@@ -300,6 +327,65 @@ START_SECTION((void calculateBiasAndR2(
   
 END_SECTION
 
+START_SECTION((Param AbsoluteQuantitation::fitCalibration(
+    const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
+    const String & feature_name,
+    const String & transformation_model,
+    const Param & transformation_model_params)))
+  
+  AbsoluteQuantitation absquant;
+
+  // set-up the features
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
+  AbsoluteQuantitationStandards::featureConcentration component_concentration;
+  Feature component, IS_component;
+  // point #1
+  component.setMetaValue("native_id","component");
+  component.setMetaValue("peak_apex_int",1.0);
+  IS_component.setMetaValue("native_id","IS");
+  IS_component.setMetaValue("peak_apex_int",1.0);
+  component_concentration.feature = component;
+  component_concentration.IS_feature = IS_component;
+  component_concentration.actual_concentration = 1.0;
+  component_concentration.IS_actual_concentration = 1.0;
+  component_concentrations.push_back(component_concentration);  
+  // point #2
+  component.setMetaValue("native_id","component");
+  component.setMetaValue("peak_apex_int",2.0);
+  IS_component.setMetaValue("native_id","IS");
+  IS_component.setMetaValue("peak_apex_int",1.0);
+  component_concentration.feature = component;
+  component_concentration.IS_feature = IS_component;
+  component_concentration.actual_concentration = 2.0;
+  component_concentration.IS_actual_concentration = 1.0;
+  component_concentrations.push_back(component_concentration);  
+  // point #3
+  component.setMetaValue("native_id","component");
+  component.setMetaValue("peak_apex_int",3.0);
+  IS_component.setMetaValue("native_id","IS");
+  IS_component.setMetaValue("peak_apex_int",1.0);
+  component_concentration.feature = component;
+  component_concentration.IS_feature = IS_component;
+  component_concentration.actual_concentration = 3.0;
+  component_concentration.IS_actual_concentration = 1.0;
+  component_concentrations.push_back(component_concentration); 
+
+  Param transformation_model_params;
+  transformation_model = "TransformationModelLinear"; 
+
+  Param param_test = absquant.fitCalibration(component_concentrations,
+    feature_name,
+    transformation_model,
+    transformation_model_params)
+
+  Param param_test;
+  transformation_model = "TransformationModelLinear"; 
+  param.setValue("slope",1.0);
+  param.setValue("intercept",0.0);
+
+  //TODO
+END_SECTION
+
 START_SECTION((void optimizeCalibrationCurveIterative(
   const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
   const String & feature_name,
@@ -311,11 +397,15 @@ START_SECTION((void optimizeCalibrationCurveIterative(
   //TODO
 END_SECTION
 
+/////////////////////////////
+/* Protected Members **/
+/////////////////////////////
+
 START_SECTION((std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents_(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
       std::vector<size_t> component_concentrations_indices)))
   
-  AbsoluteQuantitation absquant;
+  AbsoluteQuantitation_test absquant;
 
   //TODO
 END_SECTION
@@ -326,7 +416,69 @@ START_SECTION((int jackknifeOutlierCandidate_(
       const String & transformation_model,
       const Param & transformation_model_params)))
   
-  AbsoluteQuantitation absquant;
+  AbsoluteQuantitation_test absquant;
+
+  static const double arrx1[] = { 1.1, 2.0,3.3,3.9,4.9,6.2  };
+  std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
+  static const double arry1[] = { 0.9, 1.9,3.0,3.7,5.2,6.1  };
+  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );  
+  // set-up the features
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
+  AbsoluteQuantitationStandards::featureConcentration component_concentration;
+  Feature component1, IS_component1;
+  for (size_t i = 0; i < x1.size(); ++i)
+  {
+    component.setMetaValue("native_id","component");
+    component.setMetaValue("peak_apex_int",y1[i]);
+    IS_component.setMetaValue("native_id","IS");
+    IS_component.setMetaValue("peak_apex_int",1.0);
+    component_concentration.feature = component;
+    component_concentration.IS_feature = IS_component;
+    component_concentration.actual_concentration = x1[i];
+    component_concentration.IS_actual_concentration = 1.0;
+    component_concentrations.push_back(component_concentration); 
+  }  
+
+  String feature_name = "peak_apex_int";
+
+  // set-up the model and params
+  // y = m*x + b
+  // x = (y - b)/m
+  String transformation_model;
+  Param transformation_model_params;
+  transformation_model = "TransformationModelLinear"; 
+
+  int c1 = AbsoluteQuantitation_test::jackknifeOutlierCandidate_(
+    component_concentrations,
+    feature_name,
+    transformation_model,
+    transformation_model_params);
+  TEST_EQUAL(c1,4);
+  component_concentrations.clear();
+
+  static const double arrx2[] = { 1,2,3,4,5,6  };
+  std::vector<double> x2 (arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
+  static const double arry2[] = { 1,2,3,4,5,6};
+  std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) );
+  for (size_t i = 0; i < x2.size(); ++i)
+  {
+    component.setMetaValue("native_id","component");
+    component.setMetaValue("peak_apex_int",y2[i]);
+    IS_component.setMetaValue("native_id","IS");
+    IS_component.setMetaValue("peak_apex_int",1.0);
+    component_concentration.feature = component;
+    component_concentration.IS_feature = IS_component;
+    component_concentration.actual_concentration = x2[i];
+    component_concentration.IS_actual_concentration = 1.0;
+    component_concentrations.push_back(component_concentration); 
+  }  
+
+  int c2 = AbsoluteQuantitation_test::jackknifeOutlierCandidate_(
+    component_concentrations,
+    feature_name,
+    transformation_model,
+    transformation_model_params);
+  TEST_EQUAL(c2,0);
 
   //TODO
 END_SECTION
@@ -337,7 +489,7 @@ START_SECTION((int residualOutlierCandidate_(
       const String & transformation_model,
       const Param & transformation_model_params)))
   
-  AbsoluteQuantitation absquant;
+  AbsoluteQuantitation_test absquant;
 
   //TODO
 END_SECTION
