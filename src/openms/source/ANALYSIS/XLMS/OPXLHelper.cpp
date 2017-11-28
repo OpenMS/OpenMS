@@ -643,6 +643,7 @@ namespace OpenMS
       }
 
       PeptideHit ph_alpha, ph_beta;
+      bool unknown_mono = false;
       // Set monolink as a modification or add MetaValue for cross-link identity and mass
       AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
       ResidueModification::TermSpecificity alpha_term_spec = top_csms_spectrum[i].cross_link.term_spec_alpha;
@@ -701,22 +702,27 @@ namespace OpenMS
         {
           seq_alpha.setModification(alpha_pos, mods[0]);
           mod_set = true;
+          ph_alpha.setMetaValue("xl_mod", mods[0]);
+          // ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
         }
         if (!mod_set) // If no equivalent mono-link exists in the UNIMOD or XLMOD databases, use the given name to construct a placeholder
         {
           String mod_name = String("unknown mono-link " + top_csms_spectrum[i].cross_link.cross_linker_name + " mass " + String(top_csms_spectrum[i].cross_link.cross_linker_mass));
           //seq_alpha.setModification(alpha_pos, mod_name);
-          LOG_DEBUG << "unknown mono-link" << endl;
+          // LOG_DEBUG << "unknown mono-link" << endl;
           ph_alpha.setMetaValue("xl_mod", mod_name);
-          ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+          // ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+          unknown_mono = true;
         }
       }
       else
       {
         ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
-        ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
+        // ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
       }
 
+      // ph_alpha.setMetaValue("xl_mod", top_csms_spectrum[i].cross_link.cross_linker_name);
+      ph_alpha.setMetaValue("xl_mass", DataValue(top_csms_spectrum[i].cross_link.cross_linker_mass));
 
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::LOOP)
       {
@@ -724,10 +730,14 @@ namespace OpenMS
       }
 
       // Error calculation
-      double weight = seq_alpha.getMonoWeight() + top_csms_spectrum[i].cross_link.cross_linker_mass;
+      double weight = seq_alpha.getMonoWeight();
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
       {
-        weight += top_csms_spectrum[i].cross_link.beta.getMonoWeight();
+        weight += top_csms_spectrum[i].cross_link.beta.getMonoWeight() + top_csms_spectrum[i].cross_link.cross_linker_mass;
+      }
+      else if (unknown_mono)
+      {
+        weight += top_csms_spectrum[i].cross_link.cross_linker_mass;
       }
       double theo_mz = (weight + (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / static_cast<double>(precursor_charge);
       double error = precursor_mz - theo_mz;
@@ -763,6 +773,7 @@ namespace OpenMS
       ph_alpha.setMetaValue("xl_chain", "MS:1002509");  // donor (longer, heavier, alphabetically earlier)
       ph_alpha.setMetaValue("xl_pos", DataValue(alpha_pos));
       ph_alpha.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+      ph_alpha.setMetaValue("spectrum_index", scan_index);
       ph_alpha.setMetaValue("xl_type", xltype);
       ph_alpha.setMetaValue("xl_rank", DataValue(i + 1));
       ph_alpha.setMetaValue("xl_term_spec", alpha_term);
@@ -772,6 +783,7 @@ namespace OpenMS
         ph_alpha.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
         ph_alpha.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
         ph_alpha.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+        ph_alpha.setMetaValue("spectrum_index_heavy", scan_index_heavy);
       }
       ph_alpha.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
 
@@ -780,18 +792,26 @@ namespace OpenMS
       ph_alpha.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
       ph_alpha.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
       ph_alpha.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
+      ph_alpha.setMetaValue("OpenXQuest:TIC", top_csms_spectrum[i].percTIC);
+      ph_alpha.setMetaValue("OpenXQuest:prescore", top_csms_spectrum[i].pre_score);
 
-      ph_alpha.setMetaValue("OpenPepXL:HyperCommon",top_csms_spectrum[i].HyperCommon);
-      ph_alpha.setMetaValue("OpenPepXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
-      ph_alpha.setMetaValue("OpenPepXL:HyperAlpha", top_csms_spectrum[i].HyperAlpha);
-      ph_alpha.setMetaValue("OpenPepXL:HyperBeta", top_csms_spectrum[i].HyperBeta);
-      ph_alpha.setMetaValue("OpenPepXL:HyperBoth",top_csms_spectrum[i].HyperBoth);
+      ph_alpha.setMetaValue("HyperCommon",top_csms_spectrum[i].HyperCommon);
+      ph_alpha.setMetaValue("HyperXlink",top_csms_spectrum[i].HyperXlink);
+      ph_alpha.setMetaValue("HyperAlpha", top_csms_spectrum[i].HyperAlpha);
+      ph_alpha.setMetaValue("HyperBeta", top_csms_spectrum[i].HyperBeta);
+      ph_alpha.setMetaValue("HyperBoth",top_csms_spectrum[i].HyperBoth);
 
-      ph_alpha.setMetaValue("OpenPepXL:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
-      ph_alpha.setMetaValue("OpenPepXL:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
-      ph_alpha.setMetaValue("OpenPepXL:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
-      ph_alpha.setMetaValue("OpenPepXL:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
-      ph_alpha.setMetaValue("OpenPepXL:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
+      // ph_alpha.setMetaValue("OpenPepXL:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
+      // ph_alpha.setMetaValue("OpenPepXL:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
+      // ph_alpha.setMetaValue("OpenPepXL:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
+      // ph_alpha.setMetaValue("OpenPepXL:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
+      // ph_alpha.setMetaValue("OpenPepXL:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
+
+      // additional values, mostly for xquest.xml output
+      ph_alpha.setMetaValue("matched_xlink_alpha",top_csms_spectrum[i].matched_xlink_alpha);
+      ph_alpha.setMetaValue("matched_xlink_beta",top_csms_spectrum[i].matched_xlink_beta);
+      ph_alpha.setMetaValue("matched_common_alpha",top_csms_spectrum[i].matched_common_alpha);
+      ph_alpha.setMetaValue("matched_common_beta",top_csms_spectrum[i].matched_common_beta);
 
       ph_alpha.setMetaValue("selected", "false");
 
@@ -808,6 +828,7 @@ namespace OpenMS
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
         ph_beta.setMetaValue("xl_pos", DataValue(beta_pos));
         ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
+        ph_beta.setMetaValue("spectrum_index", scan_index);
         ph_beta.setMetaValue("xl_term_spec", beta_term);
 
         if (scan_index_heavy != scan_index)
@@ -815,6 +836,7 @@ namespace OpenMS
           ph_beta.setMetaValue("spec_heavy_RT", spectra[scan_index_heavy].getRT());
           ph_beta.setMetaValue("spec_heavy_MZ", spectra[scan_index_heavy].getPrecursors()[0].getMZ());
           ph_beta.setMetaValue("spectrum_reference_heavy", spectra[scan_index_heavy].getNativeID());
+          ph_beta.setMetaValue("spectrum_index_heavy", scan_index_heavy);
         }
         ph_beta.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM, rel_error);
 
@@ -823,18 +845,20 @@ namespace OpenMS
         ph_beta.setMetaValue("OpenXQuest:match-odds", top_csms_spectrum[i].match_odds);
         ph_beta.setMetaValue("OpenXQuest:intsum", top_csms_spectrum[i].int_sum);
         ph_beta.setMetaValue("OpenXQuest:wTIC", top_csms_spectrum[i].wTIC);
+        ph_beta.setMetaValue("OpenXQuest:TIC", top_csms_spectrum[i].percTIC);
+        ph_beta.setMetaValue("OpenXQuest:prescore", top_csms_spectrum[i].pre_score);
 
-        ph_beta.setMetaValue("OpenPepXL:HyperCommon",top_csms_spectrum[i].HyperCommon);
-        ph_beta.setMetaValue("OpenPepXL:HyperXlink",top_csms_spectrum[i].HyperXlink);
-        ph_beta.setMetaValue("OpenPepXL:HyperAlpha",top_csms_spectrum[i].HyperAlpha);
-        ph_beta.setMetaValue("OpenPepXL:HyperBeta",top_csms_spectrum[i].HyperBeta);
-        ph_beta.setMetaValue("OpenPepXL:HyperBoth",top_csms_spectrum[i].HyperBoth);
+        ph_beta.setMetaValue("HyperCommon",top_csms_spectrum[i].HyperCommon);
+        ph_beta.setMetaValue("HyperXlink",top_csms_spectrum[i].HyperXlink);
+        ph_beta.setMetaValue("HyperAlpha",top_csms_spectrum[i].HyperAlpha);
+        ph_beta.setMetaValue("HyperBeta",top_csms_spectrum[i].HyperBeta);
+        ph_beta.setMetaValue("HyperBoth",top_csms_spectrum[i].HyperBoth);
 
-        ph_beta.setMetaValue("OpenPepXL:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
-        ph_beta.setMetaValue("OpenPepXL:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
-        ph_beta.setMetaValue("OpenPepXL:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
-        ph_beta.setMetaValue("OpenPepXL:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
-        ph_beta.setMetaValue("OpenPepXL:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
+        // ph_beta.setMetaValue("OpenPepXL:PScoreCommon",top_csms_spectrum[i].PScoreCommon);
+        // ph_beta.setMetaValue("OpenPepXL:PScoreXlink",top_csms_spectrum[i].PScoreXlink);
+        // ph_beta.setMetaValue("OpenPepXL:PScoreAlpha",top_csms_spectrum[i].PScoreAlpha);
+        // ph_beta.setMetaValue("OpenPepXL:PScoreBeta",top_csms_spectrum[i].PScoreBeta);
+        // ph_beta.setMetaValue("OpenPepXL:PScoreBoth",top_csms_spectrum[i].PScoreBoth);
 
         ph_beta.setMetaValue("selected", "false");
 
