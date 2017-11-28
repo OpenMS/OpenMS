@@ -87,6 +87,10 @@ namespace OpenMS
   using namespace Exception;
 
   String TOPPBase::topp_ini_file_ = String(QDir::homePath()) + "/.TOPP.ini";
+  const Citation TOPPBase::cite_openms_ = { "Rost HL, Sachsenberg T, Aiche S, Bielow C et al.",
+      "OpenMS: a flexible open-source software platform for mass spectrometry data analysis",
+      "Nat Meth. 2016; 13, 9: 741-748",
+      "10.1038/nmeth.3959" };
 
   void TOPPBase::setMaxNumberOfThreads(int
 #ifdef _OPENMP
@@ -100,32 +104,25 @@ namespace OpenMS
 #endif
   }
 
-  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, bool id_tag_support, bool require_args, const String& version) :
+  TOPPBase::TOPPBase(const String& tool_name, const String& tool_description, bool official, const std::vector<Citation>& citations) :
     tool_name_(tool_name),
     tool_description_(tool_description),
-    id_tag_support_(id_tag_support),
-    require_args_(require_args),
-    id_tagger_(tool_name),
     instance_number_(-1),
-    version_(version),
-    verboseVersion_(version),
+    version_(""),
+    verboseVersion_(""),
     official_(official),
+    citations_(citations),
     log_type_(ProgressLogger::NONE),
     test_mode_(false),
     debug_level_(-1)
   {
+    version_ = VersionInfo::getVersion();
+    verboseVersion_ = version_ + " " + VersionInfo::getTime();
 
-    // if version is empty, use the OpenMS/TOPP version and date/time
-    if (version_ == "")
+    // if the revision info is meaningful, show it as well
+    if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
     {
-      version_ = VersionInfo::getVersion();
-      verboseVersion_ = version_ + " " + VersionInfo::getTime();
-
-      // if the revision info is meaningful, show it as well
-      if (!VersionInfo::getRevision().empty() && VersionInfo::getRevision() != "exported")
-      {
-        verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
-      }
+      verboseVersion_ += String(", Revision: ") + VersionInfo::getRevision() + "";
     }
 
     //check if tool is in official tools list
@@ -177,13 +174,8 @@ namespace OpenMS
     registerIntOption_("threads", "<n>", 1, "Sets the number of threads allowed to be used by the TOPP tool", false);
     registerStringOption_("write_ini", "<file>", "", "Writes the default configuration file", false);
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
-    registerStringOption_("write_wsdl", "<file>", "", "Writes the default WSDL file", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
     registerFlag_("force", "Overwrite tool specific checks.", true);
-    if (id_tag_support_)
-    {
-      registerStringOption_("id_pool", "<file>", "", String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")", false);
-    }
     registerFlag_("test", "Enables the test mode (needed for internal use only)", true);
     registerFlag_("-help", "Shows options");
     registerFlag_("-helphelp", "Shows all options (including advanced)", false);
@@ -226,7 +218,7 @@ namespace OpenMS
 
 
     // test if no options were given
-    if (require_args_ && argc == 1)
+    if (argc == 1)
     {
       writeLog_("No options given. Aborting!");
       printUsage_();
@@ -299,15 +291,6 @@ namespace OpenMS
         return INTERNAL_ERROR;
       }
       return EXECUTION_OK;
-    }
-
-    // '-write_wsdl' given
-    String wsdl_file("");
-    if (param_cmdline_.exists("write_wsdl"))
-      wsdl_file = param_cmdline_.getValue("write_wsdl");
-    if (wsdl_file != "")
-    {
-      return writeWSDL_(wsdl_file);
     }
 
     //-------------------------------------------------------------
@@ -451,33 +434,6 @@ namespace OpenMS
       log_type_ = ProgressLogger::CMD;
     }
 
-    //-------------------------------------------------------------
-    //document ID tagging
-    //-------------------------------------------------------------
-    if (id_tag_support_ && getStringOption_("id_pool").length() > 0)
-    {
-      // set custom pool file if given
-      if (!(getStringOption_("id_pool") == String("main")))
-        id_tagger_.setPoolFile(getStringOption_("id_pool"));
-
-      //check if there are enough IDs in the pool (we require at least one and warn below 5)
-      Int id_count(0);
-      if (!id_tagger_.countFreeIDs(id_count))
-      {
-        writeLog_("Error: Unable to query ID pool! Ending program (no computation was performed)!");
-        return INTERNAL_ERROR;
-      }
-      if (id_count == 0)
-      {
-        writeLog_("Error: No Document IDs in the ID pool. Please restock now! Ending program (no computation was performed)!");
-        return INTERNAL_ERROR;
-      }
-      else if (id_count <= 5)
-      {
-        writeLog_("Warning: Less than five(!) Document IDs in the ID pool. Please restock soon!");
-      }
-    }
-
     //----------------------------------------------------------
     //threads
     //----------------------------------------------------------
@@ -585,11 +541,18 @@ namespace OpenMS
     // show advanced options?
     bool verbose = getFlag_("-helphelp");
 
-    //common output
+    // common output
     cerr << "\n"
          << ConsoleUtils::breakString(tool_name_ + " -- " + tool_description_, 0, 10) << "\n"
-         << "Version: " << verboseVersion_ << "\n" << "\n"
-         << "Usage:" << "\n"
+         << "Version: " << verboseVersion_ << "\n"
+         << "To cite OpenMS:\n  " << cite_openms_.toString() << "\n";
+    if (!citations_.empty())
+    {
+      cerr << "To cite " << tool_name_ << ":\n";
+      for (const Citation& c : citations_) cerr << "  " << c.toString() << "\n";
+    }
+    cerr << "\n";
+    cerr << "Usage:" << "\n"
          << "  " << tool_name_ << " <options>" << "\n"
          << "\n";
 
@@ -2036,7 +1999,7 @@ namespace OpenMS
     //parameters
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (it->name == "ini" || it->name == "-help" || it->name == "-helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_wsdl" || it->name == "write_ctd") // do not store those params in ini file
+      if (it->name == "ini" || it->name == "-help" || it->name == "-helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_ctd") // do not store those params in ini file
       {
         continue;
       }
@@ -2220,21 +2183,6 @@ namespace OpenMS
     return p;
   }
 
-  const DocumentIDTagger& TOPPBase::getDocumentIDTagger_() const
-  {
-    if (!id_tag_support_)
-    {
-      writeLog_(String("Error: Message to maintainer - You created your TOPP tool without id_tag_support and query the ID Pool class! Decide what you want!"));
-      exit(INTERNAL_ERROR);
-    }
-    else if (id_tag_support_ && getStringOption_("id_pool").length() == 0)
-    {
-      writeLog_(String("Error: Message to maintainer - You created your TOPP tool with id_tag_support and query the ID Pool class without the user actually requesting it (-id_pool is not set)!"));
-      exit(INTERNAL_ERROR);
-    }
-    return id_tagger_;
-  }
-
   const String& TOPPBase::toolName_() const
   {
     return tool_name_;
@@ -2356,6 +2304,17 @@ namespace OpenMS
       lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
       QString html_doc = tool_description_.toQString();
       lines.insert(3, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
+      lines.insert(4, QString("<citations>"));
+      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\">");
+      int l = 5;
+      if (!citations_.empty())
+      {
+        for (Citation c : citations_) 
+        {
+          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\">");
+        }
+      }
+      lines.insert(++l, QString("</citations>"));
 
       lines.insert(lines.size(), "</tool>");
       String ctd_str = String(lines.join("\n")) + "\n";
@@ -2371,171 +2330,6 @@ namespace OpenMS
     }
 
     return true;
-  }
-
-  TOPPBase::ExitCodes TOPPBase::writeWSDL_(const String& filename)
-  {
-    outputFileWritable_(filename, "write_wsdl");
-    ofstream os(filename.c_str());
-
-    //write header
-    os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
-    os << "<wsdl:definitions targetNamespace=\"http://www-bs.informatik.uni-tuebingen.de/compas\" xmlns:ns1=\"http://org.apache.axis2/xsd\" xmlns:plnk=\"http://schemas.xmlsoap.org/ws/2003/05/partner-link/\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\" xmlns:tns=\"http://www-bs.informatik.uni-tuebingen.de/compas\" xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" << endl;
-    os << "  <wsdl:types>" << endl;
-    os << "    <xs:schema attributeFormDefault=\"unqualified\" elementFormDefault=\"qualified\" targetNamespace=\"http://org.apache.axis2/xsd\" xmlns:ns1=\"http://org.apache.axis2/xsd\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">" << endl;
-    os << "      <xs:element name=\"" << tool_name_ << "Request\">" << endl;
-    os << "        <xs:complexType>" << endl;
-    os << "          <xs:sequence>" << endl;
-
-    //write types (forward declaration for readability only. Could be defined in the message as well.
-    Param param = getDefaultParameters_();
-    param = param.copy(tool_name_ + ":" + String(instance_number_) + ":", true);
-    for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
-    {
-      //find out if the value is restricted
-      bool restricted = false;
-      if (it->value.valueType() == DataValue::STRING_VALUE  && !it->valid_strings.empty())
-      {
-        restricted = true;
-      }
-      else if (it->value.valueType() == DataValue::STRING_LIST || it->value.valueType() == DataValue::INT_LIST || it->value.valueType() == DataValue::DOUBLE_LIST)
-      {
-        restricted = true;
-      }
-      else if (it->value.valueType() == DataValue::INT_VALUE && (it->min_int != -std::numeric_limits<Int>::max() || it->max_int != std::numeric_limits<Int>::max()))
-      {
-        restricted = true;
-      }
-      else if (it->value.valueType() == DataValue::DOUBLE_VALUE && (it->min_float != -std::numeric_limits<double>::max() || it->max_float != std::numeric_limits<double>::max()))
-      {
-        restricted = true;
-      }
-
-      //name, default (and type if not restricted)
-      os << "            <xs:element name=\"" << it.getName() << "\"";
-      if (!restricted)
-      {
-        if (it->value.valueType() == DataValue::STRING_VALUE)
-          os << " type=\"xs:string\"";
-        if (it->value.valueType() == DataValue::DOUBLE_VALUE)
-          os << " type=\"xs:double\"";
-        if (it->value.valueType() == DataValue::INT_VALUE)
-          os << " type=\"xs:integer\"";
-      }
-      os << " default=\"" << it->value.toString() << "\">" << endl;
-      //docu
-      if (it->description != "")
-      {
-        String description = it->description;
-        description.substitute("<", "&lt;");
-        description.substitute(">", "&gt;");
-        os << "              <xs:annotation>" << endl;
-        os << "                <xs:documentation>" << description << "</xs:documentation>" << endl;
-        os << "              </xs:annotation>" << endl;
-      }
-      //restrictions
-      if (restricted)
-      {
-        os << "              <xs:simpleType>" << endl;
-        if (it->value.valueType() == DataValue::STRING_LIST)
-        {
-          os << "                <xs:restriction base=\"xs:stringlist\">" << endl;
-          os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
-        }
-        else if (it->value.valueType() == DataValue::INT_LIST)
-        {
-          os << "                <xs:restriction base=\"xs:intlist\">" << endl;
-          os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
-        }
-        else if (it->value.valueType() == DataValue::DOUBLE_LIST)
-        {
-          os << "                <xs:restriction base=\"xs:doublelist\">" << endl;
-          os << "                  <xs:pattern value=\"^$|[^,](,[^,]+)*\"/>" << endl;
-        }
-        else if (it->value.valueType() == DataValue::STRING_VALUE)
-        {
-          os << "                <xs:restriction base=\"xs:string\">" << endl;
-          for (Size i = 0; i < it->valid_strings.size(); ++i)
-          {
-            os << "                  <xs:enumeration value=\"" << it->valid_strings[i] << "\"/>" << endl;
-          }
-        }
-        else if (it->value.valueType() == DataValue::DOUBLE_VALUE)
-        {
-          os << "                <xs:restriction base=\"xs:double\">" << endl;
-          if (it->min_float != -std::numeric_limits<double>::max())
-          {
-            os << "                  <xs:minInclusive value=\"" << it->min_float << "\"/>" << endl;
-          }
-          if (it->max_float != std::numeric_limits<double>::max())
-          {
-            os << "                  <xs:maxInclusive value=\"" << it->max_float << "\"/>" << endl;
-          }
-        }
-        else if (it->value.valueType() == DataValue::INT_VALUE)
-        {
-          os << "                <xs:restriction base=\"xs:integer\">" << endl;
-          if (it->min_int != -std::numeric_limits<Int>::max())
-          {
-            os << "                  <xs:minInclusive value=\"" << it->min_int << "\"/>" << endl;
-          }
-          if (it->max_int != std::numeric_limits<Int>::max())
-          {
-            os << "                  <xs:maxInclusive value=\"" << it->max_int << "\"/>" << endl;
-          }
-        }
-        os << "                </xs:restriction>" << endl;
-        os << "              </xs:simpleType>" << endl;
-      }
-      os << "            </xs:element>" << endl;
-    }
-    os << "          </xs:sequence>" << endl;
-    os << "        </xs:complexType>" << endl;
-    os << "      </xs:element>" << endl;
-    os << "    </xs:schema>" << endl;
-    os << "  </wsdl:types>" << endl;
-    //message
-    os << "  <wsdl:message name=\"" << tool_name_ << "RequestMessage\">" << endl;
-    os << "    <wsdl:part element=\"ns1:" << tool_name_ << "Request\" name=\"part1\"/>" << endl;
-    os << "  </wsdl:message>" << endl;
-    //port
-    os << "  <wsdl:portType name=\"SVMHCProcessPortType\">" << endl;
-    os << "    <wsdl:operation name=\"request\">" << endl;
-    os << "      <wsdl:input message=\"tns:" << tool_name_ << "RequestMessage\"/>" << endl;
-    os << "    </wsdl:operation>" << endl;
-    os << "  </wsdl:portType>" << endl;
-    //binding
-    os << "  <wsdl:binding name=\"" << tool_name_ << "ProviderServiceBinding\" type=\"tns:" << tool_name_ << "PortType\">" << endl;
-    os << "    <soap:binding style=\"rpc\" transport=\"http://schemas.xmlsoap.org/soap/http\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-    os << "    <wsdl:operation name=\"request\">" << endl;
-    os << "      <soap:operation soapAction=\"\" style=\"rpc\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-    os << "      <wsdl:input>" << endl;
-    os << "        <soap:body encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" use=\"encoded\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-    os << "      </wsdl:input>" << endl;
-    os << "      <wsdl:output>" << endl;
-    os << "        <soap:body encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" use=\"encoded\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-    os << "      </wsdl:output>" << endl;
-    os << "    </wsdl:operation>" << endl;
-    os << "  </wsdl:binding>" << endl;
-    //service
-    os << "  <wsdl:service name=\"" << tool_name_ << "ProviderService\">" << endl;
-    os << "    <wsdl:port binding=\"tns:" << tool_name_ << "ProviderServiceBinding\" name=\"" << tool_name_ << "ProviderServicePort\">" << endl;
-    os << "     <soap:address location=\"http://trypsin.informatik.uni-tuebingen.de:30090/active-bpel/services/" << tool_name_ << "ProviderService\" xmlns:soap=\"http://schemas.xmlsoap.org/wsdl/soap/\"/>" << endl;
-    os << "    </wsdl:port>" << endl;
-    os << "  </wsdl:service>" << endl;
-    //end
-    os << "</wsdl:definitions>" << endl;
-    os.close();
-
-    //validate written file
-    XMLValidator validator;
-    if (!validator.isValid(filename, File::find("SCHEMAS/WSDL_20030211.xsd")))
-    {
-      writeLog_("Error: The written WSDL file does not validate against the XML schema. Please report this bug!");
-      return INTERNAL_ERROR;
-    }
-
-    return EXECUTION_OK;
   }
 
   Param TOPPBase::parseCommandLine_(const int argc, const char** argv, const String& misc, const String& unknown)

@@ -80,7 +80,7 @@ public:
     ///Type definitions
     //@{
     /// Cross Correlation array
-    typedef std::map<int, double> XCorrArrayType;
+    typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
     /// Cross Correlation matrix
     typedef std::vector<std::vector<XCorrArrayType> > XCorrMatrixType;
 

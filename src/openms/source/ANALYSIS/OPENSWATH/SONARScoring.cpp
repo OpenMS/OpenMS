@@ -51,10 +51,11 @@ namespace OpenMS
   SONARScoring::SONARScoring() :
     DefaultParamHandler("SONARScoring")
   {
-
-    defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th.");
+    defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th or ppm.");
     defaults_.setMinFloat("dia_extraction_window", 0.0);
-    defaults_.setValue("dia_centroided", "false", "Use centroded DIA data.");
+    defaults_.setValue("dia_extraction_unit", "Th", "DIA extraction window unit");
+    defaults_.setValidStrings("dia_extraction_unit", ListUtils::create<String>("Th,ppm"));
+    defaults_.setValue("dia_centroided", "false", "Use centroided DIA data.");
     defaults_.setValidStrings("dia_centroided", ListUtils::create<String>("true,false"));
 
     // write defaults into Param object param_
@@ -64,6 +65,7 @@ namespace OpenMS
   void SONARScoring::updateMembers_()
   {
     dia_extract_window_ = (double)param_.getValue("dia_extraction_window");
+    dia_extraction_ppm_ = param_.getValue("dia_extraction_unit") == "ppm";
     dia_centroided_ = param_.getValue("dia_centroided").toBool();
   }
 
@@ -71,7 +73,7 @@ namespace OpenMS
                      double& xcorr_coelution_score, double& xcorr_shape_score)
   {
     /// Cross Correlation array
-    typedef std::map<int, double> XCorrArrayType;
+    typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
     /// Cross Correlation matrix
     typedef std::vector<std::vector<XCorrArrayType> > XCorrMatrixType;
 
@@ -211,8 +213,18 @@ namespace OpenMS
         OpenSwath::SpectrumPtr spectrum_ = swath_map->getSpectrumById(closest_idx);
 
         // integrate intensity within that scan
-        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0;
-        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0;
+        double left = transitions[k].getProductMZ();
+        double right = transitions[k].getProductMZ();
+        if (dia_extraction_ppm_)
+        {
+          left -= left * dia_extract_window_ / 2e6;
+          right += right * dia_extract_window_ / 2e6;
+        }
+        else
+        {
+          left -= dia_extract_window_ / 2.0;
+          right += dia_extract_window_ / 2.0;
+        }
         double mz, intensity;
         integrateWindow(spectrum_, left, right, mz, intensity, dia_centroided_);
 

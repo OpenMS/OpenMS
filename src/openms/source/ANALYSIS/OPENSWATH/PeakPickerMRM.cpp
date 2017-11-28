@@ -34,11 +34,6 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
 
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-
 namespace OpenMS
 {
   PeakPickerMRM::PeakPickerMRM() :
@@ -74,9 +69,24 @@ namespace OpenMS
     // write defaults into Param object param_
     defaultsToParam_();
     updateMembers_();
+
+    // PeakPickerHiRes pp_;
+    Param pepi_param = pp_.getDefaults();
+    pepi_param.setValue("signal_to_noise", signal_to_noise_);
+    // disable spacing constraints, since we're dealing with chromatograms
+    pepi_param.setValue("spacing_difference", 0.0);
+    pepi_param.setValue("spacing_difference_gap", 0.0);
+    pp_.setParameters(pepi_param);
+
   }
 
   void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
+  {
+    MSChromatogram s;
+    pickChromatogram(chromatogram, picked_chrom, s);
+  }
+  
+  void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom, MSChromatogram& smoothed_chrom)
   {
     if (!chromatogram.isSorted())
     {
@@ -104,34 +114,18 @@ namespace OpenMS
     }
 
     // Smooth the chromatogram
-    MSChromatogram smoothed_chrom = chromatogram;
+    smoothed_chrom = chromatogram;
     if (!use_gauss_)
     {
-      SavitzkyGolayFilter sgolay;
-      Param filter_parameters = sgolay.getParameters();
-      filter_parameters.setValue("frame_length", sgolay_frame_length_);
-      filter_parameters.setValue("polynomial_order", sgolay_polynomial_order_);
-      sgolay.setParameters(filter_parameters);
-      sgolay.filter(smoothed_chrom);
+      sgolay_.filter(smoothed_chrom);
     }
     else
     {
-      GaussFilter gauss;
-      Param filter_parameters = gauss.getParameters();
-      filter_parameters.setValue("gaussian_width", gauss_width_);
-      gauss.setParameters(filter_parameters);
-      gauss.filter(smoothed_chrom);
+      gauss_.filter(smoothed_chrom);
     }
 
     // Find initial seeds (peak picking)
-    PeakPickerHiRes pp;
-    Param pepi_param = PeakPickerHiRes().getDefaults();
-    pepi_param.setValue("signal_to_noise", signal_to_noise_);
-    // disable spacing constraints, since we're dealing with chromatograms
-    pepi_param.setValue("spacing_difference", 0.0);
-    pepi_param.setValue("spacing_difference_gap", 0.0);
-    pp.setParameters(pepi_param);
-    pp.pick(smoothed_chrom, picked_chrom);
+    pp_.pick(smoothed_chrom, picked_chrom);
     LOG_DEBUG << "Found " << picked_chrom.size() << " chromatographic peaks." << std::endl;
 
     if (method_ == "legacy")
@@ -173,12 +167,6 @@ namespace OpenMS
 
   void PeakPickerMRM::pickChromatogram_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
-    SignalToNoiseEstimatorMedian<MSChromatogram > snt;
-    Param snt_parameters = snt.getParameters();
-    snt_parameters.setValue("win_len", sn_win_len_);
-    snt_parameters.setValue("bin_count", sn_bin_count_);
-    snt_parameters.setValue("write_log_messages", param_.getValue("write_sn_log_messages"));
-    snt.setParameters(snt_parameters);
 
     integrated_intensities_.clear();
     left_width_.clear();
@@ -189,7 +177,7 @@ namespace OpenMS
 
     if (signal_to_noise_ > 0.0)
     {
-      snt.init(chromatogram);
+      snt_.init(chromatogram);
     }
     Size current_peak = 0;
     for (Size i = 0; i < picked_chrom.size(); i++)
@@ -205,7 +193,7 @@ namespace OpenMS
             && (chromatogram[min_i - k].getIntensity() < chromatogram[min_i - k + 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getMZ() - central_peak_mz) < peak_width_)
                 )
-            && (signal_to_noise_ <= 0.0 || (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_)))
+            && (signal_to_noise_ <= 0.0 || (signal_to_noise_ > 0.0 && snt_.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_)))
       {
         ++k;
       }
@@ -218,7 +206,7 @@ namespace OpenMS
             && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k - 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_)
                 )
-            && (signal_to_noise_ <= 0.0 || (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) ))
+            && (signal_to_noise_ <= 0.0 || (signal_to_noise_ > 0.0 && snt_.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) ))
       {
         ++k;
       }
@@ -421,6 +409,21 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Method needs to be one of: crawdad, corrected, legacy");
     }
+
+    Param sg_filter_parameters = sgolay_.getParameters();
+    sg_filter_parameters.setValue("frame_length", sgolay_frame_length_);
+    sg_filter_parameters.setValue("polynomial_order", sgolay_polynomial_order_);
+    sgolay_.setParameters(sg_filter_parameters);
+
+    Param gfilter_parameters = gauss_.getParameters();
+    gfilter_parameters.setValue("gaussian_width", gauss_width_);
+    gauss_.setParameters(gfilter_parameters);
+
+    Param snt_parameters = snt_.getParameters();
+    snt_parameters.setValue("win_len", sn_win_len_);
+    snt_parameters.setValue("bin_count", sn_bin_count_);
+    snt_parameters.setValue("write_log_messages", param_.getValue("write_sn_log_messages"));
+    snt_.setParameters(snt_parameters);
 
 #ifndef WITH_CRAWDAD
     if (method_ == "crawdad")

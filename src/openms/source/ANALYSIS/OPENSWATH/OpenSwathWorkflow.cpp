@@ -48,11 +48,12 @@ namespace OpenMS
     const Param & irt_detection_param,
     const String & mz_correction_function,
     Size debug_level,
-    bool sonar)
+    bool sonar,
+    bool load_into_memory)
   {
     LOG_DEBUG << "performRTNormalization method starting" << std::endl;
     std::vector< OpenMS::MSChromatogram > irt_chromatograms;
-    simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt, sonar);
+    simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt, sonar, load_into_memory);
 
     // debug output of the iRT chromatograms
     if (debug_level > 1)
@@ -277,10 +278,14 @@ namespace OpenMS
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenMS::TargetedExperiment & irt_transitions,
     std::vector< OpenMS::MSChromatogram > & chromatograms,
-    const ChromExtractParams & cp, bool sonar)
+    const ChromExtractParams & cp,
+    bool sonar,
+    bool load_into_memory)
   {
+
+    this->startProgress(0, 1, "Extract iRT chromatograms");
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic,1)
 #endif
     for (SignedSize map_idx = 0; map_idx < boost::numeric_cast<SignedSize>(swath_maps.size()); ++map_idx)
     {
@@ -297,8 +302,16 @@ namespace OpenMS
           std::vector< OpenSwath::ChromatogramPtr > tmp_out;
           std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
           ChromatogramExtractor extractor;
+
+          OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[map_idx].sptr;
+          if (load_into_memory)
+          {
+            // This creates an InMemory object that keeps all data in memory
+            current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
+          }
+
           extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used, cp.rt_extraction_window, false);
-          extractor.extractChromatograms(swath_maps[map_idx].sptr, tmp_out, coordinates, cp.mz_extraction_window,
+          extractor.extractChromatograms(current_swath_map, tmp_out, coordinates, cp.mz_extraction_window,
               cp.ppm, cp.extraction_function);
           extractor.return_chromatogram(tmp_out, coordinates,
               transition_exp_used, SpectrumSettings(), tmp_chromatograms, false);
@@ -334,7 +347,7 @@ namespace OpenMS
         else
         {
           LOG_DEBUG << "Extracted no transitions from SWATH map " << map_idx << " with m/z " <<
-              swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << ":" << std::endl;
+              swath_maps[map_idx].lower << " to " << swath_maps[map_idx].upper << std::endl;
         }
       }
     }
@@ -366,6 +379,7 @@ namespace OpenMS
       LOG_DEBUG << " got a total of " << chromatograms.size() << " chromatograms after SONAR addition " << std::endl;
     }
 
+    this->endProgress();
   }
 
   void OpenSwathRetentionTimeNormalization::addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom)
@@ -451,13 +465,6 @@ namespace OpenMS
     {
       if (!swath_maps[i].ms1) // skip MS1
       {
-        OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
-
-        if (load_into_memory)
-        {
-          // This creates an InMemory object that keeps all data in memory
-          current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
-        }
 
         // Step 1: select which transitions to extract (proceed in batches)
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
@@ -465,6 +472,13 @@ namespace OpenMS
             cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
         if (transition_exp_used_all.getTransitions().size() > 0) // skip if no transitions found
         {
+
+          OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
+          if (load_into_memory)
+          {
+            // This creates an InMemory object that keeps all data in memory
+            current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
+          }
 
           int batch_size;
           if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getCompounds().size())

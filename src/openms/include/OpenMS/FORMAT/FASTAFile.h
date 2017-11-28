@@ -49,6 +49,9 @@ namespace OpenMS
   /**
     @brief This class serves for reading in and writing FASTA files
 
+    If the protein/gene sequence contains unusual symbols (such as translation end (*)),
+    they will be kept!
+
     You can use aggregate methods load() and store() to read/write a
     set of protein sequences at the cost of memory.
     
@@ -71,7 +74,7 @@ public:
       from the next line until the next > (exclusive) is stored
       in sequence.
     */
-  struct FASTAEntry
+    struct FASTAEntry
   {
       String identifier;
       String description;
@@ -160,6 +163,14 @@ public:
     */
     bool readNext(FASTAEntry& protein);
 
+    /// current stream position
+    std::streampos position() const;
+
+    /// is stream at EOF?
+    bool atEnd() const;
+
+    /// seek stream to @p pos
+    bool setPosition(const std::streampos& pos);
 
     /**
     @brief Prepares a FASTA file given by 'filename' for streamed writing using writeNext().

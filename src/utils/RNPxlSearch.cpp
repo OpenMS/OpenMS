@@ -41,7 +41,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
@@ -55,9 +55,8 @@
 
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 // preprocessing and filtering
@@ -155,7 +154,7 @@ protected:
     registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
 
     StringList all_enzymes;
-    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("peptide:enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
     setValidStrings_("peptide:enzyme", all_enzymes);
 
@@ -1619,7 +1618,7 @@ protected:
     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("peptide:enzyme"));
+    search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("peptide:enzyme"));
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
@@ -2031,7 +2030,7 @@ protected:
     progresslogger.endProgress();
 
     const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
-    EnzymaticDigestion digestor;
+    ProteaseDigestion digestor;
     digestor.setEnzyme(getStringOption_("peptide:enzyme"));
     digestor.setMissedCleavages(missed_cleavages);
 
@@ -2061,7 +2060,7 @@ protected:
       }
 
       vector<StringView> current_digest;
-      digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
+      digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
       for (auto cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
@@ -2526,7 +2525,7 @@ protected:
     param_pi.setValue("decoy_string_position", "prefix");
     param_pi.setValue("enzyme:name", getStringOption_("peptide:enzyme"));
     param_pi.setValue("enzyme:specificity", "full");
-    param_pi.setValue("missing_decoy_action", "warn");
+    param_pi.setValue("missing_decoy_action", "silent");
     param_pi.setValue("log", getStringOption_("log"));
     indexer.setParameters(param_pi);
 

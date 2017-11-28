@@ -42,8 +42,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -170,7 +168,7 @@ class SimpleSearchEngine :
       registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
 
       vector<String> all_enzymes;
-      EnzymesDB::getInstance()->getAllNames(all_enzymes);
+      ProteaseDB::getInstance()->getAllNames(all_enzymes);
       registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
       setValidStrings_("enzyme", all_enzymes);
 
@@ -335,7 +333,7 @@ class SimpleSearchEngine :
     search_parameters.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
-    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+    search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
@@ -451,7 +449,7 @@ class SimpleSearchEngine :
       progresslogger.endProgress();
 
       const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
-      EnzymaticDigestion digestor;
+      ProteaseDigestion digestor;
       digestor.setEnzyme(getStringOption_("enzyme"));
       digestor.setMissedCleavages(missed_cleavages);
 
@@ -482,11 +480,11 @@ class SimpleSearchEngine :
         }
 
         vector<StringView> current_digest;
-        digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
+        digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
 
         for (auto const & c : current_digest)
         {
-          if (c.getString().has('X')) continue;
+          if (c.getString().has('X')) { continue; }
         
           bool already_processed = false;
 #ifdef _OPENMP
@@ -563,14 +561,10 @@ class SimpleSearchEngine :
             {
               const Size& scan_index = low_it->second;
               const PeakSpectrum& exp_spectrum = spectra[scan_index];
+              const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
+              const double& score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
-              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
-
-              // no hit
-              if (score < 1e-16)
-              {
-                continue;
-              }
+              if (score == 0) { continue; } // no hit?
 
               // add peptide hit
               AnnotatedHit ah;
@@ -626,7 +620,7 @@ class SimpleSearchEngine :
       param_pi.setValue("decoy_string_position", "prefix");
       param_pi.setValue("enzyme:name", getStringOption_("enzyme"));
       param_pi.setValue("enzyme:specificity", "full");
-      param_pi.setValue("missing_decoy_action", "warn");
+      param_pi.setValue("missing_decoy_action", "silent");
       param_pi.setValue("log", getStringOption_("log"));
       indexer.setParameters(param_pi);
 
