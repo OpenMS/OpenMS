@@ -87,8 +87,8 @@ public:
       transitions of the target list.
 
       The spectra taken into account are those that fall within the precursor RT
-      window and MZ tolerance set by the user through the setRTWindows() and
-      setMZTolerance setters. Default values are provided for both parameters.
+      window and MZ tolerance set by the user through the parameters "rt_window"
+      and "mz_tolerance". Default values are provided for both parameters.
 
       @warning The picked spectrum could be empty, meaning no peaks were found.
 
@@ -108,12 +108,13 @@ public:
       @brief Picks a spectrum's peaks and saves them in picked_spectrum.
 
       The spectrum is first smoothed with a Gaussian filter (default) or using the
-      Savitzky-Golay method.
-      For these filters it is possible to set parameters like gauss_width_,
-      sgolay_frame_length_ and sgolay_polynomial_order_ through their setters.
-      The peak picking is executed with PeakPickerHiRes. It's possible to set the
-      signal_to_noise_ parameter.
-      Peaks are then filtered by their heights and FWHM values (setters are provided).
+      Savitzky-Golay method. The parameter "use_gauss" handles this choice.
+      The peak picking is executed with PeakPickerHiRes.
+      Custom parameters provided with the prefix "GaussFilter:", "SavitzkyGolayFilter:"
+      and "PeakPickerHiRes:" are taken into account.
+      Peaks are then filtered by their heights and FWHM values.
+      It is possible to set the peaks' limits through the parameters: "peak_height_min",
+      "peak_height_max" and "fwhm_threshold".
 
       @param[in] spectrum The input spectrum
       @param[out] picked_spectrum A spectrum containing only the picked peaks
@@ -124,11 +125,8 @@ public:
       @brief Assigns a score to the spectra given an input and saves them in scored_spectra.
 
       Also add the informations to the FeatureMap first constructed in annotateSpectra().
-      The scores are based on total TIC, SNR and FWHM. It is possible to assign
-      weight to these parameters with the provided setters:
-      setTICWeight()
-      setFWHMWeight()
-      setSNRWeight()
+      The scores are based on total TIC, SNR and FWHM. It is possible to assign a
+      weight to these parameters using: "tic_weight", "fwhm_weight" and "snr_weight".
       For each spectrum, the TIC and the SNR are computed on the entire spectrum.
       The FWHMs are computed only on picked peaks. Both SNR and FWHM are averaged values.
       The informations are added as FloatDataArray in scored_spectra and as MetaValue in features.
