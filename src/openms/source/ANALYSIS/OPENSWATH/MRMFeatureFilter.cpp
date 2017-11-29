@@ -420,7 +420,7 @@ namespace OpenMS
     return range_check;
   }
 
-  String MRMFeatureFilter::uniqueJoin(std::vector<String>& str_vec, const char& delim)
+  String MRMFeatureFilter::uniqueJoin(std::vector<String>& str_vec, String& delim)
   {
     //remove duplicates
     std::sort(str_vec.begin(), str_vec.end());
