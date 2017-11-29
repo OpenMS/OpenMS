@@ -268,6 +268,14 @@ class TOPPXFDR :
     {
       bool set_prot_id = prot_ids.size() == 1;
 
+      ProteinIdentification::SearchParameters search_params = prot_ids[0].getSearchParameters();
+      String decoy_string = "decoy_";
+      if (search_params.metaValueExists("decoy_string"))
+      {
+        decoy_string = search_params.getMetaValue("decoy_string");
+      }
+
+
       // Preprocess all peptide identifications
       for (vector< PeptideIdentification >::iterator pep_ids_it = pep_ids.begin();
            pep_ids_it != pep_ids.end(); ++pep_ids_it)
@@ -331,9 +339,9 @@ class TOPPXFDR :
               String beta_prot = beta_ev_it->getProteinAccession();
 
               alpha_prot.substitute("reverse_", "");
-              alpha_prot.substitute(Internal::XQuestResultXMLHandler::decoy_string, "");
+              alpha_prot.substitute(decoy_string, "");
               beta_prot.substitute("reverse_", "");
-              beta_prot.substitute(Internal::XQuestResultXMLHandler::decoy_string, "");
+              beta_prot.substitute(decoy_string, "");
               pep_id.setMetaValue( alpha_prot == beta_prot ? "OpenXQuest:is_intraprotein" : "OpenXQuest:is_interprotein" , DataValue());
             }
           }
@@ -404,7 +412,7 @@ class TOPPXFDR :
       {
         PeptideHit alpha = pep_hits[0];
         PeptideHit beta = pep_hits[1];
-        
+
         bool alpha_is_decoy = alpha.getMetaValue("target_decoy").toString() == "decoy";
         bool beta_is_decoy = beta.getMetaValue("target_decoy").toString() == "decoy";
 
@@ -608,7 +616,7 @@ class TOPPXFDR :
       if (in_type == FileTypes::XML)
       {
         is_xquest_input = true;
-        
+
         XQuestResultXMLFile xquest_result_file;
         xquest_result_file.load(arg_in, spectra, prot_ids, 1, true);
 
@@ -731,7 +739,7 @@ class TOPPXFDR :
              all_ids_it != all_ids.end(); ++all_ids_it)
         {
           PeptideIdentification pep_id = *all_ids_it;
-          
+
           if ( static_cast<UInt>(pep_id.getMetaValue(TOPPXFDR::crosslink_rank)) == 1)
           {
             rank_one_ids.push_back(rank_counter);
@@ -911,7 +919,7 @@ class TOPPXFDR :
       vector< double > fdr_intralinks;
       this->fdr_xprophet(cum_histograms, TOPPXFDR::crosslink_class_intralinks, TOPPXFDR::crosslink_class_intradecoys, TOPPXFDR::crosslink_class_fulldecoysintralinks, fdr_intralinks, false);
 
-      
+
       // Calculate FDR for monolinks and looplinks
       vector< double > fdr_monolinks;
       this->fdr_xprophet(cum_histograms, TOPPXFDR::crosslink_class_monolinks, TOPPXFDR::crosslink_class_monodecoys, "", fdr_monolinks, true);
@@ -937,7 +945,7 @@ class TOPPXFDR :
         fdr_intralinks = qfdr_intralinks;
         fdr_monolinks = qfdr_monolinks;
       }
-      
+
       // Assign FDR values to all identifications
       for (vector< PeptideIdentification >::iterator all_ids_it = all_ids.begin();
            all_ids_it != all_ids.end(); ++all_ids_it)
@@ -949,7 +957,7 @@ class TOPPXFDR :
           pep_id.setMetaValue("OpenXQuest:xprophet_f", 0);
         }
         double score = getCrosslinkScore(pep_id);
-        
+
         StringList crosslink_types;
         assignTypes(pep_id, crosslink_types);
 
