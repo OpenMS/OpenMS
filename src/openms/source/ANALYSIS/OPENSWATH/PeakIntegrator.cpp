@@ -54,27 +54,26 @@ namespace OpenMS
     const double intensity_l = chromatogram.RTBegin(left)->getIntensity();
     const double intensity_r = (chromatogram.RTEnd(right)-1)->getIntensity();
     const double delta_int = intensity_r - intensity_l;
+    const double delta_rt = (chromatogram.RTEnd(right)-1)->getRT() - chromatogram.RTBegin(left)->getRT();
     double background = 0.0;
     if (integration_type_ == "trapezoid" || integration_type_ == "simpson")
     {
-      const double intensity_min = std::min(intensity_r, intensity_l);
-      const double delta_int_abs = std::fabs(delta_int);
-      for (auto it=chromatogram.RTBegin(left); it<chromatogram.RTEnd(right)-1; ++it)
-      {
-        const double delta_rt = (it+1)->getRT() - it->getRT();
-        background += intensity_min * delta_rt + 0.5 * delta_int_abs * delta_rt;
-      }
+      // formula for calculating the background using the trapezoidal rule
+      // background = intensity_min*delta_rt + 0.5*delta_int*delta_rt;
+      background = delta_rt * (std::min(intensity_r, intensity_l) + 0.5 * std::fabs(delta_int));
     }
     else
     {
-      const double delta_input_rt = right - left;
-      for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it)
+      // calculate the background using the formula
+      // y = mx + b where x = retention time, m = slope, b = left intensity
+      // sign of delta_int will determine line direction
+      // background += delta_int / delta_rt * (it->getRT() - left) + intensity_l;
+      UInt i = 0;
+      for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it, ++i)
       {
-        // calculate the background using the formula
-        // y = mx + b where x = retention time, m = slope, b = left intensity
-        // sign of delta_int will determine line direction
-        background += delta_int / delta_input_rt * (it->getRT() - left) + intensity_l;
+        background += it->getRT();
       }
+      background = (background - i * chromatogram.RTBegin(left)->getRT()) * delta_int / delta_rt + i * intensity_l;
     }
     return background;
   }
