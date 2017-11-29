@@ -37,6 +37,7 @@
 
 
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -284,7 +285,7 @@ public:
 
         uint16_t count_j_proteins(0);
         bool has_active_data = true; // becomes false if end of FASTA file is reached
-
+        bool invalid_protein_sequence = false; // check for proteins with modifications, i.e. '[' or '(', and throw an exception
         const std::string jumpX(aaa_max_ + 1, 'X'); // jump over stretches of 'X' which cost a lot of time; +1 because  AXXA is a valid hit for aaa_max == 2 (cannot split it)
         this->startProgress(0, proteins.size(), "Aho-Corasick");
 #ifdef _OPENMP
@@ -328,6 +329,14 @@ public:
               String prot = proteins.chunkAt(i).sequence;
 
               prot.remove('*');
+
+              // check for invalid sequences with modifications
+              if (prot.has('[') || prot.has('('))
+              { 
+                 invalid_protein_sequence = true; // not omp-critical because its write-only
+                 prot = AASequence::fromString(prot).toUnmodifiedString();
+              }
+              
               // convert  L/J to I; also replace 'J' in proteins
               if (IL_equivalent_)
               {
@@ -405,8 +414,7 @@ public:
 
         // write some stats
         LOG_INFO << "Peptide hits passing enzyme filter: " << func.filter_passed << "\n"
-          << "     ... rejected by enzyme filter: " << func.filter_rejected << std::endl;
-
+                 << "     ... rejected by enzyme filter: " << func.filter_rejected << std::endl;
 
         if (count_j_proteins)
         {
@@ -414,6 +422,12 @@ public:
             << "To match 'J' in a protein, an ambiguous amino acid placeholder for I/L will be used.\n"
             << "This costs runtime and eats into the 'aaa_max' limit, leaving less opportunity for B/Z/X matches.\n"
             << "If you want 'J' to be treated as unambiguous, enable '-IL_equivalent'!" << std::endl;
+        }
+
+        if (invalid_protein_sequence)
+        {
+          LOG_WARN << "Warning: One or more protein sequences contained the characters '[' or '(', which are illegal in protein sequences."
+                   << "\nThey were parsed successfully as part of modifications, but you should fix your input data since this impacts performance.\n";
         }
 
       } // end local scope
@@ -432,10 +446,11 @@ public:
       // for peptides --> proteins
       Size stats_matched_unique(0);
       Size stats_matched_multi(0);
-      Size stats_unmatched(0);
-      Size stats_count_m_t(0);
-      Size stats_count_m_d(0);
-      Size stats_count_m_td(0);
+      Size stats_unmatched(0);    // no match to DB
+      Size stats_count_m_t(0);    // match to Target DB
+      Size stats_count_m_d(0);    // match to Decoy DB
+      Size stats_count_m_td(0);   // match to T+D DB
+
       Map<Size, std::set<Size> > runidx_to_protidx; // in which protID do appear which proteins (according to mapped peptides)
 
       Size pep_idx(0);
@@ -494,6 +509,7 @@ public:
             it2->setMetaValue("target_decoy", "decoy");
             ++stats_count_m_d;
           } // else: could match to no protein (i.e. both are false)
+          //else ... // not required (handled below; see stats_unmatched);
 
           if (prot_indices.size() == 1)
           {
@@ -518,10 +534,11 @@ public:
 
       }
 
-      Size total_peptides = stats_count_m_t + stats_count_m_d + stats_count_m_td;
+      Size total_peptides = stats_count_m_t + stats_count_m_d + stats_count_m_td + stats_unmatched;
       LOG_INFO << "-----------------------------------\n";
       LOG_INFO << "Peptide statistics\n";
       LOG_INFO << "\n";
+      LOG_INFO << "  unmatched                : " << stats_unmatched << " (" << stats_unmatched * 100 / total_peptides << " %)\n";
       LOG_INFO << "  target/decoy:\n";
       LOG_INFO << "    match to target DB only: " << stats_count_m_t << " (" << stats_count_m_t * 100 / total_peptides << " %)\n";
       LOG_INFO << "    match to decoy DB only : " << stats_count_m_d << " (" << stats_count_m_d * 100 / total_peptides << " %)\n";
@@ -603,8 +620,11 @@ public:
       LOG_INFO << "\n";
       LOG_INFO << "  total proteins searched: " << proteins.size() << "\n";
       LOG_INFO << "  matched proteins       : " << stats_matched_proteins << " (" << stats_matched_new_proteins << " new)\n";
-      LOG_INFO << "  matched target proteins: " << stats_proteins_target << " (" << stats_proteins_target * 100 / stats_matched_proteins << " %)\n";
-      LOG_INFO << "  matched decoy proteins : " << stats_proteins_decoy << " (" << stats_proteins_decoy * 100 / stats_matched_proteins << " %)\n";
+      if (stats_matched_proteins)
+      { // prevent Division-by-0 Exception
+        LOG_INFO << "  matched target proteins: " << stats_proteins_target << " (" << stats_proteins_target * 100 / stats_matched_proteins << " %)\n";
+        LOG_INFO << "  matched decoy proteins : " << stats_proteins_decoy << " (" << stats_proteins_decoy * 100 / stats_matched_proteins << " %)\n";
+      }
       LOG_INFO << "  orphaned proteins      : " << stats_orphaned_proteins << (keep_unreferenced_proteins_ ? " (all kept)" : " (all removed)\n");
       LOG_INFO << "-----------------------------------" << std::endl;
 
