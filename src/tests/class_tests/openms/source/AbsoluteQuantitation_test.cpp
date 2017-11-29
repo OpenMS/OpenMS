@@ -529,14 +529,74 @@ START_SECTION((int jackknifeOutlierCandidate_(
 END_SECTION
 
 START_SECTION((int residualOutlierCandidate_(
-      const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
-      const String & feature_name,
-      const String & transformation_model,
-      const Param & transformation_model_params)))
+  const std::vector<AbsoluteQuantitationStandards::featureConcentration>& component_concentrations,
+  const String & feature_name,
+  const String & transformation_model,
+  const Param & transformation_model_params)))
   
   AbsoluteQuantitation_test absquant;
 
-  //TODO
+  static const double arrx1[] = { 1.1, 2.0,3.3,3.9,4.9,6.2  };
+  std::vector<double> x1 (arrx1, arrx1 + sizeof(arrx1) / sizeof(arrx1[0]) );
+  static const double arry1[] = { 0.9, 1.9,3.0,3.7,5.2,6.1  };
+  std::vector<double> y1 (arry1, arry1 + sizeof(arry1) / sizeof(arry1[0]) );  
+  // set-up the features
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations;
+  AbsoluteQuantitationStandards::featureConcentration component_concentration;
+  Feature component, IS_component;
+  for (size_t i = 0; i < x1.size(); ++i)
+  {
+    component.setMetaValue("native_id","component");
+    component.setMetaValue("peak_apex_int",y1[i]);
+    IS_component.setMetaValue("native_id","IS");
+    IS_component.setMetaValue("peak_apex_int",1.0);
+    component_concentration.feature = component;
+    component_concentration.IS_feature = IS_component;
+    component_concentration.actual_concentration = x1[i];
+    component_concentration.IS_actual_concentration = 1.0;
+    component_concentrations.push_back(component_concentration); 
+  }  
+
+  String feature_name = "peak_apex_int";
+
+  // set-up the model and params
+  // y = m*x + b
+  // x = (y - b)/m
+  Param transformation_model_params;
+  String transformation_model = "TransformationModelLinear"; 
+
+  int c1 = absquant.residualOutlierCandidate_(
+    component_concentrations,
+    feature_name,
+    transformation_model,
+    transformation_model_params);
+  TEST_EQUAL(c1,4);
+
+  static const double arrx2[] = { 1,2,3,4,5,6  };
+  std::vector<double> x2 (arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
+  static const double arry2[] = { 1,2,3,4,5,6};
+  std::vector<double> y2 (arry2, arry2 + sizeof(arry2) / sizeof(arry2[0]) );
+  component_concentrations.clear();
+  for (size_t i = 0; i < x2.size(); ++i)
+  {
+    component.setMetaValue("native_id","component");
+    component.setMetaValue("peak_apex_int",y2[i]);
+    IS_component.setMetaValue("native_id","IS");
+    IS_component.setMetaValue("peak_apex_int",1.0);
+    component_concentration.feature = component;
+    component_concentration.IS_feature = IS_component;
+    component_concentration.actual_concentration = x2[i];
+    component_concentration.IS_actual_concentration = 1.0;
+    component_concentrations.push_back(component_concentration); 
+  }  
+
+  int c2 = absquant.residualOutlierCandidate_(
+    component_concentrations,
+    feature_name,
+    transformation_model,
+    transformation_model_params);
+  TEST_EQUAL(c2,0);
+
 END_SECTION
 
 /////////////////////////////////////////////////////////////
