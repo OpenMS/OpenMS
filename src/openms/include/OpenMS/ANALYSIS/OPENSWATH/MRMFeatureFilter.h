@@ -159,7 +159,7 @@ public:
 
       @return A concatenated string.
     */ 
-    String uniqueJoin(std::vector<String>& str_vec, const String& delim);
+    String uniqueJoin(std::vector<String>& str_vec, const char& delim);
 
 private:
     template <typename T>
