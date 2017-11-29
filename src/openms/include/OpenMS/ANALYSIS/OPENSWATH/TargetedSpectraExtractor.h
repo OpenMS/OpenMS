@@ -256,7 +256,12 @@ private:
     */
     double min_score_;
 
-    bool use_gauss_; /**< Set to false if you want to use the Savitzky-Golay filtering method */
+    /**
+      Used in pickSpectrum(), it selects which filtering method is used during
+      the smoothing phase.
+      By default the Gauss filter is selected. Set to false for the Savitzky-Golay method.
+    */
+    bool use_gauss_;
   };
 }
 
