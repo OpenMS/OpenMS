@@ -258,11 +258,7 @@ private:
     */
     double min_score_;
 
-    UInt sgolay_frame_length_; /**< The number of subsequent data points used for smoothing */
-    UInt sgolay_polynomial_order_; /**< Order or the polynomial that is fitted */
-    double gauss_width_; /**< Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z) */
     bool use_gauss_; /**< Set to false if you want to use the Savitzky-Golay filtering method */
-    double signal_to_noise_; /**< Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!) */
   };
 }
 

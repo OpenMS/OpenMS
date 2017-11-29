@@ -40,6 +40,17 @@ namespace OpenMS
     DefaultParamHandler("TargetedSpectraExtractor")
   {
     getDefaultParameters(defaults_);
+
+    subsections_.push_back("SavitzkyGolayFilter:");
+    defaults_.setValue("SavitzkyGolayFilter:frame_length", 15);
+    defaults_.setValue("SavitzkyGolayFilter:polynomial_order", 3);
+
+    subsections_.push_back("GaussFilter:");
+    defaults_.setValue("GaussFilter:gaussian_width", 0.2);
+
+    subsections_.push_back("PeakPickerHiRes:");
+    defaults_.setValue("PeakPickerHiRes:signal_to_noise", 1.0);
+
     defaultsToParam_(); // write defaults into Param object param_
   }
 
@@ -52,17 +63,10 @@ namespace OpenMS
     min_score_ = (double)param_.getValue("min_score");
     mz_tolerance_ = (double)param_.getValue("mz_tolerance");
     mz_unit_is_Da_ = param_.getValue("mz_unit_is_Da").toBool();
-
-    sgolay_frame_length_ = (UInt)param_.getValue("sgolay_frame_length");
-    sgolay_polynomial_order_ = (UInt)param_.getValue("sgolay_polynomial_order");
-    gauss_width_ = (double)param_.getValue("gauss_width");
     use_gauss_ = param_.getValue("use_gauss").toBool();
-    signal_to_noise_ = (double)param_.getValue("signal_to_noise");
-
     peak_height_min_ = (double)param_.getValue("peak_height_min");
     peak_height_max_ = (double)param_.getValue("peak_height_max");
     fwhm_threshold_ = (double)param_.getValue("fwhm_threshold");
-
     tic_weight_ = (double)param_.getValue("tic_weight");
     fwhm_weight_ = (double)param_.getValue("fwhm_weight");
     snr_weight_ = (double)param_.getValue("snr_weight");
@@ -108,13 +112,8 @@ namespace OpenMS
     params.setValue("mz_unit_is_Da", "true", "Unit to use for mz_tolerance_ and fwhm_threshold_: true for Da, false for ppm.");
     params.setValidStrings("mz_unit_is_Da", ListUtils::create<String>("false,true"));
 
-    params.setValue("sgolay_frame_length", 15, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
-    params.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
-    params.setValue("gauss_width", 0.2, "Gaussian width in Da or ppm, estimated peak size.");
     params.setValue("use_gauss", "true", "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)");
     params.setValidStrings("use_gauss", ListUtils::create<String>("false,true"));
-    params.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
-    params.setMinFloat("signal_to_noise", 0.0);
 
     params.setValue("peak_height_min", 0.0, "Used in pickSpectrum(), a peak's intensity needs to be >= peak_height_min_ for it to be picked.");
     params.setMinFloat("peak_height_min", 0.0);
@@ -218,7 +217,7 @@ namespace OpenMS
     {
       GaussFilter gauss;
       Param filter_parameters = gauss.getParameters();
-      filter_parameters.setValue("gaussian_width", gauss_width_);
+      filter_parameters.update(param_.copy("GaussFilter:", true));
       gauss.setParameters(filter_parameters);
       gauss.filter(smoothed_spectrum);
     }
@@ -226,15 +225,14 @@ namespace OpenMS
     {
       SavitzkyGolayFilter sgolay;
       Param filter_parameters = sgolay.getParameters();
-      filter_parameters.setValue("frame_length", sgolay_frame_length_);
-      filter_parameters.setValue("polynomial_order", sgolay_polynomial_order_);
+      filter_parameters.update(param_.copy("SavitzkyGolayFilter:", true));
       sgolay.setParameters(filter_parameters);
       sgolay.filter(smoothed_spectrum);
     }
 
     // Find initial seeds (peak picking)
     Param pepi_param = PeakPickerHiRes().getDefaults();
-    pepi_param.setValue("signal_to_noise", signal_to_noise_);
+    pepi_param.update(param_.copy("PeakPickerHiRes:", true));
     // disable spacing constraints, since we're dealing with spectrum
     pepi_param.setValue("spacing_difference", 0.0);
     pepi_param.setValue("spacing_difference_gap", 0.0);

@@ -328,11 +328,11 @@ START_SECTION(getParameters())
   TEST_EQUAL(params.getValue("min_score"), 0.7)
   TEST_EQUAL(params.getValue("mz_tolerance"), 0.1)
   TEST_EQUAL(params.getValue("mz_unit_is_Da"), "true")
-  TEST_EQUAL(params.getValue("sgolay_frame_length"), 15)
-  TEST_EQUAL(params.getValue("sgolay_polynomial_order"), 3)
-  TEST_EQUAL(params.getValue("gauss_width"), 0.2)
+  TEST_EQUAL(params.getValue("SavitzkyGolayFilter:frame_length"), 15)
+  TEST_EQUAL(params.getValue("SavitzkyGolayFilter:polynomial_order"), 3)
+  TEST_EQUAL(params.getValue("GaussFilter:gaussian_width"), 0.2)
   TEST_EQUAL(params.getValue("use_gauss"), "true")
-  TEST_EQUAL(params.getValue("signal_to_noise"), 1.0)
+  TEST_EQUAL(params.getValue("PeakPickerHiRes:signal_to_noise"), 1.0)
   TEST_EQUAL(params.getValue("peak_height_min"), 0.0)
   TEST_EQUAL(params.getValue("peak_height_max"), 4e6)
   TEST_EQUAL(params.getValue("fwhm_threshold"), 0.0)
@@ -346,7 +346,7 @@ START_SECTION(annotateSpectra())
 {
   Param params = ptr->getParameters();
   params.setValue("rt_unit", "minutes");
-  params.setValue("gauss_width", 0.25);
+  params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
   params.setValue("peak_height_max", 110000.0);
   params.setValue("fwhm_threshold", 0.23);
@@ -412,7 +412,7 @@ START_SECTION(pickSpectrum())
   spectrum.sortByPosition();
 
   Param params = ptr->getParameters();
-  params.setValue("gauss_width", 0.25);
+  params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 0.0);
   params.setValue("peak_height_max", 200000.0);
   params.setValue("fwhm_threshold", 0.0);
@@ -473,7 +473,7 @@ START_SECTION(scoreSpectra())
 {
   Param params = ptr->getParameters();
   params.setValue("rt_unit", "minutes");
-  params.setValue("gauss_width", 0.25);
+  params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
   params.setValue("peak_height_max", 110000.0);
   params.setValue("fwhm_threshold", 0.23);
@@ -604,7 +604,7 @@ START_SECTION(selectSpectra())
   Param params = ptr->getParameters();
   params.setValue("rt_unit", "minutes");
   params.setValue("min_score", min_score);
-  params.setValue("gauss_width", 0.25);
+  params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
   params.setValue("peak_height_max", 110000.0);
   params.setValue("fwhm_threshold", 0.23);
@@ -670,7 +670,7 @@ START_SECTION(extractSpectra())
   Param params = ptr->getParameters();
   params.setValue("rt_unit", "minutes");
   params.setValue("min_score", 15.0);
-  params.setValue("gauss_width", 0.25);
+  params.setValue("GaussFilter:gaussian_width", 0.25);
   params.setValue("peak_height_min", 15000.0);
   params.setValue("peak_height_max", 110000.0);
   params.setValue("fwhm_threshold", 0.23);
