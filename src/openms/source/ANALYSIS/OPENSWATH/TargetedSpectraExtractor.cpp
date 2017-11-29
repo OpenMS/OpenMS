@@ -41,14 +41,14 @@ namespace OpenMS
   {
     getDefaultParameters(defaults_);
 
-    subsections_.push_back("SavitzkyGolayFilter:");
+    subsections_.push_back("SavitzkyGolayFilter");
     defaults_.setValue("SavitzkyGolayFilter:frame_length", 15);
     defaults_.setValue("SavitzkyGolayFilter:polynomial_order", 3);
 
-    subsections_.push_back("GaussFilter:");
+    subsections_.push_back("GaussFilter");
     defaults_.setValue("GaussFilter:gaussian_width", 0.2);
 
-    subsections_.push_back("PeakPickerHiRes:");
+    subsections_.push_back("PeakPickerHiRes");
     defaults_.setValue("PeakPickerHiRes:signal_to_noise", 1.0);
 
     defaultsToParam_(); // write defaults into Param object param_
