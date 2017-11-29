@@ -264,7 +264,7 @@ namespace OpenMS
         else if (!c_qc_pass && flag_or_filter_ == "flag")
         {
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_pass", false);
-          String c_qc_fail_message = "";
+          String c_qc_fail_message = uniqueJoin(c_qc_fail_message, ";");
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", c_qc_fail_message);
         }
       }
@@ -285,7 +285,6 @@ namespace OpenMS
       else if (cg_qc_pass && flag_or_filter_ == "flag")
       {
         features[feature_it].setMetaValue("QC_transition_group_pass", true);
-        String c_qc_fail_message = "";
         features[feature_it].setMetaValue("QC_transition_group_message", "");
       }
       else if (!cg_qc_pass && flag_or_filter_ == "filter")
@@ -296,7 +295,7 @@ namespace OpenMS
       else if (!cg_qc_pass && flag_or_filter_ == "flag")
       {
         features[feature_it].setMetaValue("QC_transition_group_pass", false);
-        String cg_qc_fail_message = "";
+        String cg_qc_fail_message = uniqueJoin(cg_qc_fail_message_vec, ";");
         features[feature_it].setMetaValue("QC_transition_group_message", cg_qc_fail_message);
       }
     }
@@ -436,7 +435,7 @@ namespace OpenMS
     //remove trailing delimm
     if (str_cat != "")
     {
-      str_cat = str_cat.substr(0, sizeof(str_cat));
+      str_cat = str_cat.substr(0, sizeof(str_cat) + sizeof(delim));
     }
     std::cout << str_cat << std::endl; //debugging
     return str_cat;
