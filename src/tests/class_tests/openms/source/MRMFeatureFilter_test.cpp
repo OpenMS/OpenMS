@@ -84,7 +84,7 @@ START_SECTION(String uniqueJoin(std::vector<String>& str_vec, const String& deli
 {
   MRMFeatureFilter mrmff;
   const String str_vec_c[] = {"hello", "hello", "bye", "bye"};
-  std::vector<String> str_vec((str_vec_c, str_vec_c + sizeof(str_vec_c) / sizeof(str_vec_c[0]);
+  std::vector<String> str_vec(str_vec_c, str_vec_c + sizeof(str_vec_c) / sizeof(str_vec_c[0]));
 
   // tests
   TEST_EQUAL(mrmff.uniqueJoin(str_vec, ";"), "bye;hello");
