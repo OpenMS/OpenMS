@@ -407,19 +407,6 @@ namespace OpenMS
     return check;
   }
 
-  template <typename T>
-  bool MRMFeatureFilter::checkRange(T const& value, T const& value_l, T const& value_u)
-  {
-    bool range_check = true;
-    if (value < value_l
-      || value > value_u)
-    {
-      range_check = false;
-    }
-    // std::cout << "value: " << (String)value << " lb: " << (String)value_l << " ub: " << (String)value_u << std::endl; //debugging
-    return range_check;
-  }
-
   String MRMFeatureFilter::uniqueJoin(std::vector<String>& str_vec, String& delim)
   {
     //remove duplicates
@@ -439,6 +426,19 @@ namespace OpenMS
     }
     std::cout << str_cat << std::endl; //debugging
     return str_cat;
+  }
+
+  template <typename T>
+  bool MRMFeatureFilter::checkRange(T const& value, T const& value_l, T const& value_u)
+  {
+    bool range_check = true;
+    if (value < value_l
+      || value > value_u)
+    {
+      range_check = false;
+    }
+    // std::cout << "value: " << (String)value << " lb: " << (String)value_l << " ub: " << (String)value_u << std::endl; //debugging
+    return range_check;
   }
   
   //TODO: Future addition to allow for generating a QcML attachment for QC reporting
