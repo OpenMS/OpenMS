@@ -436,7 +436,7 @@ namespace OpenMS
     //remove trailing delimm
     if (str_cat != "")
     {
-      str_cat = str_cat.substr(sizeof(str_cat)-1, 1);
+      str_cat = str_cat.substr(0, sizeof(str_cat)-1);
     }
     std::cout << str_cat << std::endl; //debugging
     return str_cat;
