@@ -150,6 +150,16 @@ public:
     */ 
     std::map<String,int> countLabelsAndTransitionTypes(const Feature & component_group,
       const TargetedExperiment & transitions);
+    
+    /**
+      @brief Sorts, removes duplicates, and concatenates a list of Strings
+
+      @param str_vec vector of Strings
+      @param delim token to seperate Strings in the list
+
+      @return A concatenated string.
+    */ 
+    String uniqueJoin(std::vector<String>& str_vec, const String& delim);
 
 private:
     template <typename T>

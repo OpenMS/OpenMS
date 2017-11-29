@@ -80,6 +80,18 @@ END_SECTION
 // }
 // END_SECTION
 
+START_SECTION(String uniqueJoin(std::vector<String>& str_vec, const String& delim))
+{
+  MRMFeatureFilter mrmff;
+  const String str_vec_c[] = {"hello", "hello", "bye", "bye"};
+  std::vector<String> str_vec((str_vec_c, str_vec_c + sizeof(str_vec_c) / sizeof(str_vec_c[0]);
+
+  // tests
+  TEST_EQUAL(mrmff.uniqueJoin(str_vec, ";"), "bye;hello");
+
+}
+END_SECTION
+
 START_SECTION(double calculateIonRatio(const Feature & component_1, const Feature & component_2, const String & feature_name))
 {
   MRMFeatureFilter mrmff;
