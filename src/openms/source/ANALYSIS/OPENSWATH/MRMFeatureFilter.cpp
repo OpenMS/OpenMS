@@ -166,7 +166,9 @@ namespace OpenMS
               String component_name2 = (String)features[feature_it].getSubordinates()[sub_it2].getMetaValue("native_id"); 
 
               // find the ion ratio pair
-              if (filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_1 == component_name
+              if (filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_1 != ""
+                && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_2 != ""
+                && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_1 == component_name
                 && filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_pair_name_2 == component_name2)
               {
                 double ion_ratio = calculateIonRatio(features[feature_it].getSubordinates()[sub_it], features[feature_it].getSubordinates()[sub_it2], filter_criteria.component_group_qcs[cg_qc_it].ion_ratio_feature_name);
@@ -352,6 +354,7 @@ namespace OpenMS
       double feature_1 = component_1.getMetaValue(feature_name);
       double feature_2 = component_2.getMetaValue(feature_name);
       ratio = feature_1/feature_2;
+      
     } 
     else if (component_1.metaValueExists(feature_name))
     {
