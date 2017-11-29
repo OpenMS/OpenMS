@@ -434,7 +434,7 @@ namespace OpenMS
     //remove trailing delimm
     if (str_cat != "")
     {
-      str_cat = str_cat.substr(sizeof(str_cat-1), 1);
+      str_cat = str_cat.substr(sizeof(str_cat)-1, 1);
     }
     return str_cat;
   }
