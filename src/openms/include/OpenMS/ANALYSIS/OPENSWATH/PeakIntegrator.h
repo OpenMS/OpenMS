@@ -50,6 +50,12 @@ public:
     PeakIntegrator();
     virtual ~PeakIntegrator();
 
+    double estimateBackground(
+      const MSChromatogram& chromatogram,
+      const double& left,
+      const double& right
+    );
+
     void integratePeak(
       const MSChromatogram& chromatogram,
       const double& left,

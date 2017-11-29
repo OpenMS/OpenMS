@@ -143,6 +143,27 @@ START_SECTION(getPeakModel())
 }
 END_SECTION
 
+START_SECTION(estimateBackground())
+{
+  MSChromatogram chromatogram;
+  setup_toy_chromatogram(chromatogram);
+  double left = 2.477966667;
+  double right = 3.01895;
+
+  Param params = ptr->getParameters();
+  params.setValue("integration_type", "trapezoid");
+  ptr->setParameters(params);
+  double background = ptr->estimateBackground(chromatogram, left, right);
+  TEST_REAL_SIMILAR(background, 1140.392865964)
+
+  params.setValue("integration_type", "intensity_sum");
+  ptr->setParameters(params);
+  background = ptr->estimateBackground(chromatogram, left, right);
+  TEST_REAL_SIMILAR(background, 123446.661339019)
+
+}
+END_SECTION
+
 START_SECTION(integratePeak())
 {
   // inputs

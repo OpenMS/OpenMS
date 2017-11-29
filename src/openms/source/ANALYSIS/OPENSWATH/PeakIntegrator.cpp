@@ -45,6 +45,40 @@ namespace OpenMS
 
   PeakIntegrator::~PeakIntegrator() {}
 
+  double PeakIntegrator::estimateBackground(
+    const MSChromatogram& chromatogram,
+    const double& left,
+    const double& right
+  )
+  {
+    const double intensity_l = chromatogram.RTBegin(left)->getIntensity();
+    const double intensity_r = (chromatogram.RTEnd(right)-1)->getIntensity();
+    const double delta_int = intensity_r - intensity_l;
+    double background = 0.0;
+    if (integration_type_ == "trapezoid" || integration_type_ == "simpson")
+    {
+      const double intensity_min = std::min(intensity_r, intensity_l);
+      const double delta_int_abs = std::fabs(delta_int);
+      for (auto it=chromatogram.RTBegin(left); it<chromatogram.RTEnd(right)-1; ++it)
+      {
+        const double delta_rt = (it+1)->getRT() - it->getRT();
+        background += intensity_min * delta_rt + 0.5 * delta_int_abs * delta_rt;
+      }
+    }
+    else
+    {
+      const double delta_input_rt = right - left;
+      for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it)
+      {
+        // calculate the background using the formula
+        // y = mx + b where x = retention time, m = slope, b = left intensity
+        // sign of delta_int will determine line direction
+        background += delta_int / delta_input_rt * (it->getRT() - left) + intensity_l;
+      }
+    }
+    return background;
+  }
+
   void PeakIntegrator::integratePeak(
     const MSChromatogram& chromatogram,
     const double& left,
