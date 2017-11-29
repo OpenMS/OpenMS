@@ -972,19 +972,19 @@ namespace OpenMS
     retention_time.setRT(rt_value);
     if (retentionTimeInterpretation_ == "iRT")
     {
-      retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::iRT;
+      retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::IRT;
       // no unit, since it is iRT (normalized RT)
     }
     else if (retentionTimeInterpretation_ == "seconds" || retentionTimeInterpretation_ == "minutes")
     {
-      retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::Local;
+      retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::LOCAL;
       if (retentionTimeInterpretation_ == "seconds")
       {
-        retention_time.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Second;
+        retention_time.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::SECOND;
       }
       else if (retentionTimeInterpretation_ == "minutes")
       {
-        retention_time.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Minute;
+        retention_time.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE;
       }
     }
     retention_times.push_back(retention_time);

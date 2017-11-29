@@ -154,30 +154,30 @@ namespace OpenMS
     {
 public:
 
-      enum RTUnit
+      enum class RTUnit : std::int8_t
       {
-        Second = 0,        // seconds
-        Minute,            // minutes
-        unit_Unannotated,  // no stored annotation
-        SizeOfRTUnit
+        SECOND = 0,        // RT stored in seconds
+        MINUTE,            // RT stored in minutes
+        UNKNOWN,           // no stored annotation
+        SIZE_OF_RTUNIT
       };
 
-      enum RTType
+      enum class RTType : std::int8_t
       {
-        Local = 0,        // undefined local chromatography
-        Normalized,       // standardized reference chromatography
-        Predicted,        // predicted by referenced software
+        LOCAL = 0,        // undefined local chromatography
+        NORMALIZED,       // standardized reference chromatography
+        PREDICTED,        // predicted by referenced software
         HPINS,            // H-PINS "The de facto standard providing the retention times"
-        iRT,              // iRT retention time standard
-        type_Unannotated, // no stored annotation
-        SizeOfRTType
+        IRT,              // iRT retention time standard
+        UNKNOWN,          // no stored annotation
+        SIZE_OF_RTTYPE
       };
 
       RetentionTime() :
         CVTermListInterface(),
         software_ref(""),
-        retention_time_unit(RTUnit::SizeOfRTUnit),
-        retention_time_type(RTType::SizeOfRTType),
+        retention_time_unit(RTUnit::SIZE_OF_RTUNIT),
+        retention_time_type(RTType::SIZE_OF_RTTYPE),
         retention_time_set_(false),
         retention_time_(0.0)
         // retention_time_width(0.0),

@@ -49,7 +49,7 @@ std::vector<TargetedExperiment::RetentionTime> get_rts_(double rt_val)
   std::vector<TargetedExperiment::RetentionTime> retention_times;
   TargetedExperiment::RetentionTime retention_time;
   retention_time.setRT(rt_val);
-  retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::Normalized;
+  retention_time.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED;
   retention_times.push_back(retention_time);
   return retention_times;
 }

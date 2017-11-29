@@ -913,15 +913,15 @@ namespace OpenMS
 
       if (rit->isRTset())
       {
-        if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::Local)
+        if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::LOCAL)
         {
           os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000895\" name=\"local retention time\" value=\"" << rit->getRT() << "\"";
         }
-        else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::Normalized)
+        else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED)
         {
           os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000896\" name=\"normalized retention time\" value=\"" << rit->getRT() << "\"";
         }
-        else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::Predicted)
+        else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::PREDICTED)
         {
           os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000897\" name=\"predicted retention time\" value=\"" << rit->getRT() << "\"";
         }
@@ -929,7 +929,7 @@ namespace OpenMS
         {
           os << "          <cvParam cvRef=\"MS\" accession=\"MS:1000902\" name=\"H-PINS retention time normalization standard\" value=\"" << rit->getRT() << "\"";
         }
-        else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::iRT)
+        else if (rit->retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::IRT)
         {
           os << "          <cvParam cvRef=\"MS\" accession=\"MS:1002005\" name=\"iRT retention time normalization standard\" value=\"" << rit->getRT() << "\"";
         }
@@ -940,11 +940,11 @@ namespace OpenMS
       }
 
       // write units (minute, second or none)
-      if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::Second) //seconds
+      if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::SECOND) //seconds
       {
         os << " unitCvRef=\"UO\" unitAccession=\"UO:0000010\" unitName=\"second\"/>\n";
       }
-      else if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::Minute) //minutes
+      else if ( rit->retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE) //minutes
       {
         os << " unitCvRef=\"UO\" unitAccession=\"UO:0000031\" unitName=\"minute\"/>\n";
       }
@@ -1263,31 +1263,31 @@ namespace OpenMS
 
         if ( cv_term.getUnit().accession == "UO:0000010") //seconds
         {
-          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Second;
+          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::SECOND;
         }
         else if ( cv_term.getUnit().accession == "UO:0000031") //minutes
         {
-          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Minute;
+          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE;
         }
-        else if (actual_rt_.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::SizeOfRTUnit) // do not overwrite previous data
+        else if (actual_rt_.retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::SIZE_OF_RTUNIT) // do not overwrite previous data
         {
-          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::unit_Unannotated;
+          actual_rt_.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::UNKNOWN;
         }
 
         if (cv_term.getAccession() == "MS:1000895") // local RT
         {
           actual_rt_.setRT(cv_term.getValue().toString().toDouble());
-          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::Local;
+          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::LOCAL;
         }
         else if (cv_term.getAccession() == "MS:1000896") // normalized RT
         {
           actual_rt_.setRT(cv_term.getValue().toString().toDouble());
-          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::Normalized;
+          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED;
         }
         else if (cv_term.getAccession() == "MS:1000897") // predicted RT
         {
           actual_rt_.setRT(cv_term.getValue().toString().toDouble());
-          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::Predicted;
+          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::PREDICTED;
         }
         else if (cv_term.getAccession() == "MS:1000902") // H-PINS
         {
@@ -1297,7 +1297,7 @@ namespace OpenMS
         else if (cv_term.getAccession() == "MS:1002005") // iRT
         {
           if (cv_term.getValue().toString() != "") actual_rt_.setRT(cv_term.getValue().toString().toDouble());
-          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::iRT;
+          actual_rt_.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::IRT;
         }
         // else if (cv_term.getAccession() == "MS:1000916") // RT lower offset
         // {

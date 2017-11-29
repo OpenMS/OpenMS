@@ -85,22 +85,22 @@ START_SECTION((TargetedExperiment::Peptide))
   // add a RT
   TargetedExperimentHelper::RetentionTime rt;
   rt.setRT(5.0);
-  rt.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Second;
-  rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::Predicted;
+  rt.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::SECOND;
+  rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::PREDICTED;
   p.rts.push_back(rt);
 
   // test the RT methods
   TEST_EQUAL(p.rts.size(), 1)
   TEST_EQUAL(p.rts[0] == rt, true)
-  TEST_EQUAL(p.rts[0].retention_time_unit, TargetedExperimentHelper::RetentionTime::RTUnit::Second)
-  TEST_EQUAL(p.rts[0].retention_time_type, TargetedExperimentHelper::RetentionTime::RTType::Predicted)
+  TEST_EQUAL(p.rts[0].retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::SECOND, true)
+  TEST_EQUAL(p.rts[0].retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::PREDICTED, true)
   TEST_REAL_SIMILAR(p.rts[0].getRT(), 5.0)
 
   // test the Peptide methods
   TEST_EQUAL(p.hasRetentionTime(), true)
   TEST_REAL_SIMILAR(p.getRetentionTime(), 5.0)
-  TEST_EQUAL(p.getRetentionTimeUnit(), TargetedExperimentHelper::RetentionTime::RTUnit::Second)
-  TEST_EQUAL(p.getRetentionTimeType(), TargetedExperimentHelper::RetentionTime::RTType::Predicted)
+  TEST_EQUAL(p.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::SECOND, true)
+  TEST_EQUAL(p.getRetentionTimeType() == TargetedExperimentHelper::RetentionTime::RTType::PREDICTED, true)
 
   TEST_EQUAL(p.getPeptideGroupLabel(), "")
   p.setPeptideGroupLabel("test1");
@@ -124,22 +124,22 @@ START_SECTION((TargetedExperiment::Compound))
   // add a RT
   TargetedExperimentHelper::RetentionTime rt;
   rt.setRT(5.0);
-  rt.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::Second;
-  rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::Predicted;
+  rt.retention_time_unit = TargetedExperimentHelper::RetentionTime::RTUnit::SECOND;
+  rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::PREDICTED;
   p.rts.push_back(rt);
 
   // test the RT methods
   TEST_EQUAL(p.rts.size(), 1)
   TEST_EQUAL(p.rts[0] == rt, true)
-  TEST_EQUAL(p.rts[0].retention_time_unit, TargetedExperimentHelper::RetentionTime::RTUnit::Second)
-  TEST_EQUAL(p.rts[0].retention_time_type, TargetedExperimentHelper::RetentionTime::RTType::Predicted)
+  TEST_EQUAL(p.rts[0].retention_time_unit == TargetedExperimentHelper::RetentionTime::RTUnit::SECOND, true)
+  TEST_EQUAL(p.rts[0].retention_time_type == TargetedExperimentHelper::RetentionTime::RTType::PREDICTED, true)
   TEST_REAL_SIMILAR(p.rts[0].getRT(), 5.0)
 
   // test the Compound methods
   TEST_EQUAL(p.hasRetentionTime(), true)
   TEST_REAL_SIMILAR(p.getRetentionTime(), 5.0)
-  TEST_EQUAL(p.getRetentionTimeUnit(), TargetedExperimentHelper::RetentionTime::RTUnit::Second)
-  TEST_EQUAL(p.getRetentionTimeType(), TargetedExperimentHelper::RetentionTime::RTType::Predicted)
+  TEST_EQUAL(p.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::SECOND, true)
+  TEST_EQUAL(p.getRetentionTimeType() == TargetedExperimentHelper::RetentionTime::RTType::PREDICTED, true)
 
   // TEST_EQUAL(p.getPeptideGroupLabel(), "")
   // p.setPeptideGroupLabel("test1");

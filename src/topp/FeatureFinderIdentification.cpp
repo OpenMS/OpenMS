@@ -387,7 +387,7 @@ protected:
   {
     TargetedExperiment::RetentionTime te_rt;
     te_rt.setRT(rt);
-    te_rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::Normalized;
+    te_rt.retention_time_type = TargetedExperimentHelper::RetentionTime::RTType::NORMALIZED;
     peptide.rts.push_back(te_rt);
   }
 
