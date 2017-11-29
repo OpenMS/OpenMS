@@ -143,10 +143,9 @@ namespace OpenMS
     for (UInt i=0; i<spectra.size(); ++i)
     {
       MSSpectrum spectrum = spectra[i];
-      const double divisor = (String)param_.getValue("rt_unit") == "seconds" ? 1.0 : 60.0;
-      const double spectrum_rt = spectrum.getRT() / divisor;
-      const double rt_left_lim = spectrum_rt - rt_window_ / divisor / 2.0;
-      const double rt_right_lim = spectrum_rt + rt_window_ / divisor / 2.0;
+      const double spectrum_rt = spectrum.getRT();
+      const double rt_left_lim = spectrum_rt - rt_window_ / 2.0;
+      const double rt_right_lim = spectrum_rt + rt_window_ / 2.0;
       const std::vector<Precursor> precursors = spectrum.getPrecursors();
       if (precursors.size() < 1)
       {
@@ -172,8 +171,9 @@ namespace OpenMS
         }
         else
         {
-          target_rt = peptide.getRetentionTime(); // accesses to MS:1000896. TODO: update if "guesstimate" in TargetedExperimentHelper.h is fixed
+          target_rt = peptide.getRetentionTime(); // accesses to MS:1000896. TODO: update once https://github.com/OpenMS/OpenMS/pull/3043 is merged
         }
+        target_rt *= (String)param_.getValue("rt_unit") == "seconds" ? 1.0 : 60.0;
 
         const double target_mz = transitions[j].getPrecursorMZ();
 
