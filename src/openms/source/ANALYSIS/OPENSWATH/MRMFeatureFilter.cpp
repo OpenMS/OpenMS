@@ -89,6 +89,8 @@ namespace OpenMS
     // initialize QC variables
     FeatureMap features_filtered;
 
+    String delim = ";";
+
     // bool qc_pass;
     String concentration_units;// iterate through each component_group/feature     
 
@@ -264,7 +266,7 @@ namespace OpenMS
         else if (!c_qc_pass && flag_or_filter_ == "flag")
         {
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_pass", false);
-          String c_qc_fail_message = uniqueJoin(c_qc_fail_message_vec, ";");
+          String c_qc_fail_message = uniqueJoin(c_qc_fail_message_vec, delim);
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", c_qc_fail_message);
         }
       }
@@ -295,7 +297,7 @@ namespace OpenMS
       else if (!cg_qc_pass && flag_or_filter_ == "flag")
       {
         features[feature_it].setMetaValue("QC_transition_group_pass", false);
-        String cg_qc_fail_message = uniqueJoin(cg_qc_fail_message_vec, ";");
+        String cg_qc_fail_message = uniqueJoin(cg_qc_fail_message_vec, delim);
         features[feature_it].setMetaValue("QC_transition_group_message", cg_qc_fail_message);
       }
     }
