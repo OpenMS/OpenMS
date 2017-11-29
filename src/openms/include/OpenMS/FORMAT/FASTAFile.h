@@ -153,7 +153,7 @@ public:
     void readStart(const String& filename);
 
     /**
-    @brief Prepares a FASTA file given by 'filename' for streamed reading using readNext().
+    @brief Reads the next FASTA entry from file.
 
     If you want to read all entries in one go, use load().
 
