@@ -446,14 +446,14 @@ START_SECTION((std::vector<AbsoluteQuantitationStandards::featureConcentration> 
   std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub = AbsoluteQuantitation_test.extractComponents_(
     component_concentrations, component_concentrations_indices);
 
-  TEST_EQUAL(component_concentrations_sub[0].component_concentration.feature.getMetaValue("native_id"), "component0");
-  TEST_REAL_SIMILAR(component_concentrations_sub[0].component_concentration.actual_concentration, 1.1);
+  TEST_EQUAL(component_concentrations_sub[0].feature.getMetaValue("native_id"), "component0");
+  TEST_REAL_SIMILAR(component_concentrations_sub[0].actual_concentration, 1.1);
   
-  TEST_EQUAL(component_concentrations_sub[1].component_concentration.feature.getMetaValue("native_id"), "component1");
-  TEST_REAL_SIMILAR(component_concentrations_sub[1].component_concentration.actual_concentration, 2.0);
+  TEST_EQUAL(component_concentrations_sub[1].feature.getMetaValue("native_id"), "component1");
+  TEST_REAL_SIMILAR(component_concentrations_sub[1].actual_concentration, 2.0);
 
-  TEST_EQUAL(component_concentrations_sub[2].component_concentration.feature.getMetaValue("native_id"), "component3");
-  TEST_REAL_SIMILAR(component_concentrations_sub[2].component_concentration.actual_concentration, 3.9);
+  TEST_EQUAL(component_concentrations_sub[2].feature.getMetaValue("native_id"), "component3");
+  TEST_REAL_SIMILAR(component_concentrations_sub[2].actual_concentration, 3.9);
 
 END_SECTION
 
