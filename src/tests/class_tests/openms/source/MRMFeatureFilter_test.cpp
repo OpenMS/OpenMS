@@ -89,7 +89,7 @@ START_SECTION(String uniqueJoin(std::vector<String>& str_vec, const String& deli
   // tests
   String delim = ";";
   TEST_EQUAL(mrmff.uniqueJoin(str_vec, delim), "bye;hello");
-  String delim = "||");
+  delim = "||");
   TEST_EQUAL(mrmff.uniqueJoin(str_vec, delim), "bye;hello");
 
 }
