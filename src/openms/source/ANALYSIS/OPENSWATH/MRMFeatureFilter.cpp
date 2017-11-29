@@ -264,7 +264,7 @@ namespace OpenMS
         else if (!c_qc_pass && flag_or_filter_ == "flag")
         {
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_pass", false);
-          String c_qc_fail_message = uniqueJoin(c_qc_fail_message, ";");
+          String c_qc_fail_message = uniqueJoin(c_qc_fail_message_vec, ";");
           features[feature_it].getSubordinates()[sub_it].setMetaValue("QC_transition_message", c_qc_fail_message);
         }
       }
