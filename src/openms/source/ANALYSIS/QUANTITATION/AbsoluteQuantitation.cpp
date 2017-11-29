@@ -468,7 +468,7 @@ namespace OpenMS
 
   std::vector<AbsoluteQuantitationStandards::featureConcentration> AbsoluteQuantitation::extractComponents_(
     const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-    std::vector<size_t> component_concentrations_indices)
+    const std::vector<size_t>& component_concentrations_indices)
   {
     std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub;
     for (size_t iter = 0; iter < component_concentrations_indices.size(); ++iter)

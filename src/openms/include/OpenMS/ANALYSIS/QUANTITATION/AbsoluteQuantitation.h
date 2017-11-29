@@ -247,7 +247,7 @@ protected:
     */ 
     std::vector<AbsoluteQuantitationStandards::featureConcentration> extractComponents_(
       const std::vector<AbsoluteQuantitationStandards::featureConcentration> & component_concentrations,
-      std::vector<size_t> component_concentrations_indices);
+      const std::vector<size_t>& component_concentrations_indices);
   
     /**
       @brief This function computes a candidate outlier point by iteratively
