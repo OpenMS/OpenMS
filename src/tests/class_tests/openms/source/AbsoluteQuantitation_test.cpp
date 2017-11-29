@@ -443,7 +443,7 @@ START_SECTION((std::vector<AbsoluteQuantitationStandards::featureConcentration> 
   static const size_t arrx2[] = { 0, 1, 3  };
   std::vector<size_t> component_concentrations_indices(arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
 
-  std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub = AbsoluteQuantitation_test.extractComponents_(
+  std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_sub = absquant.extractComponents_(
     component_concentrations, component_concentrations_indices);
 
   TEST_EQUAL(component_concentrations_sub[0].feature.getMetaValue("native_id"), "component0");
