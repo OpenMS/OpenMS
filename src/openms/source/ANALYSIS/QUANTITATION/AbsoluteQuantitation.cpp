@@ -496,6 +496,9 @@ namespace OpenMS
       std::vector<AbsoluteQuantitationStandards::featureConcentration> component_concentrations_tmp = component_concentrations;
       component_concentrations_tmp.erase(component_concentrations_tmp.begin() + i);
 
+      // debugging:
+      std::cout << "jackknifeOutlierCandidate_: size of component_concentrations: " << std::to_string(component_concentrations_tmp.size()) << std::endl;
+
       // fit the model
       Param optimized_params = AbsoluteQuantitation::fitCalibration(component_concentrations_tmp,
         feature_name,
