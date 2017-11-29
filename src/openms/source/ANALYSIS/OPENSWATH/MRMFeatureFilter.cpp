@@ -417,7 +417,7 @@ namespace OpenMS
     {
       range_check = false;
     }
-    // std::cout << "value: " << (String)value << " lb: " << (String)value_l << " ub: " << (String)value_u << std::endl; //debugging //debugging
+    // std::cout << "value: " << (String)value << " lb: " << (String)value_l << " ub: " << (String)value_u << std::endl; //debugging
     return range_check;
   }
 
@@ -432,11 +432,13 @@ namespace OpenMS
     {
       str_cat = str_cat + str + delim;
     }
+    std::cout << str_cat << std::endl; //debugging
     //remove trailing delimm
     if (str_cat != "")
     {
       str_cat = str_cat.substr(sizeof(str_cat)-1, 1);
     }
+    std::cout << str_cat << std::endl; //debugging
     return str_cat;
   }
   
