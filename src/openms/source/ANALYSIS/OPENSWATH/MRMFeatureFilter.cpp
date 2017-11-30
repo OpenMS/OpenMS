@@ -420,13 +420,13 @@ namespace OpenMS
     {
       str_cat = str_cat + str + delim;
     }
-    std::cout << str_cat << std::endl; //debugging
+    // std::cout << str_cat << std::endl; //debugging
     //remove trailing delimm
     if (str_cat != "")
     {
       str_cat = str_cat.substr(0, str_cat.length() - delim.length());
     }
-    std::cout << str_cat << std::endl; //debugging
+    // std::cout << str_cat << std::endl; //debugging
     return str_cat;
   }
 
