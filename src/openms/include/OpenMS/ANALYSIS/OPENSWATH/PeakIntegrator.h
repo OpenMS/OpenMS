@@ -59,11 +59,12 @@ public:
     void integratePeak(
       const MSChromatogram& chromatogram,
       const double& left,
-      const double& right,
-      double& peak_area,
-      double& peak_height,
-      double& peak_apex_pos
+      const double& right
     );
+
+    double getPeakArea() const;
+    double getPeakHeight() const;
+    double getPeakApexPosition() const;
 
     void setIntegrationType(const String& integration_type);
     String getIntegrationType() const;
@@ -83,6 +84,9 @@ private:
     String integration_type_; // intensity_sum, trapezoid, simpson
     String baseline_type_; // vertical_division, base_to_base
     String peak_model_; // none
+    double peak_area_ = 0.0;
+    double peak_height_ = -1.0;
+    double peak_apex_pos_ = -1.0;
   };
 }
 

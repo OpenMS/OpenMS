@@ -169,121 +169,29 @@ START_SECTION(integratePeak())
   // inputs
   MSChromatogram chromatogram;
   setup_toy_chromatogram(chromatogram);
-  double left = 2.477966667;
+  const double left = 2.477966667;
   double right = 3.01895;
 
-  // outputs
-  double peak_area;
-  double peak_height;
-  double peak_apex_pos; // (coordinates of mz or rt)
-
   ptr->setIntegrationType("simpson");
-  ptr->integratePeak(chromatogram, left, right, peak_area, peak_height, peak_apex_pos);
+  ptr->integratePeak(chromatogram, left, right);
   cout << "simpson: " << endl;
-  TEST_REAL_SIMILAR(peak_area, 71720.443144994)
-  TEST_REAL_SIMILAR(peak_height, 966489.0)
-  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
+  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71720.443144994)
+  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
+  TEST_REAL_SIMILAR(ptr->getPeakApexPosition(), 2.7045)
 
   ptr->setIntegrationType("intensity_sum");
-  ptr->integratePeak(chromatogram, left, right, peak_area, peak_height, peak_apex_pos);
+  ptr->integratePeak(chromatogram, left, right);
   cout << "intensity_sum: " << endl;
-  TEST_REAL_SIMILAR(peak_area, 118750.49122807)
-  TEST_REAL_SIMILAR(peak_height, 966489.0)
-  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
+  TEST_REAL_SIMILAR(ptr->getPeakArea(), 118750.49122807)
+  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
+  TEST_REAL_SIMILAR(ptr->getPeakApexPosition(), 2.7045)
 
   ptr->setIntegrationType("trapezoid");
-  ptr->integratePeak(chromatogram, left, right, peak_area, peak_height, peak_apex_pos);
+  ptr->integratePeak(chromatogram, left, right);
   cout << "trapezoid: " << endl;
-  TEST_REAL_SIMILAR(peak_area, 71540.2)
-  TEST_REAL_SIMILAR(peak_height, 966489.0)
-  TEST_REAL_SIMILAR(peak_apex_pos, 2.7045)
-
-  // ofstream outfile;
-  // outfile.open(
-  //   OPENMS_GET_TEST_DATA_PATH("PeakIntegrator_integratePeak_output.html"),
-  //   ios::out | ios::trunc
-  // );
-  // if (outfile.is_open())
-  // {
-  //   const string header = ""
-  //   "<!doctype html>"
-  //   "<html>"
-  //   "<head>"
-  //   "  <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>"
-  //   "</head>"
-  //   "<body>"
-  //   "  <div id=\"plot-here\" style=\"height: 800px\"></div>"
-  //   "left: " + to_string(left) + "<br>"
-  //   "right: " + to_string(right) + "<br>"
-  //   "area: " + to_string(peak_area) + "<br>"
-  //   "</body>"
-  //   "<script>"
-  //   "const data = [";
-  //
-  //   outfile << header;
-  //   outfile << "  {" << endl <<  "    x: [";
-  //   for (auto p : chromatogram)
-  //   {
-  //     outfile << p.getRT() << ", ";
-  //   }
-  //   outfile << "]," << endl << "    y: [";
-  //   for (auto p : chromatogram) {
-  //     outfile << p.getIntensity() << ", ";
-  //   }
-  //   outfile << "]," << endl;
-  //   string points_layout = ""
-  //   "    mode: 'markers',"
-  //   "    name: 'points',"
-  //   "    type: 'scatter',"
-  //   "    marker: {"
-  //   "      color: 'red',"
-  //   "      size: 4,"
-  //   "      symbol: 'cross'"
-  //   "    }"
-  //   "  },";
-  //
-  //   outfile << points_layout << endl << "{" << endl << "    x: [";
-  //   for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it)
-  //   {
-  //     outfile << it->getRT() << ", ";
-  //   }
-  //   outfile << "]," << endl << "    y: [";
-  //   for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it) {
-  //     outfile << it->getIntensity() << ", ";
-  //   }
-  //   outfile << "]," << endl;
-  //   string lines_layout = ""
-  //   "    name: 'area',"
-  //   "    type: 'scatter',"
-  //   "    mode: 'none',"
-  //   "    fill: 'tozeroy',"
-  //   "    fillcolor: 'lightskyblue'"
-  //   "  },";
-  //   outfile << lines_layout << endl;
-  //
-  //   const string footer = ""
-  //   "];"
-  //   "const layout = {"
-  //   "  title: 'Chromatogram',"
-  //   "  xaxis: {"
-  //   "    title: 'Retention time'"
-  //   "  },"
-  //   "  yaxis: {"
-  //   "    title: 'Intensity'"
-  //   "  },"
-  //   "  hovermode: 'closest'"
-  //   "};"
-  //   "Plotly.plot(document.getElementById('plot-here'), data, layout);"
-  //   "</script>"
-  //   "</html>";
-  //
-  //   outfile << footer;
-  //   outfile.close();
-  // }
-  // else
-  // {
-  //   cout << "Unable to open file to write the spectrum";
-  // }
+  TEST_REAL_SIMILAR(ptr->getPeakArea(), 71540.2)
+  TEST_REAL_SIMILAR(ptr->getPeakHeight(), 966489.0)
+  TEST_REAL_SIMILAR(ptr->getPeakApexPosition(), 2.7045)
 }
 END_SECTION
 

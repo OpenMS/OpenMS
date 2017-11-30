@@ -81,15 +81,12 @@ namespace OpenMS
   void PeakIntegrator::integratePeak(
     const MSChromatogram& chromatogram,
     const double& left,
-    const double& right,
-    double& peak_area,
-    double& peak_height,
-    double& peak_apex_pos
+    const double& right
   )
   {
-    peak_area = 0.0;
-    peak_height = -1.0;
-    peak_apex_pos = -1.0;
+    peak_area_ = 0.0;
+    peak_height_ = -1.0;
+    peak_apex_pos_ = -1.0;
     UInt n_points = 0;
     for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it, ++n_points)
       ;
@@ -98,11 +95,11 @@ namespace OpenMS
     {
       for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right)-1; ++it)
       {
-        peak_area += ((it+1)->getRT() - it->getRT()) * ((it->getIntensity() + (it+1)->getIntensity()) / 2.0);
-        if (peak_height < it->getIntensity())
+        peak_area_ += ((it+1)->getRT() - it->getRT()) * ((it->getIntensity() + (it+1)->getIntensity()) / 2.0);
+        if (peak_height_ < it->getIntensity())
         {
-          peak_height = it->getIntensity();
-          peak_apex_pos = it->getRT();
+          peak_height_ = it->getIntensity();
+          peak_apex_pos_ = it->getRT();
         }
       }
     }
@@ -120,11 +117,11 @@ namespace OpenMS
         double y_h = it->getIntensity();
         double y_0 = (it+1)->getIntensity();
         double y_k = (it+2)->getIntensity();
-        peak_area += (1.0/6.0) * (h+k) * ((2.0-k/h)*y_h + (pow(h+k,2)/(h*k))*y_0 + (2.0-h/k)*y_k);
-        if (peak_height < it->getIntensity())
+        peak_area_ += (1.0/6.0) * (h+k) * ((2.0-k/h)*y_h + (pow(h+k,2)/(h*k))*y_0 + (2.0-h/k)*y_k);
+        if (peak_height_ < it->getIntensity())
         {
-          peak_height = it->getIntensity();
-          peak_apex_pos = it->getRT();
+          peak_height_ = it->getIntensity();
+          peak_apex_pos_ = it->getRT();
         }
       }
     }
@@ -135,14 +132,29 @@ namespace OpenMS
       for (auto it=chromatogram.RTBegin(left); it!=chromatogram.RTEnd(right); ++it)
       {
         intensity_sum += it->getIntensity();
-        if (peak_height < it->getIntensity())
+        if (peak_height_ < it->getIntensity())
         {
-          peak_height = it->getIntensity();
-          peak_apex_pos = it->getRT();
+          peak_height_ = it->getIntensity();
+          peak_apex_pos_ = it->getRT();
         }
       }
-      peak_area = intensity_sum / n_points;
+      peak_area_ = intensity_sum / n_points;
     }
+  }
+
+  double PeakIntegrator::getPeakArea() const
+  {
+    return peak_area_;
+  }
+
+  double PeakIntegrator::getPeakHeight() const
+  {
+    return peak_height_;
+  }
+
+  double PeakIntegrator::getPeakApexPosition() const
+  {
+    return peak_apex_pos_;
   }
 
   void PeakIntegrator::setIntegrationType(const String& integration_type)
